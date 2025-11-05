@@ -1,7 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Для Docker standalone output
+  output: 'standalone',
+  
+  // Оптимізація для продакшену
+  compress: true,
+  
+  // Experimental features
+  experimental: {
+    optimizeCss: true,
+  },
 };
 
 export default nextConfig;

@@ -1,0 +1,124 @@
+/**
+ * Premium Color Scheme & Performance Optimizations
+ * Platinum/Gold/Dark Red - Luxury Automotive Theme
+ */
+
+/* Updated CSS Variables */
+:root {
+    --primary: #0a0a0a;
+    --accent: #c9a961; /* Platinum gold */
+    --accent-rgb: 201, 169, 97;
+    --red-accent: #8b0000; /* Dark red */
+    --silver: #c0c0c0;
+    --dark-grey: #1a1a1a;
+}
+
+/* Performance: Reduce animations on low-end devices */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Elegant Particles - Override */
+#particles {
+    opacity: 0.6 !important;
+}
+
+/* Premium Navigation */
+.epic-nav {
+    background: rgba(10, 10, 10, 0.9) !important;
+    border-bottom: 1px solid rgba(201, 169, 97, 0.15) !important;
+}
+
+.epic-nav__logo {
+    color: var(--accent) !important;
+    text-shadow: 0 0 15px rgba(201, 169, 97, 0.3);
+}
+
+.epic-nav__menu a {
+    color: #fff !important;
+    transition: all 0.3s ease;
+}
+
+.epic-nav__menu a:hover {
+    color: var(--accent) !important;
+    text-shadow: 0 0 10px rgba(201, 169, 97, 0.5);
+}
+
+/* Premium Buttons */
+.liquid-btn,
+.epic-intro__button {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--silver) 100%) !important;
+    color: #000 !important;
+    font-weight: 600;
+    box-shadow: 0 5px 20px rgba(201, 169, 97, 0.3);
+}
+
+.liquid-btn:hover,
+.epic-intro__button:hover {
+    box-shadow: 0 8px 30px rgba(201, 169, 97, 0.5);
+    transform: translateY(-2px);
+}
+
+/* Brand Cards Premium */
+.brand-card {
+    background: rgba(26, 26, 26, 0.6) !important;
+    border: 1px solid rgba(201, 169, 97, 0.2) !important;
+}
+
+.brand-card:hover {
+    border-color: var(--accent) !important;
+    box-shadow: 0 10px 40px rgba(201, 169, 97, 0.2);
+}
+
+/* Stats Premium Colors */
+.epic-stat__number {
+    color: var(--accent) !important;
+}
+
+/* Footer Premium */
+.epic-footer__back-to-top {
+    background: var(--accent) !important;
+    box-shadow: 0 5px 20px rgba(201, 169, 97, 0.4);
+}
+
+.epic-footer__social a:hover {
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
+}
+
+/* Filter Buttons */
+.filter-btn.active {
+    background: var(--accent) !important;
+    color: #000 !important;
+    box-shadow: 0 4px 15px rgba(201, 169, 97, 0.4);
+}
+
+/* Contact Form Premium */
+.liquid-contact-form__submit {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--silver) 100%) !important;
+    color: #000 !important;
+}
+
+/* Preloader Premium */
+.preloader__spinner {
+    border-top-color: var(--accent) !important;
+    border-right-color: var(--silver) !important;
+}
+
+.preloader__text {
+    color: var(--accent) !important;
+}
+
+/* Cursor Premium */
+.epic-cursor {
+    background: var(--accent) !important;
+    box-shadow: 0 0 12px var(--accent) !important;
+}
+
+.epic-cursor-ring {
+    border-color: rgba(201, 169, 97, 0.5) !important;
+}

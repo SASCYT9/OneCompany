@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 onecompany - 3D Experience Hub
 
-## Getting Started
+> Найбільш вражаючий сайт-агрегатор в авто-тюнінг індустрії з кінематографічною 3D-анімацією на скрол.
 
-First, run the development server:
+## 🎯 Концепція
+
+Це не просто каталог - це **інтерактивний 3D-музей флагманських продуктів**, де кожен елемент оживає під час скролу, створюючи незабутній кінематографічний досвід.
+
+## ✨ Ключові Features
+
+- 🎬 **Кінематографічна камера** з GSAP ScrollTrigger
+- 🎨 **3D-анімація на скрол** з React Three Fiber
+- 💎 **Преміальні UI компоненти** з неоновими ефектами
+- 📱 **Мобільна оптимізація** з video fallback
+- ⚡ **Blazing Fast** з Next.js 14 та code splitting
+- 🎭 **Система частинок** для драматичних ефектів
+- 🔌 **Headless CMS ready** для легкого керування контентом
+
+## 🛠️ Технологічний Стек
+
+- **Next.js 14** - React framework з App Router
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Utility-first styling
+- **React Three Fiber** - React renderer для Three.js
+- **@react-three/drei** - Helpers для R3F
+- **GSAP** - Професійна анімаційна бібліотека
+- **Three.js** - 3D WebGL двигун
+
+## 🚀 Швидкий Старт
 
 ```bash
+# Встановлення залежностей
+npm install
+
+# Запуск dev сервера
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Відкрийте [http://localhost:3000](http://localhost:3000) у браузері.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Структура Проекту
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── page.tsx           # Головна сторінка з 3D сценою
+│   └── brands/            # Каталог брендів
+├── components/
+│   ├── 3d/                # 3D компоненти
+│   │   ├── Homepage3DScene.tsx      # Головна 3D сцена
+│   │   ├── CinematicCamera.tsx      # GSAP камера контролер
+│   │   ├── HeroProduct.tsx          # 3D модель продукту
+│   │   └── ParticleSystem.tsx       # Система частинок
+│   └── ui/                # UI компоненти
+│       ├── PremiumButton.tsx        # Кнопки з ефектами
+│       └── BrandCard.tsx            # Картки брендів
+└── lib/                   # Utilities
+    ├── types.ts           # TypeScript типи
+    └── performance.ts     # GPU detection
+```
 
-## Learn More
+## 🎨 Додайте ваші 3D моделі
 
-To learn more about Next.js, take a look at the following resources:
+1. Розмістіть `.glb` файли в `/public/models/`
+2. Рекомендації:
+   - Формат: `.glb` (binary glTF)
+   - Poly count: 10k-50k
+   - Використовуйте Draco compression
+   - Розмір: до 5MB на модель
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Де замовити моделі:**
+- [ArtStation](https://www.artstation.com)
+- [Upwork](https://www.upwork.com) - "product 3D model WebGL"
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📱 Мобільна Оптимізація
 
-## Deploy on Vercel
+Проект автоматично:
+- Визначає пристрій
+- На mobile показує відео замість 3D
+- Оптимізує продуктивність під GPU
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🎯 Наступні Кроки
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. ✅ Базова структура створена
+2. 📦 Додайте реальні 3D моделі продуктів
+3. 🎨 Додайте логотипи брендів
+4. 🎬 Запишіть відео для мобільних
+5. 🔌 Підключіть Headless CMS (Strapi/Sanity)
+6. 🚀 Deploy на Vercel
+
+## 📚 Документація
+
+- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber)
+- [GSAP ScrollTrigger](https://greensock.com/scrolltrigger/)
+- [Next.js Docs](https://nextjs.org/docs)
+
+---
+
+**Створено для onecompany** - *Перфоманс. Візуалізований.*

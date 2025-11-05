@@ -1,0 +1,31 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "onecompany/contact-form-block",
+    "version": "1.0.0",
+    "title": "Контактна Форма",
+    "category": "onecompany",
+    "icon": "email",
+    "description": "Преміальна контактна форма з ефектом Liquid Glass",
+    "attributes": {
+        "title": {
+            "type": "string",
+            "default": "Зв'яжіться з нами"
+        },
+        "subtitle": {
+            "type": "string",
+            "default": "Ми завжди раді відповісти на ваші запитання"
+        },
+        "emailTo": {
+            "type": "string",
+            "default": ""
+        }
+    },
+    "supports": {
+        "html": false,
+        "align": ["wide", "full"]
+    },
+    "textdomain": "onecompany-theme",
+    "editorScript": "file:./index.js",
+    "render": "file:./render.php"
+}

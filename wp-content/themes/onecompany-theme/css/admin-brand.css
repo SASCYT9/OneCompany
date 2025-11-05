@@ -1,0 +1,54 @@
+.brand-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.brand-meta-field {
+    margin-bottom: 20px;
+}
+
+.brand-meta-field label {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.brand-media-field {
+    padding: 16px;
+    border: 1px solid #d4d4d4;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.brand-media-field.has-media .brand-media-preview {
+    background: #0f0f0f;
+}
+
+.brand-media-preview {
+    aspect-ratio: 1 / 1;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    border: 1px dashed #c3c3c3;
+    background: #f7f7f7;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.brand-media-preview img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}
+
+.brand-media-placeholder {
+    font-size: 12px;
+    color: #666;
+}
+
+.brand-media-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}

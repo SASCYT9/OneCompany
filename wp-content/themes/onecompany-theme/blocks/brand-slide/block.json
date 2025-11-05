@@ -1,0 +1,38 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "onecompany/brand-slide",
+    "version": "1.0.0",
+    "title": "OneCompany Brand Slide",
+    "category": "onecompany",
+    "icon": "slides",
+    "description": "Слайд для демонстрації бренду з відео та описом",
+    "attributes": {
+        "brandName": {
+            "type": "string",
+            "default": "KW"
+        },
+        "brandDescription": {
+            "type": "string",
+            "default": "Преміальна підвіска з Німеччини"
+        },
+        "videoUrl": {
+            "type": "string",
+            "default": ""
+        },
+        "slideNumber": {
+            "type": "string",
+            "default": "01"
+        },
+        "accentColor": {
+            "type": "string",
+            "default": "#c9a961"
+        }
+    },
+    "supports": {
+        "html": false,
+        "align": ["full"]
+    },
+    "textdomain": "onecompany-theme",
+    "editorScript": "file:../../build/brand-slide/index.js"
+}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+  <title id="title">Product Placeholder</title>
+  <desc id="desc">Neutral dark placeholder card for a product image.</desc>
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0b0b0b"/>
+      <stop offset="1" stop-color="#121212"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#g)"/>
+  <g fill="#ffffff" fill-opacity="0.85">
+    <rect x="200" y="200" width="400" height="8" rx="4" opacity="0.25" />
+    <rect x="220" y="230" width="360" height="8" rx="4" opacity="0.18" />
+    <rect x="250" y="260" width="300" height="8" rx="4" opacity="0.12" />
+  </g>
+</svg>

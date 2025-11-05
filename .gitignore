@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+wp-content/themes/onecompany-theme/node_modules/
 /.pnp
 .pnp.*
 .yarn/*

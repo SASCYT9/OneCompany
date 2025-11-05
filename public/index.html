@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Onecompany - Преміум автотюнінг. Три напрями. Одна філософія.">
+    <title>onecompany | Преміум Автотюнінг</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="container">
+            <div class="header-content">
+                <!-- Logo -->
+                <div class="logo">
+                    <span class="logo-one">one</span><span class="logo-company">company</span>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="main-nav">
+                    <ul>
+                        <li>
+                            <a href="#" class="nav-dropdown" id="stores-dropdown">
+                                Магазини 
+                                <svg class="icon-arrow-down" width="12" height="8" viewBox="0 0 12 8" fill="none">
+                                    <path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </a>
+                            <!-- Dropdown Menu -->
+                            <div class="dropdown-menu" id="stores-menu">
+                                <a href="https://kwsuspension.shop/" target="_blank" class="dropdown-item">
+                                    <span>KW Suspension</span>
+                                    <div class="item-accent accent-orange"></div>
+                                </a>
+                                <a href="https://fiexhaust.shop/" target="_blank" class="dropdown-item">
+                                    <span>Fi Exhaust</span>
+                                    <div class="item-accent accent-red"></div>
+                                </a>
+                                <a href="https://eventuri.shop/" target="_blank" class="dropdown-item">
+                                    <span>Eventuri</span>
+                                    <div class="item-accent accent-cyan"></div>
+                                </a>
+                            </div>
+                        </li>
+                        <li><a href="#about">Про нас</a></li>
+                    </ul>
+                </nav>
+                
+                <!-- CTA Button -->
+                <button class="btn-outline" onclick="document.getElementById('stores-dropdown').click()">
+                    Обрати магазин
+                </button>
+                
+                <!-- Social Navigation (Three Dots) -->
+                <div class="social-nav">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <!-- Video Background -->
+            <div class="video-background">
+                <video autoplay muted loop playsinline>
+                    <source src="videos/hero-smoke.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            
+            <!-- Hero Content Overlay -->
+            <div class="hero-content">
+                <h1 class="hero-logo">
+                    <span class="hero-one">one</span><span class="hero-company">company</span>
+                </h1>
+                <p class="slogan">Преміум автотюнінг. Три напрями. Одна філософія.</p>
+                
+                <!-- Scroll Indicator -->
+                <div class="scroll-indicator">
+                    <div class="mouse">
+                        <div class="wheel"></div>
+                    </div>
+                    <p class="scroll-text">Scroll to explore</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Brands Section -->
+        <section class="brands-section" id="brands">
+            <div class="container">
+                <h2 class="section-title">Наші бренди</h2>
+                <div class="brands-grid">
+                    <!-- KW Card -->
+                    <div class="brand-card" data-brand="kw">
+                        <div class="card-glow glow-orange"></div>
+                        <div class="card-content">
+                            <h3 class="brand-name">KW</h3>
+                            <p class="brand-subtitle">Suspension Systems</p>
+                            <p class="brand-description">
+                                Precision engineered coilovers that redefine your driving experience. 
+                                German engineering meets motorsport performance.
+                            </p>
+                            <div class="brand-features">
+                                <span class="feature-tag">Height Adjustable</span>
+                                <span class="feature-tag">Rebound Damping</span>
+                                <span class="feature-tag">TÜV Certified</span>
+                                <span class="feature-tag">Track Ready</span>
+                            </div>
+                            <a href="https://kwsuspension.shop/" target="_blank" class="btn-brand btn-orange">
+                                Explore KW
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Fi Card -->
+                    <div class="brand-card" data-brand="fi">
+                        <div class="card-glow glow-red"></div>
+                        <div class="card-content">
+                            <h3 class="brand-name">Fi Exhaust</h3>
+                            <p class="brand-subtitle">Exhaust Systems</p>
+                            <p class="brand-description">
+                                Unleash the true voice of your engine. Valvetronic technology 
+                                for the ultimate sound experience.
+                            </p>
+                            <div class="brand-features">
+                                <span class="feature-tag">Valvetronic Control</span>
+                                <span class="feature-tag">Titanium Construction</span>
+                                <span class="feature-tag">+20 HP Gain</span>
+                                <span class="feature-tag">Lifetime Warranty</span>
+                            </div>
+                            <a href="https://fiexhaust.shop/" target="_blank" class="btn-brand btn-red">
+                                Explore Fi
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Eventuri Card -->
+                    <div class="brand-card" data-brand="eventuri">
+                        <div class="card-glow glow-cyan"></div>
+                        <div class="card-content">
+                            <h3 class="brand-name">Eventuri</h3>
+                            <p class="brand-subtitle">Intake Systems</p>
+                            <p class="brand-description">
+                                The art of airflow. Carbon fiber intake systems engineered 
+                                through computational fluid dynamics.
+                            </p>
+                            <div class="brand-features">
+                                <span class="feature-tag">CFD Optimized</span>
+                                <span class="feature-tag">Carbon Fiber</span>
+                                <span class="feature-tag">+15% Airflow</span>
+                                <span class="feature-tag">Dyno Proven</span>
+                            </div>
+                            <a href="https://eventuri.shop/" target="_blank" class="btn-brand btn-cyan">
+                                Explore Eventuri
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about-section" id="about">
+            <div class="container">
+                <div class="about-content">
+                    <h2 class="section-title">Про onecompany</h2>
+                    <div class="about-text">
+                        <p>
+                            Ми — це <strong>onecompany</strong>, преміальний дистриб'ютор провідних світових брендів автотюнінгу.
+                        </p>
+                        <p>
+                            Наша місія — надати українським автолюбителям доступ до найкращих компонентів 
+                            для підвищення продуктивності та індивідуалізації автомобілів.
+                        </p>
+                        <p>
+                            <span class="highlight-cyan">KW</span> • <span class="highlight-red">Fi Exhaust</span> • <span class="highlight-orange">Eventuri</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="logo-one">one</span><span class="logo-company">company</span>
+                </div>
+                <p class="footer-text">© 2025 onecompany. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
