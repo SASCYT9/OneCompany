@@ -616,14 +616,49 @@ function onecompany_register_blocks() {
     
     // Register Gallery Block
     register_block_type(__DIR__ . '/blocks/gallery-block');
-
-    // Register Section Header Block
-    register_block_type(__DIR__ . '/blocks/section-header-block');
-
-    // Register Text Image Block
-    register_block_type(__DIR__ . '/blocks/text-image-block');
 }
 add_action('init', 'onecompany_register_blocks');
+
+/**
+ * Setup navigation menu on theme activation.
+ */
+function onecompany_setup_navigation_menu() {
+    $menu_name = 'Primary Menu';
+    $menu_location = 'primary';
+    $menu_exists = wp_get_nav_menu_object($menu_name);
+
+    if (!$menu_exists) {
+        $menu_id = wp_create_nav_menu($menu_name);
+
+        // Add items to the menu
+        wp_update_nav_menu_item($menu_id, 0, [
+            'menu-item-title'  => 'Головна',
+            'menu-item-url'    => home_url('/'),
+            'menu-item-status' => 'publish'
+        ]);
+        wp_update_nav_menu_item($menu_id, 0, [
+            'menu-item-title'  => 'Бренди',
+            'menu-item-url'    => home_url('/#brands'),
+            'menu-item-status' => 'publish'
+        ]);
+        wp_update_nav_menu_item($menu_id, 0, [
+            'menu-item-title'  => 'Галерея',
+            'menu-item-url'    => home_url('/#gallery'),
+            'menu-item-status' => 'publish'
+        ]);
+        wp_update_nav_menu_item($menu_id, 0, [
+            'menu-item-title'  => 'Контакти',
+            'menu-item-url'    => home_url('/#contact'),
+            'menu-item-status' => 'publish'
+        ]);
+
+        // Assign the menu to the 'primary' location
+        $locations = get_theme_mod('nav_menu_locations');
+        $locations[$menu_location] = $menu_id;
+        set_theme_mod('nav_menu_locations', $locations);
+    }
+}
+add_action('after_setup_theme', 'onecompany_setup_navigation_menu');
 
 /**
  * Handle Premium Contact Form submission via AJAX.
