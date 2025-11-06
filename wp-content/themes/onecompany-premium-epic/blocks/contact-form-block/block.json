@@ -2,23 +2,43 @@
     "$schema": "https://schemas.wp.org/trunk/block.json",
     "apiVersion": 3,
     "name": "onecompany/contact-form-block",
-    "version": "1.0.0",
-    "title": "Контактна Форма",
+    "version": "1.1.0",
+    "title": "Контактна Форма (Premium)",
     "category": "onecompany",
-    "icon": "email",
-    "description": "Преміальна контактна форма з ефектом Liquid Glass",
+    "icon": "email-alt",
+    "description": "Сучасна контактна форма з валідацією та анімаціями.",
     "attributes": {
+        "eyebrow": {
+            "type": "string",
+            "default": "Є запитання?"
+        },
         "title": {
             "type": "string",
-            "default": "Зв'яжіться з нами"
+            "default": "Напишіть нам"
         },
         "subtitle": {
             "type": "string",
-            "default": "Ми завжди раді відповісти на ваші запитання"
+            "default": "Заповніть форму, і наші спеціалісти зв'яжуться з вами найближчим часом."
         },
-        "emailTo": {
+        "recipientEmail": {
             "type": "string",
             "default": ""
+        },
+        "submitButtonText": {
+            "type": "string",
+            "default": "Надіслати"
+        },
+        "successMessage": {
+            "type": "string",
+            "default": "Дякуємо! Ваше повідомлення було успішно надіслано."
+        },
+        "errorMessage": {
+            "type": "string",
+            "default": "Сталася помилка. Спробуйте, будь ласка, ще раз."
+        },
+        "theme": {
+            "type": "string",
+            "default": "dark"
         }
     },
     "supports": {
@@ -27,5 +47,7 @@
     },
     "textdomain": "onecompany-theme",
     "editorScript": "file:./index.js",
+    "style": "file:./style-index.css",
+    "viewScript": "file:./view.js",
     "render": "file:./render.php"
 }

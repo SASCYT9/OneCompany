@@ -2,23 +2,55 @@
     "$schema": "https://schemas.wp.org/trunk/block.json",
     "apiVersion": 3,
     "name": "onecompany/gallery-block",
-    "version": "1.0.0",
-    "title": "Liquid Gallery",
+    "version": "1.1.0",
+    "title": "Галерея (Premium)",
     "category": "onecompany",
-    "icon": "format-gallery",
-    "description": "Преміальна галерея зображень з ефектом Liquid Glass",
+    "icon": "images-alt2",
+    "description": "Створюйте преміальні галереї: сітка, слайдер або карусель з підтримкою відео та лайтбоксу.",
     "attributes": {
-        "images": {
+        "mediaItems": {
             "type": "array",
             "default": []
         },
-        "columns": {
+        "galleryType": {
+            "type": "string",
+            "default": "grid"
+        },
+        "columnsDesktop": {
             "type": "number",
             "default": 3
         },
+        "columnsTablet": {
+            "type": "number",
+            "default": 2
+        },
+        "columnsMobile": {
+            "type": "number",
+            "default": 1
+        },
         "gap": {
             "type": "number",
-            "default": 20
+            "default": 16
+        },
+        "enableLightbox": {
+            "type": "boolean",
+            "default": true
+        },
+        "sliderArrows": {
+            "type": "boolean",
+            "default": true
+        },
+        "sliderPagination": {
+            "type": "boolean",
+            "default": true
+        },
+        "sliderAutoplay": {
+            "type": "boolean",
+            "default": false
+        },
+        "sliderAutoplayDelay": {
+            "type": "number",
+            "default": 3000
         }
     },
     "supports": {
@@ -27,6 +59,6 @@
     },
     "textdomain": "onecompany-theme",
     "editorScript": "file:./index.js",
-    "editorStyle": "file:./index.css",
-    "style": "file:./style-index.css"
+    "style": "file:./style-index.css",
+    "viewScript": "file:./view.js"
 }

@@ -2,27 +2,52 @@
     "$schema": "https://schemas.wp.org/trunk/block.json",
     "apiVersion": 3,
     "name": "onecompany/hero-block",
-    "version": "1.0.0",
-    "title": "Hero Section",
+    "version": "1.1.0",
+    "title": "Hero Section (Premium)",
     "category": "onecompany",
     "icon": "cover-image",
-    "description": "Преміальна Hero-секція з відео фоном та анімаціями",
+    "description": "Преміальна Hero-секція з відео фоном та анімаціями GSAP.",
     "attributes": {
+        "eyebrow": {
+            "type": "string",
+            "source": "html",
+            "selector": ".hero__eyebrow",
+            "default": "THE ART OF AUTOMOTIVE"
+        },
         "title": {
             "type": "string",
+            "source": "html",
+            "selector": ".hero__title",
             "default": "ONECOMPANY"
         },
         "subtitle": {
             "type": "string",
-            "default": "Преміум автомобільні аксесуари"
+            "source": "html",
+            "selector": ".hero__subtitle",
+            "default": "Преміум автомобільні аксесуари та тюнінг"
         },
-        "videoUrl": {
+        "mediaId": {
+            "type": "number"
+        },
+        "mediaUrl": {
             "type": "string",
             "default": ""
         },
-        "accentColor": {
+        "primaryBtnText": {
             "type": "string",
-            "default": "#ff6b00"
+            "default": "Наші бренди"
+        },
+        "primaryBtnLink": {
+            "type": "string",
+            "default": "#brands"
+        },
+        "secondaryBtnText": {
+            "type": "string",
+            "default": "Зв'язатися з нами"
+        },
+        "secondaryBtnLink": {
+            "type": "string",
+            "default": "#contact"
         }
     },
     "supports": {
@@ -32,5 +57,6 @@
     "textdomain": "onecompany-theme",
     "editorScript": "file:./index.js",
     "editorStyle": "file:./index.css",
-    "style": "file:./style-index.css"
+    "style": "file:./style-index.css",
+    "viewScript": "file:./view.js"
 }

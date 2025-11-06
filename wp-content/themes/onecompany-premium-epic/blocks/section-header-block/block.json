@@ -1,0 +1,41 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "onecompany/section-header-block",
+    "version": "1.0.0",
+    "title": "Заголовок Секції",
+    "category": "onecompany",
+    "icon": "text-page",
+    "description": "Універсальний заголовок для секцій з підзаголовком та вирівнюванням.",
+    "attributes": {
+        "eyebrow": {
+            "type": "string",
+            "source": "html",
+            "selector": ".section-heading__eyebrow",
+            "default": "НАШІ ПЕРЕВАГИ"
+        },
+        "title": {
+            "type": "string",
+            "source": "html",
+            "selector": ".section-heading__title",
+            "default": "Чому обирають нас"
+        },
+        "subtitle": {
+            "type": "string",
+            "source": "html",
+            "selector": ".section-heading__subtitle",
+            "default": "Ми пропонуємо тільки найкращі рішення для вашого автомобіля."
+        },
+        "alignment": {
+            "type": "string",
+            "default": "center"
+        }
+    },
+    "supports": {
+        "html": false,
+        "align": ["wide", "full"]
+    },
+    "textdomain": "onecompany-theme",
+    "editorScript": "file:./index.js",
+    "style": "file:./style-index.css"
+}
