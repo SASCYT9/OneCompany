@@ -1,0 +1,58 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "onecompany/text-image-block",
+    "version": "1.0.0",
+    "title": "Текст та Зображення",
+    "category": "onecompany",
+    "icon": "align-pull-left",
+    "description": "Блок з двома колонками: текст та зображення, з гнучкими налаштуваннями.",
+    "attributes": {
+        "mediaId": {
+            "type": "number"
+        },
+        "mediaUrl": {
+            "type": "string",
+            "default": ""
+        },
+        "mediaAlt": {
+            "type": "string",
+            "default": ""
+        },
+        "title": {
+            "type": "string",
+            "source": "html",
+            "selector": ".text-image__title",
+            "default": "Заголовок Блоку"
+        },
+        "content": {
+            "type": "string",
+            "source": "html",
+            "selector": ".text-image__content",
+            "default": "<p>Тут ви можете додати детальний опис вашої послуги, продукту або переваги. Розкажіть клієнтам, чому вони мають обрати саме вас.</p>"
+        },
+        "buttonText": {
+            "type": "string",
+            "default": "Дізнатись більше"
+        },
+        "buttonLink": {
+            "type": "string",
+            "default": "#"
+        },
+        "imagePosition": {
+            "type": "string",
+            "default": "left"
+        },
+        "verticalAlignment": {
+            "type": "string",
+            "default": "center"
+        }
+    },
+    "supports": {
+        "html": false,
+        "align": ["wide", "full"]
+    },
+    "textdomain": "onecompany-theme",
+    "editorScript": "file:./index.js",
+    "style": "file:./style-index.css"
+}

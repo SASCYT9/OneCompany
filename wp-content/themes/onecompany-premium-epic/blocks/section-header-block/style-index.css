@@ -1,0 +1,33 @@
+.section-heading {
+    max-width: var(--max-width-default);
+    margin: 0 auto 3rem;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.section-heading__eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.section-heading__title {
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: clamp(2rem, 4vw, 3rem);
+    margin: 0;
+}
+
+.section-heading__subtitle {
+    max-width: 60ch;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0;
+
+    /* Ensure subtitle aligns with the rest of the text based on parent alignment */
+    margin-left: auto;
+    margin-right: auto;
+}

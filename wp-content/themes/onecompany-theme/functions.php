@@ -616,5 +616,68 @@ function onecompany_register_blocks() {
     
     // Register Gallery Block
     register_block_type(__DIR__ . '/blocks/gallery-block');
+
+    // Register Section Header Block
+    register_block_type(__DIR__ . '/blocks/section-header-block');
+
+    // Register Text Image Block
+    register_block_type(__DIR__ . '/blocks/text-image-block');
 }
 add_action('init', 'onecompany_register_blocks');
+
+/**
+ * Handle Premium Contact Form submission via AJAX.
+ */
+function onecompany_handle_premium_contact_form() {
+    // 1. Verify nonce for security
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'onecompany_contact_form_nonce')) {
+        wp_send_json_error(['message' => 'Перевірка безпеки не вдалася.'], 403);
+        return;
+    }
+
+    // 2. Sanitize and validate form data
+    $name = isset($_POST['contact_name']) ? sanitize_text_field($_POST['contact_name']) : '';
+    $email = isset($_POST['contact_email']) ? sanitize_email($_POST['contact_email']) : '';
+    $phone = isset($_POST['contact_phone']) ? sanitize_text_field($_POST['contact_phone']) : '';
+    $message = isset($_POST['contact_message']) ? sanitize_textarea_field($_POST['contact_message']) : '';
+    $recipient_email = isset($_POST['recipient_email']) ? sanitize_email($_POST['recipient_email']) : get_option('admin_email');
+
+    // Basic server-side validation
+    if (empty($name) || !is_email($email) || empty($message)) {
+        wp_send_json_error(['message' => 'Будь ласка, заповніть всі обов\'язкові поля.'], 400);
+        return;
+    }
+
+    if (!is_email($recipient_email)) {
+        $recipient_email = get_option('admin_email');
+    }
+
+    // 3. Prepare and send the email
+    $subject = sprintf('Нове повідомлення від %s з сайту OneCompany', $name);
+    $headers = ['Content-Type: text/html; charset=UTF-8', 'Reply-To: ' . $name . ' <' . $email . '>'];
+
+    $body = "<html><body>";
+    $body .= "<h2>Нове повідомлення з контактної форми</h2>";
+    $body .= "<p><strong>Ім'я:</strong> " . esc_html($name) . "</p>";
+    $body .= "<p><strong>Email:</strong> " . esc_html($email) . "</p>";
+    if (!empty($phone)) {
+        $body .= "<p><strong>Телефон:</strong> " . esc_html($phone) . "</p>";
+    }
+    $body .= "<p><strong>Повідомлення:</strong><br>" . nl2br(esc_html($message)) . "</p>";
+    $body .= "<hr>";
+    $body .= "<p><small>Відправлено з " . get_bloginfo('name') . "</small></p>";
+    $body .= "</body></html>";
+
+    $sent = wp_mail($recipient_email, $subject, $body, $headers);
+
+    // 4. Send JSON response
+    if ($sent) {
+        wp_send_json_success(['message' => 'Повідомлення успішно надіслано!']);
+    } else {
+        wp_send_json_error(['message' => 'Не вдалося надіслати повідомлення. Спробуйте пізніше.'], 500);
+    }
+}
+
+// Hook for both logged-in and non-logged-in users
+add_action('wp_ajax_send_onecompany_contact_form', 'onecompany_handle_premium_contact_form');
+add_action('wp_ajax_nopriv_send_onecompany_contact_form', 'onecompany_handle_premium_contact_form');
