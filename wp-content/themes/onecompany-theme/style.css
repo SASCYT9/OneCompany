@@ -210,6 +210,123 @@ section {
 	gap: 1rem;
 }
 
+/* Single Brand Page Styles */
+.brand-content-wrapper {
+	max-width: 75ch;
+	margin: 0 auto 3rem;
+	font-size: 1.1rem;
+	line-height: 1.8;
+	color: var(--color-text-secondary);
+}
+
+.features-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 2rem;
+	max-width: var(--max-width-wide);
+	margin: 2rem auto 0;
+}
+
+.feature-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 1.5rem;
+	padding: 1.5rem;
+	background-color: var(--color-surface-light);
+	border: 1px solid var(--color-border);
+	border-radius: 16px;
+}
+
+.feature-item__icon {
+	font-size: 1.5rem;
+	color: var(--color-accent);
+}
+
+.feature-item__title {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 500;
+	color: var(--color-text-primary);
+}
+
+/* Brand Archive Page Styles */
+.page-header {
+	padding: clamp(8rem, 15vh, 10rem) min(6vw, 5rem) var(--spacing-section);
+	background: linear-gradient(180deg, rgba(5,5,5,0) 0%, var(--color-background) 100%),
+				radial-gradient(circle at 50% 0%, rgba(255,255,255,0.08), transparent 45%);
+}
+
+.page-header__inner {
+	max-width: var(--max-width-default);
+	margin: 0 auto;
+	text-align: center;
+}
+
+.page-title {
+	font-size: clamp(2.5rem, 6vw, 4rem);
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	margin-bottom: 1rem;
+}
+
+.archive-description {
+	max-width: 65ch;
+	margin: 0 auto;
+	color: var(--color-text-secondary);
+	font-size: 1.1rem;
+	line-height: 1.8;
+}
+
+.brands-archive-grid {
+	max-width: var(--max-width-wide);
+	margin: 0 auto;
+	padding: 0 min(6vw, 5rem) var(--spacing-section);
+	display: grid;
+	gap: 2rem;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.brand-card__link-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 10;
+}
+
+/* Typography and Code Blocks */
+code {
+	background-color: var(--color-surface-light);
+	border: 1px solid var(--color-border);
+	padding: 0.2em 0.4em;
+	margin: 0;
+	font-size: 85%;
+	border-radius: 6px;
+	font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+}
+
+pre {
+	padding: 1.5rem;
+	margin: 1rem 0;
+	background-color: var(--color-surface-light);
+	border: 1px solid var(--color-border);
+	border-radius: 12px;
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+	font-size: 0.9em;
+	line-height: 1.6;
+}
+
+pre code {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	font-size: inherit;
+	color: inherit;
+}
+
+
 .hero__button {
 	padding: 0.85rem 2.5rem;
 	border-radius: 999px;

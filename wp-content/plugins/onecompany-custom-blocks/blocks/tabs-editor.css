@@ -1,0 +1,19 @@
+.tabs-editor {
+    border: 1px dashed #ccc;
+    padding: 15px;
+}
+
+.tabs-titles {
+    display: flex;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.tab-title-editor {
+    padding: 10px 15px;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    margin-right: 5px;
+    border-radius: 5px 5px 0 0;
+}

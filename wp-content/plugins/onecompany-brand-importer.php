@@ -102,21 +102,37 @@ class OneCompany_Brand_Importer {
     }
 
     private function generate_placeholder_image($text, $type = 'logo') {
-        $width = ($type === 'logo') ? 250 : 1024;
-        $height = ($type === 'logo') ? 250 : 768;
-        $bg_color = '1a1a1a';
-        $text_color = '777';
+        // For logos, we'll still use a simple placeholder for consistency.
+        if ($type === 'logo') {
+            $width = 250;
+            $height = 250;
+            $bg_color = '1a1a1a';
+            $text_color = '777';
+            $url = "https://via.placeholder.com/{$width}x{$height}/{$bg_color}/{$text_color}.png?text=" . urlencode($text);
+        } else {
+            // For thumbnails/hero images, use Unsplash Source for realistic images.
+            $width = 1280;
+            $height = 800;
+            // Using keywords relevant to the brand name to get varied, high-quality images.
+            $keywords = urlencode($text . ',car,tuning,performance');
+            $url = "https://source.unsplash.com/random/{$width}x{$height}?{$keywords}";
+        }
 
-        $url = "https://via.placeholder.com/{$width}x{$height}/{$bg_color}/{$text_color}.png?text=" . urlencode($text);
-
-        $tmp_file = download_url($url, 15); // 15 second timeout
+        // Use a longer timeout for Unsplash as it can be slower to respond with a random image.
+        $tmp_file = download_url($url, 30);
 
         if (is_wp_error($tmp_file)) {
             error_log('Failed to download placeholder image for ' . $text . ': ' . $tmp_file->get_error_message());
-            return false;
+            // Fallback to the old placeholder service if Unsplash fails.
+            $fallback_url = "https://via.placeholder.com/1024x768/1a1a1a/777.png?text=Image+Error";
+            $tmp_file = download_url($fallback_url, 15);
+            if(is_wp_error($tmp_file)){
+                 return false;
+            }
         }
 
-        $file_name = sanitize_title($text) . '-' . $type . '.png';
+        // Unsplash might return JPEG, so we adjust the filename.
+        $file_name = sanitize_title($text) . '-' . $type . '.jpg';
 
         $file = ['name' => $file_name, 'tmp_name' => $tmp_file];
 
@@ -134,113 +150,124 @@ class OneCompany_Brand_Importer {
     private function get_brands_data() {
         return [
             // Suspension
-            ['name' => 'KW Suspension', 'subtitle' => 'Підвіска', 'description' => 'Преміальна підвіска з Німеччини.', 'color' => '#c9a961'],
-            ['name' => 'Bilstein', 'subtitle' => 'Підвіска', 'description' => 'Німецька якість підвіски.', 'color' => '#FFD700'],
-            ['name' => 'Öhlins', 'subtitle' => 'Підвіска', 'description' => 'Шведська інженерна досконалість.', 'color' => '#FFD700'],
-            ['name' => 'H&R', 'subtitle' => 'Підвіска', 'description' => 'Німецькі пружини та підвіска.', 'color' => '#c0c0c0'],
-            ['name' => 'Eibach', 'subtitle' => 'Підвіска', 'description' => 'Американська інновація в підвісках.', 'color' => '#FF0000'],
-            ['name' => 'BC Racing', 'subtitle' => 'Підвіска', 'description' => 'Доступні coilovers.', 'color' => '#FF0000'],
-            ['name' => 'Tein', 'subtitle' => 'Підвіска', 'description' => 'Японські спортивні підвіски.', 'color' => '#0066CC'],
+            ['name' => 'KW Suspension', 'subtitle' => 'Підвіска', 'description' => 'Лідер у виробництві систем підвіски, KW пропонує все від регульованих пружин до гоночних комплектів Competition. Розроблено та вироблено в Німеччині для максимальної продуктивності та довговічності.', 'color' => '#c9a961'],
+            ['name' => 'Bilstein', 'subtitle' => 'Підвіска', 'description' => 'Синонім якості та інновацій в амортизаторах. Від заводських рішень до легендарних серій B6, B8 та Clubsport, Bilstein забезпечує неперевершений контроль над дорогою.', 'color' => '#FFD700'],
+            ['name' => 'Öhlins', 'subtitle' => 'Підвіска', 'description' => 'Шведська інженерна досконалість, що прийшла з мотоспорту. Їхня технологія Dual Flow Valve (DFV) для дорожніх автомобілів та трекових болідів є еталоном у світі підвісок.', 'color' => '#FFD700'],
+            ['name' => 'H&R', 'subtitle' => 'Підвіска', 'description' => 'Німецький виробник високоякісних пружин, стабілізаторів та колісних проставок. H&R гарантує ідеальне заниження та покращену керованість без компромісів у комфорті.', 'color' => '#c0c0c0'],
+            ['name' => 'Eibach', 'subtitle' => 'Підвіска', 'description' => 'Eibach - це вибір чемпіонів. Американський бренд, що спеціалізується на виробництві пружин Pro-Kit та Sportline, а також комплексних рішень підвіски для будь-якого стилю водіння.', 'color' => '#FF0000'],
+            ['name' => 'BC Racing', 'subtitle' => 'Підвіска', 'description' => 'Пропонуючи одні з найкращих койловерів за співвідношенням ціна/якість, BC Racing дозволяє налаштувати висоту, жорсткість та розвал, ідеально підлаштовуючи автомобіль під ваші потреби.', 'color' => '#FF0000'],
+            ['name' => 'Tein', 'subtitle' => 'Підвіска', 'description' => 'Японська компанія, назва якої означає "Technical Innovation". Tein відома своїми зеленими койловерами, що пропонують широкий діапазон налаштувань для дріфту, кільцевих гонок та вуличної їзди.', 'color' => '#0066CC'],
+            ['name' => 'AST Suspension', 'subtitle' => 'Підвіска', 'description' => 'Голландський виробник преміальних гоночних амортизаторів. AST пропонує рішення, перевірені на найскладніших трасах світу, для тих, хто не визнає компромісів.', 'color' => '#F37021'],
+            ['name' => 'JRZ Suspension', 'subtitle' => 'Підвіска', 'description' => 'Спеціалізуючись на кастомних гоночних амортизаторах, JRZ Suspension Engineering є вибором професійних команд у GT, турингу та клубних гонках по всьому світу.', 'color' => '#00AEEF'],
 
             // Exhaust
-            ['name' => 'Akrapovic', 'subtitle' => 'Вихлопні системи', 'description' => 'Словенські титанові вихлопи.', 'color' => '#000000'],
-            ['name' => 'Fi Exhaust', 'subtitle' => 'Вихлопні системи', 'description' => 'Тайванські преміальні вихлопи.', 'color' => '#8b0000'],
-            ['name' => 'Eisenmann', 'subtitle' => 'Вихлопні системи', 'description' => 'Німецька точність у вихлопах.', 'color' => '#c0c0c0'],
-            ['name' => 'Capristo', 'subtitle' => 'Вихлопні системи', 'description' => 'Італійські вихлопи класу люкс.', 'color' => '#FF0000'],
-            ['name' => 'Milltek', 'subtitle' => 'Вихлопні системи', 'description' => 'Британські спортивні вихлопи.', 'color' => '#c9a961'],
-            ['name' => 'Remus', 'subtitle' => 'Вихлопні системи', 'description' => 'Австрійські вихлопні системи.', 'color' => '#000000'],
-            ['name' => 'iPE', 'subtitle' => 'Вихлопні системи', 'description' => 'Британські титанові вихлопи.', 'color' => '#c0c0c0'],
-            ['name' => 'Armytrix', 'subtitle' => 'Вихлопні системи', 'description' => 'Вихлопи з valvetronic технологією.', 'color' => '#000000'],
-            ['name' => 'HKS', 'subtitle' => 'Вихлопні системи', 'description' => 'Японські легендарні вихлопи.', 'color' => '#FF0000'],
+            ['name' => 'Akrapovic', 'subtitle' => 'Вихлопні системи', 'description' => 'Словенський майстер титанових вихлопних систем. Akrapovic - це витвір мистецтва, що поєднує бездоганний звук, зменшену вагу та збільшену потужність.', 'color' => '#000000'],
+            ['name' => 'Fi Exhaust', 'subtitle' => 'Вихлопні системи', 'description' => 'Frequency Intelligent Exhaust створює вихлопні системи з керованими заслінками, що дозволяють змінювати гучність та характер звуку. Тайванська якість для суперкарів.', 'color' => '#8b0000'],
+            ['name' => 'Eisenmann', 'subtitle' => 'Вихлопні системи', 'description' => 'Ручна робота з Німеччини. Eisenmann створює вихлопні системи, що славляться своїм глибоким, агресивним та водночас чистим звуком, особливо для німецьких автомобілів.', 'color' => '#c0c0c0'],
+            ['name' => 'Capristo', 'subtitle' => 'Вихлопні системи', 'description' => 'Італійський виробник вихлопних систем класу люкс для Ferrari, Lamborghini та інших екзотичних автомобілів. Capristo - це синонім інновацій та неперевершеного звуку.', 'color' => '#FF0000'],
+            ['name' => 'Milltek Sport', 'subtitle' => 'Вихлопні системи', 'description' => 'Британський виробник спортивних вихлопних систем з нержавіючої сталі. Milltek пропонує широкий асортимент для європейських хот-хетчів, седанів та спорткарів.', 'color' => '#c9a961'],
+            ['name' => 'Remus', 'subtitle' => 'Вихлопні системи', 'description' => 'Австрійська інженерія для вашого автомобіля. Remus використовує передові технології для створення вихлопних систем, що оптимізують потужність та звук.', 'color' => '#000000'],
+            ['name' => 'iPE', 'subtitle' => 'Вихлопні системи', 'description' => 'Innotech Performance Exhaust (iPE) відома своїми "Формула-1" звуком. Системи з вальветроніком забезпечують екстремальний звук на високих обертах та комфорт на низьких.', 'color' => '#c0c0c0'],
+            ['name' => 'Armytrix', 'subtitle' => 'Вихлопні системи', 'description' => 'Armytrix поєднує аерокосмічний титан та нержавіючу сталь для створення агресивних вихлопних систем з можливістю керування заслінками через мобільний додаток.', 'color' => '#000000'],
+            ['name' => 'HKS', 'subtitle' => 'Вихлопні системи', 'description' => 'Легенда японського тюнінгу. HKS пропонує все від класичних "банок" Hi-Power до повноцінних титанових систем для JDM та сучасних спорткарів.', 'color' => '#FF0000'],
+            ['name' => 'Kline Innovation', 'subtitle' => 'Вихлопні системи', 'description' => 'Спеціалізуючись на екзотичних матеріалах, як-от інконель 625, Kline створює надлегкі та надзвичайно гучні вихлопні системи для Porsche, McLaren та Ferrari.', 'color' => '#E4A010'],
 
             // Air Intake
-            ['name' => 'Eventuri', 'subtitle' => 'Впускні системи', 'description' => 'Британські карбонові впускні системи.', 'color' => '#8b0000'],
-            ['name' => 'BMC Air Filter', 'subtitle' => 'Впускні системи', 'description' => 'Італійські повітряні фільтри.', 'color' => '#FF0000'],
-            ['name' => 'K&N', 'subtitle' => 'Впускні системи', 'description' => 'Американські високопродуктивні фільтри.', 'color' => '#FF0000'],
+            ['name' => 'Eventuri', 'subtitle' => 'Впускні системи', 'description' => 'Британські інженери, що запатентували унікальний дизайн корпусу фільтра. Карбонові впускні системи Eventuri забезпечують реальне збільшення потужності та крутного моменту.', 'color' => '#8b0000'],
+            ['name' => 'BMC Air Filter', 'subtitle' => 'Впускні системи', 'description' => 'Італійський виробник повітряних фільтрів, що постачає свою продукцію для команд Формули-1 та MotoGP. BMC - це гарантія максимального потоку повітря та надійної фільтрації.', 'color' => '#FF0000'],
+            ['name' => 'K&N Engineering', 'subtitle' => 'Впускні системи', 'description' => 'Винахідники багаторазового бавовняного повітряного фільтра. K&N пропонує широкий вибір фільтрів та систем холодного впуску, що служать мільйон миль.', 'color' => '#FF0000'],
 
             // Brakes
-            ['name' => 'Brembo', 'subtitle' => 'Гальмівні системи', 'description' => 'Італійські преміальні гальма.', 'color' => '#FF0000'],
-            ['name' => 'AP Racing', 'subtitle' => 'Гальмівні системи', 'description' => 'Британські гоночні гальма.', 'color' => '#c9a961'],
-            ['name' => 'Stoptech', 'subtitle' => 'Гальмівні системи', 'description' => 'Американські високопродуктивні гальма.', 'color' => '#FF6600'],
-            ['name' => 'Endless', 'subtitle' => 'Гальмівні системи', 'description' => 'Японські гоночні гальма.', 'color' => '#FFD700'],
+            ['name' => 'Brembo', 'subtitle' => 'Гальмівні системи', 'description' => 'Італійський гігант, що є стандартом у світі гальмівних систем. Від OEM рішень до гоночних комплектів GT-R, Brembo гарантує безкомпромісну зупиняючу силу.', 'color' => '#FF0000'],
+            ['name' => 'AP Racing', 'subtitle' => 'Гальмівні системи', 'description' => 'Британський виробник з величезним досвідом у автоспорті. Гальмівні системи та зчеплення AP Racing - вибір професійних команд у NASCAR, F1 та WRC.', 'color' => '#c9a961'],
+            ['name' => 'StopTech', 'subtitle' => 'Гальмівні системи', 'description' => 'Американський бренд, що спеціалізується на високопродуктивних гальмівних системах Big Brake Kit. StopTech пропонує збалансовані рішення для треку та вулиці.', 'color' => '#FF6600'],
+            ['name' => 'Endless', 'subtitle' => 'Гальмівні системи', 'description' => 'Японський виробник преміальних гальмівних систем та колодок. Endless відомий своїми синіми супортами та надзвичайною стійкістю до перегріву.', 'color' => '#FFD700'],
+            ['name' => 'Alcon', 'subtitle' => 'Гальмівні системи', 'description' => 'Британська компанія, що розробляє гальмівні системи для автоспорту, OEM та броньованих автомобілів. Alcon - це синонім надійності в найекстремальніших умовах.', 'color' => '#005EB8'],
 
             // Wheels
-            ['name' => 'HRE Wheels', 'subtitle' => 'Колісні диски', 'description' => 'Американські кування колеса.', 'color' => '#c9a961'],
-            ['name' => 'BBS', 'subtitle' => 'Колісні диски', 'description' => 'Німецькі легендарні диски.', 'color' => '#FFD700'],
-            ['name' => 'Vossen', 'subtitle' => 'Колісні диски', 'description' => 'Американські преміальні диски.', 'color' => '#000000'],
-            ['name' => 'Rotiform', 'subtitle' => 'Колісні диски', 'description' => 'Американські custom диски.', 'color' => '#c0c0c0'],
-            ['name' => 'Rays Engineering', 'subtitle' => 'Колісні диски', 'description' => 'Японські високопродуктивні диски.', 'color' => '#FF0000'],
-            ['name' => 'OZ Racing', 'subtitle' => 'Колісні диски', 'description' => 'Італійські гоночні диски.', 'color' => '#FF0000'],
-            ['name' => 'Enkei', 'subtitle' => 'Колісні диски', 'description' => 'Японські MAT Process wheels.', 'color' => '#FFD700'],
-            ['name' => 'Work Wheels', 'subtitle' => 'Колісні диски', 'description' => 'Японські premium forged диски.', 'color' => '#c0c0c0'],
+            ['name' => 'HRE Wheels', 'subtitle' => 'Колісні диски', 'description' => 'Американський виробник кованих дисків на замовлення. HRE - це вершина дизайну, інженерії та якості, що дозволяє створити унікальний образ для вашого автомобіля.', 'color' => '#c9a961'],
+            ['name' => 'BBS', 'subtitle' => 'Колісні диски', 'description' => 'Легендарний німецький виробник. Від класичного дизайну "сітка" до сучасних кованих моноблоків, BBS є іконою стилю та продуктивності в світі колісних дисків.', 'color' => '#FFD700'],
+            ['name' => 'Vossen', 'subtitle' => 'Колісні диски', 'description' => 'Американський бренд, що задає тренди в дизайні литих та кованих дисків. Vossen відомий своїми увігнутими (concave) профілями та інноваційними рішеннями.', 'color' => '#000000'],
+            ['name' => 'Rotiform', 'subtitle' => 'Колісні диски', 'description' => 'Американський бренд, що втілює сміливі та агресивні дизайни. Rotiform пропонує як литі, так і кастомні ковані диски для стенс-проектів та повсякденних авто.', 'color' => '#c0c0c0'],
+            ['name' => 'Rays Engineering', 'subtitle' => 'Колісні диски', 'description' => 'Японський виробник легендарних моделей Volk Racing TE37, CE28 та Gram Lights. Rays - це надзвичайна міцність та мінімальна вага для максимальної продуктивності.', 'color' => '#FF0000'],
+            ['name' => 'OZ Racing', 'subtitle' => 'Колісні диски', 'description' => 'Італійська пристрасть до гонок, втілена в дисках. OZ Racing є постачальником для команд F1, WRC та IndyCar, пропонуючи перевірені технології для дорожніх автомобілів.', 'color' => '#FF0000'],
+            ['name' => 'Enkei', 'subtitle' => 'Колісні диски', 'description' => 'Японський виробник, що використовує технологію MAT для створення легких та міцних дисків, як-от легендарна модель RPF1. Enkei - розумний вибір для треку та вулиці.', 'color' => '#FFD700'],
+            ['name' => 'Work Wheels', 'subtitle' => 'Колісні диски', 'description' => 'Японський виробник преміальних дво- та трискладових дисків. Work пропонує безмежні можливості кастомізації для створення ідеального фітменту.', 'color' => '#c0c0c0'],
+            ['name' => 'Brixton Forged', 'subtitle' => 'Колісні диски', 'description' => 'Американська компанія, що створює розкішні ковані диски з аерокосмічного алюмінію. Кожен комплект Brixton - це індивідуальний витвір мистецтва.', 'color' => '#A9A9A9'],
 
-            // Engine Tuning
-            ['name' => 'Brabus', 'subtitle' => 'Тюнінг ательє', 'description' => 'Німецьке тюнінг ательє Mercedes.', 'color' => '#000000'],
-            ['name' => 'Mansory', 'subtitle' => 'Тюнінг ательє', 'description' => 'Німецький luxury tuning.', 'color' => '#FFD700'],
-            ['name' => 'Novitec', 'subtitle' => 'Тюнінг ательє', 'description' => 'Італійське тюнінг ательє.', 'color' => '#FF0000'],
-            ['name' => 'Techart', 'subtitle' => 'Тюнінг ательє', 'description' => 'Німецьке Porsche тюнінг ательє.', 'color' => '#c9a961'],
-            ['name' => 'RUF', 'subtitle' => 'Тюнінг ательє', 'description' => 'Німецький виробник на базі Porsche.', 'color' => '#FFD700'],
-            ['name' => 'Alpina', 'subtitle' => 'Тюнінг ательє', 'description' => 'Німецький офіційний партнер BMW.', 'color' => '#0066CC'],
-            ['name' => 'AC Schnitzer', 'subtitle' => 'Тюнінг ательє', 'description' => 'Німецьке BMW тюнінг ательє.', 'color' => '#000000'],
-            ['name' => 'Hennessey', 'subtitle' => 'Тюнінг ательє', 'description' => 'Американське extreme performance ательє.', 'color' => '#000000'],
-            ['name' => 'ABT Sportsline', 'subtitle' => 'Тюнінг ательє', 'description' => 'Німецьке Audi та VW офіційне tuning.', 'color' => '#FF0000'],
+            // Engine Tuning / Ateliers
+            ['name' => 'Brabus', 'subtitle' => 'Тюнінг ательє', 'description' => 'Німецьке ательє, що перетворює автомобілі Mercedes-Benz на справжні ракети. Brabus - це екстремальна потужність, розкішний інтер\'єр та агресивний зовнішній вигляд.', 'color' => '#000000'],
+            ['name' => 'Mansory', 'subtitle' => 'Тюнінг ательє', 'description' => 'Екстравагантний німецький тюнер, що працює з найрозкішнішими автомобілями. Mansory відомий своїм широким використанням карбону та сміливими дизайнерськими рішеннями.', 'color' => '#FFD700'],
+            ['name' => 'Novitec', 'subtitle' => 'Тюнінг ательє', 'description' => 'Німецький фахівець з тюнінгу італійських суперкарів Ferrari, Lamborghini та Maserati. Novitec фокусується на покращенні аеродинаміки, потужності та звуку.', 'color' => '#FF0000'],
+            ['name' => 'Techart', 'subtitle' => 'Тюнінг ательє', 'description' => 'Всесвітньо відомий німецький тюнер автомобілів Porsche. Techart пропонує повний спектр доопрацювань: від аеродинамічних обвісів до ексклюзивних інтер\'єрів.', 'color' => '#c9a961'],
+            ['name' => 'RUF', 'subtitle' => 'Тюнінг ательє', 'description' => 'Німецька компанія, що офіційно визнана автовиробником. RUF створює власні суперкари на базі шасі Porsche, досягаючи неймовірних показників швидкості.', 'color' => '#FFD700'],
+            ['name' => 'Alpina', 'subtitle' => 'Тюнінг ательє', 'description' => 'Німецький виробник ексклюзивних автомобілів на базі BMW. Alpina поєднує високу продуктивність з розкішшю та комфортом для щоденної їзди.', 'color' => '#0066CC'],
+            ['name' => 'AC Schnitzer', 'subtitle' => 'Тюнінг ательє', 'description' => 'Провідний німецький тюнер автомобілів BMW, MINI та Land Rover. AC Schnitzer пропонує компоненти, розроблені з гоночним досвідом для покращення динаміки.', 'color' => '#000000'],
+            ['name' => 'Hennessey Performance', 'subtitle' => 'Тюнінг ательє', 'description' => 'Американське ательє, що одержиме швидкістю. Hennessey будує гіперкари, як-от Venom F5, та створює екстремальні версії американських маслкарів та вантажівок.', 'color' => '#000000'],
+            ['name' => 'ABT Sportsline', 'subtitle' => 'Тюнінг ательє', 'description' => 'Найбільший у світі тюнер автомобілів Audi, VW, Seat та Skoda. ABT Sportsline має тісні зв\'язки з VAG та пропонує заводську якість тюнінгу.', 'color' => '#FF0000'],
+            ['name' => 'G-Power', 'subtitle' => 'Тюнінг ательє', 'description' => 'Німецькі спеціалісти з екстремального тюнінгу BMW M. G-Power відомі своїми проектами потужністю понад 1000 к.с. та рекордами швидкості.', 'color' => '#F37021'],
+            ['name' => 'RENNtech', 'subtitle' => 'Тюнінг ательє', 'description' => 'Американський лідер у тюнінгу Mercedes-AMG. Заснований колишнім інженером AMG, RENNtech пропонує перевірені рішення для збільшення потужності.', 'color' => '#C0C0C0'],
 
-            // Carbon
-            ['name' => 'Vorsteiner', 'subtitle' => 'Карбон', 'description' => 'Американські карбонові body kit.', 'color' => '#c0c0c0'],
-            ['name' => 'Anderson Composites', 'subtitle' => 'Карбон', 'description' => 'Американські карбонові деталі.', 'color' => '#000000'],
-            ['name' => 'Seibon', 'subtitle' => 'Карбон', 'description' => 'Американські карбонові капоти.', 'color' => '#FF0000'],
+            // Carbon / Body Kits
+            ['name' => 'Vorsteiner', 'subtitle' => 'Аеродинаміка', 'description' => 'Американський виробник преміальних карбонових аеродинамічних обвісів та кованих дисків. Vorsteiner поєднує агресивний дизайн з функціональністю.', 'color' => '#c0c0c0'],
+            ['name' => 'Anderson Composites', 'subtitle' => 'Карбон', 'description' => 'Спеціалізується на високоякісних карбонових та склопластикових компонентах для американських маслкарів, спорткарів та вантажівок.', 'color' => '#000000'],
+            ['name' => 'Seibon Carbon', 'subtitle' => 'Карбон', 'description' => 'Популярний виробник карбонових компонентів, як-от капоти, крила та спойлери. Seibon пропонує стиль та зменшення ваги за доступною ціною.', 'color' => '#FF0000'],
+            ['name' => 'DarwinPRO Aerodynamics', 'subtitle' => 'Аеродинаміка', 'description' => 'Відомий своїми сміливими та складними аеродинамічними обвісами, що часто включають елементи з карбону та скла. DarwinPRO перетворює вигляд будь-якого авто.', 'color' => '#00AEEF'],
+            ['name' => '1016 Industries', 'subtitle' => 'Аеродинаміка', 'description' => 'Американський тюнер, що створює ексклюзивні карбонові обвіси для суперкарів McLaren, Lamborghini та Ferrari, часто використовуючи 3D-друк для прототипів.', 'color' => '#A9A9A9'],
+            ['name' => 'Liberty Walk', 'subtitle' => 'Обвіси', 'description' => 'Японський законодавець моди на екстремально широкі обвіси з відкритими кріпленнями. Liberty Walk (LBWK) створює найвпізнаваніші проекти у світі.', 'color' => '#000000'],
+            ['name' => 'Rocket Bunny / Pandem', 'subtitle' => 'Обвіси', 'description' => 'Створені легендарним дизайнером Кеї Міура, ці японські обвіси поєднують гоночний стиль з ідеальною посадкою, визначаючи сучасну JDM-культуру.', 'color' => '#FF0000'],
+            ['name' => 'Prior Design', 'subtitle' => 'Обвіси', 'description' => 'Німецький виробник ексклюзивних аеродинамічних обвісів, що надають автомобілям більш агресивного та м\'язистого вигляду. Якість TUV-сертифікована.', 'color' => '#c0c0c0'],
+            ['name' => 'WALD International', 'subtitle' => 'Обвіси', 'description' => 'Японське тюнінг-ательє, відоме своєю лінійкою "Black Bison". WALD створює агресивні, але елегантні обвіси для розкішних седанів та позашляховиків.', 'color' => '#000000'],
 
-            // ECU
-            ['name' => 'APR', 'subtitle' => 'ECU Тюнінг', 'description' => 'Американське ECU тюнінг.', 'color' => '#FF0000'],
-            ['name' => 'Cobb Tuning', 'subtitle' => 'ECU Тюнінг', 'description' => 'Американське Accessport ECU тюнінг.', 'color' => '#0066CC'],
-            ['name' => 'Unitronic', 'subtitle' => 'ECU Тюнінг', 'description' => 'Канадське ECU тюнінг.', 'color' => '#FF6600'],
-            ['name' => 'EcuTek', 'subtitle' => 'ECU Тюнінг', 'description' => 'Британське professional ECU software.', 'color' => '#0066CC'],
-            ['name' => 'HP Tuners', 'subtitle' => 'ECU Тюнінг', 'description' => 'Американське GM та Ford ECU tuning suite.', 'color' => '#FF0000'],
+            // ECU Tuning
+            ['name' => 'APR', 'subtitle' => 'ECU Тюнінг', 'description' => 'Лідер у тюнінгу програмного забезпечення для автомобілів VAG. APR пропонує чіп-тюнінг Stage 1, 2, 3, а також компоненти для трансмісії та впуску.', 'color' => '#FF0000'],
+            ['name' => 'Cobb Tuning', 'subtitle' => 'ECU Тюнінг', 'description' => 'Відомий завдяки своєму пристрою Accessport, Cobb дозволяє легко перепрошивати ECU на автомобілях Subaru, Mitsubishi, Ford, Porsche та Nissan GT-R.', 'color' => '#0066CC'],
+            ['name' => 'Unitronic', 'subtitle' => 'ECU Тюнінг', 'description' => 'Канадська компанія, що спеціалізується на тюнінгу VAG та Porsche. Unitronic пропонує надійне програмне забезпечення та високоякісні "залізні" компоненти.', 'color' => '#FF6600'],
+            ['name' => 'EcuTek', 'subtitle' => 'ECU Тюнінг', 'description' => 'Британська компанія, що надає професійні інструменти для кастомного налаштування ECU. EcuTek популярний для тюнінгу Nissan GT-R, Subaru BRZ / Toyota GT86 та Honda Civic Type R.', 'color' => '#0066CC'],
+            ['name' => 'HP Tuners', 'subtitle' => 'ECU Тюнінг', 'description' => 'Потужний інструмент для діагностики та налаштування ECU американських (GM, Ford, Dodge) та багатьох інших автомобілів. Вибір професійних тюнерів.', 'color' => '#FF0000'],
+            ['name' => 'Syvecs', 'subtitle' => 'ECU', 'description' => 'Виробник високопродуктивних автономних блоків керування двигуном (ECU). Syvecs дозволяє повністю контролювати всі аспекти роботи двигуна для досягнення максимальної потужності.', 'color' => '#005EB8'],
+            ['name' => 'Bootmod3', 'subtitle' => 'ECU Тюнінг', 'description' => 'Перша у світі хмарна платформа для мобільного налаштування ECU автомобілів BMW серій F та G. Прошивка за лічені хвилини через телефон або ноутбук.', 'color' => '#F37021'],
 
-            // Turbo
-            ['name' => 'Garrett', 'subtitle' => 'Турбіни', 'description' => 'Американські турбонагнітачі.', 'color' => '#000000'],
-            ['name' => 'BorgWarner', 'subtitle' => 'Турбіни', 'description' => 'Американські EFR турбо.', 'color' => '#FF6600'],
-            ['name' => 'Vortech', 'subtitle' => 'Компресори', 'description' => 'Американські superchargers.', 'color' => '#c0c0c0'],
-            ['name' => 'ProCharger', 'subtitle' => 'Компресори', 'description' => 'Американські centrifugal superchargers.', 'color' => '#FF0000'],
+            // Turbo / Superchargers
+            ['name' => 'Garrett Motion', 'subtitle' => 'Турбіни', 'description' => 'Один з найвідоміших виробників турбонагнітачів. Серії G та GTX від Garrett є еталоном продуктивності та надійності в світі тюнінгу.', 'color' => '#000000'],
+            ['name' => 'BorgWarner', 'subtitle' => 'Турбіни', 'description' => 'Інноваційний виробник турбін, відомий своєю серією EFR (Engineered for Racing) з інтегрованими вестгейтами та blow-off клапанами.', 'color' => '#FF6600'],
+            ['name' => 'Vortech Superchargers', 'subtitle' => 'Компресори', 'description' => 'Американський виробник відцентрових нагнітачів. Vortech пропонує готові комплекти для значного збільшення потужності американських та японських автомобілів.', 'color' => '#c0c0c0'],
+            ['name' => 'ProCharger', 'subtitle' => 'Компресори', 'description' => 'Лідер у виробництві відцентрових компресорів з повітряним охолодженням. ProCharger дозволяє досягти величезної потужності зі збереженням надійності.', 'color' => '#FF0000'],
 
             // Interior
-            ['name' => 'Recaro', 'subtitle' => 'Інтер\'єр', 'description' => 'Німецькі спортивні сидіння.', 'color' => '#FF0000'],
-            ['name' => 'Sparco', 'subtitle' => 'Інтер\'єр', 'description' => 'Італійські гоночні сидіння.', 'color' => '#0066CC'],
-            ['name' => 'Bride', 'subtitle' => 'Інтер\'єр', 'description' => 'Японські lightweight сидіння.', 'color' => '#000000'],
-            ['name' => 'MOMO', 'subtitle' => 'Інтер\'єр', 'description' => 'Італійські кермові колеса.', 'color' => '#FF0000'],
+            ['name' => 'Recaro', 'subtitle' => 'Інтер\'єр', 'description' => 'Німецький виробник легендарних автомобільних крісел. Recaro поєднує ергономіку, безпеку та спортивний стиль, будучи вибором багатьох автовиробників.', 'color' => '#FF0000'],
+            ['name' => 'Sparco', 'subtitle' => 'Інтер\'єр', 'description' => 'Італійський бренд, що пропонує повний спектр гоночного обладнання: від сидінь та ременів безпеки до керм та одягу для пілотів. Sparco - це безпека та стиль.', 'color' => '#0066CC'],
+            ['name' => 'Bride', 'subtitle' => 'Інтер\'єр', 'description' => 'Японський виробник надлегких гоночних ковшів. Bride є культовим брендом в JDM-культурі, що забезпечує ідеальну посадку та підтримку на треку.', 'color' => '#000000'],
+            ['name' => 'MOMO', 'subtitle' => 'Інтер\'єр', 'description' => 'Італійська компанія, що прославилася своїми кермовими колесами. MOMO пропонує класичний дизайн та неперевершену якість для любителів спортивного водіння.', 'color' => '#FF0000'],
 
             // Electronics
-            ['name' => 'AEM', 'subtitle' => 'Електроніка', 'description' => 'Американська електроніка.', 'color' => '#FF0000'],
-            ['name' => 'Haltech', 'subtitle' => 'Електроніка', 'description' => 'Австралійські ECU системи.', 'color' => '#000000'],
-            ['name' => 'Motec', 'subtitle' => 'Електроніка', 'description' => 'Австралійська преміальна електроніка.', 'color' => '#c9a961'],
+            ['name' => 'AEM Performance Electronics', 'subtitle' => 'Електроніка', 'description' => 'Американський виробник електроніки для тюнінгу: від широкосмугових лямбда-зондів та датчиків до систем вприскування водометанолу.', 'color' => '#FF0000'],
+            ['name' => 'Haltech', 'subtitle' => 'ECU', 'description' => 'Австралійський виробник потужних автономних ECU. Системи Haltech Elite та Nexus дозволяють реалізувати найсміливіші тюнінг-проекти.', 'color' => '#000000'],
+            ['name' => 'MoTeC', 'subtitle' => 'Електроніка', 'description' => 'Австралійська компанія, що є золотим стандартом у гоночній електроніці. MoTeC пропонує ECU, дисплеї та системи збору даних для професійних команд.', 'color' => '#c9a961'],
 
             // Drivetrain
-            ['name' => 'Quaife', 'subtitle' => 'Трансмісія', 'description' => 'Британські ATB диференціали.', 'color' => '#FFD700'],
-            ['name' => 'OS Giken', 'subtitle' => 'Трансмісія', 'description' => 'Японські преміальні диференціали.', 'color' => '#FF0000'],
-            ['name' => 'Exedy', 'subtitle' => 'Трансмісія', 'description' => 'Японські зчеплення.', 'color' => '#0066CC'],
+            ['name' => 'Quaife', 'subtitle' => 'Трансмісія', 'description' => 'Британський виробник диференціалів підвищеного тертя (LSD) з технологією ATB (Automatic Torque Biasing). Quaife значно покращує зчеплення та керованість.', 'color' => '#FFD700'],
+            ['name' => 'OS Giken', 'subtitle' => 'Трансмісія', 'description' => 'Японський виробник преміальних диференціалів Super Lock LSD, зчеплень та коробок передач. OS Giken - це безкомпромісна якість для серйозного тюнінгу.', 'color' => '#FF0000'],
+            ['name' => 'Exedy', 'subtitle' => 'Трансмісія', 'description' => 'Японський лідер у виробництві зчеплень, як для OEM, так і для тюнінгу. Exedy пропонує широкий вибір від органічних дисків до багатодискової кераміки.', 'color' => '#0066CC'],
 
-            // Oils
-            ['name' => 'Motul', 'subtitle' => 'Мастила', 'description' => 'Французькі преміальні мастила.', 'color' => '#FF6600'],
-            ['name' => 'Liqui Moly', 'subtitle' => 'Мастила', 'description' => 'Німецькі високоякісні мастила.', 'color' => '#FF0000'],
-            ['name' => 'Mobil 1', 'subtitle' => 'Мастила', 'description' => 'Американські synthetic мастила.', 'color' => '#FF0000'],
-            ['name' => 'Castrol', 'subtitle' => 'Мастила', 'description' => 'Британські мастила.', 'color' => '#00AA00'],
+            // Oils & Fluids
+            ['name' => 'Motul', 'subtitle' => 'Мастила', 'description' => 'Французький виробник преміальних синтетичних мастил. Серія 300V від Motul, створена на основі технології Ester Core, є вибором багатьох гоночних команд.', 'color' => '#FF6600'],
+            ['name' => 'Liqui Moly', 'subtitle' => 'Мастила', 'description' => 'Німецька компанія, що пропонує широкий асортимент моторних масел, присадок та автохімії. Liqui Moly - це німецька якість для вашого двигуна.', 'color' => '#FF0000'],
+            ['name' => 'Mobil 1', 'subtitle' => 'Мастила', 'description' => 'Один з найвідоміших брендів синтетичних моторних масел у світі. Mobil 1 забезпечує відмінний захист та продуктивність у найширшому діапазоні умов.', 'color' => '#FF0000'],
+            ['name' => 'Castrol', 'subtitle' => 'Мастила', 'description' => 'Британський бренд з багатою історією в автоспорті. Лінійка Castrol EDGE з технологією Fluid TITANIUM забезпечує максимальну продуктивність двигуна.', 'color' => '#00AA00'],
 
-            // Body Kit
-            ['name' => 'Liberty Walk', 'subtitle' => 'Обвіси', 'description' => 'Японські wide body kit.', 'color' => '#000000'],
-            ['name' => 'Rocket Bunny', 'subtitle' => 'Обвіси', 'description' => 'Японські Pandem wide body.', 'color' => '#FF0000'],
-            ['name' => 'Prior Design', 'subtitle' => 'Обвіси', 'description' => 'Німецькі wide body kit.', 'color' => '#c0c0c0'],
-            ['name' => 'WALD International', 'subtitle' => 'Обвіси', 'description' => 'Японське luxury tuning.', 'color' => '#000000'],
-
-            // Racing
-            ['name' => 'Mishimoto', 'subtitle' => 'Охолодження', 'description' => 'Американські радіатори та cooling systems.', 'color' => '#FF0000'],
-            ['name' => 'Vibrant Performance', 'subtitle' => 'Комплектуючі', 'description' => 'Американські exhaust та turbo компоненти.', 'color' => '#0066CC'],
-            ['name' => 'Turbosmart', 'subtitle' => 'Турбо-компоненти', 'description' => 'Австралійські wastegates та blow-off valves.', 'color' => '#0066CC'],
-            ['name' => 'Tial Sport', 'subtitle' => 'Турбо-компоненти', 'description' => 'Американські wastegates та blow-off valves.', 'color' => '#FF0000'],
-            ['name' => 'Greddy', 'subtitle' => 'Тюнінг', 'description' => 'Японські turbo kits та tuning parts.', 'color' => '#000000'],
-            ['name' => 'Nismo', 'subtitle' => 'Тюнінг', 'description' => 'Офіційне Nissan Motorsport підрозділ.', 'color' => '#FF0000'],
-            ['name' => 'Mugen', 'subtitle' => 'Тюнінг', 'description' => 'Офіційне Honda tuning.', 'color' => '#000000'],
-            ['name' => 'Spoon', 'subtitle' => 'Тюнінг', 'description' => 'Японське Honda N1 engine та aero спеціалісти.', 'color' => '#0066CC'],
-            ['name' => 'TRD', 'subtitle' => 'Тюнінг', 'description' => 'Toyota Racing Development.', 'color' => '#FF0000'],
+            // Racing & Cooling
+            ['name' => 'Mishimoto', 'subtitle' => 'Охолодження', 'description' => 'Американський лідер у виробництві компонентів системи охолодження: алюмінієвих радіаторів, інтеркулерів, силіконових патрубків та масляних кулерів.', 'color' => '#FF0000'],
+            ['name' => 'CSF Radiators', 'subtitle' => 'Охолодження', 'description' => 'Виробник високопродуктивних систем охолодження з інноваційною технологією B-Tube, що забезпечує кращу тепловіддачу. CSF - вибір для треку та спекотних умов.', 'color' => '#C0C0C0'],
+            ['name' => 'Wagner Tuning', 'subtitle' => 'Охолодження', 'description' => 'Німецька компанія, що спеціалізується на розробці та виробництві високопродуктивних інтеркулерів, даунпайпів та впускних колекторів.', 'color' => '#00AEEF'],
+            ['name' => 'Vibrant Performance', 'subtitle' => 'Комплектуючі', 'description' => 'Лідер у виробництві універсальних компонентів для тюнінгу: фітингів, шлангів, фланців, труб та резонаторів. Vibrant - основа будь-якого кастомного проекту.', 'color' => '#0066CC'],
+            ['name' => 'Turbosmart', 'subtitle' => 'Турбо-компоненти', 'description' => 'Австралійський виробник високоякісних зовнішніх вестгейтів, blow-off клапанів та регуляторів тиску палива. Turbosmart - це точний контроль наддуву.', 'color' => '#0066CC'],
+            ['name' => 'Tial Sport', 'subtitle' => 'Турбо-компоненти', 'description' => 'Американський виробник легендарних вестгейтів та blow-off клапанів. TiAL Sport відомий своєю надійністю та продуктивністю в екстремальних умовах.', 'color' => '#FF0000'],
+            ['name' => 'Greddy', 'subtitle' => 'Тюнінг', 'description' => 'Японська ікона тюнінгу, що пропонує широкий спектр продуктів: від турбо-китів та вихлопних систем до електроніки та масляних кулерів. Greddy - це спадщина JDM.', 'color' => '#000000'],
+            ['name' => 'Nismo', 'subtitle' => 'Тюнінг', 'description' => 'Nissan Motorsport International - офіційний спортивний підрозділ Nissan. Nismo створює компоненти для покращення аеродинаміки, підвіски та потужності.', 'color' => '#FF0000'],
+            ['name' => 'Mugen', 'subtitle' => 'Тюнінг', 'description' => 'Легендарний японський тюнер, що має тісні зв\'язки з Honda. Mugen Power пропонує компоненти, що втілюють дух гонок та інновацій Honda.', 'color' => '#000000'],
+            ['name' => 'Spoon Sports', 'subtitle' => 'Тюнінг', 'description' => 'Японський тюнер, що спеціалізується на автомобілях Honda. Spoon відомий своїм підходом "total balance", покращуючи кожен аспект автомобіля для гоночної траси.', 'color' => '#0066CC'],
+            ['name' => 'TRD', 'subtitle' => 'Тюнінг', 'description' => 'Toyota Racing Development - офіційний тюнінг-підрозділ Toyota. TRD пропонує якісні компоненти для покращення продуктивності, що не порушують заводську гарантію.', 'color' => '#FF0000'],
         ];
     }
 }

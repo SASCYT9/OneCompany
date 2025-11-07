@@ -716,3 +716,6 @@ function onecompany_handle_premium_contact_form() {
 // Hook for both logged-in and non-logged-in users
 add_action('wp_ajax_send_onecompany_contact_form', 'onecompany_handle_premium_contact_form');
 add_action('wp_ajax_nopriv_send_onecompany_contact_form', 'onecompany_handle_premium_contact_form');
+
+// Include block patterns
+require_once get_template_directory() . '/patterns.php';

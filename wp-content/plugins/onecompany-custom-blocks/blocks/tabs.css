@@ -1,0 +1,40 @@
+.tabs-container {
+    margin: 2rem 0;
+}
+
+.tab-titles {
+    display: flex;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.tab-title {
+    padding: 1rem 1.75rem;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.tab-title:hover {
+    color: var(--color-text-primary);
+}
+
+.tab-title.active {
+    color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+}
+
+.tab-contents > * {
+    display: none;
+    padding: 1.5rem 0;
+    line-height: 1.8;
+    color: var(--color-text-secondary);
+}
+
+.tab-contents > .active {
+    display: block;
+}

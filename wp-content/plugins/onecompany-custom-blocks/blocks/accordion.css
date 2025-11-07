@@ -1,0 +1,44 @@
+.accordion {
+    margin-bottom: 20px;
+}
+
+.accordion-item {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.accordion-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1.1rem;
+    color: var(--color-text-primary);
+}
+
+.accordion-icon {
+    font-size: 1.5rem;
+    color: var(--color-accent);
+    transition: transform 0.3s ease;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+}
+
+.accordion-item.active .accordion-title {
+    color: var(--color-accent);
+}
+
+.accordion-item.active .accordion-icon {
+    transform: rotate(45deg);
+}
+
+.accordion-content .wp-block-inner-blocks {
+    padding-bottom: 1.5rem;
+}
