@@ -168,6 +168,42 @@ function onecompany_register_block_patterns() {
 <!-- /wp:group -->',
         )
     );
+
+    register_block_pattern(
+        'onecompany/cta-section',
+        array(
+            'title'       => __( 'Call to Action Section', 'onecompany' ),
+            'description' => _x( 'A section with a call to action block.', 'Block pattern description', 'onecompany' ),
+            'categories'  => array( 'onecompany' ),
+            'content'     => '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70"}}},"backgroundColor":"surface-light","layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull has-surface-light-background-color has-background" style="padding-top:var(--wp--preset--spacing--70);padding-bottom:var(--wp--preset--spacing--70)"><!-- wp:onecompany/call-to-action {"title":"' . esc_html__( 'Ready to Upgrade?', 'onecompany' ) . '","text":"' . esc_html__( 'Contact us today to discuss your project and get a free quote.', 'onecompany' ) . '","buttonText":"' . esc_html__( 'Get in Touch', 'onecompany' ) . '","buttonUrl":"/contact"} /--></div>
+<!-- /wp:group -->',
+        )
+    );
+
+    register_block_pattern(
+        'onecompany/testimonials-section',
+        array(
+            'title'       => __( 'Testimonials Section', 'onecompany' ),
+            'description' => _x( 'A section with a couple of testimonials.', 'Block pattern description', 'onecompany' ),
+            'categories'  => array( 'onecompany' ),
+            'content'     => '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70"}}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--70);padding-bottom:var(--wp--preset--spacing--70)"><!-- wp:heading {"textAlign":"center"} -->
+<h2 class="wp-block-heading has-text-align-center">' . esc_html__( 'What Our Clients Say', 'onecompany' ) . '</h2>
+<!-- /wp:heading -->
+
+<!-- wp:columns -->
+<div class="wp-block-columns"><!-- wp:column -->
+<div class="wp-block-column"><!-- wp:onecompany/testimonials {"text":"' . esc_html__( 'The team at OneCompany transformed my car. The performance is incredible, and the service was top-notch.', 'onecompany' ) . '","author":"' . esc_html__( 'John D.', 'onecompany' ) . '","imageUrl":"' . esc_url( get_template_directory_uri() . '/assets/images/team1.jpg' ) . '"} /--></div>
+<!-- /wp:column -->
+
+<!-- wp:column -->
+<div class="wp-block-column"><!-- wp:onecompany/testimonials {"text":"' . esc_html__( 'I couldn\'t be happier with the results. My car is now a true masterpiece, thanks to the skilled technicians at OneCompany.', 'onecompany' ) . '","author":"' . esc_html__( 'Jane S.', 'onecompany' ) . '","imageUrl":"' . esc_url( get_template_directory_uri() . '/assets/images/team2.jpg' ) . '"} /--></div>
+<!-- /wp:column --></div>
+<!-- /wp:columns --></div>
+<!-- /wp:group -->',
+        )
+    );
 }
 add_action( 'init', 'onecompany_register_block_patterns' );
 

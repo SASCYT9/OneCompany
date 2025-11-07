@@ -1,0 +1,34 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 2,
+    "name": "onecompany/testimonials",
+    "title": "Testimonials",
+    "category": "onecompany",
+    "icon": "format-quote",
+    "description": "A block to display customer testimonials with an image, text, and author.",
+    "keywords": [ "testimonial", "quote", "review" ],
+    "version": "1.0.0",
+    "textdomain": "onecompany-custom-blocks",
+    "attributes": {
+        "text": {
+            "type": "string",
+            "source": "html",
+            "selector": "blockquote"
+        },
+        "author": {
+            "type": "string",
+            "source": "html",
+            "selector": "cite"
+        },
+        "imageUrl": {
+            "type": "string",
+            "default": ""
+        },
+        "imageId": {
+            "type": "number"
+        }
+    },
+    "editorScript": "file:./index.js",
+    "editorStyle": "file:./editor.css",
+    "style": "file:./style.css"
+}

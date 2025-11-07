@@ -1,0 +1,25 @@
+.wp-block-onecompany-call-to-action {
+    background-color: #f8f9fa;
+    padding: 2rem;
+    border-radius: 0.25rem;
+    text-align: center;
+}
+
+.wp-block-onecompany-call-to-action h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.wp-block-onecompany-call-to-action p {
+    font-size: 1.125rem;
+    margin-bottom: 2rem;
+}
+
+.wp-block-onecompany-call-to-action .wp-block-button__link {
+    background-color: #007bff;
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    display: inline-block;
+}

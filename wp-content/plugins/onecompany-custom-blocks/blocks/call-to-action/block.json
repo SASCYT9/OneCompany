@@ -1,0 +1,35 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 2,
+    "name": "onecompany/call-to-action",
+    "title": "Call to Action",
+    "category": "onecompany",
+    "icon": "megaphone",
+    "description": "A block to create a call to action section with a title, text, and a button.",
+    "keywords": [ "cta", "call to action", "link" ],
+    "version": "1.0.0",
+    "textdomain": "onecompany-custom-blocks",
+    "attributes": {
+        "title": {
+            "type": "string",
+            "source": "html",
+            "selector": "h2"
+        },
+        "text": {
+            "type": "string",
+            "source": "html",
+            "selector": "p"
+        },
+        "buttonText": {
+            "type": "string",
+            "default": "Learn More"
+        },
+        "buttonUrl": {
+            "type": "string",
+            "default": "#"
+        }
+    },
+    "editorScript": "file:./index.js",
+    "editorStyle": "file:./editor.css",
+    "style": "file:./style.css"
+}

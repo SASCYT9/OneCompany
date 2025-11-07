@@ -1,0 +1,12 @@
+.wp-block-onecompany-testimonials {
+    border: 1px solid #ccc;
+    padding: 20px;
+}
+.testimonial-image {
+    float: left;
+    margin-right: 20px;
+}
+.testimonial-image img {
+    max-width: 100px;
+    height: auto;
+}
