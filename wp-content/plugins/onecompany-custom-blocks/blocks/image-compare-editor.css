@@ -1,0 +1,14 @@
+.image-compare-editor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    border: 1px dashed #ccc;
+    padding: 10px;
+    margin-top: 1rem;
+}
+
+.image-compare-editor img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}

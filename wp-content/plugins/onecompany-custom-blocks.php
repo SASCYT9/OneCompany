@@ -15,3 +15,6 @@ require_once __DIR__ . '/blocks/accordion.php';
 
 // Include the tabs block registration
 require_once __DIR__ . '/blocks/tabs.php';
+
+// Include the image compare block registration
+require_once __DIR__ . '/blocks/image-compare.php';
