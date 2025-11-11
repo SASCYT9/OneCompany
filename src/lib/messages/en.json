@@ -123,5 +123,15 @@
   },
   "about": {
     "intro": "Since 2007, we have been shaping the culture of premium tuning: 12,000+ satisfied customers, hundreds of individual projects, and uncompromising support after installation."
+  },
+  "categories": {
+    "usa": "USA",
+    "europe": "Europe",
+    "oem": "OEM",
+    "racing": "Racing"
+  },
+  "brandsPage": {
+    "title": "Brands",
+    "logoDisclaimer": "Logos shown where available – others use a placeholder until assets are added."
   }
 }
