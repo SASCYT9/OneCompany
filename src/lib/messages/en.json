@@ -1,0 +1,127 @@
+{
+  "nav": {
+    "stores": "Stores",
+    "about": "About Us",
+    "categories": "Categories",
+    "selectStore": "Select Store",
+    "contact": "Inquiry"
+  },
+  "choice": {
+    "tagline": "Premium Tuning Parts",
+    "heading1": "100+ brands.",
+    "heading2": "one company.",
+    "subtitle": "High-quality tuning parts",
+    "automotive": "AUTOMOTIVE",
+    "motorcycles": "MOTORCYCLES",
+    "automotiveSubtitle": "High-performance parts",
+    "motorcyclesSubtitle": "Premium exhaust & suspension",
+    "loading": "Loading...",
+    "featuredBrands": "Featured Brands"
+  },
+  "auto": {
+    "title": "Automotive",
+    "heading": "High-Performance Parts",
+    "subtitle": "100+ premium brands for your car",
+    "featuredBrands": "Top 10 Popular Brands",
+    "allBrands": "All Brands A-Z",
+    "searchPlaceholder": "Search brands...",
+    "all": "ALL",
+    "noBrands": "No brands found",
+    "productCategories": "Product Categories",
+    "categories": {
+      "exhaust": "Exhaust Systems",
+      "suspension": "Suspension",
+      "wheels": "Wheels & Tires",
+      "brakes": "Brake Systems",
+      "intake": "Intake Systems",
+      "interior": "Interior",
+      "performance": "Performance",
+      "aero": "Aerodynamics",
+      "engine": "Engine"
+    },
+    "services": {
+      "selectionTitle": "Assistance with Selection",
+      "selectionDesc": "Our team of specialists can select parts individually for your car",
+      "installationTitle": "Installation",
+      "installationDesc": "A network of partners for installation of any complexity worldwide",
+      "deliveryTitle": "Delivery",
+      "deliveryDesc": "Fast and secure worldwide delivery with full support"
+    },
+    "visualization": {
+      "title": "Visualize on Your Car",
+      "subtitle": "Carbon parts and wheels — see the result before installation",
+      "cta": "Try Visualization"
+    },
+    "contact": {
+      "title": "Contact a Specialist",
+      "subtitle": "Didn't find what you were looking for? We will find it for you",
+      "carModel": "Car make and model",
+      "vin": "VIN code (optional)",
+      "wishes": "Your wishes",
+      "budget": "Budget (optional)",
+      "email": "Email",
+      "submit": "Send Inquiry"
+    }
+  },
+  "moto": {
+    "title": "Motorcycles",
+    "heading": "Premium Exhaust & Suspension",
+    "subtitle": "100+ premium brands for your motorcycle",
+    "featuredBrands": "Featured Brands",
+    "allBrands": "All Brands A-Z",
+    "searchPlaceholder": "Search brands...",
+    "all": "ALL",
+    "noBrands": "No brands found",
+    "productCategories": "Product Categories",
+    "categories": {
+      "exhaust": "Exhaust Systems",
+      "suspension": "Suspension",
+      "brakes": "Brake Systems",
+      "gear": "Riding Gear",
+      "helmets": "Helmets",
+      "accessories": "Accessories",
+      "luggage": "Luggage",
+      "carbon": "Carbon"
+    },
+    "services": {
+      "selectionTitle": "Assistance with Selection",
+      "selectionDesc": "Our team of specialists can select parts individually for your motorcycle",
+      "installationTitle": "Installation",
+      "installationDesc": "A network of partners for installation of any complexity worldwide",
+      "deliveryTitle": "Delivery",
+      "deliveryDesc": "Fast and secure worldwide delivery with full support"
+    },
+    "contact": {
+      "title": "Contact a Specialist",
+      "subtitle": "Didn't find what you were looking for? We will find it for you",
+      "motoModel": "Motorcycle make and model",
+      "vin": "VIN code (optional)",
+      "wishes": "Your wishes",
+      "budget": "Budget (optional)",
+      "email": "Email",
+      "submit": "Send Inquiry"
+    }
+  },
+  "footer": {
+    "about": "About Us",
+    "aboutText": "Since 2007, onecompany has been shaping the culture of premium tuning: over 12,000 satisfied customers, hundreds of custom projects, and uncompromising post-installation support.",
+    "navigate": "Navigate",
+    "home": "Home",
+    "automotive": "Automotive",
+    "motorcycles": "Motorcycles",
+    "aboutUs": "About Us",
+    "contactAuto": "Contact Auto",
+    "contactMoto": "Contact Moto",
+    "premiumAutoParts": "Premium Auto Parts",
+    "premiumMotoParts": "Premium Moto Parts",
+    "worldwideShipping": "Worldwide Shipping",
+    "contactUs": "Contact Us",
+    "allRights": "All rights reserved",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "cookies": "Cookies Policy"
+  },
+  "about": {
+    "intro": "Since 2007, we have been shaping the culture of premium tuning: 12,000+ satisfied customers, hundreds of individual projects, and uncompromising support after installation."
+  }
+}

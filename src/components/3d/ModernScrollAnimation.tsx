@@ -45,7 +45,7 @@ export default function ModernScrollAnimation() {
     // Sync Lenis with GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
 
-    gsap.ticker.add((time) => {
+    gsap.ticker.add((time: number) => {
       lenis.raf(time * 1000);
     });
 
@@ -61,7 +61,7 @@ export default function ModernScrollAnimation() {
 
     return () => {
       lenis.destroy();
-      gsap.ticker.remove((time) => {
+      gsap.ticker.remove((time: number) => {
         lenis.raf(time * 1000);
       });
     };

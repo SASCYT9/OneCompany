@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(cat:*)",
+      "Bash(npm run download-logos-free:*)",
+      "Bash(tsx scripts/check-missing-logos.ts:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npm run download-missing-logos:*)",
+      "Bash(npm run check-missing-logos:*)",
+      "Bash(find:*)",
+      "Bash(npm run upgrade-all-small-logos:*)",
+      "Bash(xargs ls:*)",
+      "Bash(for file in public/logos/*)",
+      "Bash(do basename \"$file\")",
+      "Bash(done)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

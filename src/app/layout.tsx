@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Navigation } from "@/components/ui/Navigation";
+// Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,9 +42,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="uk">
+    <html lang="uk" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
         {/* Optional: Plausible analytics if NEXT_PUBLIC_PLAUSIBLE_DOMAIN is configured */}
         {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN ? (
@@ -54,7 +55,6 @@ export default function RootLayout({
             src="https://plausible.io/js/script.js"
           />
         ) : null}
-        <Navigation />
         {children}
       </body>
     </html>

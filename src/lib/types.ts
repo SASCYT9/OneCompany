@@ -92,3 +92,13 @@ export interface APIError {
     details?: any;
   };
 }
+
+export interface SimpleBrand {
+  name: string;
+  logo?: string;
+  category: string;
+  description?: string;
+  website?: string;
+  features?: string[];
+  technologies?: string[];
+}

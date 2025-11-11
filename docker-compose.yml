@@ -1,7 +1,52 @@
 services:
+  # Next.js (React) Website - Premium 3D Hub
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: onecompany-nextjs
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - AUTOMATION_ENDPOINT=http://n8n:5678/webhook/contact-request
+      - AUTOMATION_API_KEY=fe1625ae-2de5-4651-b55e-ed0a6717fdfb
+    restart: always
+    networks:
+      - onecompany-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # n8n Automation Platform
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: onecompany-n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=myuser
+      - N8N_BASIC_AUTH_PASSWORD=mysecretpassword
+      - N8N_API_KEY=fe1625ae-2de5-4651-b55e-ed0a6717fdfb
+      - GENERIC_TIMEZONE=Europe/Kyiv
+      - TZ=Europe/Kyiv
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - onecompany-network
+
+  # WordPress - Hub Template
   wordpress:
     image: wordpress:latest
-    container_name: onecompany-3d
+    container_name: onecompany-wordpress
     ports:
       - "8080:80"
     environment:
@@ -10,23 +55,25 @@ services:
       WORDPRESS_DB_PASSWORD: wordpress
       WORDPRESS_DB_NAME: wordpress
       WORDPRESS_DEBUG: 1
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', 'http://localhost:8080');
+        define('WP_SITEURL', 'http://localhost:8080');
     volumes:
       - ./wp-content:/var/www/html/wp-content
       - ./wordpress:/var/www/html
     depends_on:
-      - db
-    restart: unless-stopped
+      db:
+        condition: service_healthy
+    restart: always
     networks:
       - onecompany-network
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 2G
-        reservations:
-          cpus: '1.0'
-          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/wp-admin/install.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+  # MySQL Database for WordPress
   db:
     image: mysql:8.0
     container_name: onecompany-db
@@ -37,20 +84,20 @@ services:
       MYSQL_ROOT_PASSWORD: rootpassword
     volumes:
       - db_data:/var/lib/mysql
-    restart: unless-stopped
+    restart: always
     networks:
       - onecompany-network
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db_data:
+    driver: local
+  n8n_data:
+    driver: local
 
 networks:
   onecompany-network:

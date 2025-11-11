@@ -47,6 +47,17 @@ next-env.d.ts
 *~
 
 # Docker
-Dockerfile
 docker-compose.yml
 .dockerignore
+
+# WordPress (не копіюємо в Next.js контейнер)
+wordpress/
+wp-content/
+*.sql
+
+# Documentation (зменшує розмір образу)
+*.md
+!README.md
+
+# Scripts
+*.ps1

@@ -1,13 +1,6 @@
-﻿'use client'
+﻿import { redirect } from 'next/navigation'
 
-import { Navigation } from '@/components/ui/Navigation'
-import { OnePage } from '@/components/ui/OnePage'
-
+// Root page redirects to default locale
 export default function Home() {
-  return (
-    <>
-      <Navigation />
-      <OnePage />
-    </>
-  )
+  redirect('/ua')
 }

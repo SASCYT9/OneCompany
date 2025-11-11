@@ -1,0 +1,6 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#1a1a1a"/>
+  <path d="M100 50C72.3858 50 50 72.3858 50 100C50 127.614 72.3858 150 100 150C127.614 150 150 127.614 150 100C150 72.3858 127.614 50 100 50ZM100 140C77.9086 140 60 122.091 60 100C60 77.9086 77.9086 60 100 60C122.091 60 140 77.9086 140 100C140 122.091 122.091 140 100 140Z" fill="#666666"/>
+  <path d="M85 85L115 115M115 85L85 115" stroke="#666666" stroke-width="4" stroke-linecap="round"/>
+  <text x="100" y="175" font-family="Arial, sans-serif" font-size="12" fill="#666666" text-anchor="middle">No Logo</text>
+</svg>

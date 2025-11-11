@@ -1,0 +1,19 @@
+{
+  "brands": [
+    {"name": "Ferrari", "domain": "ferrari.com"},
+    {"name": "Lamborghini", "domain": "lamborghini.com"},
+    {"name": "McLaren", "domain": "cars.mclaren.com"},
+    {"name": "Aston Martin", "domain": "astonmartin.com"},
+    {"name": "Maserati", "domain": "maserati.com"},
+    {"name": "Brabus", "domain": "brabus.com"},
+    {"name": "Rolls Royce", "domain": "rolls-roycemotorcars.com"},
+    {"name": "HRE wheels", "domain": "hrewheels.com"},
+    {"name": "Capristo", "domain": "capristo.com"},
+    {"name": "FI Exhaust", "domain": "fi-exhaust.com"},
+    {"name": "VP Racing Fuel", "domain": "vpracingfuels.com"},
+    {"name": "VR Aero", "domain": "vr-aero.com"},
+    {"name": "Paramount transmissions", "domain": "paramountgears.com"},
+    {"name": "Pure Drivetrain Solutions", "domain": "puredrivetrain.net"},
+    {"name": "TTH turbos", "domain": "tth-racing.com"}
+  ]
+}

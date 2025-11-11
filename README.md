@@ -1,99 +1,68 @@
-# 🚀 onecompany - 3D Experience Hub
+# OneCompany
 
-> Найбільш вражаючий сайт-агрегатор в авто-тюнінг індустрії з кінематографічною 3D-анімацією на скрол.
+Premium performance hub built with Next.js 16, React 19, TypeScript, and Tailwind CSS.
 
-## 🎯 Концепція
+## Quick start
 
-Це не просто каталог - це **інтерактивний 3D-музей флагманських продуктів**, де кожен елемент оживає під час скролу, створюючи незабутній кінематографічний досвід.
+1. Install deps
+   - Node 18+ recommended.
+2. Create local env file:
+   - Copy `.env.example` to `.env.local` and fill in values.
+3. Run the app
+   - `npm run dev` for development
+   - `npm run build && npm start` for production
 
-## ✨ Ключові Features
+## Environment variables
 
-- 🎬 **Кінематографічна камера** з GSAP ScrollTrigger
-- 🎨 **3D-анімація на скрол** з React Three Fiber
-- 💎 **Преміальні UI компоненти** з неоновими ефектами
-- 📱 **Мобільна оптимізація** з video fallback
-- ⚡ **Blazing Fast** з Next.js 14 та code splitting
-- 🎭 **Система частинок** для драматичних ефектів
-- 🔌 **Headless CMS ready** для легкого керування контентом
+Create `.env.local` (not committed) with:
 
-## 🛠️ Технологічний Стек
+- **TELEGRAM_BOT_TOKEN**: Bot token from @BotFather (see `docs/telegram-bot-setup.md`)
+- **TELEGRAM_AUTO_CHAT_ID**: Chat ID for auto team inquiries
+- **TELEGRAM_MOTO_CHAT_ID**: Chat ID for moto team inquiries
+- **RESEND_API_KEY**: API key for email sending via Resend (see `docs/google-workspace-setup.md`)
+- **EMAIL_FROM**: Sender address (e.g., `contact@onecompany.com`)
+- **EMAIL_AUTO**: Recipient for auto inquiries (e.g., `auto@onecompany.com`)
+- **EMAIL_MOTO**: Recipient for moto inquiries (e.g., `moto@onecompany.com`)
+- **ADMIN_SECRET**: Shared secret for media admin API (used by `/admin` UI)
+- **NEXT_PUBLIC_PLAUSIBLE_DOMAIN** (optional): Enables Plausible analytics
 
-- **Next.js 14** - React framework з App Router
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Utility-first styling
-- **React Three Fiber** - React renderer для Three.js
-- **@react-three/drei** - Helpers для R3F
-- **GSAP** - Професійна анімаційна бібліотека
-- **Three.js** - 3D WebGL двигун
+Security notes:
+- Never commit `.env.local` to git; rotate secrets if leaked.
+- On cloud hosts, configure secrets via the platform (e.g., Vercel/Azure App Service env vars).
 
-## 🚀 Швидкий Старт
+Setup guides:
+- Domain configuration: `docs/godaddy-domain-setup.md`
+- Email setup: `docs/google-workspace-setup.md`
+- Telegram bot: `docs/telegram-bot-setup.md`
 
-```bash
-# Встановлення залежностей
-npm install
+## Media admin
 
-# Запуск dev сервера
-npm run dev
-```
+- Visit `/admin` and provide the `ADMIN_SECRET` to upload/delete media.
+- Files stored under `public/media`; manifest at `public/media/media.json`.
 
-Відкрийте [http://localhost:3000](http://localhost:3000) у браузері.
+## Contact submissions
 
-## 📁 Структура Проекту
+- Header includes a contact modal. Submissions are validated, rate-limited, persisted to `data/contact-submissions.json`, then forwarded to Telegram.
 
-```
-src/
-├── app/                    # Next.js App Router
-│   ├── page.tsx           # Головна сторінка з 3D сценою
-│   └── brands/            # Каталог брендів
-├── components/
-│   ├── 3d/                # 3D компоненти
-│   │   ├── Homepage3DScene.tsx      # Головна 3D сцена
-│   │   ├── CinematicCamera.tsx      # GSAP камера контролер
-│   │   ├── HeroProduct.tsx          # 3D модель продукту
-│   │   └── ParticleSystem.tsx       # Система частинок
-│   └── ui/                # UI компоненти
-│       ├── PremiumButton.tsx        # Кнопки з ефектами
-│       └── BrandCard.tsx            # Картки брендів
-└── lib/                   # Utilities
-    ├── types.ts           # TypeScript типи
-    └── performance.ts     # GPU detection
-```
+## Brand Logos
 
-## 🎨 Додайте ваші 3D моделі
+The project includes a free logo downloader that works without API keys:
 
-1. Розмістіть `.glb` файли в `/public/models/`
-2. Рекомендації:
-   - Формат: `.glb` (binary glTF)
-   - Poly count: 10k-50k
-   - Використовуйте Draco compression
-   - Розмір: до 5MB на модель
+- **Location**: `scripts/download-logos-free.ts`
+- **Documentation**: See `scripts/README-LOGOS.md` for full guide
+- **Run**: `npm run download-logos-free`
+- **Features**:
+  - Searches domains via DuckDuckGo (no API needed)
+  - Downloads from 5+ free sources (Clearbit, Logo.dev, Google, website scraping)
+  - Supports 250+ automotive and motorcycle brands
+  - Auto-generates `src/lib/brandLogos.ts` mapping file
 
-**Де замовити моделі:**
-- [ArtStation](https://www.artstation.com)
-- [Upwork](https://www.upwork.com) - "product 3D model WebGL"
+Brand data is stored in:
+- `scripts/brands-list.json` - Brand list for parser
+- `src/lib/brands.ts` - TypeScript brand definitions
+- `src/lib/brandLogos.ts` - Auto-generated logo paths
+- `public/logos/` - Downloaded logo files
 
-## 📱 Мобільна Оптимізація
+## License
 
-Проект автоматично:
-- Визначає пристрій
-- На mobile показує відео замість 3D
-- Оптимізує продуктивність під GPU
-
-## 🎯 Наступні Кроки
-
-1. ✅ Базова структура створена
-2. 📦 Додайте реальні 3D моделі продуктів
-3. 🎨 Додайте логотипи брендів
-4. 🎬 Запишіть відео для мобільних
-5. 🔌 Підключіть Headless CMS (Strapi/Sanity)
-6. 🚀 Deploy на Vercel
-
-## 📚 Документація
-
-- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber)
-- [GSAP ScrollTrigger](https://greensock.com/scrolltrigger/)
-- [Next.js Docs](https://nextjs.org/docs)
-
----
-
-**Створено для onecompany** - *Перфоманс. Візуалізований.*
+Proprietary. All rights reserved.

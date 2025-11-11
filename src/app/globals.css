@@ -1,8 +1,33 @@
 @import "tailwindcss";
 
+/* Core Theme Tokens */
 :root {
-  --background: #0f172a;
-  --foreground: #ffffff;
+  /* Base surfaces */
+  --background: #090c11; /* deeper neutral for stronger contrast */
+  --background-alt: #0f141c;
+  --foreground: #f5f7fa;
+
+  /* Accent system (triad: amber, electric cyan, fuchsia) */
+  --accent-primary: #ffb256;
+  --accent-primary-rgb: 255, 178, 86;
+  --accent-secondary: #44d9ff;
+  --accent-secondary-rgb: 68, 217, 255;
+  --accent-tertiary: #d054ff;
+  --accent-tertiary-rgb: 208, 84, 255;
+
+  /* Gradient presets */
+  --gradient-premium: linear-gradient(135deg, rgba(var(--accent-primary-rgb),0.85) 0%, rgba(var(--accent-tertiary-rgb),0.65) 35%, rgba(var(--accent-secondary-rgb),0.75) 70%, rgba(var(--accent-primary-rgb),0.9) 100%);
+  --gradient-soft: radial-gradient(circle at 30% 30%, rgba(var(--accent-secondary-rgb),0.25), transparent 60%), radial-gradient(circle at 70% 70%, rgba(var(--accent-tertiary-rgb),0.18), transparent 65%);
+
+  /* Subtle outlines & overlays */
+  --border-color: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+  --overlay-backdrop: rgba(12,16,24,0.72);
+
+  /* Layered surfaces */
+  --surface-0: var(--background);
+  --surface-1: #10151d;
+  --surface-2: #141a23;
 }
 
 body {
@@ -11,7 +36,75 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   overflow-x: hidden;
   overflow-y: auto;
+  position: relative;
+  min-height: 100dvh;
 }
+
+/* Global ambient gradient layer (non intrusive) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(160deg, rgba(var(--accent-primary-rgb),0.05), rgba(var(--accent-secondary-rgb),0) 40%),
+    radial-gradient(circle at 80% 15%, rgba(var(--accent-tertiary-rgb),0.05), transparent 55%),
+    radial-gradient(circle at 15% 85%, rgba(var(--accent-secondary-rgb),0.06), transparent 60%);
+  mix-blend-mode: plus-lighter;
+  z-index: -1;
+}
+
+/* Typography utilities */
+.meta {
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+.heading-xl {
+  font-weight: 500;
+  font-size: clamp(2.75rem, 5vw, 4rem);
+  letter-spacing: -0.01em;
+}
+.subtle {
+  color: rgba(255,255,255,0.7);
+}
+
+/* CTA base */
+.cta-primary {
+  background: rgba(255,255,255,0.92);
+  color: #000;
+  border-radius: 9999px;
+  padding: 12px 22px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 8px 30px rgba(var(--accent-primary-rgb),0.25);
+  transition: transform .4s var(--ease-soft-out), box-shadow .4s var(--ease-soft-out);
+}
+.cta-primary:hover { transform: translateY(-2px) scale(1.025); box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 14px 46px rgba(var(--accent-primary-rgb),0.4); }
+.cta-primary:active { transform: translateY(0) scale(0.99); box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 6px 24px rgba(var(--accent-primary-rgb),0.3); }
+.cta-primary:focus-visible { outline: 2px solid rgba(255,255,255,0.6); outline-offset: 3px; }
+.cta-outline {
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.88);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  padding: 12px 22px;
+  transition: background .35s var(--ease-soft-out), color .35s var(--ease-soft-out), box-shadow .35s var(--ease-soft-out);
+}
+.cta-outline:hover { background: rgba(255,255,255,0.11); box-shadow: 0 4px 22px rgba(0,0,0,0.35); }
+.cta-outline:active { background: rgba(255,255,255,0.08); }
+.cta-outline:focus-visible { outline: 2px solid rgba(255,255,255,0.45); outline-offset: 3px; }
+
+/* Focus ring for common interactive elements */
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.45);
+  outline-offset: 3px;
+}
+
+/* Easing utility class */
+.ease-soft-out { transition-timing-function: var(--ease-soft-out); }
+
+/* Easing vars for custom animations */
+:root { --ease-soft-out: cubic-bezier(.17,.84,.44,1); }
 
 html {
   overflow-x: hidden;
@@ -51,14 +144,17 @@ html {
   }
 }
 
+/* Premium animated gradient utility */
 .gradient-shift {
-  background-size: 200% 200%;
-  animation: gradientShift 15s ease infinite;
+  background: var(--gradient-premium);
+  background-size: 220% 220%;
+  animation: gradientShift 18s linear infinite;
 }
 
 .animate-gradient-shift {
-  background-size: 200% 200%;
-  animation: gradientShift 8s ease infinite;
+  background: var(--gradient-premium);
+  background-size: 260% 260%;
+  animation: gradientShift 12s ease-in-out infinite;
 }
 
 /* Neon glow pulse */
@@ -75,8 +171,9 @@ html {
   }
 }
 
-.neon-pulse {
-  animation: neonPulse 3s ease-in-out infinite;
+/* Logo subtle luminous pulse */
+.logo-pulse {
+  animation: neonPulse 4.5s ease-in-out infinite;
 }
 
 /* Glow effect on hover */
@@ -89,8 +186,9 @@ html {
   }
 }
 
+/* Card hover effect refined */
 .card-glow:hover {
-  animation: glow 2s ease-in-out infinite;
+  animation: glow 2.6s ease-in-out infinite;
 }
 
 /* Custom scrollbar */
@@ -109,6 +207,16 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(79, 195, 247, 0.6);
+}
+
+/* Hide scrollbar for carousel */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* Світлові ефекти */
@@ -165,8 +273,9 @@ html {
   }
 }
 
+/* Generic text glow utility (apply sparingly) */
 .text-glow {
-  animation: textGlow 4s ease-in-out infinite;
+  animation: textGlow 6s ease-in-out infinite;
 }
 
 /* Floating animation */
@@ -181,4 +290,33 @@ html {
 
 .float {
   animation: float 6s ease-in-out infinite;
+}
+
+/* Modal animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
 }
