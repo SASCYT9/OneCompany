@@ -1,0 +1,1396 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+
+
+<!-- Preload -->
+
+<link rel="preconnect" href="https://cdn.vividracing.com">
+<link rel="dns-prefetch" href="https://cdn.vividracing.com">
+
+<!-- Favicon and Touch Icons-->
+<link rel="apple-touch-icon" sizes="180x180" href="/templates/vr23/images/favicons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/templates/vr23/images/favicons/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/templates/vr23/images/favicons/favicon-16x16.png">
+
+<link rel="mask-icon" color="#fe6a6a" href="safari-pinned-tab.svg">
+<meta name="msapplication-TileColor" content="#272727">
+<meta name="theme-color" content="#272727">
+<link rel="manifest" href="/manifest.json">
+
+
+
+
+<!-- Main Theme Styles + Bootstrap-->
+
+<link rel="stylesheet" media="screen" href="/templates/vr23/dist/main.33f92d73e1d4f8c35bb1.css"><link rel="stylesheet" media="screen" href="/templates/vr23/dist/common.e1af1e31ae45796d7c84.css"><link rel="stylesheet" media="screen" href="/templates/vr23/dist/vendors.c36f72619e99c0d577d1.css"><!-- Vendor Styles including: Font Icons, Plugins, etc.-->
+<link rel="preload" href="/templates/vr23/build/web/simplebar/dist/simplebar.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+	<link rel="stylesheet" media="screen" href="/templates/vr23/build/web/simplebar/dist/simplebar.min.css">
+</noscript>
+
+<link rel="preload" href="/templates/vr23/build/web/tiny-slider/dist/tiny-slider.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+	<link rel="stylesheet" media="screen" href="/templates/vr23/build/web/tiny-slider/dist/tiny-slider.css">
+</noscript>
+
+<link rel="preload" href="/templates/vr23/build/web/nouislider/dist/nouislider.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+	<link rel="stylesheet" media="screen" href="/templates/vr23/build/web/nouislider/dist/nouislider.min.css">
+</noscript>
+<link rel="stylesheet" media="screen" href="/templates/vr23/build/web/lightgallery.js/dist/css/lightgallery.min.css">
+        <title>VR Tuned - ECU Tuning Box Kits</title>
+        <meta name="description" content="VR Tuned - ECU Tuning Box Kits | Plug and Play Devices">
+        <meta name="keywords" content="VR Tuned - ECU Tuning Box Kits | Plug and Play Devices">
+<meta name="robots" content="index, follow">
+
+	        <link rel="canonical" href="https://www.vividracing.com/vr-tuned-i-112980.html">
+        </head>
+
+<body>
+
+	    <!-- Sign in / sign up modal-->
+    <div class="modal fade" id="signin-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header bg-secondary">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+              <li class="nav-item"><a class="nav-link fw-medium active" href="#signin-tab" data-bs-toggle="tab" role="tab" aria-selected="true"><i class="ci-unlocked me-2 mt-n1"></i>Sign in</a></li>
+              <li class="nav-item"><a class="nav-link fw-medium" href="/create_account.php"  aria-selected="false"><i class="ci-user me-2 mt-n1"></i>Sign up</a></li>
+            </ul>
+            <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body tab-content py-4">
+              <div id="loginRequiredAlert" class="d-none">
+                  <div class="w-100 alert alert-danger" role="alert">
+                      <div class="text-danger h6">
+                          <i class="fs-lg me-1 bi bi-exclamation-triangle-fill"></i> Sign In Required
+                      </div>
+                      <span>If you are a Business to Business partner, please sign in first to complete your order.</span>
+                  </div>
+              </div>
+            <form class="needs-validation tab-pane fade show active" autocomplete="off" novalidate id="signin-tab" method="POST" action="/login.php">
+              <div class="mb-3">
+                <label class="form-label" for="si-email">Email address</label>
+                <input class="form-control" type="email" id="si-email" placeholder="johndoe@example.com" name="email_address" pattern="^.+@\S+\.\S+$" autocomplete="on" required>
+                <div class="invalid-feedback">Please provide a valid email address.</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="si-password">Password</label>
+                <div class="password-toggle">
+                  <input class="form-control" type="password" id="si-password" name="password" required>
+
+                  <label class="password-toggle-btn" aria-label="Show/hide password">
+                    <input class="password-toggle-check" type="checkbox"><span class="password-toggle-indicator"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="mb-3 d-flex flex-wrap justify-content-between">
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" id="si-remember">
+                  <label class="form-check-label" for="si-remember">Remember me</label>
+                </div><a class="fs-sm" href="/password_forgotten">Forgot password?</a>
+              </div>
+	                          <input class="d-none" type="text"  name="redirect_back" value="true">
+	                          <button class="btn btn-primary btn-shadow d-block w-100" type="submit">Sign in</button>
+            </form>
+            <!-- <form class="needs-validation tab-pane fade" autocomplete="off" novalidate id="signup-tab" action="/create_account.php" method="post">
+              <div class="mb-3">
+                <label class="form-label" for="su-name">Full name</label>
+                <input class="form-control" type="text" id="su-name" placeholder="John Doe" required>
+                <div class="invalid-feedback">Please fill in your name.</div>
+              </div>
+              <div class="mb-3">
+                <label for="su-email">Email address</label>
+                <input class="form-control" type="email" id="su-email" placeholder="johndoe@example.com" required>
+                <div class="invalid-feedback">Please provide a valid email address.</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="su-password">Password</label>
+                <div class="password-toggle">
+                  <input class="form-control" type="password" id="su-password" required>
+                  <label class="password-toggle-btn" aria-label="Show/hide password">
+                    <input class="password-toggle-check" type="checkbox"><span class="password-toggle-indicator"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="su-password-confirm">Confirm password</label>
+                <div class="password-toggle">
+                  <input class="form-control" type="password" id="su-password-confirm" required>
+                  <label class="password-toggle-btn" aria-label="Show/hide password">
+                    <input class="password-toggle-check" type="checkbox"><span class="password-toggle-indicator"></span>
+                  </label>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-shadow d-block w-100" type="submit">Sign up</button>
+            </form> -->
+          </div>
+        </div>
+      </div>
+    </div>
+	<main class="page-wrapper" id="app">
+
+<!-- Top Nav Bar -->
+
+<header class="shadow-sm">
+    <div class="w-100 position-relative">
+        <!-- Banner -->
+            </div>
+    <!-- Remove "navbar-sticky" class to make navigation bar scrollable with the page.-->
+
+
+    <div class="bg-dark navbar-sticky">
+        <div class="topbar topbar-dark bg-darker">
+            <div class="container ">
+                <div class="topbar-text d-md-inline-block w-100 shadow">
+                    <div class="d-flex justify-content-between align-baseline">
+                        <span>
+                            <i class="bi bi-phone me-1"></i>&nbsp;
+                            <a class="text-light me-2 fw-bold" href="tel:14809663040">1-480-966-3040</a>
+                            <span class="topbar-light text-end">Mon-Fri 8am to 5pm AZ</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="navbar navbar-expand-lg navbar-dark main-nav">
+            <div class="container">
+                <a class="navbar-brand d-none d-md-block flex-shrink-0" href="/">
+                <img src="templates/vr23/images/vr-logo-small.webp"
+                        srcset="templates/vr23/images/vr-logo-large-x1.webp 1x, templates/vr23/images/vr-logo-large-x2.webp 2x, templates/vr23/images/vr-logo-large-x3.webp 3x"
+                        alt="Performance & Aftermarket Car Parts - Vivid Racing" style="max-width:280px" loading="lazy" width="280" height="56"></a>
+                </a>
+
+                <a class="navbar-brand d-md-none flex-shrink-0" href="/">
+                    <img src="templates/vr23/images/vr-logo-small.webp"
+                        srcset="templates/vr23/images/vr-logo-small.webp 1x, templates/vr23/images/vr-logo-small-2.webp 2x, templates/vr23/images/vr-logo-small-3.webp 3x, templates/vr23/images/vr-logo-small-4.webp 4x"
+                        width="55" height="40" alt="Performance & Aftermarket Car Parts - Vivid Racing" class="rounded-3" loading="lazy"></a>
+
+                <form class="w-50 d-none d-lg-flex " role="search" action="/index.php">
+
+
+                    <div class="input-group mx-4">
+
+                        <input class="form-control rounded-end pe-5" type="text" placeholder="Search for products" name="keywords" value="" autocomplete="off">
+                        <button type="submit" class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-muted fs-base me-1">
+                            <i class="ci-search"></i>
+                        </button>
+                    </div>
+                </form>
+                <div class="navbar-toolbar d-flex flex-shrink-0 align-items-center">
+
+                    <!-- <a class="navbar-tool navbar-stuck-toggler" href="#"><span class="navbar-tool-tooltip">Expand menu</span>
+                        <div class="navbar-tool-icon-box"><i class="navbar-tool-icon ci-menu"></i></div>
+                    </a> -->
+                    <a class="navbar-tool d-lg-none text-center me-2"
+                        onclick="document.querySelector('.zsiq_floatmain')?.click()"
+                        aria-label="Live Chat"
+                        style="display: flex; flex-direction: column; align-items: center;">
+                        <div class="navbar-tool-icon-box">
+                            <i class="navbar-tool-icon ci-chat"></i>
+                        </div>
+                        <div class="text-white" style="font-size: 0.70rem; ">
+                            <small>Live Chat</small>
+                        </div>
+                    </a>
+
+                                            <a class="navbar-tool ms-1 ms-lg-0 me-n1 me-lg-2 d-none d-lg-flex align-items-center" href="#signin-modal" data-bs-toggle="modal" aria-label="Log in or Create Account">
+                            <div class="navbar-tool-icon-box" style="margin-right: 0px;">
+                                <i class="navbar-tool-icon ci-user"></i>
+                            </div>
+                            <div class="navbar-tool-text" style="display: inline; white-space: nowrap;">
+                                <small>Hello, Sign in</small>&nbsp;My Account
+                            </div>
+                        </a>
+                        <!--Mobile-->
+                        <!-- My Account for Mobile -->
+                        <a class="navbar-tool d-lg-none text-center me-2"
+                            href="#signin-modal"
+                            data-bs-toggle="modal"
+                            aria-label="Log in or Create Account"
+                            style="display: flex; flex-direction: column; align-items: center;">
+                            <div class="navbar-tool-icon-box">
+                                <i class="navbar-tool-icon ci-user"></i>
+                            </div>
+                            <div class="text-white" style="font-size: 0.70rem; ">
+                                <small>Sign In</small>
+                            </div>
+                        </a>
+
+                                        <a class="navbar-tool d-lg-flex d-none d-lg-block ms-lg-3" href="/wishlist.php"><span class="navbar-tool-tooltip">Wishlist</span>
+                        <div class="navbar-tool-icon-box"><i class="navbar-tool-icon ci-heart"></i></div>
+                    </a>
+                    <!-- Cart -->
+                    <div class="navbar-tool dropdown me-2  ms-lg-3 side_cart_toggle" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight">
+                        <a class="navbar-tool-icon-box" href="javascript:void(0)">
+                            <span class="navbar-tool-label navbar_shopping_cart_qty d-none">0</span>
+                            <i class="navbar-tool-icon ci-cart"></i>
+                            <!-- Mobile Cart Text -->
+                            <div class="d-block d-lg-none text-white" style="font-size: 0.70rem; ">
+                                <small>My Cart</small>
+                            </div>
+                        </a>
+                        <!-- Desktop Cart Text -->
+                        <div class="navbar-tool-text d-none d-lg-block">
+                            <small>My Cart</small>
+                            <span class="navbar_shopping_cart_subtotal">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Menu button for mobile -->
+                    <button class="navbar-toggler d-lg-none text-center" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-label="Toggle Navbar">
+                        <span class="navbar-toggler-icon" style="font-size: 1.1rem;"></span>
+                        <div class="text-white d-none" style="font-size: 0.70rem;">
+                            <small>Menu</small>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="navbar navbar-expand-lg navbar-dark bg-primary bg-gradient navbar-stuck-menu mt-n2 pt-md-0 pt-2 pb-2">
+        <div class="container">
+            <div class="row g-0 w-100 mx-2 align-content-center mb-2 mt-2 d-md-none d-flex ">
+                <!-- Search-->
+                <form class="w-100  " role="search" action="/index.php" autocomplete="off">
+                    <div class="input-group  justify-content-center">
+                        <input class="form-control rounded-end pe-5" type="text" placeholder="Search for products" name="keywords" value="" autocomplete="off">
+
+                        <button type="submit" class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-muted fs-base me-1">
+                            <i class="ci-search"></i>
+                        </button>
+                    </div>
+
+
+                </form>
+
+
+            </div>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <!-- Search-->
+                <!-- <div class="input-group my-3 d-none d-md-block"><i class="ci-search position-absolute top-50 start-0 translate-middle-y text-muted fs-base ms-3"></i>
+					<input class="form-control rounded-start" type="text" placeholder="Search for products">
+				</div> -->
+                <!-- Departments menu-->
+                <ul class="navbar-nav navbar-mega-nav pe-lg-2 me-lg-2">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle ps-lg-0" href="#" data-bs-toggle="dropdown">
+                            <i class="ci-view-grid me-2"></i>Browse
+                        </a>
+                        <div class="dropdown-menu px-2 pb-4">
+                            <div class="d-flex pt-2">
+                                <!-- Left column: Featured Links -->
+                                <div class="mega-dropdown-column pt-2 px-2 px-lg-3 featured-links-column">
+                                    <ul class="widget-list">
+                                        <li class="widget-list-item mb-3">
+                                            <a class="widget-list-link text-md fw-bold fs-6" href="/index.php?new=true">
+                                                <i class="bi bi-fire ms-2 me-2"></i> Newest Items
+                                            </a>
+                                        </li>
+                                        <li class="widget-list-item mb-3">
+                                            <a class="widget-list-link text-md fw-bold fs-6" href="/clearance-deals-c-8127.html">
+                                                <i class="bi bi-tag ms-2 me-2"></i> Clearance Deals
+                                            </a>
+                                        </li>
+                                        <li class="widget-list-item mb-3">
+                                            <a class="widget-list-link text-md fw-bold fs-6" href="/vehicles.php">
+                                                <i class="bi bi-car-front ms-2 me-2"></i> Shop by Vehicle
+                                            </a>
+                                        </li>
+                                        <li class="widget-list-item mb-3">
+                                            <a class="widget-list-link text-md fw-bold fs-6" href="/brands.php">
+                                                <i class="bi bi-sort-alpha-down ms-2 me-2"></i> Shop by Brand
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- Three Columns for Categories -->
+                                <div class="d-flex mb-3">
+
+                                    <!-- Mobile -->
+                                    <div class="d-lg-none">
+                                        <div class="row row-cols-2 g-2 mt-2" style="overflow-x: hidden; max-width: 100%;">
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/air-intakes-c-4460.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/AIR_INTAKES_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="Air Intakes">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Air Intakes</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/brakes-c-4238.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="https://cdn.vividracing.com/file/d397e3f3bdc002df935aa54e297e5c73 (1).jpeg?q=90&p=thumb&w=200&h=200" loading="lazy" class="card-img-top" alt="Brakes">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Brakes</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/body-aero-parts-c-4218.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/AERO_BODY_KITS_ICON_VR23.webp?v=3" loading="lazy" class="card-img-top" alt="Body | Aero Parts">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Body | Aero Parts</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/driveline-c-4257.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="https://cdn.vividracing.com/file/categories/driveline-4257.jpg?q=90&p=thumb&w=200&h=200" loading="lazy" class="card-img-top" alt="Driveline">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Driveline</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/ecu-tuning-c-4348.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/ECU_TUNING_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="ECU Tuning">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">ECU Tuning</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/electronics-c-4339.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="https://cdn.vividracing.com/file/electronics_cat.jpg?q=90&p=thumb&w=200&h=200" loading="lazy" class="card-img-top" alt="Electronics">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Electronics</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/engine-c-4206.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/ENGINE_PARTS_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="Engine">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Engine</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/exhaust-parts-c-4246.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/EXHAUST_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="Exhaust Parts">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Exhaust Parts</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/exterior-c-4217.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/EXTERIOR_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="Exterior">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Exterior</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/fuel_components-c-4207.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/FUEL_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="Fuel Components">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Fuel Components</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/gauges-c-4340.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/GAUGES_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="Gauges">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Gauges</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/handlebars_controls-c-14569.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="https://cdn.vividracing.com/file/vr/4170/2024/12-0853B.jpg?q=90&p=thumb&w=200&h=200" loading="lazy" class="card-img-top" alt="Handlebars & Controls">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Handlebars & Controls</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/interior-c-4259.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/INTERIOR_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="Interior">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Interior</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/lighting-c-19210.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/LIGHTING_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="Lighting">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Lighting</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/oem-parts-c-11231.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/OEM_PARTS.webp?v=3" loading="lazy" class="card-img-top" alt="OEM Parts">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">OEM Parts</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/package-deals-c-6692.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="https://cdn.vividracing.com/file/vr/2103/2025/KR20STAGE4FOX.jpg?q=90&p=thumb&w=200&h=200" loading="lazy" class="card-img-top" alt="Package Deals">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Package Deals</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/racing-gear-apparel-c-4375.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/RACING_GEAR_APPAREL_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="Racing Gear & Apparel">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Racing Gear & Apparel</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/suspension-c-4208.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/SUSPENSION_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="Suspension">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Suspension</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/turbo-supercharger-c-4266.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/TURBO_SUPERCHARGERS.webp?v=3" loading="lazy" class="card-img-top" alt="Turbo | Supercharger">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Turbo | Supercharger</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/tires-c-6898.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/TIRES_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="Tires">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Tires</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/wheel-accessories-c-4532.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="https://cdn.vividracing.com/file/vr/2091/2023/TAK1CAPTACMB.webp?q=90&p=thumb&w=200&h=200" loading="lazy" class="card-img-top" alt="Wheel Accessories">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Wheel Accessories</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/wheels-size-c-6424.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="templates/vr23/images/categories/WHEELS_ICON.webp?v=3" loading="lazy" class="card-img-top" alt="Wheels by Size">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Wheels by Size</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/wheels-vehicle-c-15890.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="https://cdn.vividracing.com/file/categories/wheel-tire-package-thumb.jpeg?q=90&p=thumb&w=200&h=200" loading="lazy" class="card-img-top" alt="Wheels by Vehicle">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Wheels by Vehicle</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/tools-and-maintenance-c-19236.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="https://cdn.vividracing.com/file/vr/4500/2025/HH-07.jpg?q=90&p=thumb&w=200&h=200" loading="lazy" class="card-img-top" alt="Tools and Maintenance">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Tools and Maintenance</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/universal-repair-c-5337.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="https://cdn.vividracing.com/file/categories/universal_repair-5337.jpg?q=90&p=thumb&w=200&h=200" loading="lazy" class="card-img-top" alt="Universal & Repair">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Universal & Repair</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                            <div class="col">
+                                                    <a href="https://www.vividracing.com/vivid-racing-gear-c-4463.html" class="text-decoration-none">
+                                                        <div class="card h-100">
+
+                                                            <img src="https://cdn.vividracing.com/file/vr23/31/1/VR_Decals_Shirts_9820-33.webp?q=90&p=thumb&w=200&h=200" loading="lazy" class="card-img-top" alt="Vivid Racing Gear">
+                                                            <div class="card-body p-2 text-center">
+                                                                <span class="card-title mb-0 h6">Vivid Racing Gear</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                                                    </div>
+                                    </div>
+                                    <!-- Desktop -->
+                                    <div class="d-none d-lg-flex">
+                                        <!-- First Column of Categories -->
+                                        <div class="mega-dropdown-column pt-2 px-2 px-lg-3">
+                                            <ul class="widget-list">
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/air-intakes-c-4460.html">
+
+                                                                <img src="templates/vr23/images/categories/AIR_INTAKES_ICON.webp?v=3" loading="lazy" alt="Air Intakes" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Air Intakes                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/brakes-c-4238.html">
+
+                                                                <img src="https://cdn.vividracing.com/file/d397e3f3bdc002df935aa54e297e5c73 (1).jpeg?q=90&p=thumb&w=40&h=40" loading="lazy" alt="Brakes" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Brakes                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/body-aero-parts-c-4218.html">
+
+                                                                <img src="templates/vr23/images/categories/AERO_BODY_KITS_ICON_VR23.webp?v=3" loading="lazy" alt="Body | Aero Parts" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Body | Aero Parts                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/driveline-c-4257.html">
+
+                                                                <img src="https://cdn.vividracing.com/file/categories/driveline-4257.jpg?q=90&p=thumb&w=40&h=40" loading="lazy" alt="Driveline" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Driveline                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/ecu-tuning-c-4348.html">
+
+                                                                <img src="templates/vr23/images/categories/ECU_TUNING_ICON.webp?v=3" loading="lazy" alt="ECU Tuning" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> ECU Tuning                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/electronics-c-4339.html">
+
+                                                                <img src="https://cdn.vividracing.com/file/electronics_cat.jpg?q=90&p=thumb&w=40&h=40" loading="lazy" alt="Electronics" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Electronics                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/engine-c-4206.html">
+
+                                                                <img src="templates/vr23/images/categories/ENGINE_PARTS_ICON.webp?v=3" loading="lazy" alt="Engine" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Engine                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/exhaust-parts-c-4246.html">
+
+                                                                <img src="templates/vr23/images/categories/EXHAUST_ICON.webp?v=3" loading="lazy" alt="Exhaust Parts" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Exhaust Parts                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/exterior-c-4217.html">
+
+                                                                <img src="templates/vr23/images/categories/EXTERIOR_ICON.webp?v=3" loading="lazy" alt="Exterior" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Exterior                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+                                        </div>
+
+                                        <!-- Second Column of Categories -->
+                                        <div class="mega-dropdown-column pt-2 px-2 px-lg-3">
+                                            <ul class="widget-list">
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/fuel_components-c-4207.html">
+
+                                                                <img src="templates/vr23/images/categories/FUEL_ICON.webp?v=3" loading="lazy" alt="Fuel Components" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Fuel Components                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/gauges-c-4340.html">
+
+                                                                <img src="templates/vr23/images/categories/GAUGES_ICON.webp?v=3" loading="lazy" alt="Gauges" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Gauges                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/handlebars_controls-c-14569.html">
+
+                                                                <img src="https://cdn.vividracing.com/file/vr/4170/2024/12-0853B.jpg?q=90&p=thumb&w=40&h=40" loading="lazy" alt="Handlebars & Controls" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Handlebars & Controls                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/interior-c-4259.html">
+
+                                                                <img src="templates/vr23/images/categories/INTERIOR_ICON.webp?v=3" loading="lazy" alt="Interior" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Interior                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/lighting-c-19210.html">
+
+                                                                <img src="templates/vr23/images/categories/LIGHTING_ICON.webp?v=3" loading="lazy" alt="Lighting" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Lighting                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/oem-parts-c-11231.html">
+
+                                                                <img src="templates/vr23/images/categories/OEM_PARTS.webp?v=3" loading="lazy" alt="OEM Parts" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> OEM Parts                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/package-deals-c-6692.html">
+
+                                                                <img src="https://cdn.vividracing.com/file/vr/2103/2025/KR20STAGE4FOX.jpg?q=90&p=thumb&w=40&h=40" loading="lazy" alt="Package Deals" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Package Deals                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/racing-gear-apparel-c-4375.html">
+
+                                                                <img src="templates/vr23/images/categories/RACING_GEAR_APPAREL_ICON.webp?v=3" loading="lazy" alt="Racing Gear & Apparel" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Racing Gear & Apparel                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/suspension-c-4208.html">
+
+                                                                <img src="templates/vr23/images/categories/SUSPENSION_ICON.webp?v=3" loading="lazy" alt="Suspension" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Suspension                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+                                        </div>
+
+                                        <!-- Third Column of Categories -->
+                                        <div class="mega-dropdown-column pt-2 px-2 px-lg-3">
+                                            <ul class="widget-list">
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/turbo-supercharger-c-4266.html">
+
+                                                                <img src="templates/vr23/images/categories/TURBO_SUPERCHARGERS.webp?v=3" loading="lazy" alt="Turbo | Supercharger" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Turbo | Supercharger                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/tires-c-6898.html">
+
+                                                                <img src="templates/vr23/images/categories/TIRES_ICON.webp?v=3" loading="lazy" alt="Tires" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Tires                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/wheel-accessories-c-4532.html">
+
+                                                                <img src="https://cdn.vividracing.com/file/vr/2091/2023/TAK1CAPTACMB.webp?q=90&p=thumb&w=40&h=40" loading="lazy" alt="Wheel Accessories" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Wheel Accessories                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/wheels-size-c-6424.html">
+
+                                                                <img src="templates/vr23/images/categories/WHEELS_ICON.webp?v=3" loading="lazy" alt="Wheels by Size" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Wheels by Size                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/wheels-vehicle-c-15890.html">
+
+                                                                <img src="https://cdn.vividracing.com/file/categories/wheel-tire-package-thumb.jpeg?q=90&p=thumb&w=40&h=40" loading="lazy" alt="Wheels by Vehicle" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Wheels by Vehicle                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/tools-and-maintenance-c-19236.html">
+
+                                                                <img src="https://cdn.vividracing.com/file/vr/4500/2025/HH-07.jpg?q=90&p=thumb&w=40&h=40" loading="lazy" alt="Tools and Maintenance" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Tools and Maintenance                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/universal-repair-c-5337.html">
+
+                                                                <img src="https://cdn.vividracing.com/file/categories/universal_repair-5337.jpg?q=90&p=thumb&w=40&h=40" loading="lazy" alt="Universal & Repair" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Universal & Repair                                                        </a>
+                                                    </li>
+                                                                                                    <li class="widget-list-item">
+                                                        <a class="widget-list-link text-md dropdown-item" href="https://www.vividracing.com/vivid-racing-gear-c-4463.html">
+
+                                                                <img src="https://cdn.vividracing.com/file/vr23/31/1/VR_Decals_Shirts_9820-33.webp?q=90&p=thumb&w=40&h=40" loading="lazy" alt="Vivid Racing Gear" class="img-fluid rounded" style="max-width: 40px; max-height: 40px;">
+                                                                                                                        <i class="ci-box me-2"></i> Vivid Racing Gear                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+                                        </div>
+                                    </div>
+
+                                                                    </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <!-- Primary menu-->
+                <ul class="navbar-nav">
+                    <li class="nav-item "><a class="nav-link" href="/">Home</a>
+                    </li>
+
+
+
+                            <li class="nav-item dropdown">
+                                <a  href="/index.php?keywords=VRP" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">VR Products                                </a>
+
+
+                                <ul class="dropdown-menu">
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/vr-forged-wheels-c-19364.html">VR Forged</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/vr-performance-m-3447.html">VR Performance</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/vr-aero-m-3446.html">VR Aero</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/vr-tuned-m-1104.html">VR Tuned</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/agency-power-m-135.html?filter_vehicle_type=UTV">Agency Power</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/armytrix-m-1179.html">Armytrix</a>
+                                        </li>
+
+
+                                                                    </ul>
+                            </li>
+
+
+                            <li class="nav-item dropdown">
+                                <a  href="/blog" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Blog                                </a>
+
+
+                                <ul class="dropdown-menu">
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/blog/vehicle-builds/">Customer Submitted Builds</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/blog/category/resource-center/">Resource Center</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/blog/category/announcing-new-products-specials-and-info/">Product News</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/blog/category/vividracing-client-cars/">Client Cars</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/blog/category/tuning-corner/">Tuning and Tech</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/blog/category/project-cars/">Project Cars</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/blog/gallery/">Gallery</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/blog/category/videos/">Videos</a>
+                                        </li>
+
+
+                                                                    </ul>
+                            </li>
+                                                                                                <li class="nav-item">
+                                <a class="nav-link"  href="/wholesale-auto-parts-sales-i-10.html">Wholesale</a>
+                            </li>
+                                                                                                <li class="nav-item">
+                                <a class="nav-link"  href="/vivid-racing-coupon-promo-code-i-209.html">Coupons</a>
+                            </li>
+                                                                                                <li class="nav-item">
+                                <a class="nav-link"  href="/wheelvisualizer.php#/">Wheel Visualizer</a>
+                            </li>
+
+
+                            <li class="nav-item dropdown">
+                                <a  href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Company                                </a>
+
+
+                                <ul class="dropdown-menu">
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/pages.php?cID=9">About Us</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/reviews.php">Reviews</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/customer-returns-i-112934.html">Make a Return</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/shipping-damage-claim-form-i-112938.html">Shipping Claim</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/vivid-racing-deal-machine-i-113010.html">The Deal Machine</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/shipping.php">International Orders</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/military.php">Military Discounts</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/affirm-car-part-financing-i-113003.html">Affirm Financing</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/katapult-leasetoown-i-112996.html">Katapult Financing</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/job-opportunities-at-vivid-racing-i-146.html">Employment</a>
+                                        </li>
+
+
+                                                                            <li>
+                                            <a class="dropdown-item"  href="/vivid-racing-ambassador-program-i-113075.html">Ambassador Program</a>
+                                        </li>
+
+
+                                                                    </ul>
+                            </li>
+                                                                                                <li class="nav-item">
+                                <a class="nav-link"  href="/contact_us.php">Contact Us</a>
+                            </li>
+
+
+                </ul>
+            </div>
+
+        </div>
+    </div>
+    <!--  -->
+    <div class="topbar topbar-dark bg-dark">
+        <div class="container ">
+            <!-- <div class="topbar-text dropdown d-md-none">
+				<a class="topbar-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Useful links</a>
+				<ul class="dropdown-menu">
+					<li>
+						<a class="dropdown-item" href="tel:00331697720">
+							<i class="ci-support text-muted me-2"></i>
+							(00) 33 169 7720
+						</a>
+					</li>
+					<li>
+						<a class="dropdown-item" href="#">
+							<i class="ci-location text-muted me-2"></i>
+							Order tracking
+						</a>
+					</li>
+				</ul>
+			</div> -->
+
+            <div class="topbar-text  d-md-inline-block w-100">
+                <div class="d-flex justify-content-between align-baseline ">
+                    <div class="flex-grow-1">
+
+                        <!-- Banner -->
+                                            </div>
+
+
+                    <div class="d-none d-md-block">
+
+
+
+
+
+                        <a class="btn-social bs-light bs-facebook " href="https://www.facebook.com/vividracingusa" aria-label="Visit Vividracing's Facebook">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+
+                        <a class="btn-social bs-light bs-instagram " href="https://www.instagram.com/vividracing/" aria-label="Visit Vividracing's Instagram">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+
+                        <a class="btn-social bs-light bs-youtube " href="https://www.youtube.com/user/vividracing?sub_confirmation=1" aria-label="Visit Vividracing's Youtube">
+                            <i class="bi bi-youtube"></i>
+                        </a>
+
+                        <a class="btn-social bs-twitter bs-light " href="https://www.linkedin.com/company/vivid-racing" aria-label="Visit Vividracing's LinkedIn">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+
+                        <a class="btn-social bs-twitter bs-light" href="https://www.tiktok.com/@vividracing" aria-label="Visit Vividracing's Tiktok">
+                            <i class="bi bi-tiktok"></i>
+                        </a>
+
+
+
+                    </div>
+                </div>
+
+            </div>
+
+</header>
+
+
+
+    <div class="bg-dark bg-opacity-75">
+    <nav aria-label="breadcrumb" class=" container">
+                        <ol class="breadcrumb breadcrumb-light flex-lg-nowrap justify-content-center justify-content-lg-start text-nowrap  rounded-3 p-2">
+                                                                <li class="breadcrumb-item "><a class="text-nowrap" href="https://www.vividracing.com">
+                                            <i class="ci-home"></i>                                            Home                                        </a></li>
+                                                                                                <li class="breadcrumb-item active" aria-current="page">VR Tuned</li>
+                                                                    </ol>
+    </nav>
+</div>
+<div class="container py-4 page-info">
+        <h1>VR Tuned</h1>
+            <p>
+        <p><img src="https://www.vividracing.com/blog/wp-content/uploads/VRTuned_Main_Banner_1.png" alt="" width="100%" /></p>
+<p style="text-align: center;">&nbsp;</p>
+<p style="text-align: center;"><a href="https://www.vividracing.com/vr-tuned-instructions-i-113085.html">Installation</a> | <a href="https://www.vividracing.com/vr-tuned-support-i-113083.html">Support</a></p>
+<p><span style="color: #e03e2d;"><strong>Vivid Racing was acquired in May 2025 and no longer offers or supports VR Tuned products. For Tuning Box Kits, please contact Racechip.us for support or warranty. For ECU Tuning, any customer that needs to flash back to stock is advised to follow the instructions on our Installation link. For Mail-In ECU flash customers you will need to visit your local dealership and have them program your vehicle to stock. If you do this, we cannot reflash your ECU after. No Exceptions. Sorry!</strong></span></p>
+<hr />
+<p>&nbsp;</p>        </p>
+
+</div>
+
+
+
+		<footer class="footer bg-dark bg-gradient pt-5 mb-5 mb-md-0">
+	<div class="container">
+		<div class="row pb-2">
+			<div class="col-md-3 col-sm-6">
+				<div class="widget widget-links widget-light pb-2 ">
+					<div class="widget-title text-light h3">Sales and Support</div>
+					<ul class="widget-list">
+						<li class="widget-list-item"><a class="widget-list-link" href="tel:14809663040"><i class="bi bi-phone"></i>&nbsp;1-480-966-3040</a></li>
+						<li class="widget-list-item"><a class="widget-list-link " href="https://retail.vividracing.com/portal/en/newticket?
+departmentld=154817000000107067&lavoutld=154817000009443022"><i class="bi bi-envelope"></i>&nbsp;Email Us</a></li>
+
+					</ul>
+				</div>
+
+				<div class="widget widget-links widget-light pb-2 mb-4">
+					<div class="widget-list">
+						<div class="widget-list-link">
+							Monday - Friday : 8AM - 5PM MST
+						</div>
+						<div class="widget-list-link">
+							Saturday - Sunday : Closed
+						</div>
+
+					</div>
+				</div>
+			</div>
+
+			<div class="col-md-3 col-sm-6">
+				<div class="d-flex flex-sm-row flex-column justify-content-sm-between mt-n4 mx-lg-n3">
+					<div class="widget widget-links widget-light mt-4 px-lg-6 px-sm-n2">
+						<div class="widget-title text-light h3">Company</div>
+						<ul class="widget-list">
+							<li class="widget-list-item"><a class="widget-list-link" href="https://www.vividracing.com/pages.php?cID=9">About Us</a></li>
+							<li class="widget-list-item"><a class="widget-list-link" href="https://www.vividracing.com/contact_us.php">Contact Us</a></li>
+							<li class="widget-list-item"><a class="widget-list-link" href="https://www.vividracing.com/wholesale-auto-parts-sales-i-10.html">Wholesale Sales</a></li>
+							<li class="widget-list-item"><a class="widget-list-link" href="https://www.vividracing.com/reviews.php">Customer Reviews</a></li>
+							<li class="widget-list-item"><a class="widget-list-link" href="https://www.vividracing.com/shipping-and-returns-i-27.html">Shipping and Returns</a></li>
+							<li class="widget-list-item"><a class="widget-list-link" href="https://www.vividracing.com/terms-and-conditions-i-6.html">Terms & Conditions</a></li>
+							<li class="widget-list-item"><a class="widget-list-link" href="https://www.vividracing.com/privacy-policy-i-28.html">Privacy Policy</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-3 col-sm-6">
+				<div class="d-flex flex-sm-row flex-column justify-content-sm-between mt-md-n4 mx-lg-n3">
+					<div class="widget widget-links widget-light mt-4  px-lg-6 px-sm-n2">
+						<div class="widget-title text-light h3">Join Our Newsletter</div>
+						<form action="#" method="post" id="vr23_footer_embed_signup" class="validate">
+							<p class="text-light">Subscribe to receive special offers</p>
+							<input type="text" name="email_address" class="d-none" tabindex="-1" placeholder="Email Address" value="" />
+							<div class="mb-2">
+								<input type="text" name="c53c5fcc24[]" tabindex="-1" class="form-control" placeholder="Email Address" />
+								<input type="hidden" name="c53c5fcc24[]" value="88ee0b75dde2e96dca39c9cfce3d3eba23ccc55e8a9b1525ab52bb1261dbfe6a" />
+							</div>
+							<div class="mb-2">
+								<input type="submit" value="Subscribe" class="btn btn-primary w-100" />
+							</div>
+						</form>
+						<!-- // NEWSLETTER FORM SUBMIT AJAX ERROR NOTIFICATION //-->
+						<div class="toast-container position-fixed bottom-0 end-0 p-3">
+							<div id="vr23_footer_embed_signup_error" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+								<div class="toast-header bg-danger text-white">
+									<i class="ci-close-circle me-2"></i>
+									<span class="fw-medium me-auto">Error: Failed to add to newsletter</span>
+									<button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
+								</div>
+								<div class="toast-body text-danger">Please refresh the page and try again.</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-3 text-center text-md-end mb-4">
+				<div class="widget-title text-light h3">Stay Connected</div>
+				<div class="mb-3">
+					<a class="btn-social bs-light bs-facebook ms-2 mb-2" href="https://www.facebook.com/vividracingusa" aria-label="Visit Vividracing's Facebook"><i class="ci-facebook"></i></a>
+					<a class="btn-social bs-light bs-instagram ms-2 mb-2" href="https://www.instagram.com/vividracing/" aria-label="Visit Vividracing's Instagram"><i class="ci-instagram"></i></a>
+					<a class="btn-social bs-light bs-youtube ms-2 mb-2" href="https://www.youtube.com/user/vividracing?sub_confirmation=1" aria-label="Visit Vividracing's Youtube"><i class="ci-youtube"></i></a>
+					<a class="btn-social bs-twitter bs-light  ms-2" href="https://www.linkedin.com/company/vivid-racing" aria-label="Visit Vividracing's LinkedIn">
+						<i class="bi bi-linkedin"></i>
+					</a>
+					<a class="btn-social bs-twitter bs-light  ms-2" href="https://www.tiktok.com/@vividracing" aria-label="Visit Vividracing's Tiktok">
+						<i class="bi bi-tiktok"></i>
+					</a>
+				</div>
+			</div>
+
+		</div>
+	</div>
+	<div class="pt-5">
+		<div class="container">
+			<div class="row pb-2">
+				<div class="col-md-6 text-center text-md-start">
+					<div class="text-nowrap">
+						<a class="d-inline-block align-middle mt-n1 me-3" href="#">
+							<img class="d-block" src="/logo-optimized.png" width="140" height="30" alt="Vivid Racing">
+						</a>
+					</div>
+				</div>
+			</div>
+			<div class="pb-4 fs-xs text-light opacity-50 text-center text-md-start">© Copyright © 2025 Vivid
+				Distributing LLC
+			</div>
+		</div>
+	</div>
+</footer>
+
+<script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "Organization",
+        "name": "Vivid Racing",
+        "url": "https://vividracing.com/",
+        "logo": "https://www.vividracing.com/logo-optimized.png",
+        "contactPoint": [
+            {
+                "@type": "ContactPoint",
+                "telephone": "+1-480-757-9492",
+                "contactType": "Sales",
+                "areaServed": "US",
+                "availableLanguage": ["English"]
+            }
+        ],
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "1429 W Scott Ave",
+            "addressLocality": "Gilbert",
+            "addressRegion": "AZ",
+            "postalCode": "85233",
+            "addressCountry": "US"
+        },
+        "sameAs": [
+            "https://www.facebook.com/vividracingusa",
+            "https://www.twitter.com/vividracing",
+            "https://www.instagram.com/vividracing"
+        ]
+    }
+    </script>	</main>
+	<!-- Shopping Cart -->
+<aside id="cart-drawer" class="">
+	<style>.simplebar-wrapper {height: 100% !important;}</style>
+	<div class="offcanvas offcanvas-end" id="offcanvasRight" tabindex="-1">
+		<div class="offcanvas-header border-bottom">
+			<div class="offcanvas-title h3">Cart</div>
+			<button class="btn-close" aria-label="Close Shopping Cart" type="button" data-bs-dismiss="offcanvas"></button>
+		</div>
+		<div id="cartDrawerWrapper" class="offcanvas-body d-flex flex-column">
+			<div class="widget widget-cart" data-simplebar style="overflow-x: hidden" >
+					</div>
+			<div id="subtotal_amount_wrapper" class="d-none">
+				<div class="d-flex flex-wrap justify-content-between align-items-center py-2 mt-2" style="height: 64px">
+					<span class="fs-sm pb-2 text-muted">Subtotal:</span>
+					<span id="subtotal_amount" class="fs-sm pb-2 text-accent fs-base">$0.<small>00</small></span>
+				</div>
+				<a class="btn btn-primary bg-gradient btn-sm d-block mb-3 w-100" style="height: 32px;" href="/checkout_details.php">
+					<i class="ci-card me-2 fs-base align-middle"></i>Checkout
+				</a>
+			</div>
+		</div>
+		<div class="offcanvas-footer d-none d-lg-block py-4"></div>
+		<div id="widget-item-prototype" style="display: none">
+			<div class="widget-cart-item py-2 border-bottom fade show">
+				<button class="btn-close text-danger remove_cart_item" type="button" aria-label="Remove"
+				        data-cart-key="__CART_KEY__" data-parent-cart-key="__PARENT_CART_KEY__">
+					<span aria-hidden="true">×</span>
+				</button>
+				<div class="d-flex align-items-center">
+					<a class="flex-shrink-0" href="__PAGE_URL__" target="_blank">
+						<img src="data:image/png;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" width="64" alt="__NAME__">
+					</a>
+					<div class="ps-2">
+						<div class="widget-product-title h6">
+							<a href="__PAGE_URL__" target="_blank">__NAME__</a>
+						</div>
+						<div class="widget-product-meta" data-stack-price="__STACK_PRICE__">
+							<span class="text-accent me-2">$__DOLLARS__.<small>__CENTS__</small></span>
+							<span class="text-muted">x __QTY__</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</aside>	<!-- Javascript -->
+
+<script>
+    // VR Data
+    window.vrdata = JSON.parse(`{"vehicle":{"make_id":0,"model_id":0,"make_name":"","model_name":"","year":"2025","type":""},"categories_id":null,"manufacturers_id":0,"content":"information","vehicle_quick_switcher_options":null,"landing_page_description":null,"product":{"id":null,"category_id":null,"manufacturer_id":null,"fitment":null},"affirm":{"enabled":false}}`);
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // Scroll to top on navbar toggle
+        document.querySelector('.navbar-toggler').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'instant'
+            });
+        });
+
+        document.querySelector('#navbarCollapse .navbar-nav:not(.navbar-mega-nav)').addEventListener('click', function (e) {
+            if (e.target.classList.contains('dropdown-toggle')) {
+                var parentLink = e.target;
+                var dropdownMenu = parentLink.nextElementSibling;
+                if (window.innerWidth >= 992) {
+                    // On larger screens, follow the link
+                    window.location.href = parentLink.href;
+                } else {
+                    // On smaller screens, toggle the dropdown
+                }
+            }
+        });
+    });
+</script>
+
+
+<!-- web scripts: js libraries and plugins-->
+<script src="/templates/vr23/build/web/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/templates/vr23/build/web/simplebar/dist/simplebar.min.js"></script>
+<script src="/templates/vr23/build/web/tiny-slider/dist/min/tiny-slider.js"></script>
+<script src="/templates/vr23/build/web/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+<script src="/templates/vr23/build/web/nouislider/dist/nouislider.min.js"></script>
+<script src="/templates/vr23/build/web/drift-zoom/dist/Drift.min.js"></script>
+<script src="/templates/vr23/build/web/lightgallery.js/dist/js/lightgallery.min.js"></script>
+
+<!-- Main theme script-->
+<script src="/templates/vr23/dist/vendors.afa0101c5f3a22d04f47.bundle.js" defer></script><script src="/templates/vr23/dist/main.3fe9384eaed10e7c9c6c.bundle.js" defer></script>
+<script src="/templates/vr23/build/js/theme.min.js"></script>
+
+
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        dataLayer.push({
+            'email': ''
+        })
+    </script>
+
+<script>
+    window.dataLayer = window.dataLayer || [];
+    dataLayer.push({
+        'uid': {
+            'email': '',
+            'email_md5': '',
+            'zipcode': '',
+            'keywords': '',
+        }
+    })
+
+    // The template being used
+    dataLayer.push({
+        'template_used': 'vr23'
+    })
+</script>
+
+<!-- Google Tag Manager -->
+<noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-PQDPZF" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+<script>
+    window.dataLayer = window.dataLayer || [];
+    document.addEventListener('DOMContentLoaded', () => {
+        /** init gtm after 500 seconds - this could be adjusted */
+        setTimeout(initGTM, 500);
+    });
+    // document.addEventListener('scroll', initGTMOnEvent);
+    // document.addEventListener('mousemove', initGTMOnEvent);
+    // document.addEventListener('touchstart', initGTMOnEvent);
+
+    // function initGTMOnEvent(event) {
+    //     initGTM();
+    //     event.currentTarget.removeEventListener(event.type, initGTMOnEvent); // remove the event listener that got triggered
+    // }
+
+    function initGTM() {
+        if (window.gtmDidInit) {
+            return false;
+        }
+        window.gtmDidInit = true; // flag to ensure script does not get added to DOM more than once.
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.async = true;
+        script.onload = () => {
+            dataLayer.push({
+                event: 'gtm.js',
+                'gtm.start': (new Date()).getTime(),
+                'gtm.uniqueEventId': 0
+            });
+        } // this part ensures PageViews is always tracked
+        script.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-PQDPZF';
+
+        document.head.appendChild(script);
+    }
+</script>
+<!-- End Google Tag Manager -->
+        <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1313708512793884');
+fbq('track', 'PageView');
+
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1313708512793884&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+
+
+<!-- Initialize Klaviyo -->
+<script type="text/javascript" async="" src="https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=QZgqNT"></script>
+<script type="text/javascript">
+    !function(){if(!window.klaviyo){window._klOnsite=window._klOnsite||[];try{window.klaviyo=new Proxy({},{get:function(n,i){return"push"===i?function(){var n;(n=window._klOnsite).push.apply(n,arguments)}:function(){for(var n=arguments.length,o=new Array(n),w=0;w<n;w++)o[w]=arguments[w];var t="function"==typeof o[o.length-1]?o.pop():void 0,e=new Promise((function(n){window._klOnsite.push([i].concat(o,[function(i){t&&t(i),n(i)}]))}));return e}}})}catch(n){window.klaviyo=window.klaviyo||[],window.klaviyo.push=function(){var n;(n=window._klOnsite).push.apply(n,arguments)}}}}();
+</script>
+
+<script type="text/javascript" async>
+    <!-- Send Klaviyo Events -->
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const klaviyo = window.klaviyo || null;
+        if (klaviyo === null) {
+            return;
+        }
+
+
+
+
+
+
+
+
+
+            });
+</script>
+<div id="zohoLivechatContainer"></div>
+</body>
+
+</html>
