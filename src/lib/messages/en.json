@@ -133,5 +133,38 @@
   "brandsPage": {
     "title": "Brands",
     "logoDisclaimer": "Logos shown where available – others use a placeholder until assets are added."
+  },
+  "landing": {
+    "automotive": "AUTOMOTIVE",
+    "motorcycles": "MOTORCYCLES",
+    "learnMore": "Learn More"
+  },
+  "aboutPage": {
+    "title": "Why Choose Us?",
+    "contact": "Contact a Specialist",
+    "info": {
+      "selectionTitle": "Individual Selection",
+      "selectionDesc": "Our team of specialists can select parts individually to meet your specific needs.",
+      "expertHelpTitle": "Expert Help",
+      "expertHelpDesc": "We provide expert consultation to help you make the best choice.",
+      "partnerNetworkTitle": "Partner Network",
+      "partnerNetworkDesc": "We have a network of partners for installations of any complexity, all over the world.",
+      "worldwideDeliveryTitle": "Worldwide Delivery",
+      "worldwideDeliveryDesc": "We offer fast and reliable delivery to anywhere in the world."
+    }
+  },
+  "contactForm": {
+    "title": "Individual Selection",
+    "requestType": "Request Type",
+    "auto": "Auto",
+    "moto": "Moto",
+    "model": "Make and model of car/motorcycle",
+    "vin": "VIN code",
+    "wishes": "Detailed description of wishes",
+    "budget": "Estimated budget",
+    "email": "Email",
+    "fieldRequired": "This field is required",
+    "submit": "Send",
+    "submitting": "Sending..."
   }
 }
