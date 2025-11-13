@@ -9,27 +9,29 @@ import type { SimpleBrand } from '@/lib/types';
 interface BrandModalProps {
   isOpen: boolean;
   onClose: () => void;
-  brand: SimpleBrand;
+  brand: SimpleBrand | null;
 }
 
 export function BrandModal({ isOpen, onClose, brand }: BrandModalProps) {
   useEffect(() => {
     if (isOpen) {
+      const scrollY = window.scrollY;
       document.body.style.overflow = 'hidden';
-      // Lock body position to prevent background scroll
       document.body.style.position = 'fixed';
-      document.body.style.top = `-${window.scrollY}px`;
+      document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
+      document.body.dataset.scrollY = String(scrollY);
     } else {
-      // Restore scroll position
-      const scrollY = document.body.style.top;
+      const scrollY = document.body.dataset.scrollY || '0';
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
-      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      window.scrollTo(0, parseInt(scrollY, 10));
+      delete document.body.dataset.scrollY;
     }
     return () => {
+      // Ensure styles are cleaned up on unmount
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.top = '';
@@ -37,7 +39,7 @@ export function BrandModal({ isOpen, onClose, brand }: BrandModalProps) {
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !brand) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">

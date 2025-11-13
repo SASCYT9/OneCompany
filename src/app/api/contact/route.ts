@@ -1,4 +1,5 @@
 import { formatAutoMessage, formatMotoMessage } from '@/lib/telegram';
+import { messageStore } from '@/lib/messageStore';
 import type { NextRequest } from 'next/server';
 
 // Basic rate limiting (memory). For production replace with Redis or durable store.
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest) {
     const type = (body.type === 'moto' ? 'moto' : 'auto') as 'auto' | 'moto';
 
     let message: string;
+    let model: string = '';
 
     if (type === 'auto') {
       const formData = {
@@ -85,6 +87,7 @@ export async function POST(req: NextRequest) {
       if (!formData.carModel || !formData.email) {
         return new Response(JSON.stringify({ error: 'Missing required auto fields' }), { status: 400 });
       }
+      model = formData.carModel;
       // Escape fields before putting them into the HTML message
       message = formatAutoMessage({
         ...formData,
@@ -105,6 +108,7 @@ export async function POST(req: NextRequest) {
       if (!formData.motoModel || !formData.email) {
         return new Response(JSON.stringify({ error: 'Missing required moto fields' }), { status: 400 });
       }
+      model = formData.motoModel;
       // Escape fields before putting them into the HTML message
       message = formatMotoMessage({
         ...formData,
@@ -116,17 +120,43 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Send to Telegram
-    const tgResult = await sendTelegram(message, type);
+    // Save to message store
+    const savedMessage = messageStore.addMessage({
+      chatId: 0,
+      userId: 0,
+      userName: body.email || 'Contact Form',
+      messageText: `${type.toUpperCase()}: ${model}\n${message}`,
+      type: 'contact_form',
+      category: type,
+      metadata: {
+        type,
+        model,
+        email: body.email,
+        wishes: body.wishes || '',
+      }
+    });
 
-    if (!tgResult.ok) {
-      // Log the error but don't block the user response
-      console.error('Failed to send to Telegram:', tgResult.error);
-      // Optionally, you could have a fallback here, like sending an email
-      return new Response(JSON.stringify({ error: 'Failed to process submission' }), { status: 500 });
+    console.log('✅ Message saved to store:', savedMessage.id);
+
+    // Send to Telegram (don't block user if this fails)
+    try {
+      const tgResult = await sendTelegram(message, type);
+      
+      if (tgResult.ok) {
+        console.log('✅ Telegram notification sent successfully');
+      } else {
+        console.warn('⚠️ Telegram notification failed:', tgResult.error);
+        // Message is saved in store, so we still return success to user
+      }
+    } catch (tgError: any) {
+      console.error('❌ Telegram error (non-blocking):', tgError.message);
+      // Still continue - message is saved
     }
 
-    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    return new Response(JSON.stringify({ 
+      ok: true,
+      messageId: savedMessage.id 
+    }), { status: 200 });
   } catch (e: any) {
     console.error('Server Error:', e);
     return new Response(JSON.stringify({ error: e?.message || 'Server error' }), { status: 500 });

@@ -1,12 +1,53 @@
 // src/lib/brands.ts
 
-export interface Brand {
+// Local simplified brand type for static data
+export interface LocalBrand {
   name: string;
+  slug?: string;
   description?: string; // Optional description
   logoUrl?: string; // Optional path to logo
+  category?: 'usa' | 'europe' | 'oem' | 'racing' | 'moto' | 'auto';
+  website?: string;
+  specialties?: string[];
 }
 
-export const brandsUsa: Brand[] = [
+// Helper function to generate slug from brand name
+export function getBrandSlug(brand: LocalBrand | string): string {
+  const name = typeof brand === 'string' ? brand : brand.slug || brand.name;
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+// Helper function to find a brand by slug
+export function getBrandBySlug(slug: string): LocalBrand | undefined {
+  const allBrands = [...allAutomotiveBrands, ...allMotoBrands];
+  return allBrands.find(brand => getBrandSlug(brand) === slug);
+}
+
+// Helper to get brand with category info
+export function getBrandWithCategory(slug: string): (LocalBrand & { category: 'usa' | 'europe' | 'oem' | 'racing' | 'moto' | 'auto' }) | undefined {
+  // Check automotive categories
+  const automotiveCategories = ['usa', 'europe', 'oem', 'racing', 'auto'] as const;
+  for (const category of automotiveCategories) {
+    const brands = getBrandsByCategory(category);
+    const brand = brands.find(b => getBrandSlug(b) === slug);
+    if (brand) {
+      return { ...brand, category };
+    }
+  }
+  
+  // Check moto
+  const motoBrand = brandsMoto.find(b => getBrandSlug(b) === slug);
+  if (motoBrand) {
+    return { ...motoBrand, category: 'moto' };
+  }
+  
+  return undefined;
+}
+
+export const brandsUsa: LocalBrand[] = [
   { name: '1221 wheels' },
   { name: '1016 Industries' },
   { name: '5150 Autosport' },
@@ -60,7 +101,6 @@ export const brandsUsa: Brand[] = [
   { name: 'Mountune' },
   { name: 'MV Forged' },
   { name: 'Paragon brakes' },
-  { name: 'Paramount transmissions' },
   { name: 'Premier Tuning Group' },
   { name: 'Project 6GR' },
   { name: 'Pure Drivetrain Solutions' },
@@ -89,7 +129,6 @@ export const brandsUsa: Brand[] = [
   { name: 'VR Bespoke' },
   { name: 'VR Forged' },
   { name: 'VR Performance' },
-  { name: 'VR Tuned' },
   { name: 'Vorsteiner' },
   { name: 'Wavetrac' },
   { name: 'Weistec Engineering' },
@@ -97,7 +136,7 @@ export const brandsUsa: Brand[] = [
   { name: 'XDI fuel systems' },
 ];
 
-export const brandsEurope: Brand[] = [
+export const brandsEurope: LocalBrand[] = [
   { name: '3D Design' },
   { name: 'ABT' },
   { name: 'AC Schnitzer' },
@@ -143,7 +182,7 @@ export const brandsEurope: Brand[] = [
   { name: 'Manhart' },
   { name: 'Mansory' },
   { name: 'Mamba turbo' },
-  { name: "Matt's carbon" },
+  { name: "Matts Carbon" },
   { name: 'Milltek' },
   { name: 'MST Performance' },
   { name: 'Novitec' },
@@ -179,7 +218,7 @@ export const brandsEurope: Brand[] = [
   { name: 'Zacoe' },
 ];
 
-export const brandsOem: Brand[] = [
+export const brandsOem: LocalBrand[] = [
   { name: 'Aston Martin' },
   { name: 'Ferrari' },
   { name: 'Lamborghini' },
@@ -188,11 +227,10 @@ export const brandsOem: Brand[] = [
   { name: 'Rolls Royce' },
 ];
 
-export const brandsRacing: Brand[] = [
+export const brandsRacing: LocalBrand[] = [
   { name: 'AIM Sportline' },
   { name: 'ARE dry sump' },
   { name: 'Bell Intercoolers' },
-  { name: 'DMS Shocks' },
   { name: 'Drenth Gearboxes' },
   { name: 'Driftworks' },
   { name: 'Extreme tyres' },
@@ -207,7 +245,7 @@ export const brandsRacing: Brand[] = [
   { name: 'Team Oreca' },
 ];
 
-export const brandsMoto: Brand[] = [
+export const brandsMoto: LocalBrand[] = [
   { name: 'Accossato' },
   { name: 'AEM Factory' },
   { name: 'AIM Sportline' },
@@ -258,16 +296,16 @@ export const brandsMoto: Brand[] = [
   { name: 'WRS' },
 ];
 
-export const allAutomotiveBrands: Brand[] = [
+export const allAutomotiveBrands: LocalBrand[] = [
   ...brandsUsa,
   ...brandsEurope,
   ...brandsOem,
   ...brandsRacing,
 ].sort((a, b) => a.name.localeCompare(b.name));
 
-export const allMotoBrands: Brand[] = [...brandsMoto].sort((a, b) => a.name.localeCompare(b.name));
+export const allMotoBrands: LocalBrand[] = [...brandsMoto].sort((a, b) => a.name.localeCompare(b.name));
 
-export function getBrandsByCategory(category: string): Brand[] {
+export function getBrandsByCategory(category: string): LocalBrand[] {
   switch (category) {
     case 'usa':
       return brandsUsa;

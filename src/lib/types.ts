@@ -9,7 +9,7 @@ export interface Brand {
   logo: string;
   url: string;
   description?: string;
-  category: string;
+  category: string; // Required field
   featured?: boolean;
   createdAt: string;
   updatedAt: string;

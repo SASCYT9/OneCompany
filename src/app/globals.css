@@ -292,6 +292,56 @@ html {
   animation: float 6s ease-in-out infinite;
 }
 
+/* Carousel scroll animations */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes scroll-slow {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes scroll-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 40s linear infinite;
+}
+
+.animate-scroll-slow {
+  animation: scroll-slow 60s linear infinite;
+}
+
+.animate-scroll-reverse {
+  animation: scroll-reverse 60s linear infinite;
+}
+
+.animate-scroll:hover,
+.animate-scroll-slow:hover,
+.animate-scroll-reverse:hover {
+  animation-play-state: paused;
+}
+
+.pause:hover {
+  animation-play-state: paused;
+}
+
 /* Modal animations */
 @keyframes fadeIn {
   from {

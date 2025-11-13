@@ -161,33 +161,103 @@ TELEGRAM_MOTO_CHAT_ID=-1009876543210   # Moto team group/channel
 
 ---
 
-## Webhook vs Polling (Optional Advanced Setup)
+## Webhook vs Polling (Interactive Bot Features)
 
-By default, your bot sends messages via API (no incoming message handling).
+Your bot now has **two-way communication** capabilities via webhook!
 
-**If you want to respond to user messages (e.g., /start command):**
+### What's Included
 
-### Option A: Polling (Simpler, for Development)
-- Use a library like `node-telegram-bot-api`:
-  ```typescript
-  import TelegramBot from 'node-telegram-bot-api';
-  const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN!, { polling: true });
-  bot.onText(/\/start/, (msg) => {
-    bot.sendMessage(msg.chat.id, 'Welcome to OneCompany!');
-  });
-  ```
+✅ **Automatic webhook handling** at `/api/telegram/webhook`
+✅ **Interactive commands:**
+- `/start` - Welcome message with bot introduction
+- `/brands` - List of premium automotive & motorcycle brands
+- `/contact` - Contact information
+- `/help` - How we can help customers
 
-### Option B: Webhook (Recommended for Production)
-1. Set up a public endpoint (e.g., `/api/telegram-webhook`)
-2. Register webhook with Telegram:
-   ```bash
-   curl -X POST https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook \
-     -H "Content-Type: application/json" \
-     -d '{"url": "https://onecompany.com/api/telegram-webhook"}'
+✅ **Message forwarding** - Any user message is forwarded to your team
+✅ **Auto-replies** - Customers get instant confirmation when they message
+
+### Setup Webhook (After Deploy)
+
+1. **Deploy your app** to production (Vercel/Netlify/Azure)
+
+2. **Set base URL** in environment variables:
+   ```env
+   NEXT_PUBLIC_BASE_URL=https://onecompany.com.ua
    ```
-3. Handle incoming messages in your API route
 
-**For contact form only (one-way notifications), webhooks are not required.**
+3. **Configure webhook** by visiting:
+   ```
+   https://onecompany.com.ua/api/telegram/setup
+   ```
+   
+   This will automatically:
+   - Register your webhook with Telegram
+   - Configure allowed updates
+   - Return webhook status and info
+
+4. **Verify webhook** is active:
+   ```bash
+   curl https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo
+   ```
+
+### Environment Variables for Webhook
+
+```env
+# Bot token from BotFather
+TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz1234567
+
+# Your main chat ID where customer messages are forwarded
+TELEGRAM_CHAT_ID=-1001234567890
+
+# Separate chat IDs for contact form routing
+TELEGRAM_AUTO_CHAT_ID=-1001234567890   # Auto team
+TELEGRAM_MOTO_CHAT_ID=-1009876543210   # Moto team
+
+# Base URL for webhook (production only)
+NEXT_PUBLIC_BASE_URL=https://onecompany.com.ua
+```
+
+### How It Works
+
+1. **User messages your bot** → Message arrives at `/api/telegram/webhook`
+2. **Bot processes commands** (`/start`, `/brands`, etc.) → Sends formatted reply
+3. **Regular messages** → Forwarded to `TELEGRAM_CHAT_ID` + Auto-reply to user
+4. **Contact form** → Routes to auto/moto team chats based on inquiry type
+
+### Testing Locally
+
+For local development, use **ngrok** to expose your webhook:
+
+```bash
+# Install ngrok
+npm install -g ngrok
+
+# Expose port 3000
+ngrok http 3000
+
+# Copy the HTTPS URL (e.g., https://abc123.ngrok.io)
+# Set it temporarily:
+NEXT_PUBLIC_BASE_URL=https://abc123.ngrok.io
+
+# Setup webhook
+curl https://abc123.ngrok.io/api/telegram/setup
+```
+
+**Note:** Ngrok URLs change on restart. For production, use your actual domain.
+
+### Remove Webhook (for Testing)
+
+To switch back to polling or disable webhook:
+
+```bash
+curl -X DELETE https://onecompany.com.ua/api/telegram/setup
+```
+
+Or manually via Telegram API:
+```bash
+curl -X POST https://api.telegram.org/bot<YOUR_BOT_TOKEN>/deleteWebhook
+```
 
 ---
 

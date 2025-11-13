@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { allAutomotiveBrands, Brand } from '@/lib/brands';
+import { allAutomotiveBrands, LocalBrand } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,7 +21,7 @@ const productCategories = [
 ];
 
 // Placeholder for featured brands
-const featuredBrands: Brand[] = [
+const featuredBrands: LocalBrand[] = [
   { name: 'Akrapovic', description: 'High-performance exhaust systems' },
   { name: 'KW Suspension', description: 'Coilover and suspension solutions' },
   { name: 'HRE Wheels', description: 'Custom forged luxury wheels' },

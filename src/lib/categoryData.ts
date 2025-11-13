@@ -1,6 +1,6 @@
 // src/lib/categoryData.ts
 
-import { Brand } from './brands';
+import { LocalBrand } from './brands';
 
 export interface CategoryData {
   slug: string;
@@ -12,7 +12,7 @@ export interface CategoryData {
     en: string;
     ua: string;
   };
-  brands: Brand[];
+  brands: Partial<LocalBrand>[];
 }
 
 export const categoryData: CategoryData[] = [

@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
-import type { SimpleBrand } from '@/lib/brands';
+import type { SimpleBrand } from '@/lib/types';
 import { BrandLogo } from './BrandLogo';
 
 interface MagicBrandCardProps {

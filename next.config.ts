@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
 
-const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
   // Для Docker standalone output
@@ -10,12 +10,25 @@ const nextConfig: NextConfig = {
   // Оптимізація для продакшену
   compress: true,
   
+  // Images configuration
+  images: {
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    remotePatterns: [],
+  },
+  
   // Experimental features
   experimental: {
     optimizeCss: false,
   },
   async redirects() {
     return [
+      {
+        source: '/',
+        destination: '/ua',
+        permanent: false
+      },
       {
         source: '/categories',
         destination: '/ua/categories',

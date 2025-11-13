@@ -5,7 +5,7 @@ import { FiHero } from '@/components/fi/FiHero';
 import { FiProducts } from '@/components/fi/FiProducts';
 import { FiTechnology } from '@/components/fi/FiTechnology';
 import { FiGallery } from '@/components/fi/FiGallery';
-import { Footer } from '@/components/shared/Footer';
+import Footer from '@/components/shared/Footer';
 
 export default function FiPage() {
   return (
@@ -15,7 +15,7 @@ export default function FiPage() {
       <FiProducts />
       <FiTechnology />
       <FiGallery />
-      <Footer brand="fi" />
+      <Footer />
     </div>
   );
 }

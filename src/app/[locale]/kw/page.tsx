@@ -5,7 +5,7 @@ import { KWHero } from '@/components/kw/KWHero';
 import { KWProducts } from '@/components/kw/KWProducts';
 import { KWTechnology } from '@/components/kw/KWTechnology';
 import { KWGallery } from '@/components/kw/KWGallery';
-import { Footer } from '@/components/shared/Footer';
+import Footer from '@/components/shared/Footer';
 
 export default function KWPage() {
   return (
@@ -15,7 +15,7 @@ export default function KWPage() {
       <KWProducts />
       <KWTechnology />
       <KWGallery />
-      <Footer brand="kw" />
+      <Footer />
     </div>
   );
 }

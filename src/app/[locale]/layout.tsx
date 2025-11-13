@@ -1,7 +1,6 @@
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
 import { ReactNode } from 'react';
-import { LocalizedNavigation } from '@/components/ui/LocalizedNavigation';
+import Header from '@/components/shared/Header';
+import Footer from '@/components/shared/Footer';
 
 type Props = {
   children: ReactNode;
@@ -9,13 +8,15 @@ type Props = {
 };
 
 export default async function LocaleLayout({ children, params }: Props) {
-  const { locale } = await params;
-  const messages = await getMessages();
-
+  await params; // Await params in Next.js 16+
+  
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      <LocalizedNavigation />
-      {children}
-    </NextIntlClientProvider>
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-grow">
+        {children}
+      </main>
+      <Footer />
+    </div>
   );
 }

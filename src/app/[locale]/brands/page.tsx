@@ -1,52 +1,84 @@
-import { useTranslations } from 'next-intl';
-import { allAutomotiveBrands, allMotoBrands } from '@/lib/brands';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { allAutomotiveBrands, allMotoBrands, getBrandSlug } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
-import BrandLogosGrid from '@/components/sections/BrandLogosGrid';
-import CategoryCard from '@/components/ui/CategoryCard';
-import { Link } from '@/navigation';
+import ProductCard from '@/components/products/ProductCard';
+import Link from 'next/link';
 
-export default function BrandsPage() {
-  const t = useTranslations();
+interface BrandsPageProps {
+  params: Promise<{
+    locale: string;
+  }>;
+}
 
+export default async function BrandsPage({ params }: BrandsPageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations();
+  
   const automotiveItems = allAutomotiveBrands.map(b => ({
     name: b.name,
     logoSrc: getBrandLogo(b.name),
+    slug: getBrandSlug(b),
   }));
-
-  const motoItems = allMotoBrands.map(b => ({
-    name: b.name,
-    logoSrc: getBrandLogo(b.name),
-  }));
-
-  const categories = [
-    { name: t('categories.usa'), href: '/brands/usa' },
-    { name: t('categories.europe'), href: '/brands/europe' },
-    { name: t('categories.oem'), href: '/brands/oem' },
-    { name: t('categories.racing'), href: '/brands/racing' },
-  ];
 
   return (
-    <div className="px-6 md:px-10 py-20 md:py-28">
-      <h1 className="text-4xl md:text-5xl font-bold mb-10 tracking-tight">{t('brandsPage.title')}</h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-        {categories.map(cat => (
-          <CategoryCard key={cat.name} title={cat.name} href={cat.href} />
-        ))}
+    <div className="min-h-screen bg-white dark:bg-black">
+      {/* Hero Section */}
+      <div className="px-6 md:px-10 py-32 md:py-40">
+        <div className="max-w-7xl mx-auto text-center">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extralight tracking-tight text-zinc-900 dark:text-white mb-8 leading-tight">
+            {t('brandsPage.title')}
+          </h1>
+          <div className="w-32 h-px bg-zinc-300 dark:bg-white/20 mx-auto mb-10" />
+          <p className="text-xl md:text-2xl font-light text-zinc-600 dark:text-white/50 max-w-3xl mx-auto">
+            Explore our curated collection of premium automotive and motorcycle brands
+          </p>
+        </div>
       </div>
 
-      <div className="flex space-x-8 mb-10 border-b border-white/20">
-        <Link href="/brands" className="text-lg font-semibold pb-3 border-b-2 border-blue-500">
-          {t('auto.title')}
-        </Link>
-        <Link href="/brands/moto" className="text-lg font-semibold pb-3 text-white/60 hover:text-white transition-colors">
-          {t('moto.title')}
-        </Link>
+      {/* Category Tabs */}
+      <div className="border-t border-b border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950">
+        <div className="max-w-7xl mx-auto px-6 md:px-10">
+          <div className="flex justify-center space-x-16 py-6">
+            <Link 
+              href={`/${locale}/brands`} 
+              className="text-base font-light pb-2 border-b-2 border-zinc-900 dark:border-white text-zinc-900 dark:text-white uppercase tracking-widest"
+            >
+              {t('auto.title')}
+            </Link>
+            <Link 
+              href={`/${locale}/brands/moto`} 
+              className="text-base font-light pb-2 text-zinc-400 dark:text-white/40 hover:text-zinc-900 dark:hover:text-white transition-colors uppercase tracking-widest"
+            >
+              {t('moto.title')}
+            </Link>
+          </div>
+        </div>
       </div>
 
-      <BrandLogosGrid items={automotiveItems} />
+      {/* Brands Grid */}
+      <div className="px-6 md:px-10 py-24">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {automotiveItems.map((brand) => (
+              <ProductCard
+                key={brand.name}
+                name={brand.name}
+                image={brand.logoSrc}
+                href={`/${locale}/brands/${brand.slug}`}
+                category="Automotive"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
 
-      <p className="mt-6 text-xs text-white/40">{t('brandsPage.logoDisclaimer')}</p>
+      {/* Footer Note */}
+      <div className="px-6 md:px-10 pb-16">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-xs text-zinc-400 dark:text-white/30 font-light">{t('brandsPage.logoDisclaimer')}</p>
+        </div>
+      </div>
     </div>
   );
 }

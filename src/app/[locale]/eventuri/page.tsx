@@ -5,7 +5,7 @@ import { EventuriHero } from '@/components/eventuri/EventuriHero';
 import { EventuriProducts } from '@/components/eventuri/EventuriProducts';
 import { EventuriTechnology } from '@/components/eventuri/EventuriTechnology';
 import { EventuriGallery } from '@/components/eventuri/EventuriGallery';
-import { Footer } from '@/components/shared/Footer';
+import Footer from '@/components/shared/Footer';
 
 export default function EventuriPage() {
   return (
@@ -15,7 +15,7 @@ export default function EventuriPage() {
       <EventuriProducts />
       <EventuriTechnology />
       <EventuriGallery />
-      <Footer brand="eventuri" />
+      <Footer />
     </div>
   );
 }

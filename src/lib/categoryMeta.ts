@@ -1,4 +1,4 @@
-import type { CategorySlug } from './brands';
+export type CategorySlug = 'exhaust' | 'suspension' | 'wheels' | 'brakes' | 'intake' | 'interior' | 'performance';
 
 export type Localized = { ua: string; en: string };
 

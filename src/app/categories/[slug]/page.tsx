@@ -2,21 +2,23 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/LanguageContext';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { BrandModal } from '@/components/ui/BrandModal';
 import { alphabet, groupBrandsByLetter } from '@/lib/brandUtils';
-import { getBrandsByCategory } from '@/lib/brands';
+import { getBrandsByCategory, LocalBrand } from '@/lib/brands';
 import { getCategoryMeta } from '@/lib/categoryMeta';
 import type { SimpleBrand } from '@/lib/types';
 
 export default function CategoryPage() {
   const { locale } = useLanguage();
   const params = useParams();
-  const searchParams = useSearchParams();
   const slug = String(params?.slug || '');
   const meta = getCategoryMeta(slug as any);
+  
+  // State for the modal should use the type the modal expects
   const [selectedBrand, setSelectedBrand] = useState<SimpleBrand | null>(null);
+  
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -44,10 +46,10 @@ export default function CategoryPage() {
     }
   }, [mounted]);
 
-  const allBrands = useMemo(() => getBrandsByCategory(slug as any), [slug]);
+  // These brands are of type LocalBrand
+  const allBrands: LocalBrand[] = useMemo(() => getBrandsByCategory(slug as any), [slug]);
   
-  // Filter brands by search query
-  const brands = useMemo(() => {
+  const brands: LocalBrand[] = useMemo(() => {
     if (!searchQuery.trim()) return allBrands;
     const q = searchQuery.toLowerCase();
     return allBrands.filter(b => b.name.toLowerCase().includes(q));
@@ -55,6 +57,20 @@ export default function CategoryPage() {
 
   const grouped = useMemo(() => groupBrandsByLetter(brands), [brands]);
   const lettersWithBrands = useMemo(() => alphabet.filter(l => grouped[l]?.length), [grouped]);
+
+  // This function converts a LocalBrand to a SimpleBrand for the modal
+  const handleBrandClick = (brand: LocalBrand) => {
+    const simpleBrand: SimpleBrand = {
+      name: brand.name,
+      logo: brand.logoUrl,
+      category: brand.category || slug,
+      description: brand.description,
+      website: brand.website,
+      features: brand.specialties, 
+      technologies: [], // LocalBrand doesn't have this, so pass an empty array
+    };
+    setSelectedBrand(simpleBrand);
+  };
 
   if (!meta) {
     return (
@@ -172,12 +188,12 @@ export default function CategoryPage() {
                     {grouped[letter]!.map(brand => (
                       <button
                         key={brand.name}
-                        onClick={() => setSelectedBrand(brand)}
+                        onClick={() => handleBrandClick(brand)}
                         className="group relative p-6 bg-gradient-to-br from-white/[0.06] to-white/[0.02] hover:from-white/[0.1] hover:to-white/[0.05] transition-all duration-500 backdrop-blur-sm text-left border border-white/10 rounded-xl shadow-lg hover:shadow-orange-500/10 hover:scale-[1.02]"
                       >
                         <div className="flex items-center gap-4">
                           <div className="flex items-center justify-center w-36 h-20 bg-white/5 group-hover:bg-white/10 transition-colors rounded-lg p-2">
-                            <BrandLogo name={brand.name} src={brand.logo} className="max-w-full" />
+                            <BrandLogo name={brand.name} src={brand.logoUrl} className="max-w-full" />
                           </div>
                           <div>
                             <div className="text-white/90 group-hover:text-white text-lg font-light mb-1">{brand.name}</div>

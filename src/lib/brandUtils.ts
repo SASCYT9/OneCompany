@@ -1,8 +1,8 @@
-import type { SimpleBrand } from './brands';
+import type { LocalBrand } from './brands';
 
-export type GroupedBrands = Record<string, SimpleBrand[]>; // key is uppercase letter
+export type GroupedBrands = Record<string, LocalBrand[]>; // key is uppercase letter
 
-export function groupBrandsByLetter(brands: SimpleBrand[]): GroupedBrands {
+export function groupBrandsByLetter(brands: LocalBrand[]): GroupedBrands {
   const map: GroupedBrands = {};
   for (const b of brands) {
     const first = (b.name || '').trim().charAt(0).toUpperCase();

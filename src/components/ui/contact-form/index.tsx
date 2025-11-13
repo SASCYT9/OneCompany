@@ -3,15 +3,22 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import styles from "./styles.module.scss";
-import { useTranslations } from "next-intl";
 
-const ContactForm = ({ isOpen, onClose }) => {
-  const t = useTranslations("contactForm");
+interface ContactFormData {
+  type: string;
+  carModel: string;
+  vin: string;
+  wishes: string;
+  budget: string;
+  email: string;
+}
+
+const ContactForm = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  } = useForm<ContactFormData>({
     defaultValues: {
       type: "auto", // Set a default value
     },
@@ -23,7 +30,7 @@ const ContactForm = ({ isOpen, onClose }) => {
     return null;
   }
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     setSubmitError(null);
     try {
@@ -40,7 +47,7 @@ const ContactForm = ({ isOpen, onClose }) => {
       }
 
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       setSubmitError(error.message);
     } finally {
       setIsSubmitting(false);
@@ -53,10 +60,10 @@ const ContactForm = ({ isOpen, onClose }) => {
         <button className={styles.closeButton} onClick={onClose}>
           &times;
         </button>
-        <h2>{t("title")}</h2>
+        <h2>Contact Us</h2>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className={styles.formGroup}>
-            <label>{t("requestType")}</label>
+            <label>Request Type</label>
             <div className={styles.radioGroup}>
               <label>
                 <input
@@ -64,7 +71,7 @@ const ContactForm = ({ isOpen, onClose }) => {
                   value="auto"
                   {...register("type", { required: true })}
                 />
-                {t("auto")}
+                Automotive
               </label>
               <label>
                 <input
@@ -72,37 +79,37 @@ const ContactForm = ({ isOpen, onClose }) => {
                   value="moto"
                   {...register("type", { required: true })}
                 />
-                {t("moto")}
+                Motorcycles
               </label>
             </div>
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="carModel">{t("model")}</label>
+            <label htmlFor="carModel">Car/Bike Model</label>
             <input
               type="text"
               id="carModel"
-              {...register("carModel", { required: t("fieldRequired") })}
+              {...register("carModel", { required: "This field is required" })}
             />
             {errors.carModel && (
               <p className={styles.error}>{errors.carModel.message}</p>
             )}
           </div>
           <div className={styles.formGroup}>
-            <label htmlFor="vin">{t("vin")}</label>
+            <label htmlFor="vin">VIN</label>
             <input
               type="text"
               id="vin"
-              {...register("vin", { required: t("fieldRequired") })}
+              {...register("vin", { required: "This field is required" })}
             />
             {errors.vin && <p className={styles.error}>{errors.vin.message}</p>}
           </div>
           <div className={styles.formGroup}>
-            <label htmlFor="wishes">{t("wishes")}</label>
+            <label htmlFor="wishes">Your Wishes</label>
             <textarea
               id="wishes"
               {...register("wishes", {
-                required: t("fieldRequired"),
+                required: "This field is required",
               })}
             ></textarea>
             {errors.wishes && (
@@ -110,22 +117,22 @@ const ContactForm = ({ isOpen, onClose }) => {
             )}
           </div>
           <div className={styles.formGroup}>
-            <label htmlFor="budget">{t("budget")}</label>
+            <label htmlFor="budget">Budget</label>
             <input
               type="text"
               id="budget"
-              {...register("budget", { required: t("fieldRequired") })}
+              {...register("budget", { required: "This field is required" })}
             />
             {errors.budget && (
               <p className={styles.error}>{errors.budget.message}</p>
             )}
           </div>
           <div className={styles.formGroup}>
-            <label htmlFor="email">{t("email")}</label>
+            <label htmlFor="email">Email</label>
             <input
               type="email"
               id="email"
-              {...register("email", { required: t("fieldRequired") })}
+              {...register("email", { required: "This field is required" })}
             />
             {errors.email && (
               <p className={styles.error}>{errors.email.message}</p>
@@ -139,7 +146,7 @@ const ContactForm = ({ isOpen, onClose }) => {
             className={styles.submitButton}
             disabled={isSubmitting}
           >
-            {isSubmitting ? t("submitting") : t("submit")}
+            {isSubmitting ? "Submitting..." : "Submit"}
           </button>
         </form>
       </div>

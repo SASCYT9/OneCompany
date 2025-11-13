@@ -1,0 +1,17 @@
+node_modules
+.next
+.env*.local
+*.log
+.DS_Store
+.vscode
+scripts/telegram-bot-polling.js
+public/videos
+public/models
+public/images/eventuri
+public/images/fi
+public/images/kw
+*.mp4
+*.glb
+*.gltf
+bmw_7-series_m_short.glb
+Fi exhaust video.mp4
