@@ -1,3 +1,5 @@
+import { render } from 'react-email';
+import { ContactEmail } from '@/components/emails/ContactEmail';
 import { formatAutoMessage, formatMotoMessage } from '@/lib/telegram';
 import { messageStore } from '@/lib/messageStore';
 import type { NextRequest } from 'next/server';
@@ -57,7 +59,11 @@ async function sendTelegram(message: string, type: 'auto' | 'moto') {
   }
 }
 
-async function sendEmail(subject: string, message: string, type: 'auto' | 'moto') {
+async function sendEmail(
+  subject: string,
+  formData: any,
+  type: 'auto' | 'moto'
+) {
   const from = process.env.EMAIL_FROM;
   const to = type === 'auto' ? process.env.EMAIL_AUTO : process.env.EMAIL_MOTO;
 
@@ -66,12 +72,19 @@ async function sendEmail(subject: string, message: string, type: 'auto' | 'moto'
     return { ok: false, error: 'Missing email env vars' };
   }
 
+  const emailHtml = render(ContactEmail({
+    name: formData.name || formData.email,
+    contact: formData.email,
+    message: formData.wishes,
+    inquiryType: type === 'auto' ? 'Auto' : 'Moto',
+  }));
+
   try {
     const { data, error } = await resend.emails.send({
       from: `OneCompany <${from}>`,
       to: [to],
       subject: subject,
-      html: message.replace(/\n/g, '<br>'), // Use the same message, but format for HTML
+      html: emailHtml,
     });
 
     if (error) {
@@ -93,16 +106,6 @@ function sanitize(str: string | undefined): string {
   return str.replace(/<[^>]*>/g, '').trim();
 }
 
-// Stricter sanitization for use within HTML content.
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for') || 'local';
   if (!rateLimit(ip)) {
@@ -114,64 +117,51 @@ export async function POST(req: NextRequest) {
 
     let message: string;
     let model: string = '';
+    let formData: any = {};
 
     if (type === 'auto') {
-      const formData = {
+      formData = {
         carModel: sanitize(body.carModel),
         vin: sanitize(body.vin),
         wishes: sanitize(body.wishes),
         budget: sanitize(body.budget),
         email: sanitize(body.email),
+        name: sanitize(body.name) || sanitize(body.email),
       };
       if (!formData.carModel || !formData.email) {
         return new Response(JSON.stringify({ error: 'Missing required auto fields' }), { status: 400 });
       }
       model = formData.carModel;
-      // Escape fields before putting them into the HTML message
-      message = formatAutoMessage({
-        ...formData,
-        carModel: escapeHtml(formData.carModel),
-        vin: escapeHtml(formData.vin),
-        wishes: escapeHtml(formData.wishes),
-        budget: escapeHtml(formData.budget),
-        email: escapeHtml(formData.email),
-      });
+      message = formatAutoMessage(formData);
     } else { // moto
-      const formData = {
+      formData = {
         motoModel: sanitize(body.motoModel),
         vin: sanitize(body.vin),
         wishes: sanitize(body.wishes),
         budget: sanitize(body.budget),
         email: sanitize(body.email),
+        name: sanitize(body.name) || sanitize(body.email),
       };
       if (!formData.motoModel || !formData.email) {
         return new Response(JSON.stringify({ error: 'Missing required moto fields' }), { status: 400 });
       }
       model = formData.motoModel;
-      // Escape fields before putting them into the HTML message
-      message = formatMotoMessage({
-        ...formData,
-        motoModel: escapeHtml(formData.motoModel),
-        vin: escapeHtml(formData.vin),
-        wishes: escapeHtml(formData.wishes),
-        budget: escapeHtml(formData.budget),
-        email: escapeHtml(formData.email),
-      });
+      message = formatMotoMessage(formData);
     }
 
     // Save to message store
     const savedMessage = messageStore.addMessage({
       chatId: 0,
       userId: 0,
-      userName: body.email || 'Contact Form',
+      userName: formData.name,
       messageText: `${type.toUpperCase()}: ${model}\n${message}`,
       type: 'contact_form',
       category: type,
       metadata: {
         type,
         model,
-        email: body.email,
-        wishes: body.wishes || '',
+        email: formData.email,
+        wishes: formData.wishes || '',
       }
     });
 
@@ -185,17 +175,15 @@ export async function POST(req: NextRequest) {
         console.log('✅ Telegram notification sent successfully');
       } else {
         console.warn('⚠️ Telegram notification failed:', tgResult.error);
-        // Message is saved in store, so we still return success to user
       }
     } catch (tgError: any) {
       console.error('❌ Telegram error (non-blocking):', tgError.message);
-      // Still continue - message is saved
     }
 
     // Send Email via Resend (don't block user if this fails)
     try {
-      const emailSubject = `New Contact Request (${type}): ${model}`;
-      const emailResult = await sendEmail(emailSubject, message, type);
+      const emailSubject = `New ${type.charAt(0).toUpperCase() + type.slice(1)} Inquiry: ${model}`;
+      const emailResult = await sendEmail(emailSubject, formData, type);
 
       if (emailResult.ok) {
         console.log('✅ Email notification sent successfully');
