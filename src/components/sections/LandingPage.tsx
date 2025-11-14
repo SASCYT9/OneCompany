@@ -2,8 +2,9 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
-import Link from 'next/link';
+import { Link } from '@/navigation';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import BrandCarousel from '@/components/ui/BrandCarousel';
 import AnimatedButton from '@/components/ui/AnimatedButton';
 import AnimatedSection from '@/components/ui/AnimatedSection';
@@ -46,6 +47,7 @@ const topMotoBrands = [
 const LandingPage = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const [heroVideo, setHeroVideo] = useState<string>('hero-smoke.mp4');
+  const t = useTranslations('landing');
 
   useEffect(() => {
     if (heroRef.current) {
@@ -110,17 +112,17 @@ const LandingPage = () => {
         <div className="relative z-10 h-full flex items-center justify-center">
           <div className="max-w-7xl mx-auto px-6 text-center">
             <h1 className="fade-in text-5xl md:text-7xl lg:text-9xl text-white font-light tracking-tight mb-16 leading-tight">
-              Premium Performance Parts
+              {t('premiumPerformance')}
             </h1>
             
             <div className="fade-in flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
               <MagneticButton>
                 <Link 
-                  href="/ua/brands"
+                  href="/auto"
                   className="group text-2xl md:text-4xl text-white/90 hover:text-white font-light tracking-wider uppercase transition-all duration-500"
                 >
                   <span className="inline-block relative">
-                    AUTOMOTIVE
+                    {t('automotive')}
                     <span className="absolute bottom-0 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-500" />
                   </span>
                 </Link>
@@ -130,11 +132,11 @@ const LandingPage = () => {
               
               <MagneticButton>
                 <Link 
-                  href="/ua/brands/moto"
+                  href="/moto"
                   className="group text-2xl md:text-4xl text-white/90 hover:text-white font-light tracking-wider uppercase transition-all duration-500"
                 >
                   <span className="inline-block relative">
-                    MOTORCYCLES
+                    {t('motorcycles')}
                     <span className="absolute bottom-0 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-500" />
                   </span>
                 </Link>
@@ -160,14 +162,12 @@ const LandingPage = () => {
           <AnimatedSection delay={0.2}>
             <div className="text-center mb-24">
               <h2 className="text-5xl md:text-7xl font-extralight text-zinc-900 dark:text-white mb-12 tracking-tight leading-tight">
-                Welcome to the world of<br />
-                <span className="font-light">Premium Brands</span>
+                {t('welcomeHeading')}<br />
+                <span className="font-light">{t('premiumBrands')}</span>
               </h2>
               <div className="w-32 h-px bg-zinc-300 dark:bg-white/20 mx-auto mb-16" />
               <p className="text-xl md:text-2xl text-zinc-600 dark:text-white/60 leading-relaxed max-w-5xl mx-auto font-light">
-                OneCompany has been active since 2007 as a distributor for premium aftermarket brands 
-                in the automotive & motorcycle industry. We've built strong relationships with trusted 
-                partners across Ukraine and beyond.
+                {t('welcomeText')}
               </p>
             </div>
           </AnimatedSection>
@@ -303,7 +303,7 @@ const LandingPage = () => {
 
           {/* View All Button */}
           <div className="text-center mt-20">
-            <AnimatedButton href="/ua/brands" variant="outline" size="lg">
+            <AnimatedButton href="/brands" variant="outline" size="lg">
               View All Brands
             </AnimatedButton>
           </div>
@@ -357,7 +357,7 @@ const LandingPage = () => {
           <p className="text-zinc-600 dark:text-white/50 text-xl md:text-2xl mb-16 max-w-3xl mx-auto leading-relaxed font-light">
             Contact our specialists for personalized recommendations and expert advice on premium performance parts
           </p>
-          <AnimatedButton href="/ua/contact" variant="outline" size="lg">
+          <AnimatedButton href="/contact" variant="outline" size="lg">
             Get In Touch
           </AnimatedButton>
         </div>

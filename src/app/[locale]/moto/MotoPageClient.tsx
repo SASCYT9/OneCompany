@@ -1,48 +1,49 @@
-// src/app/[locale]/auto/page.tsx
 'use client';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { allAutomotiveBrands, LocalBrand } from '@/lib/brands';
+import { LocalBrand } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 
 // Define product categories
 const productCategories = [
   { name: 'exhaust', href: '/categories/exhaust' },
   { name: 'suspension', href: '/categories/suspension' },
-  { name: 'wheels', href: '/categories/wheels' },
   { name: 'brakes', href: '/categories/brakes' },
-  { name: 'intake', href: '/categories/intake' },
-  { name: 'aero', href: '/categories/aero' },
-  { name: 'engine', href: '/categories/engine' },
-  { name: 'interior', href: '/categories/interior' },
+  { name: 'gear', href: '/categories/gear' },
+  { name: 'helmets', href: '/categories/helmets' },
+  { name: 'accessories', href: '/categories/accessories' },
+  { name: 'luggage', href: '/categories/luggage' },
+  { name: 'carbon', href: '/categories/carbon' },
 ];
 
 // Placeholder for featured brands
 const featuredBrands: LocalBrand[] = [
   { name: 'Akrapovic', description: 'High-performance exhaust systems' },
-  { name: 'KW Suspension', description: 'Coilover and suspension solutions' },
-  { name: 'HRE Wheels', description: 'Custom forged luxury wheels' },
   { name: 'Brembo', description: 'World leader in braking systems' },
-  { name: 'Eventuri', description: 'Carbon fiber intake systems' },
-  { name: 'Capristo', description: 'Premium valved exhaust systems' },
-  { name: 'CSF', description: 'High-performance cooling solutions' },
-  { name: 'Vorsteiner', description: 'Aerodynamics, wheels, and accessories' },
-  { name: 'Akrapovic', description: 'High-performance exhaust systems' },
-  { name: 'KW Suspension', description: 'Coilover and suspension solutions' },
+  { name: 'SC-Project', description: 'Racing exhaust systems' },
+  { name: 'Bitubo Suspension', description: 'Suspension and steering dampers' },
+  { name: 'Arrow', description: 'Exhaust systems for sportbikes' },
+  { name: 'Termignoni', description: 'Italian performance exhausts' },
+  { name: 'Rotobox', description: 'Carbon fiber wheels' },
+  { name: 'Ilmberger Carbon', description: 'Premium carbon fiber parts' },
+  { name: 'CNC Racing', description: 'High-end custom components' },
+  { name: 'Austin Racing', description: 'Handmade, high-performance exhausts' },
 ].slice(0, 10);
 
-export default function AutomotivePage() {
-  const params = useParams();
-  const locale = params.locale as string || 'ua';
-  const t = useTranslations('auto');
+interface MotoPageClientProps {
+  brands: LocalBrand[];
+  locale: string;
+}
+
+export default function MotoPageClient({ brands, locale }: MotoPageClientProps) {
+  const t = useTranslations('moto');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
 
-  const filteredBrands = allAutomotiveBrands.filter((brand) => {
+  const filteredBrands = brands.filter((brand) => {
     const matchesSearch = brand.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLetter = activeLetter ? brand.name.toUpperCase().startsWith(activeLetter) : true;
     return matchesSearch && matchesLetter;

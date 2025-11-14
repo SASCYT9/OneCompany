@@ -1,23 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { Link, usePathname, useRouter } from '@/navigation';
 import ThemeToggle from '@/components/ui/ThemeToggle';
-import { usePathname } from 'next/navigation';
+import { useLocale } from 'next-intl';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const locale = useLocale();
   
-  const currentLocale = pathname.startsWith('/en') ? 'en' : 'ua';
-  
-  const getToggleLanguagePath = () => {
-    if (currentLocale === 'ua') {
-      return pathname.replace('/ua', '/en');
-    } else {
-      return pathname.replace('/en', '/ua');
-    }
+  const switchLocale = () => {
+    const newLocale = locale === 'ua' ? 'en' : 'ua';
+    router.replace(pathname, { locale: newLocale });
   };
 
   useEffect(() => {
@@ -39,14 +36,14 @@ const Header = () => {
       <div className="container mx-auto px-6 py-6">
         <div className="flex items-center justify-between">
           {/* Logo - Minimal */}
-          <Link href={`/${currentLocale}`} className="text-xl font-light text-zinc-900 dark:text-white tracking-wider hover:opacity-70 transition-opacity">
+          <Link href="/" className="text-xl font-light text-zinc-900 dark:text-white tracking-wider hover:opacity-70 transition-opacity">
             ONECOMPANY
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-10">
             {[
-              { href: '', label: 'Home' },
+              { href: '/', label: 'Home' },
               { href: '/brands', label: 'Automotive' },
               { href: '/brands/moto', label: 'Motorcycles' },
               { href: '/about', label: 'About Us' },
@@ -54,7 +51,7 @@ const Header = () => {
             ].map((link) => (
               <Link
                 key={link.label}
-                href={`/${currentLocale}${link.href}`}
+                href={link.href}
                 className="text-zinc-600 dark:text-white/70 hover:text-zinc-900 dark:hover:text-white transition-colors text-sm font-light uppercase tracking-wider"
               >
                 {link.label}
@@ -66,26 +63,26 @@ const Header = () => {
           <div className="hidden lg:flex items-center gap-6">
             {/* Language Switcher - Minimal */}
             <div className="flex items-center gap-1 border border-zinc-300 dark:border-white/20 rounded">
-              <Link
-                href={currentLocale === 'ua' ? getToggleLanguagePath() : pathname}
+              <button
+                onClick={() => locale !== 'ua' && switchLocale()}
                 className={`px-3 py-1.5 text-xs font-light uppercase tracking-wider transition-all ${
-                  currentLocale === 'ua'
+                  locale === 'ua'
                     ? 'bg-black text-white dark:bg-white dark:text-black'
-                    : 'text-zinc-500 dark:text-white/60 hover:text-zinc-900 dark:hover:text-white'
+                    : 'text-zinc-500 dark:text-white/60 hover:text-zinc-900 dark:hover:text-white cursor-pointer'
                 }`}
               >
                 UA
-              </Link>
-              <Link
-                href={currentLocale === 'en' ? pathname : getToggleLanguagePath()}
+              </button>
+              <button
+                onClick={() => locale !== 'en' && switchLocale()}
                 className={`px-3 py-1.5 text-xs font-light uppercase tracking-wider transition-all ${
-                  currentLocale === 'en'
+                  locale === 'en'
                     ? 'bg-black text-white dark:bg-white dark:text-black'
-                    : 'text-zinc-500 dark:text-white/60 hover:text-zinc-900 dark:hover:text-white'
+                    : 'text-zinc-500 dark:text-white/60 hover:text-zinc-900 dark:hover:text-white cursor-pointer'
                 }`}
               >
                 EN
-              </Link>
+              </button>
             </div>
 
             {/* Theme Toggle */}
@@ -93,7 +90,7 @@ const Header = () => {
 
             {/* CTA - Minimal */}
             <Link 
-              href={`/${currentLocale}/contact`}
+              href="/contact"
               className="border border-zinc-400 dark:border-white/30 hover:border-zinc-900 dark:hover:border-white hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black px-6 py-2 text-zinc-900 dark:text-white text-xs font-light uppercase tracking-wider transition-all duration-300"
             >
               Get Quote
@@ -119,7 +116,7 @@ const Header = () => {
         {mobileMenuOpen && (
           <nav className="lg:hidden mt-8 pb-6 flex flex-col gap-6 border-t border-zinc-200 dark:border-white/10 pt-6">
             {[
-              { href: '', label: 'Home' },
+              { href: '/', label: 'Home' },
               { href: '/brands', label: 'Automotive' },
               { href: '/brands/moto', label: 'Motorcycles' },
               { href: '/about', label: 'About Us' },
@@ -127,7 +124,7 @@ const Header = () => {
             ].map((link) => (
               <Link
                 key={link.label}
-                href={`/${currentLocale}${link.href}`}
+                href={link.href}
                 className="text-zinc-600 dark:text-white/70 hover:text-zinc-900 dark:hover:text-white transition-colors text-sm font-light uppercase tracking-wider"
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -137,22 +134,32 @@ const Header = () => {
             
             {/* Mobile Language Switcher */}
             <div className="flex items-center gap-1 border border-zinc-300 dark:border-white/20 rounded w-24">
-              <Link
-                href={currentLocale === 'ua' ? getToggleLanguagePath() : pathname}
+              <button
+                onClick={() => {
+                  if (locale !== 'ua') {
+                    switchLocale();
+                    setMobileMenuOpen(false);
+                  }
+                }}
                 className={`px-3 py-1.5 text-xs font-light uppercase tracking-wider transition-all ${
-                  currentLocale === 'ua' ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-zinc-500 dark:text-white/60'
+                  locale === 'ua' ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-zinc-500 dark:text-white/60 cursor-pointer'
                 }`}
               >
                 UA
-              </Link>
-              <Link
-                href={currentLocale === 'en' ? pathname : getToggleLanguagePath()}
+              </button>
+              <button
+                onClick={() => {
+                  if (locale !== 'en') {
+                    switchLocale();
+                    setMobileMenuOpen(false);
+                  }
+                }}
                 className={`px-3 py-1.5 text-xs font-light uppercase tracking-wider transition-all ${
-                  currentLocale === 'en' ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-zinc-500 dark:text-white/60'
+                  locale === 'en' ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-zinc-500 dark:text-white/60 cursor-pointer'
                 }`}
               >
                 EN
-              </Link>
+              </button>
             </div>
 
             {/* Mobile Theme Toggle */}

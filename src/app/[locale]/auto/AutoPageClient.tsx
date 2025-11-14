@@ -1,13 +1,11 @@
-// src/app/[locale]/auto/page.tsx
 'use client';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { allAutomotiveBrands, LocalBrand } from '@/lib/brands';
+import { LocalBrand } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 
 // Define product categories
 const productCategories = [
@@ -35,14 +33,17 @@ const featuredBrands: LocalBrand[] = [
   { name: 'KW Suspension', description: 'Coilover and suspension solutions' },
 ].slice(0, 10);
 
-export default function AutomotivePage() {
-  const params = useParams();
-  const locale = params.locale as string || 'ua';
+interface AutoPageClientProps {
+  brands: LocalBrand[];
+  locale: string;
+}
+
+export default function AutoPageClient({ brands, locale }: AutoPageClientProps) {
   const t = useTranslations('auto');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
 
-  const filteredBrands = allAutomotiveBrands.filter((brand) => {
+  const filteredBrands = brands.filter((brand) => {
     const matchesSearch = brand.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLetter = activeLetter ? brand.name.toUpperCase().startsWith(activeLetter) : true;
     return matchesSearch && matchesLetter;

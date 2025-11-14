@@ -1,12 +1,12 @@
-import {Pathnames, LocalePrefix} from 'next-intl/routing';
+import {defineRouting} from 'next-intl/routing';
+import {createNavigation} from 'next-intl/navigation';
 
 export const locales = ['en', 'ua'] as const;
-export const localePrefix: LocalePrefix = 'always';
 
-export const pathnames: Pathnames<typeof locales> = {
-  '/': '/',
-  '/about': {
-    en: '/about',
-    ua: '/about'
-  }
-};
+export const routing = defineRouting({
+  locales: ['en', 'ua'],
+  defaultLocale: 'ua'
+});
+
+export const {Link, redirect, usePathname, useRouter} = createNavigation(routing);
+

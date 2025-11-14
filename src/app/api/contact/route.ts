@@ -1,11 +1,14 @@
 import { formatAutoMessage, formatMotoMessage } from '@/lib/telegram';
 import { messageStore } from '@/lib/messageStore';
 import type { NextRequest } from 'next/server';
+import { Resend } from 'resend';
 
 // Basic rate limiting (memory). For production replace with Redis or durable store.
 const WINDOW_MS = 60_000; // 1 minute
 const MAX_PER_WINDOW = 10;
 const hits: Record<string, { count: number; windowStart: number }> = {};
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 function rateLimit(ip: string): boolean {
   const now = Date.now();
@@ -21,7 +24,6 @@ function rateLimit(ip: string): boolean {
 
 async function sendTelegram(message: string, type: 'auto' | 'moto') {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  // Route to different chat IDs based on inquiry type
   const chatId = type === 'auto' 
     ? process.env.TELEGRAM_AUTO_CHAT_ID 
     : process.env.TELEGRAM_MOTO_CHAT_ID;
@@ -30,11 +32,18 @@ async function sendTelegram(message: string, type: 'auto' | 'moto') {
     console.error('Telegram environment variables are not set!');
     return { ok: false, error: 'Missing bot env' };
   }
+
+  const payload: any = {
+    chat_id: chatId,
+    text: message,
+    parse_mode: 'HTML',
+  };
+
   try {
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' })
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (!res.ok) {
@@ -45,6 +54,36 @@ async function sendTelegram(message: string, type: 'auto' | 'moto') {
   } catch (e: any) {
     console.error('Telegram Request Failed:', e);
     return { ok: false, error: e?.message || 'Telegram request failed' };
+  }
+}
+
+async function sendEmail(subject: string, message: string, type: 'auto' | 'moto') {
+  const from = process.env.EMAIL_FROM;
+  const to = type === 'auto' ? process.env.EMAIL_AUTO : process.env.EMAIL_MOTO;
+
+  if (!from || !to || !process.env.RESEND_API_KEY) {
+    console.error('Email (Resend) environment variables are not set!');
+    return { ok: false, error: 'Missing email env vars' };
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: `OneCompany <${from}>`,
+      to: [to],
+      subject: subject,
+      html: message.replace(/\n/g, '<br>'), // Use the same message, but format for HTML
+    });
+
+    if (error) {
+      console.error('Resend API Error:', error);
+      return { ok: false, error: error.message };
+    }
+
+    console.log('✅ Email sent successfully:', data?.id);
+    return { ok: true, data };
+  } catch (e: any) {
+    console.error('Email (Resend) Request Failed:', e);
+    return { ok: false, error: e?.message || 'Resend request failed' };
   }
 }
 
@@ -151,6 +190,20 @@ export async function POST(req: NextRequest) {
     } catch (tgError: any) {
       console.error('❌ Telegram error (non-blocking):', tgError.message);
       // Still continue - message is saved
+    }
+
+    // Send Email via Resend (don't block user if this fails)
+    try {
+      const emailSubject = `New Contact Request (${type}): ${model}`;
+      const emailResult = await sendEmail(emailSubject, message, type);
+
+      if (emailResult.ok) {
+        console.log('✅ Email notification sent successfully');
+      } else {
+        console.warn('⚠️ Email notification failed:', emailResult.error);
+      }
+    } catch (emailError: any) {
+      console.error('❌ Email error (non-blocking):', emailError.message);
     }
 
     return new Response(JSON.stringify({ 
