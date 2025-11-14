@@ -1,4 +1,4 @@
-import { render } from 'react-email';
+import { render } from '@react-email/render';
 import { ContactEmail } from '@/components/emails/ContactEmail';
 import { formatAutoMessage, formatMotoMessage } from '@/lib/telegram';
 import { messageStore } from '@/lib/messageStore';
@@ -72,7 +72,7 @@ async function sendEmail(
     return { ok: false, error: 'Missing email env vars' };
   }
 
-  const emailHtml = render(ContactEmail({
+  const emailHtml = await render(ContactEmail({
     name: formData.name || formData.email,
     contact: formData.email,
     message: formData.wishes,
