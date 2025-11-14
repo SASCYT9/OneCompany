@@ -1,15 +1,16 @@
 import { render } from '@react-email/render';
 import { ContactEmail } from '@/components/emails/ContactEmail';
 import { formatAutoMessage, formatMotoMessage } from '@/lib/telegram';
-import { messageStore } from '@/lib/messageStore';
 import type { NextRequest } from 'next/server';
 import { Resend } from 'resend';
+import { PrismaClient } from '@prisma/client';
 
 // Basic rate limiting (memory). For production replace with Redis or durable store.
 const WINDOW_MS = 60_000; // 1 minute
 const MAX_PER_WINDOW = 10;
 const hits: Record<string, { count: number; windowStart: number }> = {};
 
+const prisma = new PrismaClient();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 function rateLimit(ip: string): boolean {
@@ -77,6 +78,9 @@ async function sendEmail(
     contact: formData.email,
     message: formData.wishes,
     inquiryType: type === 'auto' ? 'Auto' : 'Moto',
+    model: formData.carModel || formData.motoModel,
+    vin: formData.vin,
+    budget: formData.budget,
   }));
 
   try {
@@ -150,22 +154,25 @@ export async function POST(req: NextRequest) {
     }
 
     // Save to message store
-    const savedMessage = messageStore.addMessage({
-      chatId: 0,
-      userId: 0,
-      userName: formData.name,
-      messageText: `${type.toUpperCase()}: ${model}\n${message}`,
-      type: 'contact_form',
-      category: type,
-      metadata: {
-        type,
-        model,
-        email: formData.email,
-        wishes: formData.wishes || '',
+    const savedMessage = await prisma.message.create({
+      data: {
+        userName: formData.name,
+        userEmail: formData.email,
+        messageText: formData.wishes,
+        category: type === 'auto' ? 'AUTO' : 'MOTO',
+        status: 'NEW',
+        metadata: {
+          type,
+          model,
+          vin: formData.vin,
+          budget: formData.budget,
+          email: formData.email,
+          name: formData.name,
+        }
       }
     });
 
-    console.log('✅ Message saved to store:', savedMessage.id);
+    console.log('✅ Message saved to database:', savedMessage.id);
 
     // Send to Telegram (don't block user if this fails)
     try {

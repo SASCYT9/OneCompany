@@ -18,6 +18,7 @@
     "build:css": "npx tailwindcss -i wp-content/themes/onecompany-theme/style.css -o wp-content/themes/onecompany-theme/main.css --watch"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.0",
     "@react-email/components": "^1.0.1",
     "@react-email/render": "^2.0.0",
     "@react-spring/three": "^10.0.3",
@@ -39,6 +40,7 @@
     "lucide-react": "^0.553.0",
     "maath": "^0.10.8",
     "next": "16.0.1",
+    "next-auth": "^4.24.13",
     "next-intl": "^4.5.0",
     "next-themes": "^0.4.6",
     "node-fetch": "^2.7.0",
@@ -68,6 +70,7 @@
     "eslint-config-next": "16.0.1",
     "image-size": "^2.0.2",
     "postcss": "^8.5.6",
+    "prisma": "^6.19.0",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.1.17",
     "ts-node": "^10.9.2",

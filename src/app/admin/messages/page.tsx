@@ -1,41 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  MessageSquare, 
-  Filter, 
-  Archive, 
-  CheckCircle, 
-  Clock, 
-  Mail,
-  User,
-  Calendar,
-  Search,
-  X,
-  Send,
-  BarChart3,
-  Download,
-  Trash2,
-  RefreshCw
-} from 'lucide-react';
+import { MessageSquare, Search, CheckCircle, Send, Archive, Trash2, X, LogOut, Inbox, BarChart2, Mail, User } from 'lucide-react';
 
-interface TelegramMessage {
+interface Message {
   id: string;
-  chatId: number;
-  userId: number;
   userName: string;
-  userUsername?: string;
+  userEmail: string;
   messageText: string;
-  timestamp: string;
-  type: 'incoming' | 'command' | 'contact_form';
-  category?: 'auto' | 'moto' | 'general';
+  createdAt: string;
   status: 'new' | 'read' | 'replied' | 'archived';
-  replies?: {
-    text: string;
-    timestamp: string;
-    sentBy: string;
-  }[];
+  replies: { replyText: string; repliedAt: string }[];
 }
 
 interface Stats {
@@ -43,51 +20,28 @@ interface Stats {
   new: number;
   read: number;
   replied: number;
-  archived: number;
-  auto: number;
-  moto: number;
-  general: number;
-  today: number;
 }
 
 export default function MessagesPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
-  const [messages, setMessages] = useState<TelegramMessage[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [selectedMessage, setSelectedMessage] = useState<TelegramMessage | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [stats, setStats] = useState<Stats>({ total: 0, new: 0, read: 0, replied: 0 });
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(false);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    const auth = sessionStorage.getItem('messagesAuth') === 'true';
-    const savedPassword = sessionStorage.getItem('messagesPassword');
-    if (auth && savedPassword) {
-      setPassword(savedPassword);
-      setIsAuthenticated(true);
-      loadMessages(savedPassword);
-      loadStats(savedPassword);
+    if (status === "authenticated") {
+      loadMessages();
+      loadStats();
     }
-  }, []);
+  }, [status]);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    sessionStorage.setItem('messagesAuth', 'true');
-    sessionStorage.setItem('messagesPassword', password);
-    setIsAuthenticated(true);
-    loadMessages(password);
-    loadStats(password);
-  };
-
-  const loadMessages = async (pwd: string) => {
-    setLoading(true);
+  const loadMessages = async () => {
     try {
-      const response = await fetch('/api/messages', {
-        headers: { 'Authorization': `Bearer ${pwd}` }
-      });
+      const response = await fetch('/api/messages');
       if (response.ok) {
         const data = await response.json();
         setMessages(data);
@@ -95,14 +49,11 @@ export default function MessagesPage() {
     } catch (error) {
       console.error('Failed to load messages:', error);
     }
-    setLoading(false);
   };
 
-  const loadStats = async (pwd: string) => {
+  const loadStats = async () => {
     try {
-      const response = await fetch('/api/messages?stats=true', {
-        headers: { 'Authorization': `Bearer ${pwd}` }
-      });
+      const response = await fetch('/api/messages?stats=true');
       if (response.ok) {
         const data = await response.json();
         setStats(data);
@@ -112,23 +63,16 @@ export default function MessagesPage() {
     }
   };
 
-  const updateStatus = async (messageId: string, status: string) => {
+  const updateStatus = async (messageId: string, newStatus: string) => {
     try {
       const response = await fetch('/api/messages', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${password}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'updateStatus',
-          messageId,
-          status,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateStatus', messageId, status: newStatus }),
       });
       if (response.ok) {
-        loadMessages(password);
-        loadStats(password);
+        loadMessages();
+        loadStats();
       }
     } catch (error) {
       console.error('Failed to update status:', error);
@@ -137,42 +81,46 @@ export default function MessagesPage() {
 
   const sendReply = async () => {
     if (!selectedMessage || !replyText.trim()) return;
-
+    setLoading(true);
     try {
       const response = await fetch('/api/messages', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${password}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'addReply',
           messageId: selectedMessage.id,
-          reply: replyText,
+          replyText,
+          recipientEmail: selectedMessage.userEmail,
+          originalMessage: selectedMessage.messageText,
+          userName: selectedMessage.userName,
         }),
       });
       if (response.ok) {
         setReplyText('');
-        loadMessages(password);
+        loadMessages();
+        // Optimistically update the selected message to show the new reply
+        const updatedMessage = await response.json();
+        setSelectedMessage(updatedMessage);
         updateStatus(selectedMessage.id, 'replied');
       }
     } catch (error) {
       console.error('Failed to send reply:', error);
+    } finally {
+        setLoading(false);
     }
   };
 
   const deleteMessage = async (messageId: string) => {
-    if (!confirm('Видалити це повідомлення?')) return;
+    if (!confirm('Ви впевнені, що хочете видалити це повідомлення? Цю дію неможливо скасувати.')) return;
 
     try {
       const response = await fetch(`/api/messages?id=${messageId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${password}` },
       });
       if (response.ok) {
         setSelectedMessage(null);
-        loadMessages(password);
-        loadStats(password);
+        loadMessages();
+        loadStats();
       }
     } catch (error) {
       console.error('Failed to delete message:', error);
@@ -180,14 +128,17 @@ export default function MessagesPage() {
   };
 
   const filteredMessages = messages.filter(msg => {
-    if (filterStatus !== 'all' && msg.status !== filterStatus) return false;
-    if (filterCategory !== 'all' && msg.category !== filterCategory) return false;
+    if (filter !== 'all' && msg.status !== filter) return false;
     if (searchQuery && !msg.messageText.toLowerCase().includes(searchQuery.toLowerCase()) && 
         !msg.userName.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
-  if (!isAuthenticated) {
+  if (status === "loading") {
+    return <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center"><p>Loading Session...</p></div>;
+  }
+
+  if (status === "unauthenticated") {
     return (
       <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-6">
         <motion.div
@@ -201,26 +152,16 @@ export default function MessagesPage() {
               Messages Dashboard
             </h1>
             <p className="text-zinc-600 dark:text-white/60">
-              Введіть пароль для доступу
+              Вхід для адміністратора
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Пароль"
-              className="w-full px-6 py-4 bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:outline-none focus:border-zinc-900 dark:focus:border-white transition-colors"
-              required
-            />
-            <button
-              type="submit"
-              className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-black font-light uppercase tracking-widest hover:bg-zinc-800 dark:hover:bg-white/90 transition-all"
-            >
-              Увійти
-            </button>
-          </form>
+          <button
+            onClick={() => signIn('credentials')}
+            className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-black font-light uppercase tracking-widest hover:bg-zinc-800 dark:hover:bg-white/90 transition-all"
+          >
+            Увійти
+          </button>
         </motion.div>
       </div>
     );
@@ -228,91 +169,57 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black">
-      {/* Header */}
-      <header className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-white/10 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="bg-white dark:bg-zinc-950/50 border-b border-zinc-200 dark:border-white/10 p-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <MessageSquare className="w-8 h-8 text-zinc-900 dark:text-white" />
             <div>
-              <h1 className="text-2xl font-light text-zinc-900 dark:text-white">
-                Messages Dashboard
+              <h1 className="text-xl font-light text-zinc-900 dark:text-white">
+                Messages
               </h1>
               <p className="text-sm text-zinc-500 dark:text-white/50">
-                Telegram & Contact Form
+                {session?.user?.name}
               </p>
             </div>
           </div>
-          <button
-            onClick={() => loadMessages(password)}
-            className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded transition-colors"
-            title="Оновити"
-          >
-            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
+          <div className="flex items-center gap-2">
+            <button
+                onClick={() => { loadMessages(); loadStats(); }}
+                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded transition-colors"
+                title="Оновити"
+            >
+                <motion.div whileHover={{ rotate: 90 }}>
+                    <Inbox className="w-5 h-5 text-zinc-500 dark:text-white/50" />
+                </motion.div>
+            </button>
+            <button
+                onClick={() => signOut()}
+                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded transition-colors"
+                title="Вийти"
+            >
+                <LogOut className="w-5 h-5 text-zinc-500 dark:text-white/50" />
+            </button>
+          </div>
       </header>
 
-      {/* Stats */}
-      {stats && (
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-white/10 px-6 py-6">
-          <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            <StatCard label="Всього" value={stats.total} />
-            <StatCard label="Нові" value={stats.new} color="blue" />
-            <StatCard label="Прочитані" value={stats.read} />
-            <StatCard label="Відповіді" value={stats.replied} color="green" />
-            <StatCard label="Архів" value={stats.archived} />
-            <StatCard label="Авто" value={stats.auto} color="purple" />
-            <StatCard label="Мото" value={stats.moto} color="orange" />
-            <StatCard label="Сьогодні" value={stats.today} color="blue" />
-          </div>
+      <main className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard label="Всього" value={stats.total} icon={BarChart2} color="blue" />
+            <StatCard label="Нові" value={stats.new} icon={Mail} color="green" />
+            <StatCard label="Прочитані" value={stats.read} icon={CheckCircle} color="purple" />
+            <StatCard label="З відповіддю" value={stats.replied} icon={Send} color="orange" />
         </div>
-      )}
 
-      {/* Filters */}
-      <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-white/10 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-4">
-          <div className="flex-1 min-w-[200px]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Пошук..."
-                className="w-full pl-10 pr-4 py-2 bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:outline-none focus:border-zinc-900 dark:focus:border-white transition-colors"
-              />
-            </div>
+        <div className="lg:col-span-1 space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+            <input
+              type="text"
+              placeholder="Пошук..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white outline-none transition-all"
+            />
           </div>
-
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:outline-none"
-          >
-            <option value="all">Всі статуси</option>
-            <option value="new">Нові</option>
-            <option value="read">Прочитані</option>
-            <option value="replied">Відповіді</option>
-            <option value="archived">Архів</option>
-          </select>
-
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-4 py-2 bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:outline-none"
-          >
-            <option value="all">Всі категорії</option>
-            <option value="auto">Авто</option>
-            <option value="moto">Мото</option>
-            <option value="general">Загальні</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Messages List & Details */}
-      <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Messages List */}
-        <div className="lg:col-span-1 space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto">
           {filteredMessages.length === 0 ? (
             <div className="text-center py-12 text-zinc-500 dark:text-white/50">
               Повідомлень не знайдено
@@ -334,152 +241,89 @@ export default function MessagesPage() {
                 }`}
                 whileHover={{ x: 4 }}
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-zinc-500" />
-                    <span className="font-medium text-zinc-900 dark:text-white text-sm">
-                      {msg.userName}
-                    </span>
-                  </div>
+                <div className="flex justify-between items-start">
+                  <p className="font-light text-zinc-800 dark:text-white">{msg.userName}</p>
                   <StatusBadge status={msg.status} />
                 </div>
-                <p className="text-sm text-zinc-600 dark:text-white/60 line-clamp-2 mb-2">
-                  {msg.messageText}
-                </p>
-                <div className="flex items-center justify-between text-xs text-zinc-400">
-                  <span>{new Date(msg.timestamp).toLocaleDateString('uk-UA')}</span>
-                  {msg.category && (
-                    <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-900 uppercase">
-                      {msg.category}
-                    </span>
-                  )}
-                </div>
+                <p className="text-sm text-zinc-500 dark:text-white/50 truncate mt-1">{msg.messageText}</p>
+                <p className="text-xs text-zinc-400 dark:text-white/30 mt-2">{new Date(msg.createdAt).toLocaleString()}</p>
               </motion.div>
             ))
           )}
         </div>
 
-        {/* Message Details */}
-        <div className="lg:col-span-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/10">
-          {selectedMessage ? (
-            <div className="flex flex-col h-full">
-              {/* Header */}
-              <div className="p-6 border-b border-zinc-200 dark:border-white/10">
-                <div className="flex items-start justify-between mb-4">
+        <div className="lg:col-span-2">
+          <AnimatePresence>
+            {selectedMessage ? (
+              <motion.div
+                key={selectedMessage.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/10 shadow-sm"
+              >
+                <div className="p-4 border-b border-zinc-200 dark:border-white/10 flex justify-between items-center">
                   <div>
-                    <h2 className="text-2xl font-light text-zinc-900 dark:text-white mb-2">
-                      {selectedMessage.userName}
-                    </h2>
-                    {selectedMessage.userUsername && (
-                      <p className="text-sm text-zinc-500">@{selectedMessage.userUsername}</p>
-                    )}
+                    <h2 className="font-light text-lg text-zinc-900 dark:text-white">{selectedMessage.userName}</h2>
+                    <p className="text-sm text-zinc-500 dark:text-white/50">{selectedMessage.userEmail}</p>
                   </div>
-                  <button
-                    onClick={() => deleteMessage(selectedMessage.id)}
-                    className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 rounded transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <StatusButton
-                    status="read"
-                    onClick={() => updateStatus(selectedMessage.id, 'read')}
-                    active={selectedMessage.status === 'read'}
-                  />
-                  <StatusButton
-                    status="replied"
-                    onClick={() => updateStatus(selectedMessage.id, 'replied')}
-                    active={selectedMessage.status === 'replied'}
-                  />
-                  <StatusButton
-                    status="archived"
-                    onClick={() => updateStatus(selectedMessage.id, 'archived')}
-                    active={selectedMessage.status === 'archived'}
-                  />
-                </div>
-
-                <div className="flex items-center gap-4 text-sm text-zinc-500">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    {new Date(selectedMessage.timestamp).toLocaleString('uk-UA')}
-                  </div>
-                  <div className="px-2 py-1 bg-zinc-100 dark:bg-zinc-900 text-xs uppercase">
-                    {selectedMessage.type}
+                  <div className="flex items-center gap-2">
+                    <StatusButton status="read" onClick={() => updateStatus(selectedMessage.id, 'read')} active={selectedMessage.status === 'read'} />
+                    <StatusButton status="replied" onClick={() => updateStatus(selectedMessage.id, 'replied')} active={selectedMessage.status === 'replied'} />
+                    <StatusButton status="archived" onClick={() => updateStatus(selectedMessage.id, 'archived')} active={selectedMessage.status === 'archived'} />
+                    <button onClick={() => deleteMessage(selectedMessage.id)} className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => setSelectedMessage(null)} className="p-2 text-zinc-500 dark:text-white/50 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-full transition-colors"><X className="w-5 h-5" /></button>
                   </div>
                 </div>
-              </div>
-
-              {/* Message */}
-              <div className="flex-1 p-6 overflow-y-auto">
-                <div className="prose dark:prose-invert max-w-none">
-                  <p className="whitespace-pre-wrap text-zinc-900 dark:text-white">
-                    {selectedMessage.messageText}
-                  </p>
-                </div>
-
-                {/* Replies */}
-                {selectedMessage.replies && selectedMessage.replies.length > 0 && (
-                  <div className="mt-6 space-y-3">
-                    <h3 className="text-sm uppercase tracking-widest text-zinc-500 mb-4">
-                      Відповіді ({selectedMessage.replies.length})
-                    </h3>
-                    {selectedMessage.replies.map((reply, idx) => (
-                      <div key={idx} className="p-4 bg-zinc-50 dark:bg-zinc-900/50 border-l-2 border-zinc-900 dark:border-white">
-                        <p className="text-sm text-zinc-900 dark:text-white mb-2">
-                          {reply.text}
-                        </p>
-                        <div className="flex items-center gap-2 text-xs text-zinc-500">
-                          <span>{reply.sentBy}</span>
-                          <span>•</span>
-                          <span>{new Date(reply.timestamp).toLocaleString('uk-UA')}</span>
+                <div className="p-6 max-h-[calc(100vh-500px)] overflow-y-auto">
+                  <p className="whitespace-pre-wrap text-zinc-700 dark:text-white/80">{selectedMessage.messageText}</p>
+                  
+                  {selectedMessage.replies && selectedMessage.replies.length > 0 && (
+                    <div className="mt-6 space-y-4">
+                      <h3 className="text-sm font-bold text-zinc-500 dark:text-white/50 uppercase tracking-wider">Історія відповідей</h3>
+                      {selectedMessage.replies.map((reply, index) => (
+                        <div key={index} className="p-3 bg-zinc-50 dark:bg-zinc-900 border-l-2 border-zinc-300 dark:border-zinc-700">
+                          <p className="text-sm text-zinc-600 dark:text-white/70 whitespace-pre-wrap">{reply.replyText}</p>
+                          <p className="text-xs text-zinc-400 dark:text-white/40 mt-2">{new Date(reply.repliedAt).toLocaleString()}</p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Reply Box */}
-              <div className="p-6 border-t border-zinc-200 dark:border-white/10">
-                <div className="flex gap-3">
-                  <input
-                    type="text"
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-200 dark:border-white/10">
+                  <textarea
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Написати відповідь..."
-                    className="flex-1 px-4 py-3 bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:outline-none focus:border-zinc-900 dark:focus:border-white transition-colors"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendReply();
-                      }
-                    }}
+                    placeholder={`Відповісти ${selectedMessage.userName}...`}
+                    className="w-full p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white outline-none transition-all"
+                    rows={4}
                   />
-                  <button
-                    onClick={sendReply}
-                    disabled={!replyText.trim()}
-                    className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-                  >
-                    <Send className="w-5 h-5" />
-                    <span>Відправити</span>
-                  </button>
+                  <div className="mt-2 flex justify-end">
+                    <button
+                      onClick={sendReply}
+                      disabled={loading || !replyText.trim()}
+                      className="px-6 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black font-light uppercase tracking-widest flex items-center gap-2 disabled:opacity-50 hover:bg-zinc-800 dark:hover:bg-white/90 transition-all"
+                    >
+                      {loading ? 'Відправка...' : <> <Send className="w-4 h-4" /> Надіслати </>}
+                    </button>
+                  </div>
                 </div>
+              </motion.div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-white/50 text-center p-12">
+                <Inbox className="w-16 h-16 mb-4" />
+                <h2 className="text-xl font-light">Оберіть повідомлення</h2>
+                <p>Оберіть повідомлення зі списку, щоб переглянути його тут.</p>
               </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full text-zinc-500 dark:text-white/50">
-              Оберіть повідомлення для перегляду
-            </div>
-          )}
+            )}
+          </AnimatePresence>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
-function StatCard({ label, value, color }: { label: string; value: number; color?: string }) {
+function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: React.ElementType; color?: string }) {
   const colorClass = color === 'blue' ? 'text-blue-600' :
                      color === 'green' ? 'text-green-600' :
                      color === 'purple' ? 'text-purple-600' :
@@ -487,11 +331,16 @@ function StatCard({ label, value, color }: { label: string; value: number; color
                      'text-zinc-900 dark:text-white';
 
   return (
-    <div className="p-4 bg-zinc-50 dark:bg-zinc-900/30">
-      <div className={`text-2xl font-light ${colorClass} mb-1`}>{value}</div>
-      <div className="text-xs uppercase tracking-widest text-zinc-500 dark:text-white/50">
-        {label}
-      </div>
+    <div className="p-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/10 flex items-center gap-4">
+        <div className={`p-3 bg-zinc-100 dark:bg-zinc-900 rounded-full`}>
+            <Icon className={`w-6 h-6 ${colorClass}`} />
+        </div>
+        <div>
+            <div className={`text-2xl font-light ${colorClass} mb-1`}>{value}</div>
+            <div className="text-xs uppercase tracking-widest text-zinc-500 dark:text-white/50">
+                {label}
+            </div>
+        </div>
     </div>
   );
 }
@@ -507,7 +356,7 @@ function StatusBadge({ status }: { status: string }) {
   const { label, color } = config[status as keyof typeof config] || config.new;
 
   return (
-    <span className={`px-2 py-1 text-xs uppercase tracking-wider ${color}`}>
+    <span className={`px-2 py-1 text-xs uppercase tracking-wider font-semibold rounded-full ${color}`}>
       {label}
     </span>
   );
@@ -525,14 +374,14 @@ function StatusButton({ status, onClick, active }: { status: string; onClick: ()
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-2 text-xs uppercase tracking-wider flex items-center gap-2 transition-all ${
+      className={`p-2 transition-colors rounded-full ${
         active
-          ? 'bg-zinc-900 dark:bg-white text-white dark:text-black'
-          : 'bg-zinc-100 dark:bg-zinc-900/50 text-zinc-600 dark:text-white/60 hover:bg-zinc-200 dark:hover:bg-zinc-900'
+          ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-white'
+          : 'text-zinc-500 dark:text-white/60 hover:bg-zinc-100 dark:hover:bg-zinc-900'
       }`}
+      title={label}
     >
       <Icon className="w-4 h-4" />
-      {label}
     </button>
   );
 }

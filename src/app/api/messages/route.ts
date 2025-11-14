@@ -1,125 +1,137 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { messageStore } from '@/lib/messageStore';
+import { render } from '@react-email/render';
+import { ReplyEmail } from '@/components/emails/ReplyEmail';
+import { Resend } from 'resend';
+import { getServerSession } from "next-auth/next"
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import React from 'react';
+import { PrismaClient, Status } from '@prisma/client';
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const prisma = new PrismaClient();
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// GET - Get all messages or filter by status/category
-export async function GET(request: NextRequest) {
-  try {
-    // Simple auth check
-    const authHeader = request.headers.get('authorization');
-    const password = authHeader?.replace('Bearer ', '');
-    
-    if (password !== ADMIN_PASSWORD) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+async function handleGet(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  if (searchParams.get('stats')) {
+    const total = await prisma.message.count();
+    const newCount = await prisma.message.count({ where: { status: 'NEW' } });
+    const repliedCount = await prisma.message.count({ where: { status: 'REPLIED' } });
+    return NextResponse.json({ total, new: newCount, replied: repliedCount });
+  }
+
+  const messages = await prisma.message.findMany({
+    include: { replies: true },
+    orderBy: { createdAt: 'desc' },
+  });
+  return NextResponse.json(messages);
+}
+
+async function handlePost(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const body = await req.json();
+  const { action, messageId } = body;
+
+  switch (action) {
+    case 'updateStatus': {
+      const { status } = body;
+      try {
+        await prisma.message.update({
+          where: { id: messageId },
+          data: { status: status as Status },
+        });
+        return NextResponse.json({ ok: true });
+      } catch (error) {
+        console.error('Failed to update status:', error);
+        return NextResponse.json({ error: 'Message not found or invalid status' }, { status: 404 });
+      }
     }
+    case 'addReply': {
+      const { replyText, recipientEmail, originalMessage, userName } = body;
+      
+      const from = process.env.EMAIL_FROM;
+      if (!from || !process.env.RESEND_API_KEY) {
+        console.error('Email (Resend) environment variables are not set!');
+        return NextResponse.json({ error: 'Server misconfigured for sending email' }, { status: 500 });
+      }
 
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-    const category = searchParams.get('category');
-    const stats = searchParams.get('stats');
+      try {
+        const emailHtml = await render(
+          React.createElement(ReplyEmail, {
+            userName: userName,
+            replyText: replyText,
+            originalMessage: originalMessage,
+          })
+        );
 
-    // Return statistics
-    if (stats === 'true') {
-      return NextResponse.json(messageStore.getStats());
+        await resend.emails.send({
+          from: `OneCompany <${from}>`,
+          to: [recipientEmail],
+          subject: `Re: Your inquiry to OneCompany`,
+          html: emailHtml,
+        });
+      } catch (error) {
+        console.error('Failed to send reply email:', error);
+        return NextResponse.json({ error: 'Failed to send reply email' }, { status: 500 });
+      }
+
+      try {
+        await prisma.$transaction(async (tx) => {
+          await tx.reply.create({
+            data: {
+              replyText: replyText,
+              messageId: messageId,
+            },
+          });
+          await tx.message.update({
+            where: { id: messageId },
+            data: { status: 'REPLIED' },
+          });
+        });
+
+        const updatedMessage = await prisma.message.findUnique({
+          where: { id: messageId },
+          include: { replies: true },
+        });
+        return NextResponse.json(updatedMessage);
+      } catch (error) {
+        console.error('Failed to add reply:', error);
+        return NextResponse.json({ error: 'Message not found' }, { status: 404 });
+      }
     }
-
-    // Filter by status
-    if (status) {
-      const messages = messageStore.getMessagesByStatus(status as any);
-      return NextResponse.json(messages);
-    }
-
-    // Filter by category
-    if (category) {
-      const messages = messageStore.getMessagesByCategory(category);
-      return NextResponse.json(messages);
-    }
-
-    // Return all messages
-    const messages = messageStore.getAllMessages();
-    return NextResponse.json(messages);
-
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    default:
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   }
 }
 
-// POST - Update message status or add reply
-export async function POST(request: NextRequest) {
+async function handleDelete(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+  if (!id) {
+    return NextResponse.json({ error: 'Missing message ID' }, { status: 400 });
+  }
+
   try {
-    const authHeader = request.headers.get('authorization');
-    const password = authHeader?.replace('Bearer ', '');
-    
-    if (password !== ADMIN_PASSWORD) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const body = await request.json();
-    const { action, messageId, status, reply } = body;
-
-    if (action === 'updateStatus' && messageId && status) {
-      const success = messageStore.updateStatus(messageId, status);
-      return NextResponse.json({ success });
-    }
-
-    if (action === 'addReply' && messageId && reply) {
-      const success = messageStore.addReply(messageId, reply, 'admin');
-      return NextResponse.json({ success });
-    }
-
-    return NextResponse.json(
-      { error: 'Invalid action' },
-      { status: 400 }
-    );
-
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    await prisma.message.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error('Failed to delete message:', error);
+    return NextResponse.json({ error: 'Message not found' }, { status: 404 });
   }
 }
 
-// DELETE - Delete message
-export async function DELETE(request: NextRequest) {
-  try {
-    const authHeader = request.headers.get('authorization');
-    const password = authHeader?.replace('Bearer ', '');
-    
-    if (password !== ADMIN_PASSWORD) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+export { handleGet as GET, handlePost as POST, handleDelete as DELETE };
 
-    const { searchParams } = new URL(request.url);
-    const messageId = searchParams.get('id');
-
-    if (!messageId) {
-      return NextResponse.json(
-        { error: 'Message ID required' },
-        { status: 400 }
-      );
-    }
-
-    const success = messageStore.deleteMessage(messageId);
-    return NextResponse.json({ success });
-
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
-  }
-}

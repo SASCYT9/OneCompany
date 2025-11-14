@@ -1,9 +1,11 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { messageStore } from '@/lib/messageStore';
+import { PrismaClient } from '@prisma/client';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+const prisma = new PrismaClient();
 
 interface TelegramUpdate {
   message?: {
@@ -316,14 +318,20 @@ export async function POST(req: NextRequest) {
 
       // Зберігаємо повідомлення в store
       const messageType = messageText.startsWith('/') ? 'command' : 'incoming';
-      messageStore.addMessage({
-        chatId,
-        userId,
-        userName,
-        userUsername,
-        messageText,
-        type: messageType,
-        category: 'general',
+      await prisma.message.create({
+        data: {
+          userName: userName,
+          userEmail: userUsername ? `${userUsername}@telegram` : `${userId}@telegram`, // Placeholder email
+          messageText: messageText,
+          status: 'NEW',
+          category: 'GENERAL',
+          metadata: {
+            type: messageType,
+            chatId,
+            userId,
+            userUsername,
+          }
+        }
       });
 
       // Обробка команд

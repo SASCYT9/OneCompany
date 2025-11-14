@@ -20,6 +20,9 @@ interface ContactEmailProps {
   contact: string;
   message: string;
   inquiryType: 'Auto' | 'Moto' | 'General';
+  model?: string;
+  vin?: string;
+  budget?: string;
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -38,6 +41,9 @@ export const ContactEmail = ({
   contact,
   message,
   inquiryType,
+  model,
+  vin,
+  budget,
 }: ContactEmailProps) => (
   <Html>
     <Head />
@@ -67,6 +73,33 @@ export const ContactEmail = ({
             <Column style={label}>Contact:</Column>
             <Column style={value}>{contact}</Column>
           </Row>
+          {model && (
+            <>
+              <Hr style={hr} />
+              <Row style={row}>
+                <Column style={label}>{inquiryType === 'Auto' ? 'Car Model:' : 'Moto Model:'}</Column>
+                <Column style={value}>{model}</Column>
+              </Row>
+            </>
+          )}
+          {vin && (
+            <>
+              <Hr style={hr} />
+              <Row style={row}>
+                <Column style={label}>VIN:</Column>
+                <Column style={value}>{vin}</Column>
+              </Row>
+            </>
+          )}
+          {budget && (
+            <>
+              <Hr style={hr} />
+              <Row style={row}>
+                <Column style={label}>Budget:</Column>
+                <Column style={value}>{budget}</Column>
+              </Row>
+            </>
+          )}
           <Hr style={hr} />
           <Row style={row}>
             <Column style={label}>Message:</Column>
