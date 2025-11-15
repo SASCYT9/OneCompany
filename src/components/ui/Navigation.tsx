@@ -76,6 +76,7 @@ export function Navigation() {
               asLink
               priority
               className="w-48 transition-transform duration-500 hover:scale-[1.02]"
+              tone="light"
             />
             <span className="hidden sm:block text-[11px] font-light text-white/60 tracking-wide">
               {locale === 'ua' ? `З ${foundedYear} • ${years}+ років довіри` : `Since ${foundedYear} • ${years}+ years trusted`}

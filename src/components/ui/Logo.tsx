@@ -6,6 +6,7 @@ type LogoProps = {
   className?: string;
   asLink?: boolean;
   priority?: boolean;
+  tone?: 'dark' | 'light';
 };
 
 const LOGO_SOURCE = '/branding/one-company-logo.svg';
@@ -14,6 +15,7 @@ export function Logo({
   className = '',
   asLink = false,
   priority = false,
+  tone = 'dark',
 }: LogoProps) {
   const image = (
     <span className={clsx('inline-flex items-center', className)}>
@@ -24,6 +26,7 @@ export function Logo({
         height={78}
         priority={priority}
         className="h-auto w-auto"
+        style={tone === 'light' ? { filter: 'brightness(0) invert(1)' } : undefined}
       />
     </span>
   );

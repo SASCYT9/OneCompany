@@ -26,7 +26,7 @@ export function Header() {
           className="relative inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           aria-label="ONE COMPANY home"
         >
-          <Logo className="w-44" priority />
+          <Logo className="w-44" priority tone="light" />
           <span className="absolute -bottom-2 left-0 h-px w-10 bg-gradient-to-r from-amber-400 to-transparent" />
         </Link>
         <nav className="ml-10 hidden flex-1 items-center gap-6 md:flex">
