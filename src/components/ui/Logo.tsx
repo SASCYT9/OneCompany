@@ -5,25 +5,20 @@ import clsx from 'clsx';
 type LogoProps = {
   className?: string;
   asLink?: boolean;
-  variant?: 'light' | 'dark';
   priority?: boolean;
 };
 
-const LOGO_SOURCES = {
-  light: '/branding/one-company-logo-light.svg',
-  dark: '/branding/one-company-logo-dark.svg',
-};
+const LOGO_SOURCE = '/branding/one-company-logo.svg';
 
 export function Logo({
   className = '',
   asLink = false,
-  variant = 'light',
   priority = false,
 }: LogoProps) {
   const image = (
     <span className={clsx('inline-flex items-center', className)}>
       <Image
-        src={LOGO_SOURCES[variant]}
+        src={LOGO_SOURCE}
         alt="ONE COMPANY wordmark"
         width={212}
         height={78}

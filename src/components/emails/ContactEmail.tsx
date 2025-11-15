@@ -52,7 +52,7 @@ export const ContactEmail = ({
       <Container style={container}>
         <Section style={{ paddingTop: '20px' }}>
           <Img
-            src={`${baseUrl}/logos/one-company-logo-light.svg`}
+            src={`${baseUrl}/branding/one-company-logo.svg`}
             width="150"
             alt="OneCompany Logo"
             style={logo}

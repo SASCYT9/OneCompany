@@ -36,7 +36,7 @@ export const ReplyEmail = ({
         <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] w-[465px]">
           <Section className="mt-[32px] text-center">
             <Img
-              src={`${baseUrl}/logos/one-company-logo.png`}
+              src={`${baseUrl}/branding/one-company-logo.svg`}
               width="150"
               alt="OneCompany"
               className="my-0 mx-auto"
