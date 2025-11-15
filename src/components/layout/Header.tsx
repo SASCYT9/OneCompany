@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/ui/Logo";
 
 const navItems = [
   { label: "Automotive", href: "/auto" },
@@ -20,8 +21,12 @@ export function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 pt-4">
       <div className="mx-auto flex max-w-6xl items-center rounded-[32px] border border-white/10 bg-gradient-to-r from-white/5 via-white/5 to-transparent px-4 py-3 backdrop-blur-3xl md:px-8">
-        <Link href={`/${locale}`} className="relative font-semibold tracking-[0.3em] text-xs uppercase text-white/80">
-          <span className="text-white">one</span>company
+        <Link
+          href={`/${locale}`}
+          className="relative inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          aria-label="ONE COMPANY home"
+        >
+          <Logo className="w-44" priority />
           <span className="absolute -bottom-2 left-0 h-px w-10 bg-gradient-to-r from-amber-400 to-transparent" />
         </Link>
         <nav className="ml-10 hidden flex-1 items-center gap-6 md:flex">
