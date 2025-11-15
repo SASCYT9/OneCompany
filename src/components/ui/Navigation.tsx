@@ -75,7 +75,7 @@ export function Navigation() {
             <Logo
               asLink
               priority
-              className="w-48 transition-transform duration-500 hover:scale-[1.02]"
+              className="w-40 transition-transform duration-500 hover:scale-[1.02]"
               tone="light"
             />
             <span className="hidden sm:block text-[11px] font-light text-white/60 tracking-wide">
