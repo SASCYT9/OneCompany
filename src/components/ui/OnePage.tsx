@@ -1,7 +1,94 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll } from 'framer-motion'
+
+type SectionConfig = {
+  id: string;
+  video: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  color: string;
+  textColor: string;
+};
+
+type VideoBackgroundLayerProps = {
+  section: SectionConfig;
+  index: number;
+  isActive: boolean;
+};
+
+const VideoBackgroundLayer = ({ section, index, isActive }: VideoBackgroundLayerProps) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isActive) {
+        videoRef.current.play().catch(() => {})
+      } else {
+        videoRef.current.pause()
+      }
+    }
+  }, [isActive])
+
+  return (
+    <div
+      className="fixed inset-0 w-full h-full transition-opacity duration-1000"
+      style={{
+        opacity: isActive ? 1 : 0,
+        zIndex: 0
+      }}
+    >
+      <video
+        ref={videoRef}
+        src={section.video}
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{
+          filter: index === 0 ? 'blur(3px) brightness(0.3)' : 'blur(2px) brightness(0.4)',
+        }}
+      />
+
+      <div 
+        className="absolute inset-0 mix-blend-overlay"
+        style={{
+          background: index === 0 
+            ? `radial-gradient(ellipse at 30% 50%, #ff6b0030 0%, transparent 50%), radial-gradient(ellipse at 70% 50%, #0066ff30 0%, transparent 50%)`
+            : `radial-gradient(circle at 50% 50%, ${section.color}20 0%, transparent 70%)`
+        }}
+      />
+
+      {index === 0 && (
+        <>
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: 'radial-gradient(ellipse 800px 400px at 30% 50%, rgba(255,107,0,0.15) 0%, transparent 60%)',
+              filter: 'blur(40px)'
+            }}
+          />
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: 'radial-gradient(ellipse 800px 400px at 70% 50%, rgba(0,102,255,0.15) 0%, transparent 60%)',
+              filter: 'blur(40px)'
+            }}
+          />
+        </>
+      )}
+
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: 'radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.5) 100%)'
+        }}
+      />
+    </div>
+  )
+}
 
 export const OnePage = () => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -22,7 +109,7 @@ export const OnePage = () => {
     return () => unsubscribe()
   }, [scrollYProgress])
 
-  const sections = [
+  const sections: SectionConfig[] = [
     {
       id: 'hero',
       video: '/videos/hero-smoke.mp4',
@@ -64,81 +151,14 @@ export const OnePage = () => {
   return (
     <div ref={containerRef} className="relative">
       {/* Video backgrounds */}
-      {sections.map((section, index) => {
-        const videoRef = useRef<HTMLVideoElement>(null)
-        const isActive = currentSection === index
-        
-        useEffect(() => {
-          if (videoRef.current) {
-            if (isActive) {
-              videoRef.current.play().catch(() => {})
-            } else {
-              videoRef.current.pause()
-            }
-          }
-        }, [isActive])
-
-        return (
-          <div
-            key={section.id}
-            className="fixed inset-0 w-full h-full transition-opacity duration-1000"
-            style={{
-              opacity: isActive ? 1 : 0,
-              zIndex: 0
-            }}
-          >
-            <video
-              ref={videoRef}
-              src={section.video}
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{
-                filter: index === 0 ? 'blur(3px) brightness(0.3)' : 'blur(2px) brightness(0.4)',
-              }}
-            />
-            
-            {/* Brand color overlay */}
-            <div 
-              className="absolute inset-0 mix-blend-overlay"
-              style={{
-                background: index === 0 
-                  ? `radial-gradient(ellipse at 30% 50%, #ff6b0030 0%, transparent 50%), radial-gradient(ellipse at 70% 50%, #0066ff30 0%, transparent 50%)`
-                  : `radial-gradient(circle at 50% 50%, ${section.color}20 0%, transparent 70%)`
-              }}
-            />
-            
-            {/* Glow effect for hero */}
-            {index === 0 && (
-              <>
-                <div 
-                  className="absolute inset-0"
-                  style={{
-                    background: 'radial-gradient(ellipse 800px 400px at 30% 50%, rgba(255,107,0,0.15) 0%, transparent 60%)',
-                    filter: 'blur(40px)'
-                  }}
-                />
-                <div 
-                  className="absolute inset-0"
-                  style={{
-                    background: 'radial-gradient(ellipse 800px 400px at 70% 50%, rgba(0,102,255,0.15) 0%, transparent 60%)',
-                    filter: 'blur(40px)'
-                  }}
-                />
-              </>
-            )}
-            
-            {/* Vignette */}
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: 'radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.5) 100%)'
-              }}
-            />
-          </div>
-        )
-      })}
+      {sections.map((section, index) => (
+        <VideoBackgroundLayer
+          key={section.id}
+          section={section}
+          index={index}
+          isActive={currentSection === index}
+        />
+      ))}
 
       {/* Content sections */}
       <div className="relative z-10">

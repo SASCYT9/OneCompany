@@ -1,12 +1,14 @@
 // src/lib/brands.ts
 
+export type BrandCategory = 'usa' | 'europe' | 'oem' | 'racing' | 'moto' | 'auto';
+
 // Local simplified brand type for static data
 export interface LocalBrand {
   name: string;
   slug?: string;
   description?: string; // Optional description
   logoUrl?: string; // Optional path to logo
-  category?: 'usa' | 'europe' | 'oem' | 'racing' | 'moto' | 'auto';
+  category?: BrandCategory;
   website?: string;
   specialties?: string[];
 }
@@ -27,7 +29,7 @@ export function getBrandBySlug(slug: string): LocalBrand | undefined {
 }
 
 // Helper to get brand with category info
-export function getBrandWithCategory(slug: string): (LocalBrand & { category: 'usa' | 'europe' | 'oem' | 'racing' | 'moto' | 'auto' }) | undefined {
+export function getBrandWithCategory(slug: string): (LocalBrand & { category: BrandCategory }) | undefined {
   // Check automotive categories
   const automotiveCategories = ['usa', 'europe', 'oem', 'racing', 'auto'] as const;
   for (const category of automotiveCategories) {
@@ -305,7 +307,7 @@ export const allAutomotiveBrands: LocalBrand[] = [
 
 export const allMotoBrands: LocalBrand[] = [...brandsMoto].sort((a, b) => a.name.localeCompare(b.name));
 
-export function getBrandsByCategory(category: string): LocalBrand[] {
+export function getBrandsByCategory(category: BrandCategory): LocalBrand[] {
   switch (category) {
     case 'usa':
       return brandsUsa;
@@ -319,7 +321,17 @@ export function getBrandsByCategory(category: string): LocalBrand[] {
       return brandsMoto;
     case 'auto':
       return allAutomotiveBrands;
-    default:
-      return [];
   }
+  // Fallback for unexpected values
+  return allAutomotiveBrands;
+}
+
+export function getBrandsByNames(names: string[], category: BrandCategory = 'auto'): LocalBrand[] {
+  const pool = category === 'moto' ? allMotoBrands : getBrandsByCategory(category);
+  return names
+    .map(name => {
+      const normalized = name.trim().toLowerCase();
+      return pool.find(brand => brand.name.trim().toLowerCase() === normalized);
+    })
+    .filter((brand): brand is LocalBrand => Boolean(brand));
 }

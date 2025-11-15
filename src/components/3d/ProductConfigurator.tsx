@@ -3,8 +3,23 @@
 import { useState, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows, PerspectiveCamera } from '@react-three/drei';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import * as THREE from 'three';
+
+type SuspensionConfig = {
+  model: string;
+  color: string;
+  height: number;
+  damping: number;
+  price: number;
+};
+
+type ModelOption = {
+  name: string;
+  price: number;
+  description: string;
+  damping: number;
+};
 
 // 3D Car Suspension Model (simplified)
 function SuspensionModel({ color, height, damping }: { color: string; height: number; damping: number }) {
@@ -59,7 +74,7 @@ function SuspensionModel({ color, height, damping }: { color: string; height: nu
 }
 
 // Scene
-function Scene({ config }: { config: any }) {
+function Scene({ config }: { config: SuspensionConfig }) {
   return (
     <>
       <PerspectiveCamera makeDefault position={[5, 3, 5]} fov={50} />
@@ -82,7 +97,7 @@ function Scene({ config }: { config: any }) {
 
 // Main Component
 export default function ProductConfigurator() {
-  const [config, setConfig] = useState({
+  const [config, setConfig] = useState<SuspensionConfig>({
     model: 'V3',
     color: '#ff6b35',
     height: 0,
@@ -90,7 +105,7 @@ export default function ProductConfigurator() {
     price: 1899,
   });
 
-  const models = [
+  const models: ModelOption[] = [
     { name: 'V1', price: 999, description: 'Entry level', damping: 1.5 },
     { name: 'V2', price: 1499, description: 'Street comfort', damping: 2 },
     { name: 'V3', price: 1899, description: 'Track & Street', damping: 2.5 },
@@ -105,7 +120,7 @@ export default function ProductConfigurator() {
     { name: 'Silver', hex: '#94a3b8' },
   ];
 
-  const updateModel = (model: any) => {
+  const updateModel = (model: ModelOption) => {
     setConfig({
       ...config,
       model: model.name,

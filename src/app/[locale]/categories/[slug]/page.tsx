@@ -36,8 +36,8 @@ export default function CategoryPage() {
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {category.brands.map((brand) => (
-            <div key={brand.name} className="p-6 bg-white/5 rounded-lg text-center">
-              <p className="font-medium text-white/90">{brand.name}</p>
+            <div key={brand} className="p-6 bg-white/5 rounded-lg text-center">
+              <p className="font-medium text-white/90">{brand}</p>
             </div>
           ))}
         </div>

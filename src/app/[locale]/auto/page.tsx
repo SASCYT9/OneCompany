@@ -1,46 +1,263 @@
 // src/app/[locale]/auto/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { allAutomotiveBrands, LocalBrand } from '@/lib/brands';
-import { getBrandLogo } from '@/lib/brandLogos';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
 
-// Define product categories
-const productCategories = [
-  { name: 'exhaust', href: '/categories/exhaust' },
-  { name: 'suspension', href: '/categories/suspension' },
-  { name: 'wheels', href: '/categories/wheels' },
-  { name: 'brakes', href: '/categories/brakes' },
-  { name: 'intake', href: '/categories/intake' },
-  { name: 'aero', href: '/categories/aero' },
-  { name: 'engine', href: '/categories/engine' },
-  { name: 'interior', href: '/categories/interior' },
+import {
+  allAutomotiveBrands,
+  brandsEurope,
+  brandsOem,
+  brandsRacing,
+  brandsUsa,
+  getBrandsByNames,
+  LocalBrand,
+} from '@/lib/brands';
+import { getBrandLogo } from '@/lib/brandLogos';
+import { categoryData } from '@/lib/categoryData';
+import type { CategoryData } from '@/lib/categoryData';
+
+type LocalizedCopy = { en: string; ua: string; [key: string]: string };
+
+type BrandStory = {
+  headline: LocalizedCopy;
+  description: LocalizedCopy;
+  highlights?: LocalizedCopy[];
+};
+
+const TOP_AUTOMOTIVE_BRANDS = [
+  'Akrapovic',
+  'Eventuri',
+  'KW Suspension',
+  'HRE wheels',
+  'Brembo',
+  'Vorsteiner',
+  'Armytrix',
+  'CSF',
+  'Manhart',
+  'Renntech',
+  'Velos Wheels',
+  'Weistec Engineering',
 ];
 
-// Placeholder for featured brands
-const featuredBrands: LocalBrand[] = [
-  { name: 'Akrapovic', description: 'High-performance exhaust systems' },
-  { name: 'KW Suspension', description: 'Coilover and suspension solutions' },
-  { name: 'HRE Wheels', description: 'Custom forged luxury wheels' },
-  { name: 'Brembo', description: 'World leader in braking systems' },
-  { name: 'Eventuri', description: 'Carbon fiber intake systems' },
-  { name: 'Capristo', description: 'Premium valved exhaust systems' },
-  { name: 'CSF', description: 'High-performance cooling solutions' },
-  { name: 'Vorsteiner', description: 'Aerodynamics, wheels, and accessories' },
-  { name: 'Akrapovic', description: 'High-performance exhaust systems' },
-  { name: 'KW Suspension', description: 'Coilover and suspension solutions' },
-].slice(0, 10);
+const heroStats: { value: string; label: LocalizedCopy; caption: LocalizedCopy }[] = [
+  {
+    value: '200+',
+    label: { en: 'brands curated', ua: 'брендів у каталозі' },
+    caption: { en: 'Official programs since 2007', ua: 'Офіційні програми з 2007 року' },
+  },
+  {
+    value: '18',
+    label: { en: 'countries installed', ua: 'країн з інсталяціями' },
+    caption: { en: 'Certified partner garages', ua: 'Сертифіковані партнерські майстерні' },
+  },
+  {
+    value: '21B',
+    label: { en: 'Baseina St · Kyiv', ua: 'вул. Басейна, 21Б' },
+    caption: { en: 'Concierge atelier & logistics', ua: 'Ательє та логістика під ключ' },
+  },
+];
+
+const programHighlights: {
+  eyebrow: LocalizedCopy;
+  title: LocalizedCopy;
+  description: LocalizedCopy;
+  meta: LocalizedCopy;
+}[] = [
+  {
+    eyebrow: { en: 'Concierge sourcing', ua: 'Консьєрж-постачання' },
+    title: { en: 'Bespoke part selection', ua: 'Індивідуальний підбір' },
+    description: {
+      en: 'We audit build sheets, plan compatibility and secure allocations before money moves.',
+      ua: 'Аналізуємо проєкт, перевіряємо сумісність та бронюємо квоти до оплати.',
+    },
+    meta: { en: 'VIN verification & spec sheets', ua: 'Перевірка VIN та техспецифікації' },
+  },
+  {
+    eyebrow: { en: 'Logistics', ua: 'Логістика' },
+    title: { en: 'Global delivery windows', ua: 'Глобальні терміни доставки' },
+    description: {
+      en: 'Air freight, EU road convoys and customs supervision to Kyiv, Warsaw, Dubai and beyond.',
+      ua: 'Авіа, європейські автоконвої та митний супровід до Києва, Варшави, Дубая та далі.',
+    },
+    meta: { en: 'Insurance & tracking every 48h', ua: 'Страхування та апдейти кожні 48 годин' },
+  },
+  {
+    eyebrow: { en: 'Installation network', ua: 'Мережа інсталяції' },
+    title: { en: 'OEM-safe partners', ua: 'Партнери рівня OEM' },
+    description: {
+      en: 'Certified ateliers for titanium welding, ECU calibration and track alignment.',
+      ua: 'Сертифіковані ательє для титанових зварювань, калібрування ECU та трекового сходження.',
+    },
+    meta: { en: '18 countries · on-site inspection', ua: '18 країн · виїзний контроль' },
+  },
+];
+
+const curatedBrandStories: Record<string, BrandStory> = {
+  Akrapovic: {
+    headline: {
+      en: 'Akrapovic Titanium Sound Architecture',
+      ua: 'Akrapovic — титановий саунд-дизайн',
+    },
+    description: {
+      en: 'Factory-backed titanium exhaust solutions tuned on European proving grounds with concierge logistics.',
+      ua: 'Заводські титанові системи, налаштовані на європейських полігонах, з логістикою під ключ.',
+    },
+    highlights: [
+      { en: 'Evolution Line allocations & race support', ua: 'Квоти Evolution Line та трекова підтримка' },
+      { en: 'Custom branding + heat treatment options', ua: 'Кастомний брендинг та термообробка' },
+      { en: 'Door-to-door insured delivery', ua: 'Door-to-door доставка зі страхуванням' },
+    ],
+  },
+  Eventuri: {
+    headline: { en: 'Eventuri Carbon Intake Lab', ua: 'Eventuri — лабораторія карбону' },
+    description: {
+      en: 'Autoclave carbon assemblies that stabilise IAT and add theatre to every throttle input.',
+      ua: 'Автоклавні карбонові системи, що стабілізують IAT та додають драму кожному натисканню.',
+    },
+    highlights: [
+      { en: 'Pre-preg carbon options with kevlar cores', ua: 'Препрег-карбон з кевларовими осердями' },
+      { en: 'Dyno-verified gains for M, RS, AMG platforms', ua: 'Діно-підтвердження для платформ M, RS, AMG' },
+      { en: 'Coordinated install + ECU calibration', ua: 'Координація встановлення та калібрування ECU' },
+    ],
+  },
+  'KW Suspension': {
+    headline: { en: 'KW Suspension · Adaptive Control', ua: 'KW Suspension · адаптивний контроль' },
+    description: {
+      en: 'Variant, Clubsport and DDC plug & play kits with geo setup plans from our chassis lab.',
+      ua: 'Variant, Clubsport та DDC-комплекти з налаштуванням геометрії від нашої шасі-лабораторії.',
+    },
+    highlights: [
+      { en: 'Track sheets + corner-weighting in Kyiv', ua: 'Налаштування кутів та ваги в Києві' },
+      { en: 'Road + snow presets for SUVs', ua: 'Налаштування для доріг та снігу для SUV' },
+      { en: 'Warranty preserved via OEM torque specs', ua: 'Збережена гарантія завдяки OEM моментам затягування' },
+    ],
+  },
+  'HRE wheels': {
+    headline: { en: 'HRE Wheels Forged Program', ua: 'HRE Wheels — програма forged' },
+    description: {
+      en: 'Bespoke monoblock, 2-piece and 3-piece sets engineered for hypercar tolerances.',
+      ua: 'Кастомні моноблоки, дво- та трисекційні диски з допусками гіперкарів.',
+    },
+    highlights: [
+      { en: 'Aerospace-grade forgings + TÜV paperwork', ua: 'Авіаційні заготовки та документи TÜV' },
+      { en: 'Finish library + transparent timelines', ua: 'Бібліотека фінішів та прозорі строки' },
+      { en: 'Ceramic coating + TPMS setup on delivery', ua: 'Керамічне покриття та TPMS при видачі' },
+    ],
+  },
+  Brembo: {
+    headline: { en: 'Brembo GT & Race Systems', ua: 'Brembo — GT та гоночні системи' },
+    description: {
+      en: 'Monoblock brake solutions with track-proven pad libraries and telemetry guidance.',
+      ua: 'Моноблочні гальма з трековими колодками та телеметрією.',
+    },
+    highlights: [
+      { en: 'BBK conversions with hub machining', ua: 'BBK-конверсії з фрезеруванням маточин' },
+      { en: 'Brake-in procedures + fluid packages', ua: 'Процедури обкатки та комплекти рідин' },
+      { en: 'On-site pedal feel tuning', ua: 'Тонке налаштування педалі на місці' },
+    ],
+  },
+  Vorsteiner: {
+    headline: { en: 'Vorsteiner Carbon Atelier', ua: 'Vorsteiner — карбонове ательє' },
+    description: {
+      en: 'Carbon aero programs for Lamborghini, Porsche, BMW and SUV flagships with factory-level fit.',
+      ua: 'Карбонові аеропакети для Lamborghini, Porsche, BMW та флагманських SUV з OEM-пасуванням.',
+    },
+    highlights: [
+      { en: 'Autoclave dry carbon & forged options', ua: 'Сухий та кований карбон з автоклава' },
+      { en: 'Paint-to-sample & PPF ready finishing', ua: 'Індивідуальне фарбування та готовність під PPF' },
+      { en: 'Install supervision + alignment presets', ua: 'Контроль монтажу та налаштування сходження' },
+    ],
+  },
+  Armytrix: {
+    headline: { en: 'Armytrix Valvetronic Theatre', ua: 'Armytrix — клапанний саунд' },
+    description: {
+      en: 'Valvetronic exhausts with smart remotes, bluetooth control and night stealth modes.',
+      ua: 'Клапанні вихлопи зі смарт-брелоками, bluetooth-контролем та тихими режимами.',
+    },
+    highlights: [
+      { en: 'Titanium + stainless options in stock', ua: 'Титанові та сталеві опції на складі' },
+      { en: 'ECU-safe valve modules', ua: 'Блоки клапанів без помилок ECU' },
+      { en: 'Install + wiring diagrams translated', ua: 'Схеми монтажу та проводки українською' },
+    ],
+  },
+  CSF: {
+    headline: { en: 'CSF Cooling Program', ua: 'CSF — програма охолодження' },
+    description: {
+      en: 'Billet end-tank intercoolers and radiators that keep intake temps repeatable on stage 3 builds.',
+      ua: 'Інтеркулери та радіатори з білетними баками для стабільних температур на stage 3.',
+    },
+    highlights: [
+      { en: 'Drag + track proven cores', ua: 'Перевірені на драгу та треку ядра' },
+      { en: 'Heat exchanger bundles in stock', ua: 'Готові комплекти теплообмінників' },
+      { en: 'Coolant bleeding with telemetry report', ua: 'Прокачка з рипортом телеметрії' },
+    ],
+  },
+  Manhart: {
+    headline: { en: 'Manhart Signature Builds', ua: 'Manhart — підписи ательє' },
+    description: {
+      en: 'Complete conversion kits with aero, wheels and ECU calibrations for BMW, Audi and Mercedes.',
+      ua: 'Повні комплекти конверсій з аеро, дисками та прошивками для BMW, Audi, Mercedes.',
+    },
+    highlights: [
+      { en: 'Stage packages shipped as one crate', ua: 'Stage-комплекти в одному ящику' },
+      { en: 'Interior trims + steering wheels included', ua: 'Включені інтерʼєрні елементи та керма' },
+      { en: 'On-site coding and warranty docs', ua: 'Кодування та гарантійні документи на місці' },
+    ],
+  },
+  Renntech: {
+    headline: { en: 'Renntech AMG Power Stages', ua: 'Renntech — ступені потужності AMG' },
+    description: {
+      en: 'Turbo, cooling and ECU programs engineered by ex-AMG powertrain teams.',
+      ua: 'Турбіни, охолодження та ECU від екс-команди AMG.',
+    },
+    highlights: [
+      { en: 'Stage 1-4 calibrations with dyno sheets', ua: 'Stage 1-4 з діно-рапортами' },
+      { en: 'TCU + gearbox cooling upgrades', ua: 'TCU та охолодження КПП' },
+      { en: 'Worldwide warranty honoured via us', ua: 'Гарантія по всьому світу через нас' },
+    ],
+  },
+  'Velos Wheels': {
+    headline: { en: 'Velos Forged Luxury', ua: 'Velos — розкішне кування' },
+    description: {
+      en: 'Luxury-focused forged sets with marble, brushed and two-tone finishes for SUVs and limousines.',
+      ua: 'Розкішні ковані комплекти з мармуровими, брашованими та двотоновими фінішами для SUV та лімузинів.',
+    },
+    highlights: [
+      { en: '24-26 inch fitments verified for Maybach & Cullinan', ua: '24-26" підбори для Maybach та Cullinan' },
+      { en: 'Floating centre caps + bespoke engraving', ua: 'Плаваючі ковпачки та гравіювання' },
+      { en: 'TPMS + run-flat compatible', ua: 'Сумісність з TPMS та run-flat' },
+    ],
+  },
+  'Weistec Engineering': {
+    headline: { en: 'Weistec Engineering Power Lab', ua: 'Weistec Engineering — лабораторія потужності' },
+    description: {
+      en: 'Billet turbos, meth kits and calibration suites for AMG, McLaren and exotic SUV platforms.',
+      ua: 'Білетні турбіни, метанольні комплекти та калібрування для AMG, McLaren та екзотичних SUV.',
+    },
+    highlights: [
+      { en: 'Complete fuel system solutions', ua: 'Повні паливні системи' },
+      { en: 'Built transmissions with break-in support', ua: 'Підготовлені КПП з підтримкою обкатки' },
+      { en: 'Remote + on-site calibration days', ua: 'Віддалені й виїзні дні калібрування' },
+    ],
+  },
+};
+
+const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto');
 
 export default function AutomotivePage() {
   const params = useParams();
-  const locale = params.locale as string || 'ua';
+  const locale = (params.locale as string) || 'ua';
   const t = useTranslations('auto');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<LocalBrand | null>(null);
+
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
   const filteredBrands = allAutomotiveBrands.filter((brand) => {
     const matchesSearch = brand.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -48,105 +265,269 @@ export default function AutomotivePage() {
     return matchesSearch && matchesLetter;
   });
 
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const topBrands = useMemo(() => getBrandsByNames(TOP_AUTOMOTIVE_BRANDS, 'auto'), []);
+
+  const brandCategoryMap = useMemo(() => {
+    const map = new Map<string, CategoryData[]>();
+    categoryData.forEach((cat) => {
+      cat.brands.forEach((brandName) => {
+        const key = brandName.trim().toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, []);
+        }
+        map.get(key)!.push(cat);
+      });
+    });
+    return map;
+  }, []);
+
+  const brandOriginMap = useMemo(() => {
+    const map = new Map<string, LocalizedCopy>();
+    const assignOrigin = (brands: LocalBrand[], copy: LocalizedCopy) => {
+      brands.forEach((brand) => {
+        map.set(brand.name.trim().toLowerCase(), copy);
+      });
+    };
+    assignOrigin(brandsUsa, { en: 'North America', ua: 'Північна Америка' });
+    assignOrigin(brandsEurope, { en: 'Europe', ua: 'Європа' });
+    assignOrigin(brandsOem, { en: 'OEM Icons', ua: 'OEM легенди' });
+    assignOrigin(brandsRacing, { en: 'Motorsport', ua: 'Мотоспорт' });
+    return map;
+  }, []);
+
+  const getBrandOrigin = useCallback(
+    (brand: LocalBrand) => {
+      const key = brand.name.trim().toLowerCase();
+      return brandOriginMap.get(key)?.[locale] ?? (locale === 'ua' ? 'Світовий портфель' : 'Global portfolio');
+    },
+    [brandOriginMap, locale]
+  );
+
+  const getBrandCollections = useCallback(
+    (brandName: string) => brandCategoryMap.get(brandName.trim().toLowerCase()) ?? [],
+    [brandCategoryMap]
+  );
+
+  const getBrandStory = useCallback((brand: LocalBrand): BrandStory => {
+    if (curatedBrandStories[brand.name]) {
+      return curatedBrandStories[brand.name];
+    }
+    return {
+      headline: {
+        en: `${brand.name} — bespoke supply`,
+        ua: `${brand.name} — індивідуальні поставки`,
+      },
+      description: {
+        en: 'Dedicated sourcing, homologation paperwork and concierge logistics managed from Baseina St, Kyiv.',
+        ua: 'Персональний пошук, сертифікація та логістика під керуванням нашого ательє на Басейній, 21Б.',
+      },
+      highlights: [
+        {
+          en: 'OEM-safe installation partners in 18 countries',
+          ua: 'Партнерські СТО у 18 країнах',
+        },
+        {
+          en: 'Air & road logistics with customs supervision',
+          ua: 'Авіа та авто логістика з митним супроводом',
+        },
+        {
+          en: 'Concierge updates every 48 hours until delivery',
+          ua: 'Консьєрж-апдейти кожні 48 годин до видачі',
+        },
+      ],
+    };
+  }, []);
+
+  const selectedBrandStory = selectedBrand ? getBrandStory(selectedBrand) : null;
+  const selectedBrandCollections = selectedBrand ? getBrandCollections(selectedBrand.name) : [];
+  const selectedBrandOrigin = selectedBrand ? getBrandOrigin(selectedBrand) : null;
 
   return (
-    <div className="bg-black text-white min-h-screen">
-      {/* Hero Section */}
-      <header className="relative text-center py-32 bg-gradient-to-b from-black via-gray-900 to-black overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(255,107,0,0.1),transparent_50%)]" />
-        <div className="relative z-10">
-          <h1 className="text-6xl md:text-8xl font-bold tracking-tight mb-6 bg-gradient-to-r from-white via-orange-100 to-orange-300 bg-clip-text text-transparent">
-            {t('title')}
-          </h1>
-          <p className="text-xl text-white/80 font-light max-w-4xl mx-auto px-6 leading-relaxed">
-            {t('subtitle')}
-          </p>
+    <div className="min-h-screen bg-black text-white">
+      <section className="relative isolate overflow-hidden rounded-b-[40px] border-b border-white/10">
+        <div className="absolute inset-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="h-full w-full object-cover opacity-60"
+            poster="/images/eventuri/atelier-hero.jpg"
+          >
+            <source src="/videos/Luxury_Automotive_Abstract_Video_Creation.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
         </div>
-      </header>
-
-      {/* Product Categories Section */}
-      <section className="container mx-auto px-6 py-20">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-          {t('productCategories')}
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {productCategories.map((cat) => (
-            <Link 
-              key={cat.name} 
-              href={`/${locale}${cat.href}`}
-              className="group relative p-8 bg-gradient-to-br from-white/5 to-white/[0.02] hover:from-orange-500/20 hover:to-orange-600/10 rounded-2xl transition-all duration-300 text-center border border-white/5 hover:border-orange-500/50 overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-orange-500/0 to-orange-500/0 group-hover:from-orange-500/10 group-hover:via-orange-500/5 group-hover:to-transparent transition-all duration-500" />
-              <div className="relative">
-                <h3 className="text-lg md:text-xl font-semibold text-white/90 group-hover:text-white transition-colors">
-                  {t(`categories.${cat.name}`)}
-                </h3>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Top 10 Brands Section */}
-      <section className="py-24 bg-gradient-to-b from-gray-900/30 to-black relative">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,107,0,0.05),transparent_50%)]" />
-        <div className="container mx-auto px-6 relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-            {t('featuredBrands')}
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {featuredBrands.map((brand, index) => (
-              <div 
-                key={`${brand.name}-${index}`} 
-                className="relative bg-gradient-to-br from-white/10 to-white/5 rounded-2xl flex flex-col items-center justify-center p-6 text-center overflow-hidden group hover:from-orange-500/20 hover:to-orange-600/10 transition-all duration-300 border border-white/10 hover:border-orange-500/50 hover:scale-105"
+        <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-10 px-6 py-28">
+          <div className="text-[11px] uppercase tracking-[0.6em] text-white/60">
+            {locale === 'ua' ? 'Преміум програми · авто' : 'Premium programs · auto'}
+          </div>
+          <div className="max-w-4xl space-y-6">
+            <h1 className="text-5xl font-light leading-tight sm:text-6xl lg:text-7xl">
+              {t('title')}<span className="text-white/50"> · </span>
+              <span className="text-white/70">{t('subtitle')}</span>
+            </h1>
+            <p className="text-lg text-white/70 sm:text-xl">
+              {locale === 'ua'
+                ? 'Створюємо автомобілі з характером: титан, карбон і електроніка преміум брендів з 2007 року.'
+                : 'We build characterful cars with titanium, carbon and electronic suites curated since 2007.'}
+            </p>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {heroStats.map((stat) => (
+              <div
+                key={stat.label.en}
+                className="rounded-3xl border border-white/15 bg-white/5 backdrop-blur-lg p-6"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 to-transparent group-hover:from-orange-500/10 transition-all duration-500" />
-                <div className="relative w-full aspect-video mb-4">
-                  <Image
-                    src={getBrandLogo(brand.name)}
-                    alt={brand.name}
-                    fill
-                    className="object-contain opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
-                    sizes="(max-width: 768px) 50vw, 20vw"
-                    unoptimized
-                  />
-                </div>
-                <h3 className="text-lg font-semibold mb-2 text-white/90 group-hover:text-white transition-colors">{brand.name}</h3>
-                <p className="text-xs text-white/60 group-hover:text-white/80 line-clamp-2 transition-colors">{brand.description}</p>
+                <div className="text-4xl font-light text-white">{stat.value}</div>
+                <div className="mt-2 text-xs uppercase tracking-[0.4em] text-white/60">{stat.label[locale]}</div>
+                <p className="mt-3 text-sm text-white/60">{stat.caption[locale]}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* All Brands A-Z Section */}
-      <section className="container mx-auto px-6 py-24">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-          {t('allBrands')}
-        </h2>
-        
-        {/* Search Bar */}
-        <div className="flex justify-center mb-12">
-          <div className="relative w-full max-w-2xl">
+      <section className="relative border-b border-white/5 bg-black/60 py-20">
+        <div className="absolute inset-x-0 top-0 mx-auto h-px w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+        <div className="mx-auto grid max-w-6xl gap-6 px-6 md:grid-cols-3">
+          {programHighlights.map((card) => (
+            <div
+              key={card.title.en}
+              className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur"
+            >
+              <div className="text-[10px] uppercase tracking-[0.5em] text-white/50">{card.eyebrow[locale]}</div>
+              <h3 className="mt-4 text-2xl font-light text-white">{card.title[locale]}</h3>
+              <p className="mt-3 text-sm text-white/70">{card.description[locale]}</p>
+              <p className="mt-6 text-xs uppercase tracking-[0.3em] text-white/60">{card.meta[locale]}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 py-24">
+        <div className="mb-12 text-center">
+          <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">{t('productCategories')}</p>
+          <h2 className="mt-3 text-4xl font-light text-white sm:text-5xl">
+            {locale === 'ua' ? 'Модулі, які складають авто' : 'Modules we compose cars from'}
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {automotiveCategories.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/${locale}/categories/${cat.slug}`}
+              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-8 transition-all duration-500 hover:border-white/40"
+            >
+              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
+                backgroundImage:
+                  'radial-gradient(circle at top left, rgba(255,255,255,0.15), transparent 55%)',
+              }} />
+              <div className="relative flex flex-col gap-4">
+                <div className="text-[10px] uppercase tracking-[0.4em] text-white/40">
+                  {locale === 'ua' ? 'Категорія' : 'Category'}
+                </div>
+                <h3 className="text-2xl font-light text-white">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                <p className="text-sm text-white/70">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                <p className="text-xs text-white/50">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                <div className="mt-4 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.3em] text-white/50">
+                  {cat.brands.slice(0, 4).map((name) => (
+                    <span key={name} className="rounded-full border border-white/10 px-3 py-1 text-white/70">
+                      {name}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-6 flex items-center gap-3 text-xs uppercase tracking-[0.35em] text-white/70">
+                  <span>{locale === 'ua' ? 'Переглянути' : 'Open'}</span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
+                  <span>→</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="relative border-y border-white/5 bg-gradient-to-b from-black via-black/80 to-black py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mb-16 text-center">
+            <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">{t('featuredBrands')}</p>
+            <h2 className="mt-3 text-4xl font-light text-white sm:text-5xl">
+              {locale === 'ua' ? 'Ікони, що задають темп' : 'Icons that set the tempo'}
+            </h2>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            {topBrands.map((brand) => (
+              <motion.button
+                key={brand.name}
+                onClick={() => setSelectedBrand(brand)}
+                whileHover={{ y: -4 }}
+                className="group relative flex flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-8 text-left transition"
+              >
+                <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
+                  backgroundImage:
+                    'linear-gradient(135deg, rgba(255,255,255,0.18), transparent 65%)',
+                }} />
+                <div className="relative flex items-center justify-between gap-4">
+                  <div className="relative h-16 w-36">
+                    <Image
+                      src={getBrandLogo(brand.name)}
+                      alt={brand.name}
+                      fill
+                      className="object-contain"
+                      sizes="144px"
+                      unoptimized
+                    />
+                  </div>
+                  <span className="text-xs uppercase tracking-[0.4em] text-white/50">
+                    {locale === 'ua' ? 'Натисніть, щоб дізнатися' : 'Tap to open'}
+                  </span>
+                </div>
+                <div className="relative">
+                  <h3 className="text-3xl font-light text-white">{brand.name}</h3>
+                  <p className="mt-2 text-sm text-white/70">
+                    {brand.description ||
+                      (locale === 'ua' ? 'Офіційна програма постачання' : 'Official supply program')}
+                  </p>
+                </div>
+                <div className="relative flex items-center gap-4 text-xs uppercase tracking-[0.4em] text-white/60">
+                  <span>{locale === 'ua' ? 'Дивитись деталі' : 'View detail'}</span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
+                  <span>↗</span>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 py-24">
+        <div className="mb-12 text-center">
+          <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
+          <h2 className="mt-3 text-4xl font-light text-white sm:text-5xl">{t('allBrands')}</h2>
+        </div>
+
+        <div className="flex justify-center">
+          <div className="relative w-full max-w-3xl">
             <input
               type="text"
               placeholder={t('searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl px-8 py-4 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500/50 transition-all duration-300 text-lg"
+              className="w-full rounded-3xl border border-white/15 bg-gradient-to-r from-white/10 to-white/[0.02] px-10 py-4 text-lg text-white placeholder-white/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40"
             />
+            <div className="pointer-events-none absolute inset-y-0 right-8 flex items-center text-white/40">⌕</div>
           </div>
         </div>
 
-        {/* Alphabet Filter */}
-        <div className="flex flex-wrap justify-center gap-2 mb-16">
-          <button 
-            onClick={() => setActiveLetter(null)} 
-            className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 ${
-              !activeLetter 
-                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/50 scale-110' 
-                : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+        <div className="mt-12 flex flex-wrap justify-center gap-2">
+          <button
+            onClick={() => setActiveLetter(null)}
+            className={`rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] transition ${
+              !activeLetter
+                ? 'bg-white text-black'
+                : 'border border-white/20 text-white/60 hover:border-white/40 hover:text-white'
             }`}
           >
             {t('all')}
@@ -155,10 +536,10 @@ export default function AutomotivePage() {
             <button
               key={letter}
               onClick={() => setActiveLetter(letter)}
-              className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 ${
-                activeLetter === letter 
-                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/50 scale-110' 
-                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+                activeLetter === letter
+                  ? 'bg-white text-black'
+                  : 'border border-white/15 text-white/60 hover:border-white/40 hover:text-white'
               }`}
             >
               {letter}
@@ -166,36 +547,159 @@ export default function AutomotivePage() {
           ))}
         </div>
 
-        {/* Brands Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredBrands.length > 0 ? (
-            filteredBrands.map((brand) => (
-              <div
-                key={brand.name}
-                className="group rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 hover:from-orange-500/20 hover:to-orange-600/10 hover:border-orange-500/50 transition-all duration-300 p-5 flex flex-col items-center justify-center text-center hover:scale-105 cursor-pointer overflow-hidden relative"
-                title={brand.name}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 to-transparent group-hover:from-orange-500/10 transition-all duration-500" />
-                <div className="relative w-full aspect-video mb-3">
-                  <Image
-                    src={getBrandLogo(brand.name)}
-                    alt={brand.name}
-                    fill
-                    className="object-contain opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
-                    unoptimized
-                  />
-                </div>
-                <span className="text-sm font-medium text-white/70 group-hover:text-white truncate w-full transition-colors">{brand.name}</span>
-              </div>
-            ))
+            filteredBrands.map((brand) => {
+              const origin = getBrandOrigin(brand);
+              const collections = getBrandCollections(brand.name);
+              return (
+                <motion.button
+                  key={brand.name}
+                  onClick={() => setSelectedBrand(brand)}
+                  whileHover={{ y: -6 }}
+                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.02] p-6 text-left transition"
+                >
+                  <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
+                    background:
+                      'radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 60%)',
+                  }} />
+                  <div className="relative flex items-center justify-between text-xs uppercase tracking-[0.3em] text-white/50">
+                    <span>{origin}</span>
+                    <span className="text-white/70 group-hover:text-white">↗</span>
+                  </div>
+                  <div className="relative mt-5 h-20">
+                    <Image
+                      src={getBrandLogo(brand.name)}
+                      alt={brand.name}
+                      fill
+                      className="object-contain"
+                      sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="mt-5 text-2xl font-light text-white">{brand.name}</div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {collections.length > 0
+                      ? collections.slice(0, 3).map((collection) => (
+                          <span key={collection.slug} className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70">
+                            {locale === 'ua' ? collection.title.ua : collection.title.en}
+                          </span>
+                        ))
+                      : (
+                          <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/50">
+                            {locale === 'ua' ? 'Індивідуально' : 'Bespoke'}
+                          </span>
+                        )}
+                  </div>
+                </motion.button>
+              );
+            })
           ) : (
-            <div className="col-span-full text-center py-16">
-              <p className="text-xl text-white/70">{t('noBrands')}</p>
+            <div className="col-span-full rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-xl text-white/70">
+              {t('noBrands')}
             </div>
           )}
         </div>
       </section>
+
+      <AnimatePresence>
+        {selectedBrand && selectedBrandStory && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur"
+            onClick={(e) => {
+              if (e.currentTarget === e.target) {
+                setSelectedBrand(null);
+              }
+            }}
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mx-auto mt-16 max-w-4xl rounded-[32px] border border-white/10 bg-gradient-to-br from-black to-white/[0.05] p-8 text-white shadow-2xl"
+            >
+              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                <div className="relative h-16 w-40">
+                  <Image
+                    src={getBrandLogo(selectedBrand.name)}
+                    alt={selectedBrand.name}
+                    fill
+                    className="object-contain"
+                    sizes="160px"
+                    unoptimized
+                  />
+                </div>
+                <button
+                  onClick={() => setSelectedBrand(null)}
+                  className="rounded-full border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.4em] text-white/70 hover:border-white hover:text-white"
+                >
+                  {locale === 'ua' ? 'Закрити' : 'Close'}
+                </button>
+              </div>
+
+              <div className="mt-6 grid gap-8 md:grid-cols-2">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+                    {selectedBrandOrigin}
+                  </p>
+                  <h3 className="mt-2 text-3xl font-light">{selectedBrandStory.headline[locale]}</h3>
+                  <p className="mt-4 text-sm text-white/70">{selectedBrandStory.description[locale]}</p>
+                </div>
+                <div className="space-y-4">
+                  {selectedBrandStory.highlights?.map((highlight, index) => (
+                    <div key={highlight.en + index} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/80">
+                      {highlight[locale]}
+                    </div>
+                  ))}
+                  <div className="rounded-2xl border border-white/10 p-4">
+                    <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+                      {locale === 'ua' ? 'Категорії' : 'Categories'}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {selectedBrandCollections.length > 0 ? (
+                        selectedBrandCollections.map((collection) => (
+                          <span key={collection.slug} className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70">
+                            {locale === 'ua' ? collection.title.ua : collection.title.en}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/50">
+                          {locale === 'ua' ? 'Індивідуальні побудови' : 'Bespoke builds'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-white/80 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+                    {locale === 'ua' ? 'Консьєрж' : 'Concierge'}
+                  </p>
+                  <p className="mt-2 text-base text-white">
+                    {locale === 'ua'
+                      ? 'Залиште контакти — надамо оновлення про строки, варіанти встановлення та гарантію.'
+                      : 'Share your contact and we will return with lead times, install slots and warranty coverage.'}
+                  </p>
+                </div>
+                <Link
+                  href={`/${locale}/contact`}
+                  className="inline-flex items-center justify-center rounded-full border border-white bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-transparent hover:text-white"
+                >
+                  {locale === 'ua' ? 'Запросити програму' : 'Request program'}
+                </Link>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="pb-10" />
     </div>
   );
 }

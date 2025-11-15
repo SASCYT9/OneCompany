@@ -3,6 +3,7 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { createSeededRandom } from '@/lib/random';
 
 interface LightParticles3DProps {
   count?: number;
@@ -23,25 +24,26 @@ export function LightParticles3D({
     const sizes = new Float32Array(count);
     
     const colorObj = new THREE.Color(color);
+    const rand = createSeededRandom(407 + count);
     
     for (let i = 0; i < count; i++) {
       // Позиції частинок у сфері
       const radius = 15;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(Math.random() * 2 - 1);
+      const theta = rand() * Math.PI * 2;
+      const phi = Math.acos(rand() * 2 - 1);
       
       positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
       positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
       positions[i * 3 + 2] = radius * Math.cos(phi);
       
       // Кольори з варіацією
-      const variation = Math.random() * 0.3 + 0.7;
+  const variation = rand() * 0.3 + 0.7;
       colors[i * 3] = colorObj.r * variation;
       colors[i * 3 + 1] = colorObj.g * variation;
       colors[i * 3 + 2] = colorObj.b * variation;
       
       // Розміри
-      sizes[i] = Math.random() * 0.5 + 0.1;
+      sizes[i] = rand() * 0.5 + 0.1;
     }
     
     return [positions, colors, sizes];

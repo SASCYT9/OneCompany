@@ -3,6 +3,7 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { createSeededRandom } from '@/lib/random';
 
 export function ParticleSystem() {
   const particlesRef = useRef<THREE.Points>(null);
@@ -13,40 +14,41 @@ export function ParticleSystem() {
     const positions = new Float32Array(particleCount * 3);
     const colors = new Float32Array(particleCount * 3);
     const sizes = new Float32Array(particleCount);
+    const rand = createSeededRandom(509);
     
     for (let i = 0; i < particleCount; i++) {
       const i3 = i * 3;
       
       // Create a larger sphere of particles
-      const radius = 20 + Math.random() * 50;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
+  const radius = 20 + rand() * 50;
+  const theta = rand() * Math.PI * 2;
+  const phi = Math.acos(2 * rand() - 1);
       
       positions[i3] = radius * Math.sin(phi) * Math.cos(theta);
       positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
       positions[i3 + 2] = radius * Math.cos(phi);
       
       // Преміальні кольори - gradient between orange, blue, purple
-      const t = Math.random();
+      const t = rand();
       if (t < 0.33) {
         // Orange to Red (KW Suspension colors)
         colors[i3] = 1.0;
-        colors[i3 + 1] = 0.42 + Math.random() * 0.2;
+        colors[i3 + 1] = 0.42 + rand() * 0.2;
         colors[i3 + 2] = 0.21;
       } else if (t < 0.66) {
         // Blue to Cyan (Fi Exhaust colors)
         colors[i3] = 0.31;
-        colors[i3 + 1] = 0.76 + Math.random() * 0.2;
+        colors[i3 + 1] = 0.76 + rand() * 0.2;
         colors[i3 + 2] = 0.97;
       } else {
         // Purple to Pink (Eventuri colors)
-        colors[i3] = 0.76 + Math.random() * 0.2;
+        colors[i3] = 0.76 + rand() * 0.2;
         colors[i3 + 1] = 0.31;
         colors[i3 + 2] = 0.97;
       }
       
       // Variable sizes for depth
-      sizes[i] = Math.random() * 0.2 + 0.1;
+      sizes[i] = rand() * 0.2 + 0.1;
     }
     
     return { positions, colors, sizes };

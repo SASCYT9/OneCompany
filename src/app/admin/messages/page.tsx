@@ -323,7 +323,9 @@ export default function MessagesPage() {
   );
 }
 
-function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: React.ElementType; color?: string }) {
+type IconWithClassName = React.ComponentType<{ className?: string }>
+
+function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: IconWithClassName; color?: string }) {
   const colorClass = color === 'blue' ? 'text-blue-600' :
                      color === 'green' ? 'text-green-600' :
                      color === 'purple' ? 'text-purple-600' :

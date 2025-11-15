@@ -67,8 +67,12 @@ export const CATEGORY_META: CategoryMeta[] = [
   }
 ];
 
+export const categorySlugs: CategorySlug[] = CATEGORY_META.map(c => c.slug);
+
+export function isCategorySlug(slug: string): slug is CategorySlug {
+  return categorySlugs.includes(slug as CategorySlug);
+}
+
 export function getCategoryMeta(slug: CategorySlug): CategoryMeta | undefined {
   return CATEGORY_META.find(c => c.slug === slug);
 }
-
-export const categorySlugs = CATEGORY_META.map(c => c.slug);

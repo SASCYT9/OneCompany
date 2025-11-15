@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 type Props = {
   className?: string;
@@ -23,9 +24,6 @@ export function Logo({ className = '', asLink = false }: Props) {
   );
 
   if (asLink) {
-    // Lazy import to avoid hard dependency outside Next runtime when reused.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const Link = require('next/link').default as typeof import('next/link').default;
     return (
       <Link href="/" className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
         {content}

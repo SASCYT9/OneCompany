@@ -1,12 +1,13 @@
 'use client';
 
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, MeshTransmissionMaterial, useGLTF, Text, OrbitControls, Sky, Cloud } from '@react-three/drei';
 import { EffectComposer, Bloom, ChromaticAberration, Vignette, Noise } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import { motion } from 'framer-motion';
 import * as THREE from 'three';
+import { createSeededRandom } from '@/lib/random';
 
 // Animated 3D Logo/Object
 function AnimatedLogo() {
@@ -88,6 +89,23 @@ function AnimatedLogo() {
 // Floating Particles/Spheres
 function FloatingSpheres() {
   const groupRef = useRef<THREE.Group>(null);
+  const spheres = useMemo(() => {
+    const rand = createSeededRandom(1337);
+    return Array.from({ length: 20 }).map((_, i) => {
+      const angle = (i / 20) * Math.PI * 2;
+      const radius = 5 + rand() * 2;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      const y = (rand() - 0.5) * 4;
+
+      return {
+        key: i,
+        position: [x, y, z] as [number, number, number],
+        color:
+          i % 3 === 0 ? '#fbbf24' : i % 3 === 1 ? '#ef4444' : '#3b82f6',
+      };
+    });
+  }, []);
 
   useFrame((state) => {
     if (groupRef.current) {
@@ -97,24 +115,16 @@ function FloatingSpheres() {
 
   return (
     <group ref={groupRef}>
-      {Array.from({ length: 20 }).map((_, i) => {
-        const angle = (i / 20) * Math.PI * 2;
-        const radius = 5 + Math.random() * 2;
-        const x = Math.cos(angle) * radius;
-        const z = Math.sin(angle) * radius;
-        const y = (Math.random() - 0.5) * 4;
-
-        return (
-          <mesh key={i} position={[x, y, z]}>
-            <sphereGeometry args={[0.1, 16, 16]} />
-            <meshStandardMaterial
-              color={i % 3 === 0 ? '#fbbf24' : i % 3 === 1 ? '#ef4444' : '#3b82f6'}
-              emissive={i % 3 === 0 ? '#fbbf24' : i % 3 === 1 ? '#ef4444' : '#3b82f6'}
-              emissiveIntensity={0.5}
-            />
-          </mesh>
-        );
-      })}
+      {spheres.map((sphere) => (
+        <mesh key={sphere.key} position={sphere.position}>
+          <sphereGeometry args={[0.1, 16, 16]} />
+          <meshStandardMaterial
+            color={sphere.color}
+            emissive={sphere.color}
+            emissiveIntensity={0.5}
+          />
+        </mesh>
+      ))}
     </group>
   );
 }

@@ -4,6 +4,20 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ReactNode } from "react";
 
+function ButtonContent({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+        initial={{ x: "-200%" }}
+        whileHover={{ x: "200%" }}
+        transition={{ duration: 0.6 }}
+      />
+      <span className="relative z-10">{children}</span>
+    </>
+  );
+}
+
 interface AnimatedButtonProps {
   href?: string;
   onClick?: () => void;
@@ -37,25 +51,10 @@ export default function AnimatedButton({
 
   const combinedClassName = `${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`;
 
-  const ButtonContent = () => (
-    <>
-      {/* Shine effect */}
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-        initial={{ x: "-200%" }}
-        whileHover={{ x: "200%" }}
-        transition={{ duration: 0.6 }}
-      />
-      
-      {/* Button text */}
-      <span className="relative z-10">{children}</span>
-    </>
-  );
-
   if (href) {
     return (
       <Link href={href} className={combinedClassName}>
-        <ButtonContent />
+        <ButtonContent>{children}</ButtonContent>
       </Link>
     );
   }
@@ -67,7 +66,7 @@ export default function AnimatedButton({
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
     >
-      <ButtonContent />
+      <ButtonContent>{children}</ButtonContent>
     </motion.button>
   );
 }

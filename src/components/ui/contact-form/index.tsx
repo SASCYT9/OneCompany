@@ -30,7 +30,7 @@ const ContactForm = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
     return null;
   }
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
     setSubmitError(null);
     try {
@@ -47,8 +47,9 @@ const ContactForm = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
       }
 
       onClose();
-    } catch (error: any) {
-      setSubmitError(error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to send message';
+      setSubmitError(message);
     } finally {
       setIsSubmitting(false);
     }

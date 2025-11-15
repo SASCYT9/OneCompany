@@ -40,7 +40,7 @@ export const detectGPUTier = (): 'high' | 'medium' | 'low' => {
 
   // Check memory (if available)
   if ('deviceMemory' in navigator) {
-    const memory = (navigator as any).deviceMemory;
+    const memory = (navigator as Navigator & { deviceMemory: number }).deviceMemory;
     if (memory >= 8) return 'high';
     if (memory <= 4) return 'low';
   }

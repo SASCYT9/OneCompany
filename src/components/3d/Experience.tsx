@@ -5,6 +5,7 @@ import { useScroll } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useRef, useMemo } from 'react'
 import * as THREE from 'three'
+import { createSeededRandom } from '@/lib/random'
 
 interface ExperienceProps {
   onScrollProgress?: (progress: number) => void
@@ -19,17 +20,18 @@ export const Experience = ({ onScrollProgress }: ExperienceProps) => {
     const count = 1000
     const positions = new Float32Array(count * 3)
     const colors = new Float32Array(count * 3)
+    const rand = createSeededRandom(2025)
     
     for (let i = 0; i < count; i++) {
       // Random positions in a sphere
-      positions[i * 3] = (Math.random() - 0.5) * 20
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 20
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 20
+      positions[i * 3] = (rand() - 0.5) * 20
+      positions[i * 3 + 1] = (rand() - 0.5) * 20
+      positions[i * 3 + 2] = (rand() - 0.5) * 20
       
       // Subtle colors
-      colors[i * 3] = Math.random() * 0.5 + 0.5
-      colors[i * 3 + 1] = Math.random() * 0.3 + 0.3
-      colors[i * 3 + 2] = Math.random() * 0.5 + 0.5
+      colors[i * 3] = rand() * 0.5 + 0.5
+      colors[i * 3 + 1] = rand() * 0.3 + 0.3
+      colors[i * 3 + 2] = rand() * 0.5 + 0.5
     }
     
     return { positions, colors }

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
+import AuthProvider from "@/components/AuthProvider";
+import { Onest, IBM_Plex_Mono } from "next/font/google";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 export const metadata: Metadata = {
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
   },
 };
 
+import { cn } from "@/lib/utils";
+
+const fontSans = Onest({
+  subsets: ["latin", "latin-ext", "cyrillic"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-sans",
+});
+
+const fontMono = IBM_Plex_Mono({
+  subsets: ["latin", "latin-ext", "cyrillic"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,7 +50,11 @@ export default function RootLayout({
   return (
     <html lang="uk" suppressHydrationWarning>
       <body
-        className="antialiased bg-white text-black dark:bg-black dark:text-white"
+        className={cn(
+          "min-h-screen bg-background text-foreground antialiased",
+          fontSans.variable,
+          fontMono.variable
+        )}
         suppressHydrationWarning
       >
         {/* Optional: Plausible analytics if NEXT_PUBLIC_PLAUSIBLE_DOMAIN is configured */}
@@ -45,14 +65,16 @@ export default function RootLayout({
             src="https://plausible.io/js/script.js"
           />
         ) : null}
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

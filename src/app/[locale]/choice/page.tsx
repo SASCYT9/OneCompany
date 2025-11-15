@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { BrandExpandableCard } from '@/components/ui/BrandExpandableCard';
 import CategoriesGrid from '@/components/sections/CategoriesGrid';
@@ -9,6 +9,7 @@ import BrandsMarquee from '@/components/sections/BrandsMarquee';
 import { mainCategories } from '@/lib/data';
 import StatsStrip from '@/components/ui/StatsStrip';
 import gsap from 'gsap';
+import { createSeededRandom } from '@/lib/random';
 
 const allBrands = [
   { name: 'Akrapovič', logo: '/logos/akrapovi.png', category: 'Exhaust', popular: true },
@@ -105,10 +106,17 @@ export default function ChoicePage() {
   const autoRef = useRef<HTMLAnchorElement>(null);
   const motoRef = useRef<HTMLAnchorElement>(null);
   const particlesRef = useRef<HTMLDivElement>(null);
+  const floatingParticles = useMemo(() => {
+    const rand = createSeededRandom(1212);
+    return Array.from({ length: 30 }, () => ({
+      left: `${rand() * 100}%`,
+      top: `${rand() * 100}%`,
+    }));
+  }, []);
 
   useEffect(() => {
     setMounted(true);
-    
+
     // GSAP Magic Entrance Animation
     const tl = gsap.timeline();
     
@@ -159,13 +167,13 @@ export default function ChoicePage() {
     >
       {/* Floating Particles Background */}
       <div ref={particlesRef} className="absolute inset-0 pointer-events-none z-0">
-        {[...Array(30)].map((_, i) => (
+        {floatingParticles.map((particle, i) => (
           <div
             key={i}
             className="absolute w-1 h-1 bg-white/20 rounded-full"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              left: particle.left,
+              top: particle.top,
               filter: 'blur(1px)',
             }}
           />

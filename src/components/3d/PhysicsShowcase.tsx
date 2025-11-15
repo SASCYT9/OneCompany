@@ -9,7 +9,14 @@ import { motion } from 'framer-motion';
 import * as THREE from 'three';
 
 // Interactive 3D Product Card
-function ProductSphere({ position, color, label, onClick }: any) {
+type ProductSphereProps = {
+  position: [number, number, number];
+  color: string;
+  label: string;
+  onClick: () => void;
+};
+
+function ProductSphere({ position, color, label, onClick }: ProductSphereProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
 

@@ -59,7 +59,7 @@ export const ReplyEmail = ({
             This is a reply to your message:
           </Text>
           <Text className="text-[#666666] text-[12px] leading-[24px] italic border-l-2 border-solid border-gray-300 pl-4">
-            "{originalMessage}"
+            &ldquo;{originalMessage}&rdquo;
           </Text>
           <Section className="text-center mt-[32px] mb-[32px]">
              <Text className="text-[#666666] text-[12px] leading-[24px]">

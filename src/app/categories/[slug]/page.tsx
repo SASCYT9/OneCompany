@@ -6,15 +6,21 @@ import { useParams } from 'next/navigation';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { BrandModal } from '@/components/ui/BrandModal';
 import { alphabet, groupBrandsByLetter } from '@/lib/brandUtils';
-import { getBrandsByCategory, LocalBrand } from '@/lib/brands';
-import { getCategoryMeta } from '@/lib/categoryMeta';
+import { BrandCategory, getBrandsByCategory, getBrandsByNames, LocalBrand } from '@/lib/brands';
+import { categoryData } from '@/lib/categoryData';
+import { getCategoryMeta, isCategorySlug } from '@/lib/categoryMeta';
 import type { SimpleBrand } from '@/lib/types';
+
+const FALLBACK_BRAND_CATEGORY: BrandCategory = 'auto';
 
 export default function CategoryPage() {
   const { locale } = useLanguage();
-  const params = useParams();
-  const slug = String(params?.slug || '');
-  const meta = getCategoryMeta(slug as any);
+  const params = useParams<{ slug?: string }>();
+  const slugParam = params?.slug ?? '';
+  const categorySlug = isCategorySlug(slugParam) ? slugParam : undefined;
+  const meta = categorySlug ? getCategoryMeta(categorySlug) : undefined;
+  const categoryInfo = categorySlug ? categoryData.find(cat => cat.slug === categorySlug) : undefined;
+  const brandCategory: BrandCategory = categoryInfo?.segment === 'moto' ? 'moto' : FALLBACK_BRAND_CATEGORY;
   
   // State for the modal should use the type the modal expects
   const [selectedBrand, setSelectedBrand] = useState<SimpleBrand | null>(null);
@@ -36,7 +42,6 @@ export default function CategoryPage() {
 
   // Handle deep link hash on mount
   useEffect(() => {
-    if (!mounted) return;
     const hash = window.location.hash.replace('#', '');
     if (hash && /^[A-Z]$/.test(hash)) {
       setTimeout(() => {
@@ -47,7 +52,17 @@ export default function CategoryPage() {
   }, [mounted]);
 
   // These brands are of type LocalBrand
-  const allBrands: LocalBrand[] = useMemo(() => getBrandsByCategory(slug as any), [slug]);
+  const curatedBrands: LocalBrand[] = useMemo(() => {
+    if (categoryInfo) {
+      const matches = getBrandsByNames(categoryInfo.brands, brandCategory);
+      if (matches.length) {
+        return matches;
+      }
+    }
+    return getBrandsByCategory(brandCategory);
+  }, [brandCategory, categoryInfo]);
+
+  const allBrands: LocalBrand[] = useMemo(() => curatedBrands, [curatedBrands]);
   
   const brands: LocalBrand[] = useMemo(() => {
     if (!searchQuery.trim()) return allBrands;
@@ -60,13 +75,14 @@ export default function CategoryPage() {
 
   // This function converts a LocalBrand to a SimpleBrand for the modal
   const handleBrandClick = (brand: LocalBrand) => {
+    const resolvedCategory: BrandCategory = brand.category ?? brandCategory;
     const simpleBrand: SimpleBrand = {
       name: brand.name,
       logo: brand.logoUrl,
-      category: brand.category || slug,
+      category: resolvedCategory,
       description: brand.description,
       website: brand.website,
-      features: brand.specialties, 
+      features: brand.specialties,
       technologies: [], // LocalBrand doesn't have this, so pass an empty array
     };
     setSelectedBrand(simpleBrand);

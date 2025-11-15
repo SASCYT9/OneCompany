@@ -10,6 +10,38 @@ const WINDOW_MS = 60_000; // 1 minute
 const MAX_PER_WINDOW = 10;
 const hits: Record<string, { count: number; windowStart: number }> = {};
 
+type ContactType = 'auto' | 'moto';
+
+type ContactRequestBody = {
+  type?: ContactType;
+  carModel?: string;
+  motoModel?: string;
+  vin?: string;
+  wishes?: string;
+  budget?: string;
+  email?: string;
+  name?: string;
+};
+
+type ContactFormData = {
+  carModel?: string;
+  motoModel?: string;
+  vin: string;
+  wishes: string;
+  budget: string;
+  email: string;
+  name: string;
+};
+
+type AutoFormData = ContactFormData & { carModel: string };
+type MotoFormData = ContactFormData & { motoModel: string };
+
+type TelegramPayload = {
+  chat_id: string;
+  text: string;
+  parse_mode: 'HTML';
+};
+
 const prisma = new PrismaClient();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -25,7 +57,7 @@ function rateLimit(ip: string): boolean {
   return true;
 }
 
-async function sendTelegram(message: string, type: 'auto' | 'moto') {
+async function sendTelegram(message: string, type: ContactType) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = type === 'auto' 
     ? process.env.TELEGRAM_AUTO_CHAT_ID 
@@ -36,7 +68,7 @@ async function sendTelegram(message: string, type: 'auto' | 'moto') {
     return { ok: false, error: 'Missing bot env' };
   }
 
-  const payload: any = {
+  const payload: TelegramPayload = {
     chat_id: chatId,
     text: message,
     parse_mode: 'HTML',
@@ -54,16 +86,17 @@ async function sendTelegram(message: string, type: 'auto' | 'moto') {
       return { ok: false, error: data.description || 'Telegram API error' };
     }
     return { ok: true };
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error('Telegram Request Failed:', e);
-    return { ok: false, error: e?.message || 'Telegram request failed' };
+    const errorMessage = e instanceof Error ? e.message : 'Telegram request failed';
+    return { ok: false, error: errorMessage };
   }
 }
 
 async function sendEmail(
   subject: string,
-  formData: any,
-  type: 'auto' | 'moto'
+  formData: ContactFormData,
+  type: ContactType
 ) {
   const from = process.env.EMAIL_FROM;
   const to = type === 'auto' ? process.env.EMAIL_AUTO : process.env.EMAIL_MOTO;
@@ -98,9 +131,10 @@ async function sendEmail(
 
     console.log('✅ Email sent successfully:', data?.id);
     return { ok: true, data };
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error('Email (Resend) Request Failed:', e);
-    return { ok: false, error: e?.message || 'Resend request failed' };
+    const errorMessage = e instanceof Error ? e.message : 'Resend request failed';
+    return { ok: false, error: errorMessage };
   }
 }
 
@@ -116,15 +150,15 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: 'Rate limited' }), { status: 429 });
   }
   try {
-    const body = await req.json();
-    const type = (body.type === 'moto' ? 'moto' : 'auto') as 'auto' | 'moto';
+  const body = (await req.json()) as ContactRequestBody;
+  const type: ContactType = body.type === 'moto' ? 'moto' : 'auto';
 
-    let message: string;
-    let model: string = '';
-    let formData: any = {};
+  let message: string;
+  let model = '';
+  let formData: ContactFormData;
 
     if (type === 'auto') {
-      formData = {
+      const autoFormData: AutoFormData = {
         carModel: sanitize(body.carModel),
         vin: sanitize(body.vin),
         wishes: sanitize(body.wishes),
@@ -132,13 +166,14 @@ export async function POST(req: NextRequest) {
         email: sanitize(body.email),
         name: sanitize(body.name) || sanitize(body.email),
       };
-      if (!formData.carModel || !formData.email) {
+      if (!autoFormData.carModel || !autoFormData.email) {
         return new Response(JSON.stringify({ error: 'Missing required auto fields' }), { status: 400 });
       }
-      model = formData.carModel;
-      message = formatAutoMessage(formData);
+      model = autoFormData.carModel;
+      message = formatAutoMessage(autoFormData);
+      formData = autoFormData;
     } else { // moto
-      formData = {
+      const motoFormData: MotoFormData = {
         motoModel: sanitize(body.motoModel),
         vin: sanitize(body.vin),
         wishes: sanitize(body.wishes),
@@ -146,11 +181,12 @@ export async function POST(req: NextRequest) {
         email: sanitize(body.email),
         name: sanitize(body.name) || sanitize(body.email),
       };
-      if (!formData.motoModel || !formData.email) {
+      if (!motoFormData.motoModel || !motoFormData.email) {
         return new Response(JSON.stringify({ error: 'Missing required moto fields' }), { status: 400 });
       }
-      model = formData.motoModel;
-      message = formatMotoMessage(formData);
+      model = motoFormData.motoModel;
+      message = formatMotoMessage(motoFormData);
+      formData = motoFormData;
     }
 
     // Save to message store
@@ -183,8 +219,9 @@ export async function POST(req: NextRequest) {
       } else {
         console.warn('⚠️ Telegram notification failed:', tgResult.error);
       }
-    } catch (tgError: any) {
-      console.error('❌ Telegram error (non-blocking):', tgError.message);
+    } catch (tgError: unknown) {
+      const telegramErrorMessage = tgError instanceof Error ? tgError.message : 'Telegram notification failed';
+      console.error('❌ Telegram error (non-blocking):', telegramErrorMessage);
     }
 
     // Send Email via Resend (don't block user if this fails)
@@ -197,17 +234,19 @@ export async function POST(req: NextRequest) {
       } else {
         console.warn('⚠️ Email notification failed:', emailResult.error);
       }
-    } catch (emailError: any) {
-      console.error('❌ Email error (non-blocking):', emailError.message);
+    } catch (emailError: unknown) {
+      const emailErrorMessage = emailError instanceof Error ? emailError.message : 'Email notification failed';
+      console.error('❌ Email error (non-blocking):', emailErrorMessage);
     }
 
     return new Response(JSON.stringify({ 
       ok: true,
       messageId: savedMessage.id 
     }), { status: 200 });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error('Server Error:', e);
-    return new Response(JSON.stringify({ error: e?.message || 'Server error' }), { status: 500 });
+    const errorMessage = e instanceof Error ? e.message : 'Server error';
+    return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
   }
 }
 

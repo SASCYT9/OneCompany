@@ -23,7 +23,8 @@ export async function POST(req: Request) {
     const buf = Buffer.from(arrayBuf);
     const item = await addMediaFromBuffer(buf, file.name, file.type || 'application/octet-stream');
     return NextResponse.json({ item }, { status: 201 });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Upload failed' }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'Upload failed';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

@@ -1,20 +1,30 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useMemo, useRef, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { useGesture } from '@use-gesture/react';
 import { useSpring, animated, config } from '@react-spring/three';
 import { Environment, ContactShadows, Text, MeshDistortMaterial, Float } from '@react-three/drei';
 import { motion } from 'framer-motion';
 import * as THREE from 'three';
+import { createSeededRandom } from '@/lib/random';
 
 // Interactive 3D Card with Gestures
-function InteractiveCard({ position, color, text, onTap }: any) {
+type Vector3Tuple = [number, number, number];
+
+type InteractiveCardProps = {
+  position: [number, number, number];
+  color: string;
+  text: string;
+  onTap: (text: string) => void;
+};
+
+function InteractiveCard({ position, color, text, onTap }: InteractiveCardProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [active, setActive] = useState(false);
 
   // Spring animation
-  const [spring, api] = useSpring(() => ({
+  const [spring, api] = useSpring<{ scale: number; rotation: Vector3Tuple; position: Vector3Tuple }>(() => ({
     scale: 1,
     rotation: [0, 0, 0],
     position: position,
@@ -51,8 +61,11 @@ function InteractiveCard({ position, color, text, onTap }: any) {
     }
   });
 
+  const springProps = spring as Record<string, unknown>;
+  const gestureBindings = bind() as Record<string, unknown>;
+
   return (
-    <animated.group {...spring} {...(bind() as any)}>
+    <animated.group {...springProps} {...gestureBindings}>
       <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.3}>
         <mesh ref={meshRef} castShadow>
           <boxGeometry args={[2, 3, 0.2]} />
@@ -84,11 +97,14 @@ function InteractiveCard({ position, color, text, onTap }: any) {
 function Particles() {
   const count = 1000;
   const meshRef = useRef<THREE.Points>(null);
-
-  const particles = new Float32Array(count * 3);
-  for (let i = 0; i < count * 3; i++) {
-    particles[i] = (Math.random() - 0.5) * 20;
-  }
+  const positions = useMemo(() => {
+    const rand = createSeededRandom(3031);
+    const data = new Float32Array(count * 3);
+    for (let i = 0; i < count * 3; i++) {
+      data[i] = (rand() - 0.5) * 20;
+    }
+    return data;
+  }, [count]);
 
   useFrame((state) => {
     if (meshRef.current) {
@@ -102,9 +118,9 @@ function Particles() {
         <bufferAttribute
           attach="attributes-position"
           count={count}
-          array={particles}
+          array={positions}
           itemSize={3}
-          args={[particles, 3]}
+          args={[positions, 3]}
         />
       </bufferGeometry>
       <pointsMaterial size={0.05} color="#fbbf24" transparent opacity={0.6} />

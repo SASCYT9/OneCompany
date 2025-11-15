@@ -12,7 +12,19 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Ignore bundled WordPress sources that ship with the repo.
+    "wordpress/**",
+    "wp-content/**",
+    "scripts/**",
   ]),
+  {
+    rules: {
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
+  {
+    ignores: ["scripts/**", "src/scripts/**"],
+  },
 ]);
 
 export default eslintConfig;

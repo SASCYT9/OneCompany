@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
+import { createSeededRandom } from '@/lib/random';
 
 export default function AnimatedBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -30,15 +30,16 @@ export default function AnimatedBackground() {
       size: number;
       opacity: number;
     }> = [];
+    const rand = createSeededRandom(991);
 
     for (let i = 0; i < 50; i++) {
       particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        size: Math.random() * 2 + 1,
-        opacity: Math.random() * 0.3 + 0.1,
+        x: rand() * canvas.width,
+        y: rand() * canvas.height,
+        vx: (rand() - 0.5) * 0.5,
+        vy: (rand() - 0.5) * 0.5,
+        size: rand() * 2 + 1,
+        opacity: rand() * 0.3 + 0.1,
       });
     }
 

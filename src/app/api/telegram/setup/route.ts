@@ -67,12 +67,13 @@ export async function GET() {
       webhook_info: webhookData.result,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Setup error:', error);
+    const message = error instanceof Error ? error.message : 'Failed to setup webhook';
     return NextResponse.json(
       { 
         error: 'Failed to setup webhook',
-        message: error.message
+        message
       },
       { status: 500 }
     );
@@ -106,9 +107,10 @@ export async function DELETE() {
       details: data,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to delete webhook';
     return NextResponse.json(
-      { error: error.message },
+      { error: message },
       { status: 500 }
     );
   }

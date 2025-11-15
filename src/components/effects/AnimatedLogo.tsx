@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { LightStreak } from './LightStreak';
 import { LightBurst } from './LightBurst';
+import { createSeededRandom } from '@/lib/random';
 
 interface AnimatedLogoProps {
   text: string;
@@ -67,12 +68,13 @@ export function AnimatedLogo({
     });
 
     // Випадкові спалахи на літерах
-    charElements.forEach((char, index) => {
+    const rand = createSeededRandom(chars.length || 1);
+    charElements.forEach((char) => {
       gsap.to(char, {
         textShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(79, 195, 247, 0.6)',
         duration: 0.3,
         repeat: -1,
-        repeatDelay: Math.random() * 8 + 4,
+        repeatDelay: rand() * 8 + 4,
         yoyo: true,
         ease: 'power2.inOut',
       });

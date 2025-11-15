@@ -10,12 +10,10 @@ import { yearsOfExcellence, foundedYear } from '@/lib/company';
 export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const { locale, setLocale, t } = useLanguage();
 
   useEffect(() => {
-    setMounted(true);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
@@ -30,6 +28,8 @@ export function Navigation() {
     { name: 'Eventuri', url: 'https://eventuri.shop/', color: 'from-purple-500 to-pink-600' },
   ];
   const extraLinks = [
+    { href: '/auto', labelUa: 'Авто', labelEn: 'Automotive' },
+    { href: '/moto', labelUa: 'Мото', labelEn: 'Moto' },
     { href: '/categories', labelUa: 'Категорії', labelEn: 'Categories' },
   ];
 
@@ -59,8 +59,9 @@ export function Navigation() {
       if (!res.ok) throw new Error('Failed');
       setFormState('success');
       setTimeout(() => { setContactOpen(false); setFormState('idle'); setPayload({ type: 'auto', name: '', email: '', subject: '', message: '' }); }, 2000);
-    } catch (err:any) {
-      setErrorMsg(err.message || 'Error');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error';
+      setErrorMsg(message);
       setFormState('error');
       setTimeout(() => setFormState('idle'), 2500);
     }
@@ -106,9 +107,9 @@ export function Navigation() {
               </Link>
             ))}
             <Link href="/about" className={'px-5 py-2.5 font-light transition-all duration-500 rounded-full ' + (pathname === '/about' ? 'text-white bg-white/5' : 'text-white/80 hover:text-white hover:bg-white/5')}>{t.nav.about}</Link>
-            <a href="/#stores" className="cta-primary px-7 py-3 text-sm tracking-wide ease-soft-out">
+            <Link href="/#stores" className="cta-primary px-7 py-3 text-sm tracking-wide ease-soft-out">
               {t.nav.selectStore}
-            </a>
+            </Link>
             <button
               onClick={() => setContactOpen(true)}
               className="cta-outline px-6 py-2.5 text-white/90 hover:text-black hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"

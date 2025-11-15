@@ -64,7 +64,7 @@ export default function ContactPage() {
       }
     } catch (error) {
       setStatus('error');
-      setMessage('Не вдалося надіслати запит. Перевірте з\'єднання з Інтернетом.');
+      setMessage('Не вдалося надіслати запит. Перевірте з’єднання з Інтернетом.');
     }
   };
 
@@ -147,7 +147,7 @@ export default function ContactPage() {
               <div className="pt-8">
                 <p className="text-base font-light text-zinc-600 dark:text-white/60 leading-relaxed">
                   Наші експерти готові допомогти вам знайти ідеальні деталі та компоненти для вашого автомобіля чи мотоцикла. 
-                  Заповніть форму, і ми зв'яжемося з вами найближчим часом.
+                  Заповніть форму, і ми зв&rsquo;яжемося з вами найближчим часом.
                 </p>
               </div>
             </motion.div>
@@ -205,7 +205,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <label htmlFor="vin" className="block text-xs uppercase tracking-widest text-zinc-500 dark:text-white/40 mb-3 font-light">
-                        VIN-код <span className="text-zinc-400 dark:text-white/30">(необов'язково)</span>
+                        VIN-код <span className="text-zinc-400 dark:text-white/30">(необов&rsquo;язково)</span>
                       </label>
                       <input
                         type="text"
@@ -238,7 +238,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="budget" className="block text-xs uppercase tracking-widest text-zinc-500 dark:text-white/40 mb-3 font-light">
-                        Бюджет <span className="text-zinc-400 dark:text-white/30">(необов'язково)</span>
+                        Бюджет <span className="text-zinc-400 dark:text-white/30">(необов&rsquo;язково)</span>
                       </label>
                       <input
                         type="text"

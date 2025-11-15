@@ -4,7 +4,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Globe, Wrench, Users, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 
 const AboutPage: React.FC = () => {
   const t = useTranslations('aboutPage');
@@ -106,13 +105,13 @@ const AboutPage: React.FC = () => {
                 for enthusiasts and professionals seeking the finest performance upgrades and parts.
               </p>
               <p>
-                We believe that every vehicle deserves the best. That's why we've carefully curated relationships 
+                We believe that every vehicle deserves the best. That&rsquo;s why we&rsquo;ve carefully curated relationships 
                 with over 200 premium brands from around the world, bringing you unparalleled access to cutting-edge 
                 automotive technology and craftsmanship.
               </p>
               <p>
-                Our commitment goes beyond just selling parts. We're here to help you realize your automotive dreams, 
-                whether that's improving performance, enhancing aesthetics, or achieving the perfect balance of both.
+                Our commitment goes beyond just selling parts. We&rsquo;re here to help you realize your automotive dreams, 
+                whether that&rsquo;s improving performance, enhancing aesthetics, or achieving the perfect balance of both.
               </p>
             </div>
           </motion.div>
@@ -175,7 +174,7 @@ const AboutPage: React.FC = () => {
               Ready to elevate your ride?
             </h2>
             <p className="text-lg md:text-xl font-light text-zinc-600 dark:text-white/60 mb-12 max-w-2xl mx-auto">
-              Get in touch with our team and let's discuss how we can help bring your automotive vision to life.
+              Get in touch with our team and let&rsquo;s discuss how we can help bring your automotive vision to life.
             </p>
             <motion.a
               href="/contact"

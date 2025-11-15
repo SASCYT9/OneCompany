@@ -18,7 +18,7 @@ export function EventuriTechnology() {
           <div className="p-8 bg-slate-800/30 rounded-2xl border border-white/10">
             <div className="text-5xl mb-4">🧪</div>
             <h3 className="text-2xl font-bold text-white mb-4">CFD Testing</h3>
-            <p className="text-white/70">Комп'ютерне моделювання кожного компонента</p>
+            <p className="text-white/70">Комп&rsquo;ютерне моделювання кожного компонента</p>
           </div>
           <div className="p-8 bg-slate-800/30 rounded-2xl border border-white/10">
             <div className="text-5xl mb-4">⚫</div>
