@@ -1,37 +1,51 @@
-import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import clsx from 'clsx';
 
-type Props = {
+type LogoProps = {
   className?: string;
   asLink?: boolean;
+  variant?: 'light' | 'dark';
+  priority?: boolean;
 };
 
-/**
- * Minimal, uppercase logotype: "ONE COMPANY" with generous tracking.
- * Matches the provided reference (clean, bold, white on dark/video background).
- */
-export function Logo({ className = '', asLink = false }: Props) {
-  const content = (
-    <span
-      className={
-        "select-none text-white tracking-[0.32em] uppercase leading-none font-semibold " +
-        "[text-shadow:0_1px_0_rgba(0,0,0,0.3),0_4px_24px_rgba(0,0,0,0.35)] " +
-        className
-      }
-    >
-      ONE COMPANY
+const LOGO_SOURCES = {
+  light: '/branding/one-company-logo-light.svg',
+  dark: '/branding/one-company-logo-dark.svg',
+};
+
+export function Logo({
+  className = '',
+  asLink = false,
+  variant = 'light',
+  priority = false,
+}: LogoProps) {
+  const image = (
+    <span className={clsx('inline-flex items-center', className)}>
+      <Image
+        src={LOGO_SOURCES[variant]}
+        alt="ONE COMPANY wordmark"
+        width={212}
+        height={78}
+        priority={priority}
+        className="h-auto w-auto"
+      />
     </span>
   );
 
   if (asLink) {
     return (
-      <Link href="/" className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
-        {content}
+      <Link
+        href="/"
+        className="inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+        aria-label="ONE COMPANY home"
+      >
+        {image}
       </Link>
     );
   }
 
-  return content;
+  return image;
 }
 
 export default Logo;

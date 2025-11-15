@@ -72,7 +72,11 @@ export function Navigation() {
       <div className="max-w-7xl mx-auto px-8 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Logo asLink className="text-[1.55rem] transition-transform duration-500 group-hover:scale-[1.03]" />
+            <Logo
+              asLink
+              priority
+              className="w-48 transition-transform duration-500 hover:scale-[1.02]"
+            />
             <span className="hidden sm:block text-[11px] font-light text-white/60 tracking-wide">
               {locale === 'ua' ? `З ${foundedYear} • ${years}+ років довіри` : `Since ${foundedYear} • ${years}+ years trusted`}
             </span>

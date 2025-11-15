@@ -3,7 +3,8 @@ import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
-import { Onest, IBM_Plex_Mono } from "next/font/google";
+import localFont from "next/font/local";
+import { IBM_Plex_Mono } from "next/font/google";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 export const metadata: Metadata = {
@@ -30,10 +31,31 @@ export const metadata: Metadata = {
 
 import { cn } from "@/lib/utils";
 
-const fontSans = Onest({
-  subsets: ["latin", "latin-ext", "cyrillic"],
-  weight: ["300", "400", "500", "600", "700"],
+const fontSans = localFont({
   variable: "--font-sans",
+  display: "swap",
+  src: [
+    {
+      path: "../assets/fonts/unison/unison-pro-light.otf",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-light-italic.otf",
+      weight: "300",
+      style: "italic",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-bold-italic.otf",
+      weight: "700",
+      style: "italic",
+    },
+  ],
 });
 
 const fontMono = IBM_Plex_Mono({

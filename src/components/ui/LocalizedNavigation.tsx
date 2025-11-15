@@ -39,7 +39,7 @@ export function LocalizedNavigation() {
     <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-out" style={{ background: isScrolled ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.1)', backdropFilter: isScrolled ? 'blur(40px) saturate(180%)' : 'blur(20px) saturate(150%)', boxShadow: isScrolled ? 'inset 0 -1px 0 0 rgba(255,255,255,0.08), 0 4px 24px rgba(0,0,0,0.3)' : 'inset 0 -1px 0 0 rgba(255,255,255,0.04)' }}>
       <div className="max-w-7xl mx-auto px-8 py-4">
         <div className="flex items-center justify-between">
-          <Logo asLink className="text-[1.55rem]" />
+          <Logo asLink priority className="w-48" />
           <div className="hidden md:flex items-center gap-8">
             <div className="group relative">
               <button className="px-5 py-2.5 text-white/80 hover:text-white font-light transition-all duration-500 flex items-center gap-2.5 rounded-full hover:bg-white/5">

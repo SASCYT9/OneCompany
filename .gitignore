@@ -24,6 +24,7 @@ wp-content/themes/onecompany-theme/node_modules/
 # misc
 .DS_Store
 *.pem
+Design/
 
 # debug
 npm-debug.log*
