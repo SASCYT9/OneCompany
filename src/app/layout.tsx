@@ -4,7 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
 import localFont from "next/font/local";
-import { IBM_Plex_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Onest } from "next/font/google";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 export const metadata: Metadata = {
@@ -58,10 +58,43 @@ const fontSans = localFont({
   ],
 });
 
+const fontDisplay = localFont({
+  variable: "--font-display",
+  display: "swap",
+  src: [
+    {
+      path: "../assets/fonts/unison/unison-pro-light-round.otf",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-light-round-italic.otf",
+      weight: "300",
+      style: "italic",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-bold-round.otf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-bold-round-italic.otf",
+      weight: "700",
+      style: "italic",
+    },
+  ],
+});
+
 const fontMono = IBM_Plex_Mono({
   subsets: ["latin", "latin-ext", "cyrillic"],
   weight: ["400", "500"],
   variable: "--font-mono",
+});
+
+const fontUa = Onest({
+  subsets: ["latin", "latin-ext", "cyrillic"],
+  weight: ["400", "500", "600"],
+  variable: "--font-ua",
 });
 
 export default function RootLayout({
@@ -70,12 +103,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="uk" suppressHydrationWarning>
+  <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
           "min-h-screen bg-background text-foreground antialiased",
           fontSans.variable,
-          fontMono.variable
+          fontDisplay.variable,
+          fontMono.variable,
+          fontUa.variable
         )}
         suppressHydrationWarning
       >

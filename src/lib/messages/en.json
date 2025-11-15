@@ -1,10 +1,13 @@
 {
   "nav": {
+    "automotive": "Automotive",
+    "moto": "Moto",
     "stores": "Stores",
     "about": "About Us",
     "categories": "Categories",
     "selectStore": "Select Store",
-    "contact": "Inquiry"
+    "contact": "Inquiry",
+    "bookAtelier": "Book atelier"
   },
   "choice": {
     "tagline": "Premium Tuning Parts",
@@ -183,19 +186,147 @@
     "getInTouch": "Get In Touch"
   },
   "aboutPage": {
-    "title": "Why Choose Us?",
-    "contact": "Contact a Specialist",
-    "info": {
-      "selectionTitle": "Individual Selection",
-      "selectionDesc": "Our team of specialists can select parts individually to meet your specific needs.",
-      "expertHelpTitle": "Expert Help",
-      "expertHelpDesc": "We provide expert consultation to help you make the best choice.",
-      "partnerNetworkTitle": "Partner Network",
-      "partnerNetworkDesc": "We have a network of partners for installations of any complexity, all over the world.",
-      "worldwideDeliveryTitle": "Worldwide Delivery",
-      "worldwideDeliveryDesc": "We offer fast and reliable delivery to anywhere in the world."
+    "hero": {
+      "eyebrow": "Performance atelier since 2007",
+      "title": "We engineer flagship builds for people obsessed with detail.",
+      "subtitle": "ONE COMPANY curates 200+ premium brands, integrates them with certified partner ateliers, and delivers white-glove support across 30+ countries.",
+      "primaryCta": "Speak with a specialist",
+      "secondaryCta": "Browse categories"
+    },
+    "stats": {
+      "title": "Proof in the numbers",
+      "items": {
+        "years": {
+          "value": "17+",
+          "label": "Years shaping premium tuning culture"
+        },
+        "brands": {
+          "value": "200+",
+          "label": "Curated performance and lifestyle brands"
+        },
+        "projects": {
+          "value": "400+",
+          "label": "Bespoke automotive & moto builds"
+        },
+        "countries": {
+          "value": "30+",
+          "label": "Countries served with concierge delivery"
+        }
+      }
+    },
+    "narrative": {
+      "title": "A boutique operation with global reach",
+      "paragraph1": "We started as enthusiasts building dream cars for friends. Today, we orchestrate complex performance programs for collectors, athletes, and brand houses.",
+      "paragraph2": "Our team obsesses over compatibility, lead times, and installation geometry so that every component lands flawlessly and performs as promised.",
+      "paragraph3": "This is not e-commerce. This is partnership—transparent sourcing, engineering rigor, and handover rituals that feel as premium as the parts themselves.",
+      "signature": "ONE COMPANY atelier"
+    },
+    "pillars": {
+      "title": "How we deliver",
+      "items": {
+        "curation": {
+          "title": "Curated brand access",
+          "description": "Direct lines to world-leading manufacturers with priority allocations, limited runs, and bespoke finishes."
+        },
+        "integration": {
+          "title": "Integration & visualization",
+          "description": "CAD reviews, fitment checks, and visualization decks ensure every upgrade complements the original design language."
+        },
+        "partnerNetwork": {
+          "title": "Partner atelier network",
+          "description": "Certified body, paint, and performance partners across Europe, the US, and the Middle East for flawless execution."
+        }
+      }
+    },
+    "capabilities": {
+      "title": "Capabilities",
+      "items": {
+        "consulting": {
+          "title": "Advisory",
+          "description": "Lifestyle-oriented consultations that map goals, budgets, and timelines before the first part is ordered."
+        },
+        "procurement": {
+          "title": "Procurement",
+          "description": "Supply-chain management with consolidated logistics, customs handling, and condition reports on arrival."
+        },
+        "installation": {
+          "title": "Installation & QA",
+          "description": "On-site technical oversight plus multi-point QA so every build leaves aligned, calibrated, and warrantied."
+        },
+        "aftercare": {
+          "title": "Aftercare",
+          "description": "Lifecycle support covering seasonal refreshes, warranty coordination, and future upgrade planning."
+        }
+      }
+    },
+    "timeline": {
+      "title": "Milestones",
+      "events": {
+        "2007": {
+          "title": "Origins",
+          "description": "ONE COMPANY is founded in Kyiv as a bespoke sourcing outfit for European tuning houses."
+        },
+        "2012": {
+          "title": "Motorcycle division",
+          "description": "Launch of the moto practice with dedicated partner ateliers for Ducati, BMW, and KTM builds."
+        },
+        "2016": {
+          "title": "Global logistics",
+          "description": "First consolidated warehouse program enables climate-controlled storage and QC before delivery."
+        },
+        "2020": {
+          "title": "Digital showroom",
+          "description": "Remote visualization decks and virtual consultations make premium tuning accessible worldwide."
+        },
+        "2024": {
+          "title": "Atelier expansion",
+          "description": "Integrated concierge program spans automotive, moto, and lifestyle accessories under one ecosystem."
+        }
+      }
+    },
+    "cta": {
+      "title": "Bring your next build to life",
+      "subtitle": "Send us your chassis, wishlist, and timeline—we will curate the program and coordinate the atelier.",
+      "primaryCta": "Request atelier support",
+      "secondaryCta": "View brand roster"
     }
   },
+    "contactPage": {
+      "hero": {
+        "eyebrow": "Concierge inquiry",
+        "heading": "Get in touch",
+        "subheading": "Bespoke selection for your car or motorcycle. Share the chassis, wishlist, and deadline—we will coordinate the program."
+      },
+      "info": {
+        "title": "Contact information",
+        "emailLabel": "Email",
+        "phoneLabel": "Phone",
+        "locationLabel": "Location",
+        "locationValue": "Kyiv, Ukraine",
+        "description": "Our specialists curate premium parts, manage logistics, and guide installations. Send a note and we will respond within one business day."
+      },
+      "form": {
+        "typeAuto": "Auto",
+        "typeMoto": "Moto",
+        "modelLabelAuto": "Car make and model",
+        "modelLabelMoto": "Motorcycle make and model",
+        "modelPlaceholderAuto": "e.g., BMW M3 G80",
+        "modelPlaceholderMoto": "e.g., Ducati Panigale V4",
+        "vinLabel": "VIN code",
+        "optional": "(optional)",
+        "vinPlaceholder": "17 characters",
+        "wishesLabel": "Wishlist",
+        "wishesPlaceholder": "Describe what you want to achieve...",
+        "budgetLabel": "Budget",
+        "budgetPlaceholder": "1000-5000 USD",
+        "emailLabel": "Email",
+        "submit": "Send inquiry",
+        "submitting": "Sending...",
+        "success": "Thank you! Your request has been sent.",
+        "error": "Something went wrong. Please try again.",
+        "connectionError": "Unable to send the request. Please check your connection."
+      }
+    },
   "contactForm": {
     "title": "Individual Selection",
     "requestType": "Request Type",

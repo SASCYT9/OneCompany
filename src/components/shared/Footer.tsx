@@ -9,7 +9,7 @@ import gsap from "gsap";
 
 const Footer = () => {
   const params = useParams();
-  const locale = (params?.locale as string) || "ua";
+  const locale = (params?.locale as string) || "en";
 
   const footerLinks = {
     company: [

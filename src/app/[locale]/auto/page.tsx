@@ -253,6 +253,13 @@ export default function AutomotivePage() {
   const params = useParams();
   const locale = (params.locale as string) || 'ua';
   const t = useTranslations('auto');
+  const isUa = locale === 'ua';
+  const typography = {
+    heroTitle: isUa ? 'text-4xl sm:text-5xl lg:text-6xl' : 'text-5xl sm:text-6xl lg:text-7xl',
+    heroSubtitle: isUa ? 'text-base sm:text-lg' : 'text-lg sm:text-xl',
+    statValue: isUa ? 'text-3xl' : 'text-4xl',
+    sectionHeading: isUa ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl',
+  } as const;
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<LocalBrand | null>(null);
@@ -343,7 +350,7 @@ export default function AutomotivePage() {
   const selectedBrandOrigin = selectedBrand ? getBrandOrigin(selectedBrand) : null;
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white font-[family:var(--font-sans)]">
       <section className="relative isolate overflow-hidden rounded-b-[40px] border-b border-white/10">
         <div className="absolute inset-0">
           <video
@@ -364,11 +371,11 @@ export default function AutomotivePage() {
             {locale === 'ua' ? 'Преміум програми · авто' : 'Premium programs · auto'}
           </div>
           <div className="max-w-4xl space-y-6">
-            <h1 className="text-5xl font-light leading-tight sm:text-6xl lg:text-7xl">
+            <h1 className={`font-light leading-tight ${typography.heroTitle}`}>
               {t('title')}<span className="text-white/50"> · </span>
               <span className="text-white/70">{t('subtitle')}</span>
             </h1>
-            <p className="text-lg text-white/70 sm:text-xl">
+            <p className={`text-white/70 ${typography.heroSubtitle}`}>
               {locale === 'ua'
                 ? 'Створюємо автомобілі з характером: титан, карбон і електроніка преміум брендів з 2007 року.'
                 : 'We build characterful cars with titanium, carbon and electronic suites curated since 2007.'}
@@ -380,7 +387,7 @@ export default function AutomotivePage() {
                 key={stat.label.en}
                 className="rounded-3xl border border-white/15 bg-white/5 backdrop-blur-lg p-6"
               >
-                <div className="text-4xl font-light text-white">{stat.value}</div>
+                <div className={`${typography.statValue} font-light text-white`}>{stat.value}</div>
                 <div className="mt-2 text-xs uppercase tracking-[0.4em] text-white/60">{stat.label[locale]}</div>
                 <p className="mt-3 text-sm text-white/60">{stat.caption[locale]}</p>
               </div>
@@ -409,7 +416,7 @@ export default function AutomotivePage() {
       <section className="mx-auto max-w-6xl px-6 py-24">
         <div className="mb-12 text-center">
           <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">{t('productCategories')}</p>
-          <h2 className="mt-3 text-4xl font-light text-white sm:text-5xl">
+          <h2 className={`mt-3 font-light text-white ${typography.sectionHeading}`}>
             {locale === 'ua' ? 'Модулі, які складають авто' : 'Modules we compose cars from'}
           </h2>
         </div>
@@ -453,7 +460,7 @@ export default function AutomotivePage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-16 text-center">
             <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">{t('featuredBrands')}</p>
-            <h2 className="mt-3 text-4xl font-light text-white sm:text-5xl">
+            <h2 className={`mt-3 font-light text-white ${typography.sectionHeading}`}>
               {locale === 'ua' ? 'Ікони, що задають темп' : 'Icons that set the tempo'}
             </h2>
           </div>
@@ -505,7 +512,7 @@ export default function AutomotivePage() {
       <section className="mx-auto max-w-6xl px-6 py-24">
         <div className="mb-12 text-center">
           <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
-          <h2 className="mt-3 text-4xl font-light text-white sm:text-5xl">{t('allBrands')}</h2>
+          <h2 className={`mt-3 font-light text-white ${typography.sectionHeading}`}>{t('allBrands')}</h2>
         </div>
 
         <div className="flex justify-center">

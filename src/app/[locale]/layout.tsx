@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import Footer from '@/components/shared/Footer';
 import AuthProvider from '@/components/AuthProvider';
+import { cn } from '@/lib/utils';
 
 type Props = {
   children: ReactNode;
@@ -26,7 +27,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
-        <div className="flex flex-col min-h-screen">
+        <div className={cn('flex flex-col min-h-screen', locale === 'ua' && 'locale-ua')}>
           <Header />
           <main className="flex-grow">
             {children}
