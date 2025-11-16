@@ -46,7 +46,7 @@ export default async function LocalizedHomePage({
     },
   ];
 
-  const heroVideo = "/videos/Luxury_Automotive_Abstract_Video_Creation.mp4";
+  const heroVideo = "/videos/hero-smoke.mp4";
   const heroBadgeCopy = "onecompany · dual signature programs";
   const heroMeta = {
     globalPresence: "services worldwide since 2007",
@@ -104,9 +104,8 @@ export default async function LocalizedHomePage({
         >
           <source src={heroVideo} type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_10%,rgba(255,179,71,0.35),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(255,215,0,0.15),transparent_45%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_0%,rgba(255,179,71,0.25),transparent_45%)]" />
       </div>
       <section className="relative flex min-h-screen flex-col">
         <div className="px-6 pt-16 text-center text-[10px] uppercase tracking-[0.5em] text-white/55">
@@ -127,11 +126,11 @@ export default async function LocalizedHomePage({
                 href={experience.href}
                 className={clsx(
                   "group relative flex flex-1 min-h-[420px] flex-col justify-between gap-10 overflow-hidden px-8 py-10 text-left text-white",
-                  "backdrop-blur-md bg-black/20 shadow-[0_40px_120px_rgba(0,0,0,0.45)] transition duration-500 hover:bg-black/10 hover:backdrop-blur-xl",
+                  "backdrop-blur-md bg-black/30 shadow-[0_40px_120px_rgba(0,0,0,0.45)] transition duration-500 hover:bg-black/15 hover:backdrop-blur-xl",
                   index === 0 ? "md:pr-20" : "md:pl-20 md:text-right md:items-end"
                 )}
               >
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/20 opacity-50" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/30 opacity-60" />
                 <div
                   aria-hidden
                   className={clsx(
@@ -196,8 +195,7 @@ export default async function LocalizedHomePage({
       </section>
 
       <section className="relative overflow-hidden bg-gradient-to-b from-black via-black/90 to-[#050505] py-20 text-white">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,179,71,0.18),_transparent_50%)]" aria-hidden />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,_rgba(255,215,0,0.08),_transparent_40%)]" aria-hidden />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,179,71,0.12),_transparent_45%)]" aria-hidden />
         <div className="relative mx-auto max-w-4xl px-6 text-center">
           <p className="text-xs uppercase tracking-[0.4em] text-white/50">Iconic marques</p>
           <h3 className="mt-3 text-4xl font-light">Beyond the GP Products roster</h3>
