@@ -119,14 +119,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <div className="border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold tracking-tight text-white">
+            <h1 className="text-xl font-semibold tracking-tight text-white">
               Admin Panel
             </h1>
             <motion.button
               onClick={handleLogout}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-2 px-4 py-2 bg-zinc-900/50 text-white hover:bg-zinc-900 transition-colors text-sm font-medium"
+              className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900/50 text-white hover:bg-zinc-900 transition-colors text-sm font-medium"
             >
               <LogOut className="w-4 h-4" />
               Logout
