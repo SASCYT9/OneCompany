@@ -100,7 +100,8 @@ async function sendTelegram(message: string, type: ContactType) {
 async function sendEmail(
   subject: string,
   formData: ContactFormData,
-  type: ContactType
+  type: ContactType,
+  messageId?: string
 ) {
   const from = process.env.EMAIL_FROM;
   const to = type === 'auto' ? process.env.EMAIL_AUTO : process.env.EMAIL_MOTO;
@@ -120,6 +121,7 @@ async function sendEmail(
     budget: formData.budget,
     phone: formData.phone,
     contactMethod: formData.contactMethod,
+    messageId,
   }));
 
   try {
@@ -241,7 +243,7 @@ export async function POST(req: NextRequest) {
     // Send Email via Resend (don't block user if this fails)
     try {
       const emailSubject = `New ${type.charAt(0).toUpperCase() + type.slice(1)} Inquiry: ${model}`;
-      const emailResult = await sendEmail(emailSubject, formData, type);
+      const emailResult = await sendEmail(emailSubject, formData, type, savedMessage.id);
 
       if (emailResult.ok) {
         console.log('✅ Email notification sent successfully');

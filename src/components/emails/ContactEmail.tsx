@@ -25,6 +25,7 @@ interface ContactEmailProps {
   budget?: string;
   phone?: string;
   contactMethod?: 'telegram' | 'whatsapp';
+  messageId?: string;
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -48,6 +49,7 @@ export const ContactEmail = ({
   budget,
   phone,
   contactMethod,
+  messageId,
 }: ContactEmailProps) => (
   <Html>
     <Head />
@@ -148,6 +150,11 @@ export const ContactEmail = ({
           <Text style={footer}>
             OneCompany | Automated Notification System
           </Text>
+          {messageId && (
+            <Text style={{ ...footer, marginTop: 6 }}>
+              Message ID: <strong>{messageId}</strong>
+            </Text>
+          )}
         </Section>
       </Container>
     </Body>
