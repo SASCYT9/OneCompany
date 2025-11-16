@@ -42,6 +42,7 @@ export const HeroSection = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
       </div>
 
+              </div>
       {/* Hero Content - Liquid Glass Container */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-center space-y-12 px-8 max-w-5xl">
@@ -125,7 +126,19 @@ export const HeroSection = () => {
             className="pt-4"
           >
             <div className="inline-block pointer-events-auto">
-              <MagneticButton className="group relative px-14 py-6 rounded-full text-white text-lg font-medium transition-all duration-700 overflow-hidden">
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  backdropFilter: 'blur(20px) saturate(180%)',
+                  boxShadow: `
+                    inset 0 1px 0 0 rgba(255,255,255,0.15),
+                    0 4px 24px rgba(0,0,0,0.3),
+                    0 0 0 1px rgba(255,255,255,0.08)
+                  `,
+                }}
+                className="rounded-full inline-block"
+              >
+                <MagneticButton className="group relative px-14 py-6 rounded-full text-white text-lg font-medium transition-all duration-700 overflow-hidden">
                 style={{
                   background: 'rgba(255, 255, 255, 0.08)',
                   backdropFilter: 'blur(20px) saturate(180%)',
