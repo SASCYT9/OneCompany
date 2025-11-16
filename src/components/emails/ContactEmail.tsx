@@ -138,7 +138,7 @@ export const ContactEmail = ({
         <Section style={{ textAlign: 'center', marginTop: '32px' }}>
           <Button
             style={button}
-            href={`${baseUrl}/admin/messages`}
+            href={`${baseUrl}/admin/messages${messageId ? `?id=${messageId}` : ''}`}
           >
             View in Dashboard
           </Button>
