@@ -46,7 +46,7 @@ export default async function LocalizedHomePage({
     },
   ];
 
-  const heroVideo = "/videos/hero-smoke.mp4";
+  const heroVideo = "/videos/Luxury_Automotive_Abstract_Video_Creation.mp4";
   const heroBadgeCopy = "onecompany · dual signature programs";
   const heroMeta = {
     globalPresence: "services worldwide since 2007",
@@ -104,8 +104,9 @@ export default async function LocalizedHomePage({
         >
           <source src={heroVideo} type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_0%,rgba(255,179,71,0.25),transparent_45%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_10%,rgba(255,179,71,0.35),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(255,215,0,0.15),transparent_45%)]" />
       </div>
       <section className="relative flex min-h-screen flex-col">
         <div className="px-6 pt-16 text-center text-[10px] uppercase tracking-[0.5em] text-white/55">
