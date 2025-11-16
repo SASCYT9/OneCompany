@@ -3,6 +3,8 @@ import { ContactEmail } from '@/components/emails/ContactEmail';
 import { formatAutoMessage, formatMotoMessage } from '@/lib/telegram';
 import type { NextRequest } from 'next/server';
 import { Resend } from 'resend';
+import * as fs from 'fs';
+import * as path from 'path';
 import { PrismaClient } from '@prisma/client';
 
 // Basic rate limiting (memory). For production replace with Redis or durable store.
@@ -102,6 +104,7 @@ async function sendEmail(
   formData: ContactFormData,
   type: ContactType,
   messageId?: string
+  , logoSrc?: string
 ) {
   const from = process.env.EMAIL_FROM;
   const to = type === 'auto' ? process.env.EMAIL_AUTO : process.env.EMAIL_MOTO;
@@ -122,6 +125,7 @@ async function sendEmail(
     phone: formData.phone,
     contactMethod: formData.contactMethod,
     messageId,
+    logoSrc,
   }));
 
   try {
@@ -243,7 +247,20 @@ export async function POST(req: NextRequest) {
     // Send Email via Resend (don't block user if this fails)
     try {
       const emailSubject = `New ${type.charAt(0).toUpperCase() + type.slice(1)} Inquiry: ${model}`;
-      const emailResult = await sendEmail(emailSubject, formData, type, savedMessage.id);
+      // attempt to read logo from public assets and embed as data URI for email clients
+      let logoDataUri: string | undefined = undefined;
+      try {
+        const logoPath = path.join(process.cwd(), 'public', 'branding', 'one-company-logo.svg');
+        if (fs.existsSync(logoPath)) {
+          const svg = fs.readFileSync(logoPath, 'utf8');
+          const base64 = Buffer.from(svg).toString('base64');
+          logoDataUri = `data:image/svg+xml;base64,${base64}`;
+        }
+      } catch (err) {
+        console.warn('Could not read logo for email inline:', err instanceof Error ? err.message : err);
+      }
+
+      const emailResult = await sendEmail(emailSubject, formData, type, savedMessage.id, logoDataUri);
 
       if (emailResult.ok) {
         console.log('✅ Email notification sent successfully');

@@ -187,7 +187,7 @@ export default function ContactPage() {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur sm:rounded-3xl sm:p-6 md:rounded-[32px] md:p-8"
+              className="rounded-2xl border border-white/10 bg-gradient-to-b from-black/60 via-zinc-950/80 to-black/60 p-5 backdrop-blur sm:rounded-3xl sm:p-6 md:rounded-[32px] md:p-8 shadow-[0_40px_120px_rgba(0,0,0,0.6)]"
             >
               <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7 md:space-y-8">
                 {/* Progress bar */}

@@ -26,6 +26,7 @@ interface ContactEmailProps {
   phone?: string;
   contactMethod?: 'telegram' | 'whatsapp';
   messageId?: string;
+  logoSrc?: string;
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -50,6 +51,7 @@ export const ContactEmail = ({
   phone,
   contactMethod,
   messageId,
+  logoSrc,
 }: ContactEmailProps) => (
   <Html>
     <Head />
@@ -57,12 +59,14 @@ export const ContactEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={{ paddingTop: '20px' }}>
-          <Img
-            src={`${baseUrl}/branding/one-company-logo.svg`}
-            width="150"
-            alt="OneCompany Logo"
-            style={logo}
-          />
+          <div style={{ textAlign: 'center' }}>
+            <Img
+              src={logoSrc || `${baseUrl}/branding/one-company-logo.svg`}
+              width="150"
+              alt="OneCompany Logo"
+              style={logo}
+            />
+          </div>
         </Section>
         <Heading style={heading}>New Contact Request</Heading>
         <Text style={subheading}>
@@ -70,14 +74,14 @@ export const ContactEmail = ({
         </Text>
         
         <Section style={card}>
-          <Row style={row}>
-            <Column style={label}>From:</Column>
-            <Column style={value}>{name}</Column>
+          <Row style={{ ...row, display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <Column style={{ width: '120px', color: subtleTextColor }}>From</Column>
+            <Column style={{ ...value, marginTop: 0 }}>{name}</Column>
           </Row>
           <Hr style={hr} />
           <Row style={row}>
             <Column style={label}>Contact:</Column>
-            <Column style={value}>{contact}</Column>
+            <Column style={value}><a href={`mailto:${contact}`} style={{ color: foregroundColor, textDecoration: 'none' }}>{contact}</a></Column>
           </Row>
           {phone && (
             <>
@@ -125,7 +129,7 @@ export const ContactEmail = ({
             </>
           )}
           <Hr style={hr} />
-          <Row style={row}>
+          <Row style={{ ...row, marginTop: '4px' }}>
             <Column style={label}>Message:</Column>
           </Row>
           <Row>

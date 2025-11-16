@@ -115,7 +115,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black font-sans text-sm tracking-normal">
       <div className="border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-6">
           <div className="flex items-center justify-between">
@@ -147,7 +147,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-10 py-16">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 py-12">
         {children}
       </div>
     </div>
