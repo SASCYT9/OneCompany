@@ -10,7 +10,6 @@ import { BrandsGrid } from '../ui/BrandsGrid';
 import { VideoBackground } from './VideoBackground';
 import { MorphingTitle } from './MorphingTitle';
 import { ScrollProgress } from './ScrollProgress';
-import { BrandShowcase } from '../ui/BrandShowcase';
 import { LightParticles3D } from './LightParticles3D';
 import { LightRaysCanvas } from '../effects/LightRaysCanvas';
 import { HeroLogo } from '../effects/HeroLogo';
@@ -166,19 +165,16 @@ export function Homepage3DScene() {
         {/* Screen 1: KW Suspension */}
         <section className="h-screen flex items-center justify-center relative">
           <StoreHeroSection storeId="kw" isVisible={currentSlide === 1} />
-          <BrandShowcase storeId="kw" isVisible={currentSlide === 1} />
         </section>
 
         {/* Screen 2: Fi Exhaust */}
         <section className="h-screen flex items-center justify-center relative">
           <StoreHeroSection storeId="fi" isVisible={currentSlide === 2} />
-          <BrandShowcase storeId="fi" isVisible={currentSlide === 2} />
         </section>
 
         {/* Screen 3: Eventuri */}
         <section className="h-screen flex items-center justify-center relative">
           <StoreHeroSection storeId="eventuri" isVisible={currentSlide === 3} />
-          <BrandShowcase storeId="eventuri" isVisible={currentSlide === 3} />
         </section>
 
         {/* Screen 4: Stores section (final - all cards) */}

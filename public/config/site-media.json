@@ -6,29 +6,6 @@
   "stores": {
     "kw": {
       "heroPoster": "/images/kw/v3-coilover.jpg",
-      "brandShowcase": [
-        {
-          "id": "kw-v3",
-          "name": "KW V3 Coilover",
-          "description": "Повністю регульована підвіска",
-          "image": "/images/kw/v3-coilover.jpg",
-          "specs": ["Компресія", "Відбій", "Висота"]
-        },
-        {
-          "id": "kw-v1",
-          "name": "KW V1 Coilover",
-          "description": "Оптимальне співвідношення ціна/якість",
-          "image": "/images/kw/v1-coilover.jpg",
-          "specs": ["Висота", "Комфорт", "Спорт"]
-        },
-        {
-          "id": "kw-has",
-          "name": "KW HAS Kit",
-          "description": "Гідравлічна система підняття",
-          "image": "/images/kw/has-kit.jpg",
-          "specs": ["+40мм", "Електроніка", "Універсальність"]
-        }
-      ],
       "catalogProducts": [
         {
           "id": "v3",
@@ -106,57 +83,11 @@
     },
     "fi": {
       "heroPoster": "/images/fi/valvetronic.jpg",
-      "brandShowcase": [
-        {
-          "id": "fi-valvetronic",
-          "name": "Fi Valvetronic System",
-          "description": "Титанова система з клапанами",
-          "image": "/images/fi/valvetronic.jpg",
-          "specs": ["Титан Grade 1", "Клапани", "+30HP"]
-        },
-        {
-          "id": "fi-catback",
-          "name": "Fi Titanium Cat-back",
-          "description": "Повна система від каталізатора",
-          "image": "/images/fi/catback.jpg",
-          "specs": ["100% Титан", "Легше -50%", "Унікальний звук"]
-        },
-        {
-          "id": "fi-tips",
-          "name": "Fi Exhaust Tips",
-          "description": "Преміальні насадки",
-          "image": "/images/fi/tips.jpg",
-          "specs": ["Карбон", "Титан", "Кастомізація"]
-        }
-      ],
       "catalogProducts": [],
       "gallery": []
     },
     "eventuri": {
       "heroPoster": "/images/eventuri/carbon-intake.jpg",
-      "brandShowcase": [
-        {
-          "id": "ev-intake",
-          "name": "Eventuri Carbon Intake",
-          "description": "Патентована технологія Venturi",
-          "image": "/images/eventuri/carbon-intake.jpg",
-          "specs": ["100% Carbon", "Venturi", "+15HP"]
-        },
-        {
-          "id": "ev-filter",
-          "name": "Eventuri Filter",
-          "description": "Високопотоковий фільтр",
-          "image": "/images/eventuri/filter.jpg",
-          "specs": ["Багаторазовий", "ISO Tested", "Premium"]
-        },
-        {
-          "id": "ev-duct",
-          "name": "Eventuri Duct",
-          "description": "Карбонові повітроводи",
-          "image": "/images/eventuri/duct.jpg",
-          "specs": ["Аеродинаміка", "Легкі", "Автоклав"]
-        }
-      ],
       "catalogProducts": [],
       "gallery": []
     }

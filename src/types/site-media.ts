@@ -1,18 +1,16 @@
 export type StoreId = 'kw' | 'fi' | 'eventuri';
 
-export interface ShowcaseProduct {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  specs: string[];
-}
-
-export interface CatalogProduct extends ShowcaseProduct {
+export interface CatalogProduct {
+  id?: string;
+  name?: string;
+  image?: string;
+  description?: string;
   series?: string;
   price?: string;
   compatibility?: string;
   features?: string[];
+  specs?: string[];
+  url?: string;
 }
 
 export interface GalleryItem {
@@ -23,7 +21,6 @@ export interface GalleryItem {
 
 export interface StoreMediaSection {
   heroPoster: string;
-  brandShowcase: ShowcaseProduct[];
   catalogProducts: CatalogProduct[];
   gallery: GalleryItem[];
 }

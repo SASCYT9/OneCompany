@@ -19,7 +19,6 @@ function mergeStoreSection(storeId: StoreId, incoming: SiteMedia['stores'][Store
   const fallback = defaultSiteMedia.stores[storeId];
   return {
     heroPoster: incoming?.heroPoster ?? fallback.heroPoster,
-    brandShowcase: incoming?.brandShowcase ?? fallback.brandShowcase,
     catalogProducts: incoming?.catalogProducts ?? fallback.catalogProducts,
     gallery: incoming?.gallery ?? fallback.gallery,
   };

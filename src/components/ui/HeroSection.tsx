@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
+import MagneticButton from './MagneticButton'
 
 export const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -67,14 +68,37 @@ export const HeroSection = () => {
 
             <div className="relative z-10 space-y-8">
               <h1 className="text-7xl md:text-9xl lg:text-[10rem] font-bold leading-none tracking-tight">
-                <span className="bg-gradient-to-br from-white via-orange-200 to-blue-200 bg-clip-text text-transparent inline-block"
-                  style={{
-                    filter: 'drop-shadow(0 0 60px rgba(255,136,0,0.3))',
-                    WebkitTextStroke: '1px rgba(255,255,255,0.1)',
+                <motion.span
+                  initial="hidden"
+                  animate={isLoaded ? 'visible' : 'hidden'}
+                  variants={{
+                    hidden: {},
+                    visible: {
+                      transition: { staggerChildren: 0.08 }
+                    }
                   }}
+                  className="inline-block"
                 >
-                  onecompany
-                </span>
+                  {['one', 'company'].map((chunk, i) => (
+                    <motion.span
+                      key={chunk}
+                      variants={{
+                        hidden: { opacity: 0, y: 24, scale: 0.95 },
+                        visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] } }
+                      }}
+                      className={i === 0 ? 'mr-3' : ''}
+                    >
+                      <span className="bg-gradient-to-br from-white via-orange-200 to-blue-200 bg-clip-text text-transparent inline-block"
+                        style={{
+                          filter: 'drop-shadow(0 0 60px rgba(255,136,0,0.3))',
+                          WebkitTextStroke: '1px rgba(255,255,255,0.1)'
+                        }}
+                      >
+                        {chunk}
+                      </span>
+                    </motion.span>
+                  ))}
+                </motion.span>
               </h1>
 
               <motion.p
@@ -101,8 +125,7 @@ export const HeroSection = () => {
             className="pt-4"
           >
             <div className="inline-block pointer-events-auto">
-              <button 
-                className="group relative px-14 py-6 rounded-full text-white text-lg font-medium transition-all duration-700 overflow-hidden"
+              <MagneticButton className="group relative px-14 py-6 rounded-full text-white text-lg font-medium transition-all duration-700 overflow-hidden">
                 style={{
                   background: 'rgba(255, 255, 255, 0.08)',
                   backdropFilter: 'blur(20px) saturate(180%)',
@@ -112,22 +135,6 @@ export const HeroSection = () => {
                     0 0 0 1px rgba(255,255,255,0.08)
                   `,
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.05) translateY(-2px)'
-                  e.currentTarget.style.boxShadow = `
-                    inset 0 1px 0 0 rgba(255,255,255,0.2),
-                    0 8px 32px rgba(255,136,0,0.3),
-                    0 0 0 1px rgba(255,136,0,0.2)
-                  `
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1) translateY(0)'
-                  e.currentTarget.style.boxShadow = `
-                    inset 0 1px 0 0 rgba(255,255,255,0.15),
-                    0 4px 24px rgba(0,0,0,0.3),
-                    0 0 0 1px rgba(255,255,255,0.08)
-                  `
-                }}
               >
                 <span className="relative z-10 tracking-wide">Почати подорож</span>
                 
@@ -136,7 +143,7 @@ export const HeroSection = () => {
                 
                 {/* Glass Shine Effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              </button>
+              </MagneticButton>
             </div>
           </motion.div>
 
