@@ -7,7 +7,6 @@ import Footer from '@/components/shared/Footer';
 import AuthProvider from '@/components/AuthProvider';
 import { cn } from '@/lib/utils';
 import HeroVideoWrapper from '@/components/layout/HeroVideoWrapper';
-import { useEffect, useState } from 'react';
 import { readVideoConfig } from '@/lib/videoConfig';
 
 type Props = {
