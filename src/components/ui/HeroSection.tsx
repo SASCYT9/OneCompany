@@ -138,15 +138,6 @@ export const HeroSection = () => {
               >
                 <MagneticButton
                   className="group relative px-14 py-6 rounded-full text-white text-lg font-medium transition-all duration-700 overflow-hidden"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    backdropFilter: 'blur(20px) saturate(180%)',
-                    boxShadow: `
-                      inset 0 1px 0 0 rgba(255,255,255,0.15),
-                      0 4px 24px rgba(0,0,0,0.3),
-                      0 0 0 1px rgba(255,255,255,0.08)
-                    `,
-                  }}
                 >
                 <span className="relative z-10 tracking-wide">Почати подорож</span>
                 
