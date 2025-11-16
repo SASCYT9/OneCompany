@@ -46,7 +46,7 @@ export default async function LocalizedHomePage({
     },
   ];
 
-  const heroVideo = "/videos/hero-smoke.mp4";
+  const heroVideo = "/videos/hero-background.mp4";
   const heroBadgeCopy = "onecompany · dual signature programs";
   const heroMeta = {
     globalPresence: "services worldwide since 2007",
