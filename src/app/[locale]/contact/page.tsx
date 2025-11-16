@@ -18,6 +18,8 @@ export default function ContactPage() {
     wishes: "",
     budget: "",
     email: "",
+    phone: "",
+    contactMethod: "telegram" as "telegram" | "whatsapp",
   });
   const [status, setStatus] = useState<FormState>("idle");
   const [message, setMessage] = useState("");
@@ -29,7 +31,7 @@ export default function ContactPage() {
 
   const handleTypeChange = (newType: FormType) => {
     setType(newType);
-    setFormData({ model: "", vin: "", wishes: "", budget: "", email: "" });
+    setFormData({ model: "", vin: "", wishes: "", budget: "", email: "", phone: "", contactMethod: "telegram" });
     setStatus("idle");
     setMessage("");
   };
@@ -46,6 +48,8 @@ export default function ContactPage() {
       wishes: formData.wishes,
       budget: formData.budget,
       email: formData.email,
+      phone: formData.phone,
+      contactMethod: formData.contactMethod,
     };
 
     try {
@@ -60,7 +64,7 @@ export default function ContactPage() {
       if (response.ok) {
         setStatus("success");
         setMessage(t("form.success"));
-        setFormData({ model: "", vin: "", wishes: "", budget: "", email: "" });
+        setFormData({ model: "", vin: "", wishes: "", budget: "", email: "", phone: "", contactMethod: "telegram" });
       } else {
         setStatus("error");
         setMessage(result?.error || t("form.error"));
@@ -268,6 +272,45 @@ export default function ContactPage() {
                         placeholder="example@mail.com"
                         required
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label htmlFor="phone" className="block text-xs uppercase tracking-widest text-white/50 mb-3 font-light">
+                        Телефон
+                      </label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className="w-full px-0 py-3 bg-transparent border-b border-white/20 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-200 transition-colors font-light"
+                        placeholder="+380 XX XXX XX XX"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase tracking-widest text-white/50 mb-3 font-light">
+                        Спосіб зв'язку
+                      </label>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, contactMethod: "telegram" }))}
+                          className={`flex-1 px-0 py-3 border-b text-sm font-light transition-colors ${formData.contactMethod === "telegram" ? "border-amber-300 text-amber-200" : "border-white/20 text-white/50 hover:border-white/40"}`}
+                        >
+                          Telegram
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, contactMethod: "whatsapp" }))}
+                          className={`flex-1 px-0 py-3 border-b text-sm font-light transition-colors ${formData.contactMethod === "whatsapp" ? "border-amber-300 text-amber-200" : "border-white/20 text-white/50 hover:border-white/40"}`}
+                        >
+                          WhatsApp
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
