@@ -41,8 +41,6 @@ export const HeroSection = () => {
         {/* Depth Layer */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
       </div>
-
-              </div>
       {/* Hero Content - Liquid Glass Container */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-center space-y-12 px-8 max-w-5xl">
