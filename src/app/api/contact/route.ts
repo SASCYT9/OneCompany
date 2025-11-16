@@ -21,6 +21,8 @@ type ContactRequestBody = {
   budget?: string;
   email?: string;
   name?: string;
+  phone?: string;
+  contactMethod?: 'telegram' | 'whatsapp';
 };
 
 type ContactFormData = {
@@ -31,6 +33,8 @@ type ContactFormData = {
   budget: string;
   email: string;
   name: string;
+  phone: string;
+  contactMethod: 'telegram' | 'whatsapp';
 };
 
 type AutoFormData = ContactFormData & { carModel: string };
@@ -165,8 +169,10 @@ export async function POST(req: NextRequest) {
         budget: sanitize(body.budget),
         email: sanitize(body.email),
         name: sanitize(body.name) || sanitize(body.email),
+        phone: sanitize(body.phone),
+        contactMethod: body.contactMethod || 'telegram',
       };
-      if (!autoFormData.carModel || !autoFormData.email) {
+      if (!autoFormData.carModel || !autoFormData.email || !autoFormData.phone) {
         return new Response(JSON.stringify({ error: 'Missing required auto fields' }), { status: 400 });
       }
       model = autoFormData.carModel;
@@ -180,8 +186,10 @@ export async function POST(req: NextRequest) {
         budget: sanitize(body.budget),
         email: sanitize(body.email),
         name: sanitize(body.name) || sanitize(body.email),
+        phone: sanitize(body.phone),
+        contactMethod: body.contactMethod || 'telegram',
       };
-      if (!motoFormData.motoModel || !motoFormData.email) {
+      if (!motoFormData.motoModel || !motoFormData.email || !motoFormData.phone) {
         return new Response(JSON.stringify({ error: 'Missing required moto fields' }), { status: 400 });
       }
       model = motoFormData.motoModel;
@@ -194,6 +202,8 @@ export async function POST(req: NextRequest) {
       data: {
         userName: formData.name,
         userEmail: formData.email,
+        userPhone: formData.phone,
+        contactMethod: formData.contactMethod.toUpperCase() as 'TELEGRAM' | 'WHATSAPP',
         messageText: formData.wishes,
         category: type === 'auto' ? 'AUTO' : 'MOTO',
         status: 'NEW',
@@ -204,6 +214,8 @@ export async function POST(req: NextRequest) {
           budget: formData.budget,
           email: formData.email,
           name: formData.name,
+          phone: formData.phone,
+          contactMethod: formData.contactMethod,
         }
       }
     });

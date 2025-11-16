@@ -42,6 +42,8 @@ type FormState = {
   wishes: string;
   budget: string;
   email: string;
+  phone: string;
+  contactMethod: "telegram" | "whatsapp";
 };
 
 const blankForm: FormState = {
@@ -50,9 +52,11 @@ const blankForm: FormState = {
   wishes: "",
   budget: "",
   email: "",
+  phone: "",
+  contactMethod: "telegram",
 };
 
-const progressKeys: Array<keyof FormState> = ["model", "wishes", "email"];
+const progressKeys: Array<keyof FormState> = ["model", "wishes", "email", "phone"];
 
 function computeTimes(locale: SupportedLocale) {
   const now = new Date();
@@ -178,6 +182,8 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
       wishes: formData.wishes,
       budget: formData.budget,
       email: formData.email,
+      phone: formData.phone,
+      contactMethod: formData.contactMethod,
       preferredChannel: selectedChannel?.id,
     };
 
@@ -399,6 +405,50 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                       required
                       className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-none transition focus:border-white"
                     />
+                  </div>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.4em] text-white/40">Phone Number</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="+380 XX XXX XX XX"
+                      required
+                      className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-none transition focus:border-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.4em] text-white/40">Preferred Contact</label>
+                    <div className="mt-3 flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, contactMethod: "telegram" }))}
+                        className={clsx(
+                          "flex-1 rounded-full border px-4 py-2 text-sm transition",
+                          formData.contactMethod === "telegram"
+                            ? "border-white bg-white text-black"
+                            : "border-white/20 bg-white/5 text-white/60 hover:border-white/40"
+                        )}
+                      >
+                        Telegram
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, contactMethod: "whatsapp" }))}
+                        className={clsx(
+                          "flex-1 rounded-full border px-4 py-2 text-sm transition",
+                          formData.contactMethod === "whatsapp"
+                            ? "border-white bg-white text-black"
+                            : "border-white/20 bg-white/5 text-white/60 hover:border-white/40"
+                        )}
+                      >
+                        WhatsApp
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div>

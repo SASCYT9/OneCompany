@@ -14,18 +14,25 @@ datasource db {
 }
 
 model Message {
-  id          String    @id @default(cuid())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  userName    String
-  userEmail   String
-  messageText String    @db.Text
-  status      Status    @default(NEW)
-  category    Category?
-  metadata    Json?
-  replies     Reply[]
+  id               String          @id @default(cuid())
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  userName         String
+  userEmail        String
+  userPhone        String?
+  contactMethod    ContactMethod?
+  messageText      String          @db.Text
+  status           Status          @default(NEW)
+  category         Category?
+  metadata         Json?
+  replies          Reply[]
 
   @@index([createdAt])
+}
+
+enum ContactMethod {
+  TELEGRAM
+  WHATSAPP
 }
 
 model Reply {

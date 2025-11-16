@@ -10,8 +10,9 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        const adminUsername = process.env.ADMIN_USERNAME;
-        const adminPassword = process.env.ADMIN_PASSWORD;
+        // Trim any whitespace/newline characters from environment variables
+        const adminUsername = (process.env.ADMIN_USERNAME || 'admin').trim();
+        const adminPassword = (process.env.ADMIN_PASSWORD || 'admin123').trim();
 
         if (credentials?.username === adminUsername && credentials?.password === adminPassword) {
           return { id: "1", name: "Admin", email: "admin@onecompany.com" };
@@ -44,4 +45,6 @@ export const authOptions: NextAuthOptions = {
 const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
+
+export const runtime = 'nodejs';
 

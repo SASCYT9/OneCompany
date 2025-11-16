@@ -40,10 +40,16 @@ export function Navigation() {
     type: 'auto' as 'auto' | 'moto',
     name: '',
     email: '',
+    phone: '',
+    contactMethod: 'telegram' as 'telegram' | 'whatsapp',
     subject: '',
     message: ''
   });
   const years = yearsOfExcellence();
+
+  const resetForm = () => {
+    setPayload({ type: 'auto', name: '', email: '', phone: '', contactMethod: 'telegram', subject: '', message: '' });
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,7 +64,7 @@ export function Navigation() {
       });
       if (!res.ok) throw new Error('Failed');
       setFormState('success');
-      setTimeout(() => { setContactOpen(false); setFormState('idle'); setPayload({ type: 'auto', name: '', email: '', subject: '', message: '' }); }, 2000);
+      setTimeout(() => { setContactOpen(false); setFormState('idle'); resetForm(); }, 2000);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error';
       setErrorMsg(message);
@@ -214,6 +220,45 @@ export function Navigation() {
                   onChange={e => setPayload(p => ({ ...p, email: e.target.value }))}
                   required
                 />
+                <input
+                  type="tel"
+                  placeholder={locale==='ua' ? 'Телефон' : 'Phone Number'}
+                  className="w-full bg-white/5 text-white px-5 py-3 outline-none text-sm placeholder:text-white/30 rounded-md"
+                  value={payload.phone}
+                  onChange={e => setPayload(p => ({ ...p, phone: e.target.value }))}
+                  required
+                />
+                <div>
+                  <label className="block text-xs text-white/40 mb-2 uppercase tracking-wider">
+                    {locale==='ua' ? 'Спосіб звʼязку' : 'Contact Method'}
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPayload(p => ({ ...p, contactMethod: 'telegram' }))}
+                      className={
+                        'flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-300 ' +
+                        (payload.contactMethod === 'telegram'
+                          ? 'bg-blue-500/20 text-white border border-blue-500/30'
+                          : 'bg-white/5 text-white/60 hover:bg-white/10')
+                      }
+                    >
+                      Telegram
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPayload(p => ({ ...p, contactMethod: 'whatsapp' }))}
+                      className={
+                        'flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-300 ' +
+                        (payload.contactMethod === 'whatsapp'
+                          ? 'bg-green-500/20 text-white border border-green-500/30'
+                          : 'bg-white/5 text-white/60 hover:bg-white/10')
+                      }
+                    >
+                      WhatsApp
+                    </button>
+                  </div>
+                </div>
                 <input
                   type="text"
                   placeholder={locale==='ua' ? 'Тема' : 'Subject'}

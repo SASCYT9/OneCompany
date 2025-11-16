@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+// Trim any whitespace/newline characters from environment variable
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || 'admin123').trim();
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,3 +22,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const runtime = 'nodejs';
