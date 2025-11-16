@@ -24,6 +24,12 @@ export default function ContactPage() {
   const [status, setStatus] = useState<FormState>("idle");
   const [message, setMessage] = useState("");
 
+  // Progress (percentage of required fields filled)
+  const requiredKeys: (keyof typeof formData)[] = ["model", "wishes", "email", "phone"];
+  const completion = Math.round(
+    (requiredKeys.filter(k => formData[k].trim().length > 0).length / requiredKeys.length) * 100
+  );
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -169,29 +175,39 @@ export default function ContactPage() {
               className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur sm:rounded-3xl sm:p-6 md:rounded-[32px] md:p-8"
             >
               <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7 md:space-y-8">
+                {/* Progress bar */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs tracking-widest uppercase text-white/50">
+                    <span>{completion}%</span>
+                    <span>{status === "loading" ? t("form.submitting") : t("form.progressLabel")}</span>
+                  </div>
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full bg-gradient-to-r from-amber-300 to-amber-500 transition-all duration-500"
+                      style={{ width: `${completion}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Type selector */}
                 <div className="flex gap-2 sm:gap-3 md:gap-4">
-                  <button
-                    type="button"
-                    onClick={() => handleTypeChange("auto")}
-                    className={`flex-1 px-3 py-3 text-xs font-light uppercase tracking-wider transition-all duration-300 sm:px-4 sm:py-3.5 sm:text-sm sm:tracking-widest md:px-6 md:py-4 ${
-                      type === "auto"
-                        ? "bg-gradient-to-r from-amber-200 to-amber-400 text-black shadow-[0_10px_40px_rgba(251,191,36,0.25)]"
-                        : "bg-white/5 text-white/60 hover:bg-white/10"
-                    }`}
-                  >
-                    {t("form.typeAuto")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleTypeChange("moto")}
-                    className={`flex-1 py-4 px-6 text-sm uppercase tracking-widest font-light transition-all duration-300 ${
-                      type === "moto"
-                        ? "bg-gradient-to-r from-amber-200 to-amber-400 text-black shadow-[0_10px_40px_rgba(251,191,36,0.25)]"
-                        : "bg-white/5 text-white/60 hover:bg-white/10"
-                    }`}
-                  >
-                    {t("form.typeMoto")}
-                  </button>
+                  {(["auto","moto"] as FormType[]).map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => handleTypeChange(option)}
+                      className={
+                        `flex-1 px-3 py-3 sm:px-4 sm:py-3.5 md:px-6 md:py-4 text-xs sm:text-sm font-light uppercase tracking-widest transition-all duration-300 relative overflow-hidden group ` +
+                        (type === option
+                          ? "bg-gradient-to-r from-amber-200 via-amber-300 to-amber-400 text-black shadow-[0_10px_40px_rgba(251,191,36,0.25)]"
+                          : "bg-white/5 text-white/60 hover:bg-white/10")
+                      }
+                      aria-pressed={type===option}
+                    >
+                      <span className="relative z-10">{option === "auto" ? t("form.typeAuto") : t("form.typeMoto")}</span>
+                      {type === option && <span className="absolute inset-0 animate-pulse bg-gradient-to-r from-amber-200/0 via-amber-400/10 to-amber-200/0" />}
+                    </button>
+                  ))}
                 </div>
 
                 <div className="space-y-5 sm:space-y-6">
@@ -277,39 +293,45 @@ export default function ContactPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label htmlFor="phone" className="block text-xs uppercase tracking-widest text-white/50 mb-3 font-light">
+                      <label htmlFor="phone" className="block text-xs uppercase tracking-widest text-white/50 mb-2 font-light">
                         Телефон
                       </label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className="w-full px-0 py-3 bg-transparent border-b border-white/20 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-200 transition-colors font-light"
-                        placeholder="+380 XX XXX XX XX"
-                        required
-                      />
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="tel"
+                          id="phone"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          className="flex-1 px-0 py-3 bg-transparent border-b border-white/20 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-colors font-light"
+                          placeholder="+380 XX XXX XX XX"
+                          required
+                          aria-label="Номер телефону"
+                        />
+                      </div>
+                      <p className="mt-2 text-[10px] text-white/40 tracking-wider">Без емодзі, тільки цифри та +</p>
                     </div>
                     <div>
-                      <label className="block text-xs uppercase tracking-widest text-white/50 mb-3 font-light">
+                      <label className="block text-xs uppercase tracking-widest text-white/50 mb-2 font-light">
                         Спосіб зв'язку
                       </label>
                       <div className="flex gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, contactMethod: "telegram" }))}
-                          className={`flex-1 px-0 py-3 border-b text-sm font-light transition-colors ${formData.contactMethod === "telegram" ? "border-amber-300 text-amber-200" : "border-white/20 text-white/50 hover:border-white/40"}`}
-                        >
-                          Telegram
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, contactMethod: "whatsapp" }))}
-                          className={`flex-1 px-0 py-3 border-b text-sm font-light transition-colors ${formData.contactMethod === "whatsapp" ? "border-amber-300 text-amber-200" : "border-white/20 text-white/50 hover:border-white/40"}`}
-                        >
-                          WhatsApp
-                        </button>
+                        {(["telegram","whatsapp"] as const).map(method => (
+                          <button
+                            key={method}
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, contactMethod: method }))}
+                            className={`flex-1 relative rounded-full border px-4 py-2 text-xs sm:text-sm font-light tracking-wider transition-all duration-300 ${formData.contactMethod === method ? 'border-amber-300 bg-amber-300/10 text-amber-200 shadow-[0_0_0_1px_rgba(251,191,36,0.25)]' : 'border-white/20 text-white/60 hover:border-white/40 hover:text-white'}`}
+                            aria-pressed={formData.contactMethod===method}
+                          >
+                            <span className="relative z-10">
+                              {method === 'telegram' ? 'Telegram' : 'WhatsApp'}
+                            </span>
+                            {formData.contactMethod === method && (
+                              <span className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-200/0 via-amber-400/10 to-amber-200/0 animate-pulse" />
+                            )}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>
