@@ -20,7 +20,6 @@ const Footer = () => {
     services: [
       { name: "Automotive", href: `/${locale}/auto` },
       { name: "Moto", href: `/${locale}/moto` },
-      { name: "Showcase", href: `/${locale}/showcase` },
     ],
   };
 

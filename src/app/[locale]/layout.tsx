@@ -6,7 +6,8 @@ import { Header } from '@/components/layout/Header';
 import Footer from '@/components/shared/Footer';
 import AuthProvider from '@/components/AuthProvider';
 import { cn } from '@/lib/utils';
-import { FullScreenVideo } from '@/components/shared/FullScreenVideo';
+import HeroVideoWrapper from '@/components/layout/HeroVideoWrapper';
+import { useEffect, useState } from 'react';
 import { readVideoConfig } from '@/lib/videoConfig';
 
 type Props = {
@@ -30,10 +31,13 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
-        <div className={cn('flex flex-col min-h-screen', locale === 'ua' && 'locale-ua')}>
-          <FullScreenVideo src={`/videos/${videoConfig.heroVideo}`} />
+        {videoConfig.heroPoster && (
+          <link rel="preload" href={`/images/${videoConfig.heroPoster}`} as="image" />
+        )}
+        <div data-server-hero-enabled={videoConfig.heroEnabled ? 'true' : 'false'} className={cn('flex flex-col min-h-screen', locale === 'ua' && 'locale-ua')}>
+          <HeroVideoWrapper src={`/videos/${videoConfig.heroVideo}`} mobileSrc={videoConfig.heroVideoMobile ? `/videos/${videoConfig.heroVideoMobile}` : undefined} poster={videoConfig.heroPoster ? `/images/${videoConfig.heroPoster}` : undefined} serverEnabled={videoConfig.heroEnabled ?? true} />
           <Header />
-          <main className="flex-grow relative z-10">
+          <main id="main-content" className="flex-grow relative z-10">
             {children}
           </main>
           <Footer />

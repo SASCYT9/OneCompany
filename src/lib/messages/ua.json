@@ -7,7 +7,9 @@
     "categories": "Категорії",
     "selectStore": "Обрати магазин",
     "contact": "Запит",
-    "bookAtelier": "Запис в ательє"
+    "bookAtelier": "Запис в ательє",
+    "toggleHeroVideoEnable": "Увімкнути відео",
+    "toggleHeroVideoDisable": "Вимкнути відео"
   },
   "choice": {
     "tagline": "Преміум тюнінг запчастини",
@@ -291,6 +293,16 @@
       "primaryCta": "Запросити підтримку ательє",
       "secondaryCta": "Переглянути бренди"
     }
+  },
+  "admin": {
+    "heroVideoEnabled": "Відео героя увімкнено",
+    "heroVideoDisabledByAdmin": "Відео героя вимкнено адміністратором",
+    "saveSuccess": "Зміни успішно збережені",
+    "saveError": "Не вдалося зберегти зміни"
+    ,"mobileVariant":"Мобільний варіант",
+    "setMobile":"Встановити мобільний відео",
+    "poster":"Постер",
+    "setPoster":"Встановити постер"
   },
     "contactPage": {
       "hero": {

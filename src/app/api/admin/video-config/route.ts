@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+// imports already present above
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -12,13 +13,15 @@ async function ensureConfigFile() {
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(
       configPath,
-      JSON.stringify({ heroVideo: 'hero-smoke.mp4', videos: [] }, null, 2)
+      JSON.stringify({ heroVideo: 'hero-smoke.mp4', videos: [], heroEnabled: true }, null, 2)
     );
   }
 }
 
 export async function GET() {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     await ensureConfigFile();
     const data = await fs.readFile(configPath, 'utf-8');
     const config = JSON.parse(data);
@@ -30,18 +33,33 @@ export async function GET() {
     );
   }
 }
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 
 export async function POST(request: NextRequest) {
   try {
-    const { heroVideo } = await request.json();
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
+    const { heroVideo, heroEnabled, heroVideoMobile, heroPoster } = await request.json();
     
     await ensureConfigFile();
     const data = await fs.readFile(configPath, 'utf-8');
     const config = JSON.parse(data);
     
-    config.heroVideo = heroVideo;
+    if (typeof heroVideo === 'string') config.heroVideo = heroVideo;
+    if (typeof heroEnabled === 'boolean') config.heroEnabled = heroEnabled;
+    if (typeof heroVideoMobile === 'string') config.heroVideoMobile = heroVideoMobile;
+    if (typeof heroPoster === 'string') config.heroPoster = heroPoster;
     
     await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+    // Append audit log
+    try {
+      const auditPath = path.join(process.cwd(), 'public', 'config', 'video-config-audit.jsonl');
+      const auditRecord = JSON.stringify({ timestamp: new Date().toISOString(), heroVideo: config.heroVideo, heroEnabled: config.heroEnabled, heroVideoMobile: config.heroVideoMobile, heroPoster: config.heroPoster }) + '\n';
+      await fs.appendFile(auditPath, auditRecord);
+    } catch (e) {
+      console.warn('Failed to append audit log for video-config', e);
+    }
     
     return NextResponse.json(config);
   } catch (error) {

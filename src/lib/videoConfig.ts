@@ -4,10 +4,13 @@ import path from 'path';
 export type VideoConfig = {
   heroVideo: string;
   videos: string[];
+  heroEnabled?: boolean;
+  heroVideoMobile?: string;
+  heroPoster?: string;
 };
 
 const configPath = path.join(process.cwd(), 'public', 'config', 'video-config.json');
-const defaultConfig: VideoConfig = { heroVideo: 'hero-smoke.mp4', videos: [] };
+const defaultConfig: VideoConfig = { heroVideo: 'hero-smoke.mp4', videos: [], heroEnabled: true, heroVideoMobile: 'hero-smoke-mobile.mp4', heroPoster: 'hero-background.jpg' };
 
 async function ensureVideoConfigFile() {
   try {

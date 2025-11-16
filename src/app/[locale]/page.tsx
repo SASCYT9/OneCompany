@@ -250,12 +250,6 @@ export default async function LocalizedHomePage({
               >
                 +380 (44) 278 12 34
               </a>
-              <Link
-                href={`/${locale}/showcase`}
-                className="flex-1 rounded-full border border-white bg-white px-6 py-3 text-sm uppercase tracking-[0.35em] text-black shadow-[0_10px_40px_rgba(255,255,255,0.25)] hover:shadow-[0_15px_50px_rgba(255,255,255,0.35)] transition-all duration-300"
-              >
-                View showcase
-              </Link>
             </div>
           </div>
         </div>

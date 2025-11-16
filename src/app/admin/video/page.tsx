@@ -1,16 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
+import { trackEvent } from '@/lib/analytics';
 import { Video, Upload, Check, X } from 'lucide-react';
 
 interface VideoConfig {
   heroVideo: string;
   videos: string[];
+  heroEnabled?: boolean;
+  heroVideoMobile?: string;
+  heroPoster?: string;
 }
 
 export default function VideoAdminPage() {
-  const [videoConfig, setVideoConfig] = useState<VideoConfig>({ heroVideo: 'hero-smoke.mp4', videos: [] });
+  const tAdmin = useTranslations('admin');
+  const [videoConfig, setVideoConfig] = useState<VideoConfig>({ heroVideo: 'hero-smoke.mp4', videos: [], heroEnabled: true });
+  const [selectedPoster, setSelectedPoster] = useState<string | null>(null);
+  const [selectedMobileVideo, setSelectedMobileVideo] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<string>('');
   const [uploading, setUploading] = useState<boolean>(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
@@ -18,6 +26,11 @@ export default function VideoAdminPage() {
   useEffect(() => {
     loadVideoConfig();
   }, []);
+
+  useEffect(() => {
+    setSelectedMobileVideo(videoConfig.heroVideoMobile ?? null);
+    setSelectedPoster(videoConfig.heroPoster ?? null);
+  }, [videoConfig.heroVideoMobile, videoConfig.heroPoster]);
 
   const loadVideoConfig = async () => {
     try {
@@ -43,13 +56,16 @@ export default function VideoAdminPage() {
       const response = await fetch('/api/admin/video-config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ heroVideo: selectedVideo }),
+        body: JSON.stringify({ heroVideo: selectedVideo, heroEnabled: videoConfig.heroEnabled, heroVideoMobile: videoConfig.heroVideoMobile, heroPoster: videoConfig.heroPoster }),
       });
 
       if (response.ok) {
         setSaveStatus('success');
         setVideoConfig(prev => ({ ...prev, heroVideo: selectedVideo }));
+        try { trackEvent('admin_hero_video_config', { heroEnabled: videoConfig.heroEnabled }) } catch {}
         setTimeout(() => setSaveStatus('idle'), 3000);
+        // Reload the page to let layout pick up the server-side setting
+        setTimeout(() => window.location.reload(), 600);
       } else {
         setSaveStatus('error');
         setTimeout(() => setSaveStatus('idle'), 3000);
@@ -58,6 +74,10 @@ export default function VideoAdminPage() {
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 3000);
     }
+  };
+
+  const handleHeroEnabledToggle = (value: boolean) => {
+    setVideoConfig(prev => ({ ...prev, heroEnabled: value }));
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,6 +136,28 @@ export default function VideoAdminPage() {
         <h3 className="text-sm uppercase tracking-widest text-zinc-500 dark:text-white/40 mb-6 font-light">
           Current Hero Video
         </h3>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Video className="w-6 h-6 text-zinc-900 dark:text-white/40" />
+            <p className="text-sm font-light text-zinc-700 dark:text-white/50">{tAdmin('heroVideoEnabled')}</p>
+          </div>
+          <div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!!videoConfig.heroEnabled}
+                onChange={(e) => handleHeroEnabledToggle(e.target.checked)}
+                className="sr-only"
+              />
+              <span
+                className={`w-11 h-6 inline-block rounded-full transition-colors ${videoConfig.heroEnabled ? 'bg-amber-400' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+              />
+              <span
+                className={`absolute left-0 top-0 mt-0.5 ml-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform ${videoConfig.heroEnabled ? 'translate-x-5' : 'translate-x-0'}`}
+              />
+            </label>
+          </div>
+        </div>
         <div className="aspect-video bg-zinc-100 dark:bg-zinc-900/50 relative overflow-hidden mb-4">
           <video
             src={`/videos/${videoConfig.heroVideo}`}
@@ -125,9 +167,9 @@ export default function VideoAdminPage() {
             muted
           />
         </div>
-        <p className="text-sm font-light text-zinc-600 dark:text-white/50">
-          {videoConfig.heroVideo}
-        </p>
+        <p className="text-sm font-light text-zinc-600 dark:text-white/50">{videoConfig.heroVideo}</p>
+        <p className="text-sm font-light text-zinc-600 dark:text-white/50">Mobile variant: {videoConfig.heroVideoMobile || '—'}</p>
+        <p className="text-sm font-light text-zinc-600 dark:text-white/50">Poster: {videoConfig.heroPoster || '—'}</p>
       </div>
 
       <div className="mb-12">
@@ -167,6 +209,21 @@ export default function VideoAdminPage() {
               </div>
             </motion.div>
           ))}
+        </div>
+        <h4 className="text-xs uppercase tracking-wide text-zinc-500 mb-3">{tAdmin('mobileVariant')}</h4>
+        <div className="flex items-center gap-3 mb-6">
+          <select value={selectedMobileVideo ?? videoConfig.heroVideoMobile ?? ''} onChange={(e) => setSelectedMobileVideo(e.target.value)} className="rounded-md border px-3 py-1">
+            <option value="">(use default)</option>
+            {['hero-smoke-mobile.mp4', ...videoConfig.videos].map(v => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+          <button className="btn px-4 py-2 bg-zinc-900 text-white" onClick={() => setVideoConfig(prev => ({ ...prev, heroVideoMobile: selectedMobileVideo || prev.heroVideoMobile }))}>{tAdmin('setMobile')}</button>
+        </div>
+        <h4 className="text-xs uppercase tracking-wide text-zinc-500 mb-3">{tAdmin('poster')}</h4>
+        <div className="flex items-center gap-3 mb-6">
+          <input type="text" value={selectedPoster ?? videoConfig.heroPoster ?? ''} onChange={(e) => setSelectedPoster(e.target.value)} className="rounded-md border px-3 py-1" placeholder="poster file name (e.g., hero-background-poster.jpg)" />
+          <button className="btn px-4 py-2 bg-zinc-900 text-white" onClick={() => setVideoConfig(prev => ({ ...prev, heroPoster: selectedPoster || prev.heroPoster }))}>{tAdmin('setPoster')}</button>
         </div>
       </div>
 
@@ -218,7 +275,7 @@ export default function VideoAdminPage() {
               className="flex items-center gap-2 text-green-600 dark:text-green-400"
             >
               <Check className="w-5 h-5" />
-              <span className="text-sm font-light">Changes saved successfully</span>
+              <span className="text-sm font-light">{tAdmin('saveSuccess')}</span>
             </motion.div>
           )}
           {saveStatus === 'error' && (
@@ -229,7 +286,7 @@ export default function VideoAdminPage() {
               className="flex items-center gap-2 text-red-600 dark:text-red-400"
             >
               <X className="w-5 h-5" />
-              <span className="text-sm font-light">Failed to save changes</span>
+              <span className="text-sm font-light">{tAdmin('saveError')}</span>
             </motion.div>
           )}
         </AnimatePresence>

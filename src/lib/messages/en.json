@@ -7,7 +7,9 @@
     "categories": "Categories",
     "selectStore": "Select Store",
     "contact": "Inquiry",
-    "bookAtelier": "Book atelier"
+    "bookAtelier": "Book atelier",
+    "toggleHeroVideoEnable": "Enable hero video",
+    "toggleHeroVideoDisable": "Disable hero video"
   },
   "choice": {
     "tagline": "Premium Tuning Parts",
@@ -290,6 +292,16 @@
       "primaryCta": "Request atelier support",
       "secondaryCta": "View brand roster"
     }
+  },
+  "admin": {
+    "heroVideoEnabled": "Hero Video Enabled",
+    "heroVideoDisabledByAdmin": "Hero video disabled by admin",
+    "saveSuccess": "Changes saved successfully",
+    "saveError": "Failed to save changes"
+    ,"mobileVariant":"Mobile variant",
+    "setMobile":"Set mobile video",
+    "poster":"Poster image",
+    "setPoster":"Set poster"
   },
     "contactPage": {
       "hero": {
