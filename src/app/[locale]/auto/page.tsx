@@ -366,11 +366,11 @@ export default function AutomotivePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
         </div>
-        <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-10 px-6 py-28">
-          <div className="text-[11px] uppercase tracking-[0.6em] text-white/60">
+        <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6 px-4 py-16 sm:gap-8 sm:px-6 sm:py-20 md:gap-10 md:py-28">
+          <div className="text-[9px] uppercase tracking-[0.4em] text-white/60 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">
             {locale === 'ua' ? 'Преміум програми · авто' : 'Premium programs · auto'}
           </div>
-          <div className="max-w-4xl space-y-6">
+          <div className="max-w-4xl space-y-4 sm:space-y-5 md:space-y-6">
             <h1 className={`font-light leading-tight ${typography.heroTitle}`}>
               {t('title')}<span className="text-white/50"> · </span>
               <span className="text-white/70">{t('subtitle')}</span>
@@ -381,71 +381,71 @@ export default function AutomotivePage() {
                 : 'We build characterful cars with titanium, carbon and electronic suites curated since 2007.'}
             </p>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
             {heroStats.map((stat) => (
               <div
                 key={stat.label.en}
-                className="rounded-3xl border border-white/15 bg-white/5 backdrop-blur-lg p-6"
+                className="rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-lg sm:rounded-3xl sm:p-5 md:p-6"
               >
                 <div className={`${typography.statValue} font-light text-white`}>{stat.value}</div>
-                <div className="mt-2 text-xs uppercase tracking-[0.4em] text-white/60">{stat.label[locale]}</div>
-                <p className="mt-3 text-sm text-white/60">{stat.caption[locale]}</p>
+                <div className="mt-1.5 text-[10px] uppercase tracking-[0.3em] text-white/60 sm:mt-2 sm:text-xs sm:tracking-[0.4em]">{stat.label[locale]}</div>
+                <p className="mt-2 text-xs text-white/60 sm:mt-3 sm:text-sm">{stat.caption[locale]}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="relative border-b border-white/5 bg-black/60 py-20">
+      <section className="relative border-b border-white/5 bg-black/60 py-12 sm:py-16 md:py-20">
         <div className="absolute inset-x-0 top-0 mx-auto h-px w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-        <div className="mx-auto grid max-w-6xl gap-6 px-6 md:grid-cols-3">
+        <div className="mx-auto grid max-w-6xl gap-4 px-4 sm:gap-5 sm:px-6 md:grid-cols-3 md:gap-6">
           {programHighlights.map((card) => (
             <div
               key={card.title.en}
-              className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur"
+              className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-5 backdrop-blur sm:rounded-3xl sm:p-6"
             >
-              <div className="text-[10px] uppercase tracking-[0.5em] text-white/50">{card.eyebrow[locale]}</div>
-              <h3 className="mt-4 text-2xl font-light text-white">{card.title[locale]}</h3>
-              <p className="mt-3 text-sm text-white/70">{card.description[locale]}</p>
-              <p className="mt-6 text-xs uppercase tracking-[0.3em] text-white/60">{card.meta[locale]}</p>
+              <div className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em]">{card.eyebrow[locale]}</div>
+              <h3 className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{card.title[locale]}</h3>
+              <p className="mt-2 text-xs text-white/70 sm:mt-3 sm:text-sm">{card.description[locale]}</p>
+              <p className="mt-4 text-[10px] uppercase tracking-[0.25em] text-white/60 sm:mt-6 sm:text-xs sm:tracking-[0.3em]">{card.meta[locale]}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-24">
-        <div className="mb-12 text-center">
-          <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">{t('productCategories')}</p>
-          <h2 className={`mt-3 font-light text-white ${typography.sectionHeading}`}>
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+        <div className="mb-8 text-center sm:mb-10 md:mb-12">
+          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('productCategories')}</p>
+          <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>
             {locale === 'ua' ? 'Модулі, які складають авто' : 'Modules we compose cars from'}
           </h2>
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
           {automotiveCategories.map((cat) => (
             <Link
               key={cat.slug}
               href={`/${locale}/categories/${cat.slug}`}
-              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-8 transition-all duration-500 hover:border-white/40"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-5 transition-all duration-500 hover:border-white/40 sm:rounded-3xl sm:p-6 md:p-8"
             >
               <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                 backgroundImage:
                   'radial-gradient(circle at top left, rgba(255,255,255,0.15), transparent 55%)',
               }} />
-              <div className="relative flex flex-col gap-4">
-                <div className="text-[10px] uppercase tracking-[0.4em] text-white/40">
+              <div className="relative flex flex-col gap-3 sm:gap-4">
+                <div className="text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px] sm:tracking-[0.4em]">
                   {locale === 'ua' ? 'Категорія' : 'Category'}
                 </div>
-                <h3 className="text-2xl font-light text-white">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
-                <p className="text-sm text-white/70">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                <p className="text-xs text-white/50">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
-                <div className="mt-4 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.3em] text-white/50">
+                <h3 className="text-xl font-light text-white sm:text-2xl">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                <p className="text-xs text-white/70 sm:text-sm">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                <p className="text-[11px] text-white/50 sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] uppercase tracking-[0.25em] text-white/50 sm:mt-4 sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
                   {cat.brands.slice(0, 4).map((name) => (
-                    <span key={name} className="rounded-full border border-white/10 px-3 py-1 text-white/70">
+                    <span key={name} className="rounded-full border border-white/10 px-2.5 py-0.5 text-white/70 sm:px-3 sm:py-1">
                       {name}
                     </span>
                   ))}
                 </div>
-                <div className="mt-6 flex items-center gap-3 text-xs uppercase tracking-[0.35em] text-white/70">
+                <div className="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:mt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
                   <span>{locale === 'ua' ? 'Переглянути' : 'Open'}</span>
                   <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
                   <span>→</span>
@@ -456,21 +456,21 @@ export default function AutomotivePage() {
         </div>
       </section>
 
-      <section className="relative border-y border-white/5 bg-gradient-to-b from-black via-black/80 to-black py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-16 text-center">
-            <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">{t('featuredBrands')}</p>
-            <h2 className={`mt-3 font-light text-white ${typography.sectionHeading}`}>
+      <section className="relative border-y border-white/5 bg-gradient-to-b from-black via-black/80 to-black py-12 sm:py-16 md:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mb-10 text-center sm:mb-12 md:mb-16">
+            <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('featuredBrands')}</p>
+            <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>
               {locale === 'ua' ? 'Ікони, що задають темп' : 'Icons that set the tempo'}
             </h2>
           </div>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 sm:gap-5 md:grid-cols-2 md:gap-6">
             {topBrands.map((brand) => (
               <motion.button
                 key={brand.name}
                 onClick={() => setSelectedBrand(brand)}
                 whileHover={{ y: -4 }}
-                className="group relative flex flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-8 text-left transition"
+                className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-5 text-left transition sm:gap-5 sm:rounded-3xl sm:p-6 md:gap-6 md:p-8"
               >
                 <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                   backgroundImage:
@@ -509,10 +509,10 @@ export default function AutomotivePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-24">
-        <div className="mb-12 text-center">
-          <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
-          <h2 className={`mt-3 font-light text-white ${typography.sectionHeading}`}>{t('allBrands')}</h2>
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+        <div className="mb-8 text-center sm:mb-10 md:mb-12">
+          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
+          <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>{t('allBrands')}</h2>
         </div>
 
         <div className="flex justify-center">
@@ -522,16 +522,16 @@ export default function AutomotivePage() {
               placeholder={t('searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-3xl border border-white/15 bg-gradient-to-r from-white/10 to-white/[0.02] px-10 py-4 text-lg text-white placeholder-white/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40"
+              className="w-full rounded-2xl border border-white/15 bg-gradient-to-r from-white/10 to-white/[0.02] px-6 py-3 text-base text-white placeholder-white/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:px-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
             />
-            <div className="pointer-events-none absolute inset-y-0 right-8 flex items-center text-white/40">⌕</div>
+            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">⌕</div>
           </div>
         </div>
 
-        <div className="mt-12 flex flex-wrap justify-center gap-2">
+        <div className="mt-6 flex flex-wrap justify-center gap-1.5 sm:mt-8 sm:gap-2 md:mt-12">
           <button
             onClick={() => setActiveLetter(null)}
-            className={`rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] transition ${
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] transition sm:px-4 sm:py-2 sm:text-sm sm:tracking-[0.3em] ${
               !activeLetter
                 ? 'bg-white text-black'
                 : 'border border-white/20 text-white/60 hover:border-white/40 hover:text-white'
@@ -543,7 +543,7 @@ export default function AutomotivePage() {
             <button
               key={letter}
               onClick={() => setActiveLetter(letter)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.3em] ${
                 activeLetter === letter
                   ? 'bg-white text-black'
                   : 'border border-white/15 text-white/60 hover:border-white/40 hover:text-white'
@@ -554,7 +554,7 @@ export default function AutomotivePage() {
           ))}
         </div>
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:mt-12 xl:grid-cols-4">
           {filteredBrands.length > 0 ? (
             filteredBrands.map((brand) => {
               const origin = getBrandOrigin(brand);
@@ -564,17 +564,17 @@ export default function AutomotivePage() {
                   key={brand.name}
                   onClick={() => setSelectedBrand(brand)}
                   whileHover={{ y: -6 }}
-                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.02] p-6 text-left transition"
+                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.02] p-4 text-left transition sm:rounded-3xl sm:p-5 md:p-6"
                 >
                   <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                     background:
                       'radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 60%)',
                   }} />
-                  <div className="relative flex items-center justify-between text-xs uppercase tracking-[0.3em] text-white/50">
+                  <div className="relative flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.3em]">
                     <span>{origin}</span>
                     <span className="text-white/70 group-hover:text-white">↗</span>
                   </div>
-                  <div className="relative mt-5 h-20">
+                  <div className="relative mt-3 h-16 sm:mt-4 sm:h-20">
                     <Image
                       src={getBrandLogo(brand.name)}
                       alt={brand.name}
@@ -584,16 +584,16 @@ export default function AutomotivePage() {
                       unoptimized
                     />
                   </div>
-                  <div className="mt-5 text-2xl font-light text-white">{brand.name}</div>
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{brand.name}</div>
+                  <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
                     {collections.length > 0
                       ? collections.slice(0, 3).map((collection) => (
-                          <span key={collection.slug} className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70">
+                          <span key={collection.slug} className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] text-white/70 sm:px-3 sm:py-1 sm:text-xs">
                             {locale === 'ua' ? collection.title.ua : collection.title.en}
                           </span>
                         ))
                       : (
-                          <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/50">
+                          <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] text-white/50 sm:px-3 sm:py-1 sm:text-xs">
                             {locale === 'ua' ? 'Індивідуально' : 'Bespoke'}
                           </span>
                         )}
@@ -627,10 +627,11 @@ export default function AutomotivePage() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="mx-auto mt-16 max-w-4xl rounded-[32px] border border-white/10 bg-gradient-to-br from-black to-white/[0.05] p-8 text-white shadow-2xl"
+              className="mx-4 mt-6 max-w-4xl overflow-y-auto rounded-2xl border border-white/10 bg-gradient-to-br from-black to-white/[0.05] p-5 text-white shadow-2xl sm:mx-auto sm:mt-10 sm:rounded-3xl sm:p-6 md:mt-16 md:rounded-[32px] md:p-8"
+              style={{ maxHeight: 'calc(100vh - 3rem)' }}
             >
-              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                <div className="relative h-16 w-40">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                <div className="relative h-12 w-32 sm:h-14 sm:w-36 md:h-16 md:w-40">
                   <Image
                     src={getBrandLogo(selectedBrand.name)}
                     alt={selectedBrand.name}
@@ -642,39 +643,39 @@ export default function AutomotivePage() {
                 </div>
                 <button
                   onClick={() => setSelectedBrand(null)}
-                  className="rounded-full border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.4em] text-white/70 hover:border-white hover:text-white"
+                  className="self-start rounded-full border border-white/20 px-3 py-1.5 text-[10px] uppercase tracking-[0.3em] text-white/70 hover:border-white hover:text-white sm:self-auto sm:px-4 sm:py-2 sm:text-xs sm:tracking-[0.4em]"
                 >
                   {locale === 'ua' ? 'Закрити' : 'Close'}
                 </button>
               </div>
 
-              <div className="mt-6 grid gap-8 md:grid-cols-2">
+              <div className="mt-5 grid gap-6 sm:mt-6 sm:gap-7 md:mt-6 md:grid-cols-2 md:gap-8">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
                     {selectedBrandOrigin}
                   </p>
-                  <h3 className="mt-2 text-3xl font-light">{selectedBrandStory.headline[locale]}</h3>
-                  <p className="mt-4 text-sm text-white/70">{selectedBrandStory.description[locale]}</p>
+                  <h3 className="mt-1.5 text-2xl font-light sm:mt-2 sm:text-3xl">{selectedBrandStory.headline[locale]}</h3>
+                  <p className="mt-3 text-xs text-white/70 sm:mt-4 sm:text-sm">{selectedBrandStory.description[locale]}</p>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {selectedBrandStory.highlights?.map((highlight, index) => (
-                    <div key={highlight.en + index} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/80">
+                    <div key={highlight.en + index} className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/80 sm:rounded-2xl sm:p-4 sm:text-sm">
                       {highlight[locale]}
                     </div>
                   ))}
-                  <div className="rounded-2xl border border-white/10 p-4">
-                    <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+                  <div className="rounded-xl border border-white/10 p-3 sm:rounded-2xl sm:p-4">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
                       {locale === 'ua' ? 'Категорії' : 'Categories'}
                     </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
                       {selectedBrandCollections.length > 0 ? (
                         selectedBrandCollections.map((collection) => (
-                          <span key={collection.slug} className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70">
+                          <span key={collection.slug} className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] text-white/70 sm:px-3 sm:py-1 sm:text-xs">
                             {locale === 'ua' ? collection.title.ua : collection.title.en}
                           </span>
                         ))
                       ) : (
-                        <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/50">
+                        <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] text-white/50 sm:px-3 sm:py-1 sm:text-xs">
                           {locale === 'ua' ? 'Індивідуальні побудови' : 'Bespoke builds'}
                         </span>
                       )}
@@ -683,12 +684,12 @@ export default function AutomotivePage() {
                 </div>
               </div>
 
-              <div className="mt-8 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-white/80 md:flex-row md:items-center md:justify-between">
+              <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/80 sm:mt-7 sm:gap-4 sm:rounded-3xl sm:p-5 sm:text-sm md:mt-8 md:flex-row md:items-center md:justify-between md:p-6">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
                     {locale === 'ua' ? 'Консьєрж' : 'Concierge'}
                   </p>
-                  <p className="mt-2 text-base text-white">
+                  <p className="mt-1.5 text-sm text-white sm:mt-2 sm:text-base">
                     {locale === 'ua'
                       ? 'Залиште контакти — надамо оновлення про строки, варіанти встановлення та гарантію.'
                       : 'Share your contact and we will return with lead times, install slots and warranty coverage.'}
@@ -696,7 +697,7 @@ export default function AutomotivePage() {
                 </div>
                 <Link
                   href={`/${locale}/contact`}
-                  className="inline-flex items-center justify-center rounded-full border border-white bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-transparent hover:text-white"
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-5 py-2.5 text-xs font-semibold text-black transition hover:bg-transparent hover:text-white sm:px-6 sm:py-3 sm:text-sm"
                 >
                   {locale === 'ua' ? 'Запросити програму' : 'Request program'}
                 </Link>

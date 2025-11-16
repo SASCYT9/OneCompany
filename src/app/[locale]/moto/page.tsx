@@ -449,84 +449,84 @@ export default function MotoPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
         </div>
-        <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-10 px-6 py-28">
-          <div className="text-[11px] uppercase tracking-[0.6em] text-white/60">
+        <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6 px-4 py-16 sm:gap-8 sm:px-6 sm:py-20 md:gap-10 md:py-28">
+          <div className="text-[9px] uppercase tracking-[0.4em] text-white/60 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">
             {locale === 'ua' ? 'Преміум програми · мото' : 'Premium programs · moto'}
           </div>
-          <div className="max-w-4xl space-y-6">
-            <h1 className="text-5xl font-light leading-tight sm:text-6xl lg:text-7xl">
+          <div className="max-w-4xl space-y-4 sm:space-y-5 md:space-y-6">
+            <h1 className="text-3xl font-light leading-tight sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
               {t('title')}
               <span className="text-white/50"> · </span>
               <span className="text-white/70">{t('subtitle')}</span>
             </h1>
-            <p className="text-lg text-white/70 sm:text-xl">
+            <p className="text-base text-white/70 sm:text-lg md:text-xl">
               {locale === 'ua'
                 ? 'З 2007 року ми складаємо трекові байки з титану, карбону, телеметрії та сервісу під ключ.'
                 : 'Since 2007 we build track bikes with titanium, carbon, telemetry and concierge logistics.'}
             </p>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
             {heroStats.map((stat) => (
-              <div key={stat.label.en} className="rounded-3xl border border-white/15 bg-white/5 p-6 backdrop-blur-lg">
-                <div className="text-4xl font-light text-white">{stat.value}</div>
-                <div className="mt-2 text-xs uppercase tracking-[0.4em] text-white/60">{stat.label[locale]}</div>
-                <p className="mt-3 text-sm text-white/60">{stat.caption[locale]}</p>
+              <div key={stat.label.en} className="rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-lg sm:rounded-3xl sm:p-5 md:p-6">
+                <div className="text-2xl font-light text-white sm:text-3xl md:text-4xl">{stat.value}</div>
+                <div className="mt-1.5 text-[10px] uppercase tracking-[0.3em] text-white/60 sm:mt-2 sm:text-xs sm:tracking-[0.4em]">{stat.label[locale]}</div>
+                <p className="mt-2 text-xs text-white/60 sm:mt-3 sm:text-sm">{stat.caption[locale]}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="relative border-b border-white/5 bg-black/60 py-20">
+      <section className="relative border-b border-white/5 bg-black/60 py-12 sm:py-16 md:py-20">
         <div className="absolute inset-x-0 top-0 mx-auto h-px w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-        <div className="mx-auto grid max-w-6xl gap-6 px-6 md:grid-cols-3">
+        <div className="mx-auto grid max-w-6xl gap-4 px-4 sm:gap-5 sm:px-6 md:grid-cols-3 md:gap-6">
           {programHighlights.map((card) => (
             <div
               key={card.title.en}
-              className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-6 backdrop-blur"
+              className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-5 backdrop-blur sm:rounded-3xl sm:p-6"
             >
-              <div className="text-[10px] uppercase tracking-[0.5em] text-white/50">{card.eyebrow[locale]}</div>
-              <h3 className="mt-4 text-2xl font-light text-white">{card.title[locale]}</h3>
-              <p className="mt-3 text-sm text-white/70">{card.description[locale]}</p>
-              <p className="mt-6 text-xs uppercase tracking-[0.3em] text-white/60">{card.meta[locale]}</p>
+              <div className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em]">{card.eyebrow[locale]}</div>
+              <h3 className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{card.title[locale]}</h3>
+              <p className="mt-2 text-xs text-white/70 sm:mt-3 sm:text-sm">{card.description[locale]}</p>
+              <p className="mt-4 text-[10px] uppercase tracking-[0.25em] text-white/60 sm:mt-6 sm:text-xs sm:tracking-[0.3em]">{card.meta[locale]}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-24">
-        <div className="mb-12 text-center">
-          <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">{t('productCategories')}</p>
-          <h2 className="mt-3 text-4xl font-light text-white sm:text-5xl">
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+        <div className="mb-8 text-center sm:mb-10 md:mb-12">
+          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('productCategories')}</p>
+          <h2 className="mt-2 text-2xl font-light text-white sm:mt-3 sm:text-3xl md:text-4xl lg:text-5xl">
             {locale === 'ua' ? 'Модулі для трекових байків' : 'Modules for track-spec bikes'}
           </h2>
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
           {motoModuleCards.map((category) => (
             <div
               key={category.key}
-              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-8"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-5 sm:rounded-3xl sm:p-6 md:p-8"
             >
               <div
                 className={`absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100 bg-gradient-to-br ${category.accent}`}
               />
-              <div className="relative flex flex-col gap-4">
-                <div className="text-[10px] uppercase tracking-[0.4em] text-white/40">{category.eyebrow[locale]}</div>
-                <h3 className="text-2xl font-light text-white">{category.title[locale]}</h3>
-                <p className="text-sm text-white/70">{category.description[locale]}</p>
-                <div className="mt-4 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.3em] text-white/60">
+              <div className="relative flex flex-col gap-3 sm:gap-4">
+                <div className="text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px] sm:tracking-[0.4em]">{category.eyebrow[locale]}</div>
+                <h3 className="text-xl font-light text-white sm:text-2xl">{category.title[locale]}</h3>
+                <p className="text-xs text-white/70 sm:text-sm">{category.description[locale]}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] uppercase tracking-[0.25em] text-white/60 sm:mt-4 sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
                   {category.chips.map((chip) => (
-                    <span key={chip} className="rounded-full border border-white/15 px-3 py-1 text-white/80">
+                    <span key={chip} className="rounded-full border border-white/15 px-2.5 py-0.5 text-white/80 sm:px-3 sm:py-1">
                       {chip}
                     </span>
                   ))}
                 </div>
-                <div className="mt-6 flex items-center gap-3 text-xs uppercase tracking-[0.35em] text-white/70">
+                <div className="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:mt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
                   <span>{locale === 'ua' ? 'Консьєрж' : 'Concierge'}</span>
                   <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
                   <Link
                     href={`/${locale}/contact`}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/40 transition hover:border-white"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/40 transition hover:border-white sm:h-10 sm:w-10"
                   >
                     ↗
                   </Link>
@@ -537,21 +537,21 @@ export default function MotoPage() {
         </div>
       </section>
 
-      <section className="relative border-y border-white/5 bg-gradient-to-b from-black via-black/80 to-black py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-16 text-center">
-            <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">{t('featuredBrands')}</p>
-            <h2 className="mt-3 text-4xl font-light text-white sm:text-5xl">
+      <section className="relative border-y border-white/5 bg-gradient-to-b from-black via-black/80 to-black py-12 sm:py-16 md:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mb-10 text-center sm:mb-12 md:mb-16">
+            <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('featuredBrands')}</p>
+            <h2 className="mt-2 text-2xl font-light text-white sm:mt-3 sm:text-3xl md:text-4xl lg:text-5xl">
               {locale === 'ua' ? 'Ікони, що задають звук' : 'Icons that dictate the sound'}
             </h2>
           </div>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 sm:gap-5 md:grid-cols-2 md:gap-6">
             {topBrands.map((brand) => (
               <motion.button
                 key={brand.name}
                 onClick={() => setSelectedBrand(brand)}
                 whileHover={{ y: -4 }}
-                className="group relative flex flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-8 text-left transition"
+                className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-5 text-left transition sm:gap-5 sm:rounded-3xl sm:p-6 md:gap-6 md:p-8"
               >
                 <div
                   className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
@@ -592,13 +592,13 @@ export default function MotoPage() {
         </div>
       </section>
 
-      <section className="border-b border-white/5 bg-black/30 py-20">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 lg:flex-row lg:items-center">
-          <div className="flex-1 space-y-5">
-            <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">
+      <section className="border-b border-white/5 bg-black/30 py-12 sm:py-16 md:py-20">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 sm:gap-7 sm:px-6 md:gap-8 lg:flex-row lg:items-center">
+          <div className="flex-1 space-y-3 sm:space-y-4 md:space-y-5">
+            <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">
               {locale === 'ua' ? 'Трековий протокол' : 'Track protocol'}
             </p>
-            <h2 className="text-4xl font-light text-white sm:text-5xl">
+            <h2 className="text-2xl font-light text-white sm:text-3xl md:text-4xl lg:text-5xl">
               {locale === 'ua' ? 'Pit crew checklist' : 'Pit crew checklist'}
             </h2>
             <p className="text-white/70">
@@ -607,19 +607,19 @@ export default function MotoPage() {
                 : 'We minimise surprises with timeboxed deliveries, remote rehearsals and a lifestyle concierge — an extra layer beyond the core program.'}
             </p>
           </div>
-          <div className="flex-1 rounded-[32px] border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.03] p-6">
-            <div className="space-y-4">
+          <div className="flex-1 rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.03] p-4 sm:rounded-3xl sm:p-5 md:rounded-[32px] md:p-6">
+            <div className="space-y-3 sm:space-y-4">
               {pitCrewChecklist.map((item) => (
-                <div key={item.label.en} className="rounded-2xl border border-white/10 bg-black/30 p-5">
-                  <div className="text-[10px] uppercase tracking-[0.5em] text-white/50">{item.meta[locale]}</div>
-                  <div className="mt-2 text-xl font-light">{item.label[locale]}</div>
-                  <p className="mt-2 text-sm text-white/70">{item.detail[locale]}</p>
+                <div key={item.label.en} className="rounded-xl border border-white/10 bg-black/30 p-4 sm:rounded-2xl sm:p-5">
+                  <div className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em]">{item.meta[locale]}</div>
+                  <div className="mt-1.5 text-lg font-light sm:mt-2 sm:text-xl">{item.label[locale]}</div>
+                  <p className="mt-1.5 text-xs text-white/70 sm:mt-2 sm:text-sm">{item.detail[locale]}</p>
                 </div>
               ))}
             </div>
             <Link
               href={`/${locale}/contact`}
-              className="mt-6 inline-flex w-full items-center justify-center rounded-full border border-white bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-transparent hover:text-white"
+              className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-white bg-white px-5 py-2.5 text-xs font-semibold text-black transition hover:bg-transparent hover:text-white sm:mt-6 sm:px-6 sm:py-3 sm:text-sm"
             >
               {locale === 'ua' ? 'Забронювати вікно pit-support' : 'Book pit-support window'}
             </Link>
@@ -627,10 +627,10 @@ export default function MotoPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-24">
-        <div className="mb-12 text-center">
-          <p className="text-[11px] uppercase tracking-[0.6em] text-white/50">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
-          <h2 className="mt-3 text-4xl font-light text-white sm:text-5xl">{t('allBrands')}</h2>
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+        <div className="mb-8 text-center sm:mb-10 md:mb-12">
+          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
+          <h2 className="mt-2 text-2xl font-light text-white sm:mt-3 sm:text-3xl md:text-4xl lg:text-5xl">{t('allBrands')}</h2>
         </div>
 
         <div className="flex justify-center">
@@ -640,16 +640,16 @@ export default function MotoPage() {
               placeholder={t('searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-3xl border border-white/15 bg-gradient-to-r from-white/10 to-white/[0.02] px-10 py-4 text-lg text-white placeholder-white/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40"
+              className="w-full rounded-2xl border border-white/15 bg-gradient-to-r from-white/10 to-white/[0.02] px-6 py-3 text-base text-white placeholder-white/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:px-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
             />
-            <div className="pointer-events-none absolute inset-y-0 right-8 flex items-center text-white/40">⌕</div>
+            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">⌕</div>
           </div>
         </div>
 
-        <div className="mt-12 flex flex-wrap justify-center gap-2">
+        <div className="mt-6 flex flex-wrap justify-center gap-1.5 sm:mt-8 sm:gap-2 md:mt-12">
           <button
             onClick={() => setActiveLetter(null)}
-            className={`rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] transition ${
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] transition sm:px-4 sm:py-2 sm:text-sm sm:tracking-[0.3em] ${
               !activeLetter
                 ? 'bg-white text-black'
                 : 'border border-white/20 text-white/60 hover:border-white/40 hover:text-white'
@@ -661,7 +661,7 @@ export default function MotoPage() {
             <button
               key={letter}
               onClick={() => setActiveLetter(letter)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.3em] ${
                 activeLetter === letter
                   ? 'bg-white text-black'
                   : 'border border-white/15 text-white/60 hover:border-white/40 hover:text-white'
@@ -672,14 +672,14 @@ export default function MotoPage() {
           ))}
         </div>
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:mt-12 lg:grid-cols-3 xl:grid-cols-4">
           {filteredBrands.length > 0 ? (
             filteredBrands.map((brand) => (
               <motion.button
                 key={brand.name}
                 onClick={() => setSelectedBrand(brand)}
                 whileHover={{ y: -6 }}
-                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.02] p-6 text-left transition"
+                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.02] p-4 text-left transition sm:rounded-3xl sm:p-5 md:p-6"
               >
                 <div
                   className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"

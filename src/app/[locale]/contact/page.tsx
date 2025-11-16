@@ -77,50 +77,50 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
-      <section className="relative overflow-hidden px-6 py-32 md:px-10 md:py-40">
+      <section className="relative overflow-hidden px-4 py-16 sm:px-6 sm:py-20 md:px-10 md:py-32 lg:py-40">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-[#0f0f0f] to-[#050505]" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_top,_rgba(245,230,200,0.25),_transparent_60%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top,_rgba(245,230,200,0.25),_transparent_60%)] sm:h-64" />
         <div className="relative mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-20"
+            className="mb-12 text-center sm:mb-16 md:mb-20"
           >
-            <p className="text-sm uppercase tracking-[0.4em] text-amber-200/70 mb-6">{t("hero.eyebrow")}</p>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-extralight tracking-tight text-white mb-8 leading-tight">
+            <p className="mb-4 text-xs uppercase tracking-[0.3em] text-amber-200/70 sm:mb-5 sm:text-sm sm:tracking-[0.4em] md:mb-6">{t("hero.eyebrow")}</p>
+            <h1 className="mb-6 text-3xl font-extralight leading-tight tracking-tight text-white sm:text-4xl sm:mb-7 md:text-5xl md:mb-8 lg:text-7xl xl:text-8xl">
               {t("hero.heading")}
             </h1>
-            <div className="w-32 h-px bg-amber-200/40 mx-auto mb-10" />
-            <p className="text-xl md:text-2xl font-light text-white/70 max-w-3xl mx-auto">
+            <div className="mx-auto mb-6 h-px w-20 bg-amber-200/40 sm:w-24 sm:mb-8 md:w-32 md:mb-10" />
+            <p className="mx-auto max-w-3xl text-base font-light text-white/70 sm:text-lg md:text-xl lg:text-2xl">
               {t("hero.subheading")}
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+          <div className="grid grid-cols-1 gap-8 sm:gap-12 md:gap-16 lg:grid-cols-2 lg:gap-24">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="space-y-12 rounded-[32px] border border-white/10 bg-white/5 p-10 backdrop-blur"
+              className="space-y-8 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur sm:space-y-10 sm:rounded-3xl sm:p-8 md:space-y-12 md:rounded-[32px] md:p-10"
             >
               <div>
-                <h2 className="text-3xl md:text-4xl font-light text-white mb-8 tracking-wide">
+                <h2 className="mb-6 text-2xl font-light tracking-wide text-white sm:mb-7 sm:text-3xl md:mb-8 md:text-4xl">
                   {t("info.title")}
                 </h2>
-                <div className="w-16 h-px bg-amber-200/40 mb-12" />
+                <div className="mb-8 h-px w-12 bg-amber-200/40 sm:mb-10 sm:w-14 md:mb-12 md:w-16" />
               </div>
 
-              <div className="space-y-8">
-                <div className="flex items-start gap-4 group">
-                  <div className="p-3 rounded-full border border-white/10 bg-white/5 text-white group-hover:scale-110 transition-transform duration-300">
-                    <Mail className="w-6 h-6" />
+              <div className="space-y-6 sm:space-y-7 md:space-y-8">
+                <div className="group flex items-start gap-3 sm:gap-4">
+                  <div className="rounded-full border border-white/10 bg-white/5 p-2 text-white transition-transform duration-300 group-hover:scale-110 sm:p-3">
+                    <Mail className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                   <div>
-                    <h3 className="text-sm uppercase tracking-widest text-white/50 mb-2 font-light">{t("info.emailLabel")}</h3>
+                    <h3 className="mb-1.5 text-xs font-light uppercase tracking-widest text-white/50 sm:mb-2 sm:text-sm">{t("info.emailLabel")}</h3>
                     <a
                       href="mailto:info@onecompany.com"
-                      className="text-lg font-light text-white hover:text-amber-200 transition-colors"
+                      className="text-base font-light text-white transition-colors hover:text-amber-200 sm:text-lg"
                     >
                       info@onecompany.com
                     </a>
@@ -162,14 +162,14 @@ export default function ContactPage() {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="rounded-[32px] border border-white/10 bg-white/5 p-8 backdrop-blur"
+              className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur sm:rounded-3xl sm:p-6 md:rounded-[32px] md:p-8"
             >
-              <form onSubmit={handleSubmit} className="space-y-8">
-                <div className="flex gap-4">
+              <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7 md:space-y-8">
+                <div className="flex gap-2 sm:gap-3 md:gap-4">
                   <button
                     type="button"
                     onClick={() => handleTypeChange("auto")}
-                    className={`flex-1 py-4 px-6 text-sm uppercase tracking-widest font-light transition-all duration-300 ${
+                    className={`flex-1 px-3 py-3 text-xs font-light uppercase tracking-wider transition-all duration-300 sm:px-4 sm:py-3.5 sm:text-sm sm:tracking-widest md:px-6 md:py-4 ${
                       type === "auto"
                         ? "bg-gradient-to-r from-amber-200 to-amber-400 text-black shadow-[0_10px_40px_rgba(251,191,36,0.25)]"
                         : "bg-white/5 text-white/60 hover:bg-white/10"
@@ -190,10 +190,10 @@ export default function ContactPage() {
                   </button>
                 </div>
 
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-5 sm:space-y-6">
+                  <div className="grid grid-cols-1 gap-5 sm:gap-6 md:grid-cols-2">
                     <div>
-                      <label htmlFor="model" className="block text-xs uppercase tracking-widest text-white/50 mb-3 font-light">
+                      <label htmlFor="model" className="mb-2 block text-[10px] font-light uppercase tracking-wider text-white/50 sm:mb-2.5 sm:text-xs sm:tracking-widest md:mb-3">
                         {modelLabel}
                       </label>
                       <input
@@ -272,15 +272,15 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                <div className="pt-6">
+                <div className="pt-4 sm:pt-5 md:pt-6">
                   <motion.button
                     type="submit"
                     disabled={status === "loading"}
                     whileHover={{ scale: status === "loading" ? 1 : 1.02 }}
                     whileTap={{ scale: status === "loading" ? 1 : 0.98 }}
-                    className="w-full py-4 px-12 bg-gradient-to-r from-amber-200 to-amber-400 text-black text-sm uppercase tracking-widest font-light hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-3"
+                    className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-amber-200 to-amber-400 px-8 py-3 text-xs font-light uppercase tracking-wider text-black transition-all duration-300 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:gap-3 sm:px-10 sm:py-3.5 sm:text-sm sm:tracking-widest md:px-12 md:py-4"
                   >
-                    {status === "loading" && <Loader className="animate-spin" size={18} />}
+                    {status === "loading" && <Loader className="animate-spin" size={16} />}
                     {status === "loading" ? t("form.submitting") : t("form.submit")}
                   </motion.button>
                 </div>

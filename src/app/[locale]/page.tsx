@@ -108,15 +108,15 @@ export default async function LocalizedHomePage({
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_0%,rgba(255,179,71,0.25),transparent_45%)]" />
       </div>
       <section className="relative flex min-h-screen flex-col">
-        <div className="px-6 pt-16 text-center text-[10px] uppercase tracking-[0.5em] text-white/55">
+        <div className="px-4 pt-12 text-center text-[8px] uppercase tracking-[0.4em] text-white/55 sm:px-6 sm:pt-16 sm:text-[10px] sm:tracking-[0.5em]">
           <p>{heroBadgeCopy}</p>
         </div>
-        <div className="mt-4 flex flex-col items-center gap-1 px-6 text-center text-[11px] uppercase tracking-[0.4em] text-white/60">
+        <div className="mt-2 flex flex-col items-center gap-1 px-4 text-center text-[9px] uppercase tracking-[0.3em] text-white/60 sm:mt-4 sm:px-6 sm:text-[11px] sm:tracking-[0.4em]">
           <p>{heroMeta.globalPresence}</p>
           <p className="text-white/70">{heroMeta.brandPromise}</p>
         </div>
 
-  <div className="relative isolate flex flex-1 flex-col gap-6 px-4 pb-4 pt-8 md:flex-row md:gap-0 md:px-0">
+  <div className="relative isolate flex flex-1 flex-col gap-4 px-3 pb-3 pt-6 sm:gap-6 sm:px-4 sm:pb-4 sm:pt-8 md:flex-row md:gap-0 md:px-0">
           <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-[1px] -translate-x-1/2 bg-gradient-to-b from-transparent via-white/60 to-transparent md:block" />
           <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-40 -translate-x-1/2 bg-gradient-to-r from-black/40 via-black/5 to-transparent blur-3xl md:block" />
           <div className="relative flex flex-1 flex-col gap-6 md:flex-row md:gap-0">
@@ -125,8 +125,9 @@ export default async function LocalizedHomePage({
                 key={experience.label}
                 href={experience.href}
                 className={clsx(
-                  "group relative flex flex-1 min-h-[420px] flex-col justify-between gap-10 overflow-hidden px-8 py-10 text-left text-white",
-                  "backdrop-blur-md bg-black/30 shadow-[0_40px_120px_rgba(0,0,0,0.45)] transition duration-500 hover:bg-black/15 hover:backdrop-blur-xl",
+                  "group relative flex flex-1 min-h-[380px] flex-col justify-between gap-6 overflow-hidden px-5 py-6 text-left text-white sm:min-h-[420px] sm:gap-10 sm:px-8 sm:py-10",
+                  "backdrop-blur-md bg-black/30 shadow-[0_20px_60px_rgba(0,0,0,0.45)] transition duration-500 hover:bg-black/15 hover:backdrop-blur-xl sm:shadow-[0_40px_120px_rgba(0,0,0,0.45)]",
+                  "rounded-2xl sm:rounded-none",
                   index === 0 ? "md:pr-20" : "md:pl-20 md:text-right md:items-end"
                 )}
               >
@@ -139,30 +140,30 @@ export default async function LocalizedHomePage({
                     experience.accent
                   )}
                 />
-                <div className="relative flex w-full items-center justify-between text-[11px] uppercase tracking-[0.35em] text-white/60">
-                  <span className="rounded-full border border-white/30 px-4 py-1 text-[10px] tracking-[0.45em]">
+                <div className="relative flex w-full items-center justify-between text-[9px] uppercase tracking-[0.25em] text-white/60 sm:text-[11px] sm:tracking-[0.35em]">
+                  <span className="rounded-full border border-white/30 px-3 py-1 text-[8px] tracking-[0.35em] sm:px-4 sm:text-[10px] sm:tracking-[0.45em]">
                     {experience.label}
                   </span>
-                  <span className="text-white/40">program access</span>
+                  <span className="hidden text-white/40 sm:inline">program access</span>
                 </div>
-                <div className={clsx("relative space-y-4 text-left", index === 1 && "md:text-right")}>
-                  <h2 className="text-4xl font-light leading-tight text-white md:text-5xl">
+                <div className={clsx("relative space-y-2 text-left sm:space-y-4", index === 1 && "md:text-right")}>
+                  <h2 className="text-2xl font-light leading-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
                     {experience.title}
                   </h2>
-                  <p className="text-base text-white/80">
+                  <p className="text-sm leading-relaxed text-white/80 sm:text-base">
                     {experience.description}
                   </p>
                 </div>
-                <div className="relative flex w-full items-end justify-between gap-6 pt-6">
-                  <div className="flex flex-wrap gap-6 font-mono text-white/80">
+                <div className="relative flex w-full items-end justify-between gap-3 pt-4 sm:gap-6 sm:pt-6">
+                  <div className="flex flex-wrap gap-3 font-mono text-white/80 sm:gap-6">
                     {experience.stats.map((stat) => (
                       <div key={stat.note}>
-                        <p className="text-3xl tracking-tight text-white">{stat.value}</p>
-                        <p className="text-[11px] uppercase tracking-[0.35em] text-white/55">{stat.note}</p>
+                        <p className="text-xl tracking-tight text-white sm:text-2xl md:text-3xl">{stat.value}</p>
+                        <p className="text-[9px] uppercase tracking-[0.25em] text-white/55 sm:text-[11px] sm:tracking-[0.35em]">{stat.note}</p>
                       </div>
                     ))}
                   </div>
-                  <span className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-white/30 text-sm uppercase tracking-[0.3em] text-white/70 transition group-hover:border-white group-hover:bg-white group-hover:text-black">
+                  <span className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-white/30 text-sm uppercase tracking-[0.3em] text-white/70 transition group-hover:border-white group-hover:bg-white group-hover:text-black sm:h-16 sm:w-16">
                     →
                   </span>
                 </div>
@@ -170,13 +171,13 @@ export default async function LocalizedHomePage({
             ))}
           </div>
         </div>
-        <div className="mb-6 flex justify-center px-6">
+        <div className="mb-4 flex justify-center px-4 sm:mb-6 sm:px-6">
           <Link
             href="#signature-programs"
-            className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-6 py-3 text-[11px] uppercase tracking-[0.4em] text-white transition hover:border-white/70 hover:bg-white hover:text-black"
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-[9px] uppercase tracking-[0.3em] text-white transition hover:border-white/70 hover:bg-white hover:text-black sm:gap-3 sm:px-6 sm:py-3 sm:text-[11px] sm:tracking-[0.4em]"
           >
             Signature Programs
-            <span className="text-base">↘</span>
+            <span className="text-sm sm:text-base">↘</span>
           </Link>
         </div>
         <div className="px-6 pb-10 text-center text-[11px] uppercase tracking-[0.35em] text-white/60">
