@@ -1,0 +1,164 @@
+{
+  "heroPosters": {
+    "auto": "/images/eventuri/atelier-hero.jpg",
+    "moto": "/images/eventuri/atelier-hero.jpg"
+  },
+  "stores": {
+    "kw": {
+      "heroPoster": "/images/kw/v3-coilover.jpg",
+      "brandShowcase": [
+        {
+          "id": "kw-v3",
+          "name": "KW V3 Coilover",
+          "description": "Повністю регульована підвіска",
+          "image": "/images/kw/v3-coilover.jpg",
+          "specs": ["Компресія", "Відбій", "Висота"]
+        },
+        {
+          "id": "kw-v1",
+          "name": "KW V1 Coilover",
+          "description": "Оптимальне співвідношення ціна/якість",
+          "image": "/images/kw/v1-coilover.jpg",
+          "specs": ["Висота", "Комфорт", "Спорт"]
+        },
+        {
+          "id": "kw-has",
+          "name": "KW HAS Kit",
+          "description": "Гідравлічна система підняття",
+          "image": "/images/kw/has-kit.jpg",
+          "specs": ["+40мм", "Електроніка", "Універсальність"]
+        }
+      ],
+      "catalogProducts": [
+        {
+          "id": "v3",
+          "name": "KW V3",
+          "series": "Variant 3",
+          "price": "€1,899",
+          "description": "Топова серія з повним контролем характеристик підвіски",
+          "image": "/images/kw/v3-coilover.jpg",
+          "features": [
+            "Окрема регулювання компресії та відбою",
+            "Регулювання висоти (30-65мм)",
+            "TÜV сертифікація",
+            "Нержавіюча сталь"
+          ],
+          "compatibility": "BMW M3/M4 (F80/F82)",
+          "specs": []
+        },
+        {
+          "id": "v2",
+          "name": "KW V2",
+          "series": "Variant 2",
+          "price": "€1,499",
+          "description": "Ідеальний баланс вартості та продуктивності",
+          "image": "/images/kw/v2-coilover.jpg",
+          "features": [
+            "Регулювання відбою (16 кліків)",
+            "Регулювання висоти (25-55мм)",
+            "TÜV сертифікація",
+            "Захист від корозії"
+          ],
+          "compatibility": "Porsche 911 (992)",
+          "specs": []
+        },
+        {
+          "id": "v1",
+          "name": "KW V1",
+          "series": "Variant 1",
+          "price": "€999",
+          "description": "Ідеально для щоденного використання",
+          "image": "/images/kw/v1-coilover.jpg",
+          "features": [
+            "Фіксовані налаштування демпфування",
+            "Регулювання висоти (20-45мм)",
+            "TÜV сертифікація",
+            "Компактна конструкція"
+          ],
+          "compatibility": "Volkswagen Golf GTI (Mk8)",
+          "specs": []
+        },
+        {
+          "id": "clubsport",
+          "name": "KW Clubsport",
+          "series": "3-Way",
+          "price": "€3,499",
+          "description": "Професійне гоночне обладнання",
+          "image": "/images/kw/clubsport.jpg",
+          "features": [
+            "3-х позиційне регулювання",
+            "Низьке та високе регулювання компресії",
+            "Окреме регулювання відбою",
+            "Motorsport сертифікація"
+          ],
+          "compatibility": "Universal (Motorsport)",
+          "specs": []
+        }
+      ],
+      "gallery": [
+        { "id": "kw-gallery-gt3", "image": "/images/kw/gallery/porsche-gt3.jpg", "caption": "Porsche GT3" },
+        { "id": "kw-gallery-m4", "image": "/images/kw/gallery/bmw-m4.jpg", "caption": "BMW M4" },
+        { "id": "kw-gallery-rs6", "image": "/images/kw/gallery/audi-rs6.jpg", "caption": "Audi RS6" },
+        { "id": "kw-gallery-amg", "image": "/images/kw/gallery/amg-gt.jpg", "caption": "AMG GT" },
+        { "id": "kw-gallery-huracan", "image": "/images/kw/gallery/huracan.jpg", "caption": "Lamborghini Huracán" },
+        { "id": "kw-gallery-mclaren", "image": "/images/kw/gallery/mclaren.jpg", "caption": "McLaren" }
+      ]
+    },
+    "fi": {
+      "heroPoster": "/images/fi/valvetronic.jpg",
+      "brandShowcase": [
+        {
+          "id": "fi-valvetronic",
+          "name": "Fi Valvetronic System",
+          "description": "Титанова система з клапанами",
+          "image": "/images/fi/valvetronic.jpg",
+          "specs": ["Титан Grade 1", "Клапани", "+30HP"]
+        },
+        {
+          "id": "fi-catback",
+          "name": "Fi Titanium Cat-back",
+          "description": "Повна система від каталізатора",
+          "image": "/images/fi/catback.jpg",
+          "specs": ["100% Титан", "Легше -50%", "Унікальний звук"]
+        },
+        {
+          "id": "fi-tips",
+          "name": "Fi Exhaust Tips",
+          "description": "Преміальні насадки",
+          "image": "/images/fi/tips.jpg",
+          "specs": ["Карбон", "Титан", "Кастомізація"]
+        }
+      ],
+      "catalogProducts": [],
+      "gallery": []
+    },
+    "eventuri": {
+      "heroPoster": "/images/eventuri/carbon-intake.jpg",
+      "brandShowcase": [
+        {
+          "id": "ev-intake",
+          "name": "Eventuri Carbon Intake",
+          "description": "Патентована технологія Venturi",
+          "image": "/images/eventuri/carbon-intake.jpg",
+          "specs": ["100% Carbon", "Venturi", "+15HP"]
+        },
+        {
+          "id": "ev-filter",
+          "name": "Eventuri Filter",
+          "description": "Високопотоковий фільтр",
+          "image": "/images/eventuri/filter.jpg",
+          "specs": ["Багаторазовий", "ISO Tested", "Premium"]
+        },
+        {
+          "id": "ev-duct",
+          "name": "Eventuri Duct",
+          "description": "Карбонові повітроводи",
+          "image": "/images/eventuri/duct.jpg",
+          "specs": ["Аеродинаміка", "Легкі", "Автоклав"]
+        }
+      ],
+      "catalogProducts": [],
+      "gallery": []
+    }
+  }
+}

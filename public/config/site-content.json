@@ -1,0 +1,130 @@
+{
+  "hero": {
+    "badge": "onecompany",
+    "title": "Signature Atelier",
+    "subtitle": "Curated excellence for discerning collectors.",
+    "ctaAutoLabel": "Hypercar",
+    "ctaMotoLabel": "Superbike",
+    "scrollLabel": "Discover",
+    "globalPresence": "kyiv, ukraine · since 2007",
+    "brandPromise": "200+ performance marques",
+    "atelierAddress": "21B baseina st · kyiv"
+  },
+  "marqueeBrands": [
+    "Aston Martin Racing",
+    "Brabus",
+    "Akrapovič",
+    "KW Suspensions",
+    "Novitec",
+    "Eventuri",
+    "ABT Sportsline",
+    "Mansory",
+    "Ruf Automobile",
+    "Techart",
+    "Z Performance",
+    "Capristo"
+  ],
+  "statHighlights": [
+    { "value": "18", "label": "years of heritage" },
+    { "value": "200+", "label": "performance marques" },
+    { "value": "36h", "label": "global logistics" },
+    { "value": "4", "label": "continents weekly" }
+  ],
+  "values": ["PERFORMANCE", "QUALITY", "SERVICE", "SOUND", "INNOVATION"],
+  "brandSections": {
+    "automotive": [
+      { "name": "Eventuri", "logo": "/logos/eventuri.png" },
+      { "name": "KW Suspension", "logo": "/logos/kw-suspension.png" },
+      { "name": "Mansory", "logo": "/logos/mansory.png" },
+      { "name": "Urban Automotive", "logo": "/logos/urban-automotive.png" },
+      { "name": "HRE Wheels", "logo": "/logos/hre-wheels.png" },
+      { "name": "Brembo", "logo": "/logos/brembo.png" },
+      { "name": "Akrapovič", "logo": "/logos/akrapovic.png" },
+      { "name": "Liberty Walk", "logo": "/logos/liberty-walk.png" },
+      { "name": "Vorsteiner", "logo": "/logos/vorsteiner.png" },
+      { "name": "Milltek", "logo": "/logos/milltek.png" },
+      { "name": "FI Exhaust", "logo": "/logos/fi-exhaust.png" },
+      { "name": "Remus", "logo": "/logos/remus.png" },
+      { "name": "IPE Exhaust", "logo": "/logos/ipe-exhaust.png" },
+      { "name": "Capristo", "logo": "/logos/capristo.png" },
+      { "name": "Armytrix", "logo": "/logos/armytrix.png" }
+    ],
+    "moto": [
+      { "name": "Akrapovič", "logo": "/logos/akrapovic.png" },
+      { "name": "SC-Project", "logo": "/logos/sc-project.png" },
+      { "name": "Rizoma", "logo": "/logos/rizoma.webp" },
+      { "name": "Brembo", "logo": "/logos/brembo.png" },
+      { "name": "Arrow", "logo": "/logos/arrow.png" },
+      { "name": "Termignoni", "logo": "/logos/termignoni.png" },
+      { "name": "Yoshimura", "logo": "/logos/yoshimura.png" },
+      { "name": "Scorpion", "logo": "/logos/scorpion.png" },
+      { "name": "Alpha Racing", "logo": "/logos/alpha-racing.png" },
+      { "name": "CNC Racing", "logo": "/logos/cnc-racing.png" }
+    ]
+  },
+  "productCategories": [
+    { "name": "Exhaust Systems", "description": "Valved exhausts, headers, titanium race systems" },
+    { "name": "Suspension", "description": "Coilovers, adaptive damping, motorsport setups" },
+    { "name": "Wheels & Brakes", "description": "Forged wheels, carbon-ceramic upgrades, aero discs" },
+    { "name": "Carbon Fiber", "description": "Aero programs, interior trim, structural upgrades" },
+    { "name": "Engine Tuning", "description": "ECU calibrations, hybrid turbos, intake systems" },
+    { "name": "Body Kits", "description": "Widebody programs, splitters, GT diffusers" },
+    { "name": "Interior", "description": "Seats, steering, telemetry, bespoke materials" },
+    { "name": "Cooling", "description": "Intercoolers, radiators, oil cooling solutions" }
+  ],
+  "contactCta": {
+    "heading": "Ready to upgrade?",
+    "body": "Concierge engineers on-call for bespoke specs, logistics, and fitment worldwide.",
+    "buttonLabel": "Get in touch",
+    "buttonHref": "/contact"
+  },
+  "contactPage": {
+    "heroBadge": "Concierge atelier · відповідь до 12 годин",
+    "infoBody": "Команда відповідає українською, англійською та польською. Підготуйте VIN та список бажаних оновлень — одразу зможемо дати реальні строки та вартість.",
+    "timezoneNote": "Kyiv · UTC+2 · щоденні оновлення статусу",
+    "slaPromise": "Середній час першої відповіді — 2 години у робочі дні / 6 годин у вихідні.",
+    "messengerTagline": "Хочете швидке уточнення? Напишіть у месенджер — відповімо з черги лідів.",
+    "budgets": [
+      "€3k–€7k · street aero & sound",
+      "€8k–€15k · підвіска та гальма",
+      "€15k+ · трекові та rally raid комплекти"
+    ],
+    "channels": [
+      { "id": "email", "label": "Email atelier", "value": "info@onecompany.com", "note": "Відповідь до 12 годин", "type": "email" },
+      { "id": "phone", "label": "Concierge phone", "value": "+380 12 345 67 89", "note": "10:00–21:00 GMT+2", "type": "phone" },
+      { "id": "telegram", "label": "Telegram", "value": "@onecompany_atelier", "note": "Пріоритетні ліди", "type": "telegram" },
+      { "id": "whatsapp", "label": "WhatsApp", "value": "+380 12 345 67 89", "note": "Глобальні клієнти", "type": "whatsapp" }
+    ],
+    "successStories": [
+      {
+        "id": "rs6-logistics",
+        "badge": "Logistics 72h",
+        "title": "Audi RS6 · повний Stage 2",
+        "summary": "Закрили spec лист за 3 дні: Akrapovic, Eventuri, KW V4, Brembo. Доставка Київ — Варшава — Київ з митним супроводом.",
+        "metric": "72h",
+        "metricLabel": "door-to-door"
+      },
+      {
+        "id": "panigale-track",
+        "badge": "Moto race",
+        "title": "Panigale V4R · трековий пакет",
+        "summary": "Fi titanium, STM slipper clutch, Öhlins, carbon protection. Передали мото у збірці, провели трек-сесію.",
+        "metric": "+28hp",
+        "metricLabel": "dyno verified"
+      },
+      {
+        "id": "g63-widebody",
+        "badge": "Design lab",
+        "title": "G63 · widebody + interior",
+        "summary": "Mansory bodykit, HRE forged, повний інтер’єр з алькантари та карбону. Координація 4 підрядників.",
+        "metric": "6 weeks",
+        "metricLabel": "from brief"
+      }
+    ],
+    "messengerHandles": {
+      "telegram": "https://t.me/onecompany_atelier",
+      "whatsapp": "https://wa.me/380123456789",
+      "phone": "+380123456789"
+    }
+  }
+}
