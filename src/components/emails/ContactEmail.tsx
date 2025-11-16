@@ -23,6 +23,8 @@ interface ContactEmailProps {
   model?: string;
   vin?: string;
   budget?: string;
+  phone?: string;
+  contactMethod?: 'telegram' | 'whatsapp';
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -44,6 +46,8 @@ export const ContactEmail = ({
   model,
   vin,
   budget,
+  phone,
+  contactMethod,
 }: ContactEmailProps) => (
   <Html>
     <Head />
@@ -73,6 +77,24 @@ export const ContactEmail = ({
             <Column style={label}>Contact:</Column>
             <Column style={value}>{contact}</Column>
           </Row>
+          {phone && (
+            <>
+              <Hr style={hr} />
+              <Row style={row}>
+                <Column style={label}>Phone:</Column>
+                <Column style={value}>{phone}</Column>
+              </Row>
+            </>
+          )}
+          {contactMethod && (
+            <>
+              <Hr style={hr} />
+              <Row style={row}>
+                <Column style={label}>Contact Method:</Column>
+                <Column style={value}>{contactMethod?.toUpperCase()}</Column>
+              </Row>
+            </>
+          )}
           {model && (
             <>
               <Hr style={hr} />

@@ -118,6 +118,8 @@ async function sendEmail(
     model: formData.carModel || formData.motoModel,
     vin: formData.vin,
     budget: formData.budget,
+    phone: formData.phone,
+    contactMethod: formData.contactMethod,
   }));
 
   try {
