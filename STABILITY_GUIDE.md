@@ -1,3 +1,19 @@
+## GitHub Actions (auto-deploy)
+- A workflow `.github/workflows/deploy-stable.yml` is included which triggers on `push` to `stable`.
+- Required repository secrets:
+
+	- `VERCEL_TOKEN` (for CLI automatic deploy)
+	- `VERCEL_ORG_ID` (optional but recommended)
+	- `VERCEL_PROJECT_ID` (optional)
+	- `DATABASE_URL` (used by predeploy checks for Prisma)
+	- `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_AUTO`, `EMAIL_MOTO` (for email sending)
+	- `TELEGRAM_BOT_TOKEN`, `TELEGRAM_AUTO_CHAT_ID`, `TELEGRAM_MOTO_CHAT_ID` (for Telegram messages)
+
+Steps for enabling auto-deploy:
+1. Go to your GitHub repo -> Settings -> Secrets -> Actions
+2. Add the secrets listed above
+3. Merge `master` into `stable`. The GH Action will run and deploy if `predeploy-check` passes.
+
 # Stable Release & Deployment Strategy
 
 This guide defines a lightweight process so changes reach production only after passing a few guardrails. It prevents accidental deploying of uncommitted or half–finished work.
