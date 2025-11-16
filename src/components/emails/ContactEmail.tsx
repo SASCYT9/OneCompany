@@ -58,20 +58,25 @@ export const ContactEmail = ({
     <Preview>New {inquiryType} Inquiry from {name}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={{ paddingTop: '20px' }}>
-          <div style={{ textAlign: 'center' }}>
-            <Img
-              src={logoSrc || `${baseUrl}/branding/one-company-logo.svg`}
-              width="150"
-              alt="OneCompany Logo"
-              style={logo}
-            />
-          </div>
+        <Section style={{ paddingTop: '10px', paddingBottom: '10px' }}>
+          <Row style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Column style={{ width: 150 }}>
+              <Img
+                src={logoSrc || `${baseUrl}/branding/one-company-logo.svg`}
+                width="150"
+                alt="OneCompany Logo"
+                style={logo}
+              />
+            </Column>
+            <Column>
+              <Heading style={{ ...heading, textAlign: 'left', marginTop: 0 }}>New Contact Request</Heading>
+              <Text style={{ ...subheading, textAlign: 'left' }}>
+                A new <strong>{inquiryType}</strong> inquiry has been submitted through the website.
+              </Text>
+              {messageId && <Text style={{ color: subtleTextColor, fontSize: 11, marginTop: 6 }}>Message ID: {messageId}</Text>}
+            </Column>
+          </Row>
         </Section>
-        <Heading style={heading}>New Contact Request</Heading>
-        <Text style={subheading}>
-          A new <strong>{inquiryType}</strong> inquiry has been submitted through the website.
-        </Text>
         
         <Section style={card}>
           <Row style={{ ...row, display: 'flex', gap: '12px', alignItems: 'center' }}>
