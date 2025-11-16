@@ -35,6 +35,21 @@ export default function ContactPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const formatPhoneMask = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.length <= 3) return `+${digits}`;
+    if (digits.length <= 5) return `+${digits.slice(0, 3)} ${digits.slice(3)}`;
+    if (digits.length <= 8) return `+${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5)}`;
+    if (digits.length <= 10) return `+${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`;
+    return `+${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8, 10)} ${digits.slice(10, 12)}`;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneMask(e.target.value);
+    setFormData(prev => ({ ...prev, phone: formatted }));
+  };
+
   const handleTypeChange = (newType: FormType) => {
     setType(newType);
     setFormData({ model: "", vin: "", wishes: "", budget: "", email: "", phone: "", contactMethod: "telegram" });
@@ -176,12 +191,12 @@ export default function ContactPage() {
             >
               <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7 md:space-y-8">
                 {/* Progress bar */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[10px] sm:text-xs tracking-widest uppercase text-white/50">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[9px] sm:text-[10px] tracking-[0.15em] uppercase text-white/40 font-light">
                     <span>{completion}%</span>
-                    <span>{status === "loading" ? t("form.submitting") : t("form.progressLabel")}</span>
+                    <span className="truncate">{status === "loading" ? t("form.submitting") : t("form.progressLabel")}</span>
                   </div>
-                  <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
+                  <div className="h-0.5 w-full overflow-hidden rounded-full bg-white/10">
                     <div
                       className="h-full bg-gradient-to-r from-amber-300 to-amber-500 transition-all duration-500"
                       style={{ width: `${completion}%` }}
@@ -190,17 +205,17 @@ export default function ContactPage() {
                 </div>
 
                 {/* Type selector */}
-                <div className="flex gap-2 sm:gap-3 md:gap-4">
+                <div className="flex gap-2">
                   {(["auto","moto"] as FormType[]).map(option => (
                     <button
                       key={option}
                       type="button"
                       onClick={() => handleTypeChange(option)}
                       className={
-                        `flex-1 px-3 py-3 sm:px-4 sm:py-3.5 md:px-6 md:py-4 text-xs sm:text-sm font-light uppercase tracking-widest transition-all duration-300 relative overflow-hidden group ` +
+                        `flex-1 px-4 py-2.5 sm:py-3 text-[10px] sm:text-xs font-light uppercase tracking-[0.2em] sm:tracking-[0.25em] transition-all duration-300 relative overflow-hidden ` +
                         (type === option
-                          ? "bg-gradient-to-r from-amber-200 via-amber-300 to-amber-400 text-black shadow-[0_10px_40px_rgba(251,191,36,0.25)]"
-                          : "bg-white/5 text-white/60 hover:bg-white/10")
+                          ? "bg-gradient-to-r from-amber-200 via-amber-300 to-amber-400 text-black shadow-[0_6px_24px_rgba(251,191,36,0.2)]"
+                          : "bg-white/5 text-white/50 hover:bg-white/8 hover:text-white/70")
                       }
                       aria-pressed={type===option}
                     >
@@ -210,10 +225,10 @@ export default function ContactPage() {
                   ))}
                 </div>
 
-                <div className="space-y-5 sm:space-y-6">
-                  <div className="grid grid-cols-1 gap-5 sm:gap-6 md:grid-cols-2">
+                <div className="space-y-4 sm:space-y-5">
+                  <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
                     <div>
-                      <label htmlFor="model" className="mb-2 block text-[10px] font-light uppercase tracking-wider text-white/50 sm:mb-2.5 sm:text-xs sm:tracking-widest md:mb-3">
+                      <label htmlFor="model" className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
                         {modelLabel}
                       </label>
                       <input
@@ -222,14 +237,14 @@ export default function ContactPage() {
                         name="model"
                         value={formData.model}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 bg-transparent border-b border-white/20 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-200 transition-colors font-light"
+                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-all font-light"
                         placeholder={modelPlaceholder}
                         required
                       />
                     </div>
                     <div>
-                      <label htmlFor="vin" className="block text-xs uppercase tracking-widest text-white/50 mb-3 font-light">
-                        {t("form.vinLabel")} <span className="text-white/40">{t("form.optional")}</span>
+                      <label htmlFor="vin" className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                        {t("form.vinLabel")} <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
                       </label>
                       <input
                         type="text"
@@ -237,14 +252,15 @@ export default function ContactPage() {
                         name="vin"
                         value={formData.vin}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 bg-transparent border-b border-white/20 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-200 transition-colors font-light"
+                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-all font-light"
                         placeholder={t("form.vinPlaceholder")}
+                        maxLength={17}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label htmlFor="wishes" className="block text-xs uppercase tracking-widest text-white/50 mb-3 font-light">
+                    <label htmlFor="wishes" className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
                       {t("form.wishesLabel")}
                     </label>
                     <textarea
@@ -253,16 +269,16 @@ export default function ContactPage() {
                       rows={4}
                       value={formData.wishes}
                       onChange={handleChange}
-                      className="w-full px-0 py-3 bg-transparent border-b border-white/20 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-200 transition-colors resize-none font-light"
+                      className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-all resize-none font-light"
                       placeholder={t("form.wishesPlaceholder")}
                       required
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                     <div>
-                      <label htmlFor="budget" className="block text-xs uppercase tracking-widest text-white/50 mb-3 font-light">
-                        {t("form.budgetLabel")} <span className="text-white/40">{t("form.optional")}</span>
+                      <label htmlFor="budget" className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                        {t("form.budgetLabel")} <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
                       </label>
                       <input
                         type="text"
@@ -270,12 +286,12 @@ export default function ContactPage() {
                         name="budget"
                         value={formData.budget}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 bg-transparent border-b border-white/20 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-200 transition-colors font-light"
+                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-all font-light"
                         placeholder={t("form.budgetPlaceholder")}
                       />
                     </div>
                     <div>
-                      <label htmlFor="email" className="block text-xs uppercase tracking-widest text-white/50 mb-3 font-light">
+                      <label htmlFor="email" className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
                         {t("form.emailLabel")}
                       </label>
                       <input
@@ -284,48 +300,46 @@ export default function ContactPage() {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-0 py-3 bg-transparent border-b border-white/20 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-200 transition-colors font-light"
+                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-all font-light"
                         placeholder="example@mail.com"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                     <div>
-                      <label htmlFor="phone" className="block text-xs uppercase tracking-widest text-white/50 mb-2 font-light">
-                        Телефон
+                      <label htmlFor="phone" className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                        {t("form.phoneLabel")}
                       </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="tel"
-                          id="phone"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleChange}
-                          className="flex-1 px-0 py-3 bg-transparent border-b border-white/20 text-white placeholder:text-white/30 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-colors font-light"
-                          placeholder="+380 XX XXX XX XX"
-                          required
-                          aria-label="Номер телефону"
-                        />
-                      </div>
-                      <p className="mt-2 text-[10px] text-white/40 tracking-wider">Без емодзі, тільки цифри та +</p>
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handlePhoneChange}
+                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-all font-light"
+                        placeholder={t("form.phonePlaceholder")}
+                        required
+                        aria-label={t("form.phoneLabel")}
+                      />
+                      <p className="mt-1 text-[8px] text-white/30 tracking-wide">{t("form.phoneHint")}</p>
                     </div>
                     <div>
-                      <label className="block text-xs uppercase tracking-widest text-white/50 mb-2 font-light">
-                        Спосіб зв'язку
+                      <label className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                        {t("form.contactMethodLabel")}
                       </label>
-                      <div className="flex gap-3">
+                      <div className="flex gap-2 pt-1">
                         {(["telegram","whatsapp"] as const).map(method => (
                           <button
                             key={method}
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, contactMethod: method }))}
-                            className={`flex-1 relative rounded-full border px-4 py-2 text-xs sm:text-sm font-light tracking-wider transition-all duration-300 ${formData.contactMethod === method ? 'border-amber-300 bg-amber-300/10 text-amber-200 shadow-[0_0_0_1px_rgba(251,191,36,0.25)]' : 'border-white/20 text-white/60 hover:border-white/40 hover:text-white'}`}
+                            className={`flex-1 relative rounded-full border px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-light tracking-[0.1em] transition-all duration-300 ${formData.contactMethod === method ? 'border-amber-300/80 bg-amber-300/10 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.15)]' : 'border-white/15 text-white/50 hover:border-white/30 hover:text-white/70'}`}
                             aria-pressed={formData.contactMethod===method}
                           >
                             <span className="relative z-10">
-                              {method === 'telegram' ? 'Telegram' : 'WhatsApp'}
+                              {t(`form.${method}`)}
                             </span>
                             {formData.contactMethod === method && (
                               <span className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-200/0 via-amber-400/10 to-amber-200/0 animate-pulse" />
@@ -337,15 +351,15 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 sm:pt-5 md:pt-6">
+                <div className="pt-3 sm:pt-4">
                   <motion.button
                     type="submit"
                     disabled={status === "loading"}
-                    whileHover={{ scale: status === "loading" ? 1 : 1.02 }}
+                    whileHover={{ scale: status === "loading" ? 1 : 1.01 }}
                     whileTap={{ scale: status === "loading" ? 1 : 0.98 }}
-                    className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-amber-200 to-amber-400 px-8 py-3 text-xs font-light uppercase tracking-wider text-black transition-all duration-300 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:gap-3 sm:px-10 sm:py-3.5 sm:text-sm sm:tracking-widest md:px-12 md:py-4"
+                    className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-amber-200 to-amber-400 px-6 py-2.5 sm:py-3 text-[10px] sm:text-xs font-light uppercase tracking-[0.2em] sm:tracking-[0.25em] text-black transition-all duration-300 hover:shadow-[0_8px_32px_rgba(251,191,36,0.3)] disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {status === "loading" && <Loader className="animate-spin" size={16} />}
+                    {status === "loading" && <Loader className="animate-spin" size={14} />}
                     {status === "loading" ? t("form.submitting") : t("form.submit")}
                   </motion.button>
                 </div>
