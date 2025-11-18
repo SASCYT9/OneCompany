@@ -95,6 +95,8 @@ const fontUa = Manrope({
   subsets: ["latin", "latin-ext", "cyrillic"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-ua",
+  display: "swap",
+  preload: true,
 });
 
 export default function RootLayout({
