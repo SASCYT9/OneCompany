@@ -38,7 +38,12 @@ export default async function LocaleLayout({ children, params }: Props) {
         )}
         {/* Server-side UA style overrides to ensure Manrope is used immediately */}
         {locale === 'ua' ? (
-          <style dangerouslySetInnerHTML={{ __html: ':root{ --font-sans: var(--font-ua); --font-display: var(--font-ua); --font-body: var(--font-ua);} ' }} />
+          <style
+            dangerouslySetInnerHTML={{
+              __html:
+                ":root{ --font-sans: 'Manrope','Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --font-display: 'Manrope','Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --font-body: 'Manrope','Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }",
+            }}
+          />
         ) : null}
         <div
           data-server-hero-enabled={videoConfig.heroEnabled ? 'true' : 'false'}
