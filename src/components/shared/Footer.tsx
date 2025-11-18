@@ -69,11 +69,11 @@ const Footer = () => {
           id="signature-programs"
           className="mb-10 rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_rgba(5,5,5,0.85))] p-5 text-center backdrop-blur-2xl sm:mb-16 sm:rounded-[36px] sm:p-8"
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-white/60 sm:text-sm sm:tracking-[0.4em]">B2B Wholesale Importer</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-white/60 sm:text-sm sm:tracking-[0.4em]">{locale === 'ua' ? 'B2B оптовий імпортер' : 'B2B Wholesale Importer'}</p>
           <div className="mt-3 text-xl font-light leading-tight text-white sm:mt-4 sm:text-2xl md:text-3xl lg:text-4xl">
-            200+ brands for service stations, detailing & tuning shops
+            {locale === 'ua' ? '200+ брендів для СТО, дітейлінгу та магазинів тюнінгу' : '200+ brands for service stations, detailing & tuning shops'}
           </div>
-          <p className="mt-2 text-xs text-white/60 sm:text-sm">+ консьєрж сервис для роздрібних клієнтів (B2C)</p>
+          <p className="mt-2 text-xs text-white/60 sm:text-sm">{locale === 'ua' ? '+ консьєрж сервіс для роздрібних клієнтів (B2C)' : '+ concierge service for retail clients (B2C)'}</p>
           <div className="mt-3 space-y-1 text-[9px] uppercase tracking-[0.25em] text-white/65 sm:mt-4 sm:text-[11px] sm:tracking-[0.35em]">
             <p>services worldwide since 2007</p>
             <p className="text-white">200+ brands premium tuning parts</p>
@@ -90,7 +90,9 @@ const Footer = () => {
               OneCompany
             </Link>
             <p className="text-xs leading-relaxed text-white/60 sm:text-sm">
-              B2B wholesale importer since 2007. Serving service stations, detailing studios, and tuning shops across 30+ countries with volume pricing, technical support, and white-label logistics.
+              {locale === 'ua'
+                ? 'B2B оптовий імпортер з 2007 року. Працюємо зі СТО, дітейлінг студіями та магазинами тюнінгу в 30+ країн з оптовими цінами, техпідтримкою та white-label логістикою.'
+                : 'B2B wholesale importer since 2007. Serving service stations, detailing studios, and tuning shops across 30+ countries with volume pricing, technical support, and white-label logistics.'}
             </p>
             <div className="flex gap-2 sm:gap-3">
               {socials.map(({ icon: Icon, href, label }) => (
@@ -111,7 +113,7 @@ const Footer = () => {
           </div>
 
           <div className="space-y-3 sm:space-y-4">
-            <p className="text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.35em]">The House</p>
+            <p className="text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.35em]">{locale === 'ua' ? 'Компанія' : 'The House'}</p>
             <ul className="space-y-2 text-xs text-white/70 sm:space-y-3 sm:text-sm">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
@@ -124,7 +126,7 @@ const Footer = () => {
           </div>
 
           <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Disciplines</p>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/50">{locale === 'ua' ? 'Напрями' : 'Disciplines'}</p>
             <ul className="space-y-3 text-sm text-white/70">
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
@@ -137,7 +139,7 @@ const Footer = () => {
           </div>
 
           <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Headquarters</p>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/50">{locale === 'ua' ? 'Штаб-квартира' : 'Headquarters'}</p>
             <div className="space-y-3 text-sm text-white/70">
               <p>
                 21B Baseina St
@@ -155,13 +157,13 @@ const Footer = () => {
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-4 text-[10px] text-white/50 sm:mt-16 sm:gap-4 sm:pt-6 sm:text-xs md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} OneCompany. Engineered in Kyiv.</p>
+          <p>© {new Date().getFullYear()} OneCompany. {locale === 'ua' ? 'Розроблено в Києві' : 'Engineered in Kyiv'}.</p>
           <div className="flex gap-4 sm:gap-6">
             <Link href={`/${locale}/privacy`} className="transition hover:text-white">
-              Privacy
+              {locale === 'ua' ? 'Політика конфіденційності' : 'Privacy'}
             </Link>
             <Link href={`/${locale}/terms`} className="transition hover:text-white">
-              Terms
+              {locale === 'ua' ? 'Умови' : 'Terms'}
             </Link>
           </div>
         </div>

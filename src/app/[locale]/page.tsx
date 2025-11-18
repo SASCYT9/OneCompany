@@ -21,44 +21,48 @@ export default async function LocalizedHomePage({
 
   const experiences: ExperienceSplit[] = [
     {
-      label: "Automotive",
-      title: "Hypercar & GT programs",
+      label: locale === 'ua' ? 'Автомобілі' : 'Automotive',
+      title: locale === 'ua' ? 'Програми для гіперкарів та GT' : 'Hypercar & GT programs',
       description:
-        "Forged wheels, carbon aero, suspension, intake and exhaust systems with OEM-level validation and support.",
+        locale === 'ua'
+          ? 'Ковані диски, карбонове аеро, підвіска, впускні та випускні системи з OEM-рівнем валідації і підтримки.'
+          : 'Forged wheels, carbon aero, suspension, intake and exhaust systems with OEM-level validation and support.',
       href: `/${locale}/auto`,
       accent: "from-amber-400/20 via-orange-500/10 to-transparent",
       stats: [
-        { value: "120+", note: "brands" },
-        { value: "11", note: "categories" },
+        { value: "120+", note: locale === 'ua' ? 'брендів' : 'brands' },
+        { value: "11", note: locale === 'ua' ? 'категорій' : 'categories' },
       ],
     },
     {
-      label: "Moto",
-      title: "Factory race packages",
+      label: locale === 'ua' ? 'Мото' : 'Moto',
+      title: locale === 'ua' ? 'Трекові пакети фабричного рівня' : 'Factory race packages',
       description:
-        "WorldSBK-grade exhausts, ECU calibrations, carbon protection and track-ready ergonomics for litre bikes.",
+        locale === 'ua'
+          ? 'Вихлопи рівня WorldSBK, калібрування ECU, карбоновий захист та ергономіка для трекових байків.'
+          : 'WorldSBK-grade exhausts, ECU calibrations, carbon protection and track-ready ergonomics for litre bikes.',
       href: `/${locale}/moto`,
       accent: "from-blue-400/25 via-purple-500/15 to-transparent",
       stats: [
-        { value: "80+", note: "specialist partners" },
-        { value: "6", note: "exclusive series" },
+        { value: "80+", note: locale === 'ua' ? 'партнерів-спеціалістів' : 'specialist partners' },
+        { value: "6", note: locale === 'ua' ? 'ексклюзивні серії' : 'exclusive series' },
       ],
     },
   ];
 
   const heroVideo = "/videos/hero-background.mp4";
-  const heroBadgeCopy = "onecompany · dual signature programs";
+  const heroBadgeCopy = locale === 'ua' ? 'onecompany · дубльована програма' : 'onecompany · dual signature programs';
   const heroMeta = {
-    globalPresence: "B2B wholesale since 2007",
-    brandPromise: "200+ brands · Service stations, detailing, tuning shops",
-    atelierAddress: "21B BASEINA ST · KYIV IMPORTER",
+    globalPresence: locale === 'ua' ? 'B2B Опт з 2007 року' : 'B2B wholesale since 2007',
+    brandPromise: locale === 'ua' ? '200+ брендів · СТО, дітейлінг, магазини тюнінгу' : '200+ brands · Service stations, detailing, tuning shops',
+    atelierAddress: locale === 'ua' ? '21B BASEINA ST · KYIV IMPORTER' : '21B BASEINA ST · KYIV IMPORTER',
   };
 
   const statHighlights = [
-    { value: "18", label: "years B2B import experience" },
-    { value: "200+", label: "brands for wholesale partners" },
-    { value: "36h", label: "door-to-door logistics" },
-    { value: "4", label: "continents served weekly" },
+    { value: "18", label: locale === 'ua' ? 'років досвіду в імпорті' : 'years B2B import experience' },
+    { value: "200+", label: locale === 'ua' ? 'брендів для опту' : 'brands for wholesale partners' },
+    { value: "36h", label: locale === 'ua' ? 'door-to-door логістика' : 'door-to-door logistics' },
+    { value: "4", label: locale === 'ua' ? 'континентів щотижня' : 'continents served weekly' },
   ];
 
   const marqueeBrands = [
@@ -78,16 +82,22 @@ export default async function LocalizedHomePage({
 
   const b2bServices = [
     {
-      title: "B2B wholesale programs",
-      copy: "Volume pricing for service stations, detailing studios, and tuning shops. Dealer margins, inventory support, and technical training included.",
+      title: locale === 'ua' ? 'B2B програми опту' : 'B2B wholesale programs',
+      copy: locale === 'ua'
+        ? 'Оптові ціни для СТО, дітейлінг студій та магазинів тюнінгу. Маржа дилера, підтримка запасів та технічне навчання.'
+        : 'Volume pricing for service stations, detailing studios, and tuning shops. Dealer margins, inventory support, and technical training included.',
     },
     {
-      title: "Partner network support",
-      copy: "On-demand technical documentation, installation guides, and OEM liaison for your client builds.",
+      title: locale === 'ua' ? 'Підтримка партнерської мережі' : 'Partner network support',
+      copy: locale === 'ua'
+        ? 'Технічна документація, інструкції з встановлення та OEM-ланки за запитом.'
+        : 'On-demand technical documentation, installation guides, and OEM liaison for your client builds.',
     },
     {
-      title: "White-label logistics",
-      copy: "Priority air cargo lanes, customs brokerage, and bonded storage with live tracking. Ship direct to your shop or your customers.",
+      title: locale === 'ua' ? 'White-label логістика' : 'White-label logistics',
+      copy: locale === 'ua'
+        ? 'Пріоритетні авіалінії, митне оформлення та bonded-зберігання з відстеженням. Доставка до вашої майстерні або кінцевому клієнту.'
+        : 'Priority air cargo lanes, customs brokerage, and bonded storage with live tracking. Ship direct to your shop or your customers.',
     },
   ];
 
@@ -132,7 +142,7 @@ export default async function LocalizedHomePage({
                   <span className="rounded-full border border-white/50 bg-white/15 px-3 py-1 text-[8px] font-semibold tracking-[0.35em] text-white shadow-[0_0_20px_rgba(255,255,255,0.3)] sm:px-4 sm:text-[10px] sm:tracking-[0.45em]">
                     {experience.label}
                   </span>
-                  <span className="hidden text-white/40 sm:inline">program access</span>
+                  <span className="hidden text-white/40 sm:inline">{locale === 'ua' ? 'доступ до програми' : 'program access'}</span>
                 </div>
                 <div className={clsx("relative space-y-2 text-left sm:space-y-4", index === 1 && "md:text-right")}>
                   <h2 className="text-2xl font-light leading-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
@@ -165,7 +175,7 @@ export default async function LocalizedHomePage({
             href="#signature-programs"
             className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 backdrop-blur-xl px-5 py-2.5 text-[9px] uppercase tracking-[0.3em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)] sm:gap-3 sm:px-6 sm:py-3 sm:text-[11px] sm:tracking-[0.4em]"
           >
-            КОНСЬЄРЖ СЕРВІС
+            {locale === 'ua' ? 'КОНСЬЄРЖ СЕРВІС' : 'CONCIERGE SERVICE'}
             <span className="text-sm sm:text-base">↘</span>
           </Link>
           <div className="text-[11px] uppercase tracking-[0.35em] text-white/60">
@@ -223,15 +233,15 @@ export default async function LocalizedHomePage({
         <div className="relative mx-auto max-w-6xl">
           <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
             <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-white/50">B2B wholesale programs</p>
-              <h3 className="mt-3 text-4xl font-light">Partner with the leading importer</h3>
-              <p className="mt-3 text-sm text-white/60">Service stations · Detailing studios · Tuning shops · Plus concierge B2C for your VIP clients</p>
+              <p className="text-xs uppercase tracking-[0.4em] text-white/50">{locale === 'ua' ? 'B2B програми опту' : 'B2B wholesale programs'}</p>
+              <h3 className="mt-3 text-4xl font-light">{locale === 'ua' ? 'Партнери з провідним імпортером' : 'Partner with the leading importer'}</h3>
+              <p className="mt-3 text-sm text-white/60">{locale === 'ua' ? 'СТО · Дитейлінг студії · Магазини тюнінгу · Консьєрж B2C для VIP клієнтів' : 'Service stations · Detailing studios · Tuning shops · Plus concierge B2C for your VIP clients'}</p>
             </div>
             <Link
               href={`/${locale}/contact`}
               className="mx-auto md:mx-0 w-fit inline-flex items-center gap-3 rounded-full border border-white/30 bg-white/10 backdrop-blur-xl px-6 py-3 text-xs uppercase tracking-[0.35em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)]"
             >
-              Arrange consult ↗
+              {locale === 'ua' ? 'Запланувати консультацію' : 'Arrange consult'} ↗
             </Link>
           </div>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
