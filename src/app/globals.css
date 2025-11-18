@@ -91,6 +91,8 @@
   html[lang="uk"] body,
   .locale-ua {
     --font-body: var(--font-ua, "Manrope");
+    --font-sans: var(--font-ua, "Manrope");
+    --font-display: var(--font-ua, "Manrope");
   }
 
   html[lang="uk"] *,
@@ -112,7 +114,7 @@
   .locale-ua h6,
   .locale-ua .font-display,
   .locale-ua .font-round {
-    font-family: var(--font-ua, "Manrope"), "Inter", system-ui, -apple-system, sans-serif !important;
+    font-family: "Manrope", var(--font-ua, "Manrope"), "Inter", system-ui, -apple-system, sans-serif !important;
     letter-spacing: 0.02em !important;
     font-weight: 500;
   }
@@ -149,7 +151,7 @@
   .locale-ua textarea,
   .locale-ua select,
   .locale-ua a {
-    font-family: var(--font-ua, "Manrope"), "Inter", system-ui, sans-serif !important;
+    font-family: "Manrope", var(--font-ua, "Manrope"), "Inter", system-ui, sans-serif !important;
   }
 
   body::before {
