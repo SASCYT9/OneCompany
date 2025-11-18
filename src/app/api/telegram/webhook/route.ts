@@ -539,7 +539,7 @@ async function sendMainMenu(chatId: number, userName: string, lang: 'uk' | 'en')
       [
         { 
           text: `💼 ${t.openDashboard}`,
-          web_app: { url: `${dashboardUrl}/messages` }
+          web_app: { url: `${dashboardUrl}/telegram-app/admin` }
         },
         { text: `❓ ${t.help}`, callback_data: 'btn_help' }
       ],
@@ -689,7 +689,7 @@ async function handleButtonCallback(chatId: number, data: string, userName: stri
         chatId,
         `<b>${t.dashboardTitle}</b>\n\n` +
         `${t.dashboardPanel}:\n\n` +
-        `🔗 ${dashboardUrl}/messages\n\n` +
+        `🔗 ${dashboardUrl}/telegram-app/admin\n\n` +
         `<b>${t.authorization}:</b>\n` +
         `${t.adminOnly}\n\n` +
         `<b>${t.features}:</b>\n` +

@@ -222,7 +222,8 @@ export default function MessagesPanel() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-black/30 p-6 backdrop-blur">
+        <div className={`fixed inset-0 z-50 bg-black lg:static lg:bg-transparent ${selectedMessage ? 'block' : 'hidden lg:block'}`}>
+          <div className="h-full rounded-none border-0 bg-black p-6 lg:rounded-3xl lg:border lg:border-white/10 lg:bg-black/30 lg:backdrop-blur">
           <AnimatePresence mode="wait">
             {selectedMessage ? (
               <motion.div
@@ -233,9 +234,17 @@ export default function MessagesPanel() {
                 className="flex h-full flex-col"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/10 pb-4">
-                  <div>
-                    <p className="text-lg font-light text-white">{selectedMessage.userName}</p>
-                    <p className="text-sm text-white/50">{selectedMessage.userEmail}</p>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => setSelectedMessage(null)}
+                      className="lg:hidden rounded-full border border-white/20 p-2 text-white/60 hover:bg-white/10"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                    <div>
+                      <p className="text-lg font-light text-white">{selectedMessage.userName}</p>
+                      <p className="text-sm text-white/50">{selectedMessage.userEmail}</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusButton
@@ -262,7 +271,7 @@ export default function MessagesPanel() {
                     </button>
                     <button
                       onClick={() => setSelectedMessage(null)}
-                      className="rounded-full border border-white/20 p-2 text-white/60 hover:bg-white/10"
+                      className="hidden lg:block rounded-full border border-white/20 p-2 text-white/60 hover:bg-white/10"
                       title="Закрити"
                     >
                       <X className="h-4 w-4" />
@@ -319,6 +328,7 @@ export default function MessagesPanel() {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
         </div>
       </div>
     </div>
