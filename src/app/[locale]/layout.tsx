@@ -8,6 +8,7 @@ import AuthProvider from '@/components/AuthProvider';
 import { cn } from '@/lib/utils';
 import HeroVideoWrapper from '@/components/layout/HeroVideoWrapper';
 import LocaleLangSetter from '@/components/LocaleLangSetter';
+import FontDebug from '@/components/FontDebug';
 import { readVideoConfig } from '@/lib/videoConfig';
 
 type Props = {
@@ -45,6 +46,8 @@ export default async function LocaleLayout({ children, params }: Props) {
           lang={locale === 'ua' ? 'uk' : 'en'}
         >
           <HeroVideoWrapper src={`/videos/${videoConfig.heroVideo}`} mobileSrc={videoConfig.heroVideoMobile ? `/videos/${videoConfig.heroVideoMobile}` : undefined} poster={videoConfig.heroPoster ? `/images/${videoConfig.heroPoster}` : undefined} serverEnabled={videoConfig.heroEnabled ?? true} />
+          {/* Font debug overlay to verify computed font families (temporary) */}
+          <FontDebug />
           <Header />
           <main id="main-content" className="flex-grow relative z-10">
             {children}
