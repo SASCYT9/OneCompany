@@ -7,6 +7,7 @@ import Footer from '@/components/shared/Footer';
 import AuthProvider from '@/components/AuthProvider';
 import { cn } from '@/lib/utils';
 import HeroVideoWrapper from '@/components/layout/HeroVideoWrapper';
+import LocaleLangSetter from '@/components/LocaleLangSetter';
 import { readVideoConfig } from '@/lib/videoConfig';
 
 type Props = {
@@ -30,6 +31,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
+      <LocaleLangSetter locale={locale} />
         {videoConfig.heroPoster && (
           <link rel="preload" href={`/images/${videoConfig.heroPoster}`} as="image" />
         )}

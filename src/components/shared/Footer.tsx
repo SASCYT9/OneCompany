@@ -15,13 +15,14 @@ const Footer = () => {
 
   const footerLinks = {
     company: [
-      { name: "About", href: `/${locale}/about` },
-      { name: "Brands", href: `/${locale}/brands` },
-      { name: "Contact", href: `/${locale}/contact` },
+      { name: t('home'), href: `/${locale}` },
+      { name: t('about'), href: `/${locale}/about` },
+      { name: t('brands'), href: `/${locale}/brands` },
+      { name: t('contact'), href: `/${locale}/contact` },
     ],
     services: [
-      { name: "Automotive", href: `/${locale}/auto` },
-      { name: "Moto", href: `/${locale}/moto` },
+      { name: t('automotive'), href: `/${locale}/auto` },
+      { name: t('motorcycles'), href: `/${locale}/moto` },
     ],
   };
 
