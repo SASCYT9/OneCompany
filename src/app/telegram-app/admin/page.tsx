@@ -60,7 +60,7 @@ export default function TelegramAdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-black text-white font-ua">
       <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
       <div className="border-b border-white/10 bg-black/50 backdrop-blur-xl sticky top-0 z-40">
         <div className="px-4 py-4 flex items-center justify-between">

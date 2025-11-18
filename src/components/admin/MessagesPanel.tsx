@@ -155,7 +155,7 @@ export default function MessagesPanel() {
   }, [messages, filter, search]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-ua">
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard label="Всього" value={stats.total} icon={<Inbox className="w-5 h-5" />} accent="border-white/20" />
         <StatCard label="Нові" value={stats.new} icon={<MessageSquare className="w-5 h-5" />} accent="border-blue-500/40" />
