@@ -112,7 +112,7 @@ export const OnePage = () => {
   const sections: SectionConfig[] = [
     {
       id: 'hero',
-      video: '/videos/Luxury_Automotive_Abstract_Video_Creation.mp4',
+      video: '/videos/hero-main.mp4',
       title: 'OneCompany',
       subtitle: 'Преміум автомобільні компоненти',
       description: 'Ексклюзивний дистриб\'ютор найкращих світових брендів в Україні',

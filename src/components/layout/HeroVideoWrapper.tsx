@@ -6,9 +6,18 @@ import { FullScreenVideo } from '@/components/shared/FullScreenVideo';
 
 const STORAGE_KEY = 'heroVideoDisabled';
 
+interface NavigatorWithConnection extends Navigator {
+  connection?: {
+    saveData: boolean;
+    addEventListener?: (type: string, listener: EventListener) => void;
+    removeEventListener?: (type: string, listener: EventListener) => void;
+  }
+}
+
 export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true }: { src: string, mobileSrc?: string, poster?: string, serverEnabled?: boolean }) {
   const [disabled, setDisabled] = useState(false);
-  const [shouldLoad, setShouldLoad] = useState(false);
+  // Always load hero video immediately - no lazy loading for LCP element
+  const [shouldLoad, setShouldLoad] = useState(true);
   const ref = useRef<HTMLDivElement | null>(null);
   const t = useTranslations('admin');
 
@@ -16,16 +25,16 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
     try {
       const value = localStorage.getItem(STORAGE_KEY);
       setDisabled(value === 'true');
-    } catch (e) {
-      console.error('Failed to read hero video preference', e);
+    } catch {
+      console.error('Failed to read hero video preference');
     }
 
     function onToggle() {
       try {
         const value = localStorage.getItem(STORAGE_KEY);
         setDisabled(value === 'true');
-      } catch (e) {
-        console.error('Failed to update hero video preference', e);
+      } catch {
+        console.error('Failed to update hero video preference');
       }
     }
 
@@ -40,69 +49,49 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
   // Honor user preference for reduced motion or data saving
   useEffect(() => {
     const mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
-    const saveData = (navigator as any).connection?.saveData;
+    const nav = navigator as NavigatorWithConnection;
+    const saveData = nav.connection?.saveData;
+    
+    const updateDisabledState = () => {
+      const mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+      const nav = navigator as NavigatorWithConnection;
+      setDisabled((mq?.matches ?? false) || (nav.connection?.saveData ?? false));
+    };
+
     if (mq && mq.matches) {
       setDisabled(true);
     }
     if (saveData) {
       setDisabled(true);
     }
-    function handleChange(e: MediaQueryListEvent) {
-      setDisabled(e.matches || ((navigator as any).connection?.saveData ?? false));
-    }
-    mq?.addEventListener?.('change', handleChange);
+
+    mq?.addEventListener?.('change', updateDisabledState);
     try {
-      (navigator as any).connection?.addEventListener?.('change', handleChange);
-    } catch (e) {
+      const nav = navigator as NavigatorWithConnection;
+      nav.connection?.addEventListener?.('change', updateDisabledState);
+    } catch {
       // some browsers may not support addEventListener on connection
     }
     return () => {
-      mq?.removeEventListener?.('change', handleChange);
+      mq?.removeEventListener?.('change', updateDisabledState);
       try {
-        (navigator as any).connection?.removeEventListener?.('change', handleChange);
-      } catch (e) {
+        const nav = navigator as NavigatorWithConnection;
+        nav.connection?.removeEventListener?.('change', updateDisabledState);
+      } catch {
         // ignore
       }
     };
   }, []);
 
-  useEffect(() => {
-    let observer: IntersectionObserver | null = null;
-    if (!ref.current) return;
-    const saveData = (navigator as any).connection?.saveData;
-    if (saveData) {
-      // Avoid loading video when user opted to save data
-      setShouldLoad(false);
-      return;
-    }
-    try {
-      observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setShouldLoad(true);
-            observer?.disconnect();
-          }
-        });
-      }, { root: null, rootMargin: '200px', threshold: 0.1 });
-      observer.observe(ref.current);
-      // Fallback: load after 2 seconds if not intersecting to avoid never loading
-      const fallback = setTimeout(() => setShouldLoad(true), 2000);
-      return () => {
-        observer?.disconnect();
-        clearTimeout(fallback);
-      };
-    } catch (e) {
-      // If IntersectionObserver is not supported, load immediately
-      setShouldLoad(true);
-    }
-  }, [ref.current]);
+  // Removed IntersectionObserver logic as hero video should load immediately
 
   const enabled = serverEnabled && !disabled;
   // Select mobile variant if mobileSrc present and either small viewport or saveData
   const chooseVariant = () => {
     if (mobileSrc) {
       const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-      const saveData = (navigator as any).connection?.saveData;
+      const nav = navigator as NavigatorWithConnection;
+      const saveData = nav.connection?.saveData;
       if (isMobile || saveData) {
         return mobileSrc;
       }
@@ -116,6 +105,7 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
     <>
       <div ref={(el) => { ref.current = el; }} className="fixed inset-0 -z-10 w-full h-full">
         <FullScreenVideo src={shouldLoad ? selected : undefined} poster={poster} preload={shouldLoad ? 'metadata' : 'none'} enabled={enabled && shouldLoad} />
+        <div className="absolute inset-0 bg-black/60 pointer-events-none" />
       </div>
       {!serverEnabled && (
         <div className="fixed top-4 right-4 z-40 rounded-md bg-zinc-900/80 text-white px-3 py-1 text-xs">{t?.('heroVideoDisabledByAdmin') || 'Hero video disabled'}</div>

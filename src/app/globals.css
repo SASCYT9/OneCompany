@@ -38,15 +38,10 @@
     --ring: 210 92% 72%;
 
     --radius: 999px;
-  }
 
-  html[lang="uk"] {
-    --font-body: var(--font-ua, var(--font-sans));
-  }
-
-  /* Ensure UA font applies even if html lang isn't set */
-  .locale-ua {
-    --font-body: var(--font-ua, var(--font-sans));
+    /* Unified font stacks */
+    --font-stack-sans: var(--font-sans), var(--font-ua), "Manrope", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-stack-display: var(--font-display), var(--font-ua), "Manrope", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   * {
@@ -56,13 +51,13 @@
   body {
     color: hsl(var(--foreground));
     background-color: hsl(var(--background));
-    font-family: var(--font-body, var(--font-sans, "Unison Pro")), "Manrope", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: var(--font-stack-sans);
     -webkit-font-smoothing: antialiased;
     font-feature-settings: "ss03" on, "ss04" on;
     background-image:
-      radial-gradient(circle at 20% 20%, rgba(255, 179, 71, 0.08), transparent 45%),
-      radial-gradient(circle at 80% 0%, rgba(92, 188, 255, 0.15), transparent 50%),
-      linear-gradient(120deg, rgba(8, 8, 10, 0.95), rgba(4, 4, 8, 0.98));
+      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.03), transparent 45%),
+      radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.05), transparent 50%),
+      linear-gradient(120deg, rgba(5, 5, 5, 0.98), rgba(0, 0, 0, 1));
     background-color: hsl(var(--background));
     min-height: 100vh;
   }
@@ -75,97 +70,15 @@
   h6,
   .font-round,
   .font-display {
-    font-family: var(--font-display, var(--font-sans, "Unison Pro")), "Manrope", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: var(--font-stack-display);
     font-weight: 400;
     letter-spacing: -0.01em;
   }
 
   .font-round-italic {
-    font-family: var(--font-display, var(--font-sans, "Unison Pro")), "Manrope", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: var(--font-stack-display);
     font-style: italic;
     letter-spacing: -0.005em;
-  }
-
-  /* Ukrainian locale typography improvements */
-  html[lang="uk"],
-  html[lang="uk"] body,
-  .locale-ua {
-    --font-body: var(--font-ua, "Manrope");
-    --font-sans: var(--font-ua, "Manrope");
-    --font-display: var(--font-ua, "Manrope");
-    /* Ensure UA pages do not use Unison-specific OpenType features */
-    font-feature-settings: normal !important;
-    -webkit-font-smoothing: antialiased !important;
-  }
-
-  html[lang="uk"] *,
-  .locale-ua * {
-    font-family: var(--font-ua, "Manrope"), "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-  }
-
-  html[lang="uk"] h1,
-  html[lang="uk"] h2,
-  html[lang="uk"] h3,
-  html[lang="uk"] h4,
-  html[lang="uk"] h5,
-  html[lang="uk"] h6,
-  .locale-ua h1,
-  .locale-ua h2,
-  .locale-ua h3,
-  .locale-ua h4,
-  .locale-ua h5,
-  .locale-ua h6,
-  .locale-ua .font-display,
-  .locale-ua .font-round {
-    font-family: "Manrope", var(--font-ua, "Manrope"), "Inter", system-ui, -apple-system, sans-serif !important;
-    letter-spacing: 0.02em !important;
-    font-weight: 500;
-  }
-
-  /* Extra forceful overrides for headings to prevent fallback to Unison */
-  html[lang="uk"] h1,
-  html[lang="uk"] h2,
-  .locale-ua h1,
-  .locale-ua h2 {
-    font-family: "Manrope", var(--font-ua, "Manrope"), "Inter", system-ui, -apple-system, sans-serif !important;
-    font-weight: 600 !important;
-    -webkit-font-smoothing: antialiased !important;
-    font-feature-settings: normal !important;
-  }
-
-  html[lang="uk"] p,
-  html[lang="uk"] div,
-  html[lang="uk"] span,
-  html[lang="uk"] li,
-  .locale-ua p,
-  .locale-ua div,
-  .locale-ua span,
-  .locale-ua li {
-    letter-spacing: 0.01em;
-    line-height: 1.65;
-  }
-
-  html[lang="uk"] .uppercase,
-  .locale-ua .uppercase {
-    letter-spacing: 0.28em !important;
-  }
-
-  html[lang="uk"] [class*='tracking-'],
-  .locale-ua [class*='tracking-'] {
-    letter-spacing: 0.26em !important;
-  }
-
-  html[lang="uk"] button,
-  html[lang="uk"] input,
-  html[lang="uk"] textarea,
-  html[lang="uk"] select,
-  html[lang="uk"] a,
-  .locale-ua button,
-  .locale-ua input,
-  .locale-ua textarea,
-  .locale-ua select,
-  .locale-ua a {
-    font-family: "Manrope", var(--font-ua, "Manrope"), "Inter", system-ui, sans-serif !important;
   }
 
   body::before {
@@ -193,7 +106,7 @@
     inset: 0;
     border-radius: 30px;
     padding: 1px;
-    background: linear-gradient(120deg, rgba(255, 179, 71, 0.65), rgba(92, 188, 255, 0.5));
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
     -webkit-mask:
       linear-gradient(#fff 0 0) content-box,
       linear-gradient(#fff 0 0);

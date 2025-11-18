@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 type Props = {
@@ -13,6 +14,8 @@ type Props = {
 
 export function BrandExpandableCard({ name, logo, categoryLabel, href }: Props) {
   const [open, setOpen] = useState(false);
+  const [imgSrc, setImgSrc] = useState(logo);
+  const [modalImgSrc, setModalImgSrc] = useState(logo);
   const ref = useRef<HTMLButtonElement | null>(null);
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
@@ -49,18 +52,13 @@ export function BrandExpandableCard({ name, logo, categoryLabel, href }: Props) 
         aria-expanded={open}
       >
         <div className="flex flex-col items-center">
-          <div className="h-12 flex items-center justify-center">
-            <img
-              src={logo}
+          <div className="relative h-12 w-full flex items-center justify-center">
+            <Image
+              src={imgSrc}
               alt={name}
-              className="h-full w-auto invert opacity-60 group-hover:opacity-100 transition-opacity duration-300"
-              onError={(e) => {
-                const img = e.currentTarget as HTMLImageElement;
-                if (!img.dataset.fallback) {
-                  img.dataset.fallback = '1';
-                  img.src = '/logos/placeholder.svg';
-                }
-              }}
+              fill
+              className="object-contain invert opacity-60 group-hover:opacity-100 transition-opacity duration-300"
+              onError={() => setImgSrc('/logos/placeholder.svg')}
             />
           </div>
           <div className="mt-3 text-sm font-light text-white/80 group-hover:text-white transition-colors">{name}</div>
@@ -93,18 +91,13 @@ export function BrandExpandableCard({ name, logo, categoryLabel, href }: Props) 
             >
               <div className="p-8">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 shadow-inner">
-                    <img
-                      src={logo}
+                  <div className="relative h-12 w-12 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 shadow-inner">
+                    <Image
+                      src={modalImgSrc}
                       alt=""
-                      className="h-7 w-auto invert opacity-80"
-                      onError={(e) => {
-                        const img = e.currentTarget as HTMLImageElement;
-                        if (!img.dataset.fallback) {
-                          img.dataset.fallback = '1';
-                          img.src = '/logos/placeholder.svg';
-                        }
-                      }}
+                      fill
+                      className="object-contain p-2 invert opacity-80"
+                      onError={() => setModalImgSrc('/logos/placeholder.svg')}
                     />
                   </div>
                   <div>

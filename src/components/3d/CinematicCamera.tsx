@@ -18,15 +18,13 @@ interface CinematicCameraProps {
 
 export function CinematicCamera({ containerRef }: CinematicCameraProps) {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
-  const { camera } = useThree();
+  useThree();
   const targetPosition = useRef(new THREE.Vector3(0, 0, 10));
   const targetRotation = useRef(new THREE.Euler(0, 0, 0));
 
   useEffect(() => {
     if (!cameraRef.current || !containerRef.current) return;
 
-    const cam = cameraRef.current;
-    
     // МАКСИМАЛЬНО КРУТА кінематографічна Timeline з точним snap
     const timeline = gsap.timeline({
       scrollTrigger: {

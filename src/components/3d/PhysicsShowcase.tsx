@@ -3,7 +3,7 @@
 import { Suspense, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
-import { Environment, ContactShadows, OrbitControls, Text, useGLTF, Float, MeshDistortMaterial, Sphere } from '@react-three/drei';
+import { Environment, ContactShadows, OrbitControls, Text, Float, MeshDistortMaterial } from '@react-three/drei';
 import { EffectComposer, Bloom, DepthOfField } from '@react-three/postprocessing';
 import { motion } from 'framer-motion';
 import * as THREE from 'three';
@@ -133,14 +133,7 @@ function Scene({ onProductClick }: { onProductClick: (product: string) => void }
   );
 }
 
-// Loading fallback
-function Loader() {
-  return (
-    <div className="flex items-center justify-center h-full">
-      <div className="text-white text-2xl animate-pulse">Loading 3D Physics...</div>
-    </div>
-  );
-}
+// Loading fallback removed as unused
 
 // Main Component
 export default function PhysicsShowcase() {

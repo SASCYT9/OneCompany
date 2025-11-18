@@ -8,7 +8,6 @@ import { Environment } from '@react-three/drei';
 import { StoreHeroSection } from '../ui/StoreHeroSection';
 import { BrandsGrid } from '../ui/BrandsGrid';
 import { VideoBackground } from './VideoBackground';
-import { MorphingTitle } from './MorphingTitle';
 import { ScrollProgress } from './ScrollProgress';
 import { LightParticles3D } from './LightParticles3D';
 import { LightRaysCanvas } from '../effects/LightRaysCanvas';

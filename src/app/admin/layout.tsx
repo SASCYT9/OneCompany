@@ -39,7 +39,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       } else {
         setError(data.error || 'Invalid password');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to authenticate. Please try again.');
     } finally {
       setLoading(false);

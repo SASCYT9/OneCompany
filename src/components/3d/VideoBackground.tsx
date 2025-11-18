@@ -13,7 +13,6 @@ interface VideoBackgroundProps {
 export function VideoBackground({ src, inView, intensity = 0.85 }: VideoBackgroundProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isReady, setIsReady] = useState(false);
   const video = useMemo(() => {
     if (typeof document === 'undefined') return null;
 
@@ -85,14 +84,11 @@ export function VideoBackground({ src, inView, intensity = 0.85 }: VideoBackgrou
   // Attach listeners and try to play when in view
   useEffect(() => {
     if (!video) return;
-    const onCanPlay = () => setIsReady(true);
     const onPlaying = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
-    video.addEventListener('canplay', onCanPlay);
     video.addEventListener('playing', onPlaying);
     video.addEventListener('pause', onPause);
     return () => {
-      video.removeEventListener('canplay', onCanPlay);
       video.removeEventListener('playing', onPlaying);
       video.removeEventListener('pause', onPause);
     };

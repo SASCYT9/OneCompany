@@ -5,7 +5,7 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { CATEGORY_META } from '@/lib/categoryMeta';
 
 export default function CategoriesIndexPage() {
-  const { t, locale } = useLanguage();
+  const { locale } = useLanguage();
 
   return (
     <div className="relative bg-black min-h-screen text-white overflow-hidden">

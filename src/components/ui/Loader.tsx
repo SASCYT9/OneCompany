@@ -3,7 +3,7 @@
 import { Html, useProgress } from '@react-three/drei'
 
 export const Loader = () => {
-  const { progress, active } = useProgress()
+  const { progress } = useProgress()
 
   return (
     <Html center>

@@ -4,14 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 
 type FullScreenVideoProps = {
   src?: string;
-  className?: string;
   enabled?: boolean;
   overlayOpacity?: string; // e.g., 'from-black/20 via-black/12 to-black/36'
   poster?: string;
   preload?: 'none' | 'metadata' | 'auto';
 };
 
-export function FullScreenVideo({ src, className, enabled = true, overlayOpacity = 'from-black/20 via-black/12 to-black/36', poster, preload = 'none' }: FullScreenVideoProps) {
+export function FullScreenVideo({ src, enabled = true, overlayOpacity = 'from-black/20 via-black/12 to-black/36', poster, preload = 'none' }: FullScreenVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -29,6 +28,10 @@ export function FullScreenVideo({ src, className, enabled = true, overlayOpacity
       console.error('Video failed to load:', e);
       setHasError(true);
     };
+
+    if (video.readyState >= 2) {
+      handleLoadedData();
+    }
 
     video.addEventListener('loadeddata', handleLoadedData);
     video.addEventListener('error', handleError);

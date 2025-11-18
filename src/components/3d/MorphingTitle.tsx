@@ -9,17 +9,17 @@ interface MorphingTitleProps {
   currentSlide: number;
 }
 
+const titles = [
+  { text: 'onecompany', gradient: 'from-orange-500 via-cyan-400 to-purple-500', streakColor: 'rgba(255, 255, 255, 0.7)' },
+  { text: 'KW Suspension', gradient: 'from-orange-500 to-red-600', streakColor: 'rgba(255, 107, 53, 0.7)' },
+  { text: 'Fi Exhaust', gradient: 'from-cyan-400 to-blue-600', streakColor: 'rgba(79, 195, 247, 0.7)' },
+  { text: 'Eventuri', gradient: 'from-purple-500 to-pink-600', streakColor: 'rgba(194, 79, 199, 0.7)' },
+];
+
 export function MorphingTitle({ currentSlide }: MorphingTitleProps) {
   const [displayText, setDisplayText] = useState('onecompany');
   const [isAnimating, setIsAnimating] = useState(false);
   const [showEffects, setShowEffects] = useState(true);
-
-  const titles = [
-    { text: 'onecompany', gradient: 'from-orange-500 via-cyan-400 to-purple-500', streakColor: 'rgba(255, 255, 255, 0.7)' },
-    { text: 'KW Suspension', gradient: 'from-orange-500 to-red-600', streakColor: 'rgba(255, 107, 53, 0.7)' },
-    { text: 'Fi Exhaust', gradient: 'from-cyan-400 to-blue-600', streakColor: 'rgba(79, 195, 247, 0.7)' },
-    { text: 'Eventuri', gradient: 'from-purple-500 to-pink-600', streakColor: 'rgba(194, 79, 199, 0.7)' },
-  ];
 
   useEffect(() => {
     if (currentSlide >= 0 && currentSlide < titles.length) {

@@ -7,12 +7,11 @@ interface FeaturedProductProps {
   name: string;
   store: 'kw' | 'fi' | 'eventuri';
   price: string;
-  image: string;
   url: string;
   description: string;
 }
 
-export function FeaturedProduct({ name, store, price, image, url, description }: FeaturedProductProps) {
+export function FeaturedProduct({ name, store, price, url, description }: FeaturedProductProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const storeColors = {

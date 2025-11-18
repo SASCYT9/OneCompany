@@ -176,7 +176,7 @@ export function useColorMorph(colors: string[]) {
 
     const tl = gsap.timeline({ repeat: -1, yoyo: true });
 
-    colors.forEach((color, i) => {
+    colors.forEach((color) => {
       tl.to(el, {
         backgroundColor: color,
         duration: 3,

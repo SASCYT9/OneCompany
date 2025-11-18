@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Authentication failed' },
       { status: 500 }

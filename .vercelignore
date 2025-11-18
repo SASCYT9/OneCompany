@@ -4,13 +4,13 @@ node_modules
 *.log
 .DS_Store
 .vscode
-scripts/telegram-bot-polling.js
-public/videos
+public/videos/*
+!public/videos/hero-main.mp4
+!public/videos/hero-smoke.mp4
 public/models
 public/images/eventuri
 public/images/fi
 public/images/kw
-*.mp4
 *.glb
 *.gltf
 bmw_7-series_m_short.glb

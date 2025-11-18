@@ -17,7 +17,8 @@ import {
 } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { categoryData } from '@/lib/categoryData';
-import type { CategoryData } from '@/lib/categoryData';type LocalizedCopy = { en: string; ua: string; [key: string]: string };
+
+type LocalizedCopy = { en: string; ua: string; [key: string]: string };
 
 type BrandStory = {
   headline: LocalizedCopy;
@@ -369,21 +370,6 @@ const curatedBrandStories: Record<string, BrandStory> = {
   },
 };
 
-const brandDisciplineMap = new Map<string, LocalizedCopy>([
-  ['akrapovic', { en: 'MotoGP Exhaust Lab', ua: 'MotoGP вихлоп-лаб' }],
-  ['sc-project', { en: 'WSBK Programs', ua: 'WSBK програми' }],
-  ['termignoni', { en: 'Corse Heritage', ua: 'Спадок Corse' }],
-  ['arrow', { en: 'WSSP Supplier', ua: 'Постачальник WSSP' }],
-  ['austin racing', { en: 'Handmade titanium', ua: 'Titanium hand-made' }],
-  ['bitubo suspension', { en: 'Chassis Lab', ua: 'Лабораторія шасі' }],
-  ['brembo', { en: 'GP4 braking', ua: 'GP4 гальма' }],
-  ['ilmberger carbon', { en: 'Autoclave carbon', ua: 'Автоклавний карбон' }],
-  ['rotobox', { en: 'Carbon aero wheels', ua: 'Карбонові диски' }],
-  ['cnc racing', { en: 'CNC billet controls', ua: 'Білетний контроль' }],
-  ['accossato', { en: 'Racing controls', ua: 'Рейсинг-контролі' }],
-  ['valtermoto', { en: 'Pit equipment', ua: 'Піт-обладнання' }],
-]);
-
 export default function MotoPage() {
   const params = useParams();
   const locale = (params.locale === 'en' ? 'en' : 'ua') as 'en' | 'ua';
@@ -433,13 +419,6 @@ export default function MotoPage() {
     [locale]
   );
 
-  const getBrandDiscipline = useCallback(
-    (brand: LocalBrand) =>
-      brandDisciplineMap.get(brand.name.trim().toLowerCase())?.[locale] ??
-      (locale === 'ua' ? 'Світовий портфель' : 'Global program'),
-    [locale]
-  );
-
   const getBrandStory = useCallback((brand: LocalBrand): BrandStory => {
     if (curatedBrandStories[brand.name]) {
       return curatedBrandStories[brand.name];
@@ -462,7 +441,6 @@ export default function MotoPage() {
   }, []);
 
   const selectedBrandStory = selectedBrand ? getBrandStory(selectedBrand) : null;
-  const selectedBrandDiscipline = selectedBrand ? getBrandDiscipline(selectedBrand) : null;
   const selectedBrandOrigin = selectedBrand ? getBrandOrigin(selectedBrand) : null;
   const selectedBrandSubcategory = selectedBrand ? getBrandSubcategory(selectedBrand) : null;
   const selectedBrandPrograms = selectedBrand
@@ -483,7 +461,7 @@ export default function MotoPage() {
             className="h-full w-full object-cover opacity-60"
             poster="/images/eventuri/carbon-intake.jpg"
           >
-            <source src="/videos/Luxury_Automotive_Abstract_Video_Creation.mp4" type="video/mp4" />
+            <source src="/videos/hero-main.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
@@ -508,7 +486,7 @@ export default function MotoPage() {
             {heroStats.map((stat) => (
               <div
                 key={stat.label.en}
-                className="rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-lg sm:rounded-3xl sm:p-5 md:p-6"
+                className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] sm:rounded-3xl sm:p-5 md:p-6"
               >
                 <div className={`${typography.statValue} font-light text-white`}>{stat.value}</div>
                 <div className="mt-1.5 text-[10px] uppercase tracking-[0.3em] text-white/60 sm:mt-2 sm:text-xs sm:tracking-[0.4em]">{stat.label[locale]}</div>
@@ -577,12 +555,12 @@ export default function MotoPage() {
                   key={brand.name}
                   onClick={() => setSelectedBrand(brand)}
                   whileHover={{ y: -6 }}
-                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.02] p-4 text-left transition sm:rounded-3xl sm:p-5 md:p-6"
+                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-left transition backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-5 md:p-6"
                 >
                   <div
                     className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                     style={{
-                      background: 'radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 60%)',
+                      background: 'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 60%)',
                     }}
                   />
                   <div className="relative flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.3em]">
@@ -623,7 +601,7 @@ export default function MotoPage() {
         <div className="mb-8 text-center sm:mb-10 md:mb-12">
           <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('productCategories')}</p>
           <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>
-            {locale === 'ua' ? 'Модулі для трекових байків' : 'Modules for track-spec bikes'}
+            {locale === 'ua' ? 'Модулі, з яких складається мото' : 'Modules we compose bikes from'}
           </h2>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
@@ -631,11 +609,11 @@ export default function MotoPage() {
             <Link
               key={cat.slug}
               href={`/${locale}/categories/${cat.slug}`}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-5 transition-all duration-500 hover:border-white/40 sm:rounded-3xl sm:p-6 md:p-8"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8"
             >
               <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                 backgroundImage:
-                  'radial-gradient(circle at top left, rgba(255,255,255,0.15), transparent 55%)',
+                  'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
               }} />
               <div className="relative flex flex-col gap-3 sm:gap-4">
                 <div className="text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px] sm:tracking-[0.4em]">
@@ -681,12 +659,12 @@ export default function MotoPage() {
                 key={brand.name}
                 onClick={() => setSelectedBrand(brand)}
                 whileHover={{ y: -4 }}
-                className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-5 text-left transition sm:gap-5 sm:rounded-3xl sm:p-6 md:gap-6 md:p-8"
+                className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-left transition backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:gap-5 sm:rounded-3xl sm:p-6 md:gap-6 md:p-8"
               >
                 <div
                   className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                   style={{
-                    backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.18), transparent 65%)',
+                    backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.1), transparent 65%)',
                   }}
                 />
                 <div className="relative flex items-center justify-between gap-4">
@@ -737,7 +715,7 @@ export default function MotoPage() {
                 : 'We minimise surprises with timeboxed deliveries, remote rehearsals and a lifestyle concierge — an extra layer beyond the core program.'}
             </p>
           </div>
-          <div className="flex-1 rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.03] p-4 sm:rounded-3xl sm:p-5 md:rounded-[32px] md:p-6">
+          <div className="flex-1 rounded-2xl border border-white/10 bg-white/[0.02] p-4 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:rounded-3xl sm:p-5 md:rounded-[32px] md:p-6">
             <div className="space-y-3 sm:space-y-4">
               {pitCrewChecklist.map((item) => (
                 <div key={item.label.en} className="rounded-xl border border-white/10 bg-black/30 p-4 sm:rounded-2xl sm:p-5">

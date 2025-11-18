@@ -10,10 +10,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import {
   allAutomotiveBrands,
-  brandsEurope,
-  brandsOem,
-  brandsRacing,
-  brandsUsa,
   getBrandsByNames,
   LocalBrand,
   getBrandMetadata,
@@ -366,7 +362,7 @@ export default function AutomotivePage() {
             className="h-full w-full object-cover opacity-60"
             poster="/images/eventuri/carbon-intake.jpg"
           >
-            <source src="/videos/Luxury_Automotive_Abstract_Video_Creation.mp4" type="video/mp4" />
+            <source src="/videos/hero-main.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
@@ -390,7 +386,7 @@ export default function AutomotivePage() {
             {heroStats.map((stat) => (
               <div
                 key={stat.label.en}
-                className="rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-lg sm:rounded-3xl sm:p-5 md:p-6"
+                className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] sm:rounded-3xl sm:p-5 md:p-6"
               >
                 <div className={`${typography.statValue} font-light text-white`}>{stat.value}</div>
                 <div className="mt-1.5 text-[10px] uppercase tracking-[0.3em] text-white/60 sm:mt-2 sm:text-xs sm:tracking-[0.4em]">{stat.label[locale]}</div>
@@ -407,7 +403,7 @@ export default function AutomotivePage() {
           {programHighlights.map((card) => (
             <div
               key={card.title.en}
-              className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-5 backdrop-blur sm:rounded-3xl sm:p-6"
+              className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:rounded-3xl sm:p-6"
             >
               <div className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em]">{card.eyebrow[locale]}</div>
               <h3 className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{card.title[locale]}</h3>
@@ -430,11 +426,11 @@ export default function AutomotivePage() {
             <Link
               key={cat.slug}
               href={`/${locale}/categories/${cat.slug}`}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-5 transition-all duration-500 hover:border-white/40 sm:rounded-3xl sm:p-6 md:p-8"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8"
             >
               <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                 backgroundImage:
-                  'radial-gradient(circle at top left, rgba(255,255,255,0.15), transparent 55%)',
+                  'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
               }} />
               <div className="relative flex flex-col gap-3 sm:gap-4">
                 <div className="text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px] sm:tracking-[0.4em]">
@@ -480,11 +476,11 @@ export default function AutomotivePage() {
                 key={brand.name}
                 onClick={() => setSelectedBrand(brand)}
                 whileHover={{ y: -4 }}
-                className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-5 text-left transition sm:gap-5 sm:rounded-3xl sm:p-6 md:gap-6 md:p-8"
+                className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-left transition backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:gap-5 sm:rounded-3xl sm:p-6 md:gap-6 md:p-8"
               >
                 <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                   backgroundImage:
-                    'linear-gradient(135deg, rgba(255,255,255,0.18), transparent 65%)',
+                    'linear-gradient(135deg, rgba(255,255,255,0.1), transparent 65%)',
                 }} />
                 <div className="relative flex items-center justify-between gap-4">
                   <div className="relative h-16 w-36">
@@ -575,11 +571,11 @@ export default function AutomotivePage() {
                   key={brand.name}
                   onClick={() => setSelectedBrand(brand)}
                   whileHover={{ y: -6 }}
-                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.02] p-4 text-left transition sm:rounded-3xl sm:p-5 md:p-6"
+                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-left transition backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-5 md:p-6"
                 >
                   <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                     background:
-                      'radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 60%)',
+                      'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 60%)',
                   }} />
                   <div className="relative flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.3em]">
                     <div className="flex items-center gap-2">

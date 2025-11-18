@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 
 interface BrandLogoProps {
   name: string;
@@ -61,10 +62,11 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({ name, src, className = '',
         </div>
       )}
       {inView && (
-        <img
+        <Image
           src={current}
           alt={alt || name}
-          className={`max-h-full max-w-full object-contain transition-all duration-500 ${loaded ? 'opacity-90 hover:opacity-100' : 'opacity-0'} ${monochrome ? 'grayscale contrast-125 hover:grayscale-0 hover:contrast-100' : ''}`}
+          fill
+          className={`object-contain transition-all duration-500 ${loaded ? 'opacity-90 hover:opacity-100' : 'opacity-0'} ${monochrome ? 'grayscale contrast-125 hover:grayscale-0 hover:contrast-100' : ''}`}
           loading={lazy ? 'lazy' : 'eager'}
           onLoad={() => setLoaded(true)}
           onError={() => {

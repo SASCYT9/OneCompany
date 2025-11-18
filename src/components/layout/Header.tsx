@@ -36,7 +36,7 @@ export function Header() {
     try {
       const value = localStorage.getItem('heroVideoDisabled');
       setVideoDisabled(value === 'true');
-    } catch (e) {
+    } catch {
       // ignore
     }
     try {
@@ -46,7 +46,7 @@ export function Header() {
         setVideoDisabled(true);
         setServerDisabled(true);
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, []);
@@ -62,7 +62,7 @@ export function Header() {
           aria-label="ONE COMPANY home"
         >
           <Logo className="w-20 sm:w-28 md:w-32" priority tone="light" size="compact" />
-          <span className="absolute -bottom-1 left-0 h-px w-8 bg-gradient-to-r from-amber-400 to-transparent sm:-bottom-2 sm:w-10" />
+          <span className="absolute -bottom-1 left-0 h-px w-8 bg-gradient-to-r from-white to-transparent sm:-bottom-2 sm:w-10" />
         </Link>
         <nav className="ml-6 hidden flex-1 items-center gap-4 md:ml-10 md:gap-6 lg:flex">
           {navItems.map((item) => {
@@ -81,7 +81,7 @@ export function Header() {
                 {isActive && (
                   <motion.span
                     layoutId="nav-active"
-                    className="absolute -bottom-2 left-0 block h-px w-full bg-gradient-to-r from-amber-400 to-transparent"
+                    className="absolute -bottom-2 left-0 block h-px w-full bg-gradient-to-r from-white to-transparent"
                   />
                 )}
               </Link>
@@ -107,13 +107,13 @@ export function Header() {
                 setSnackMessage(!videoDisabled ? tNav('toggleHeroVideoDisable') : tNav('toggleHeroVideoEnable'));
                 setSnackOpen(true);
                 try { trackEvent('hero_video_toggle', { enabled: (!videoDisabled) }) } catch {};
-              } catch (e) {
+              } catch {
                 // ignore
               }
             }}
             className={cn(
               "hidden items-center gap-2 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] transition sm:inline-flex",
-              videoDisabled ? "border-white/20 bg-white/10 text-white hover:border-white hover:bg-white/20" : "border-transparent bg-amber-400 text-black hover:brightness-95",
+              videoDisabled ? "border-white/20 bg-white/10 text-white hover:border-white hover:bg-white/20" : "border-transparent bg-white text-black hover:bg-white/90",
               serverDisabled && 'opacity-60 cursor-not-allowed'
             )}
           >
@@ -164,7 +164,7 @@ export function Header() {
                   >
                     {tNav(item.key)}
                     {isActive && (
-                      <span className="absolute bottom-0 left-0 block h-px w-12 bg-gradient-to-r from-amber-400 to-transparent" />
+                      <span className="absolute bottom-0 left-0 block h-px w-12 bg-gradient-to-r from-white to-transparent" />
                     )}
                   </Link>
                 );
@@ -188,13 +188,13 @@ export function Header() {
                         window.dispatchEvent(new Event('heroVideoToggle'));
                           setSnackMessage(!videoDisabled ? tNav('toggleHeroVideoDisable') : tNav('toggleHeroVideoEnable'));
                           setSnackOpen(true);
-                      } catch (e) {
+                      } catch {
                         // ignore
                       }
                     }}
                     className={cn(
                       "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] transition",
-                      videoDisabled ? "border-white/20 bg-white/10 text-white hover:border-white hover:bg-white/20" : "border-transparent bg-amber-400 text-black hover:brightness-95",
+                      videoDisabled ? "border-white/20 bg-white/10 text-white hover:border-white hover:bg-white/20" : "border-transparent bg-white text-black hover:bg-white/90",
                       serverDisabled && 'opacity-60 cursor-not-allowed'
                     )}
                   >

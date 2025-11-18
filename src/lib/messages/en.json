@@ -1,5 +1,24 @@
 {
-  
+  "nav": {
+    "automotive": "Automotive",
+    "moto": "Moto",
+    "stores": "Stores",
+    "about": "About",
+    "categories": "Categories",
+    "selectStore": "Select Store",
+    "contact": "Contact",
+    "bookAtelier": "Book Atelier",
+    "toggleHeroVideoEnable": "Enable Video",
+    "toggleHeroVideoDisable": "Disable Video"
+  },
+  "footer": {
+    "b2bWholesale": "B2B Wholesale Importer",
+    "brandsFor": "200+ brands for service stations, detailing & tuning shops",
+    "conciergeB2C": "+ concierge service for retail clients (B2C)",
+    "servicesSince": "services worldwide since 2007",
+    "premiumParts": "200+ brands of premium tuning parts",
+    "company": "Company",
+    "disciplines": "Disciplines",
     "headquarters": "Headquarters",
     "engineeredIn": "Engineered in Kyiv",
     "about": "About Us",
@@ -170,25 +189,7 @@
       "submit": "Send Inquiry"
     }
   },
-  "footer": {
-    "about": "About Us",
-    "aboutText": "Since 2007, onecompany has been shaping the culture of premium tuning: over 12,000 satisfied customers, hundreds of custom projects, and uncompromising post-installation support.",
-    "navigate": "Navigate",
-    "home": "Home",
-    "automotive": "Automotive",
-    "motorcycles": "Motorcycles",
-    "aboutUs": "About Us",
-    "contactAuto": "Contact Auto",
-    "contactMoto": "Contact Moto",
-    "premiumAutoParts": "Premium Auto Parts",
-    "premiumMotoParts": "Premium Moto Parts",
-    "worldwideShipping": "Worldwide Shipping",
-    "contactUs": "Contact Us",
-    "allRights": "All rights reserved",
-    "privacy": "Privacy Policy",
-    "terms": "Terms of Use",
-    "cookies": "Cookies Policy"
-  },
+
   "about": {
     "intro": "Since 2007, we have been shaping the culture of premium tuning: 12,000+ satisfied customers, hundreds of individual projects, and uncompromising support after installation."
   },

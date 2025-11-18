@@ -14,11 +14,11 @@ export default function SmoothScroll() {
       return;
     }
     // Smooth scroll configuration
-    const lenis = {
-      duration: 1.2,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smooth: true,
-    };
+    // const lenis = {
+    //   duration: 1.2,
+    //   easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    //   smooth: true,
+    // };
 
     // Update ScrollTrigger on scroll
     ScrollTrigger.refresh();

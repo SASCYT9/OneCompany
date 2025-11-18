@@ -58,6 +58,11 @@ const config: Config = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      fontFamily: {
+        sans: ['var(--font-stack-sans)'],
+        display: ['var(--font-stack-display)'],
+        mono: ['var(--font-mono)', 'monospace'],
+      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },

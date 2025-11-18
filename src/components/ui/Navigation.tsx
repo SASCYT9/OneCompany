@@ -96,7 +96,7 @@ export function Navigation() {
               </button>
               <div className="absolute top-full left-0 mt-3 w-72 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-500 group-hover:translate-y-0 -translate-y-2">
                 <div className="rounded-3xl overflow-hidden" style={{ background: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(60px) saturate(180%)', boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.1), 0 12px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)' }}>
-                  {stores.map((store, idx) => (
+                  {stores.map((store) => (
                     <Link key={store.name} href={store.url} target="_blank" rel="noopener noreferrer" className="block px-7 py-5 text-white/80 hover:text-white transition-all duration-400 group/item relative overflow-hidden" style={{ borderBottom: 'none' }}>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity duration-500" />
                       <div className="relative z-10 flex items-center justify-between">

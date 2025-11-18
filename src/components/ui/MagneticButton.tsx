@@ -1,20 +1,16 @@
 "use client";
 
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import { ReactNode, useRef } from "react";
 
 interface MagneticButtonProps {
   children: ReactNode;
   className?: string;
-  href?: string;
-  onClick?: () => void;
 }
 
 export default function MagneticButton({
   children,
   className = "",
-  href,
-  onClick,
 }: MagneticButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
   

@@ -337,7 +337,6 @@ export async function POST(req: NextRequest) {
       // Обробка команд
       if (messageText === '/start') {
         const lang = getUserLanguage(userId);
-        const t = translations[lang];
         
         // Перевіряємо чи користувач вже обрав мову
         if (!userLanguages.has(userId)) {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { resolveLocale, buildPageMetadata, type SupportedLocale, buildLocalizedPath, absoluteUrl } from "@/lib/seo";
+import { resolveLocale, buildPageMetadata, type SupportedLocale } from "@/lib/seo";
 
 export const dynamic = "force-static";
 

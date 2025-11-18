@@ -46,34 +46,13 @@ export default async function LocalizedHomePage({
     },
   ];
 
-  const heroVideo = "/videos/Luxury_Automotive_Abstract_Video_Creation.mp4";
   const heroBadgeCopy = t('badge');
-  const heroMeta = {
-    globalPresence: t('globalPresence'),
-    brandPromise: t('brandPromise'),
-    atelierAddress: t('atelierAddress'),
-  };
 
   const statHighlights = [
     { value: "18", label: t('statsExperience') },
     { value: "200+", label: t('statsBrands') },
     { value: "36h", label: t('statsLogistics') },
     { value: "4", label: t('statsContinents') },
-  ];
-
-  const marqueeBrands = [
-    "Aston Martin Racing",
-    "Brabus",
-    "Akrapovič",
-    "KW Suspensions",
-    "Novitec",
-    "Eventuri",
-    "ABT Sportsline",
-    "Mansory",
-    "Ruf Automobile",
-    "Techart",
-    "Z Performance",
-    "Capristo",
   ];
 
   const b2bServices = [
@@ -108,12 +87,12 @@ export default async function LocalizedHomePage({
                 href={experience.href}
                 className={clsx(
                   "group relative flex flex-1 min-h-[380px] flex-col justify-between gap-6 overflow-hidden p-6 text-left text-white sm:min-h-[420px] sm:gap-10 sm:p-8",
-                  "border border-white/20 bg-white/[0.08] backdrop-blur-2xl transition-all duration-500 hover:bg-white/[0.15] hover:border-white/30 hover:shadow-[0_8px_32px_rgba(255,255,255,0.1)]",
+                  "border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-500 hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)]",
                   "rounded-3xl",
                   index === 0 ? "md:mr-3" : "md:ml-3 md:text-right md:items-end"
                 )}
               >
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent" />
                 <div
                   aria-hidden
                   className={clsx(
@@ -137,7 +116,7 @@ export default async function LocalizedHomePage({
                   </p>
                 </div>
                 <div className="relative flex w-full items-end justify-between gap-3 pt-4 sm:gap-6 sm:pt-6">
-                  <div className="flex flex-wrap gap-3 font-mono text-white/80 sm:gap-6">
+                  <div className="flex flex-wrap gap-3 text-white/80 sm:gap-6">
                     {experience.stats.map((stat) => (
                       <div key={stat.note}>
                         <p className="text-xl tracking-tight text-white sm:text-2xl md:text-3xl">{stat.value}</p>
@@ -165,10 +144,10 @@ export default async function LocalizedHomePage({
           {/* Address moved to footer; hero no longer displays physical address */}
         </div>
       </section>
-      <section className="border-t border-white/20 bg-white/5 backdrop-blur-xl">
+      <section className="border-t border-white/10 bg-black/40 backdrop-blur-xl">
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-6 py-12 text-center text-white md:grid-cols-4">
           {statHighlights.map((stat) => (
-            <div key={stat.label} className="space-y-3 p-4 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-lg hover:bg-white/[0.08] hover:border-white/20 transition-all duration-300">
+            <div key={stat.label} className="space-y-3 p-4 rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300">
               <p className="text-4xl font-light tracking-tight">{stat.value}</p>
               <p className="text-[11px] uppercase tracking-[0.35em] text-white/60">{stat.label}</p>
             </div>
@@ -187,7 +166,7 @@ export default async function LocalizedHomePage({
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
             <Link
               href={`/${locale}/auto`}
-              className="group rounded-2xl border border-white/20 bg-white/[0.08] px-6 py-8 text-white backdrop-blur-xl hover:bg-white/[0.12] hover:border-white/30 hover:shadow-[0_8px_32px_rgba(255,255,255,0.08)] transition-all duration-300"
+              className="group rounded-2xl border border-white/10 bg-white/[0.02] px-6 py-8 text-white backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300"
             >
               <h4 className="text-2xl font-light uppercase tracking-[0.2em]">{t('autoCatalog')}</h4>
               <p className="mt-3 text-sm text-white/70">{t('autoCatalogBrands')}</p>
@@ -198,7 +177,7 @@ export default async function LocalizedHomePage({
             </Link>
             <Link
               href={`/${locale}/moto`}
-              className="group rounded-2xl border border-white/20 bg-white/[0.08] px-6 py-8 text-white backdrop-blur-xl hover:bg-white/[0.12] hover:border-white/30 hover:shadow-[0_8px_32px_rgba(255,255,255,0.08)] transition-all duration-300"
+              className="group rounded-2xl border border-white/10 bg-white/[0.02] px-6 py-8 text-white backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300"
             >
               <h4 className="text-2xl font-light uppercase tracking-[0.2em]">{t('motoCatalog')}</h4>
               <p className="mt-3 text-sm text-white/70">{t('motoCatalogBrands')}</p>
@@ -230,7 +209,7 @@ export default async function LocalizedHomePage({
             {b2bServices.map((service) => (
               <div
                 key={service.title}
-                className="rounded-3xl border border-white/20 bg-white/[0.08] backdrop-blur-2xl p-6 hover:bg-white/[0.12] hover:border-white/30 hover:shadow-[0_8px_32px_rgba(255,255,255,0.08)] transition-all duration-300"
+                className="rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-6 hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300"
               >
                 <p className="text-sm uppercase tracking-[0.3em] text-white/50">{heroBadgeCopy}</p>
                 <h4 className="mt-4 text-2xl font-light text-white">{service.title}</h4>

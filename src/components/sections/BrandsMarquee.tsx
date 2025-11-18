@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { gsap } from 'gsap';
 import Link from 'next/link';
-import { allAutomotiveBrands, allMotoBrands } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 
 // Select top brands from automotive and moto categories

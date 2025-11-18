@@ -108,10 +108,10 @@ export default function ContactPage() {
     type === "auto" ? t("form.modelPlaceholderAuto") : t("form.modelPlaceholderMoto");
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white">
+    <div className="min-h-screen bg-black text-white">
       <section className="relative overflow-hidden px-4 py-16 sm:px-6 sm:py-20 md:px-10 md:py-32 lg:py-40">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-[#0f0f0f] to-[#050505]" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top,_rgba(245,230,200,0.25),_transparent_60%)] sm:h-64" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-black/80 to-black" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.1),_transparent_60%)] sm:h-64" />
         <div className="relative mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -119,11 +119,11 @@ export default function ContactPage() {
             transition={{ duration: 0.8 }}
             className="mb-12 text-center sm:mb-16 md:mb-20"
           >
-            <p className="mb-4 text-xs uppercase tracking-[0.3em] text-amber-200/70 sm:mb-5 sm:text-sm sm:tracking-[0.4em] md:mb-6">{t("hero.eyebrow")}</p>
+            <p className="mb-4 text-xs uppercase tracking-[0.3em] text-white/60 sm:mb-5 sm:text-sm sm:tracking-[0.4em] md:mb-6">{t("hero.eyebrow")}</p>
             <h1 className="mb-6 text-3xl font-extralight leading-tight tracking-tight text-white sm:text-4xl sm:mb-7 md:text-5xl md:mb-8 lg:text-7xl xl:text-8xl">
               {t("hero.heading")}
             </h1>
-            <div className="mx-auto mb-6 h-px w-20 bg-amber-200/40 sm:w-24 sm:mb-8 md:w-32 md:mb-10" />
+            <div className="mx-auto mb-6 h-px w-20 bg-white/20 sm:w-24 sm:mb-8 md:w-32 md:mb-10" />
             <p className="mx-auto max-w-3xl text-base font-light text-white/70 sm:text-lg md:text-xl lg:text-2xl">
               {t("hero.subheading")}
             </p>
@@ -134,13 +134,13 @@ export default function ContactPage() {
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="h-full space-y-8 rounded-2xl border border-white/10 bg-white/3 p-6 backdrop-blur-sm sm:space-y-10 sm:rounded-3xl sm:p-8 md:space-y-12 md:rounded-[32px] md:p-10 ring-1 ring-amber-200/6 shadow-[0_10px_40px_rgba(251,191,36,0.04)]"
+              className="h-full space-y-8 rounded-2xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-3xl sm:space-y-10 sm:rounded-3xl sm:p-8 md:space-y-12 md:rounded-[32px] md:p-10 shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
             >
               <div>
                 <h2 className="mb-6 text-2xl font-light tracking-wide text-white sm:mb-7 sm:text-3xl md:mb-8 md:text-4xl">
                   {t("info.title")}
                 </h2>
-                <div className="mb-8 h-px w-12 bg-amber-200/40 sm:mb-10 sm:w-14 md:mb-12 md:w-16" />
+                <div className="mb-8 h-px w-12 bg-white/20 sm:mb-10 sm:w-14 md:mb-12 md:w-16" />
               </div>
 
               <div className="space-y-6 sm:space-y-7 md:space-y-8">
@@ -152,7 +152,7 @@ export default function ContactPage() {
                     <h3 className="mb-1.5 text-xs font-light uppercase tracking-widest text-white/50 sm:mb-2 sm:text-sm">{t("info.emailLabel")}</h3>
                     <a
                       href="mailto:info@onecompany.global"
-                      className="text-base font-light text-white transition-colors hover:text-amber-200 sm:text-lg"
+                      className="text-base font-light text-white transition-colors hover:text-white/80 sm:text-lg"
                     >
                       info@onecompany.global
                     </a>
@@ -167,7 +167,7 @@ export default function ContactPage() {
                     <h3 className="text-sm uppercase tracking-widest text-white/50 mb-2 font-light">{t("info.phoneLabel")}</h3>
                     <a
                       href="tel:+380123456789"
-                      className="text-lg font-light text-white hover:text-amber-200 transition-colors"
+                      className="text-lg font-light text-white hover:text-white/80 transition-colors"
                     >
                       +380 12 345 67 89
                     </a>
@@ -194,7 +194,7 @@ export default function ContactPage() {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="h-full rounded-2xl border border-white/15 bg-gradient-to-br from-white/6 via-zinc-950/80 to-black/60 p-5 backdrop-blur-lg ring-1 ring-amber-200/10 sm:rounded-3xl sm:p-6 md:rounded-[32px] md:p-8 shadow-[0_20px_60px_rgba(251,191,36,0.08)] flex flex-col"
+              className="h-full rounded-2xl border border-white/10 bg-white/[0.02] p-5 backdrop-blur-3xl sm:rounded-3xl sm:p-6 md:rounded-[32px] md:p-8 shadow-[0_20px_40px_rgba(0,0,0,0.4)] flex flex-col"
             >
               <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7 md:space-y-8 flex flex-col flex-1 justify-between">
                 {/* Progress bar */}
@@ -205,7 +205,7 @@ export default function ContactPage() {
                   </div>
                   <div className="h-0.5 w-full overflow-hidden rounded-full bg-white/10">
                     <div
-                      className="h-full bg-gradient-to-r from-amber-300 to-amber-500 transition-all duration-500"
+                      className="h-full bg-white transition-all duration-500"
                       style={{ width: `${completion}%` }}
                     />
                   </div>
@@ -221,13 +221,12 @@ export default function ContactPage() {
                       className={
                         `flex-1 px-4 py-2.5 sm:py-3 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] sm:tracking-[0.25em] transition-all duration-300 relative overflow-hidden rounded-lg ` +
                         (type === option
-                          ? "bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 text-black shadow-[0_0_32px_rgba(251,146,60,0.5),0_0_16px_rgba(251,191,36,0.4)] ring-2 ring-amber-300/50"
+                          ? "bg-white text-black shadow-lg"
                           : "bg-white/5 text-white/50 hover:bg-white/8 hover:text-white/70")
                       }
                       aria-pressed={type===option}
                     >
                       <span className="relative z-10">{option === "auto" ? t("form.typeAuto") : t("form.typeMoto")}</span>
-                      {type === option && <span className="absolute inset-0 animate-pulse bg-gradient-to-r from-orange-300/0 via-amber-300/30 to-orange-300/0" />}
                     </button>
                   ))}
                 </div>
@@ -244,7 +243,7 @@ export default function ContactPage() {
                         name="model"
                         value={formData.model}
                         onChange={handleChange}
-                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={modelPlaceholder}
                         required
                       />
@@ -259,7 +258,7 @@ export default function ContactPage() {
                         name="vin"
                         value={formData.vin}
                         onChange={handleChange}
-                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={t("form.vinPlaceholder")}
                         maxLength={17}
                       />
@@ -276,7 +275,7 @@ export default function ContactPage() {
                       rows={4}
                       value={formData.wishes}
                       onChange={handleChange}
-                      className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-all resize-none font-light"
+                      className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all resize-none font-light"
                       placeholder={t("form.wishesPlaceholder")}
                       required
                     />
@@ -293,7 +292,7 @@ export default function ContactPage() {
                         name="budget"
                         value={formData.budget}
                         onChange={handleChange}
-                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={t("form.budgetPlaceholder")}
                       />
                     </div>
@@ -307,7 +306,7 @@ export default function ContactPage() {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder="example@mail.com"
                         required
                       />
@@ -325,7 +324,7 @@ export default function ContactPage() {
                         name="phone"
                         value={formData.phone}
                         onChange={handlePhoneChange}
-                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-amber-300/80 focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={t("form.phonePlaceholder")}
                         required
                         aria-label={t("form.phoneLabel")}
@@ -342,15 +341,12 @@ export default function ContactPage() {
                             key={method}
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, contactMethod: method }))}
-                            className={`flex-1 relative rounded-full border px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-light tracking-[0.1em] transition-all duration-300 ${formData.contactMethod === method ? 'border-amber-300/80 bg-amber-300/10 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.15)]' : 'border-white/15 text-white/50 hover:border-white/30 hover:text-white/70'}`}
+                            className={`flex-1 relative rounded-full border px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-light tracking-[0.1em] transition-all duration-300 ${formData.contactMethod === method ? 'border-white bg-white text-black' : 'border-white/15 text-white/50 hover:border-white/30 hover:text-white/70'}`}
                             aria-pressed={formData.contactMethod===method}
                           >
                             <span className="relative z-10">
                               {t(`form.${method}`)}
                             </span>
-                            {formData.contactMethod === method && (
-                              <span className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-200/0 via-amber-400/10 to-amber-200/0 animate-pulse" />
-                            )}
                           </button>
                         ))}
                       </div>
@@ -364,7 +360,7 @@ export default function ContactPage() {
                     disabled={status === "loading"}
                     whileHover={{ scale: status === "loading" ? 1 : 1.01 }}
                     whileTap={{ scale: status === "loading" ? 1 : 0.98 }}
-                    className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-amber-200 to-amber-400 px-6 py-2.5 sm:py-3 text-[10px] sm:text-xs font-light uppercase tracking-[0.2em] sm:tracking-[0.25em] text-black transition-all duration-300 hover:shadow-[0_8px_32px_rgba(251,191,36,0.3)] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-full border border-white bg-white px-6 py-2.5 sm:py-3 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-black transition-all duration-300 hover:bg-transparent hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {status === "loading" && <Loader className="animate-spin" size={14} />}
                     {status === "loading" ? t("form.submitting") : t("form.submit")}

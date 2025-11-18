@@ -1,6 +1,6 @@
 "use client";
 
-import { yearsOfExcellence, foundedYear, satisfiedClients, flagshipProjects } from '@/lib/company';
+import { yearsOfExcellence, satisfiedClients, flagshipProjects } from '@/lib/company';
 import { useLanguage } from '@/lib/LanguageContext';
 
 export default function StatsStrip() {

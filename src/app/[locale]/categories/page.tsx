@@ -10,8 +10,8 @@ export default function LocalizedCategoriesIndexPage() {
   return (
     <div className="relative bg-black min-h-screen text-white overflow-hidden">
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-orange-500/10 via-rose-500/5 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-gradient-to-tl from-amber-500/10 via-yellow-500/5 to-transparent rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[radial-gradient(circle,_rgba(255,255,255,0.05)_0%,_transparent_70%)] rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[radial-gradient(circle,_rgba(255,255,255,0.03)_0%,_transparent_70%)] rounded-full blur-3xl" />
       </div>
 
       <main className="relative container mx-auto px-6 py-24">
@@ -30,7 +30,7 @@ export default function LocalizedCategoriesIndexPage() {
             <Link
               key={cat.slug}
               href={cat.slug}
-              className="group relative p-8 bg-gradient-to-br from-white/[0.08] to-white/[0.03] hover:from-white/[0.12] hover:to-white/[0.06] transition-all duration-500 backdrop-blur-sm rounded-2xl border border-white/10"
+              className="group relative p-8 bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-500 backdrop-blur-3xl rounded-3xl border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
             >
               <div className="mb-4 text-[10px] tracking-[0.3em] uppercase text-white/40">{locale === 'ua' ? 'Категорія' : 'Category'}</div>
               <h2 className="text-2xl font-light mb-3 text-white/90 group-hover:text-white">
@@ -42,7 +42,7 @@ export default function LocalizedCategoriesIndexPage() {
               <div className="mt-6 text-xs text-white/70 group-hover:text-white/90 tracking-wider">
                 {locale === 'ua' ? 'Перейти →' : 'Open →'}
               </div>
-              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/0 to-transparent group-hover:via-orange-500/50 transition-all duration-500" />
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/0 to-transparent group-hover:via-white/20 transition-all duration-500" />
             </Link>
           ))}
         </section>

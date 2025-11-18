@@ -3,7 +3,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
 import { Link } from '@/navigation';
-import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import BrandCarousel from '@/components/ui/BrandCarousel';
 import AnimatedButton from '@/components/ui/AnimatedButton';
@@ -46,7 +45,7 @@ const topMotoBrands = [
 
 const LandingPage = () => {
   const heroRef = useRef<HTMLDivElement>(null);
-  const [heroVideo, setHeroVideo] = useState<string>('Luxury_Automotive_Abstract_Video_Creation.mp4');
+  const [heroVideo, setHeroVideo] = useState<string>('hero-main.mp4');
   const t = useTranslations('landing');
 
   useEffect(() => {

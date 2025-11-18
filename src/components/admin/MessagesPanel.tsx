@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, useCallback, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Archive,
   CheckCircle,
   Inbox,
   MessageSquare,
@@ -46,31 +45,24 @@ export default function MessagesPanel() {
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    refresh();
-  }, []);
-
-  const refresh = async () => {
-    await Promise.all([loadMessages(), loadStats()]);
-  };
-
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     try {
       const res = await fetch('/api/messages', { cache: 'no-store' });
       if (res.ok) {
         const data = (await res.json()) as Message[];
         setMessages(data);
-        if (selectedMessage) {
-          const next = data.find((msg) => msg.id === selectedMessage.id);
-          setSelectedMessage(next ?? null);
-        }
+        setSelectedMessage((prev) => {
+          if (!prev) return null;
+          const next = data.find((msg) => msg.id === prev.id);
+          return next ?? null;
+        });
       }
     } catch (error) {
       console.error('Failed to load messages', error);
     }
-  };
+  }, []);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const res = await fetch('/api/messages?stats=true', { cache: 'no-store' });
       if (res.ok) {
@@ -80,7 +72,15 @@ export default function MessagesPanel() {
     } catch (error) {
       console.error('Failed to load stats', error);
     }
-  };
+  }, []);
+
+  const refresh = useCallback(async () => {
+    await Promise.all([loadMessages(), loadStats()]);
+  }, [loadMessages, loadStats]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const updateStatus = async (messageId: string, nextStatus: Message['status']) => {
     try {

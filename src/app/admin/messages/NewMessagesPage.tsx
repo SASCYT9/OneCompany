@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Send, Trash2, X, RefreshCw, Mail, Phone, MessageCircle } from 'lucide-react';
 
 interface Message {

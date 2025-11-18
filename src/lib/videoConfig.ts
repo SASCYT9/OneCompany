@@ -10,7 +10,7 @@ export type VideoConfig = {
 };
 
 const configPath = path.join(process.cwd(), 'public', 'config', 'video-config.json');
-const defaultConfig: VideoConfig = { heroVideo: 'Luxury_Automotive_Abstract_Video_Creation.mp4', videos: [], heroEnabled: true, heroVideoMobile: 'hero-smoke.mp4', heroPoster: 'hero-background.jpg' };
+const defaultConfig: VideoConfig = { heroVideo: 'hero-main.mp4', videos: [], heroEnabled: true, heroVideoMobile: 'hero-smoke.mp4', heroPoster: 'hero-background.jpg' };
 
 async function ensureVideoConfigFile() {
   try {

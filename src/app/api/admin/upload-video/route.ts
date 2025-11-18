@@ -17,7 +17,7 @@ async function ensurePaths() {
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(
       configPath,
-      JSON.stringify({ heroVideo: 'Luxury_Automotive_Abstract_Video_Creation.mp4', videos: [] }, null, 2)
+      JSON.stringify({ heroVideo: 'hero-main.mp4', videos: [] }, null, 2)
     );
   }
 }
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, filename });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to upload video' },
       { status: 500 }

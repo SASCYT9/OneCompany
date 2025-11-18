@@ -1,9 +1,6 @@
 'use client';
 
-import { useLanguage } from '@/lib/LanguageContext';
-
 export default function AboutPage() {
-  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-6">
       <div className="max-w-2xl text-center">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { trackEvent } from '../../lib/analytics';
 
 interface StoreHeroSectionProps {
@@ -43,7 +44,14 @@ export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) 
           {/* Заголовок */}
           <div className={`text-center mb-4 md:mb-8 transition-all duration-1000 delay-200 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
             <div className="flex justify-center mb-3 md:mb-4">
-              <img src="/logos/kw.svg" alt="KW Suspension" className="h-6 md:h-8 lg:h-10 opacity-90" />
+              <Image
+                src="/logos/kw.svg"
+                alt="KW Suspension"
+                width={0}
+                height={0}
+                sizes="100vw"
+                className="h-6 md:h-8 lg:h-10 w-auto opacity-90"
+              />
             </div>
             <div className="mb-3 md:mb-4">
               <span className="px-3 md:px-4 lg:px-6 py-1.5 md:py-2 rounded-full bg-gradient-to-r from-orange-500 to-red-600 bg-opacity-20 backdrop-blur-md border border-orange-500/30 text-xs md:text-sm font-medium text-orange-400 uppercase tracking-[0.15em] md:tracking-[0.2em] lg:tracking-[0.4em] shadow-2xl shadow-orange-500/30 inline-block">
@@ -119,7 +127,14 @@ export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) 
           {/* Заголовок */}
           <div className={`text-center mb-4 md:mb-8 transition-all duration-1000 delay-200 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
             <div className="flex justify-center mb-3 md:mb-4">
-              <img src="/logos/fi.svg" alt="Fi Exhaust" className="h-6 md:h-8 lg:h-10 opacity-90" />
+              <Image
+                src="/logos/fi.svg"
+                alt="Fi Exhaust"
+                width={0}
+                height={0}
+                sizes="100vw"
+                className="h-6 md:h-8 lg:h-10 w-auto opacity-90"
+              />
             </div>
             <div className="mb-3 md:mb-4">
               <span className="px-3 md:px-4 lg:px-6 py-1.5 md:py-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 bg-opacity-20 backdrop-blur-md border border-cyan-400/30 text-xs md:text-sm font-medium text-cyan-400 uppercase tracking-[0.15em] md:tracking-[0.2em] lg:tracking-[0.4em] shadow-2xl shadow-cyan-500/30 inline-block">
@@ -198,7 +213,14 @@ export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) 
           {/* Заголовок */}
           <div className={`text-center mb-4 md:mb-8 transition-all duration-1000 delay-200 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
             <div className="flex justify-center mb-3 md:mb-4">
-              <img src="/logos/eventuri.svg" alt="Eventuri" className="h-6 md:h-8 lg:h-10 opacity-90" />
+              <Image
+                src="/logos/eventuri.svg"
+                alt="Eventuri"
+                width={0}
+                height={0}
+                sizes="100vw"
+                className="h-6 md:h-8 lg:h-10 w-auto opacity-90"
+              />
             </div>
             <div className="mb-3 md:mb-4">
               <span className="px-3 md:px-4 lg:px-6 py-1.5 md:py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 bg-opacity-20 backdrop-blur-md border border-purple-500/30 text-xs md:text-sm font-medium text-purple-400 uppercase tracking-[0.15em] md:tracking-[0.2em] lg:tracking-[0.4em] shadow-2xl shadow-purple-500/30 inline-block">

@@ -2,7 +2,7 @@
 
 import { useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, MeshTransmissionMaterial, useGLTF, Text, OrbitControls, Sky, Cloud } from '@react-three/drei';
+import { Environment, MeshTransmissionMaterial, Text, OrbitControls, Sky } from '@react-three/drei';
 import { EffectComposer, Bloom, ChromaticAberration, Vignette, Noise } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import { motion } from 'framer-motion';
