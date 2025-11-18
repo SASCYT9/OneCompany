@@ -87,13 +87,23 @@
   }
 
   /* Ukrainian locale typography improvements */
-  .locale-ua,
-  .locale-ua * {
-    font-family: var(--font-ua, "Manrope"), "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    letter-spacing: 0.01em;
-    line-height: 1.65;
+  html[lang="uk"],
+  html[lang="uk"] body,
+  .locale-ua {
+    --font-body: var(--font-ua, "Manrope");
   }
 
+  html[lang="uk"] *,
+  .locale-ua * {
+    font-family: var(--font-ua, "Manrope"), "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  }
+
+  html[lang="uk"] h1,
+  html[lang="uk"] h2,
+  html[lang="uk"] h3,
+  html[lang="uk"] h4,
+  html[lang="uk"] h5,
+  html[lang="uk"] h6,
   .locale-ua h1,
   .locale-ua h2,
   .locale-ua h3,
@@ -102,26 +112,44 @@
   .locale-ua h6,
   .locale-ua .font-display,
   .locale-ua .font-round {
-    font-family: var(--font-ua, "Manrope"), "Inter", system-ui, -apple-system, sans-serif;
-    letter-spacing: 0.015em;
+    font-family: var(--font-ua, "Manrope"), "Inter", system-ui, -apple-system, sans-serif !important;
+    letter-spacing: 0.02em !important;
     font-weight: 500;
   }
 
+  html[lang="uk"] p,
+  html[lang="uk"] div,
+  html[lang="uk"] span,
+  html[lang="uk"] li,
+  .locale-ua p,
+  .locale-ua div,
+  .locale-ua span,
+  .locale-ua li {
+    letter-spacing: 0.01em;
+    line-height: 1.65;
+  }
+
+  html[lang="uk"] .uppercase,
   .locale-ua .uppercase {
-    letter-spacing: 0.26em;
+    letter-spacing: 0.28em !important;
   }
 
-  .locale-ua [class*='tracking-wider'],
-  .locale-ua [class*='tracking-widest'] {
-    letter-spacing: 0.26em;
+  html[lang="uk"] [class*='tracking-'],
+  .locale-ua [class*='tracking-'] {
+    letter-spacing: 0.26em !important;
   }
 
+  html[lang="uk"] button,
+  html[lang="uk"] input,
+  html[lang="uk"] textarea,
+  html[lang="uk"] select,
+  html[lang="uk"] a,
   .locale-ua button,
   .locale-ua input,
   .locale-ua textarea,
   .locale-ua select,
   .locale-ua a {
-    font-family: var(--font-ua, "Manrope"), "Inter", system-ui, sans-serif;
+    font-family: var(--font-ua, "Manrope"), "Inter", system-ui, sans-serif !important;
   }
 
   body::before {
