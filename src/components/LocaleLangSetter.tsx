@@ -11,8 +11,16 @@ export default function LocaleLangSetter({ locale }: Props) {
     html.lang = newLang;
     if (newLang === "uk") {
       html.classList.add("locale-ua");
+      // Set root-level font variables so body inherits UA font immediately
+      html.style.setProperty("--font-sans", "var(--font-ua)");
+      html.style.setProperty("--font-display", "var(--font-ua)");
+      html.style.setProperty("--font-body", "var(--font-ua)");
     } else {
       html.classList.remove("locale-ua");
+      // Remove UA-specific overrides so we fallback to root defaults
+      html.style.removeProperty("--font-sans");
+      html.style.removeProperty("--font-display");
+      html.style.removeProperty("--font-body");
     }
   }, [locale]);
   return null;
