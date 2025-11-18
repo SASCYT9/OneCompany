@@ -66,7 +66,7 @@ const Footer = () => {
         />
         <div
           ref={signatureRef}
-          id="signature-programs"
+          id="concierge-programs"
           className="mb-10 rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_rgba(5,5,5,0.85))] p-5 text-center backdrop-blur-2xl sm:mb-16 sm:rounded-[36px] sm:p-8"
         >
           <p className="text-xs uppercase tracking-[0.3em] text-white/60 sm:text-sm sm:tracking-[0.4em]">{locale === 'ua' ? 'B2B оптовий імпортер' : 'B2B Wholesale Importer'}</p>

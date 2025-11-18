@@ -51,7 +51,7 @@ export default async function LocalizedHomePage({
   ];
 
   const heroVideo = "/videos/Luxury_Automotive_Abstract_Video_Creation.mp4";
-  const heroBadgeCopy = locale === 'ua' ? 'onecompany · дубльована програма' : 'onecompany · dual signature programs';
+  const heroBadgeCopy = locale === 'ua' ? 'onecompany · дубльований консьєрж сервіс' : 'onecompany · dual concierge service';
   const heroMeta = {
     globalPresence: locale === 'ua' ? 'B2B Опт з 2007 року' : 'B2B wholesale since 2007',
     brandPromise: locale === 'ua' ? '200+ брендів · СТО, дітейлінг, магазини тюнінгу' : '200+ brands · Service stations, detailing, tuning shops',
@@ -104,14 +104,8 @@ export default async function LocalizedHomePage({
   return (
     <main className="text-white">
       <section className="relative flex min-h-screen flex-col justify-between pt-12">
-        <div>
-          <div className="px-4 pt-12 text-center text-[8px] uppercase tracking-[0.4em] text-white/55 sm:px-6 sm:pt-16 sm:text-[10px] sm:tracking-[0.5em]">
-            <p>{heroBadgeCopy}</p>
-          </div>
-          <div className="mt-2 flex flex-col items-center gap-1 px-4 text-center text-[9px] uppercase tracking-[0.3em] text-white/60 sm:mt-4 sm:px-6 sm:text-[11px] sm:tracking-[0.4em]">
-            <p>{heroMeta.globalPresence}</p>
-            <p className="text-white/70">{heroMeta.brandPromise}</p>
-          </div>
+        <div className="px-4 pt-12 text-center text-[8px] uppercase tracking-[0.4em] text-white/55 sm:px-6 sm:pt-16 sm:text-[10px] sm:tracking-[0.5em]">
+          <p>{heroBadgeCopy}</p>
         </div>
 
         <div className="relative isolate flex flex-1 flex-col gap-4 px-3 pb-3 pt-6 sm:gap-6 sm:px-4 sm:pb-4 sm:pt-8 md:flex-row md:gap-0 md:px-0">
@@ -172,15 +166,13 @@ export default async function LocalizedHomePage({
         
         <div className="flex flex-col items-center gap-4 px-4 pb-10 text-center">
           <Link
-            href="#signature-programs"
+            href="#concierge-programs"
             className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 backdrop-blur-xl px-5 py-2.5 text-[9px] uppercase tracking-[0.3em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)] sm:gap-3 sm:px-6 sm:py-3 sm:text-[11px] sm:tracking-[0.4em]"
           >
             {locale === 'ua' ? 'КОНСЬЄРЖ СЕРВІС' : 'CONCIERGE SERVICE'}
             <span className="text-sm sm:text-base">↘</span>
           </Link>
-          <div className="text-[11px] uppercase tracking-[0.35em] text-white/60">
-            <p className="font-semibold text-white/70">{heroMeta.atelierAddress}</p>
-          </div>
+          {/* Address moved to footer; hero no longer displays physical address */}
         </div>
       </section>
       <section className="border-t border-white/20 bg-white/5 backdrop-blur-xl">
@@ -194,7 +186,7 @@ export default async function LocalizedHomePage({
         </div>
       </section>
 
-      <section id="signature-programs" className="relative overflow-hidden py-20 text-white">
+      <section id="concierge-programs" className="relative overflow-hidden py-20 text-white">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-transparent" aria-hidden />
         <div className="relative mx-auto max-w-4xl px-6 text-center">
           <p className="text-xs uppercase tracking-[0.4em] text-white/50">Наші сайти</p>

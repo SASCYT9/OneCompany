@@ -93,8 +93,8 @@ const programHighlights: {
     eyebrow: { en: 'Installation network', ua: 'Мережа інсталяції' },
     title: { en: 'OEM-safe partners', ua: 'Партнери рівня OEM' },
     description: {
-      en: 'Certified ateliers for titanium welding, ECU calibration and track alignment.',
-      ua: 'Сертифіковані ательє для титанових зварювань, калібрування ECU та трекового сходження.',
+      en: 'Certified importer partners for titanium welding, ECU calibration and track alignment.',
+      ua: 'Сертифіковані імпортери для титанових зварювань, калібрування ECU та трекового сходження.',
     },
     meta: { en: '18 countries · on-site inspection', ua: '18 країн · виїзний контроль' },
   },
@@ -165,7 +165,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
     ],
   },
   Vorsteiner: {
-    headline: { en: 'Vorsteiner Carbon Atelier', ua: 'Vorsteiner — карбонове ательє' },
+    headline: { en: 'Vorsteiner Carbon Importer', ua: 'Vorsteiner — карбоновий імпортер' },
     description: {
       en: 'Carbon aero programs for Lamborghini, Porsche, BMW and SUV flagships with factory-level fit.',
       ua: 'Карбонові аеропакети для Lamborghini, Porsche, BMW та флагманських SUV з OEM-пасуванням.',
@@ -201,7 +201,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
     ],
   },
   Manhart: {
-    headline: { en: 'Manhart Signature Builds', ua: 'Manhart — підписи ательє' },
+    headline: { en: 'Manhart Concierge Builds', ua: 'Manhart — консьєрж сервіс' },
     description: {
       en: 'Complete conversion kits with aero, wheels and ECU calibrations for BMW, Audi and Mercedes.',
       ua: 'Повні комплекти конверсій з аеро, дисками та прошивками для BMW, Audi, Mercedes.',
@@ -363,7 +363,7 @@ export default function AutomotivePage() {
             muted
             playsInline
             className="h-full w-full object-cover opacity-60"
-            poster="/images/eventuri/atelier-hero.jpg"
+            poster="/images/eventuri/carbon-intake.jpg"
           >
             <source src="/videos/Luxury_Automotive_Abstract_Video_Creation.mp4" type="video/mp4" />
           </video>

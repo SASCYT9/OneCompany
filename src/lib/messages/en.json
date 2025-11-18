@@ -7,7 +7,7 @@
     "categories": "Categories",
     "selectStore": "Select Store",
     "contact": "Inquiry",
-    "bookAtelier": "Book atelier",
+    "bookAtelier": "Book importer",
     "toggleHeroVideoEnable": "Enable hero video",
     "toggleHeroVideoDisable": "Disable hero video"
   },
@@ -189,9 +189,9 @@
   },
   "aboutPage": {
     "hero": {
-      "eyebrow": "Performance atelier since 2007",
+      "eyebrow": "Importer since 2007",
       "title": "We engineer flagship builds for people obsessed with detail.",
-      "subtitle": "ONE COMPANY curates 200+ premium brands, integrates them with certified partner ateliers, and delivers white-glove support across 30+ countries.",
+      "subtitle": "ONE COMPANY curates 200+ premium brands, integrates them with certified partners, and delivers white-glove support across 30+ countries.",
       "primaryCta": "Speak with a specialist",
       "secondaryCta": "Browse categories"
     },
@@ -221,7 +221,7 @@
       "paragraph1": "We started as enthusiasts building dream cars for friends. Today, we orchestrate complex performance programs for collectors, athletes, and brand houses.",
       "paragraph2": "Our team obsesses over compatibility, lead times, and installation geometry so that every component lands flawlessly and performs as promised.",
       "paragraph3": "This is not e-commerce. This is partnership—transparent sourcing, engineering rigor, and handover rituals that feel as premium as the parts themselves.",
-      "signature": "ONE COMPANY atelier"
+      "signature": "ONE COMPANY importer"
     },
     "pillars": {
       "title": "How we deliver",
@@ -235,7 +235,7 @@
           "description": "CAD reviews, fitment checks, and visualization decks ensure every upgrade complements the original design language."
         },
         "partnerNetwork": {
-          "title": "Partner atelier network",
+          "title": "Partner importer network",
           "description": "Certified body, paint, and performance partners across Europe, the US, and the Middle East for flawless execution."
         }
       }
@@ -270,7 +270,7 @@
         },
         "2012": {
           "title": "Motorcycle division",
-          "description": "Launch of the moto practice with dedicated partner ateliers for Ducati, BMW, and KTM builds."
+          "description": "Launch of the moto practice with dedicated partner importers for Ducati, BMW, and KTM builds."
         },
         "2016": {
           "title": "Global logistics",
@@ -281,15 +281,15 @@
           "description": "Remote visualization decks and virtual consultations make premium tuning accessible worldwide."
         },
         "2024": {
-          "title": "Atelier expansion",
+          "title": "Importer expansion",
           "description": "Integrated concierge program spans automotive, moto, and lifestyle accessories under one ecosystem."
         }
       }
     },
     "cta": {
       "title": "Bring your next build to life",
-      "subtitle": "Send us your chassis, wishlist, and timeline—we will curate the program and coordinate the atelier.",
-      "primaryCta": "Request atelier support",
+      "subtitle": "Send us your chassis, wishlist, and timeline—we will curate the program and coordinate importer logistics.",
+      "primaryCta": "Request importer support",
       "secondaryCta": "View brand roster"
     }
   },

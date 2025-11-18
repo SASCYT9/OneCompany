@@ -480,7 +480,7 @@ export default function MotoPage() {
             muted
             playsInline
             className="h-full w-full object-cover opacity-60"
-            poster="/images/eventuri/atelier-hero.jpg"
+            poster="/images/eventuri/carbon-intake.jpg"
           >
             <source src="/videos/Luxury_Automotive_Abstract_Video_Creation.mp4" type="video/mp4" />
           </video>

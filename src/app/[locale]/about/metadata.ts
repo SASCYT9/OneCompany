@@ -3,14 +3,14 @@ import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/se
 
 const aboutMetaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   en: {
-    title: "About onecompany · Premium performance atelier",
+    title: "About onecompany · Premium importer & concierge",
     description:
-      "Since 2007 onecompany curates bespoke automotive and motorcycle programs with homologation, logistics, and atelier support worldwide.",
+      "Since 2007 onecompany curates bespoke automotive and motorcycle programs with homologation, logistics, and importer support worldwide.",
   },
   ua: {
-    title: "Про onecompany · Преміум ательє тюнінгу",
+    title: "Про onecompany · Преміум імпортер тюнінгу",
     description:
-      "З 2007 року onecompany створює індивідуальні авто та мото програми з гомологацією, логістикою та підтримкою ательє по всьому світу.",
+      "З 2007 року onecompany створює індивідуальні авто та мото програми з гомологацією, логістикою та підтримкою імпортера по всьому світу.",
   },
 };
 

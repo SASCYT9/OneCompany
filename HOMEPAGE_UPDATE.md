@@ -19,7 +19,7 @@
 
 **Нові елементи:**
 - Великий логотип "onecompany" як центральний елемент
-- Підпис "signature atelier"
+- Підпис "Консьєрж Сервіс"
 - Напрям послуг "hypercar & moto"
 - Мінімальна інформація про заснування
 - Один CTA - "забронювати консультацію"
@@ -37,7 +37,7 @@
 ```json
 {
   "badge": "onecompany",
-  "title": "Signature Atelier",
+  "title": "Concierge Service",
   "subtitle": "Curated excellence for discerning collectors.",
   "ctaAutoLabel": "Hypercar",
   "ctaMotoLabel": "Superbike",

@@ -70,7 +70,7 @@ export default async function TelegramAppPage() {
       newTab: true,
     },
     {
-      title: "Call atelier",
+      title: "Call importer",
       description: contact.timezoneNote,
       href: `tel:${contact.messengerHandles.phone}`,
       badge: "Voice",
@@ -78,7 +78,7 @@ export default async function TelegramAppPage() {
       newTab: false,
     },
     {
-      title: "Email atelier",
+      title: "Email importer",
       description: emailChannel?.note ?? "Відправте бриф",
       href: `mailto:${emailChannel?.value ?? "info@onecompany.global"}`,
       badge: "Detailed brief",
@@ -100,7 +100,7 @@ export default async function TelegramAppPage() {
         <section className="glass-panel gradient-border rounded-[38px] border border-white/10 p-6 sm:p-10">
           <p className="text-[11px] uppercase tracking-[0.55em] text-white/45">Telegram mini app · onecompany</p>
           <h1 className="mt-5 text-3xl font-semibold text-white sm:text-4xl lg:text-[44px]">
-            Concierge atelier прямо у Telegram
+            Concierge importer прямо у Telegram
           </h1>
           <p className="mt-4 max-w-3xl text-base text-white/70 sm:text-lg">
             {contact.infoBody} {contact.slaPromise}

@@ -2,8 +2,8 @@ import type { SiteMedia } from '@/types/site-media';
 
 export const defaultSiteMedia: SiteMedia = {
   heroPosters: {
-    auto: '/images/eventuri/atelier-hero.jpg',
-    moto: '/images/eventuri/atelier-hero.jpg',
+    auto: '/images/eventuri/carbon-intake.jpg',
+    moto: '/images/eventuri/carbon-intake.jpg',
   },
   stores: {
     kw: {

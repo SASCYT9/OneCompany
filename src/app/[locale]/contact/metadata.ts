@@ -5,12 +5,12 @@ const contactMetaCopy: Record<SupportedLocale, { title: string; description: str
   en: {
     title: "Contact onecompany · Bespoke performance concierge",
     description:
-      "Speak with our atelier team for curated automotive and motorcycle programs, sourcing, homologation and global logistics.",
+      "Speak with our importer team for curated automotive and motorcycle programs, sourcing, homologation and global logistics.",
   },
   ua: {
-    title: "onecompany · Контакти преміум ательє",
+    title: "onecompany · Контакти імпортера преміум",
     description:
-      "Зв'яжіться з нашою командою для індивідуального підбору авто та мото програм, логістики, гомологації та супроводу.",
+      "Зв'яжіться з нашою командою для індивідуального підбору авто та мото програм, логістики, гомологації та супроводу імпортера.",
   },
 };
 
