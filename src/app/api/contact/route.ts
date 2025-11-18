@@ -49,7 +49,9 @@ type TelegramPayload = {
 };
 
 const prisma = new PrismaClient();
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend with a fallback key to prevent build-time errors if env var is missing.
+// The actual sending logic checks for the presence of the key.
+const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
 
 function rateLimit(ip: string): boolean {
   const now = Date.now();

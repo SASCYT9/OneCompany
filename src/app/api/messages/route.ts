@@ -6,7 +6,8 @@ import React from 'react';
 import { PrismaClient, Status } from '@prisma/client';
 
 const prisma = new PrismaClient();
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend with a fallback key to prevent build-time errors if env var is missing.
+const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
 
 async function handleGet(req: NextRequest) {
   // No authentication check - handled by admin layout
