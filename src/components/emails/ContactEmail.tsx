@@ -35,12 +35,117 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
   ? `https://${process.env.VERCEL_URL}`
   : 'http://localhost:3000';
 
-const accentColor = '#ffb256'; // Amber
-const backgroundColor = '#090c11';
-const foregroundColor = '#f5f7fa';
-const subtleTextColor = '#a1a1aa';
-const cardBackgroundColor = '#10151d';
-const borderColor = 'rgba(255,255,255,0.08)';
+const main = {
+  backgroundColor: '#050505',
+  fontFamily: '"Manrope", "Helvetica Neue", Helvetica, Arial, sans-serif',
+  color: '#ffffff',
+};
+
+const container = {
+  margin: '0 auto',
+  padding: '40px 20px',
+  maxWidth: '600px',
+};
+
+const logoContainer = {
+  textAlign: 'center' as const,
+  marginBottom: '32px',
+};
+
+const logo = {
+  margin: '0 auto',
+};
+
+const contentContainer = {
+  backgroundColor: '#0c0c12',
+  borderRadius: '16px',
+  border: '1px solid rgba(255,255,255,0.1)',
+  padding: '32px',
+  boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+};
+
+const heading = {
+  fontSize: '24px',
+  fontWeight: '600',
+  textAlign: 'center' as const,
+  color: '#ffffff',
+  margin: '0 0 24px',
+  letterSpacing: '-0.02em',
+};
+
+const subheading = {
+  fontSize: '15px',
+  lineHeight: '24px',
+  textAlign: 'center' as const,
+  color: '#a1a1aa',
+  marginBottom: '32px',
+};
+
+const infoRow = {
+  marginBottom: '16px',
+};
+
+const label = {
+  color: '#a1a1aa',
+  fontSize: '12px',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.1em',
+  marginBottom: '4px',
+  fontWeight: '600',
+};
+
+const value = {
+  color: '#ffffff',
+  fontSize: '16px',
+  fontWeight: '500',
+  margin: '0',
+};
+
+const divider = {
+  borderColor: 'rgba(255,255,255,0.1)',
+  margin: '24px 0',
+};
+
+const messageBox = {
+  backgroundColor: 'rgba(255,255,255,0.03)',
+  borderRadius: '8px',
+  padding: '20px',
+  color: '#e5e7eb',
+  fontSize: '15px',
+  lineHeight: '26px',
+  whiteSpace: 'pre-wrap' as const,
+  border: '1px solid rgba(255,255,255,0.05)',
+};
+
+const buttonContainer = {
+  textAlign: 'center' as const,
+  marginTop: '32px',
+};
+
+const button = {
+  backgroundColor: '#ffffff',
+  borderRadius: '9999px',
+  color: '#000000',
+  fontSize: '14px',
+  fontWeight: '600',
+  textDecoration: 'none',
+  textAlign: 'center' as const,
+  display: 'inline-block',
+  padding: '14px 32px',
+  letterSpacing: '0.05em',
+  textTransform: 'uppercase' as const,
+};
+
+const footer = {
+  textAlign: 'center' as const,
+  marginTop: '32px',
+};
+
+const footerText = {
+  color: '#52525b',
+  fontSize: '12px',
+  margin: '4px 0',
+};
 
 export const ContactEmail = ({
   name,
@@ -60,110 +165,105 @@ export const ContactEmail = ({
     <Preview>New {inquiryType} Inquiry from {name}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={{ paddingTop: '10px', paddingBottom: '10px' }}>
-          <Row style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Column style={{ width: 150 }}>
-              <Img
-                src={logoSrc || `${baseUrl}/branding/one-company-logo.svg`}
-                width="150"
-                alt="OneCompany Logo"
-                style={logo}
-              />
-            </Column>
-            <Column>
-              <Heading style={{ ...heading, textAlign: 'left', marginTop: 0 }}>New Contact Request</Heading>
-              <Text style={{ ...subheading, textAlign: 'left' }}>
-                A new <strong>{inquiryType}</strong> inquiry has been submitted through the website.
-              </Text>
-              {messageId && <Text style={{ color: subtleTextColor, fontSize: 11, marginTop: 6 }}>Message ID: {messageId}</Text>}
-            </Column>
-          </Row>
+        <Section style={logoContainer}>
+          <Img
+            src={logoSrc || `${baseUrl}/branding/one-company-logo.svg`}
+            width="160"
+            alt="OneCompany"
+            style={logo}
+          />
         </Section>
         
-        <Section style={card}>
-          <Row style={{ ...row, display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <Column style={{ width: '120px', color: subtleTextColor }}>From</Column>
-            <Column style={{ ...value, marginTop: 0 }}>{name}</Column>
-          </Row>
-          <Hr style={hr} />
-          <Row style={row}>
-            <Column style={label}>Contact:</Column>
-            <Column style={value}><a href={`mailto:${contact}`} style={{ color: foregroundColor, textDecoration: 'none' }}>{contact}</a></Column>
-          </Row>
-          {phone && (
-            <>
-              <Hr style={hr} />
-              <Row style={row}>
-                <Column style={label}>Phone:</Column>
-                <Column style={value}>{phone}</Column>
-              </Row>
-            </>
-          )}
-          {contactMethod && (
-            <>
-              <Hr style={hr} />
-              <Row style={row}>
-                <Column style={label}>Contact Method:</Column>
-                <Column style={value}>{contactMethod?.toUpperCase()}</Column>
-              </Row>
-            </>
-          )}
-          {model && (
-            <>
-              <Hr style={hr} />
-              <Row style={row}>
-                <Column style={label}>{inquiryType === 'Auto' ? 'Car Model:' : 'Moto Model:'}</Column>
-                <Column style={value}>{model}</Column>
-              </Row>
-            </>
-          )}
-          {vin && (
-            <>
-              <Hr style={hr} />
-              <Row style={row}>
-                <Column style={label}>VIN:</Column>
-                <Column style={value}>{vin}</Column>
-              </Row>
-            </>
-          )}
-          {budget && (
-            <>
-              <Hr style={hr} />
-              <Row style={row}>
-                <Column style={label}>Budget:</Column>
-                <Column style={value}>{budget}</Column>
-              </Row>
-            </>
-          )}
-          <Hr style={hr} />
-          <Row style={{ ...row, marginTop: '4px' }}>
-            <Column style={label}>Message:</Column>
-          </Row>
-          <Row>
-            <Column>
-              <Text style={messageText}>{message}</Text>
-            </Column>
-          </Row>
-        </Section>
+        <Section style={contentContainer}>
+          <Heading style={heading}>New Inquiry Received</Heading>
+          <Text style={subheading}>
+            A new <strong>{inquiryType}</strong> inquiry has been submitted via the website.
+          </Text>
 
-        <Section style={{ textAlign: 'center', marginTop: '32px' }}>
-          <Button
-            style={button}
-            href={`${baseUrl}/admin/messages${messageId ? `?id=${messageId}` : ''}`}
-          >
-            View in Dashboard
-          </Button>
+          <Section>
+            <Row style={infoRow}>
+              <Column>
+                <Text style={label}>Client Name</Text>
+                <Text style={value}>{name}</Text>
+              </Column>
+              <Column>
+                <Text style={label}>Contact</Text>
+                <Text style={value}>
+                  <a href={`mailto:${contact}`} style={{ color: '#ffffff', textDecoration: 'none' }}>{contact}</a>
+                </Text>
+              </Column>
+            </Row>
+
+            {(phone || contactMethod) && (
+              <Row style={infoRow}>
+                {phone && (
+                  <Column>
+                    <Text style={label}>Phone</Text>
+                    <Text style={value}>{phone}</Text>
+                  </Column>
+                )}
+                {contactMethod && (
+                  <Column>
+                    <Text style={label}>Preferred Method</Text>
+                    <Text style={value}>{contactMethod.toUpperCase()}</Text>
+                  </Column>
+                )}
+              </Row>
+            )}
+
+            <Hr style={divider} />
+
+            {(model || vin || budget) && (
+              <>
+                <Row style={infoRow}>
+                  {model && (
+                    <Column>
+                      <Text style={label}>{inquiryType === 'Auto' ? 'Vehicle Model' : 'Moto Model'}</Text>
+                      <Text style={value}>{model}</Text>
+                    </Column>
+                  )}
+                  {budget && (
+                    <Column>
+                      <Text style={label}>Budget Range</Text>
+                      <Text style={value}>{budget}</Text>
+                    </Column>
+                  )}
+                </Row>
+                {vin && (
+                  <Row style={infoRow}>
+                    <Column>
+                      <Text style={label}>VIN Code</Text>
+                      <Text style={value}>{vin}</Text>
+                    </Column>
+                  </Row>
+                )}
+                <Hr style={divider} />
+              </>
+            )}
+
+            <Text style={label}>Message</Text>
+            <Section style={messageBox}>
+              <Text style={{ margin: 0 }}>{message}</Text>
+            </Section>
+          </Section>
+
+          <Section style={buttonContainer}>
+            <Button
+              style={button}
+              href={`${baseUrl}/admin/messages${messageId ? `?id=${messageId}` : ''}`}
+            >
+              Open Dashboard
+            </Button>
+          </Section>
         </Section>
         
-        <Hr style={footerHr} />
-        
-        <Section>
-          <Text style={footer}>
-            OneCompany | Automated Notification System
+        <Section style={footer}>
+          <Text style={footerText}>
+            OneCompany Automated System
           </Text>
           {messageId && (
-            <Text style={{ ...footer, marginTop: 6 }}>
-              Message ID: <strong>{messageId}</strong>
+            <Text style={footerText}>
+              ID: {messageId}
             </Text>
           )}
         </Section>
@@ -173,97 +273,3 @@ export const ContactEmail = ({
 );
 
 export default ContactEmail;
-
-const main = {
-  backgroundColor: backgroundColor,
-  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
-  color: foregroundColor,
-};
-
-const container = {
-  margin: '0 auto',
-  padding: '20px 0 48px',
-  width: '580px',
-};
-
-const logo = {
-  margin: '0 auto',
-};
-
-const heading = {
-  fontSize: '28px',
-  fontWeight: 'bold',
-  textAlign: 'center' as const,
-  color: accentColor,
-  marginTop: '30px',
-};
-
-const subheading = {
-  fontSize: '16px',
-  lineHeight: '26px',
-  textAlign: 'center' as const,
-  color: foregroundColor,
-};
-
-const card = {
-  backgroundColor: cardBackgroundColor,
-  borderRadius: '8px',
-  padding: '20px',
-  marginTop: '20px',
-  border: `1px solid ${borderColor}`,
-};
-
-const row = {
-  width: '100%',
-  display: 'table',
-};
-
-const label = {
-  width: '100px',
-  color: subtleTextColor,
-  fontSize: '14px',
-  verticalAlign: 'top',
-};
-
-const value = {
-  color: foregroundColor,
-  fontSize: '14px',
-  fontWeight: 'bold',
-};
-
-const messageText = {
-  color: foregroundColor,
-  fontSize: '14px',
-  lineHeight: '24px',
-  whiteSpace: 'pre-wrap' as const,
-  marginTop: '10px',
-};
-
-const hr = {
-  borderColor: borderColor,
-  margin: '16px 0',
-};
-
-const footerHr = {
-  borderColor: borderColor,
-  margin: '40px 0',
-};
-
-const button = {
-  backgroundColor: accentColor,
-  borderRadius: '8px',
-  color: '#000',
-  fontSize: '16px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'inline-block',
-  padding: '12px 24px',
-  boxShadow: `0 4px 20px rgba(255, 178, 86, 0.25)`,
-};
-
-const footer = {
-  color: subtleTextColor,
-  fontSize: '12px',
-  textAlign: 'center' as const,
-};
