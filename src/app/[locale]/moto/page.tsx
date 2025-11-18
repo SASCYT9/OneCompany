@@ -7,7 +7,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 
-import { allMotoBrands, getBrandsByNames, LocalBrand } from '@/lib/brands';
+import { 
+  allMotoBrands, 
+  getBrandsByNames, 
+  LocalBrand,
+  getBrandMetadata,
+  getLocalizedCountry,
+  getLocalizedSubcategory,
+} from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 
 type LocalizedCopy = { en: string; ua: string; [key: string]: string };
@@ -62,7 +69,7 @@ const heroStats: { value: string; label: LocalizedCopy; caption: LocalizedCopy }
   {
     value: '21B',
     label: { en: 'Baseina St · Kyiv', ua: 'вул. Басейна, 21Б' },
-    caption: { en: 'Atelier · logistics HQ', ua: 'Ательє · логістичний HQ' },
+    caption: { en: 'Headquarters & logistics hub', ua: 'Штаб-квартира та логістичний хаб' },
   },
 ];
 
@@ -379,7 +386,7 @@ const brandDisciplineMap = new Map<string, LocalizedCopy>([
 
 export default function MotoPage() {
   const params = useParams();
-  const locale = (params.locale as string) || 'ua';
+  const locale = (params.locale === 'en' ? 'en' : 'ua') as 'en' | 'ua';
   const t = useTranslations('moto');
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -395,6 +402,28 @@ export default function MotoPage() {
   });
 
   const topBrands = useMemo(() => getBrandsByNames(TOP_MOTO_BRANDS, 'moto'), []);
+
+  const getBrandOrigin = useCallback(
+    (brand: LocalBrand) => {
+      const metadata = getBrandMetadata(brand.name);
+      if (metadata) {
+        return getLocalizedCountry(metadata.country, locale);
+      }
+      return locale === 'ua' ? 'Світовий портфель' : 'Global program';
+    },
+    [locale]
+  );
+
+  const getBrandSubcategory = useCallback(
+    (brand: LocalBrand) => {
+      const metadata = getBrandMetadata(brand.name);
+      if (metadata) {
+        return getLocalizedSubcategory(metadata.subcategory, locale);
+      }
+      return null;
+    },
+    [locale]
+  );
 
   const getBrandDiscipline = useCallback(
     (brand: LocalBrand) =>
@@ -413,7 +442,7 @@ export default function MotoPage() {
         ua: `${brand.name} — індивідуальне постачання`,
       },
       description: {
-        en: 'Concierge sourcing, homologation paperwork and paddock-ready logistics directed from Baseina St, Kyiv.',
+        en: 'Concierge sourcing, homologation paperwork and paddock-ready logistics directed from our Kyiv headquarters.',
         ua: 'Персональний підбір, гомологаційні документи та паддок-логістика з Басейної, 21Б.',
       },
       highlights: [
@@ -426,6 +455,8 @@ export default function MotoPage() {
 
   const selectedBrandStory = selectedBrand ? getBrandStory(selectedBrand) : null;
   const selectedBrandDiscipline = selectedBrand ? getBrandDiscipline(selectedBrand) : null;
+  const selectedBrandOrigin = selectedBrand ? getBrandOrigin(selectedBrand) : null;
+  const selectedBrandSubcategory = selectedBrand ? getBrandSubcategory(selectedBrand) : null;
   const selectedBrandPrograms = selectedBrand
     ? motoModuleCards.filter((card) =>
         card.chips.some((chip) => chip.toLowerCase() === selectedBrand.name.trim().toLowerCase())
@@ -465,32 +496,106 @@ export default function MotoPage() {
                 : 'Since 2007 we build track bikes with titanium, carbon, telemetry and concierge logistics.'}
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
-            {heroStats.map((stat) => (
-              <div key={stat.label.en} className="rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-lg sm:rounded-3xl sm:p-5 md:p-6">
-                <div className="text-2xl font-light text-white sm:text-3xl md:text-4xl">{stat.value}</div>
-                <div className="mt-1.5 text-[10px] uppercase tracking-[0.3em] text-white/60 sm:mt-2 sm:text-xs sm:tracking-[0.4em]">{stat.label[locale]}</div>
-                <p className="mt-2 text-xs text-white/60 sm:mt-3 sm:text-sm">{stat.caption[locale]}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      <section className="relative border-b border-white/5 bg-black/60 py-12 sm:py-16 md:py-20">
-        <div className="absolute inset-x-0 top-0 mx-auto h-px w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-        <div className="mx-auto grid max-w-6xl gap-4 px-4 sm:gap-5 sm:px-6 md:grid-cols-3 md:gap-6">
-          {programHighlights.map((card) => (
-            <div
-              key={card.title.en}
-              className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-5 backdrop-blur sm:rounded-3xl sm:p-6"
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+        <div className="mb-8 text-center sm:mb-10 md:mb-12">
+          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
+          <h2 className="mt-2 text-2xl font-light text-white sm:mt-3 sm:text-3xl md:text-4xl lg:text-5xl">{t('allBrands')}</h2>
+          <p className="mt-4 text-base text-white/60 sm:text-lg">
+            {locale === 'ua' ? `${allMotoBrands.length} брендів у портфелі` : `${allMotoBrands.length} brands in portfolio`}
+          </p>
+        </div>
+
+        <div className="flex justify-center">
+          <div className="relative w-full max-w-3xl">
+            <input
+              type="text"
+              placeholder={t('searchPlaceholder')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-2xl border border-white/15 bg-gradient-to-r from-white/10 to-white/[0.02] px-6 py-3 text-base text-white placeholder-white/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:px-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
+            />
+            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">⌕</div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap justify-center gap-1.5 sm:mt-8 sm:gap-2 md:mt-12">
+          <button
+            onClick={() => setActiveLetter(null)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] transition sm:px-4 sm:py-2 sm:text-sm sm:tracking-[0.3em] ${
+              !activeLetter
+                ? 'bg-white text-black'
+                : 'border border-white/20 text-white/60 hover:border-white/40 hover:text-white'
+            }`}
+          >
+            {t('all')}
+          </button>
+          {alphabet.map((letter) => (
+            <button
+              key={letter}
+              onClick={() => setActiveLetter(letter)}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.3em] ${
+                activeLetter === letter
+                  ? 'bg-white text-black'
+                  : 'border border-white/15 text-white/60 hover:border-white/40 hover:text-white'
+              }`}
             >
-              <div className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em]">{card.eyebrow[locale]}</div>
-              <h3 className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{card.title[locale]}</h3>
-              <p className="mt-2 text-xs text-white/70 sm:mt-3 sm:text-sm">{card.description[locale]}</p>
-              <p className="mt-4 text-[10px] uppercase tracking-[0.25em] text-white/60 sm:mt-6 sm:text-xs sm:tracking-[0.3em]">{card.meta[locale]}</p>
-            </div>
+              {letter}
+            </button>
           ))}
+        </div>
+
+        <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:mt-12 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredBrands.length > 0 ? (
+            filteredBrands.map((brand) => {
+              const origin = getBrandOrigin(brand);
+              const subcategory = getBrandSubcategory(brand);
+              return (
+                <motion.button
+                  key={brand.name}
+                  onClick={() => setSelectedBrand(brand)}
+                  whileHover={{ y: -6 }}
+                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.02] p-4 text-left transition sm:rounded-3xl sm:p-5 md:p-6"
+                >
+                  <div
+                    className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                    style={{
+                      background: 'radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 60%)',
+                    }}
+                  />
+                  <div className="relative flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.3em]">
+                    <div className="flex items-center gap-2">
+                      <span>{origin}</span>
+                      {subcategory && (
+                        <>
+                          <span className="text-white/30">·</span>
+                          <span className="text-white/60">{subcategory}</span>
+                        </>
+                      )}
+                    </div>
+                    <span className="text-white/70 group-hover:text-white">↗</span>
+                  </div>
+                  <div className="relative mt-5 h-20">
+                    <Image
+                      src={getBrandLogo(brand.name)}
+                      alt={brand.name}
+                      fill
+                      className="object-contain"
+                      sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="mt-5 text-2xl font-light text-white">{brand.name}</div>
+                </motion.button>
+              );
+            })
+          ) : (
+            <div className="col-span-full rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-xl text-white/70">
+              {t('noBrands')}
+            </div>
+          )}
         </div>
       </section>
 
@@ -627,91 +732,6 @@ export default function MotoPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
-        <div className="mb-8 text-center sm:mb-10 md:mb-12">
-          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
-          <h2 className="mt-2 text-2xl font-light text-white sm:mt-3 sm:text-3xl md:text-4xl lg:text-5xl">{t('allBrands')}</h2>
-        </div>
-
-        <div className="flex justify-center">
-          <div className="relative w-full max-w-3xl">
-            <input
-              type="text"
-              placeholder={t('searchPlaceholder')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-2xl border border-white/15 bg-gradient-to-r from-white/10 to-white/[0.02] px-6 py-3 text-base text-white placeholder-white/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:px-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
-            />
-            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">⌕</div>
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap justify-center gap-1.5 sm:mt-8 sm:gap-2 md:mt-12">
-          <button
-            onClick={() => setActiveLetter(null)}
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] transition sm:px-4 sm:py-2 sm:text-sm sm:tracking-[0.3em] ${
-              !activeLetter
-                ? 'bg-white text-black'
-                : 'border border-white/20 text-white/60 hover:border-white/40 hover:text-white'
-            }`}
-          >
-            {t('all')}
-          </button>
-          {alphabet.map((letter) => (
-            <button
-              key={letter}
-              onClick={() => setActiveLetter(letter)}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.3em] ${
-                activeLetter === letter
-                  ? 'bg-white text-black'
-                  : 'border border-white/15 text-white/60 hover:border-white/40 hover:text-white'
-              }`}
-            >
-              {letter}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:mt-12 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredBrands.length > 0 ? (
-            filteredBrands.map((brand) => (
-              <motion.button
-                key={brand.name}
-                onClick={() => setSelectedBrand(brand)}
-                whileHover={{ y: -6 }}
-                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.02] p-4 text-left transition sm:rounded-3xl sm:p-5 md:p-6"
-              >
-                <div
-                  className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                  style={{
-                    background: 'radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 60%)',
-                  }}
-                />
-                <div className="relative flex items-center justify-between text-xs uppercase tracking-[0.3em] text-white/50">
-                  <span>{getBrandDiscipline(brand)}</span>
-                  <span className="text-white/70 group-hover:text-white">↗</span>
-                </div>
-                <div className="relative mt-5 h-20">
-                  <Image
-                    src={getBrandLogo(brand.name)}
-                    alt={brand.name}
-                    fill
-                    className="object-contain"
-                    sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
-                    unoptimized
-                  />
-                </div>
-                <div className="mt-5 text-2xl font-light text-white">{brand.name}</div>
-              </motion.button>
-            ))
-          ) : (
-            <div className="col-span-full rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-xl text-white/70">
-              {t('noBrands')}
-            </div>
-          )}
-        </div>
-      </section>
-
       <AnimatePresence>
         {selectedBrand && selectedBrandStory && (
           <motion.div
@@ -753,7 +773,15 @@ export default function MotoPage() {
 
               <div className="mt-6 grid gap-8 md:grid-cols-2">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-white/50">{selectedBrandDiscipline}</p>
+                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
+                    <span>{selectedBrandOrigin}</span>
+                    {selectedBrandSubcategory && (
+                      <>
+                        <span className="text-white/30">·</span>
+                        <span className="text-white/60">{selectedBrandSubcategory}</span>
+                      </>
+                    )}
+                  </div>
                   <h3 className="mt-2 text-3xl font-light">{selectedBrandStory.headline[locale]}</h3>
                   <p className="mt-4 text-sm text-white/70">{selectedBrandStory.description[locale]}</p>
                 </div>
@@ -812,6 +840,55 @@ export default function MotoPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <section className="relative border-b border-white/5 bg-black/60 py-12 sm:py-16 md:py-20">
+        <div className="absolute inset-x-0 top-0 mx-auto h-px w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mb-10 text-center sm:mb-12 md:mb-16">
+            <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">
+              {locale === 'ua' ? 'Наші можливості' : 'Our capabilities'}
+            </p>
+            <h2 className="mt-2 text-2xl font-light text-white sm:mt-3 sm:text-3xl md:text-4xl lg:text-5xl">
+              {locale === 'ua' ? 'Що ми пропонуємо' : 'What we offer'}
+            </h2>
+          </div>
+          <div className="grid gap-4 sm:gap-5 md:grid-cols-3 md:gap-6">
+            {programHighlights.map((card) => (
+              <div
+                key={card.title.en}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-5 backdrop-blur sm:rounded-3xl sm:p-6"
+              >
+                <div className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em]">{card.eyebrow[locale]}</div>
+                <h3 className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{card.title[locale]}</h3>
+                <p className="mt-2 text-xs text-white/70 sm:mt-3 sm:text-sm">{card.description[locale]}</p>
+                <p className="mt-4 text-[10px] uppercase tracking-[0.25em] text-white/60 sm:mt-6 sm:text-xs sm:tracking-[0.3em]">{card.meta[locale]}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative border-b border-white/5 bg-black py-12 sm:py-16 md:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="text-center">
+            <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">
+              {locale === 'ua' ? 'Наш досвід' : 'Our experience'}
+            </p>
+            <h2 className="mt-2 text-2xl font-light text-white sm:mt-3 sm:text-3xl md:text-4xl lg:text-5xl">
+              {locale === 'ua' ? 'Ключові показники' : 'Key metrics'}
+            </h2>
+          </div>
+          <div className="mt-10 grid gap-4 sm:mt-12 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
+            {heroStats.map((stat) => (
+              <div key={stat.label.en} className="rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-lg sm:rounded-3xl sm:p-5 md:p-6">
+                <div className="text-2xl font-light text-white sm:text-3xl md:text-4xl">{stat.value}</div>
+                <div className="mt-1.5 text-[10px] uppercase tracking-[0.3em] text-white/60 sm:mt-2 sm:text-xs sm:tracking-[0.4em]">{stat.label[locale]}</div>
+                <p className="mt-2 text-xs text-white/60 sm:mt-3 sm:text-sm">{stat.caption[locale]}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <div className="pb-10" />
     </div>

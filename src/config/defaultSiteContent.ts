@@ -2,15 +2,15 @@ import { SiteContent } from '@/types/site-content';
 
 export const defaultSiteContent: SiteContent = {
   hero: {
-    badge: 'onecompany · dual signature programs',
-    title: 'Premium performance atelier',
-    subtitle: 'Concierge tuning for hypercars & litre bikes across four continents.',
+    badge: 'onecompany · B2B wholesale importer',
+    title: 'Premium performance importer',
+    subtitle: 'B2B wholesale for service stations, detailing studios & tuning shops. Concierge programs for VIP clients.',
     ctaAutoLabel: 'Automotive',
     ctaMotoLabel: 'Motorcycles',
     scrollLabel: 'Scroll',
-    globalPresence: 'services worldwide since 2007',
-    brandPromise: '200+ brands premium tuning parts',
-    atelierAddress: '21B Baseina St · Kyiv atelier',
+    globalPresence: 'B2B wholesale since 2007',
+    brandPromise: '200+ brands for trade partners',
+    atelierAddress: '21B Baseina St · Kyiv Importer',
   },
   marqueeBrands: [
     'Aston Martin Racing',
@@ -81,16 +81,16 @@ export const defaultSiteContent: SiteContent = {
     buttonHref: '/contact',
   },
   contactPage: {
-    heroBadge: 'Concierge atelier · відповідь до 12 годин',
+    heroBadge: 'B2B Wholesale Importer · відповідь до 12 годин',
     infoBody: 'Команда відповідає українською, англійською та польською. Підготуйте VIN та список бажаних оновлень — одразу зможемо дати реальні строки та вартість.',
     timezoneNote: 'Kyiv · UTC+2 · щоденні оновлення статусу',
     slaPromise: 'Середній час першої відповіді — 2 години у робочі дні / 6 годин у вихідні.',
     messengerTagline: 'Хочете швидке уточнення? Напишіть у месенджер — відповімо з черги лідів.',
     budgets: ['€3k–€7k · street aero & sound', '€8k–€15k · підвіска та гальма', '€15k+ · трекові та rally raid комплекти'],
     channels: [
-      { id: 'email', label: 'Email atelier', value: 'info@onecompany.com', note: 'Відповідь до 12 годин', type: 'email' },
+      { id: 'email', label: 'B2B wholesale email', value: 'info@onecompany.global', note: 'Відповідь до 12 годин', type: 'email' },
       { id: 'phone', label: 'Concierge phone', value: '+380 12 345 67 89', note: '10:00–21:00 GMT+2', type: 'phone' },
-      { id: 'telegram', label: 'Telegram', value: '@onecompany_atelier', note: 'Пріоритетні ліди', type: 'telegram' },
+      { id: 'telegram', label: 'Telegram', value: '@onecompany_wholesale', note: 'B2B запити', type: 'telegram' },
       { id: 'whatsapp', label: 'WhatsApp', value: '+380 12 345 67 89', note: 'Глобальні клієнти', type: 'whatsapp' },
     ],
     successStories: [
@@ -120,7 +120,7 @@ export const defaultSiteContent: SiteContent = {
       },
     ],
     messengerHandles: {
-      telegram: 'https://t.me/onecompany_atelier',
+      telegram: 'https://t.me/onecompany_wholesale',
       whatsapp: 'https://wa.me/380123456789',
       phone: '+380123456789',
     },

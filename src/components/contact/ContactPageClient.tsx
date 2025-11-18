@@ -140,7 +140,7 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
         name: "onecompany",
         url: pageUrl,
         image: heroPoster,
-        email: contactContent.channels.find((channel) => channel.type === "email")?.value ?? "info@onecompany.com",
+        email: contactContent.channels.find((channel) => channel.type === "email")?.value ?? "info@onecompany.global",
         telephone: contactContent.messengerHandles.phone,
         address: {
           "@type": "PostalAddress",

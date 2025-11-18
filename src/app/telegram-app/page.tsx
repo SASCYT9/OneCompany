@@ -80,7 +80,7 @@ export default async function TelegramAppPage() {
     {
       title: "Email atelier",
       description: emailChannel?.note ?? "Відправте бриф",
-      href: `mailto:${emailChannel?.value ?? "info@onecompany.com"}`,
+      href: `mailto:${emailChannel?.value ?? "info@onecompany.global"}`,
       badge: "Detailed brief",
       icon: Sparkles,
       newTab: false,

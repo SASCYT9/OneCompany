@@ -36,13 +36,20 @@ export default function ContactPage() {
   };
 
   const formatPhoneMask = (value: string) => {
+    // Allow user to type + manually at the start
+    const hasPlus = value.startsWith('+');
     const digits = value.replace(/\D/g, '');
-    if (!digits) return '';
-    if (digits.length <= 3) return `+${digits}`;
-    if (digits.length <= 5) return `+${digits.slice(0, 3)} ${digits.slice(3)}`;
-    if (digits.length <= 8) return `+${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5)}`;
-    if (digits.length <= 10) return `+${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`;
-    return `+${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8, 10)} ${digits.slice(10, 12)}`;
+    
+    if (!digits) return hasPlus ? '+' : '';
+    
+    // If user typed +, preserve it; otherwise add it
+    const prefix = hasPlus || value.length === 0 ? '+' : '+';
+    
+    if (digits.length <= 3) return `${prefix}${digits}`;
+    if (digits.length <= 5) return `${prefix}${digits.slice(0, 3)} ${digits.slice(3)}`;
+    if (digits.length <= 8) return `${prefix}${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5)}`;
+    if (digits.length <= 10) return `${prefix}${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`;
+    return `${prefix}${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8, 10)} ${digits.slice(10, 12)}`;
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,12 +129,12 @@ export default function ContactPage() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 gap-8 sm:gap-12 md:gap-16 lg:grid-cols-2 lg:gap-24">
+          <div className="grid grid-cols-1 gap-8 sm:gap-12 md:gap-16 lg:grid-cols-2 lg:gap-24 items-stretch">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="space-y-8 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur sm:space-y-10 sm:rounded-3xl sm:p-8 md:space-y-12 md:rounded-[32px] md:p-10"
+              className="h-full space-y-8 rounded-2xl border border-white/10 bg-white/3 p-6 backdrop-blur-sm sm:space-y-10 sm:rounded-3xl sm:p-8 md:space-y-12 md:rounded-[32px] md:p-10 ring-1 ring-amber-200/6 shadow-[0_10px_40px_rgba(251,191,36,0.04)]"
             >
               <div>
                 <h2 className="mb-6 text-2xl font-light tracking-wide text-white sm:mb-7 sm:text-3xl md:mb-8 md:text-4xl">
@@ -144,10 +151,10 @@ export default function ContactPage() {
                   <div>
                     <h3 className="mb-1.5 text-xs font-light uppercase tracking-widest text-white/50 sm:mb-2 sm:text-sm">{t("info.emailLabel")}</h3>
                     <a
-                      href="mailto:info@onecompany.com"
+                      href="mailto:info@onecompany.global"
                       className="text-base font-light text-white transition-colors hover:text-amber-200 sm:text-lg"
                     >
-                      info@onecompany.com
+                      info@onecompany.global
                     </a>
                   </div>
                 </div>
@@ -187,9 +194,9 @@ export default function ContactPage() {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="rounded-2xl border border-white/10 bg-gradient-to-b from-black/60 via-zinc-950/80 to-black/60 p-5 backdrop-blur sm:rounded-3xl sm:p-6 md:rounded-[32px] md:p-8 shadow-[0_40px_120px_rgba(0,0,0,0.6)]"
+              className="h-full rounded-2xl border border-white/15 bg-gradient-to-br from-white/6 via-zinc-950/80 to-black/60 p-5 backdrop-blur-lg ring-1 ring-amber-200/10 sm:rounded-3xl sm:p-6 md:rounded-[32px] md:p-8 shadow-[0_20px_60px_rgba(251,191,36,0.08)] flex flex-col"
             >
-              <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7 md:space-y-8">
+              <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7 md:space-y-8 flex flex-col flex-1 justify-between">
                 {/* Progress bar */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-[9px] sm:text-[10px] tracking-[0.15em] uppercase text-white/40 font-light">
@@ -212,15 +219,15 @@ export default function ContactPage() {
                       type="button"
                       onClick={() => handleTypeChange(option)}
                       className={
-                        `flex-1 px-4 py-2.5 sm:py-3 text-[10px] sm:text-xs font-light uppercase tracking-[0.2em] sm:tracking-[0.25em] transition-all duration-300 relative overflow-hidden ` +
+                        `flex-1 px-4 py-2.5 sm:py-3 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] sm:tracking-[0.25em] transition-all duration-300 relative overflow-hidden rounded-lg ` +
                         (type === option
-                          ? "bg-gradient-to-r from-amber-200 via-amber-300 to-amber-400 text-black shadow-[0_6px_24px_rgba(251,191,36,0.2)]"
+                          ? "bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 text-black shadow-[0_0_32px_rgba(251,146,60,0.5),0_0_16px_rgba(251,191,36,0.4)] ring-2 ring-amber-300/50"
                           : "bg-white/5 text-white/50 hover:bg-white/8 hover:text-white/70")
                       }
                       aria-pressed={type===option}
                     >
                       <span className="relative z-10">{option === "auto" ? t("form.typeAuto") : t("form.typeMoto")}</span>
-                      {type === option && <span className="absolute inset-0 animate-pulse bg-gradient-to-r from-amber-200/0 via-amber-400/10 to-amber-200/0" />}
+                      {type === option && <span className="absolute inset-0 animate-pulse bg-gradient-to-r from-orange-300/0 via-amber-300/30 to-orange-300/0" />}
                     </button>
                   ))}
                 </div>

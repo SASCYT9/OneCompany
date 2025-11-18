@@ -32,7 +32,7 @@
     "searchPlaceholder": "Search brands...",
     "all": "ALL",
     "noBrands": "No brands found",
-    "productCategories": "Product Categories",
+    "productCategories": "Brand Categories",
     "categories": {
       "exhaust": "Exhaust Systems",
       "suspension": "Suspension",
@@ -77,7 +77,7 @@
     "searchPlaceholder": "Search brands...",
     "all": "ALL",
     "noBrands": "No brands found",
-    "productCategories": "Product Categories",
+    "productCategories": "Brand Categories",
     "categories": {
       "exhaust": "Exhaust Systems",
       "suspension": "Suspension",
@@ -164,7 +164,7 @@
     "brands": "Brands",
     "brandsDesc": "We represent over 200+ world-leading brands in performance automotive and motorcycle parts",
     "viewAllBrands": "View All Brands",
-    "productCategories": "Product",
+    "productCategories": "Brand",
     "products": "Categories",
     "exhaustSystems": "Exhaust Systems",
     "exhaustDesc": "Performance exhausts, valved systems, headers",

@@ -1,14 +1,14 @@
 {
   "hero": {
-    "badge": "onecompany",
-    "title": "Signature Atelier",
-    "subtitle": "Curated excellence for discerning collectors.",
-    "ctaAutoLabel": "Hypercar",
-    "ctaMotoLabel": "Superbike",
+    "badge": "onecompany · B2B wholesale",
+    "title": "Premium Importer",
+    "subtitle": "B2B wholesale for service stations, detailing studios & tuning shops. VIP concierge programs available.",
+    "ctaAutoLabel": "Automotive",
+    "ctaMotoLabel": "Motorcycles",
     "scrollLabel": "Discover",
-    "globalPresence": "kyiv, ukraine · since 2007",
-    "brandPromise": "200+ performance marques",
-    "atelierAddress": "21B baseina st · kyiv"
+    "globalPresence": "B2B wholesale since 2007",
+    "brandPromise": "200+ brands for trade partners",
+    "atelierAddress": "21B baseina st · kyiv importer"
   },
   "marqueeBrands": [
     "Aston Martin Racing",
@@ -79,7 +79,7 @@
     "buttonHref": "/contact"
   },
   "contactPage": {
-    "heroBadge": "Concierge atelier · відповідь до 12 годин",
+    "heroBadge": "B2B Wholesale Importer · відповідь до 12 годин",
     "infoBody": "Команда відповідає українською, англійською та польською. Підготуйте VIN та список бажаних оновлень — одразу зможемо дати реальні строки та вартість.",
     "timezoneNote": "Kyiv · UTC+2 · щоденні оновлення статусу",
     "slaPromise": "Середній час першої відповіді — 2 години у робочі дні / 6 годин у вихідні.",
@@ -90,9 +90,9 @@
       "€15k+ · трекові та rally raid комплекти"
     ],
     "channels": [
-      { "id": "email", "label": "Email atelier", "value": "info@onecompany.com", "note": "Відповідь до 12 годин", "type": "email" },
+      { "id": "email", "label": "B2B wholesale email", "value": "info@onecompany.global", "note": "Відповідь до 12 годин", "type": "email" },
       { "id": "phone", "label": "Concierge phone", "value": "+380 12 345 67 89", "note": "10:00–21:00 GMT+2", "type": "phone" },
-      { "id": "telegram", "label": "Telegram", "value": "@onecompany_atelier", "note": "Пріоритетні ліди", "type": "telegram" },
+      { "id": "telegram", "label": "Telegram", "value": "@onecompany_wholesale", "note": "B2B запити", "type": "telegram" },
       { "id": "whatsapp", "label": "WhatsApp", "value": "+380 12 345 67 89", "note": "Глобальні клієнти", "type": "whatsapp" }
     ],
     "successStories": [
@@ -122,7 +122,7 @@
       }
     ],
     "messengerHandles": {
-      "telegram": "https://t.me/onecompany_atelier",
+      "telegram": "https://t.me/onecompany_wholesale",
       "whatsapp": "https://wa.me/380123456789",
       "phone": "+380123456789"
     }

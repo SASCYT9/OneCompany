@@ -669,7 +669,7 @@ async function handleButtonCallback(chatId: number, data: string, userName: stri
       await sendTelegramMessageWithButtons(
         chatId,
         `<b>${t.contactInfo}</b>\n\n` +
-        `📧 ${t.email}: info@onecompany.com\n` +
+        `📧 ${t.email}: info@onecompany.global\n` +
         `📱 ${t.phone}: +380 12 345 67 89\n` +
         `📍 ${t.location}\n\n` +
         `⏰ ${t.workSchedule}:\n` +

@@ -16,6 +16,9 @@ import {
   brandsUsa,
   getBrandsByNames,
   LocalBrand,
+  getBrandMetadata,
+  getLocalizedCountry,
+  getLocalizedSubcategory,
 } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { categoryData } from '@/lib/categoryData';
@@ -58,7 +61,7 @@ const heroStats: { value: string; label: LocalizedCopy; caption: LocalizedCopy }
   {
     value: '21B',
     label: { en: 'Baseina St · Kyiv', ua: 'вул. Басейна, 21Б' },
-    caption: { en: 'Concierge atelier & logistics', ua: 'Ательє та логістика під ключ' },
+    caption: { en: 'Headquarters & logistics hub', ua: 'Штаб-квартира та логістичний хаб' },
   },
 ];
 
@@ -251,7 +254,7 @@ const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto'
 
 export default function AutomotivePage() {
   const params = useParams();
-  const locale = (params.locale as string) || 'ua';
+  const locale = (params.locale === 'en' ? 'en' : 'ua') as 'en' | 'ua';
   const t = useTranslations('auto');
   const isUa = locale === 'ua';
   const typography = {
@@ -288,26 +291,26 @@ export default function AutomotivePage() {
     return map;
   }, []);
 
-  const brandOriginMap = useMemo(() => {
-    const map = new Map<string, LocalizedCopy>();
-    const assignOrigin = (brands: LocalBrand[], copy: LocalizedCopy) => {
-      brands.forEach((brand) => {
-        map.set(brand.name.trim().toLowerCase(), copy);
-      });
-    };
-    assignOrigin(brandsUsa, { en: 'North America', ua: 'Північна Америка' });
-    assignOrigin(brandsEurope, { en: 'Europe', ua: 'Європа' });
-    assignOrigin(brandsOem, { en: 'OEM Icons', ua: 'OEM легенди' });
-    assignOrigin(brandsRacing, { en: 'Motorsport', ua: 'Мотоспорт' });
-    return map;
-  }, []);
-
   const getBrandOrigin = useCallback(
     (brand: LocalBrand) => {
-      const key = brand.name.trim().toLowerCase();
-      return brandOriginMap.get(key)?.[locale] ?? (locale === 'ua' ? 'Світовий портфель' : 'Global portfolio');
+      const metadata = getBrandMetadata(brand.name);
+      if (metadata) {
+        return getLocalizedCountry(metadata.country, locale);
+      }
+      return locale === 'ua' ? 'Світовий портфель' : 'Global portfolio';
     },
-    [brandOriginMap, locale]
+    [locale]
+  );
+
+  const getBrandSubcategory = useCallback(
+    (brand: LocalBrand) => {
+      const metadata = getBrandMetadata(brand.name);
+      if (metadata) {
+        return getLocalizedSubcategory(metadata.subcategory, locale);
+      }
+      return null;
+    },
+    [locale]
   );
 
   const getBrandCollections = useCallback(
@@ -325,8 +328,8 @@ export default function AutomotivePage() {
         ua: `${brand.name} — індивідуальні поставки`,
       },
       description: {
-        en: 'Dedicated sourcing, homologation paperwork and concierge logistics managed from Baseina St, Kyiv.',
-        ua: 'Персональний пошук, сертифікація та логістика під керуванням нашого ательє на Басейній, 21Б.',
+        en: 'Dedicated sourcing, homologation paperwork and concierge logistics managed from our Kyiv headquarters.',
+        ua: 'Персональний пошук, сертифікація та логістика під керуванням штаб-квартири на Басейній, 21Б.',
       },
       highlights: [
         {
@@ -348,6 +351,7 @@ export default function AutomotivePage() {
   const selectedBrandStory = selectedBrand ? getBrandStory(selectedBrand) : null;
   const selectedBrandCollections = selectedBrand ? getBrandCollections(selectedBrand.name) : [];
   const selectedBrandOrigin = selectedBrand ? getBrandOrigin(selectedBrand) : null;
+  const selectedBrandSubcategory = selectedBrand ? getBrandSubcategory(selectedBrand) : null;
 
   return (
     <div className="min-h-screen bg-black text-white font-[family:var(--font-sans)]">
@@ -444,6 +448,11 @@ export default function AutomotivePage() {
                       {name}
                     </span>
                   ))}
+                  {cat.brands.length > 4 && (
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/50 sm:px-3 sm:py-1">
+                      +{cat.brands.length - 4} {locale === 'ua' ? 'більше' : 'more'}
+                    </span>
+                  )}
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:mt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
                   <span>{locale === 'ua' ? 'Переглянути' : 'Open'}</span>
@@ -558,6 +567,7 @@ export default function AutomotivePage() {
           {filteredBrands.length > 0 ? (
             filteredBrands.map((brand) => {
               const origin = getBrandOrigin(brand);
+              const subcategory = getBrandSubcategory(brand);
               const collections = getBrandCollections(brand.name);
               return (
                 <motion.button
@@ -571,7 +581,15 @@ export default function AutomotivePage() {
                       'radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 60%)',
                   }} />
                   <div className="relative flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.3em]">
-                    <span>{origin}</span>
+                    <div className="flex items-center gap-2">
+                      <span>{origin}</span>
+                      {subcategory && (
+                        <>
+                          <span className="text-white/30">·</span>
+                          <span className="text-white/60">{subcategory}</span>
+                        </>
+                      )}
+                    </div>
                     <span className="text-white/70 group-hover:text-white">↗</span>
                   </div>
                   <div className="relative mt-3 h-16 sm:mt-4 sm:h-20">
@@ -651,9 +669,15 @@ export default function AutomotivePage() {
 
               <div className="mt-5 grid gap-6 sm:mt-6 sm:gap-7 md:mt-6 md:grid-cols-2 md:gap-8">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
-                    {selectedBrandOrigin}
-                  </p>
+                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
+                    <span>{selectedBrandOrigin}</span>
+                    {selectedBrandSubcategory && (
+                      <>
+                        <span className="text-white/30">·</span>
+                        <span className="text-white/60">{selectedBrandSubcategory}</span>
+                      </>
+                    )}
+                  </div>
                   <h3 className="mt-1.5 text-2xl font-light sm:mt-2 sm:text-3xl">{selectedBrandStory.headline[locale]}</h3>
                   <p className="mt-3 text-xs text-white/70 sm:mt-4 sm:text-sm">{selectedBrandStory.description[locale]}</p>
                 </div>

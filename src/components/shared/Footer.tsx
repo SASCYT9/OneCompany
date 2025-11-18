@@ -69,17 +69,18 @@ const Footer = () => {
           id="signature-programs"
           className="mb-10 rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_rgba(5,5,5,0.85))] p-5 text-center backdrop-blur-2xl sm:mb-16 sm:rounded-[36px] sm:p-8"
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-white/60 sm:text-sm sm:tracking-[0.4em]">Signature Programs</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-white/60 sm:text-sm sm:tracking-[0.4em]">B2B Wholesale Importer</p>
           <div className="mt-3 text-xl font-light leading-tight text-white sm:mt-4 sm:text-2xl md:text-3xl lg:text-4xl">
-            Atelier-tier support for KW, Fi, Eventuri
+            200+ brands for service stations, detailing & tuning shops
           </div>
+          <p className="mt-2 text-xs text-white/60 sm:text-sm">+ консьєрж сервис для роздрібних клієнтів (B2C)</p>
           <div className="mt-3 space-y-1 text-[9px] uppercase tracking-[0.25em] text-white/65 sm:mt-4 sm:text-[11px] sm:tracking-[0.35em]">
             <p>services worldwide since 2007</p>
             <p className="text-white">200+ brands premium tuning parts</p>
           </div>
           <div className="mt-4 inline-flex flex-col items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-white sm:mt-6 sm:flex-row sm:gap-3 sm:px-6 sm:py-3 sm:text-xs sm:tracking-[0.35em]">
             <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="break-all text-center">concierge@onecompany.com</span>
+            <span className="break-all text-center">info@onecompany.global</span>
           </div>
         </div>
 
@@ -89,7 +90,7 @@ const Footer = () => {
               OneCompany
             </Link>
             <p className="text-xs leading-relaxed text-white/60 sm:text-sm">
-              Services worldwide since 2007. Curating over 200 marques with atelier logistics, homologation guidance, and lifetime concierge.
+              B2B wholesale importer since 2007. Serving service stations, detailing studios, and tuning shops across 30+ countries with volume pricing, technical support, and white-label logistics.
             </p>
             <div className="flex gap-2 sm:gap-3">
               {socials.map(({ icon: Icon, href, label }) => (
@@ -136,7 +137,7 @@ const Footer = () => {
           </div>
 
           <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Studio</p>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Headquarters</p>
             <div className="space-y-3 text-sm text-white/70">
               <p>
                 21B Baseina St
@@ -146,8 +147,8 @@ const Footer = () => {
               <a href="tel:+380442781234" className="block transition hover:text-white">
                 +380 (44) 278 12 34
               </a>
-              <a href="mailto:info@onecompany.com" className="block transition hover:text-white">
-                info@onecompany.com
+              <a href="mailto:info@onecompany.global" className="block transition hover:text-white">
+                info@onecompany.global
               </a>
             </div>
           </div>

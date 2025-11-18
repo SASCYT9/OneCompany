@@ -28,8 +28,8 @@ export default async function LocalizedHomePage({
       href: `/${locale}/auto`,
       accent: "from-amber-400/20 via-orange-500/10 to-transparent",
       stats: [
-        { value: "120+", note: "curated marques" },
-        { value: "11", note: "upgrade disciplines" },
+        { value: "120+", note: "brands" },
+        { value: "11", note: "categories" },
       ],
     },
     {
@@ -49,14 +49,14 @@ export default async function LocalizedHomePage({
   const heroVideo = "/videos/hero-background.mp4";
   const heroBadgeCopy = "onecompany · dual signature programs";
   const heroMeta = {
-    globalPresence: "services worldwide since 2007",
-    brandPromise: "200+ brands premium tuning parts",
-    atelierAddress: "21B Baseina St · Kyiv atelier",
+    globalPresence: "B2B wholesale since 2007",
+    brandPromise: "200+ brands · Service stations, detailing, tuning shops",
+    atelierAddress: "21B BASEINA ST · KYIV IMPORTER",
   };
 
   const statHighlights = [
-    { value: "18", label: "years of atelier heritage" },
-    { value: "200+", label: "performance marques curated" },
+    { value: "18", label: "years B2B import experience" },
+    { value: "200+", label: "brands for wholesale partners" },
     { value: "36h", label: "door-to-door logistics" },
     { value: "4", label: "continents served weekly" },
   ];
@@ -76,18 +76,18 @@ export default async function LocalizedHomePage({
     "Capristo",
   ];
 
-  const atelierServices = [
+  const b2bServices = [
     {
-      title: "Concierge homologation",
-      copy: "ECE / TÜV documentation, customs coordination, and OEM liaison for limited allocations.",
+      title: "B2B wholesale programs",
+      copy: "Volume pricing for service stations, detailing studios, and tuning shops. Dealer margins, inventory support, and technical training included.",
     },
     {
-      title: "Tailored install studios",
-      copy: "On-site master technicians for carbon aero, suspension, and ECU calibrations across auto & moto.",
+      title: "Partner network support",
+      copy: "On-demand technical documentation, installation guides, and OEM liaison for your client builds.",
     },
     {
-      title: "Global logistics command",
-      copy: "Priority air cargo lanes, climate packaging, and bonded storage with live tracking dashboards.",
+      title: "White-label logistics",
+      copy: "Priority air cargo lanes, customs brokerage, and bonded storage with live tracking. Ship direct to your shop or your customers.",
     },
   ];
 
@@ -165,7 +165,7 @@ export default async function LocalizedHomePage({
             href="#signature-programs"
             className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 backdrop-blur-xl px-5 py-2.5 text-[9px] uppercase tracking-[0.3em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)] sm:gap-3 sm:px-6 sm:py-3 sm:text-[11px] sm:tracking-[0.4em]"
           >
-            Signature Programs
+            КОНСЬЄРЖ СЕРВІС
             <span className="text-sm sm:text-base">↘</span>
           </Link>
           <div className="text-[11px] uppercase tracking-[0.35em] text-white/60">
@@ -187,20 +187,34 @@ export default async function LocalizedHomePage({
       <section id="signature-programs" className="relative overflow-hidden py-20 text-white">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-transparent" aria-hidden />
         <div className="relative mx-auto max-w-4xl px-6 text-center">
-          <p className="text-xs uppercase tracking-[0.4em] text-white/50">Iconic marques</p>
-          <h3 className="mt-3 text-4xl font-light">Beyond the GP Products roster</h3>
+          <p className="text-xs uppercase tracking-[0.4em] text-white/50">Наші сайти</p>
+          <h3 className="mt-3 text-4xl font-light">Автомобільні та мото бренди</h3>
           <p className="mt-4 text-base text-white/75">
-            Deeper allocations, bespoke specs, and dual automotive / moto mastery with atelier accountability.
+            Ексклюзивні алокації, індивідуальні специфікації та подвійна експертиза авто/мото з повним консьєрж супроводом.
           </p>
-          <div className="mt-10 grid grid-cols-2 gap-4 text-sm uppercase tracking-[0.25em] text-white/70 sm:grid-cols-3">
-            {marqueeBrands.map((brand) => (
-              <div
-                key={brand}
-                className="rounded-2xl border border-white/20 bg-white/[0.08] px-4 py-6 text-white backdrop-blur-xl hover:bg-white/[0.12] hover:border-white/30 hover:shadow-[0_8px_32px_rgba(255,255,255,0.08)] transition-all duration-300"
-              >
-                {brand}
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
+            <Link
+              href={`/${locale}/auto`}
+              className="group rounded-2xl border border-white/20 bg-white/[0.08] px-6 py-8 text-white backdrop-blur-xl hover:bg-white/[0.12] hover:border-white/30 hover:shadow-[0_8px_32px_rgba(255,255,255,0.08)] transition-all duration-300"
+            >
+              <h4 className="text-2xl font-light uppercase tracking-[0.2em]">Авто</h4>
+              <p className="mt-3 text-sm text-white/70">200+ автомобільних брендів</p>
+              <div className="mt-6 flex items-center justify-center gap-2 text-xs uppercase tracking-[0.3em] text-white/60 group-hover:text-white/90 transition-colors">
+                <span>Переглянути каталог</span>
+                <span className="text-lg">→</span>
               </div>
-            ))}
+            </Link>
+            <Link
+              href={`/${locale}/moto`}
+              className="group rounded-2xl border border-white/20 bg-white/[0.08] px-6 py-8 text-white backdrop-blur-xl hover:bg-white/[0.12] hover:border-white/30 hover:shadow-[0_8px_32px_rgba(255,255,255,0.08)] transition-all duration-300"
+            >
+              <h4 className="text-2xl font-light uppercase tracking-[0.2em]">Мото</h4>
+              <p className="mt-3 text-sm text-white/70">120+ мотоциклетних брендів</p>
+              <div className="mt-6 flex items-center justify-center gap-2 text-xs uppercase tracking-[0.3em] text-white/60 group-hover:text-white/90 transition-colors">
+                <span>Переглянути каталог</span>
+                <span className="text-lg">→</span>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
@@ -209,8 +223,9 @@ export default async function LocalizedHomePage({
         <div className="relative mx-auto max-w-6xl">
           <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
             <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-white/50">Signature atelier</p>
-              <h3 className="mt-3 text-4xl font-light">Programs engineered for collectors</h3>
+              <p className="text-xs uppercase tracking-[0.4em] text-white/50">B2B wholesale programs</p>
+              <h3 className="mt-3 text-4xl font-light">Partner with the leading importer</h3>
+              <p className="mt-3 text-sm text-white/60">Service stations · Detailing studios · Tuning shops · Plus concierge B2C for your VIP clients</p>
             </div>
             <Link
               href={`/${locale}/contact`}
@@ -220,7 +235,7 @@ export default async function LocalizedHomePage({
             </Link>
           </div>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {atelierServices.map((service) => (
+            {b2bServices.map((service) => (
               <div
                 key={service.title}
                 className="rounded-3xl border border-white/20 bg-white/[0.08] backdrop-blur-2xl p-6 hover:bg-white/[0.12] hover:border-white/30 hover:shadow-[0_8px_32px_rgba(255,255,255,0.08)] transition-all duration-300"
@@ -238,10 +253,10 @@ export default async function LocalizedHomePage({
         <div className="relative mx-auto max-w-4xl rounded-[32px] border border-white/30 bg-white/[0.1] p-10 text-center shadow-[0_20px_60px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:border-white/40 hover:bg-white/[0.12] transition-all duration-500">
           <div className="absolute inset-0 rounded-[32px] bg-gradient-to-br from-white/[0.08] to-transparent pointer-events-none" />
           <div className="relative">
-            <p className="text-xs uppercase tracking-[0.5em] text-white/50">Kyiv command studio</p>
-            <h3 className="mt-4 text-4xl font-light">21B Baseina St · concierge@onecompany.com</h3>
+            <p className="text-xs uppercase tracking-[0.5em] text-white/50">Kyiv headquarters</p>
+            <h3 className="mt-4 text-4xl font-light">21B BASEINA ST · KYIV IMPORTER</h3>
             <p className="mt-4 text-base text-white/70">
-              Private fittings, remote video approvals, and deployment within 36 hours globally.
+              B2B wholesale hub serving 30+ countries. Concierge programs available for high-value retail clients.
             </p>
             <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center">
               <a

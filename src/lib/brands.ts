@@ -2,6 +2,77 @@
 
 export type BrandCategory = 'usa' | 'europe' | 'oem' | 'racing' | 'moto' | 'auto';
 
+export type CountryOfOrigin = 
+  | 'USA' 
+  | 'Japan' 
+  | 'Germany' 
+  | 'Italy' 
+  | 'UK' 
+  | 'Australia' 
+  | 'Netherlands'
+  | 'Czech Republic'
+  | 'Spain'
+  | 'Austria'
+  | 'France'
+  | 'Belgium'
+  | 'Hong Kong';
+
+export type ProductSubcategory = 
+  | 'Engine'
+  | 'Exterior'
+  | 'Suspension'
+  | 'Brakes'
+  | 'Wheels'
+  | 'Exhaust'
+  | 'Electronics'
+  | 'Interior'
+  | 'Drivetrain'
+  | 'Cooling'
+  | 'Fuel Systems'
+  | 'Aero'
+  | 'Racing Components'
+  | 'Full Vehicle';
+
+export interface BrandMetadata {
+  country: CountryOfOrigin;
+  subcategory: ProductSubcategory;
+}
+
+// Localized country names
+export const countryNames: Record<CountryOfOrigin, { en: string; ua: string }> = {
+  'USA': { en: 'USA', ua: 'США' },
+  'Japan': { en: 'Japan', ua: 'Японія' },
+  'Germany': { en: 'Germany', ua: 'Німеччина' },
+  'Italy': { en: 'Italy', ua: 'Італія' },
+  'UK': { en: 'UK', ua: 'Велика Британія' },
+  'Australia': { en: 'Australia', ua: 'Австралія' },
+  'Netherlands': { en: 'Netherlands', ua: 'Нідерланди' },
+  'Czech Republic': { en: 'Czech Republic', ua: 'Чехія' },
+  'Spain': { en: 'Spain', ua: 'Іспанія' },
+  'Austria': { en: 'Austria', ua: 'Австрія' },
+  'France': { en: 'France', ua: 'Франція' },
+  'Belgium': { en: 'Belgium', ua: 'Бельгія' },
+  'Hong Kong': { en: 'Hong Kong', ua: 'Гонконг' },
+};
+
+// Localized subcategory names
+export const subcategoryNames: Record<ProductSubcategory, { en: string; ua: string }> = {
+  'Engine': { en: 'Engine', ua: 'Двигатель' },
+  'Exterior': { en: 'Exterior', ua: 'Екстер\'єр' },
+  'Suspension': { en: 'Suspension', ua: 'Підвіска' },
+  'Brakes': { en: 'Brakes', ua: 'Гальма' },
+  'Wheels': { en: 'Wheels', ua: 'Диски' },
+  'Exhaust': { en: 'Exhaust', ua: 'Вихлоп' },
+  'Electronics': { en: 'Electronics', ua: 'Електроніка' },
+  'Interior': { en: 'Interior', ua: 'Інтер\'єр' },
+  'Drivetrain': { en: 'Drivetrain', ua: 'Трансмісія' },
+  'Cooling': { en: 'Cooling', ua: 'Охолодження' },
+  'Fuel Systems': { en: 'Fuel Systems', ua: 'Паливна система' },
+  'Aero': { en: 'Aero', ua: 'Аеродинаміка' },
+  'Racing Components': { en: 'Racing Components', ua: 'Спортивні компоненти' },
+  'Full Vehicle': { en: 'Full Vehicle', ua: 'Повний автомобіль' },
+};
+
 // Local simplified brand type for static data
 export interface LocalBrand {
   name: string;
@@ -334,4 +405,266 @@ export function getBrandsByNames(names: string[], category: BrandCategory = 'aut
       return pool.find(brand => brand.name.trim().toLowerCase() === normalized);
     })
     .filter((brand): brand is LocalBrand => Boolean(brand));
+}
+
+// Brand metadata mapping (country of origin and product subcategory)
+export const brandMetadata: Record<string, BrandMetadata> = {
+  // USA Brands
+  '1221 wheels': { country: 'USA', subcategory: 'Wheels' },
+  '1016 Industries': { country: 'USA', subcategory: 'Exterior' },
+  '5150 Autosport': { country: 'USA', subcategory: 'Engine' },
+  'AE Design': { country: 'USA', subcategory: 'Exterior' },
+  'ADV.1 wheels': { country: 'USA', subcategory: 'Wheels' },
+  'Agency Power': { country: 'USA', subcategory: 'Engine' },
+  'Airlift Performance': { country: 'USA', subcategory: 'Suspension' },
+  'AL13 wheels': { country: 'USA', subcategory: 'Wheels' },
+  'AMS / Alpha Performance': { country: 'USA', subcategory: 'Engine' },
+  'American Racing Headers': { country: 'USA', subcategory: 'Exhaust' },
+  'ANRKY wheels': { country: 'USA', subcategory: 'Wheels' },
+  'APR': { country: 'USA', subcategory: 'Engine' },
+  'Avantgarde Wheels': { country: 'USA', subcategory: 'Wheels' },
+  'BE bearings': { country: 'USA', subcategory: 'Drivetrain' },
+  'BBi Autosport': { country: 'USA', subcategory: 'Engine' },
+  'Big Boost': { country: 'USA', subcategory: 'Engine' },
+  'BimmerWorld': { country: 'USA', subcategory: 'Engine' },
+  'BootMod3': { country: 'USA', subcategory: 'Electronics' },
+  'Borla': { country: 'USA', subcategory: 'Exhaust' },
+  'Brixton wheels': { country: 'USA', subcategory: 'Wheels' },
+  'Burger Motorsport': { country: 'USA', subcategory: 'Electronics' },
+  'Circle D': { country: 'USA', subcategory: 'Drivetrain' },
+  'Cobb tuning': { country: 'USA', subcategory: 'Electronics' },
+  'CMST': { country: 'USA', subcategory: 'Exterior' },
+  'CSF': { country: 'USA', subcategory: 'Cooling' },
+  'DarwinPro': { country: 'USA', subcategory: 'Exterior' },
+  'Deatschwerks': { country: 'USA', subcategory: 'Fuel Systems' },
+  'Dorch Engineering': { country: 'USA', subcategory: 'Engine' },
+  'Driveshaftshop': { country: 'USA', subcategory: 'Drivetrain' },
+  'Duke Dynamics': { country: 'USA', subcategory: 'Exterior' },
+  'Eterna Motorworks': { country: 'USA', subcategory: 'Engine' },
+  'Fabspeed': { country: 'USA', subcategory: 'Exhaust' },
+  'Fall-Line Motorsports': { country: 'USA', subcategory: 'Engine' },
+  'Fore Innovations': { country: 'USA', subcategory: 'Fuel Systems' },
+  'Fragola Performance Systems': { country: 'USA', subcategory: 'Fuel Systems' },
+  'Full-Race': { country: 'USA', subcategory: 'Engine' },
+  'Future Design': { country: 'USA', subcategory: 'Exterior' },
+  'Girodisc': { country: 'USA', subcategory: 'Brakes' },
+  'HRE wheels': { country: 'USA', subcategory: 'Wheels' },
+  'Injector Dynamics': { country: 'USA', subcategory: 'Fuel Systems' },
+  'JXB Performance': { country: 'USA', subcategory: 'Engine' },
+  'Karbel': { country: 'USA', subcategory: 'Exterior' },
+  'Killer B Motorsport': { country: 'USA', subcategory: 'Engine' },
+  'KLM Race': { country: 'USA', subcategory: 'Engine' },
+  'Kooks Headers': { country: 'USA', subcategory: 'Exhaust' },
+  'Lingenfelter': { country: 'USA', subcategory: 'Engine' },
+  'Mega3 Performance': { country: 'USA', subcategory: 'Engine' },
+  'Mickey Thompson': { country: 'USA', subcategory: 'Wheels' },
+  'Motiv Motorsport': { country: 'USA', subcategory: 'Wheels' },
+  'Moser Engineering': { country: 'USA', subcategory: 'Drivetrain' },
+  'Mountune': { country: 'USA', subcategory: 'Engine' },
+  'MV Forged': { country: 'USA', subcategory: 'Wheels' },
+  'Paragon brakes': { country: 'USA', subcategory: 'Brakes' },
+  'Premier Tuning Group': { country: 'USA', subcategory: 'Engine' },
+  'Project 6GR': { country: 'USA', subcategory: 'Wheels' },
+  'Pure Drivetrain Solutions': { country: 'USA', subcategory: 'Drivetrain' },
+  'Pure Turbos': { country: 'USA', subcategory: 'Engine' },
+  'Renntech': { country: 'USA', subcategory: 'Engine' },
+  'RK Autowerks': { country: 'USA', subcategory: 'Engine' },
+  'RPM Transmissions': { country: 'USA', subcategory: 'Drivetrain' },
+  'RKP': { country: 'USA', subcategory: 'Engine' },
+  'RYFT': { country: 'USA', subcategory: 'Suspension' },
+  'Seibon': { country: 'USA', subcategory: 'Exterior' },
+  'ShepTrans': { country: 'USA', subcategory: 'Drivetrain' },
+  'Southern Hotrod': { country: 'USA', subcategory: 'Engine' },
+  'Spool Performance': { country: 'USA', subcategory: 'Drivetrain' },
+  'SPL Parts': { country: 'USA', subcategory: 'Suspension' },
+  'Strasse wheels': { country: 'USA', subcategory: 'Wheels' },
+  'Stoptech': { country: 'USA', subcategory: 'Brakes' },
+  'Stillen': { country: 'USA', subcategory: 'Engine' },
+  'Titan Motorsport': { country: 'USA', subcategory: 'Engine' },
+  'TireRack': { country: 'USA', subcategory: 'Wheels' },
+  'Turner Motorsport': { country: 'USA', subcategory: 'Engine' },
+  'Vargas Turbo': { country: 'USA', subcategory: 'Engine' },
+  'Velos Wheels': { country: 'USA', subcategory: 'Wheels' },
+  'VF Engineering': { country: 'USA', subcategory: 'Engine' },
+  'VP Racing Fuel': { country: 'USA', subcategory: 'Fuel Systems' },
+  'VR Aero': { country: 'USA', subcategory: 'Aero' },
+  'VR Bespoke': { country: 'USA', subcategory: 'Exterior' },
+  'VR Forged': { country: 'USA', subcategory: 'Wheels' },
+  'VR Performance': { country: 'USA', subcategory: 'Engine' },
+  'Vorsteiner': { country: 'USA', subcategory: 'Exterior' },
+  'Wavetrac': { country: 'USA', subcategory: 'Drivetrain' },
+  'Weistec Engineering': { country: 'USA', subcategory: 'Engine' },
+  'Whipple Superchargers': { country: 'USA', subcategory: 'Engine' },
+  'XDI fuel systems': { country: 'USA', subcategory: 'Fuel Systems' },
+
+  // Europe Brands
+  '3D Design': { country: 'Japan', subcategory: 'Exterior' },
+  'ABT': { country: 'Germany', subcategory: 'Engine' },
+  'AC Schnitzer': { country: 'Germany', subcategory: 'Engine' },
+  'ADRO': { country: 'Hong Kong', subcategory: 'Exterior' },
+  'Akrapovic': { country: 'Italy', subcategory: 'Exhaust' },
+  'Alpha-N': { country: 'Germany', subcategory: 'Engine' },
+  'ARMA Speed': { country: 'Hong Kong', subcategory: 'Exterior' },
+  'Armytrix': { country: 'Hong Kong', subcategory: 'Exhaust' },
+  'Black Boost': { country: 'Czech Republic', subcategory: 'Engine' },
+  'BMC filters': { country: 'Italy', subcategory: 'Engine' },
+  'Brabus': { country: 'Germany', subcategory: 'Engine' },
+  'Brembo': { country: 'Italy', subcategory: 'Brakes' },
+  'BC Racing': { country: 'Japan', subcategory: 'Suspension' },
+  'Capristo': { country: 'Germany', subcategory: 'Exhaust' },
+  'CT Carbon': { country: 'Germany', subcategory: 'Exterior' },
+  'Custom Cages': { country: 'UK', subcategory: 'Interior' },
+  'Dahler': { country: 'Germany', subcategory: 'Engine' },
+  'Deikin': { country: 'Belgium', subcategory: 'Engine' },
+  'DMC': { country: 'Germany', subcategory: 'Exterior' },
+  'do88': { country: 'Netherlands', subcategory: 'Cooling' },
+  'DTE Systems': { country: 'Germany', subcategory: 'Electronics' },
+  'ESS Tuning': { country: 'Germany', subcategory: 'Engine' },
+  'Eventuri': { country: 'UK', subcategory: 'Engine' },
+  'FI Exhaust': { country: 'UK', subcategory: 'Exhaust' },
+  'GTHaus': { country: 'Japan', subcategory: 'Exhaust' },
+  'Gruppe-M': { country: 'Japan', subcategory: 'Engine' },
+  'Hamann': { country: 'Germany', subcategory: 'Exterior' },
+  'Hardrace': { country: 'Japan', subcategory: 'Suspension' },
+  'Harrop': { country: 'Australia', subcategory: 'Engine' },
+  'IPe exhaust': { country: 'UK', subcategory: 'Exhaust' },
+  'ItalianRP': { country: 'Italy', subcategory: 'Exterior' },
+  'KAHN design': { country: 'UK', subcategory: 'Exterior' },
+  'Karbonius': { country: 'Germany', subcategory: 'Exterior' },
+  'Keyvany': { country: 'Germany', subcategory: 'Exterior' },
+  'Kline Innovation': { country: 'UK', subcategory: 'Exhaust' },
+  'KW Suspension': { country: 'Germany', subcategory: 'Suspension' },
+  'Lamspeed': { country: 'Germany', subcategory: 'Engine' },
+  'Larte Design': { country: 'Germany', subcategory: 'Exterior' },
+  'Liberty Walk': { country: 'Japan', subcategory: 'Exterior' },
+  'LOBA Motorsport': { country: 'Germany', subcategory: 'Engine' },
+  'Lorinser': { country: 'Germany', subcategory: 'Exterior' },
+  'Lumma': { country: 'Germany', subcategory: 'Exterior' },
+  'Manhart': { country: 'Germany', subcategory: 'Engine' },
+  'Mansory': { country: 'Germany', subcategory: 'Exterior' },
+  'Mamba turbo': { country: 'Germany', subcategory: 'Engine' },
+  "Matts Carbon": { country: 'Germany', subcategory: 'Exterior' },
+  'Milltek': { country: 'UK', subcategory: 'Exhaust' },
+  'MST Performance': { country: 'Germany', subcategory: 'Engine' },
+  'Novitec': { country: 'Germany', subcategory: 'Engine' },
+  'Nitron Suspension': { country: 'UK', subcategory: 'Suspension' },
+  'Onyx Concept': { country: 'UK', subcategory: 'Exterior' },
+  'Power Division': { country: 'Germany', subcategory: 'Engine' },
+  'ProTrack Wheels': { country: 'Germany', subcategory: 'Wheels' },
+  'R44 Performance': { country: 'Germany', subcategory: 'Engine' },
+  'Raliw Forged': { country: 'Germany', subcategory: 'Wheels' },
+  'Red Star Exhaust': { country: 'Germany', subcategory: 'Exhaust' },
+  'Remus': { country: 'Austria', subcategory: 'Exhaust' },
+  'Renegade Design': { country: 'Germany', subcategory: 'Exterior' },
+  'Ronin Design': { country: 'Germany', subcategory: 'Exterior' },
+  'RES Exhaust': { country: 'UK', subcategory: 'Exhaust' },
+  'RS-R': { country: 'Japan', subcategory: 'Suspension' },
+  'RW Carbon': { country: 'Germany', subcategory: 'Exterior' },
+  'Sachs Performance': { country: 'Germany', subcategory: 'Suspension' },
+  'Schrick': { country: 'Germany', subcategory: 'Engine' },
+  'SooQoo': { country: 'Germany', subcategory: 'Exterior' },
+  'Sterckenn': { country: 'Belgium', subcategory: 'Exterior' },
+  'STOPART ceramic': { country: 'Germany', subcategory: 'Brakes' },
+  'Supersprint': { country: 'Italy', subcategory: 'Exhaust' },
+  'TopCar Design': { country: 'Germany', subcategory: 'Exterior' },
+  'Tubi Style': { country: 'Italy', subcategory: 'Exhaust' },
+  'TTE Turbos': { country: 'UK', subcategory: 'Engine' },
+  'TTH turbos': { country: 'Germany', subcategory: 'Engine' },
+  'Urban Automotive': { country: 'UK', subcategory: 'Exterior' },
+  'Wagner Tuning': { country: 'Germany', subcategory: 'Cooling' },
+  'WALD': { country: 'Japan', subcategory: 'Exterior' },
+  'WheelForce': { country: 'Germany', subcategory: 'Wheels' },
+  'xHP': { country: 'Germany', subcategory: 'Electronics' },
+  'YPG': { country: 'Germany', subcategory: 'Exterior' },
+  'Zacoe': { country: 'Germany', subcategory: 'Exterior' },
+
+  // OEM Brands
+  'Aston Martin': { country: 'UK', subcategory: 'Full Vehicle' },
+  'Ferrari': { country: 'Italy', subcategory: 'Full Vehicle' },
+  'Lamborghini': { country: 'Italy', subcategory: 'Full Vehicle' },
+  'Maserati': { country: 'Italy', subcategory: 'Full Vehicle' },
+  'McLaren': { country: 'UK', subcategory: 'Full Vehicle' },
+  'Rolls Royce': { country: 'UK', subcategory: 'Full Vehicle' },
+
+  // Racing Brands
+  'AIM Sportline': { country: 'Italy', subcategory: 'Electronics' },
+  'ARE dry sump': { country: 'UK', subcategory: 'Engine' },
+  'Bell Intercoolers': { country: 'UK', subcategory: 'Cooling' },
+  'Drenth Gearboxes': { country: 'Netherlands', subcategory: 'Drivetrain' },
+  'Driftworks': { country: 'UK', subcategory: 'Racing Components' },
+  'Extreme tyres': { country: 'UK', subcategory: 'Wheels' },
+  'ISA Racing': { country: 'Italy', subcategory: 'Racing Components' },
+  'Link ECU': { country: 'UK', subcategory: 'Electronics' },
+  'Lithiumax batteries': { country: 'Italy', subcategory: 'Electronics' },
+  'MCA Suspension': { country: 'Australia', subcategory: 'Suspension' },
+  'Modena Engineering': { country: 'Italy', subcategory: 'Engine' },
+  'Samsonas Motorsport': { country: 'Netherlands', subcategory: 'Drivetrain' },
+  'Sandtler': { country: 'Germany', subcategory: 'Racing Components' },
+  'Summit Racing': { country: 'USA', subcategory: 'Racing Components' },
+  'Team Oreca': { country: 'France', subcategory: 'Racing Components' },
+
+  // Moto Brands
+  'Accossato': { country: 'Italy', subcategory: 'Brakes' },
+  'AEM Factory': { country: 'Italy', subcategory: 'Engine' },
+  'Arrow': { country: 'Italy', subcategory: 'Exhaust' },
+  'Austin Racing': { country: 'UK', subcategory: 'Exhaust' },
+  'Bikesplast': { country: 'Czech Republic', subcategory: 'Exterior' },
+  'Bitubo Suspension': { country: 'Italy', subcategory: 'Suspension' },
+  'Black-T': { country: 'Germany', subcategory: 'Exterior' },
+  'BMC': { country: 'Italy', subcategory: 'Engine' },
+  'Bonamici': { country: 'Italy', subcategory: 'Racing Components' },
+  'CNC Racing': { country: 'Italy', subcategory: 'Racing Components' },
+  'Cordona': { country: 'Italy', subcategory: 'Exterior' },
+  'CRC Fairings': { country: 'USA', subcategory: 'Exterior' },
+  'DBHolders': { country: 'Italy', subcategory: 'Racing Components' },
+  'Domino': { country: 'Italy', subcategory: 'Racing Components' },
+  'ECUStudio': { country: 'Italy', subcategory: 'Electronics' },
+  'EVR': { country: 'Italy', subcategory: 'Drivetrain' },
+  'Evotech': { country: 'UK', subcategory: 'Racing Components' },
+  'Evolution Bike': { country: 'Italy', subcategory: 'Engine' },
+  'Febur': { country: 'Italy', subcategory: 'Racing Components' },
+  'FlashTune': { country: 'UK', subcategory: 'Electronics' },
+  'GBracing': { country: 'UK', subcategory: 'Exterior' },
+  'Gilles Tooling': { country: 'Belgium', subcategory: 'Racing Components' },
+  'GPR Stabilizer': { country: 'Italy', subcategory: 'Suspension' },
+  'Healtech': { country: 'Italy', subcategory: 'Electronics' },
+  'HM Quickshifter': { country: 'UK', subcategory: 'Electronics' },
+  'HyperPro': { country: 'Netherlands', subcategory: 'Suspension' },
+  'Ilmberger Carbon': { country: 'Germany', subcategory: 'Exterior' },
+  'Jetprime': { country: 'Italy', subcategory: 'Electronics' },
+  'New Rage Cycles': { country: 'USA', subcategory: 'Exterior' },
+  'Racefoxx': { country: 'Germany', subcategory: 'Racing Components' },
+  'Rotobox': { country: 'Italy', subcategory: 'Wheels' },
+  'SC-Project': { country: 'Italy', subcategory: 'Exhaust' },
+  'Samco Sport': { country: 'UK', subcategory: 'Cooling' },
+  'Starlane': { country: 'Italy', subcategory: 'Electronics' },
+  'STM Italy': { country: 'Italy', subcategory: 'Drivetrain' },
+  'Stompgrip': { country: 'USA', subcategory: 'Racing Components' },
+  'Termignoni': { country: 'Italy', subcategory: 'Exhaust' },
+  'Translogic': { country: 'UK', subcategory: 'Electronics' },
+  'TWM': { country: 'Italy', subcategory: 'Fuel Systems' },
+  'ValterMoto': { country: 'Italy', subcategory: 'Racing Components' },
+  'Vandemon': { country: 'UK', subcategory: 'Exhaust' },
+  'WRS': { country: 'Italy', subcategory: 'Exterior' },
+  'Aprilia original parts and accessories': { country: 'Italy', subcategory: 'Full Vehicle' },
+  'Alpha Racing': { country: 'Germany', subcategory: 'Racing Components' },
+};
+
+// Helper function to get brand metadata
+export function getBrandMetadata(brandName: string): BrandMetadata | null {
+  const key = brandName.trim().toLowerCase();
+  const metadata = Object.entries(brandMetadata).find(
+    ([name]) => name.toLowerCase() === key
+  );
+  return metadata ? metadata[1] : null;
+}
+
+// Helper function to get localized country name
+export function getLocalizedCountry(country: CountryOfOrigin, locale: 'en' | 'ua'): string {
+  return countryNames[country]?.[locale] || country;
+}
+
+// Helper function to get localized subcategory name
+export function getLocalizedSubcategory(subcategory: ProductSubcategory, locale: 'en' | 'ua'): string {
+  return subcategoryNames[subcategory]?.[locale] || subcategory;
 }
