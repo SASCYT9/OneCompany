@@ -93,6 +93,9 @@
     --font-body: var(--font-ua, "Manrope");
     --font-sans: var(--font-ua, "Manrope");
     --font-display: var(--font-ua, "Manrope");
+    /* Ensure UA pages do not use Unison-specific OpenType features */
+    font-feature-settings: normal !important;
+    -webkit-font-smoothing: antialiased !important;
   }
 
   html[lang="uk"] *,
