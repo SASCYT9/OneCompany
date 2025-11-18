@@ -62,7 +62,6 @@ const config: Config = {
         sans: ['var(--font-stack-sans)'],
         display: ['var(--font-stack-display)'],
         mono: ['var(--font-mono)', 'monospace'],
-        ua: ['var(--font-ua)', 'Manrope', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': {

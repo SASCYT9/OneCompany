@@ -102,16 +102,16 @@ export default async function LocalizedHomePage({
                   )}
                 />
                 <div className="relative flex w-full items-center justify-between text-[9px] uppercase tracking-[0.25em] text-white/60 sm:text-[11px] sm:tracking-[0.35em]">
-                  <span className="rounded-full border border-white/50 bg-white/15 px-3 py-1 text-[8px] font-semibold tracking-[0.35em] text-white shadow-[0_0_20px_rgba(255,255,255,0.3)] sm:px-4 sm:text-[10px] sm:tracking-[0.45em]">
+                  <span className="rounded-full border border-white/50 bg-white/10 backdrop-blur-md px-4 py-1.5 text-[9px] font-bold tracking-[0.35em] text-white shadow-[0_0_25px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_35px_rgba(255,255,255,0.6)] sm:px-5 sm:text-[11px] sm:tracking-[0.45em]">
                     {experience.label}
                   </span>
                   <span className="hidden text-white/40 sm:inline">{t('programAccess')}</span>
                 </div>
                 <div className={clsx("relative space-y-2 text-left sm:space-y-4", index === 1 && "md:text-right")}>
-                  <h2 className="text-2xl font-light leading-tight text-white text-balance sm:text-3xl md:text-4xl lg:text-5xl">
+                  <h2 className="text-2xl font-light leading-tight text-white text-balance sm:text-3xl md:text-4xl lg:text-5xl uppercase tracking-wide">
                     {experience.title}
                   </h2>
-                  <p className="text-sm leading-relaxed text-white/80 text-pretty sm:text-base">
+                  <p className="text-sm leading-relaxed text-white/80 text-pretty sm:text-base font-light tracking-wide">
                     {experience.description}
                   </p>
                 </div>
@@ -119,12 +119,12 @@ export default async function LocalizedHomePage({
                   <div className="flex flex-wrap gap-3 text-white/80 sm:gap-6">
                     {experience.stats.map((stat) => (
                       <div key={stat.note}>
-                        <p className="text-xl tracking-tight text-white sm:text-2xl md:text-3xl">{stat.value}</p>
+                        <p className="text-xl tracking-tight text-white sm:text-2xl md:text-3xl font-light">{stat.value}</p>
                         <p className="text-[9px] uppercase tracking-[0.25em] text-white/55 sm:text-[11px] sm:tracking-[0.35em]">{stat.note}</p>
                       </div>
                     ))}
                   </div>
-                  <span className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/20 text-sm uppercase tracking-[0.3em] text-white/70 transition group-hover:border-white group-hover:bg-white group-hover:text-black sm:h-16 sm:w-16">
+                  <span className="inline-flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/5 backdrop-blur-sm text-lg text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] sm:h-20 sm:w-20">
                     →
                   </span>
                 </div>
