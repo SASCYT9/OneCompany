@@ -33,7 +33,11 @@ export default async function LocaleLayout({ children, params }: Props) {
         {videoConfig.heroPoster && (
           <link rel="preload" href={`/images/${videoConfig.heroPoster}`} as="image" />
         )}
-        <div data-server-hero-enabled={videoConfig.heroEnabled ? 'true' : 'false'} className={cn('flex flex-col min-h-screen', locale === 'ua' && 'locale-ua')}>
+        <div
+          data-server-hero-enabled={videoConfig.heroEnabled ? 'true' : 'false'}
+          className={cn('flex flex-col min-h-screen', locale === 'ua' && 'locale-ua')}
+          lang={locale === 'ua' ? 'uk' : 'en'}
+        >
           <HeroVideoWrapper src={`/videos/${videoConfig.heroVideo}`} mobileSrc={videoConfig.heroVideoMobile ? `/videos/${videoConfig.heroVideoMobile}` : undefined} poster={videoConfig.heroPoster ? `/images/${videoConfig.heroPoster}` : undefined} serverEnabled={videoConfig.heroEnabled ?? true} />
           <Header />
           <main id="main-content" className="flex-grow relative z-10">

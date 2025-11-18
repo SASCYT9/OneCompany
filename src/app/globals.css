@@ -44,6 +44,11 @@
     --font-body: var(--font-ua, var(--font-sans));
   }
 
+  /* Ensure UA font applies even if html lang isn't set */
+  .locale-ua {
+    --font-body: var(--font-ua, var(--font-sans));
+  }
+
   * {
     border-color: hsl(var(--border));
   }
