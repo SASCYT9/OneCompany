@@ -16,6 +16,7 @@ import {
   getLocalizedSubcategory,
 } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
+import { isDarkLogo } from '@/lib/darkLogos';
 import { categoryData } from '@/lib/categoryData';
 
 type LocalizedCopy = { en: string; ua: string; [key: string]: string };
@@ -575,7 +576,7 @@ export default function MotoPage() {
                       src={getBrandLogo(brand.name)}
                       alt={brand.name}
                       fill
-                      className="object-contain"
+                      className={`object-contain ${isDarkLogo(getBrandLogo(brand.name)) ? 'invert brightness-0 invert-[1]' : ''}`}
                       sizes="144px"
                       unoptimized
                     />
@@ -619,7 +620,7 @@ export default function MotoPage() {
               placeholder={t('searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-2xl border border-white/15 bg-gradient-to-r from-white/10 to-white/[0.02] px-6 py-3 text-base text-white placeholder-white/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:px-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
+              className="w-full rounded-2xl border border-white/15 bg-white px-6 py-3 text-base text-black placeholder-black/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:px-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
             />
             <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">⌕</div>
           </div>
@@ -686,7 +687,7 @@ export default function MotoPage() {
                       src={getBrandLogo(brand.name)}
                       alt={brand.name}
                       fill
-                      className="object-contain"
+                      className={`object-contain ${isDarkLogo(getBrandLogo(brand.name)) ? 'invert brightness-0 invert-[1]' : ''}`}
                       sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                       unoptimized
                     />
@@ -764,7 +765,7 @@ export default function MotoPage() {
                     src={getBrandLogo(selectedBrand.name)}
                     alt={selectedBrand.name}
                     fill
-                    className="object-contain"
+                    className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'invert brightness-0 invert-[1]' : ''}`}
                     sizes="160px"
                     unoptimized
                   />
