@@ -50,7 +50,7 @@ export default async function LocalizedHomePage({
     },
   ];
 
-  const heroVideo = "/videos/hero-background.mp4";
+  const heroVideo = "/videos/Luxury_Automotive_Abstract_Video_Creation.mp4";
   const heroBadgeCopy = locale === 'ua' ? 'onecompany · дубльована програма' : 'onecompany · dual signature programs';
   const heroMeta = {
     globalPresence: locale === 'ua' ? 'B2B Опт з 2007 року' : 'B2B wholesale since 2007',

@@ -46,7 +46,7 @@ const topMotoBrands = [
 
 const LandingPage = () => {
   const heroRef = useRef<HTMLDivElement>(null);
-  const [heroVideo, setHeroVideo] = useState<string>('hero-smoke.mp4');
+  const [heroVideo, setHeroVideo] = useState<string>('Luxury_Automotive_Abstract_Video_Creation.mp4');
   const t = useTranslations('landing');
 
   useEffect(() => {

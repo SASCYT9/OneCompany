@@ -16,7 +16,7 @@ interface VideoConfig {
 
 export default function VideoAdminPage() {
   const tAdmin = useTranslations('admin');
-  const [videoConfig, setVideoConfig] = useState<VideoConfig>({ heroVideo: 'hero-smoke.mp4', videos: [], heroEnabled: true });
+  const [videoConfig, setVideoConfig] = useState<VideoConfig>({ heroVideo: 'Luxury_Automotive_Abstract_Video_Creation.mp4', videos: [], heroEnabled: true });
   const [selectedPoster, setSelectedPoster] = useState<string | null>(null);
   const [selectedMobileVideo, setSelectedMobileVideo] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<string>('');
@@ -177,7 +177,7 @@ export default function VideoAdminPage() {
           Available Videos
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {['hero-smoke.mp4', ...videoConfig.videos].map((video) => (
+          {[ 'Luxury_Automotive_Abstract_Video_Creation.mp4', ...videoConfig.videos].map((video) => (
             <motion.div
               key={video}
               onClick={() => handleVideoSelect(video)}

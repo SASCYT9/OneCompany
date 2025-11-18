@@ -388,6 +388,13 @@ export default function MotoPage() {
   const params = useParams();
   const locale = (params.locale === 'en' ? 'en' : 'ua') as 'en' | 'ua';
   const t = useTranslations('moto');
+  const isUa = locale === 'ua';
+  const typography = {
+    heroTitle: isUa ? 'text-4xl sm:text-5xl lg:text-6xl' : 'text-5xl sm:text-6xl lg:text-7xl',
+    heroSubtitle: isUa ? 'text-base sm:text-lg' : 'text-lg sm:text-xl',
+    statValue: isUa ? 'text-3xl' : 'text-4xl',
+    sectionHeading: isUa ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl',
+  } as const;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
@@ -464,7 +471,7 @@ export default function MotoPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white font-[family:var(--font-sans)]">
       <section className="relative isolate overflow-hidden rounded-b-[40px] border-b border-white/10">
         <div className="absolute inset-0">
           <video
@@ -475,7 +482,7 @@ export default function MotoPage() {
             className="h-full w-full object-cover opacity-60"
             poster="/images/eventuri/atelier-hero.jpg"
           >
-            <source src="/videos/hero-smoke.mp4" type="video/mp4" />
+            <source src="/videos/Luxury_Automotive_Abstract_Video_Creation.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
@@ -485,16 +492,28 @@ export default function MotoPage() {
             {locale === 'ua' ? 'Преміум програми · мото' : 'Premium programs · moto'}
           </div>
           <div className="max-w-4xl space-y-4 sm:space-y-5 md:space-y-6">
-            <h1 className="text-3xl font-light leading-tight sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
+            <h1 className={`font-light leading-tight ${typography.heroTitle}`}>
               {t('title')}
               <span className="text-white/50"> · </span>
               <span className="text-white/70">{t('subtitle')}</span>
             </h1>
-            <p className="text-base text-white/70 sm:text-lg md:text-xl">
+            <p className={`text-white/70 ${typography.heroSubtitle}`}>
               {locale === 'ua'
                 ? 'З 2007 року ми складаємо трекові байки з титану, карбону, телеметрії та сервісу під ключ.'
                 : 'Since 2007 we build track bikes with titanium, carbon, telemetry and concierge logistics.'}
             </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
+            {heroStats.map((stat) => (
+              <div
+                key={stat.label.en}
+                className="rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-lg sm:rounded-3xl sm:p-5 md:p-6"
+              >
+                <div className={`${typography.statValue} font-light text-white`}>{stat.value}</div>
+                <div className="mt-1.5 text-[10px] uppercase tracking-[0.3em] text-white/60 sm:mt-2 sm:text-xs sm:tracking-[0.4em]">{stat.label[locale]}</div>
+                <p className="mt-2 text-xs text-white/60 sm:mt-3 sm:text-sm">{stat.caption[locale]}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -502,7 +521,7 @@ export default function MotoPage() {
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
         <div className="mb-8 text-center sm:mb-10 md:mb-12">
           <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
-          <h2 className="mt-2 text-2xl font-light text-white sm:mt-3 sm:text-3xl md:text-4xl lg:text-5xl">{t('allBrands')}</h2>
+          <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>{t('allBrands')}</h2>
           <p className="mt-4 text-base text-white/60 sm:text-lg">
             {locale === 'ua' ? `${allMotoBrands.length} брендів у портфелі` : `${allMotoBrands.length} brands in portfolio`}
           </p>
@@ -602,7 +621,7 @@ export default function MotoPage() {
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
         <div className="mb-8 text-center sm:mb-10 md:mb-12">
           <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('productCategories')}</p>
-          <h2 className="mt-2 text-2xl font-light text-white sm:mt-3 sm:text-3xl md:text-4xl lg:text-5xl">
+          <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>
             {locale === 'ua' ? 'Модулі для трекових байків' : 'Modules for track-spec bikes'}
           </h2>
         </div>
@@ -651,7 +670,7 @@ export default function MotoPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-10 text-center sm:mb-12 md:mb-16">
             <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('featuredBrands')}</p>
-            <h2 className="mt-2 text-2xl font-light text-white sm:mt-3 sm:text-3xl md:text-4xl lg:text-5xl">
+            <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>
               {locale === 'ua' ? 'Ікони, що задають звук' : 'Icons that dictate the sound'}
             </h2>
           </div>
