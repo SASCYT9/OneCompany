@@ -129,7 +129,7 @@ export default async function LocalizedHomePage({
                   )}
                 />
                 <div className="relative flex w-full items-center justify-between text-[9px] uppercase tracking-[0.25em] text-white/60 sm:text-[11px] sm:tracking-[0.35em]">
-                  <span className="rounded-full border border-white/20 bg-black/10 px-3 py-1 text-[8px] tracking-[0.35em] sm:px-4 sm:text-[10px] sm:tracking-[0.45em]">
+                  <span className="rounded-full border border-white/50 bg-white/15 px-3 py-1 text-[8px] font-semibold tracking-[0.35em] text-white shadow-[0_0_20px_rgba(255,255,255,0.3)] sm:px-4 sm:text-[10px] sm:tracking-[0.45em]">
                     {experience.label}
                   </span>
                   <span className="hidden text-white/40 sm:inline">program access</span>
@@ -249,26 +249,7 @@ export default async function LocalizedHomePage({
         </div>
       </section>
 
-      <section className="relative overflow-hidden px-6 pb-24 text-white">
-        <div className="relative mx-auto max-w-4xl rounded-[32px] border border-white/30 bg-white/[0.1] p-10 text-center shadow-[0_20px_60px_rgba(255,255,255,0.1)] backdrop-blur-2xl hover:border-white/40 hover:bg-white/[0.12] transition-all duration-500">
-          <div className="absolute inset-0 rounded-[32px] bg-gradient-to-br from-white/[0.08] to-transparent pointer-events-none" />
-          <div className="relative">
-            <p className="text-xs uppercase tracking-[0.5em] text-white/50">Kyiv headquarters</p>
-            <h3 className="mt-4 text-4xl font-light">21B BASEINA ST · KYIV IMPORTER</h3>
-            <p className="mt-4 text-base text-white/70">
-              B2B wholesale hub serving 30+ countries. Concierge programs available for high-value retail clients.
-            </p>
-            <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center">
-              <a
-                href="tel:+380442781234"
-                className="flex-1 rounded-full border border-white/30 bg-white/10 backdrop-blur-xl px-6 py-3 text-sm uppercase tracking-[0.35em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)]"
-              >
-                +380 (44) 278 12 34
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+
     </main>
   );
 }

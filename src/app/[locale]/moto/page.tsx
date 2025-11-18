@@ -7,17 +7,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 
-import { 
-  allMotoBrands, 
-  getBrandsByNames, 
+import {
+  allMotoBrands,
+  getBrandsByNames,
   LocalBrand,
   getBrandMetadata,
   getLocalizedCountry,
   getLocalizedSubcategory,
 } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
-
-type LocalizedCopy = { en: string; ua: string; [key: string]: string };
+import { categoryData } from '@/lib/categoryData';
+import type { CategoryData } from '@/lib/categoryData';type LocalizedCopy = { en: string; ua: string; [key: string]: string };
 
 type BrandStory = {
   headline: LocalizedCopy;
@@ -607,37 +607,42 @@ export default function MotoPage() {
           </h2>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
-          {motoModuleCards.map((category) => (
-            <div
-              key={category.key}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-5 sm:rounded-3xl sm:p-6 md:p-8"
+          {categoryData.filter(cat => cat.segment === 'moto').map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/${locale}/categories/${cat.slug}`}
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-5 transition-all duration-500 hover:border-white/40 sm:rounded-3xl sm:p-6 md:p-8"
             >
-              <div
-                className={`absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100 bg-gradient-to-br ${category.accent}`}
-              />
+              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
+                backgroundImage:
+                  'radial-gradient(circle at top left, rgba(255,255,255,0.15), transparent 55%)',
+              }} />
               <div className="relative flex flex-col gap-3 sm:gap-4">
-                <div className="text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px] sm:tracking-[0.4em]">{category.eyebrow[locale]}</div>
-                <h3 className="text-xl font-light text-white sm:text-2xl">{category.title[locale]}</h3>
-                <p className="text-xs text-white/70 sm:text-sm">{category.description[locale]}</p>
-                <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] uppercase tracking-[0.25em] text-white/60 sm:mt-4 sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
-                  {category.chips.map((chip) => (
-                    <span key={chip} className="rounded-full border border-white/15 px-2.5 py-0.5 text-white/80 sm:px-3 sm:py-1">
-                      {chip}
+                <div className="text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px] sm:tracking-[0.4em]">
+                  {locale === 'ua' ? 'Категорія' : 'Category'}
+                </div>
+                <h3 className="text-xl font-light text-white sm:text-2xl">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                <p className="text-xs text-white/70 sm:text-sm">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                <p className="text-[11px] text-white/50 sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] uppercase tracking-[0.25em] text-white/50 sm:mt-4 sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
+                  {cat.brands.slice(0, 4).map((name) => (
+                    <span key={name} className="rounded-full border border-white/10 px-2.5 py-0.5 text-white/70 sm:px-3 sm:py-1">
+                      {name}
                     </span>
                   ))}
+                  {cat.brands.length > 4 && (
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/50 sm:px-3 sm:py-1">
+                      +{cat.brands.length - 4} {locale === 'ua' ? 'більше' : 'more'}
+                    </span>
+                  )}
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:mt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
-                  <span>{locale === 'ua' ? 'Консьєрж' : 'Concierge'}</span>
+                  <span>{locale === 'ua' ? 'Переглянути' : 'Open'}</span>
                   <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
-                  <Link
-                    href={`/${locale}/contact`}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/40 transition hover:border-white sm:h-10 sm:w-10"
-                  >
-                    ↗
-                  </Link>
+                  <span>→</span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

@@ -1,4 +1,4 @@
-export type CategorySlug = 'exhaust' | 'suspension' | 'wheels' | 'brakes' | 'intake' | 'interior' | 'performance';
+export type CategorySlug = 'exhaust' | 'suspension' | 'wheels' | 'brakes' | 'intake' | 'interior' | 'performance' | 'moto-exhaust' | 'moto-suspension' | 'moto-wheels' | 'moto-carbon' | 'moto-controls' | 'moto-electronics';
 
 export type Localized = { ua: string; en: string };
 
