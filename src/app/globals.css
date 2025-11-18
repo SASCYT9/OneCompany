@@ -86,11 +86,12 @@
     letter-spacing: -0.005em;
   }
 
-  .locale-ua {
-    font-family: var(--font-ua, "Manrope", "Inter", system-ui, sans-serif) !important;
+  /* Ukrainian locale typography improvements */
+  .locale-ua,
+  .locale-ua * {
+    font-family: var(--font-ua, "Manrope"), "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     letter-spacing: 0.01em;
     line-height: 1.65;
-    font-weight: 400;
   }
 
   .locale-ua h1,
@@ -98,15 +99,29 @@
   .locale-ua h3,
   .locale-ua h4,
   .locale-ua h5,
-  .locale-ua h6 {
-    font-family: var(--font-ua, "Manrope", "Inter", system-ui, sans-serif) !important;
-    letter-spacing: 0.015em !important;
+  .locale-ua h6,
+  .locale-ua .font-display,
+  .locale-ua .font-round {
+    font-family: var(--font-ua, "Manrope"), "Inter", system-ui, -apple-system, sans-serif;
+    letter-spacing: 0.015em;
     font-weight: 500;
   }
 
-  .locale-ua .uppercase,
-  .locale-ua [class*='tracking-'] {
-    letter-spacing: clamp(0.08em, 0.26em, 0.32em) !important;
+  .locale-ua .uppercase {
+    letter-spacing: 0.26em;
+  }
+
+  .locale-ua [class*='tracking-wider'],
+  .locale-ua [class*='tracking-widest'] {
+    letter-spacing: 0.26em;
+  }
+
+  .locale-ua button,
+  .locale-ua input,
+  .locale-ua textarea,
+  .locale-ua select,
+  .locale-ua a {
+    font-family: var(--font-ua, "Manrope"), "Inter", system-ui, sans-serif;
   }
 
   body::before {
