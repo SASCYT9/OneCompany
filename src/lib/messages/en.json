@@ -68,6 +68,17 @@
     "logisticsTitle": "White-label logistics",
     "logisticsDescription": "Priority air cargo lanes, customs brokerage, and bonded storage with live tracking. Ship direct to your shop or your customers."
   },
+  "autoPage": {
+    "close": "Close",
+    "categories": "Categories",
+    "bespokeBuilds": "Bespoke builds",
+    "concierge": "Concierge",
+    "conciergeMessage": "Share your contact and we will return with lead times, install slots and warranty coverage.",
+    "requestProgram": "Request program",
+    "more": "more",
+    "open": "Open",
+    "iconsThatDictate": "Icons that dictate the sound"
+  },
   "choice": {
     "tagline": "Premium Tuning Parts",
     "heading1": "100+ brands.",

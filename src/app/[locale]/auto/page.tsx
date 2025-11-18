@@ -256,6 +256,7 @@ export default function AutomotivePage() {
   const params = useParams();
   const locale = (params.locale === 'en' ? 'en' : 'ua') as 'en' | 'ua';
   const t = useTranslations('auto');
+  const tPage = useTranslations('autoPage');
   const isUa = locale === 'ua';
   const typography = {
     heroTitle: isUa ? 'text-4xl sm:text-5xl lg:text-6xl' : 'text-5xl sm:text-6xl lg:text-7xl',
@@ -663,7 +664,7 @@ export default function AutomotivePage() {
                   onClick={() => setSelectedBrand(null)}
                   className="self-start rounded-full border border-white/20 px-3 py-1.5 text-[10px] uppercase tracking-[0.3em] text-white/70 hover:border-white hover:text-white sm:self-auto sm:px-4 sm:py-2 sm:text-xs sm:tracking-[0.4em]"
                 >
-                  {locale === 'ua' ? 'Закрити' : 'Close'}
+                  {tPage('close')}
                 </button>
               </div>
 
@@ -689,7 +690,7 @@ export default function AutomotivePage() {
                   ))}
                   <div className="rounded-xl border border-white/10 p-3 sm:rounded-2xl sm:p-4">
                     <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
-                      {locale === 'ua' ? 'Категорії' : 'Categories'}
+                      {tPage('categories')}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
                       {selectedBrandCollections.length > 0 ? (
@@ -700,7 +701,7 @@ export default function AutomotivePage() {
                         ))
                       ) : (
                         <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] text-white/50 sm:px-3 sm:py-1 sm:text-xs">
-                          {locale === 'ua' ? 'Індивідуальні побудови' : 'Bespoke builds'}
+                          {tPage('bespokeBuilds')}
                         </span>
                       )}
                     </div>
@@ -711,19 +712,17 @@ export default function AutomotivePage() {
               <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/80 sm:mt-7 sm:gap-4 sm:rounded-3xl sm:p-5 sm:text-sm md:mt-8 md:flex-row md:items-center md:justify-between md:p-6">
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
-                    {locale === 'ua' ? 'Консьєрж' : 'Concierge'}
+                    {tPage('concierge')}
                   </p>
                   <p className="mt-1.5 text-sm text-white sm:mt-2 sm:text-base">
-                    {locale === 'ua'
-                      ? 'Залиште контакти — надамо оновлення про строки, варіанти встановлення та гарантію.'
-                      : 'Share your contact and we will return with lead times, install slots and warranty coverage.'}
+                    {tPage('conciergeMessage')}
                   </p>
                 </div>
                 <Link
                   href={`/${locale}/contact`}
                   className="inline-flex items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-5 py-2.5 text-xs font-semibold text-black transition hover:bg-transparent hover:text-white sm:px-6 sm:py-3 sm:text-sm"
                 >
-                  {locale === 'ua' ? 'Запросити програму' : 'Request program'}
+                  {tPage('requestProgram')}
                 </Link>
               </div>
             </motion.div>

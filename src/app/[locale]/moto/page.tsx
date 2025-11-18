@@ -388,6 +388,7 @@ export default function MotoPage() {
   const params = useParams();
   const locale = (params.locale === 'en' ? 'en' : 'ua') as 'en' | 'ua';
   const t = useTranslations('moto');
+  const tPage = useTranslations('autoPage');
   const isUa = locale === 'ua';
   const typography = {
     heroTitle: isUa ? 'text-4xl sm:text-5xl lg:text-6xl' : 'text-5xl sm:text-6xl lg:text-7xl',
@@ -651,12 +652,12 @@ export default function MotoPage() {
                   ))}
                   {cat.brands.length > 4 && (
                     <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/50 sm:px-3 sm:py-1">
-                      +{cat.brands.length - 4} {locale === 'ua' ? 'більше' : 'more'}
+                      +{cat.brands.length - 4} {tPage('more')}
                     </span>
                   )}
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:mt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
-                  <span>{locale === 'ua' ? 'Переглянути' : 'Open'}</span>
+                  <span>{tPage('open')}</span>
                   <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
                   <span>→</span>
                 </div>
@@ -671,7 +672,7 @@ export default function MotoPage() {
           <div className="mb-10 text-center sm:mb-12 md:mb-16">
             <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('featuredBrands')}</p>
             <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>
-              {locale === 'ua' ? 'Ікони, що задають звук' : 'Icons that dictate the sound'}
+              {tPage('iconsThatDictate')}
             </h2>
           </div>
           <div className="grid gap-4 sm:gap-5 md:grid-cols-2 md:gap-6">
