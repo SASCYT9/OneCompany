@@ -21,8 +21,8 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 text-white">
-      <h1 className="text-3xl font-light sm:text-4xl">{l === "ua" ? "Політика конфіденційності" : "Privacy Policy"}</h1>
-      <p className="mt-4 text-white/70">
+      <h1 className="text-3xl font-light sm:text-4xl text-balance">{l === "ua" ? "Політика конфіденційності" : "Privacy Policy"}</h1>
+      <p className="mt-4 text-white/70 text-pretty">
         {l === "ua"
           ? "Ми поважаємо вашу конфіденційність. Ця сторінка є тимчасовим шаблоном; повна версія політики буде додана найближчим часом."
           : "We respect your privacy. This page is a temporary placeholder; the full policy will be published shortly."}

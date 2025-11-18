@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, LogOut, MessageSquare, Video } from 'lucide-react';
+import { Lock, LogOut, MessageSquare, Video, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -139,9 +139,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <MessageSquare className="w-4 h-4" />
               <span>Messages</span>
             </TabLink>
-            <TabLink href="/admin/video" currentPath={pathname}>
-              <Video className="w-4 h-4" />
-              <span>Video</span>
+            <TabLink href="/admin/settings" currentPath={pathname}>
+              <Settings className="w-4 h-4" />
+              <span>Settings</span>
             </TabLink>
           </div>
         </div>

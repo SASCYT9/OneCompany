@@ -108,10 +108,10 @@ export default async function LocalizedHomePage({
                   <span className="hidden text-white/40 sm:inline">{t('programAccess')}</span>
                 </div>
                 <div className={clsx("relative space-y-2 text-left sm:space-y-4", index === 1 && "md:text-right")}>
-                  <h2 className="text-2xl font-light leading-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
+                  <h2 className="text-2xl font-light leading-tight text-white text-balance sm:text-3xl md:text-4xl lg:text-5xl">
                     {experience.title}
                   </h2>
-                  <p className="text-sm leading-relaxed text-white/80 sm:text-base">
+                  <p className="text-sm leading-relaxed text-white/80 text-pretty sm:text-base">
                     {experience.description}
                   </p>
                 </div>
@@ -159,8 +159,8 @@ export default async function LocalizedHomePage({
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-transparent" aria-hidden />
         <div className="relative mx-auto max-w-4xl px-6 text-center">
           <p className="text-xs uppercase tracking-[0.4em] text-white/50">{t('ourSites')}</p>
-          <h3 className="mt-3 text-4xl font-light">{t('automotiveMotoBrands')}</h3>
-          <p className="mt-4 text-base text-white/75">
+          <h3 className="mt-3 text-4xl font-light text-balance">{t('automotiveMotoBrands')}</h3>
+          <p className="mt-4 text-base text-white/75 text-pretty">
             {t('exclusiveAllocations')}
           </p>
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
@@ -195,8 +195,8 @@ export default async function LocalizedHomePage({
           <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
             <div>
               <p className="text-xs uppercase tracking-[0.4em] text-white/50">{t('b2bPrograms')}</p>
-              <h3 className="mt-3 text-4xl font-light">{t('partnerWithLeading')}</h3>
-              <p className="mt-3 text-sm text-white/60">{t('partnerTypes')}</p>
+              <h3 className="mt-3 text-4xl font-light text-balance">{t('partnerWithLeading')}</h3>
+              <p className="mt-3 text-sm text-white/60 text-pretty">{t('partnerTypes')}</p>
             </div>
             <Link
               href={`/${locale}/contact`}

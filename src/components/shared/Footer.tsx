@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Instagram, Youtube, Facebook, Mail } from "lucide-react";
 import gsap from "gsap";
+import { Logo } from "@/components/ui/Logo";
 
 const Footer = () => {
   const params = useParams();
@@ -89,8 +90,8 @@ const Footer = () => {
 
         <div className="grid gap-8 sm:grid-cols-2 sm:gap-10 lg:grid-cols-4">
           <div className="space-y-4 sm:space-y-6">
-            <Link href={`/${locale}`} className="inline-flex text-2xl font-light tracking-tight text-white sm:text-3xl">
-              OneCompany
+            <Link href={`/${locale}`} className="inline-block" aria-label="OneCompany Home">
+              <Logo tone="light" className="w-32 sm:w-40" />
             </Link>
             <p className="text-xs leading-relaxed text-white/60 sm:text-sm">
               {t('description')}

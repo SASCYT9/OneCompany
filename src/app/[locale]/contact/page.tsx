@@ -120,11 +120,11 @@ export default function ContactPage() {
             className="mb-12 text-center sm:mb-16 md:mb-20"
           >
             <p className="mb-4 text-xs uppercase tracking-[0.3em] text-white/60 sm:mb-5 sm:text-sm sm:tracking-[0.4em] md:mb-6">{t("hero.eyebrow")}</p>
-            <h1 className="mb-6 text-3xl font-extralight leading-tight tracking-tight text-white sm:text-4xl sm:mb-7 md:text-5xl md:mb-8 lg:text-7xl xl:text-8xl">
+            <h1 className="mb-6 text-3xl font-extralight leading-tight tracking-tight text-white sm:text-4xl sm:mb-7 md:text-5xl md:mb-8 lg:text-7xl xl:text-8xl text-balance">
               {t("hero.heading")}
             </h1>
             <div className="mx-auto mb-6 h-px w-20 bg-white/20 sm:w-24 sm:mb-8 md:w-32 md:mb-10" />
-            <p className="mx-auto max-w-3xl text-base font-light text-white/70 sm:text-lg md:text-xl lg:text-2xl">
+            <p className="mx-auto max-w-3xl text-base font-light text-white/70 sm:text-lg md:text-xl lg:text-2xl text-pretty">
               {t("hero.subheading")}
             </p>
           </motion.div>
@@ -134,7 +134,7 @@ export default function ContactPage() {
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="h-full space-y-8 rounded-2xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-3xl sm:space-y-10 sm:rounded-3xl sm:p-8 md:space-y-12 md:rounded-[32px] md:p-10 shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+              className="h-full space-y-8 rounded-2xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-3xl sm:space-y-10 sm:rounded-3xl sm:p-8 md:space-y-12 md:rounded-[32px] md:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500"
             >
               <div>
                 <h2 className="mb-6 text-2xl font-light tracking-wide text-white sm:mb-7 sm:text-3xl md:mb-8 md:text-4xl">
@@ -194,7 +194,7 @@ export default function ContactPage() {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="h-full rounded-2xl border border-white/10 bg-white/[0.02] p-5 backdrop-blur-3xl sm:rounded-3xl sm:p-6 md:rounded-[32px] md:p-8 shadow-[0_20px_40px_rgba(0,0,0,0.4)] flex flex-col"
+              className="h-full rounded-2xl border border-white/10 bg-white/[0.02] p-5 backdrop-blur-3xl sm:rounded-3xl sm:p-6 md:rounded-[32px] md:p-8 shadow-[0_30px_60px_rgba(0,0,0,0.5)] flex flex-col hover:scale-[1.02] transition-transform duration-500"
             >
               <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7 md:space-y-8 flex flex-col flex-1 justify-between">
                 {/* Progress bar */}

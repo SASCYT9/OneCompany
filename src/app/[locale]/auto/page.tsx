@@ -372,11 +372,11 @@ export default function AutomotivePage() {
             {locale === 'ua' ? 'Преміум програми · авто' : 'Premium programs · auto'}
           </div>
           <div className="max-w-4xl space-y-4 sm:space-y-5 md:space-y-6">
-            <h1 className={`font-light leading-tight ${typography.heroTitle}`}>
+            <h1 className={`font-light leading-tight text-balance ${typography.heroTitle}`}>
               {t('title')}<span className="text-white/50"> · </span>
               <span className="text-white/70">{t('subtitle')}</span>
             </h1>
-            <p className={`text-white/70 ${typography.heroSubtitle}`}>
+            <p className={`text-white/70 text-pretty ${typography.heroSubtitle}`}>
               {locale === 'ua'
                 ? 'Створюємо автомобілі з характером: титан, карбон і електроніка преміум брендів з 2007 року.'
                 : 'We build characterful cars with titanium, carbon and electronic suites curated since 2007.'}
@@ -417,7 +417,7 @@ export default function AutomotivePage() {
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
         <div className="mb-8 text-center sm:mb-10 md:mb-12">
           <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('productCategories')}</p>
-          <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>
+          <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>
             {locale === 'ua' ? 'Модулі, які складають авто' : 'Modules we compose cars from'}
           </h2>
         </div>
@@ -426,7 +426,7 @@ export default function AutomotivePage() {
             <Link
               key={cat.slug}
               href={`/${locale}/categories/${cat.slug}`}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8"
             >
               <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                 backgroundImage:
@@ -436,9 +436,9 @@ export default function AutomotivePage() {
                 <div className="text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px] sm:tracking-[0.4em]">
                   {locale === 'ua' ? 'Категорія' : 'Category'}
                 </div>
-                <h3 className="text-xl font-light text-white sm:text-2xl">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
-                <p className="text-xs text-white/70 sm:text-sm">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                <p className="text-[11px] text-white/50 sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                <h3 className="text-xl font-light text-white sm:text-2xl text-balance">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                <p className="text-xs text-white/70 sm:text-sm text-pretty">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                <p className="text-[11px] text-white/50 sm:text-xs text-pretty">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
                 <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] uppercase tracking-[0.25em] text-white/50 sm:mt-4 sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
                   {cat.brands.slice(0, 4).map((name) => (
                     <span key={name} className="rounded-full border border-white/10 px-2.5 py-0.5 text-white/70 sm:px-3 sm:py-1">
@@ -466,7 +466,7 @@ export default function AutomotivePage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-10 text-center sm:mb-12 md:mb-16">
             <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('featuredBrands')}</p>
-            <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>
+            <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>
               {locale === 'ua' ? 'Ікони, що задають темп' : 'Icons that set the tempo'}
             </h2>
           </div>
@@ -475,7 +475,7 @@ export default function AutomotivePage() {
               <motion.button
                 key={brand.name}
                 onClick={() => setSelectedBrand(brand)}
-                whileHover={{ y: -4 }}
+                whileHover={{ y: -4, scale: 1.01 }}
                 className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-left transition backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:gap-5 sm:rounded-3xl sm:p-6 md:gap-6 md:p-8"
               >
                 <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
@@ -499,7 +499,7 @@ export default function AutomotivePage() {
                 </div>
                 <div className="relative">
                   <h3 className="text-3xl font-light text-white">{brand.name}</h3>
-                  <p className="mt-2 text-sm text-white/70">
+                  <p className="mt-2 text-sm text-white/70 text-pretty">
                     {brand.description ||
                       (locale === 'ua' ? 'Офіційна програма постачання' : 'Official supply program')}
                   </p>
@@ -518,7 +518,7 @@ export default function AutomotivePage() {
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
         <div className="mb-8 text-center sm:mb-10 md:mb-12">
           <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
-          <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>{t('allBrands')}</h2>
+          <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>{t('allBrands')}</h2>
         </div>
 
         <div className="flex justify-center">

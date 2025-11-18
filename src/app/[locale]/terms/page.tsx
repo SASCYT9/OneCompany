@@ -21,8 +21,8 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 text-white">
-      <h1 className="text-3xl font-light sm:text-4xl">{l === "ua" ? "Умови надання послуг" : "Terms of Service"}</h1>
-      <p className="mt-4 text-white/70">
+      <h1 className="text-3xl font-light sm:text-4xl text-balance">{l === "ua" ? "Умови надання послуг" : "Terms of Service"}</h1>
+      <p className="mt-4 text-white/70 text-pretty">
         {l === "ua"
           ? "Це тимчасова версія сторінки з умовами. Остаточний текст буде опубліковано найближчим часом."
           : "This is a temporary version of the terms. The final content will be published shortly."}

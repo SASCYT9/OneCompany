@@ -48,6 +48,15 @@
     border-color: hsl(var(--border));
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
   body {
     color: hsl(var(--foreground));
     background-color: hsl(var(--background));

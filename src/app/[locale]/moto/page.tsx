@@ -425,8 +425,8 @@ export default function MotoPage() {
     }
     return {
       headline: {
-        en: `${brand.name} — bespoke moto supply`,
-        ua: `${brand.name} — індивідуальне постачання`,
+        en: `\${brand.name} — bespoke moto supply`,
+        ua: `\${brand.name} — індивідуальне постачання`,
       },
       description: {
         en: 'Concierge sourcing, homologation paperwork and paddock-ready logistics directed from our Kyiv headquarters.',
@@ -497,10 +497,116 @@ export default function MotoPage() {
         </div>
       </section>
 
+      {/* Product Categories Section - Moved Up */}
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+        <div className="mb-8 text-center sm:mb-10 md:mb-12">
+          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('productCategories')}</p>
+          <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>
+            {locale === 'ua' ? 'Інженерні модулі' : 'Engineering Modules'}
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
+          {categoryData.filter(cat => cat.segment === 'moto').map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/${locale}/categories/${cat.slug}`}
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8"
+            >
+              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
+                backgroundImage:
+                  'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
+              }} />
+              <div className="relative flex flex-col gap-3 sm:gap-4">
+                <div className="text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px] sm:tracking-[0.4em]">
+                  {locale === 'ua' ? 'Категорія' : 'Category'}
+                </div>
+                <h3 className="text-xl font-light text-white sm:text-2xl text-balance">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                <p className="text-xs text-white/70 sm:text-sm text-pretty">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                <p className="text-[11px] text-white/50 sm:text-xs text-pretty">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] uppercase tracking-[0.25em] text-white/50 sm:mt-4 sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
+                  {cat.brands.slice(0, 4).map((name) => (
+                    <span key={name} className="rounded-full border border-white/10 px-2.5 py-0.5 text-white/70 sm:px-3 sm:py-1">
+                      {name}
+                    </span>
+                  ))}
+                  {cat.brands.length > 4 && (
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/50 sm:px-3 sm:py-1">
+                      +{cat.brands.length - 4} {tPage('more')}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:mt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
+                  <span>{tPage('open')}</span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
+                  <span>→</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Featured Brands Section - Moved Up */}
+      <section className="relative border-y border-white/5 bg-gradient-to-b from-black via-black/80 to-black py-12 sm:py-16 md:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mb-10 text-center sm:mb-12 md:mb-16">
+            <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('featuredBrands')}</p>
+            <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>
+              {locale === 'ua' ? 'Ікони продуктивності' : 'Icons of Performance'}
+            </h2>
+          </div>
+          <div className="grid gap-4 sm:gap-5 md:grid-cols-2 md:gap-6">
+            {topBrands.map((brand) => (
+              <motion.button
+                key={brand.name}
+                onClick={() => setSelectedBrand(brand)}
+                whileHover={{ y: -4, scale: 1.01 }}
+                className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-left transition backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:gap-5 sm:rounded-3xl sm:p-6 md:gap-6 md:p-8"
+              >
+                <div
+                  className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                  style={{
+                    backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.1), transparent 65%)',
+                  }}
+                />
+                <div className="relative flex items-center justify-between gap-4">
+                  <div className="relative h-16 w-36">
+                    <Image
+                      src={getBrandLogo(brand.name)}
+                      alt={brand.name}
+                      fill
+                      className="object-contain"
+                      sizes="144px"
+                      unoptimized
+                    />
+                  </div>
+                  <span className="text-xs uppercase tracking-[0.4em] text-white/50">
+                    {locale === 'ua' ? 'Натисніть, щоб дізнатися' : 'Tap to open'}
+                  </span>
+                </div>
+                <div className="relative">
+                  <h3 className="text-3xl font-light text-white">{brand.name}</h3>
+                  <p className="mt-2 text-sm text-white/70 text-pretty">
+                    {brand.description ||
+                      (locale === 'ua' ? 'Офіційна програма постачання' : 'Official supply program')}
+                  </p>
+                </div>
+                <div className="relative flex items-center gap-4 text-xs uppercase tracking-[0.4em] text-white/60">
+                  <span>{locale === 'ua' ? 'Дивитись деталі' : 'View detail'}</span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
+                  <span>↗</span>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* All Brands Section - Moved Down */}
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
         <div className="mb-8 text-center sm:mb-10 md:mb-12">
           <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
-          <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>{t('allBrands')}</h2>
+          <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>{locale === 'ua' ? 'Атлас брендів' : 'Brand Atlas'}</h2>
           <p className="mt-4 text-base text-white/60 sm:text-lg">
             {locale === 'ua' ? `${allMotoBrands.length} брендів у портфелі` : `${allMotoBrands.length} brands in portfolio`}
           </p>
@@ -594,109 +700,6 @@ export default function MotoPage() {
               {t('noBrands')}
             </div>
           )}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
-        <div className="mb-8 text-center sm:mb-10 md:mb-12">
-          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('productCategories')}</p>
-          <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>
-            {locale === 'ua' ? 'Модулі, з яких складається мото' : 'Modules we compose bikes from'}
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
-          {categoryData.filter(cat => cat.segment === 'moto').map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/${locale}/categories/${cat.slug}`}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8"
-            >
-              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
-                backgroundImage:
-                  'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
-              }} />
-              <div className="relative flex flex-col gap-3 sm:gap-4">
-                <div className="text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px] sm:tracking-[0.4em]">
-                  {locale === 'ua' ? 'Категорія' : 'Category'}
-                </div>
-                <h3 className="text-xl font-light text-white sm:text-2xl">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
-                <p className="text-xs text-white/70 sm:text-sm">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                <p className="text-[11px] text-white/50 sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
-                <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] uppercase tracking-[0.25em] text-white/50 sm:mt-4 sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
-                  {cat.brands.slice(0, 4).map((name) => (
-                    <span key={name} className="rounded-full border border-white/10 px-2.5 py-0.5 text-white/70 sm:px-3 sm:py-1">
-                      {name}
-                    </span>
-                  ))}
-                  {cat.brands.length > 4 && (
-                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/50 sm:px-3 sm:py-1">
-                      +{cat.brands.length - 4} {tPage('more')}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:mt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
-                  <span>{tPage('open')}</span>
-                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
-                  <span>→</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="relative border-y border-white/5 bg-gradient-to-b from-black via-black/80 to-black py-12 sm:py-16 md:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="mb-10 text-center sm:mb-12 md:mb-16">
-            <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('featuredBrands')}</p>
-            <h2 className={`mt-2 font-light text-white sm:mt-3 ${typography.sectionHeading}`}>
-              {tPage('iconsThatDictate')}
-            </h2>
-          </div>
-          <div className="grid gap-4 sm:gap-5 md:grid-cols-2 md:gap-6">
-            {topBrands.map((brand) => (
-              <motion.button
-                key={brand.name}
-                onClick={() => setSelectedBrand(brand)}
-                whileHover={{ y: -4 }}
-                className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-left transition backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:gap-5 sm:rounded-3xl sm:p-6 md:gap-6 md:p-8"
-              >
-                <div
-                  className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                  style={{
-                    backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.1), transparent 65%)',
-                  }}
-                />
-                <div className="relative flex items-center justify-between gap-4">
-                  <div className="relative h-16 w-36">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className="object-contain"
-                      sizes="144px"
-                      unoptimized
-                    />
-                  </div>
-                  <span className="text-xs uppercase tracking-[0.4em] text-white/50">
-                    {locale === 'ua' ? 'Натисніть, щоб дізнатися' : 'Tap to open'}
-                  </span>
-                </div>
-                <div className="relative">
-                  <h3 className="text-3xl font-light text-white">{brand.name}</h3>
-                  <p className="mt-2 text-sm text-white/70">
-                    {brand.description ||
-                      (locale === 'ua' ? 'Офіційна програма постачання' : 'Official supply program')}
-                  </p>
-                </div>
-                <div className="relative flex items-center gap-4 text-xs uppercase tracking-[0.4em] text-white/60">
-                  <span>{locale === 'ua' ? 'Дивитись деталі' : 'View detail'}</span>
-                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
-                  <span>↗</span>
-                </div>
-              </motion.button>
-            ))}
-          </div>
         </div>
       </section>
 

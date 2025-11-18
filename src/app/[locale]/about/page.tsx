@@ -127,7 +127,7 @@ const AboutPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-4xl font-extralight leading-tight text-white sm:text-6xl md:text-7xl"
+            className="text-4xl font-extralight leading-tight text-white sm:text-6xl md:text-7xl text-balance"
           >
             {t('hero.title')}
           </motion.h1>
@@ -135,7 +135,7 @@ const AboutPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-8 max-w-3xl text-lg font-light text-white/70 md:text-xl"
+            className="mt-8 max-w-3xl text-lg font-light text-white/70 md:text-xl text-pretty"
           >
             {t('hero.subtitle')}
           </motion.p>
@@ -164,7 +164,7 @@ const AboutPage: React.FC = () => {
 
       {/* Stats */}
       <section className="relative px-6 py-16 md:px-10">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] lg:p-12 md:flex-row md:items-center">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500 lg:p-12 md:flex-row md:items-center">
           <h2 className="text-2xl font-light text-white md:w-1/3">{t('stats.title')}</h2>
           <div className="grid flex-1 grid-cols-2 gap-8 md:grid-cols-4">
             {stats.map((stat) => (
@@ -212,7 +212,7 @@ const AboutPage: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            className="rounded-3xl border border-white/10 bg-white/[0.02] p-10 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+            className="rounded-3xl border border-white/10 bg-white/[0.02] p-10 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500"
           >
             <div className="grid gap-8">
               {pillars.map((pillar) => (
@@ -250,7 +250,7 @@ const AboutPage: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
-                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300 hover:bg-white/[0.05] hover:border-white/20"
+                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-500 hover:bg-white/[0.05] hover:border-white/20 hover:scale-[1.02]"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white group-hover:bg-white group-hover:text-black transition-colors">
                   {capability.icon}
@@ -293,13 +293,13 @@ const AboutPage: React.FC = () => {
 
       {/* CTA */}
       <section className="px-6 pb-24 md:px-10">
-        <div className="mx-auto max-w-5xl rounded-3xl border border-white/10 bg-white/[0.02] p-12 text-center backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
+        <div className="mx-auto max-w-5xl rounded-3xl border border-white/10 bg-white/[0.02] p-12 text-center backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500">
           <motion.h3
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-4xl font-extralight text-white"
+            className="text-4xl font-extralight text-white text-balance"
           >
             {t('cta.title')}
           </motion.h3>
@@ -308,7 +308,7 @@ const AboutPage: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mx-auto mt-6 max-w-3xl text-lg font-light text-white/70"
+            className="mx-auto mt-6 max-w-3xl text-lg font-light text-white/70 text-pretty"
           >
             {t('cta.subtitle')}
           </motion.p>
