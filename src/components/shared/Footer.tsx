@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { Instagram, Youtube, Facebook, Mail } from "lucide-react";
+import { Instagram, Youtube, Facebook, Mail, ArrowUpRight } from "lucide-react";
 import gsap from "gsap";
 import { Logo } from "@/components/ui/Logo";
 
@@ -59,53 +59,72 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="relative -mt-8 border-t border-white/10 bg-black/90 backdrop-blur-xl">
-      <div className="pointer-events-none absolute inset-x-0 -top-48 h-48 bg-gradient-to-b from-transparent via-[#080808] to-[#050505]" aria-hidden />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.03),_transparent_55%)]" aria-hidden />
-      <div ref={scopeRef} className="relative mx-auto max-w-6xl px-6 py-16">
-        <div
-          ref={gradientRef}
-          aria-hidden
-          className="pointer-events-none -mt-16 mb-10 h-28 w-full rounded-[999px] bg-gradient-to-r from-white/5 via-white/2 to-transparent opacity-80 shadow-[0_0_60px_rgba(255,255,255,0.05)] blur-3xl"
-        />
+    <footer className="relative border-t border-white/5 bg-[#050505] text-white overflow-hidden">
+      {/* Ambient Background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[500px] bg-white/[0.02] blur-[120px] rounded-full" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-500/[0.03] blur-[100px] rounded-full" />
+      </div>
+
+      <div ref={scopeRef} className="relative mx-auto max-w-7xl px-6 pt-20 pb-12 sm:px-8 lg:px-12">
+        
+        {/* Main CTA Card */}
         <div
           ref={signatureRef}
-          id="concierge-programs"
-          className="mb-10 rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_rgba(5,5,5,0.85))] p-5 text-center backdrop-blur-2xl sm:mb-16 sm:rounded-[36px] sm:p-8"
+          className="relative mb-20 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.02] p-8 sm:p-12 lg:p-16 backdrop-blur-3xl"
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-white/60 sm:text-sm sm:tracking-[0.4em]">{t('b2bWholesale')}</p>
-          <div className="mt-3 text-xl font-light leading-tight text-white sm:mt-4 sm:text-2xl md:text-3xl lg:text-4xl">
-            {t('brandsFor')}
-          </div>
-          <p className="mt-2 text-xs text-white/60 sm:text-sm">{t('conciergeB2C')}</p>
-          <div className="mt-3 space-y-1 text-[9px] uppercase tracking-[0.25em] text-white/65 sm:mt-4 sm:text-[11px] sm:tracking-[0.35em]">
-            <p>{t('servicesSince')}</p>
-            <p className="text-white">{t('premiumParts')}</p>
-          </div>
-          <div className="mt-4 inline-flex flex-col items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-white sm:mt-6 sm:flex-row sm:gap-3 sm:px-6 sm:py-3 sm:text-xs sm:tracking-[0.35em]">
-            <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="break-all text-center">info@onecompany.global</span>
+          <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
+          <div className="relative z-10 flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
+            <div className="max-w-2xl space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/80 backdrop-blur-md">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                {t('b2bWholesale')}
+              </div>
+              <h2 className="font-display text-3xl font-light leading-tight tracking-tight sm:text-4xl lg:text-5xl text-balance">
+                {t('brandsFor')}
+              </h2>
+              <p className="text-sm text-white/60 sm:text-base max-w-lg leading-relaxed">
+                {t('aboutText')}
+              </p>
+            </div>
+            
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <Link 
+                href={`/${locale}/contact`}
+                className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-full bg-white px-8 py-4 text-sm font-medium text-black transition-transform duration-300 hover:scale-105"
+              >
+                <span className="uppercase tracking-widest">{t('contactUs')}</span>
+                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+              </Link>
+              <a 
+                href="mailto:info@onecompany.global"
+                className="group inline-flex items-center justify-center gap-3 rounded-full border border-white/20 bg-white/5 px-8 py-4 text-sm font-medium text-white transition-all duration-300 hover:bg-white/10 hover:border-white/40"
+              >
+                <Mail className="h-4 w-4" />
+                <span className="uppercase tracking-widest">info@onecompany.global</span>
+              </a>
+            </div>
           </div>
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-2 sm:gap-10 lg:grid-cols-4">
-          <div className="space-y-4 sm:space-y-6">
-            <Link href={`/${locale}`} className="inline-block" aria-label="OneCompany Home">
-              <Logo tone="light" className="w-32 sm:w-40" />
+        <div className="grid gap-12 lg:grid-cols-12 lg:gap-8 border-t border-white/10 pt-16">
+          {/* Brand Column */}
+          <div className="lg:col-span-4 space-y-6">
+            <Link href={`/${locale}`} className="block" aria-label="OneCompany Home">
+              <Logo tone="light" className="w-40" />
             </Link>
-            <p className="text-xs leading-relaxed text-white/60 sm:text-sm">
+            <p className="text-sm leading-relaxed text-white/50 max-w-xs">
               {t('description')}
             </p>
-            <div className="flex gap-2 sm:gap-3">
+            <div className="flex gap-4 pt-2">
               {socials.map(({ icon: Icon, href, label }) => (
                 <motion.a
                   key={label}
                   href={href}
                   target="_blank"
                   rel="noreferrer"
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/80 transition hover:border-white/40 hover:bg-white/20 sm:h-10 sm:w-10"
+                  whileHover={{ y: -3 }}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors hover:border-white/30 hover:bg-white/10 hover:text-white"
                   aria-label={label}
                 >
                   <Icon className="h-4 w-4" />
@@ -114,12 +133,13 @@ const Footer = () => {
             </div>
           </div>
 
-          <div className="space-y-3 sm:space-y-4">
-            <p className="text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.35em]">{t('company')}</p>
-            <ul className="space-y-2 text-xs text-white/70 sm:space-y-3 sm:text-sm">
+          {/* Links Columns */}
+          <div className="lg:col-span-2 lg:col-start-6 space-y-6">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">{t('company')}</h3>
+            <ul className="space-y-4">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
-                  <Link className="transition hover:text-white" href={link.href}>
+                  <Link className="text-sm text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4" href={link.href}>
                     {link.name}
                   </Link>
                 </li>
@@ -127,12 +147,12 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">{t('disciplines')}</p>
-            <ul className="space-y-3 text-sm text-white/70">
+          <div className="lg:col-span-2 space-y-6">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">{t('disciplines')}</h3>
+            <ul className="space-y-4">
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
-                  <Link className="transition hover:text-white" href={link.href}>
+                  <Link className="text-sm text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4" href={link.href}>
                     {link.name}
                   </Link>
                 </li>
@@ -140,32 +160,36 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">{t('headquarters')}</p>
-            <div className="space-y-3 text-sm text-white/70">
-              <p>
-                21B Baseina St
-                <br />Kyiv, 01004
-                <br />Ukraine
+          <div className="lg:col-span-3 space-y-6">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">{t('headquarters')}</h3>
+            <div className="space-y-4 text-sm text-white/70">
+              <p className="leading-relaxed">
+                21B Baseina St<br />
+                Kyiv, 01004<br />
+                Ukraine
               </p>
-              <a href="tel:+380442781234" className="block transition hover:text-white">
-                +380 (44) 278 12 34
-              </a>
-              <a href="mailto:info@onecompany.global" className="block transition hover:text-white">
-                info@onecompany.global
-              </a>
+              <div className="space-y-2">
+                <a href="tel:+380442781234" className="block transition-colors hover:text-white">
+                  +380 (44) 278 12 34
+                </a>
+                <p className="text-xs text-white/40">Mon-Fri, 10:00 - 19:00</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-4 text-[10px] text-white/50 sm:mt-16 sm:gap-4 sm:pt-6 sm:text-xs md:flex-row md:items-center md:justify-between">
+        {/* Bottom Bar */}
+        <div className="mt-20 flex flex-col items-center justify-between gap-6 border-t border-white/5 pt-8 text-xs text-white/40 sm:flex-row">
           <p>© {new Date().getFullYear()} OneCompany. {t('engineeredIn')}.</p>
-          <div className="flex gap-4 sm:gap-6">
-            <Link href={`/${locale}/privacy`} className="transition hover:text-white">
+          <div className="flex gap-8">
+            <Link href={`/${locale}/privacy`} className="transition-colors hover:text-white">
               {t('privacy')}
             </Link>
-            <Link href={`/${locale}/terms`} className="transition hover:text-white">
+            <Link href={`/${locale}/terms`} className="transition-colors hover:text-white">
               {t('terms')}
+            </Link>
+            <Link href={`/${locale}/cookies`} className="transition-colors hover:text-white">
+              {t('cookies')}
             </Link>
           </div>
         </div>
