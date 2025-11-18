@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Instagram, Youtube, Facebook, Mail } from "lucide-react";
 import gsap from "gsap";
@@ -10,6 +11,7 @@ import gsap from "gsap";
 const Footer = () => {
   const params = useParams();
   const locale = (params?.locale as string) || "en";
+  const t = useTranslations("footer");
 
   const footerLinks = {
     company: [
@@ -69,14 +71,14 @@ const Footer = () => {
           id="concierge-programs"
           className="mb-10 rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_rgba(5,5,5,0.85))] p-5 text-center backdrop-blur-2xl sm:mb-16 sm:rounded-[36px] sm:p-8"
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-white/60 sm:text-sm sm:tracking-[0.4em]">{locale === 'ua' ? 'B2B оптовий імпортер' : 'B2B Wholesale Importer'}</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-white/60 sm:text-sm sm:tracking-[0.4em]">{t('b2bWholesale')}</p>
           <div className="mt-3 text-xl font-light leading-tight text-white sm:mt-4 sm:text-2xl md:text-3xl lg:text-4xl">
-            {locale === 'ua' ? '200+ брендів для СТО, дітейлінгу та магазинів тюнінгу' : '200+ brands for service stations, detailing & tuning shops'}
+            {t('brandsFor')}
           </div>
-          <p className="mt-2 text-xs text-white/60 sm:text-sm">{locale === 'ua' ? '+ консьєрж сервіс для роздрібних клієнтів (B2C)' : '+ concierge service for retail clients (B2C)'}</p>
+          <p className="mt-2 text-xs text-white/60 sm:text-sm">{t('conciergeB2C')}</p>
           <div className="mt-3 space-y-1 text-[9px] uppercase tracking-[0.25em] text-white/65 sm:mt-4 sm:text-[11px] sm:tracking-[0.35em]">
-            <p>services worldwide since 2007</p>
-            <p className="text-white">200+ brands premium tuning parts</p>
+            <p>{t('servicesSince')}</p>
+            <p className="text-white">{t('premiumParts')}</p>
           </div>
           <div className="mt-4 inline-flex flex-col items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-white sm:mt-6 sm:flex-row sm:gap-3 sm:px-6 sm:py-3 sm:text-xs sm:tracking-[0.35em]">
             <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -90,9 +92,7 @@ const Footer = () => {
               OneCompany
             </Link>
             <p className="text-xs leading-relaxed text-white/60 sm:text-sm">
-              {locale === 'ua'
-                ? 'B2B оптовий імпортер з 2007 року. Працюємо зі СТО, дітейлінг студіями та магазинами тюнінгу в 30+ країн з оптовими цінами, техпідтримкою та white-label логістикою.'
-                : 'B2B wholesale importer since 2007. Serving service stations, detailing studios, and tuning shops across 30+ countries with volume pricing, technical support, and white-label logistics.'}
+              {t('description')}
             </p>
             <div className="flex gap-2 sm:gap-3">
               {socials.map(({ icon: Icon, href, label }) => (
@@ -113,7 +113,7 @@ const Footer = () => {
           </div>
 
           <div className="space-y-3 sm:space-y-4">
-            <p className="text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.35em]">{locale === 'ua' ? 'Компанія' : 'The House'}</p>
+            <p className="text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.35em]">{t('company')}</p>
             <ul className="space-y-2 text-xs text-white/70 sm:space-y-3 sm:text-sm">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
@@ -126,7 +126,7 @@ const Footer = () => {
           </div>
 
           <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">{locale === 'ua' ? 'Напрями' : 'Disciplines'}</p>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/50">{t('disciplines')}</p>
             <ul className="space-y-3 text-sm text-white/70">
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
@@ -139,7 +139,7 @@ const Footer = () => {
           </div>
 
           <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">{locale === 'ua' ? 'Штаб-квартира' : 'Headquarters'}</p>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/50">{t('headquarters')}</p>
             <div className="space-y-3 text-sm text-white/70">
               <p>
                 21B Baseina St
@@ -157,13 +157,13 @@ const Footer = () => {
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-4 text-[10px] text-white/50 sm:mt-16 sm:gap-4 sm:pt-6 sm:text-xs md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} OneCompany. {locale === 'ua' ? 'Розроблено в Києві' : 'Engineered in Kyiv'}.</p>
+          <p>© {new Date().getFullYear()} OneCompany. {t('engineeredIn')}.</p>
           <div className="flex gap-4 sm:gap-6">
             <Link href={`/${locale}/privacy`} className="transition hover:text-white">
-              {locale === 'ua' ? 'Політика конфіденційності' : 'Privacy'}
+              {t('privacy')}
             </Link>
             <Link href={`/${locale}/terms`} className="transition hover:text-white">
-              {locale === 'ua' ? 'Умови' : 'Terms'}
+              {t('terms')}
             </Link>
           </div>
         </div>
