@@ -50,7 +50,7 @@ const heroStats: { value: string; label: LocalizedCopy; caption: LocalizedCopy }
     caption: { en: 'Official programs since 2007', ua: 'Офіційні програми з 2007 року' },
   },
   {
-    value: '18',
+    value: '5',
     label: { en: 'countries installed', ua: 'країн з інсталяціями' },
     caption: { en: 'Certified partner garages', ua: 'Сертифіковані партнерські майстерні' },
   },
@@ -72,27 +72,27 @@ const programHighlights: {
     title: { en: 'Bespoke part selection', ua: 'Індивідуальний підбір' },
     description: {
       en: 'We audit build sheets, plan compatibility and secure allocations before money moves.',
-      ua: 'Аналізуємо проєкт, перевіряємо сумісність та бронюємо квоти до оплати.',
+      ua: 'Аналізуємо проєкт, перевіряємо сумісність та надаємо рекомендації.',
     },
-    meta: { en: 'VIN verification & spec sheets', ua: 'Перевірка VIN та техспецифікації' },
+    meta: { en: 'VIN verification & spec sheets', ua: 'Перевірка VIN та підтвердження сумісності' },
   },
   {
     eyebrow: { en: 'Logistics', ua: 'Логістика' },
-    title: { en: 'Global delivery windows', ua: 'Глобальні терміни доставки' },
+    title: { en: 'Global delivery windows', ua: 'Глобальна доставка' },
     description: {
       en: 'Air freight, EU road convoys and customs supervision to Kyiv, Warsaw, Dubai and beyond.',
-      ua: 'Авіа, європейські автоконвої та митний супровід до Києва, Варшави, Дубая та далі.',
+      ua: 'Доставляємо клієнтам по всьому світу. Оптимальні та гнучкі умови.',
     },
-    meta: { en: 'Insurance & tracking every 48h', ua: 'Страхування та апдейти кожні 48 годин' },
+    meta: { en: 'Insurance & tracking every 48h', ua: 'One Company Global · Надійність та безпека' },
   },
   {
-    eyebrow: { en: 'Installation network', ua: 'Мережа інсталяції' },
-    title: { en: 'OEM-safe partners', ua: 'Партнери рівня OEM' },
+    eyebrow: { en: 'Installation network', ua: 'Світові бренди' },
+    title: { en: 'OEM-safe partners', ua: 'Топові світові бренди' },
     description: {
       en: 'Certified importer partners for titanium welding, ECU calibration and track alignment.',
-      ua: 'Сертифіковані імпортери для титанових зварювань, калібрування ECU та трекового сходження.',
+      ua: 'Ми працюємо виключно з провідними світовими виробниками авто та мото тюнінгу.',
     },
-    meta: { en: '18 countries · on-site inspection', ua: '18 країн · виїзний контроль' },
+    meta: { en: '18 countries · on-site inspection', ua: 'Гарантія якості та автентичності' },
   },
 ];
 
@@ -378,7 +378,7 @@ export default function AutomotivePage() {
             </h1>
             <p className={`text-white/70 text-pretty ${typography.heroSubtitle}`}>
               {locale === 'ua'
-                ? 'Створюємо автомобілі з характером: титан, карбон і електроніка преміум брендів з 2007 року.'
+                ? 'Створюємо автомобілі з характером з 2007 року.'
                 : 'We build characterful cars with titanium, carbon and electronic suites curated since 2007.'}
             </p>
           </div>
