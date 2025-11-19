@@ -66,12 +66,12 @@ const Footer = () => {
         <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-500/[0.03] blur-[100px] rounded-full" />
       </div>
 
-      <div ref={scopeRef} className="relative mx-auto max-w-7xl px-6 pt-20 pb-12 sm:px-8 lg:px-12">
+      <div ref={scopeRef} className="relative mx-auto max-w-7xl px-6 pt-12 pb-8 sm:px-8 sm:pt-20 sm:pb-12 lg:px-12">
         
         {/* Main CTA Card */}
         <div
           ref={signatureRef}
-          className="relative mb-20 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.02] p-8 sm:p-12 lg:p-16 backdrop-blur-3xl"
+          className="relative mb-12 sm:mb-20 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.02] p-6 sm:p-12 lg:p-16 backdrop-blur-3xl"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
           <div className="relative z-10 flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
@@ -88,17 +88,17 @@ const Footer = () => {
               </p>
             </div>
             
-            <div className="flex flex-col gap-4 sm:flex-row">
+            <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
               <Link 
                 href={`/${locale}/contact`}
-                className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-full bg-white px-8 py-4 text-sm font-medium text-black transition-transform duration-300 hover:scale-105"
+                className="group relative inline-flex w-full items-center justify-center gap-3 overflow-hidden rounded-full bg-white px-8 py-4 text-sm font-medium text-black transition-transform duration-300 hover:scale-105 sm:w-auto"
               >
                 <span className="uppercase tracking-widest">{t('contactUs')}</span>
                 <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
               </Link>
               <a 
                 href="mailto:info@onecompany.global"
-                className="group inline-flex items-center justify-center gap-3 rounded-full border border-white/20 bg-white/5 px-8 py-4 text-sm font-medium text-white transition-all duration-300 hover:bg-white/10 hover:border-white/40"
+                className="group inline-flex w-full items-center justify-center gap-3 rounded-full border border-white/20 bg-white/5 px-8 py-4 text-sm font-medium text-white transition-all duration-300 hover:bg-white/10 hover:border-white/40 sm:w-auto"
               >
                 <Mail className="h-4 w-4" />
                 <span className="uppercase tracking-widest">info@onecompany.global</span>
@@ -107,7 +107,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-8 border-t border-white/10 pt-16">
+        <div className="grid gap-8 sm:gap-12 lg:grid-cols-12 lg:gap-8 border-t border-white/10 pt-12 sm:pt-16">
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-6">
             <Link href={`/${locale}`} className="block" aria-label="OneCompany Home">
@@ -179,9 +179,9 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-20 flex flex-col items-center justify-between gap-6 border-t border-white/5 pt-8 text-xs text-white/40 sm:flex-row">
-          <p>© {new Date().getFullYear()} OneCompany. {t('engineeredIn')}.</p>
-          <div className="flex gap-8">
+        <div className="mt-12 sm:mt-20 flex flex-col items-center justify-between gap-6 border-t border-white/5 pt-8 text-xs text-white/40 sm:flex-row">
+          <p className="text-center sm:text-left">© {new Date().getFullYear()} OneCompany. {t('engineeredIn')}.</p>
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
             <Link href={`/${locale}/privacy`} className="transition-colors hover:text-white">
               {t('privacy')}
             </Link>
