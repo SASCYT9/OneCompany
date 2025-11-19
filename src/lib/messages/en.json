@@ -14,7 +14,7 @@
   "footer": {
     "b2bWholesale": "B2B Wholesale Distributor",
     "brandsFor": "200+ brands for service stations, detailing & tuning shops",
-    "conciergeB2C": "+ concierge service for private clients (B2C)",
+    "conciergeB2C": "+ expert support for private clients (B2C)",
     "servicesSince": "services worldwide since 2007",
     "premiumParts": "200+ brands of premium tuning parts",
     "company": "Company",
@@ -77,7 +77,7 @@
     "viewCatalog": "View catalog",
     "b2bPrograms": "B2B wholesale programs",
     "partnerWithLeading": "Partnership with leading importer",
-    "partnerTypes": "Service stations · Detailing studios · Tuning shops · Plus concierge B2C for your VIP clients",
+    "partnerTypes": "Service stations · Detailing studios · Tuning shops · Plus expert support B2C for your VIP clients",
     "arrangeConsult": "Arrange consult",
     "wholesaleTitle": "B2B wholesale programs",
     "wholesaleDescription": "Volume pricing for service stations, detailing studios, and tuning shops. Dealer margins, inventory support, and technical training included.",
@@ -90,8 +90,10 @@
     "close": "Close",
     "categories": "Categories",
     "bespokeBuilds": "Bespoke builds",
-    "concierge": "Concierge",
+    "concierge": "Expert Support",
     "conciergeMessage": "Share your contact and we will return with lead times, install slots and warranty coverage.",
+    "expertSupport": "Expert Support",
+    "expertMessage": "Share your contact and we will return with lead times, install slots and warranty coverage.",
     "requestProgram": "Request program",
     "more": "more",
     "open": "Open",
@@ -126,6 +128,8 @@
       "brakes": "Brake Systems",
       "intake": "Intake Systems",
       "interior": "Interior",
+      "exterior": "Exterior & Aero",
+      "cooling": "Cooling",
       "performance": "Performance",
       "aero": "Aerodynamics",
       "engine": "Engine"
@@ -280,7 +284,7 @@
         },
         "countries": {
           "value": "30+",
-          "label": "Countries served with concierge delivery"
+          "label": "Countries served with personal delivery"
         }
       }
     },
@@ -350,7 +354,7 @@
         },
         "2024": {
           "title": "Importer expansion",
-          "description": "Integrated concierge program spans automotive, moto, and lifestyle accessories under one ecosystem."
+          "description": "Integrated support program spans automotive, moto, and lifestyle accessories under one ecosystem."
         }
       }
     },
@@ -373,7 +377,7 @@
   },
     "contactPage": {
       "hero": {
-        "eyebrow": "Concierge inquiry",
+        "eyebrow": "Expert inquiry",
         "heading": "Get in touch",
         "subheading": "Bespoke selection for your car or motorcycle. Share the chassis, wishlist, and deadline—we will coordinate the program."
       },

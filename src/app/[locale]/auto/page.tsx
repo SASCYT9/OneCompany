@@ -68,7 +68,7 @@ const programHighlights: {
   meta: LocalizedCopy;
 }[] = [
   {
-    eyebrow: { en: 'Concierge sourcing', ua: 'Консьєрж-постачання' },
+    eyebrow: { en: 'Expert sourcing', ua: 'Експертне постачання' },
     title: { en: 'Bespoke part selection', ua: 'Індивідуальний підбір' },
     description: {
       en: 'We audit build sheets, plan compatibility and secure allocations before money moves.',
@@ -103,7 +103,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
       ua: 'Akrapovic — титановий саунд-дизайн',
     },
     description: {
-      en: 'Factory-backed titanium exhaust solutions tuned on European proving grounds with concierge logistics.',
+      en: 'Factory-backed titanium exhaust solutions tuned on European proving grounds with expert logistics.',
       ua: 'Заводські титанові системи, налаштовані на європейських полігонах, з логістикою під ключ.',
     },
     highlights: [
@@ -197,7 +197,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
     ],
   },
   Manhart: {
-    headline: { en: 'Manhart Concierge Builds', ua: 'Manhart — консьєрж сервіс' },
+    headline: { en: 'Manhart Bespoke Builds', ua: 'Manhart — індивідуальний сервіс' },
     description: {
       en: 'Complete conversion kits with aero, wheels and ECU calibrations for BMW, Audi and Mercedes.',
       ua: 'Повні комплекти конверсій з аеро, дисками та прошивками для BMW, Audi, Mercedes.',
@@ -325,7 +325,7 @@ export default function AutomotivePage() {
         ua: `${brand.name} — індивідуальні поставки`,
       },
       description: {
-        en: 'Dedicated sourcing, homologation paperwork and concierge logistics managed from our Kyiv headquarters.',
+        en: 'Dedicated sourcing, homologation paperwork and expert logistics managed from our Kyiv headquarters.',
         ua: 'Персональний пошук, сертифікація та логістика під керуванням штаб-квартири на Басейній, 21Б.',
       },
       highlights: [
@@ -338,8 +338,8 @@ export default function AutomotivePage() {
           ua: 'Авіа та авто логістика з митним супроводом',
         },
         {
-          en: 'Concierge updates every 48 hours until delivery',
-          ua: 'Консьєрж-апдейти кожні 48 годин до видачі',
+          en: 'Expert updates every 48 hours until delivery',
+          ua: 'Експерт-апдейти кожні 48 годин до видачі',
         },
       ],
     };
@@ -703,10 +703,10 @@ export default function AutomotivePage() {
               <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/80 sm:mt-7 sm:gap-4 sm:rounded-3xl sm:p-5 sm:text-sm md:mt-8 md:flex-row md:items-center md:justify-between md:p-6">
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
-                    {tPage('concierge')}
+                    {tPage('expertSupport')}
                   </p>
                   <p className="mt-1.5 text-sm text-white sm:mt-2 sm:text-base">
-                    {tPage('conciergeMessage')}
+                    {tPage('expertMessage')}
                   </p>
                 </div>
                 <Link

@@ -1,4 +1,4 @@
-export type CategorySlug = 'exhaust' | 'suspension' | 'wheels' | 'brakes' | 'intake' | 'interior' | 'performance' | 'moto-exhaust' | 'moto-suspension' | 'moto-wheels' | 'moto-carbon' | 'moto-controls' | 'moto-electronics';
+export type CategorySlug = 'exhaust' | 'suspension' | 'wheels' | 'brakes' | 'intake' | 'interior' | 'performance' | 'exterior' | 'cooling' | 'moto-exhaust' | 'moto-suspension' | 'moto-wheels' | 'moto-carbon' | 'moto-controls' | 'moto-electronics';
 
 export type Localized = { ua: string; en: string };
 
@@ -55,6 +55,22 @@ export const CATEGORY_META: CategoryMeta[] = [
     intro: {
       ua: 'Спортивні сидіння та інтер’єрні рішення, що підсилюють контроль і комфорт. Ергономіка, сертифікація та матеріали преміум-класу.',
       en: 'Sport seats and interior solutions that enhance control and comfort. Ergonomics, certifications and premium materials.'
+    }
+  },
+  {
+    slug: 'exterior',
+    title: { ua: 'Екстер’єр та аеро', en: 'Exterior & Aero' },
+    intro: {
+      ua: 'Аеродинамічні обвіси, карбонові елементи та widebody-комплекти. Стиль, що підкреслює характер та покращує притискну силу.',
+      en: 'Aerodynamic kits, carbon elements and widebody packages. Style that underlines character and improves downforce.'
+    }
+  },
+  {
+    slug: 'cooling',
+    title: { ua: 'Охолодження', en: 'Cooling' },
+    intro: {
+      ua: 'Радіатори, інтеркулери та системи охолодження для стабільної роботи двигуна під навантаженням. Захист від перегріву на треку та вулиці.',
+      en: 'Radiators, intercoolers and cooling systems for stable engine operation under load. Protection against heat soak on track and street.'
     }
   },
   {
