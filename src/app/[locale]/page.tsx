@@ -51,8 +51,8 @@ export default async function LocalizedHomePage({
   const statHighlights = [
     { value: "18", label: t('statsExperience') },
     { value: "200+", label: t('statsBrands') },
-    { value: "36h", label: t('statsLogistics') },
-    { value: "4", label: t('statsContinents') },
+    { value: "160+", label: t('statsContinents') },
+    { value: "30+", label: t('statsLogistics') },
   ];
 
   const b2bServices = [
