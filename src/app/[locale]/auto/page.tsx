@@ -32,15 +32,15 @@ const TOP_AUTOMOTIVE_BRANDS = [
   'Akrapovic',
   'Eventuri',
   'KW',
-  'HRE wheels',
+  'HRE',
   'Brembo',
   'Vorsteiner',
   'Armytrix',
   'CSF',
   'Manhart',
   'Renntech',
-  'Velos Wheels',
-  'Weistec Engineering',
+  'Velos',
+  'Weistec',
 ];
 
 const heroStats: { value: string; label: LocalizedCopy; caption: LocalizedCopy }[] = [
@@ -136,7 +136,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Warranty preserved via OEM torque specs', ua: 'Збережена гарантія завдяки OEM моментам затягування' },
     ],
   },
-  'HRE wheels': {
+  'HRE': {
     headline: { en: 'HRE Wheels Forged Program', ua: 'HRE Wheels — програма forged' },
     description: {
       en: 'Bespoke monoblock, 2-piece and 3-piece sets engineered for hypercar tolerances.',
@@ -220,7 +220,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Worldwide warranty honoured via us', ua: 'Гарантія по всьому світу через нас' },
     ],
   },
-  'Velos Wheels': {
+  'Velos': {
     headline: { en: 'Velos Forged Luxury', ua: 'Velos — розкішне кування' },
     description: {
       en: 'Luxury-focused forged sets with marble, brushed and two-tone finishes for SUVs and limousines.',
@@ -232,7 +232,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'TPMS + run-flat compatible', ua: 'Сумісність з TPMS та run-flat' },
     ],
   },
-  'Weistec Engineering': {
+  'Weistec': {
     headline: { en: 'Weistec Engineering Power Lab', ua: 'Weistec Engineering — лабораторія потужності' },
     description: {
       en: 'Billet turbos, meth kits and calibration suites for AMG, McLaren and exotic SUV platforms.',

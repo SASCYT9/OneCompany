@@ -78,7 +78,7 @@ export const categoryData: CategoryData[] = [
       'ADV.1',
       'Strasse',
       'MV Forged',
-      'Velos Wheels',
+      'Velos',
       'Vorsteiner',
       'AL13',
       '1221',
