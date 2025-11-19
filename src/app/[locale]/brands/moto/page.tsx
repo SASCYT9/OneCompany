@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { allMotoBrands, getBrandSlug } from '@/lib/brands';
+import { allMotoBrands, getBrandSlug, brandMetadata, countryNames, subcategoryNames } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import ProductCard from '@/components/products/ProductCard';
 import Link from 'next/link';
@@ -14,12 +14,18 @@ export default async function MotoBrandsPage({ params }: MotoBrandsPageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
+  const lang = (locale === 'ua' ? 'ua' : 'en') as 'ua' | 'en';
   
-  const motoItems = allMotoBrands.map(b => ({
-    name: b.name,
-    logoSrc: getBrandLogo(b.name),
-    slug: getBrandSlug(b),
-  }));
+  const motoItems = allMotoBrands.map(b => {
+    const meta = brandMetadata[b.name];
+    return {
+      name: b.name,
+      logoSrc: getBrandLogo(b.name),
+      slug: getBrandSlug(b),
+      country: meta ? countryNames[meta.country][lang] : undefined,
+      subcategory: meta ? subcategoryNames[meta.subcategory][lang] : undefined,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -66,7 +72,7 @@ export default async function MotoBrandsPage({ params }: MotoBrandsPageProps) {
                 name={brand.name}
                 image={brand.logoSrc}
                 href={`/${locale}/brands/${brand.slug}`}
-                category="Motorcycle"
+                category={brand.country || "Motorcycle"}
               />
             ))}
           </div>

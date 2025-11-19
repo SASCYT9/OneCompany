@@ -22,10 +22,15 @@ export async function GET() {
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore);
-    await ensureConfigFile();
-    const data = await fs.readFile(configPath, 'utf-8');
-    const config = JSON.parse(data);
-    return NextResponse.json(config);
+    // await ensureConfigFile(); // Removed to prevent crash on Vercel
+    try {
+      const data = await fs.readFile(configPath, 'utf-8');
+      const config = JSON.parse(data);
+      return NextResponse.json(config);
+    } catch {
+      // Return default config if file missing
+      return NextResponse.json({ heroVideo: 'hero-main.mp4', videos: [], heroEnabled: true });
+    }
   } catch {
     return NextResponse.json(
       { error: 'Failed to load video config' },

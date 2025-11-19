@@ -38,7 +38,10 @@ export async function appendSubmission(entry: Omit<ContactSubmission, 'id'|'crea
 }
 
 export async function listSubmissions(): Promise<ContactSubmission[]> {
-  await ensure();
-  const raw = await fs.readFile(FILE_PATH, 'utf8');
-  try { return JSON.parse(raw) as ContactSubmission[]; } catch { return []; }
+  try {
+    const raw = await fs.readFile(FILE_PATH, 'utf8');
+    return JSON.parse(raw) as ContactSubmission[];
+  } catch {
+    return [];
+  }
 }

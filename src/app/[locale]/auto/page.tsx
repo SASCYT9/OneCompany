@@ -534,32 +534,6 @@ export default function AutomotivePage() {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap justify-center gap-1.5 sm:mt-8 sm:gap-2 md:mt-12">
-          <button
-            onClick={() => setActiveLetter(null)}
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] transition sm:px-4 sm:py-2 sm:text-sm sm:tracking-[0.3em] ${
-              !activeLetter
-                ? 'bg-white text-black'
-                : 'border border-white/20 text-white/60 hover:border-white/40 hover:text-white'
-            }`}
-          >
-            {t('all')}
-          </button>
-          {alphabet.map((letter) => (
-            <button
-              key={letter}
-              onClick={() => setActiveLetter(letter)}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.3em] ${
-                activeLetter === letter
-                  ? 'bg-white text-black'
-                  : 'border border-white/15 text-white/60 hover:border-white/40 hover:text-white'
-              }`}
-            >
-              {letter}
-            </button>
-          ))}
-        </div>
-
         <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:mt-12 xl:grid-cols-4">
           {filteredBrands.length > 0 ? (
             filteredBrands.map((brand) => {
@@ -621,6 +595,32 @@ export default function AutomotivePage() {
               {t('noBrands')}
             </div>
           )}
+        </div>
+
+        <div className="mt-6 flex flex-wrap justify-center gap-1.5 sm:mt-8 sm:gap-2 md:mt-12">
+          <button
+            onClick={() => setActiveLetter(null)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] transition sm:px-4 sm:py-2 sm:text-sm sm:tracking-[0.3em] ${
+              !activeLetter
+                ? 'bg-white text-black'
+                : 'border border-white/20 text-white/60 hover:border-white/40 hover:text-white'
+            }`}
+          >
+            {t('all')}
+          </button>
+          {alphabet.map((letter) => (
+            <button
+              key={letter}
+              onClick={() => setActiveLetter(letter)}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.3em] ${
+                activeLetter === letter
+                  ? 'bg-white text-black'
+                  : 'border border-white/15 text-white/60 hover:border-white/40 hover:text-white'
+              }`}
+            >
+              {letter}
+            </button>
+          ))}
         </div>
       </section>
 

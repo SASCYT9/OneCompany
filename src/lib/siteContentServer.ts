@@ -19,7 +19,6 @@ async function ensureContentFile() {
 }
 
 export async function readSiteContent(): Promise<SiteContent> {
-  await ensureContentFile();
   try {
     const data = await fs.readFile(contentPath, 'utf-8');
     const parsed = JSON.parse(data) as SiteContent;
@@ -46,7 +45,8 @@ export async function readSiteContent(): Promise<SiteContent> {
       },
     };
   } catch (error) {
-    console.error('Failed to parse site content. Falling back to default.', error);
+    // If file doesn't exist or fails to parse, return defaults
+    // Do not attempt to create file in production/read-only environments
     return defaultSiteContent;
   }
 }

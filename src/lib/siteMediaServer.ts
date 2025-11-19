@@ -25,7 +25,6 @@ function mergeStoreSection(storeId: StoreId, incoming: SiteMedia['stores'][Store
 }
 
 export async function readSiteMedia(): Promise<SiteMedia> {
-  await ensureMediaFile();
   try {
     const raw = await fs.readFile(mediaPath, 'utf8');
     const parsed = JSON.parse(raw) as SiteMedia;
@@ -41,7 +40,8 @@ export async function readSiteMedia(): Promise<SiteMedia> {
       },
     };
   } catch (error) {
-    console.error('Failed to parse site media config. Falling back to defaults.', error);
+    // If file doesn't exist or fails to parse, return defaults
+    // Do not attempt to create file in production/read-only environments
     return defaultSiteMedia;
   }
 }

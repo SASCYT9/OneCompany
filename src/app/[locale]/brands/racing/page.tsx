@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getBrandsByCategory } from '@/lib/brands';
+import { getBrandsByCategory, brandMetadata, countryNames, subcategoryNames } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import BrandLogosGrid from '@/components/sections/BrandLogosGrid';
 import CategoryCard from '@/components/ui/CategoryCard';
@@ -14,6 +14,7 @@ export default async function BrandsCategoryRacingPage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
+  const lang = (locale === 'ua' ? 'ua' : 'en') as 'ua' | 'en';
 
   const category = 'racing';
   const brands = getBrandsByCategory(category);
@@ -21,10 +22,15 @@ export default async function BrandsCategoryRacingPage({ params }: PageProps) {
     notFound();
   }
 
-  const items = brands.map(b => ({
-    name: b.name,
-    logoSrc: getBrandLogo(b.name),
-  }));
+  const items = brands.map(b => {
+    const meta = brandMetadata[b.name];
+    return {
+      name: b.name,
+      logoSrc: getBrandLogo(b.name),
+      country: meta ? countryNames[meta.country][lang] : undefined,
+      subcategory: meta ? subcategoryNames[meta.subcategory][lang] : undefined,
+    };
+  });
 
   const categories = [
     { name: t('categories.usa'), href: `/${locale}/brands/usa` },

@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { BrandModal } from '@/components/ui/BrandModal';
 import { alphabet, groupBrandsByLetter } from '@/lib/brandUtils';
-import { BrandCategory, getBrandsByCategory, getBrandsByNames, LocalBrand } from '@/lib/brands';
+import { BrandCategory, getBrandsByCategory, getBrandsByNames, LocalBrand, brandMetadata, countryNames, subcategoryNames } from '@/lib/brands';
 import { categoryData } from '@/lib/categoryData';
 import { getCategoryMeta, isCategorySlug } from '@/lib/categoryMeta';
 import type { SimpleBrand } from '@/lib/types';
@@ -15,6 +15,7 @@ const FALLBACK_BRAND_CATEGORY: BrandCategory = 'auto';
 
 export default function CategoryPage() {
   const { locale } = useLanguage();
+  const lang = (locale === 'ua' ? 'ua' : 'en') as 'ua' | 'en';
   const params = useParams<{ slug?: string }>();
   const slugParam = params?.slug ?? '';
   const categorySlug = isCategorySlug(slugParam) ? slugParam : undefined;
@@ -201,7 +202,12 @@ export default function CategoryPage() {
                     <span className="text-xs text-white/40 font-light">{grouped[letter]!.length} {locale==='ua' ? 'брендів' : 'brands'}</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {grouped[letter]!.map(brand => (
+                    {grouped[letter]!.map(brand => {
+                      const meta = brandMetadata[brand.name];
+                      const country = meta ? countryNames[meta.country][lang] : undefined;
+                      const subcategory = meta ? subcategoryNames[meta.subcategory][lang] : undefined;
+
+                      return (
                       <button
                         key={brand.name}
                         onClick={() => handleBrandClick(brand)}
@@ -213,11 +219,15 @@ export default function CategoryPage() {
                           </div>
                           <div>
                             <div className="text-white/90 group-hover:text-white text-lg font-light mb-1">{brand.name}</div>
-                            <div className="text-white/40 text-xs tracking-wider uppercase">{brand.category}</div>
+                            <div className="text-white/40 text-xs tracking-wider uppercase">
+                              {country ? <span className="text-orange-400/80">{country}</span> : null}
+                              {country && subcategory ? <span className="mx-1.5 text-white/20">•</span> : null}
+                              {subcategory || brand.category}
+                            </div>
                           </div>
                         </div>
                       </button>
-                    ))}
+                    )})}
                   </div>
                 </div>
               ))}

@@ -164,15 +164,15 @@ const Footer = () => {
             <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">{t('headquarters')}</h3>
             <div className="space-y-4 text-sm text-white/70">
               <p className="leading-relaxed">
-                21B Baseina St<br />
-                Kyiv, 01004<br />
-                Ukraine
+                {t('addressLine1')}<br />
+                {t('addressLine2')}<br />
+                {t('addressLine3')}
               </p>
               <div className="space-y-2">
                 <a href="tel:+380442781234" className="block transition-colors hover:text-white">
                   +380 (44) 278 12 34
                 </a>
-                <p className="text-xs text-white/40">Mon-Fri, 10:00 - 19:00</p>
+                <p className="text-xs text-white/40">{t('workingHours')}</p>
               </div>
             </div>
           </div>

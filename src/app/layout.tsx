@@ -8,24 +8,29 @@ import { IBM_Plex_Mono } from "next/font/google";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 export const metadata: Metadata = {
-  title: "onecompany — Premium Auto Performance Hub",
-  description: "Три спеціалізовані магазини преміум автотюнінгу: KW Suspension, Fi Exhaust, Eventuri. Від німецької точності до японської майстерності.",
-  keywords: ["auto tuning", "KW suspensions", "Fi Exhaust", "Eventuri", "performance parts", "premium automotive"],
+  title: "onecompany — Premium Auto & Moto Performance Hub",
+  description: "Провідний B2B дистриб'ютор та консьєрж-сервіс преміум тюнінгу. 200+ брендів для авто та мото, логістика та технічна підтримка.",
+  keywords: ["auto tuning", "moto tuning", "performance parts", "premium automotive", "b2b distribution", "concierge service"],
   openGraph: {
-    title: "onecompany — Premium Auto Performance Hub",
-    description: "Три спеціалізовані магазини преміум автотюнінгу",
+    title: "onecompany — Premium Auto & Moto Performance Hub",
+    description: "Провідний B2B дистриб'ютор та консьєрж-сервіс преміум тюнінгу",
     type: "website",
     siteName: "onecompany",
     locale: "uk_UA",
   },
   twitter: {
     card: "summary_large_image",
-    title: "onecompany — Premium Auto Performance Hub",
-    description: "Три спеціалізовані магазини преміум автотюнінгу",
+    title: "onecompany — Premium Auto & Moto Performance Hub",
+    description: "Провідний B2B дистриб'ютор та консьєрж-сервіс преміум тюнінгу",
   },
   robots: {
     index: true,
     follow: true,
+  },
+  icons: {
+    icon: "/branding/one-company-logo.svg",
+    shortcut: "/branding/one-company-logo.svg",
+    apple: "/branding/one-company-logo.svg",
   },
 };
 

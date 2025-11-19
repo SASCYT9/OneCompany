@@ -28,9 +28,8 @@ async function ensureMediaDir() {
 }
 
 export async function getManifest(): Promise<{ items: MediaItem[] }> {
-  await ensureMediaDir();
-  const raw = await fs.readFile(MANIFEST_PATH, 'utf8');
   try {
+    const raw = await fs.readFile(MANIFEST_PATH, 'utf8');
     const parsed = JSON.parse(raw);
     if (!parsed.items) return { items: [] };
     return parsed;

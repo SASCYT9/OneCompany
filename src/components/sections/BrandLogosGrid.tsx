@@ -5,6 +5,8 @@ import { useState, useMemo } from 'react';
 export interface BrandItem {
   name: string;
   logoSrc: string;
+  country?: string;
+  subcategory?: string;
 }
 
 interface BrandLogosGridProps {
@@ -64,7 +66,7 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
                   {letter}
                 </h3>
                 <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-                  {groupedItems[letter].map(({ name, logoSrc }) => (
+                  {groupedItems[letter].map(({ name, logoSrc, country, subcategory }) => (
                     <li
                       key={name}
                       className="group rounded-md border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-colors p-4 flex flex-col items-center justify-center text-center"
@@ -81,7 +83,13 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
                           priority={false}
                         />
                       </div>
-                      <span className="mt-3 text-xs text-white/70 truncate w-full">{name}</span>
+                      <span className="mt-3 text-xs text-white/70 truncate w-full font-medium">{name}</span>
+                      {(country || subcategory) && (
+                        <div className="flex flex-col items-center mt-1 gap-0.5">
+                          {country && <span className="text-[10px] text-white/40 uppercase tracking-wider">{country}</span>}
+                          {subcategory && <span className="text-[10px] text-blue-400/60">{subcategory}</span>}
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ul>

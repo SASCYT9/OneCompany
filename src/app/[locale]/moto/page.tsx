@@ -603,106 +603,7 @@ export default function MotoPage() {
         </div>
       </section>
 
-      {/* All Brands Section - Moved Down */}
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
-        <div className="mb-8 text-center sm:mb-10 md:mb-12">
-          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
-          <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>{locale === 'ua' ? 'Атлас брендів' : 'Brand Atlas'}</h2>
-          <p className="mt-4 text-base text-white/60 sm:text-lg">
-            {locale === 'ua' ? `${allMotoBrands.length} брендів у портфелі` : `${allMotoBrands.length} brands in portfolio`}
-          </p>
-        </div>
 
-        <div className="flex justify-center">
-          <div className="relative w-full max-w-3xl">
-            <input
-              type="text"
-              placeholder={t('searchPlaceholder')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-2xl border border-white/15 bg-white px-6 py-3 text-base text-black placeholder-black/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:px-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
-            />
-            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">⌕</div>
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap justify-center gap-1.5 sm:mt-8 sm:gap-2 md:mt-12">
-          <button
-            onClick={() => setActiveLetter(null)}
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] transition sm:px-4 sm:py-2 sm:text-sm sm:tracking-[0.3em] ${
-              !activeLetter
-                ? 'bg-white text-black'
-                : 'border border-white/20 text-white/60 hover:border-white/40 hover:text-white'
-            }`}
-          >
-            {t('all')}
-          </button>
-          {alphabet.map((letter) => (
-            <button
-              key={letter}
-              onClick={() => setActiveLetter(letter)}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.3em] ${
-                activeLetter === letter
-                  ? 'bg-white text-black'
-                  : 'border border-white/15 text-white/60 hover:border-white/40 hover:text-white'
-              }`}
-            >
-              {letter}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:mt-12 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredBrands.length > 0 ? (
-            filteredBrands.map((brand) => {
-              const origin = getBrandOrigin(brand);
-              const subcategory = getBrandSubcategory(brand);
-              return (
-                <motion.button
-                  key={brand.name}
-                  onClick={() => setSelectedBrand(brand)}
-                  whileHover={{ y: -6 }}
-                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-left transition backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-5 md:p-6"
-                >
-                  <div
-                    className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                    style={{
-                      background: 'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 60%)',
-                    }}
-                  />
-                  <div className="relative flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.3em]">
-                    <div className="flex items-center gap-2">
-                      <span>{origin}</span>
-                      {subcategory && (
-                        <>
-                          <span className="text-white/30">·</span>
-                          <span className="text-white/60">{subcategory}</span>
-                        </>
-                      )}
-                    </div>
-                    <span className="text-white/70 group-hover:text-white">↗</span>
-                  </div>
-                  <div className="relative mt-5 h-20">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain ${isDarkLogo(getBrandLogo(brand.name)) ? 'invert brightness-0 invert-[1]' : ''}`}
-                      sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
-                      unoptimized
-                    />
-                  </div>
-                  <div className="mt-5 text-2xl font-light text-white">{brand.name}</div>
-                </motion.button>
-              );
-            })
-          ) : (
-            <div className="col-span-full rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-xl text-white/70">
-              {t('noBrands')}
-            </div>
-          )}
-        </div>
-      </section>
 
       <section className="border-b border-white/5 bg-black/30 py-12 sm:py-16 md:py-20">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 sm:gap-7 sm:px-6 md:gap-8 lg:flex-row lg:items-center">
@@ -894,6 +795,107 @@ export default function MotoPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* All Brands Section - Moved Down */}
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+        <div className="mb-8 text-center sm:mb-10 md:mb-12">
+          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
+          <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>{locale === 'ua' ? 'Атлас брендів' : 'Brand Atlas'}</h2>
+          <p className="mt-4 text-base text-white/60 sm:text-lg">
+            {locale === 'ua' ? `${allMotoBrands.length} брендів у портфелі` : `${allMotoBrands.length} brands in portfolio`}
+          </p>
+        </div>
+
+        <div className="flex justify-center">
+          <div className="relative w-full max-w-3xl">
+            <input
+              type="text"
+              placeholder={t('searchPlaceholder')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-2xl border border-white/15 bg-white px-6 py-3 text-base text-black placeholder-black/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:p-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
+            />
+            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">⌕</div>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:mt-12 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredBrands.length > 0 ? (
+            filteredBrands.map((brand) => {
+              const origin = getBrandOrigin(brand);
+              const subcategory = getBrandSubcategory(brand);
+              return (
+                <motion.button
+                  key={brand.name}
+                  onClick={() => setSelectedBrand(brand)}
+                  whileHover={{ y: -6 }}
+                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-left transition backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-5 md:p-6"
+                >
+                  <div
+                    className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                    style={{
+                      background: 'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 60%)',
+                    }}
+                  />
+                  <div className="relative flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.3em]">
+                    <div className="flex items-center gap-2">
+                      <span>{origin}</span>
+                      {subcategory && (
+                        <>
+                          <span className="text-white/30">·</span>
+                          <span className="text-white/60">{subcategory}</span>
+                        </>
+                      )}
+                    </div>
+                    <span className="text-white/70 group-hover:text-white">↗</span>
+                  </div>
+                  <div className="relative mt-5 h-20">
+                    <Image
+                      src={getBrandLogo(brand.name)}
+                      alt={brand.name}
+                      fill
+                      className={`object-contain ${isDarkLogo(getBrandLogo(brand.name)) ? 'invert brightness-0 invert-[1]' : ''}`}
+                      sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="mt-5 text-2xl font-light text-white">{brand.name}</div>
+                </motion.button>
+              );
+            })
+          ) : (
+            <div className="col-span-full rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-xl text-white/70">
+              {t('noBrands')}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 flex flex-wrap justify-center gap-1.5 sm:mt-8 sm:gap-2 md:mt-12">
+          <button
+            onClick={() => setActiveLetter(null)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] transition sm:px-4 sm:py-2 sm:text-sm sm:tracking-[0.3em] ${
+              !activeLetter
+                ? 'bg-white text-black'
+                : 'border border-white/20 text-white/60 hover:border-white/40 hover:text-white'
+            }`}
+          >
+            {t('all')}
+          </button>
+          {alphabet.map((letter) => (
+            <button
+              key={letter}
+              onClick={() => setActiveLetter(letter)}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.3em] ${
+                activeLetter === letter
+                  ? 'bg-white text-black'
+                  : 'border border-white/15 text-white/60 hover:border-white/40 hover:text-white'
+              }`}
+            >
+              {letter}
+            </button>
+          ))}
         </div>
       </section>
 

@@ -129,74 +129,14 @@ export default function ContactPage() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 gap-8 sm:gap-12 md:gap-16 lg:grid-cols-2 lg:gap-24 items-stretch">
+          <div className="flex flex-col gap-16 lg:gap-24">
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="h-full space-y-8 rounded-2xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-3xl sm:space-y-10 sm:rounded-3xl sm:p-8 md:space-y-12 md:rounded-[32px] md:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500"
+              className="mx-auto w-full max-w-2xl rounded-2xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-3xl sm:rounded-3xl sm:p-10 md:rounded-[32px] md:p-12 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
             >
-              <div>
-                <h2 className="mb-6 text-2xl font-light tracking-wide text-white sm:mb-7 sm:text-3xl md:mb-8 md:text-4xl">
-                  {t("info.title")}
-                </h2>
-                <div className="mb-8 h-px w-12 bg-white/20 sm:mb-10 sm:w-14 md:mb-12 md:w-16" />
-              </div>
-
-              <div className="space-y-6 sm:space-y-7 md:space-y-8">
-                <div className="group flex items-start gap-3 sm:gap-4">
-                  <div className="rounded-full border border-white/10 bg-white/5 p-2 text-white transition-transform duration-300 group-hover:scale-110 sm:p-3">
-                    <Mail className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </div>
-                  <div>
-                    <h3 className="mb-1.5 text-xs font-light uppercase tracking-widest text-white/50 sm:mb-2 sm:text-sm">{t("info.emailLabel")}</h3>
-                    <a
-                      href="mailto:info@onecompany.global"
-                      className="text-base font-light text-white transition-colors hover:text-white/80 sm:text-lg"
-                    >
-                      info@onecompany.global
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4 group">
-                  <div className="p-3 rounded-full border border-white/10 bg-white/5 text-white group-hover:scale-110 transition-transform duration-300">
-                    <Phone className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm uppercase tracking-widest text-white/50 mb-2 font-light">{t("info.phoneLabel")}</h3>
-                    <a
-                      href="tel:+380123456789"
-                      className="text-lg font-light text-white hover:text-white/80 transition-colors"
-                    >
-                      +380 12 345 67 89
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4 group">
-                  <div className="p-3 rounded-full border border-white/10 bg-white/5 text-white group-hover:scale-110 transition-transform duration-300">
-                    <MapPin className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm uppercase tracking-widest text-white/50 mb-2 font-light">{t("info.locationLabel")}</h3>
-                    <p className="text-lg font-light text-white">{t("info.locationValue")}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-8">
-                <p className="text-base font-light text-white/70 leading-relaxed">{t("info.description")}</p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="h-full rounded-2xl border border-white/10 bg-white/[0.02] p-5 backdrop-blur-3xl sm:rounded-3xl sm:p-6 md:rounded-[32px] md:p-8 shadow-[0_30px_60px_rgba(0,0,0,0.5)] flex flex-col hover:scale-[1.02] transition-transform duration-500"
-            >
-              <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7 md:space-y-8 flex flex-col flex-1 justify-between">
+              <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7 md:space-y-8">
                 {/* Progress bar */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-[9px] sm:text-[10px] tracking-[0.15em] uppercase text-white/40 font-light">
@@ -385,6 +325,53 @@ export default function ContactPage() {
                   )}
                 </AnimatePresence>
               </form>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="mx-auto w-full max-w-5xl"
+            >
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/[0.05] hover:border-white/20">
+                  <div className="rounded-full border border-white/10 bg-white/5 p-4 text-white transition-transform duration-300 group-hover:scale-110">
+                    <Mail className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="mb-2 text-xs font-light uppercase tracking-widest text-white/50">{t("info.emailLabel")}</h3>
+                    <a href="mailto:info@onecompany.global" className="text-lg font-light text-white transition-colors hover:text-white/80">
+                      info@onecompany.global
+                    </a>
+                  </div>
+                </div>
+
+                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/[0.05] hover:border-white/20">
+                  <div className="rounded-full border border-white/10 bg-white/5 p-4 text-white transition-transform duration-300 group-hover:scale-110">
+                    <Phone className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="mb-2 text-xs font-light uppercase tracking-widest text-white/50">{t("info.phoneLabel")}</h3>
+                    <a href="tel:+380123456789" className="text-lg font-light text-white transition-colors hover:text-white/80">
+                      +380 12 345 67 89
+                    </a>
+                  </div>
+                </div>
+
+                <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/[0.05] hover:border-white/20">
+                  <div className="rounded-full border border-white/10 bg-white/5 p-4 text-white transition-transform duration-300 group-hover:scale-110">
+                    <MapPin className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="mb-2 text-xs font-light uppercase tracking-widest text-white/50">{t("info.locationLabel")}</h3>
+                    <p className="text-lg font-light text-white">{t("info.locationValue")}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <p className="mt-12 text-center text-sm font-light leading-relaxed text-white/50 max-w-2xl mx-auto">
+                {t("info.description")}
+              </p>
             </motion.div>
           </div>
         </div>
