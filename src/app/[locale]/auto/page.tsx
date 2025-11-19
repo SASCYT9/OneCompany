@@ -45,7 +45,7 @@ const TOP_AUTOMOTIVE_BRANDS = [
 
 const heroStats: { value: string; label: LocalizedCopy; caption: LocalizedCopy }[] = [
   {
-    value: '200+',
+    value: '120+',
     label: { en: 'brands curated', ua: 'брендів у каталозі' },
     caption: { en: 'Official programs since 2007', ua: 'Офіційні програми з 2007 року' },
   },

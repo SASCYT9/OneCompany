@@ -59,7 +59,7 @@ const TOP_MOTO_BRANDS = [
 
 const heroStats: { value: string; label: LocalizedCopy; caption: LocalizedCopy }[] = [
   {
-    value: '120+',
+    value: '40+',
     label: { en: 'FIM/FIA homologations', ua: 'FIM/FIA допуски' },
     caption: { en: 'Race supply since 2007', ua: 'Постачання для треку з 2007 року' },
   },

@@ -40,7 +40,7 @@ export default async function LocalizedHomePage({
       href: `/${locale}/moto`,
       accent: "from-blue-400/25 via-purple-500/15 to-transparent",
       stats: [
-        { value: "80+", note: t('motoPartners') },
+        { value: "40+", note: t('motoPartners') },
         { value: "6", note: t('motoSeries') },
       ],
     },
