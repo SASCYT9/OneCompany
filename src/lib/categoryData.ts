@@ -240,8 +240,6 @@ export const categoryData: CategoryData[] = [
       'Yoshimura',
       'Leo Vince',
       'MIVV',
-      'Two Brothers Racing',
-      'Graves Motorsports',
     ],
   },
   {
@@ -309,6 +307,8 @@ export const categoryData: CategoryData[] = [
       'CRC Fairings',
       'Airtech',
       'Armour Bodies',
+      'Akrapovic',
+      'Rizoma',
     ],
   },
   {
