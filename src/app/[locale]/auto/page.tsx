@@ -31,7 +31,7 @@ type BrandStory = {
 const TOP_AUTOMOTIVE_BRANDS = [
   'Akrapovic',
   'Eventuri',
-  'KW Suspension',
+  'KW',
   'HRE wheels',
   'Brembo',
   'Vorsteiner',
@@ -124,8 +124,8 @@ const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Coordinated install + ECU calibration', ua: 'Координація встановлення та калібрування ECU' },
     ],
   },
-  'KW Suspension': {
-    headline: { en: 'KW Suspension · Adaptive Control', ua: 'KW Suspension · адаптивний контроль' },
+  'KW': {
+    headline: { en: 'KW · Adaptive Control', ua: 'KW · адаптивний контроль' },
     description: {
       en: 'Variant, Clubsport and DDC plug & play kits with geo setup plans from our chassis lab.',
       ua: 'Variant, Clubsport та DDC-комплекти з налаштуванням геометрії від нашої шасі-лабораторії.',
