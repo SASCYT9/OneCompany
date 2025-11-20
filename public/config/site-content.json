@@ -2,7 +2,7 @@
   "hero": {
     "badge": "onecompany · B2B wholesale",
     "title": "Premium Importer",
-    "subtitle": "B2B wholesale for service stations, detailing studios & tuning shops. VIP concierge programs available.",
+    "subtitle": "B2B wholesale for service stations, detailing studios & tuning shops. VIP expert programs available.",
     "ctaAutoLabel": "Automotive",
     "ctaMotoLabel": "Motorcycles",
     "scrollLabel": "Discover",
@@ -74,7 +74,7 @@
   ],
   "contactCta": {
     "heading": "Ready to upgrade?",
-    "body": "Concierge engineers on-call for bespoke specs, logistics, and fitment worldwide.",
+    "body": "Expert engineers on-call for bespoke specs, logistics, and fitment worldwide.",
     "buttonLabel": "Get in touch",
     "buttonHref": "/contact"
   },
@@ -91,7 +91,7 @@
     ],
     "channels": [
       { "id": "email", "label": "B2B wholesale email", "value": "info@onecompany.global", "note": "Відповідь до 12 годин", "type": "email" },
-      { "id": "phone", "label": "Concierge phone", "value": "+380 12 345 67 89", "note": "10:00–21:00 GMT+2", "type": "phone" },
+      { "id": "phone", "label": "Support phone", "value": "+380 12 345 67 89", "note": "10:00–21:00 GMT+2", "type": "phone" },
       { "id": "telegram", "label": "Telegram", "value": "@onecompany_wholesale", "note": "B2B запити", "type": "telegram" },
       { "id": "whatsapp", "label": "WhatsApp", "value": "+380 12 345 67 89", "note": "Глобальні клієнти", "type": "whatsapp" }
     ],

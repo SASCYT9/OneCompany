@@ -115,26 +115,26 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-black font-sans text-sm tracking-normal">
-      <div className="border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 md:px-10 py-6">
+    <div className="h-[100dvh] flex flex-col bg-black font-sans text-sm tracking-normal overflow-hidden">
+      <div className="flex-none border-b border-white/10 z-20 bg-black">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold tracking-tight text-white">
+            <h1 className="text-lg font-semibold tracking-tight text-white">
               Admin Panel
             </h1>
             <motion.button
               onClick={handleLogout}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900/50 text-white hover:bg-zinc-900 transition-colors text-sm font-medium"
+              className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900/50 text-white hover:bg-zinc-900 transition-colors text-xs font-medium rounded-lg border border-white/10"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5" />
               Logout
             </motion.button>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-6 md:px-10">
-          <div className="flex items-center gap-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="flex items-center gap-6">
             <TabLink href="/admin/messages" currentPath={pathname}>
               <MessageSquare className="w-4 h-4" />
               <span>Messages</span>
@@ -147,7 +147,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-10 py-12">
+      <div className="flex-1 relative overflow-hidden">
         {children}
       </div>
     </div>

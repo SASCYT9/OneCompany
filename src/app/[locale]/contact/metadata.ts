@@ -3,7 +3,7 @@ import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/se
 
 const contactMetaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   en: {
-    title: "Contact onecompany · Bespoke performance concierge",
+    title: "Contact onecompany · Bespoke performance support",
     description:
       "Speak with our importer team for curated automotive and motorcycle programs, sourcing, homologation and global logistics.",
   },

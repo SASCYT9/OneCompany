@@ -101,14 +101,20 @@ export default function NewMessagesPage() {
           userName: selectedMessage.userName,
         }),
       });
+      
+      const data = await response.json();
+      
       if (response.ok) {
         setReplyText('');
         loadMessages();
-        const updatedMessage = await response.json();
-        setSelectedMessage(updatedMessage);
+        setSelectedMessage(data);
+        alert('Reply sent successfully!');
+      } else {
+        alert(`Failed to send reply: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Failed to send reply:', error);
+      alert('Failed to send reply. Check console for details.');
     } finally {
       setLoading(false);
     }
@@ -150,7 +156,7 @@ export default function NewMessagesPage() {
   });
 
   return (
-    <div className="h-[100dvh] bg-black text-white flex flex-col font-ua overflow-hidden">
+    <div className="h-full bg-black text-white flex flex-col font-ua overflow-hidden">
       {/* Header */}
       <div className="bg-black/80 backdrop-blur-md border-b border-white/10 px-4 py-3 flex-none z-10">
         <div className="flex items-center justify-between">
@@ -236,25 +242,25 @@ export default function NewMessagesPage() {
                       setSelectedMessage(msg);
                       if (msg.status === 'NEW') updateStatus(msg.id, 'READ');
                     }}
-                    className={`p-4 cursor-pointer transition-all duration-200 ${
+                    className={`p-5 cursor-pointer transition-all duration-200 ${
                       selectedMessage?.id === msg.id
                         ? 'bg-zinc-900 border-l-2 border-white'
                         : 'hover:bg-zinc-900/30 border-l-2 border-transparent'
                     }`}
                   >
-                    <div className="flex justify-between items-start mb-1.5">
-                      <span className={`text-sm truncate pr-2 ${msg.status === 'NEW' ? 'font-bold text-white' : 'font-medium text-zinc-300'}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <span className={`text-base truncate pr-2 ${msg.status === 'NEW' ? 'font-bold text-white' : 'font-medium text-zinc-300'}`}>
                         {msg.userName}
                       </span>
-                      <span className="text-[10px] text-zinc-500 whitespace-nowrap font-mono">
+                      <span className="text-xs text-zinc-500 whitespace-nowrap font-mono">
                         {new Date(msg.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className={`text-xs line-clamp-2 mb-2.5 ${msg.status === 'NEW' ? 'text-zinc-300' : 'text-zinc-500'}`}>
+                    <p className={`text-sm line-clamp-2 mb-3 ${msg.status === 'NEW' ? 'text-zinc-300' : 'text-zinc-500'}`}>
                       {msg.messageText}
                     </p>
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider ${
+                      <span className={`px-2.5 py-1 rounded text-xs font-medium uppercase tracking-wider ${
                         msg.status === 'NEW' ? 'bg-blue-500/10 text-blue-400' :
                         msg.status === 'READ' ? 'bg-purple-500/10 text-purple-400' :
                         msg.status === 'REPLIED' ? 'bg-green-500/10 text-green-400' :
@@ -263,7 +269,7 @@ export default function NewMessagesPage() {
                         {msg.status}
                       </span>
                       {msg.contactMethod && (
-                        <span className="text-[10px] text-zinc-500 border border-white/10 px-1.5 py-0.5 rounded bg-white/5">
+                        <span className="text-xs text-zinc-500 border border-white/10 px-2 py-0.5 rounded bg-white/5">
                           {msg.contactMethod}
                         </span>
                       )}
@@ -350,15 +356,15 @@ export default function NewMessagesPage() {
 
                 {/* Metadata */}
                 {selectedMessage.metadata && (
-                  <div className="grid grid-cols-2 gap-3 text-xs bg-zinc-900/30 p-4 rounded-xl border border-white/5">
+                  <div className="grid grid-cols-2 gap-4 text-sm bg-zinc-900/30 p-5 rounded-xl border border-white/5">
                     {selectedMessage.metadata.model && (
-                      <div><span className="text-zinc-500 block mb-0.5">Model</span> <span className="text-zinc-200 font-medium">{selectedMessage.metadata.model}</span></div>
+                      <div><span className="text-zinc-500 block mb-1">Model</span> <span className="text-zinc-200 font-medium">{selectedMessage.metadata.model}</span></div>
                     )}
                     {selectedMessage.metadata.vin && (
-                      <div><span className="text-zinc-500 block mb-0.5">VIN</span> <span className="text-zinc-200 font-mono">{selectedMessage.metadata.vin}</span></div>
+                      <div><span className="text-zinc-500 block mb-1">VIN</span> <span className="text-zinc-200 font-mono">{selectedMessage.metadata.vin}</span></div>
                     )}
                     {selectedMessage.metadata.budget && (
-                      <div className="col-span-2 pt-2 border-t border-white/5"><span className="text-zinc-500 block mb-0.5">Budget</span> <span className="text-zinc-200 font-medium">{selectedMessage.metadata.budget}</span></div>
+                      <div className="col-span-2 pt-3 border-t border-white/5"><span className="text-zinc-500 block mb-1">Budget</span> <span className="text-zinc-200 font-medium">{selectedMessage.metadata.budget}</span></div>
                     )}
                   </div>
                 )}
@@ -367,14 +373,14 @@ export default function NewMessagesPage() {
               {/* Message Content */}
               <div className="flex-1 overflow-y-auto p-6 bg-black">
                 <div className="bg-zinc-900/20 rounded-2xl p-6 border border-white/5">
-                  <p className="whitespace-pre-wrap text-zinc-200 text-sm leading-relaxed font-light">
+                  <p className="whitespace-pre-wrap text-zinc-200 text-base leading-relaxed font-light">
                     {selectedMessage.messageText}
                   </p>
                 </div>
 
                 {selectedMessage.replies && selectedMessage.replies.length > 0 && (
                   <div className="mt-8 space-y-6">
-                    <div className="flex items-center gap-4 text-[10px] font-medium text-zinc-600 uppercase tracking-widest">
+                    <div className="flex items-center gap-4 text-xs font-medium text-zinc-600 uppercase tracking-widest">
                       <div className="h-px bg-zinc-900 flex-1"></div>
                       Reply History
                       <div className="h-px bg-zinc-900 flex-1"></div>
@@ -382,8 +388,8 @@ export default function NewMessagesPage() {
                     {selectedMessage.replies.map((reply, index) => (
                       <div key={index} className="ml-6 pl-6 border-l border-zinc-800 relative">
                         <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-zinc-800 border-2 border-black"></div>
-                        <p className="text-sm text-zinc-400 whitespace-pre-wrap leading-relaxed">{reply.replyText}</p>
-                        <p className="text-[10px] text-zinc-600 mt-2 font-mono">{new Date(reply.createdAt).toLocaleString()}</p>
+                        <p className="text-base text-zinc-400 whitespace-pre-wrap leading-relaxed">{reply.replyText}</p>
+                        <p className="text-xs text-zinc-600 mt-2 font-mono">{new Date(reply.createdAt).toLocaleString()}</p>
                       </div>
                     ))}
                   </div>
@@ -397,14 +403,14 @@ export default function NewMessagesPage() {
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder="Type your reply..."
-                    className="w-full p-4 pr-14 bg-zinc-900/30 border border-white/10 rounded-2xl focus:outline-none focus:border-white/20 focus:bg-zinc-900/50 resize-none text-sm min-h-[100px] transition-all placeholder:text-zinc-700"
+                    className="w-full p-4 pr-16 bg-zinc-900/30 border border-white/10 rounded-2xl focus:outline-none focus:border-white/20 focus:bg-zinc-900/50 resize-none text-base min-h-[120px] transition-all placeholder:text-zinc-700"
                   />
                   <button
                     onClick={sendReply}
                     disabled={loading || !replyText.trim()}
-                    className="absolute bottom-4 right-4 p-2.5 bg-white text-black rounded-xl hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95"
+                    className="absolute bottom-4 right-4 p-3 bg-white text-black rounded-xl hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95"
                   >
-                    {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                   </button>
                 </div>
               </div>

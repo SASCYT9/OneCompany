@@ -56,11 +56,12 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 text-white pb-20">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight mb-2">Settings</h1>
-        <p className="text-zinc-500 font-light">Manage your application preferences and notifications.</p>
-      </div>
+    <div className="h-full overflow-y-auto">
+      <div className="max-w-3xl mx-auto px-4 md:px-6 py-8 space-y-8 text-white pb-20">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight mb-2">Settings</h1>
+          <p className="text-zinc-500 font-light">Manage your application preferences and notifications.</p>
+        </div>
 
       {/* Notifications Section */}
       <div className="bg-zinc-900/30 border border-white/5 rounded-2xl overflow-hidden">

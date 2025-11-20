@@ -57,16 +57,16 @@ const TOP_MOTO_BRANDS = [
   'ValterMoto',
 ];
 
-const heroStats: { value: string; label: LocalizedCopy; caption: LocalizedCopy }[] = [
+const heroStats: { value: LocalizedCopy | string; label: LocalizedCopy; caption: LocalizedCopy }[] = [
   {
     value: '40+',
-    label: { en: 'FIM/FIA homologations', ua: 'FIM/FIA допуски' },
-    caption: { en: 'Race supply since 2007', ua: 'Постачання для треку з 2007 року' },
+    label: { en: 'brands curated', ua: 'брендів у каталозі' },
+    caption: { en: 'Official programs since 2007', ua: 'Офіційні програми з 2007 року' },
   },
   {
-    value: '48h',
-    label: { en: 'pit support window', ua: 'вікно pit-support' },
-    caption: { en: 'Express lead times across EMEA', ua: 'Експрес-доставка по EMEA' },
+    value: { en: 'Network', ua: 'Мережа' },
+    label: { en: 'partner garages', ua: 'партнерські майстерні' },
+    caption: { en: 'Installation & setup', ua: 'Встановлення та налаштування' },
   },
   {
     value: '21B',
@@ -82,31 +82,31 @@ const programHighlights: Array<{
   meta: LocalizedCopy;
 }> = [
   {
-    eyebrow: { en: 'Race desk', ua: 'Race-деск' },
-    title: { en: 'Telemetry-first setups', ua: 'Налаштування від телеметрії' },
+    eyebrow: { en: 'Expert sourcing', ua: 'Експертне постачання' },
+    title: { en: 'Street & Track selection', ua: 'Стріт та трек підбір' },
     description: {
-      en: 'We audit AIM/Starlane data and spec exhaust, ECU and gearing before freight is booked.',
-      ua: 'Аналізуємо AIM/Starlane дані, підбираємо вихлоп, ECU та передаточні числа до відправки.',
+      en: 'We audit build sheets, plan compatibility and secure allocations for road and race applications.',
+      ua: 'Аналізуємо проєкт, перевіряємо сумісність та надаємо рекомендації для міста та треку.',
     },
-    meta: { en: 'Jetprime · ECUStudio · MoTeC', ua: 'Jetprime · ECUStudio · MoTeC' },
+    meta: { en: 'VIN verification & spec sheets', ua: 'Перевірка VIN та підтвердження сумісності' },
   },
   {
     eyebrow: { en: 'Logistics', ua: 'Логістика' },
-    title: { en: '48h paddock deliveries', ua: 'Поставка в паддок за 48 годин' },
+    title: { en: 'Global delivery windows', ua: 'Глобальна доставка' },
     description: {
-      en: 'ATA carnets, insurance and cold-chain for tires, brakes and electronics to any paddock.',
-      ua: 'ATA-карнети, страхування та cold-chain для гуми, гальм та електроніки в будь-який паддок.',
+      en: 'Air freight and road convoys to Kyiv, Warsaw, Dubai and beyond.',
+      ua: 'Доставляємо клієнтам по всьому світу. Оптимальні та гнучкі умови.',
     },
-    meta: { en: 'EU · UK · Middle East', ua: 'ЄС · UK · Middle East' },
+    meta: { en: 'Insurance & tracking every 48h', ua: 'One Company Global · Надійність та безпека' },
   },
   {
-    eyebrow: { en: 'Track crew', ua: 'Трек-команда' },
-    title: { en: 'On-site fitment lab', ua: 'Лабораторія підгонки на місці' },
+    eyebrow: { en: 'Installation network', ua: 'Світові бренди' },
+    title: { en: 'Partner workshops', ua: 'Партнерські майстерні' },
     description: {
-      en: 'Bitubo, Brembo and Rotobox master techs for suspension, braking and wheel balancing.',
-      ua: 'Майстри Bitubo, Brembo та Rotobox для підвіски, гальм та балансування коліс.',
+      en: 'Certified partners for suspension setup, ECU calibration and tire service.',
+      ua: 'Ми працюємо з перевіреними майстернями для налаштування підвіски, ECU та шиномонтажу.',
     },
-    meta: { en: '18 partner garages', ua: '18 партнерських майстерень' },
+    meta: { en: 'Quality guarantee & authenticity', ua: 'Гарантія якості та автентичності' },
   },
 ];
 
@@ -190,8 +190,8 @@ const pitCrewChecklist: PitChecklistItem[] = [
       ua: 'ATA-карнет, митниця й страхування з апдейтами кожні 12 годин.',
     },
     meta: {
-      en: 'Logistics concierge',
-      ua: 'Логістичний консьєрж',
+      en: 'Logistics support',
+      ua: 'Логістична підтримка',
     },
   },
   {
@@ -210,8 +210,8 @@ const pitCrewChecklist: PitChecklistItem[] = [
   },
   {
     label: {
-      en: 'Rider concierge',
-      ua: 'Консьєрж райдера',
+      en: 'Rider support',
+      ua: 'Підтримка райдера',
     },
     detail: {
       en: 'Travel, paddock passes and hotel coordination with a single WhatsApp thread.',
@@ -330,7 +330,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
     highlights: [
       { en: 'Engineered for ABS & TPMS', ua: 'Розроблені під ABS та TPMS' },
       { en: 'Integrated ceramic bearings', ua: 'Вбудовані керамічні підшипники' },
-      { en: 'Concierge balancing service', ua: 'Балансування з консьєрж-сервісом' },
+      { en: 'Precision balancing service', ua: 'Прецизійне балансування' },
     ],
   },
   'CNC Racing': {
@@ -430,13 +430,13 @@ export default function MotoPage() {
         ua: `\${brand.name} — індивідуальне постачання`,
       },
       description: {
-        en: 'Concierge sourcing, homologation paperwork and paddock-ready logistics directed from our Kyiv headquarters.',
+        en: 'Expert sourcing, homologation paperwork and paddock-ready logistics directed from our Kyiv headquarters.',
         ua: 'Персональний підбір, гомологаційні документи та паддок-логістика з Басейної, 21Б.',
       },
       highlights: [
         { en: 'Pit support in 18 countries', ua: 'Pit-підтримка у 18 країнах' },
         { en: 'Air & road logistics w/ customs', ua: 'Авіа та авто логістика з митницею' },
-        { en: 'Concierge updates every 48h', ua: 'Апдейти консьєржа кожні 48 годин' },
+        { en: 'Status updates every 48h', ua: 'Статус-апдейти кожні 48 годин' },
       ],
     };
   }, []);
@@ -479,8 +479,8 @@ export default function MotoPage() {
             </h1>
             <p className={`text-white/70 ${typography.heroSubtitle}`}>
               {locale === 'ua'
-                ? 'З 2007 року ми складаємо трекові байки з титану, карбону, телеметрії та сервісу під ключ.'
-                : 'Since 2007 we build track bikes with titanium, carbon, telemetry and concierge logistics.'}
+                ? 'Створюємо мотоцикли з характером з 2007 року.'
+                : 'Creating motorcycles with character since 2007.'}
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
@@ -489,7 +489,9 @@ export default function MotoPage() {
                 key={stat.label.en}
                 className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] sm:rounded-3xl sm:p-5 md:p-6"
               >
-                <div className={`${typography.statValue} font-light text-white`}>{stat.value}</div>
+                <div className={`${typography.statValue} font-light text-white`}>
+                  {typeof stat.value === 'string' ? stat.value : stat.value[locale]}
+                </div>
                 <div className="mt-1.5 text-[10px] uppercase tracking-[0.3em] text-white/60 sm:mt-2 sm:text-xs sm:tracking-[0.4em]">{stat.label[locale]}</div>
                 <p className="mt-2 text-xs text-white/60 sm:mt-3 sm:text-sm">{stat.caption[locale]}</p>
               </div>
@@ -506,18 +508,18 @@ export default function MotoPage() {
             {locale === 'ua' ? 'Інженерні модулі' : 'Engineering Modules'}
           </h2>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr">
           {categoryData.filter(cat => cat.segment === 'moto').map((cat) => (
             <Link
               key={cat.slug}
               href={`/${locale}/categories/${cat.slug}`}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8 h-full"
             >
               <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                 backgroundImage:
                   'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
               }} />
-              <div className="relative flex flex-col gap-3 sm:gap-4">
+              <div className="relative flex flex-col gap-3 sm:gap-4 flex-1">
                 <div className="text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px] sm:tracking-[0.4em]">
                   {locale === 'ua' ? 'Категорія' : 'Category'}
                 </div>
@@ -536,7 +538,7 @@ export default function MotoPage() {
                     </span>
                   )}
                 </div>
-                <div className="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:mt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
+                <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:pt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
                   <span>{tPage('open')}</span>
                   <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
                   <span>→</span>
@@ -599,43 +601,6 @@ export default function MotoPage() {
                 </div>
               </motion.button>
             ))}
-          </div>
-        </div>
-      </section>
-
-
-
-      <section className="border-b border-white/5 bg-black/30 py-12 sm:py-16 md:py-20">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 sm:gap-7 sm:px-6 md:gap-8 lg:flex-row lg:items-center">
-          <div className="flex-1 space-y-3 sm:space-y-4 md:space-y-5">
-            <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">
-              {locale === 'ua' ? 'Трековий протокол' : 'Track protocol'}
-            </p>
-            <h2 className="text-2xl font-light text-white sm:text-3xl md:text-4xl lg:text-5xl">
-              {locale === 'ua' ? 'Pit crew checklist' : 'Pit crew checklist'}
-            </h2>
-            <p className="text-white/70">
-              {locale === 'ua'
-                ? 'Мінімізуємо сюрпризи вікнами доставки, віддаленими репетиціями та lifestyle-консьєржем — бонус до основної програми.'
-                : 'We minimise surprises with timeboxed deliveries, remote rehearsals and a lifestyle concierge — an extra layer beyond the core program.'}
-            </p>
-          </div>
-          <div className="flex-1 rounded-2xl border border-white/10 bg-white/[0.02] p-4 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:rounded-3xl sm:p-5 md:rounded-[32px] md:p-6">
-            <div className="space-y-3 sm:space-y-4">
-              {pitCrewChecklist.map((item) => (
-                <div key={item.label.en} className="rounded-xl border border-white/10 bg-black/30 p-4 sm:rounded-2xl sm:p-5">
-                  <div className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em]">{item.meta[locale]}</div>
-                  <div className="mt-1.5 text-lg font-light sm:mt-2 sm:text-xl">{item.label[locale]}</div>
-                  <p className="mt-1.5 text-xs text-white/70 sm:mt-2 sm:text-sm">{item.detail[locale]}</p>
-                </div>
-              ))}
-            </div>
-            <Link
-              href={`/${locale}/contact`}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-white bg-white px-5 py-2.5 text-xs font-semibold text-black transition hover:bg-transparent hover:text-white sm:mt-6 sm:px-6 sm:py-3 sm:text-sm"
-            >
-              {locale === 'ua' ? 'Забронювати вікно pit-support' : 'Book pit-support window'}
-            </Link>
           </div>
         </div>
       </section>
@@ -729,7 +694,7 @@ export default function MotoPage() {
               <div className="mt-8 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-white/80 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.4em] text-white/50">
-                    {locale === 'ua' ? 'Консьєрж' : 'Concierge'}
+                    {locale === 'ua' ? 'Експертна підтримка' : 'Expert Support'}
                   </p>
                   <p className="mt-2 text-base text-white">
                     {locale === 'ua'
@@ -789,7 +754,9 @@ export default function MotoPage() {
           <div className="mt-10 grid gap-4 sm:mt-12 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
             {heroStats.map((stat) => (
               <div key={stat.label.en} className="rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-lg sm:rounded-3xl sm:p-5 md:p-6">
-                <div className="text-2xl font-light text-white sm:text-3xl md:text-4xl">{stat.value}</div>
+                <div className="text-2xl font-light text-white sm:text-3xl md:text-4xl">
+                  {typeof stat.value === 'string' ? stat.value : stat.value[locale]}
+                </div>
                 <div className="mt-1.5 text-[10px] uppercase tracking-[0.3em] text-white/60 sm:mt-2 sm:text-xs sm:tracking-[0.4em]">{stat.label[locale]}</div>
                 <p className="mt-2 text-xs text-white/60 sm:mt-3 sm:text-sm">{stat.caption[locale]}</p>
               </div>

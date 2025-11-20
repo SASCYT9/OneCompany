@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const siteConfig = {
   name: "onecompany",
   description:
-    "Premium automotive and motorcycle performance programs with concierge logistics, homologation, and importer support.",
+    "Premium automotive and motorcycle performance programs with expert logistics, homologation, and importer support.",
   url: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://onecompany.ua").replace(/\/$/, ""),
   defaultLocale: "ua" as const,
   locales: ["ua", "en"] as const,

@@ -125,7 +125,7 @@ export const translations = {
     footer: {
       b2bWholesale: "B2B оптовий імпортер",
       brandsFor: "200+ брендів для СТО, дітейлінгу та магазинів тюнінгу",
-      conciergeB2C: "+ консьєрж сервіс для роздрібних клієнтів (B2C)",
+      conciergeB2C: "+ експертна підтримка для роздрібних клієнтів (B2C)",
       servicesSince: "послуги по всьому світу з 2007 року",
       premiumParts: "200+ брендів преміум тюнінг запчастин",
       company: "Компанія",
@@ -281,7 +281,7 @@ export const translations = {
     footer: {
       b2bWholesale: "B2B Wholesale Importer",
       brandsFor: "200+ brands for service stations, detailing & tuning shops",
-      conciergeB2C: "+ concierge service for retail clients (B2C)",
+      conciergeB2C: "+ expert support for retail clients (B2C)",
       servicesSince: "services worldwide since 2007",
       premiumParts: "200+ brands of premium tuning parts",
       company: "Company",

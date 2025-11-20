@@ -1,6 +1,7 @@
 import Link from "next/link";
 import clsx from "clsx";
 import { getTranslations } from "next-intl/server";
+import { Globe } from "lucide-react";
 
 type ExperienceSplit = {
   label: string;
@@ -52,17 +53,13 @@ export default async function LocalizedHomePage({
     { value: "18", label: t('statsExperience') },
     { value: "200+", label: t('statsBrands') },
     { value: "160+", label: t('statsContinents') },
-    { value: "30+", label: t('statsLogistics') },
+    { value: <Globe className="w-9 h-9 mx-auto" strokeWidth={1.5} />, label: t('logisticsTitle') },
   ];
 
   const b2bServices = [
     {
       title: t('wholesaleTitle'),
       copy: t('wholesaleDescription'),
-    },
-    {
-      title: t('partnerNetworkTitle'),
-      copy: t('partnerNetworkDescription'),
     },
     {
       title: t('logisticsTitle'),
@@ -135,7 +132,7 @@ export default async function LocalizedHomePage({
         
         <div className="flex flex-col items-center gap-4 px-4 pb-10 text-center">
           <Link
-            href="#concierge-programs"
+            href="#expert-programs"
             className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 backdrop-blur-xl px-5 py-2.5 text-[9px] uppercase tracking-[0.3em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)] sm:gap-3 sm:px-6 sm:py-3 sm:text-[11px] sm:tracking-[0.4em]"
           >
             {t('conciergeService')}
@@ -148,14 +145,14 @@ export default async function LocalizedHomePage({
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-6 py-12 text-center text-white md:grid-cols-4">
           {statHighlights.map((stat) => (
             <div key={stat.label} className="space-y-3 p-4 rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300">
-              <p className="text-4xl font-light tracking-tight">{stat.value}</p>
+              <div className="text-4xl font-light tracking-tight flex justify-center">{stat.value}</div>
               <p className="text-[11px] uppercase tracking-[0.35em] text-white/60">{stat.label}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section id="concierge-programs" className="relative overflow-hidden py-20 text-white">
+      <section id="expert-programs" className="relative overflow-hidden py-20 text-white">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-transparent" aria-hidden />
         <div className="relative mx-auto max-w-4xl px-6 text-center">
           <p className="text-xs uppercase tracking-[0.4em] text-white/50">{t('ourSites')}</p>
@@ -205,7 +202,7 @@ export default async function LocalizedHomePage({
               {t('arrangeConsult')} ↗
             </Link>
           </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-12 grid gap-6 md:grid-cols-2">
             {b2bServices.map((service) => (
               <div
                 key={service.title}

@@ -9,13 +9,13 @@ import type { ContactChannel } from "@/types/site-content";
 export const metadata: Metadata = {
   title: "OneCompany · Telegram Web App",
   description:
-    "Миттєва Telegram-версія OneCompany: заявки, статуси та преміум-консьєрж для авто й мото клієнтів.",
+    "Миттєва Telegram-версія OneCompany: заявки, статуси та експертна підтримка для авто й мото клієнтів.",
   robots: {
     index: false,
   },
 };
 
-const conciergeSteps = [
+const expertSteps = [
   {
     label: "01",
     title: "Brief",
@@ -62,7 +62,7 @@ export default async function TelegramAppPage() {
       newTab: true,
     },
     {
-      title: "WhatsApp concierge",
+      title: "WhatsApp support",
       description: whatsappChannel?.note ?? "Глобальні клієнти",
       href: contact.messengerHandles.whatsapp,
       badge: "Worldwide",
@@ -100,7 +100,7 @@ export default async function TelegramAppPage() {
         <section className="glass-panel gradient-border rounded-[38px] border border-white/10 p-6 sm:p-10">
           <p className="text-[11px] uppercase tracking-[0.55em] text-white/45">Telegram mini app · onecompany</p>
           <h1 className="mt-5 text-3xl font-semibold text-white sm:text-4xl lg:text-[44px]">
-            Concierge importer прямо у Telegram
+            Expert importer прямо у Telegram
           </h1>
           <p className="mt-4 max-w-3xl text-base text-white/70 sm:text-lg">
             {contact.infoBody} {contact.slaPromise}
@@ -160,7 +160,7 @@ export default async function TelegramAppPage() {
             <p className="text-[11px] uppercase tracking-[0.5em] text-white/45">Процес</p>
             <h2 className="mt-3 text-2xl font-semibold">Як працює Telegram experience</h2>
             <div className="mt-6 space-y-6">
-              {conciergeSteps.map((step) => (
+              {expertSteps.map((step) => (
                 <div key={step.label} className="flex gap-4 rounded-3xl border border-white/10 bg-white/5 p-4">
                   <div className="text-sm font-semibold text-white/50">{step.label}</div>
                   <div>

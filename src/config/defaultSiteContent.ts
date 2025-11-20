@@ -4,7 +4,7 @@ export const defaultSiteContent: SiteContent = {
   hero: {
     badge: 'onecompany · B2B wholesale importer',
     title: 'Premium performance importer',
-    subtitle: 'B2B wholesale for service stations, detailing studios & tuning shops. Concierge programs for VIP clients.',
+    subtitle: 'B2B wholesale for service stations, detailing studios & tuning shops. Expert programs for VIP clients.',
     ctaAutoLabel: 'Automotive',
     ctaMotoLabel: 'Motorcycles',
     scrollLabel: 'Scroll',
@@ -76,7 +76,7 @@ export const defaultSiteContent: SiteContent = {
   ],
   contactCta: {
     heading: 'Ready to upgrade?',
-    body: 'Concierge engineers on-call for bespoke specs, logistics, and fitment worldwide.',
+    body: 'Expert engineers on-call for bespoke specs, logistics, and fitment worldwide.',
     buttonLabel: 'Get in touch',
     buttonHref: '/contact',
   },
@@ -89,7 +89,7 @@ export const defaultSiteContent: SiteContent = {
     budgets: ['€3k–€7k · street aero & sound', '€8k–€15k · підвіска та гальма', '€15k+ · трекові та rally raid комплекти'],
     channels: [
       { id: 'email', label: 'B2B wholesale email', value: 'info@onecompany.global', note: 'Відповідь до 12 годин', type: 'email' },
-      { id: 'phone', label: 'Concierge phone', value: '+380 12 345 67 89', note: '10:00–21:00 GMT+2', type: 'phone' },
+      { id: 'phone', label: 'Support phone', value: '+380 12 345 67 89', note: '10:00–21:00 GMT+2', type: 'phone' },
       { id: 'telegram', label: 'Telegram', value: '@onecompany_wholesale', note: 'B2B запити', type: 'telegram' },
       { id: 'whatsapp', label: 'WhatsApp', value: '+380 12 345 67 89', note: 'Глобальні клієнти', type: 'whatsapp' },
     ],

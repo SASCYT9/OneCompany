@@ -120,7 +120,7 @@ export function Header() {
             {videoDisabled ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
           </button>
           <Link
-            href={`/${locale}/contact`}
+            href={`/${locale}/partnership`}
             className="group hidden items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-white transition hover:border-white hover:bg-white hover:text-black sm:inline-flex sm:gap-3 sm:px-5 sm:py-2 sm:text-xs sm:tracking-[0.35em]"
           >
             <span className="hidden sm:inline">{tNav("bookAtelier")}</span>
@@ -202,7 +202,7 @@ export function Header() {
                   </button>
                 </div>
                 <Link
-                  href={`/${locale}/contact`}
+                  href={`/${locale}/partnership`}
                   onClick={() => setMobileMenuOpen(false)}
                   className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-black transition"
                 >
