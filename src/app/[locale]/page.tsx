@@ -30,7 +30,7 @@ export default async function LocalizedHomePage({
       href: `/${locale}/auto`,
       accent: "from-amber-400/20 via-orange-500/10 to-transparent",
       stats: [
-        { value: "120+", note: t('autoBrands') },
+        { value: "160+", note: t('autoBrands') },
         { value: "11", note: t('autoCategories') },
       ],
     },
