@@ -52,7 +52,7 @@ export default async function LocalizedHomePage({
   const statHighlights = [
     { value: "18", label: t('statsExperience') },
     { value: "200+", label: t('statsBrands') },
-    { value: "160+", label: t('statsContinents') },
+    { value: t('statsBestConditions'), label: t('statsContinents') },
     { value: <Globe className="w-9 h-9 mx-auto" strokeWidth={1.5} />, label: t('logisticsTitle') },
   ];
 
