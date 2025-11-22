@@ -470,39 +470,30 @@ export default function AutomotivePage() {
               <motion.button
                 key={brand.name}
                 onClick={() => setSelectedBrand(brand)}
-                whileHover={{ y: -4, scale: 1.01 }}
-                className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-left transition backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:gap-5 sm:rounded-3xl sm:p-6 md:gap-6 md:p-8"
+                whileHover={{ y: -5, scale: 1.02 }}
+                className="group relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-transparent p-6 text-center transition-all duration-500 backdrop-blur-md hover:border-white/30 hover:shadow-[0_0_50px_rgba(255,255,255,0.15)] md:p-8"
               >
-                <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
-                  backgroundImage:
-                    'linear-gradient(135deg, rgba(255,255,255,0.1), transparent 65%)',
-                }} />
-                <div className="relative flex items-center justify-between gap-4">
-                  <div className="relative h-16 w-36">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className="object-contain"
-                      sizes="144px"
-                      unoptimized
-                    />
-                  </div>
-                  <span className="text-xs uppercase tracking-[0.4em] text-white/50">
-                    {locale === 'ua' ? 'Натисніть, щоб дізнатися' : 'Tap to open'}
-                  </span>
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                
+                <div className="relative h-20 w-full">
+                  <Image
+                    src={getBrandLogo(brand.name)}
+                    alt={brand.name}
+                    fill
+                    className="object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] transition-all duration-500 group-hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                    sizes="(max-width: 768px) 100vw, 300px"
+                    unoptimized
+                  />
                 </div>
-                <div className="relative">
-                  <h3 className="text-3xl font-light text-white">{brand.name}</h3>
-                  <p className="mt-2 text-sm text-white/70 text-pretty">
-                    {brand.description ||
-                      (locale === 'ua' ? 'Офіційна програма постачання' : 'Official supply program')}
+
+                <div className="relative flex flex-1 flex-col items-center justify-end gap-4">
+                  <p className="text-xs font-light tracking-widest text-white/60">
+                    {locale === 'ua' ? 'Офіційна програма постачання' : 'Official supply program'}
                   </p>
-                </div>
-                <div className="relative flex items-center gap-4 text-xs uppercase tracking-[0.4em] text-white/60">
-                  <span>{locale === 'ua' ? 'Дивитись деталі' : 'View detail'}</span>
-                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
-                  <span>↗</span>
+                  
+                  <div className="rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition-all duration-300 group-hover:border-white/60 group-hover:bg-white/10 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                    {locale === 'ua' ? 'Дивитись деталі' : 'View Details'}
+                  </div>
                 </div>
               </motion.button>
             ))}
