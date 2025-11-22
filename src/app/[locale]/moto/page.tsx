@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
+import { TiltedCard } from '@/components/ui/TiltedCard';
 
 import {
   allMotoBrands,
@@ -520,9 +521,6 @@ export default function MotoPage() {
                   'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
               }} />
               <div className="relative flex flex-col gap-3 sm:gap-4 flex-1">
-                <div className="text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px] sm:tracking-[0.4em]">
-                  {locale === 'ua' ? 'Категорія' : 'Category'}
-                </div>
                 <h3 className="text-xl font-light text-white sm:text-2xl text-balance">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
                 <p className="text-xs text-white/70 sm:text-sm text-pretty">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
                 <p className="text-[11px] text-white/50 sm:text-xs text-pretty">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
@@ -558,38 +556,51 @@ export default function MotoPage() {
               {locale === 'ua' ? 'Ікони продуктивності' : 'Icons of Performance'}
             </h2>
           </div>
-          <div className="grid gap-4 sm:gap-5 md:grid-cols-2 md:gap-6">
-            {topBrands.map((brand) => (
-              <motion.button
+          <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 perspective-1000">
+            {topBrands.map((brand) => {
+              const logoSrc = getBrandLogo(brand.name);
+              const isPlaceholder = logoSrc === '/logos/placeholder.svg';
+              
+              return (
+              <TiltedCard
                 key={brand.name}
                 onClick={() => setSelectedBrand(brand)}
-                whileHover={{ y: -5, scale: 1.02 }}
-                className="group relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-transparent p-6 text-center transition-all duration-500 backdrop-blur-md hover:border-white/30 hover:shadow-[0_0_50px_rgba(255,255,255,0.15)] md:p-8"
+                className="flex min-h-[320px] cursor-pointer flex-col items-center justify-center gap-8 p-8 text-center group"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                <div className="absolute right-4 top-4" style={{ transform: 'translateZ(20px)' }}>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition-colors group-hover:border-white/30 group-hover:bg-white/10 group-hover:text-white">
+                    ↗
+                  </div>
+                </div>
                 
-                <div className="relative h-20 w-full">
-                  <Image
-                    src={getBrandLogo(brand.name)}
-                    alt={brand.name}
-                    fill
-                    className={`object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] transition-all duration-500 group-hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] ${isDarkLogo(getBrandLogo(brand.name)) ? 'invert brightness-0 invert-[1]' : ''}`}
-                    sizes="(max-width: 768px) 100vw, 300px"
-                    unoptimized
-                  />
+                <div className="relative h-32 w-full transition-transform duration-500 group-hover:scale-110" style={{ transform: 'translateZ(40px)' }}>
+                  {isPlaceholder ? (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <span className="text-2xl font-bold text-white/20 uppercase tracking-widest">{brand.name}</span>
+                    </div>
+                  ) : (
+                    <Image
+                      src={logoSrc}
+                      alt={brand.name}
+                      fill
+                      className={`object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] ${isDarkLogo(logoSrc) ? 'invert brightness-0 invert-[1]' : ''}`}
+                      sizes="(max-width: 768px) 100vw, 300px"
+                      unoptimized
+                    />
+                  )}
                 </div>
 
-                <div className="relative flex flex-1 flex-col items-center justify-end gap-4">
-                  <p className="text-xs font-light tracking-widest text-white/60">
+                <div className="space-y-4" style={{ transform: 'translateZ(30px)' }}>
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-white/40 transition-colors group-hover:text-white/60">
                     {locale === 'ua' ? 'Офіційна програма постачання' : 'Official supply program'}
                   </p>
                   
-                  <div className="rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition-all duration-300 group-hover:border-white/60 group-hover:bg-white/10 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/80 transition-all duration-300 group-hover:border-white/40 group-hover:bg-white/10 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]">
                     {locale === 'ua' ? 'Дивитись деталі' : 'View Details'}
                   </div>
                 </div>
-              </motion.button>
-            ))}
+              </TiltedCard>
+            )})}
           </div>
         </div>
       </section>
