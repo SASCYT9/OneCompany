@@ -426,13 +426,13 @@ export default function AutomotivePage() {
             <Link
               key={cat.slug}
               href={`/${locale}/categories/${cat.slug}`}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/30 p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-zinc-900/50 hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8"
             >
               <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                 backgroundImage:
                   'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
               }} />
-              <div className="relative flex flex-col gap-3 sm:gap-4">
+              <div className="relative flex h-full flex-col gap-3 sm:gap-4">
                 <div className="text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px] sm:tracking-[0.4em]">
                   {locale === 'ua' ? 'Категорія' : 'Category'}
                 </div>
@@ -446,7 +446,7 @@ export default function AutomotivePage() {
                     </span>
                   ))}
                 </div>
-                <div className="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:mt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
+                <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
                   <span>{locale === 'ua' ? 'Переглянути' : 'Open'}</span>
                   <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
                   <span>→</span>
