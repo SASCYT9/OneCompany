@@ -1,6 +1,6 @@
 "use client";
 
-import { yearsOfExcellence, satisfiedClients, flagshipProjects } from '@/lib/company';
+import { yearsOfExcellence, flagshipProjects } from '@/lib/company';
 import { useLanguage } from '@/lib/LanguageContext';
 
 export default function StatsStrip() {
@@ -13,10 +13,6 @@ export default function StatsStrip() {
     {
       value: `${years}+`,
       label: locale === 'ua' ? 'років досвіду' : 'years of excellence',
-    },
-    {
-      value: `${fmt(satisfiedClients)}+`,
-      label: locale === 'ua' ? 'задоволених клієнтів' : 'satisfied clients',
     },
     {
       value: `${flagshipProjects}+`,

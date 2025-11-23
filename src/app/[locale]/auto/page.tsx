@@ -18,6 +18,7 @@ import {
   getLocalizedSubcategory,
 } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
+import { isDarkLogo } from '@/lib/darkLogos';
 import { categoryData } from '@/lib/categoryData';
 import type { CategoryData } from '@/lib/categoryData';
 
@@ -422,18 +423,18 @@ export default function AutomotivePage() {
             {locale === 'ua' ? 'Модулі, які складають авто' : 'Modules we compose cars from'}
           </h2>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr">
           {automotiveCategories.map((cat) => (
             <Link
               key={cat.slug}
               href={`/${locale}/categories/${cat.slug}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/30 p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-zinc-900/50 hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/30 p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-zinc-900/50 hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8 h-full"
             >
               <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                 backgroundImage:
                   'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
               }} />
-              <div className="relative flex h-full flex-col gap-3 sm:gap-4">
+              <div className="relative flex flex-col gap-3 sm:gap-4 flex-1">
                 <h3 className="text-xl font-light text-white sm:text-2xl text-balance">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
                 <p className="text-xs text-white/70 sm:text-sm text-pretty">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
                 <p className="text-[11px] text-white/50 sm:text-xs text-pretty">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
@@ -445,9 +446,11 @@ export default function AutomotivePage() {
                   ))}
                 </div>
                 <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
-                  <span>{locale === 'ua' ? 'Переглянути' : 'Open'}</span>
-                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
-                  <span>→</span>
+                  <span className="transition-colors duration-300 group-hover:text-white">
+                    {locale === 'ua' ? 'Переглянути' : 'Open'}
+                  </span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent transition-all duration-300 group-hover:from-white/50" />
+                  <span className="transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white">→</span>
                 </div>
               </div>
             </Link>
@@ -467,6 +470,7 @@ export default function AutomotivePage() {
             {topBrands.map((brand) => {
               const logoSrc = getBrandLogo(brand.name);
               const isPlaceholder = logoSrc === '/logos/placeholder.svg';
+              const isDark = isDarkLogo(logoSrc);
               
               return (
               <TiltedCard
@@ -490,7 +494,7 @@ export default function AutomotivePage() {
                       src={logoSrc}
                       alt={brand.name}
                       fill
-                      className="object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                      className={`object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] ${isDark ? 'brightness-0 invert' : ''}`}
                       sizes="(max-width: 768px) 100vw, 300px"
                       unoptimized
                     />
@@ -502,8 +506,11 @@ export default function AutomotivePage() {
                     {locale === 'ua' ? 'Офіційна програма' : 'Official Program'}
                   </p>
                   
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/80 transition-all duration-300 group-hover:border-white/40 group-hover:bg-white/10 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-                    {locale === 'ua' ? 'Детальніше' : 'View Details'}
+                  <div className="relative mt-2 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 transition-all duration-300 group-hover:border-white/20 group-hover:bg-white/10">
+                    <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/80">
+                      {locale === 'ua' ? 'Відкрити' : 'Explore'}
+                    </span>
+                    <span className="text-white/60 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white">→</span>
                   </div>
                 </div>
               </TiltedCard>
@@ -537,6 +544,9 @@ export default function AutomotivePage() {
               const origin = getBrandOrigin(brand);
               const subcategory = getBrandSubcategory(brand);
               const collections = getBrandCollections(brand.name);
+              const logoSrc = getBrandLogo(brand.name);
+              const isDark = isDarkLogo(logoSrc);
+
               return (
                 <motion.button
                   key={brand.name}
@@ -562,10 +572,10 @@ export default function AutomotivePage() {
                   </div>
                   <div className="relative mt-3 h-16 sm:mt-4 sm:h-20">
                     <Image
-                      src={getBrandLogo(brand.name)}
+                      src={logoSrc}
                       alt={brand.name}
                       fill
-                      className="object-contain"
+                      className={`object-contain ${isDark ? 'brightness-0 invert' : ''}`}
                       sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                       unoptimized
                     />
@@ -648,7 +658,7 @@ export default function AutomotivePage() {
                     src={getBrandLogo(selectedBrand.name)}
                     alt={selectedBrand.name}
                     fill
-                    className="object-contain"
+                    className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''}`}
                     sizes="160px"
                     unoptimized
                   />

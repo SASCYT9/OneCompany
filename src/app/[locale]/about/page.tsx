@@ -151,13 +151,6 @@ const AboutPage: React.FC = () => {
             >
               {t('hero.primaryCta')}
             </Link>
-            <Link
-              href={`/${locale}/categories`}
-              className="inline-flex items-center justify-center rounded-full border border-white/30 px-8 py-3 text-sm uppercase tracking-wide text-white transition hover:border-white"
-            >
-              {t('hero.secondaryCta')}
-              <ArrowUpRight className="ml-3 h-4 w-4" />
-            </Link>
           </motion.div>
         </div>
       </section>

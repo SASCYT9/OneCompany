@@ -16,10 +16,10 @@
     "fetch:logos:js": "node scripts/fetch-brand-logos.js",
     "download-logos": "tsx scripts/download-logos.ts",
     "download-logos-free": "tsx scripts/download-logos-free.ts",
+    "download-logos-advanced": "tsx scripts/download-logos-advanced.ts",
     "download-missing-logos": "tsx scripts/download-missing-logos.ts",
     "check-missing-logos": "tsx scripts/check-missing-logos.ts",
-    "upgrade-all-small-logos": "tsx scripts/upgrade-all-small-logos.ts",
-    "build:css": "npx tailwindcss -i wp-content/themes/onecompany-theme/style.css -o wp-content/themes/onecompany-theme/main.css --watch"
+    "upgrade-all-small-logos": "tsx scripts/upgrade-all-small-logos.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",

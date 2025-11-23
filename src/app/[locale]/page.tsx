@@ -86,7 +86,7 @@ export default async function LocalizedHomePage({
                   "group relative flex flex-1 min-h-[380px] flex-col justify-between gap-6 overflow-hidden p-6 text-left text-white sm:min-h-[420px] sm:gap-10 sm:p-8",
                   "border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-500 hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)]",
                   "rounded-3xl",
-                  index === 0 ? "md:mr-3" : "md:ml-3 md:text-right md:items-end"
+                  index === 0 ? "md:mr-3" : "md:ml-3"
                 )}
               >
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent" />
@@ -98,17 +98,16 @@ export default async function LocalizedHomePage({
                     experience.accent
                   )}
                 />
-                <div className="relative flex w-full items-center justify-between text-[9px] uppercase tracking-[0.25em] text-white/60 sm:text-[11px] sm:tracking-[0.35em]">
-                  <span className="rounded-full border border-white/50 bg-white/10 backdrop-blur-md px-4 py-1.5 text-[9px] font-bold tracking-[0.35em] text-white shadow-[0_0_25px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_35px_rgba(255,255,255,0.6)] sm:px-5 sm:text-[11px] sm:tracking-[0.45em]">
-                    {experience.label}
-                  </span>
+                <div className="relative flex w-full items-center justify-end text-[9px] uppercase tracking-[0.25em] text-white/60 sm:text-[11px] sm:tracking-[0.35em]">
                   <span className="hidden text-white/40 sm:inline">{t('programAccess')}</span>
                 </div>
-                <div className={clsx("relative space-y-2 text-left sm:space-y-4", index === 1 && "md:text-right")}>
-                  <h2 className="text-2xl font-light leading-tight text-white text-balance sm:text-3xl md:text-4xl lg:text-5xl uppercase tracking-wide">
-                    {experience.title}
-                  </h2>
-                  <p className="text-sm leading-relaxed text-white/80 text-pretty sm:text-base font-light tracking-wide">
+                <div className="relative flex flex-col items-center justify-center space-y-6 text-center flex-1">
+                  <div>
+                    <span className="inline-block rounded-full border border-white/50 bg-white/10 backdrop-blur-md px-8 py-3 text-xs font-bold tracking-[0.35em] text-white shadow-[0_0_30px_rgba(255,255,255,0.5)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_50px_rgba(255,255,255,0.8)] sm:px-10 sm:py-4 sm:text-sm sm:tracking-[0.45em]">
+                      {experience.label}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-white/80 text-pretty sm:text-base font-light tracking-wide max-w-md mx-auto">
                     {experience.description}
                   </p>
                 </div>

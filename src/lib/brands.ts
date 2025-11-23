@@ -86,7 +86,7 @@ export const subcategoryNames: Record<ProductSubcategory, { en: string; ua: stri
   'Fuel Systems': { en: 'Fuel Systems', ua: 'Паливна система' },
   'Aero': { en: 'Aero', ua: 'Аеродинаміка' },
   'Racing Components': { en: 'Racing Components', ua: 'Спортивні компоненти' },
-  'Full Vehicle': { en: 'Full Vehicle', ua: 'Повний автомобіль' },
+  'Full Vehicle': { en: 'Full Vehicle', ua: 'Комплексні рішення' },
 };
 
 // Local simplified brand type for static data

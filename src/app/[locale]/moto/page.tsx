@@ -537,9 +537,11 @@ export default function MotoPage() {
                   )}
                 </div>
                 <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:pt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
-                  <span>{tPage('open')}</span>
-                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
-                  <span>→</span>
+                  <span className="transition-colors duration-300 group-hover:text-white">
+                    {tPage('open')}
+                  </span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent transition-all duration-300 group-hover:from-white/50" />
+                  <span className="transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white">→</span>
                 </div>
               </div>
             </Link>
@@ -583,7 +585,7 @@ export default function MotoPage() {
                       src={logoSrc}
                       alt={brand.name}
                       fill
-                      className={`object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] ${isDarkLogo(logoSrc) ? 'invert brightness-0 invert-[1]' : ''}`}
+                      className={`object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] ${isDarkLogo(logoSrc) ? 'brightness-0 invert' : ''}`}
                       sizes="(max-width: 768px) 100vw, 300px"
                       unoptimized
                     />
@@ -595,8 +597,11 @@ export default function MotoPage() {
                     {locale === 'ua' ? 'Офіційна програма постачання' : 'Official supply program'}
                   </p>
                   
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/80 transition-all duration-300 group-hover:border-white/40 group-hover:bg-white/10 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-                    {locale === 'ua' ? 'Дивитись деталі' : 'View Details'}
+                  <div className="relative mt-2 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 transition-all duration-300 group-hover:border-white/20 group-hover:bg-white/10">
+                    <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/80">
+                      {locale === 'ua' ? 'Відкрити' : 'Explore'}
+                    </span>
+                    <span className="text-white/60 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white">→</span>
                   </div>
                 </div>
               </TiltedCard>
@@ -631,7 +636,7 @@ export default function MotoPage() {
                     src={getBrandLogo(selectedBrand.name)}
                     alt={selectedBrand.name}
                     fill
-                    className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'invert brightness-0 invert-[1]' : ''}`}
+                    className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''}`}
                     sizes="160px"
                     unoptimized
                   />
@@ -823,7 +828,7 @@ export default function MotoPage() {
                       src={getBrandLogo(brand.name)}
                       alt={brand.name}
                       fill
-                      className={`object-contain ${isDarkLogo(getBrandLogo(brand.name)) ? 'invert brightness-0 invert-[1]' : ''}`}
+                      className={`object-contain ${isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''}`}
                       sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                       unoptimized
                     />
