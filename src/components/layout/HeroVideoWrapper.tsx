@@ -48,39 +48,9 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
 
   // Honor user preference for reduced motion or data saving
   useEffect(() => {
-    const mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
-    const nav = navigator as NavigatorWithConnection;
-    const saveData = nav.connection?.saveData;
-    
-    const updateDisabledState = () => {
-      const mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
-      const nav = navigator as NavigatorWithConnection;
-      setDisabled((mq?.matches ?? false) || (nav.connection?.saveData ?? false));
-    };
-
-    if (mq && mq.matches) {
-      setDisabled(true);
-    }
-    if (saveData) {
-      setDisabled(true);
-    }
-
-    mq?.addEventListener?.('change', updateDisabledState);
-    try {
-      const nav = navigator as NavigatorWithConnection;
-      nav.connection?.addEventListener?.('change', updateDisabledState);
-    } catch {
-      // some browsers may not support addEventListener on connection
-    }
-    return () => {
-      mq?.removeEventListener?.('change', updateDisabledState);
-      try {
-        const nav = navigator as NavigatorWithConnection;
-        nav.connection?.removeEventListener?.('change', updateDisabledState);
-      } catch {
-        // ignore
-      }
-    };
+    // We want to play video by default unless explicitly disabled by admin
+    // The previous logic was too aggressive with saveData/reducedMotion
+    // setDisabled(false); 
   }, []);
 
   // Removed IntersectionObserver logic as hero video should load immediately

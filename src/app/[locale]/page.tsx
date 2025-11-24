@@ -87,7 +87,7 @@ export default async function LocalizedHomePage({
                 key={experience.label}
                 href={experience.href}
                 className={clsx(
-                  "group relative flex flex-1 min-h-[380px] flex-col justify-between gap-6 overflow-hidden p-6 text-left text-white sm:min-h-[420px] sm:gap-10 sm:p-8",
+                  "group relative flex flex-1 min-h-[450px] flex-col justify-between gap-6 overflow-hidden p-6 text-left text-white sm:min-h-[600px] sm:gap-10 sm:p-8",
                   "border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-500 hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)]",
                   "rounded-3xl",
                   index === 0 ? "md:mr-3" : "md:ml-3"
@@ -100,20 +100,10 @@ export default async function LocalizedHomePage({
                   className="pointer-events-none object-cover opacity-40 blur-sm transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent" />
-                <div
-                  aria-hidden
-                  className={clsx(
-                    "pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-40",
-                    "bg-gradient-to-br",
-                    experience.accent
-                  )}
-                />
-                <div className="relative flex w-full items-center justify-end text-[9px] uppercase tracking-[0.25em] text-white/60 sm:text-[11px] sm:tracking-[0.35em]">
-                  <span className="hidden text-white/40 sm:inline">{t('programAccess')}</span>
-                </div>
+                
                 <div className="relative flex flex-col items-center justify-center space-y-6 text-center flex-1">
                   <div>
-                    <span className="inline-block rounded-full border border-white/50 bg-white/10 backdrop-blur-md px-8 py-3 text-xs font-bold tracking-[0.35em] text-white shadow-[0_0_30px_rgba(255,255,255,0.5)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_50px_rgba(255,255,255,0.8)] sm:px-10 sm:py-4 sm:text-sm sm:tracking-[0.45em]">
+                    <span className="inline-block rounded-full border border-white/50 bg-white/10 backdrop-blur-md px-10 py-4 text-sm font-bold tracking-[0.35em] text-white shadow-[0_0_30px_rgba(255,255,255,0.5)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_50px_rgba(255,255,255,0.8)] sm:px-12 sm:py-5 sm:text-base sm:tracking-[0.45em]">
                       {experience.label}
                     </span>
                   </div>
