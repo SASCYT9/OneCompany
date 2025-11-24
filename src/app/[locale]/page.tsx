@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import clsx from "clsx";
 import { getTranslations } from "next-intl/server";
 import { Globe } from "lucide-react";
@@ -9,6 +10,7 @@ type ExperienceSplit = {
   description: string;
   href: string;
   accent: string;
+  image: string;
   stats: { value: string; note: string }[];
 };
 
@@ -29,6 +31,7 @@ export default async function LocalizedHomePage({
       description: t('hypercarDescription'),
       href: `/${locale}/auto`,
       accent: "from-amber-400/20 via-orange-500/10 to-transparent",
+      image: "/images/auto-bg.png",
       stats: [
         { value: "160+", note: t('autoBrands') },
         { value: "11", note: t('autoCategories') },
@@ -40,6 +43,7 @@ export default async function LocalizedHomePage({
       description: t('factoryRaceDescription'),
       href: `/${locale}/moto`,
       accent: "from-blue-400/25 via-purple-500/15 to-transparent",
+      image: "/images/moto-bg.jpg",
       stats: [
         { value: "40+", note: t('motoPartners') },
         { value: "6", note: t('motoSeries') },
@@ -89,6 +93,12 @@ export default async function LocalizedHomePage({
                   index === 0 ? "md:mr-3" : "md:ml-3"
                 )}
               >
+                <Image
+                  src={experience.image}
+                  alt=""
+                  fill
+                  className="pointer-events-none object-cover opacity-40 blur-sm transition-transform duration-700 group-hover:scale-105"
+                />
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent" />
                 <div
                   aria-hidden
