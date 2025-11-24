@@ -13,7 +13,7 @@ async function ensureConfigFile() {
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(
       configPath,
-      JSON.stringify({ heroVideo: 'rollsbg-v2.mp4', videos: [], heroEnabled: true }, null, 2)
+      JSON.stringify({ heroVideo: 'rollsbg-v3.mp4', videos: [], heroEnabled: true }, null, 2)
     );
   }
 }
@@ -29,7 +29,7 @@ export async function GET() {
       return NextResponse.json(config);
     } catch {
       // Return default config if file missing
-      return NextResponse.json({ heroVideo: 'rollsbg-v2.mp4', videos: [], heroEnabled: true });
+      return NextResponse.json({ heroVideo: 'rollsbg-v3.mp4', videos: [], heroEnabled: true });
     }
   } catch {
     return NextResponse.json(

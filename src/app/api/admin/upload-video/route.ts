@@ -17,7 +17,7 @@ async function ensurePaths() {
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(
       configPath,
-      JSON.stringify({ heroVideo: 'rollsbg-v2.mp4', videos: [] }, null, 2)
+      JSON.stringify({ heroVideo: 'rollsbg-v3.mp4', videos: [] }, null, 2)
     );
   }
 }

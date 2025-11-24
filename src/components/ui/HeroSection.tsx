@@ -30,7 +30,7 @@ export const HeroSection = () => {
             filter: 'blur(2px) brightness(0.5) saturate(1.2)',
           }}
         >
-          <source src="/videos/rollsbg-v2.mp4" type="video/mp4" />
+          <source src="/videos/rollsbg-v3.mp4" type="video/mp4" />
         </video>
         
         {/* Liquid Glass Layers - iPhone Style */}
