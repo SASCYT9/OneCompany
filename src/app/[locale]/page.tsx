@@ -10,6 +10,7 @@ type ExperienceSplit = {
   href: string;
   accent: string;
   stats: { value: string; note: string }[];
+  icon: React.ReactNode;
 };
 
 type LocalizedHomePageProps = {
@@ -33,6 +34,14 @@ export default async function LocalizedHomePage({
         { value: "160+", note: t('autoBrands') },
         { value: "11", note: t('autoCategories') },
       ],
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" className="w-full h-full">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H12c-.6 0-1.2.2-1.7.7L8 10H6c0 .5-4 1-4.8 2.1-.8.2-1.2 1-1.2 1.9v3c0 .6.4 1 1 1h2v-1h16v1z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
+          <circle cx="7.5" cy="13.5" r="1.5" />
+          <circle cx="16.5" cy="13.5" r="1.5" />
+        </svg>
+      ),
     },
     {
       label: t('moto'),
@@ -44,6 +53,15 @@ export default async function LocalizedHomePage({
         { value: "40+", note: t('motoPartners') },
         { value: "6", note: t('motoSeries') },
       ],
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" className="w-full h-full">
+          <circle cx="5.5" cy="17.5" r="3.5" />
+          <circle cx="18.5" cy="17.5" r="3.5" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 6l-1 3h-3l-2 4l-3 0" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 13l-2 -4l-3 0" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 13l3 -6l3 0" />
+        </svg>
+      ),
     },
   ];
 
@@ -93,11 +111,15 @@ export default async function LocalizedHomePage({
                 <div
                   aria-hidden
                   className={clsx(
-                    "pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-40",
+                    "pointer-events-none absolute inset-0 opacity-20 transition duration-500 group-hover:opacity-50",
                     "bg-gradient-to-br",
                     experience.accent
                   )}
                 />
+                
+                <div className="pointer-events-none absolute -right-12 -bottom-12 h-64 w-64 text-white/[0.03] transition-transform duration-700 group-hover:scale-110 group-hover:text-white/[0.07] sm:-right-16 sm:-bottom-16 sm:h-80 sm:w-80">
+                  {experience.icon}
+                </div>
                 
                 <div className="relative flex flex-col items-center justify-center space-y-6 text-center flex-1">
                   <div>
