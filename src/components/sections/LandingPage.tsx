@@ -45,7 +45,7 @@ const topMotoBrands = [
 
 const LandingPage = () => {
   const heroRef = useRef<HTMLDivElement>(null);
-  const [heroVideo, setHeroVideo] = useState<string>('hero-main.mp4');
+  const [heroVideo, setHeroVideo] = useState<string>('rollsbg-v2.mp4');
   const t = useTranslations('landing');
 
   useEffect(() => {
