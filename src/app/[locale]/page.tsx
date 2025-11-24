@@ -141,9 +141,9 @@ export default async function LocalizedHomePage({
       <section className="border-t border-white/10 bg-black/40 backdrop-blur-xl">
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-6 py-12 text-center text-white md:grid-cols-4">
           {statHighlights.map((stat) => (
-            <div key={stat.label} className="space-y-3 p-4 rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300">
-              <div className="text-4xl font-light tracking-tight flex justify-center">{stat.value}</div>
-              <p className="text-[11px] uppercase tracking-[0.35em] text-white/60">{stat.label}</p>
+            <div key={stat.label} className="flex flex-col items-center justify-center gap-3 p-4 h-full min-h-[160px] rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300">
+              <div className="text-3xl sm:text-4xl font-light tracking-tight text-center text-balance">{stat.value}</div>
+              <p className="text-[11px] uppercase tracking-[0.35em] text-white/60 text-center">{stat.label}</p>
             </div>
           ))}
         </div>
