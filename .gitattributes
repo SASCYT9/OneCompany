@@ -1,2 +1,8 @@
-*.mp4 filter=lfs diff=lfs merge=lfs -text
+# Only track files larger than 100MB with LFS
+public/videos/fi-exhaust.mp4 filter=lfs diff=lfs merge=lfs -text
+
+# Track 3D models with LFS
 *.glb filter=lfs diff=lfs merge=lfs -text
+
+# Treat other mp4s as binary but NOT LFS
+*.mp4 binary
