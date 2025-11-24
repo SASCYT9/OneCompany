@@ -336,20 +336,20 @@
       "title": "Milestones",
       "events": {
         "2007": {
+          "title": "Origins",
+          "description": "ONE COMPANY is founded in Kyiv as a bespoke sourcing outfit for European tuning houses."
+        },
+        "2012": {
           "title": "USA Fulfillment Center",
           "description": "Dedicated warehouse and logistics hub for consolidating shipments from North America."
         },
-        "2012": {
+        "2016": {
           "title": "Europe Fulfillment Center",
           "description": "Centralized order collection from European factories with quality control."
         },
-        "2016": {
-          "title": "Installation Partners",
-          "description": "Development of a network of certified stations worldwide for professional installation."
-        },
         "2020": {
-          "title": "Direct DHL Delivery",
-          "description": "Launch of door-to-door express delivery for clients around the globe."
+          "title": "Global Network",
+          "description": "Installation partners worldwide and direct door-to-door DHL delivery."
         },
         "2024": {
           "title": "Consulting & Selection",
