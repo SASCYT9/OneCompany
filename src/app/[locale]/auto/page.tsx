@@ -364,7 +364,7 @@ export default function AutomotivePage() {
             className="h-full w-full object-cover opacity-60"
             poster="/images/eventuri/carbon-intake.jpg"
           >
-            <source src="/videos/rollsbg.mp4" type="video/mp4" />
+            <source src="/videos/rollsbg-v2.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
