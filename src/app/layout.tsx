@@ -4,7 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
 import localFont from "next/font/local";
-import { IBM_Plex_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Manrope } from "next/font/google";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 export const metadata: Metadata = {
@@ -35,6 +35,12 @@ export const metadata: Metadata = {
 };
 
 import { cn } from "@/lib/utils";
+
+const fontManrope = Manrope({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-manrope",
+  display: "swap",
+});
 
 const fontSans = localFont({
   src: [
@@ -113,6 +119,7 @@ export default function RootLayout({
           "min-h-screen bg-background text-foreground antialiased",
           fontSans.variable,
           fontDisplay.variable,
+          fontManrope.variable,
           fontMono.variable
         )}
         suppressHydrationWarning
