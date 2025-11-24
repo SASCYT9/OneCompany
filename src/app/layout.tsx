@@ -3,7 +3,8 @@ import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
-import { IBM_Plex_Mono, Manrope } from "next/font/google";
+import localFont from "next/font/local";
+import { IBM_Plex_Mono } from "next/font/google";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 export const metadata: Metadata = {
@@ -35,14 +36,61 @@ export const metadata: Metadata = {
 
 import { cn } from "@/lib/utils";
 
-const fontSans = Manrope({
-  subsets: ["latin", "cyrillic"],
+const fontSans = localFont({
+  src: [
+    {
+      path: "../assets/fonts/unison/unison-pro-light.otf",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-light.otf",
+      weight: "400", // Mapping regular to light as per design preference for thin look
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-light.otf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-bold.otf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-light-italic.otf",
+      weight: "300",
+      style: "italic",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-bold-italic.otf",
+      weight: "700",
+      style: "italic",
+    },
+  ],
   variable: "--font-sans",
   display: "swap",
 });
 
-const fontDisplay = Manrope({
-  subsets: ["latin", "cyrillic"],
+const fontDisplay = localFont({
+  src: [
+    {
+      path: "../assets/fonts/unison/unison-pro-light.otf",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/unison/unison-pro-bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-display",
   display: "swap",
 });

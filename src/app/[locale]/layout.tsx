@@ -35,15 +35,6 @@ export default async function LocaleLayout({ children, params }: Props) {
         {videoConfig.heroPoster && (
           <link rel="preload" href={`/images/${videoConfig.heroPoster}`} as="image" />
         )}
-        {/* Server-side UA style overrides to ensure Manrope is used immediately */}
-        {locale === 'ua' ? (
-          <style
-            dangerouslySetInnerHTML={{
-              __html:
-                ":root{ --font-sans: 'Manrope','Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --font-display: 'Manrope','Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --font-body: 'Manrope','Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }",
-            }}
-          />
-        ) : null}
         <div
           data-server-hero-enabled={videoConfig.heroEnabled ? 'true' : 'false'}
           className={cn('flex flex-col min-h-screen', locale === 'ua' && 'locale-ua')}
