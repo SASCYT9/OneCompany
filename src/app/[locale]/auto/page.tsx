@@ -45,7 +45,7 @@ const TOP_AUTOMOTIVE_BRANDS = [
   'Weistec',
 ];
 
-const heroStats: { value: string; label: LocalizedCopy; caption: LocalizedCopy }[] = [
+const heroStats: { value: string | LocalizedCopy; label: LocalizedCopy; caption: LocalizedCopy }[] = [
   {
     value: '160+',
     label: { en: 'brands curated', ua: 'брендів у каталозі' },
@@ -57,8 +57,8 @@ const heroStats: { value: string; label: LocalizedCopy; caption: LocalizedCopy }
     caption: { en: 'Certified partner garages', ua: 'Сертифіковані партнерські майстерні' },
   },
   {
-    value: '21B',
-    label: { en: 'Baseina St · Kyiv', ua: 'Київ · вул. Басейна, 21Б' },
+    value: { en: 'Kyiv', ua: 'Київ' },
+    label: { en: 'Baseina St, 21B', ua: 'вул. Басейна, 21Б' },
     caption: { en: 'Headquarters & logistics hub', ua: 'Штаб-квартира та логістичний хаб' },
   },
 ];
@@ -364,7 +364,7 @@ export default function AutomotivePage() {
             className="h-full w-full object-cover opacity-60"
             poster="/images/eventuri/carbon-intake.jpg"
           >
-            <source src="/videos/hero-main.mp4" type="video/mp4" />
+            <source src="/videos/rollsbg.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
@@ -390,7 +390,9 @@ export default function AutomotivePage() {
                 key={stat.label.en}
                 className="flex flex-col items-center text-center rounded-2xl border border-white/10 bg-white/[0.02] p-4 backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] sm:rounded-3xl sm:p-5 md:p-6"
               >
-                <div className={`${typography.statValue} font-light text-white`}>{stat.value}</div>
+                <div className={`${typography.statValue} font-light text-white`}>
+                  {typeof stat.value === 'string' ? stat.value : stat.value[locale]}
+                </div>
                 <div className="mt-1.5 text-[10px] uppercase tracking-[0.3em] text-white/60 sm:mt-2 sm:text-xs sm:tracking-[0.4em]">{stat.label[locale]}</div>
                 <p className="mt-2 text-xs text-white/60 sm:mt-3 sm:text-sm">{stat.caption[locale]}</p>
               </div>

@@ -126,4 +126,14 @@
             mask-composite: exclude;
     pointer-events: none;
   }
+
+  .locale-ua {
+    --font-stack-sans: var(--font-manrope), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-stack-display: var(--font-manrope), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: var(--font-stack-sans);
+  }
+
+  .locale-ua body {
+    font-feature-settings: normal;
+  }
 }

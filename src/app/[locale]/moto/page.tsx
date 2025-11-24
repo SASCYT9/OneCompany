@@ -70,8 +70,8 @@ const heroStats: { value: LocalizedCopy | string; label: LocalizedCopy; caption:
     caption: { en: 'Installation & setup', ua: 'Встановлення та налаштування' },
   },
   {
-    value: '21B',
-    label: { en: 'Baseina St · Kyiv', ua: 'вул. Басейна, 21Б' },
+    value: { en: 'Kyiv', ua: 'Київ' },
+    label: { en: 'Baseina St, 21B', ua: 'вул. Басейна, 21Б' },
     caption: { en: 'Headquarters & logistics hub', ua: 'Штаб-квартира та логістичний хаб' },
   },
 ];
@@ -463,7 +463,7 @@ export default function MotoPage() {
             className="h-full w-full object-cover opacity-60"
             poster="/images/eventuri/carbon-intake.jpg"
           >
-            <source src="/videos/hero-main.mp4" type="video/mp4" />
+            <source src="/videos/rollsbg.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
