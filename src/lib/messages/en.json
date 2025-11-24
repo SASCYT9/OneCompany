@@ -336,24 +336,24 @@
       "title": "Milestones",
       "events": {
         "2007": {
-          "title": "Origins",
-          "description": "ONE COMPANY is founded in Kyiv as a bespoke sourcing outfit for European tuning houses."
+          "title": "USA Fulfillment Center",
+          "description": "Dedicated warehouse and logistics hub for consolidating shipments from North America."
         },
         "2012": {
-          "title": "Motorcycle division",
-          "description": "Launch of the moto practice with dedicated partner importers for Ducati, BMW, and KTM builds."
+          "title": "Europe Fulfillment Center",
+          "description": "Centralized order collection from European factories with quality control."
         },
         "2016": {
-          "title": "Global logistics",
-          "description": "First consolidated warehouse program enables climate-controlled storage and QC before delivery."
+          "title": "Installation Partners",
+          "description": "Development of a network of certified stations worldwide for professional installation."
         },
         "2020": {
-          "title": "Digital showroom",
-          "description": "Remote visualization decks and virtual consultations make premium tuning accessible worldwide."
+          "title": "Direct DHL Delivery",
+          "description": "Launch of door-to-door express delivery for clients around the globe."
         },
         "2024": {
-          "title": "Importer expansion",
-          "description": "Integrated support program spans automotive, moto, and lifestyle accessories under one ecosystem."
+          "title": "Consulting & Selection",
+          "description": "Expert support: from concept and component selection to full project organization."
         }
       }
     },
