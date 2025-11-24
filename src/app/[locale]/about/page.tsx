@@ -107,13 +107,13 @@ const AboutPage: React.FC = () => {
   ];
 
   return (
-    <div className="relative overflow-hidden bg-black text-zinc-100">
+    <div className="relative overflow-hidden text-zinc-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.1)_0%,_transparent_55%)]" />
       <div className="pointer-events-none absolute inset-y-0 right-[-200px] w-[480px] bg-[radial-gradient(circle,_rgba(255,255,255,0.05)_0%,_transparent_70%)] blur-3xl" />
 
       {/* Hero */}
       <section className="relative flex min-h-[90vh] flex-col justify-center px-6 py-24 md:px-10">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/80 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 to-transparent" />
         <div className="relative z-10 mx-auto w-full max-w-6xl">
           <motion.p
             initial={{ opacity: 0, y: 10 }}
