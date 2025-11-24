@@ -157,15 +157,15 @@ const AboutPage: React.FC = () => {
 
       {/* Stats */}
       <section className="relative px-6 py-16 md:px-10">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500 lg:p-12 md:flex-row md:items-center">
-          <h2 className="text-2xl font-light text-white md:w-1/3">{t('stats.title')}</h2>
-          <div className="grid flex-1 grid-cols-2 gap-8 md:grid-cols-4">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500 lg:p-12">
+          <h2 className="text-3xl font-light text-white">{t('stats.title')}</h2>
+          <div className="grid w-full grid-cols-2 gap-8 md:grid-cols-4">
             {stats.map((stat) => (
               <div key={stat.label} className="flex flex-col">
-                <span className="text-4xl font-extralight text-white">
+                <span className="text-4xl font-extralight text-white sm:text-5xl">
                   {stat.value}
                 </span>
-                <span className="mt-3 text-sm uppercase tracking-[0.25em] text-white/60">
+                <span className="mt-4 text-xs uppercase tracking-[0.2em] text-white/60 text-pretty">
                   {stat.label}
                 </span>
               </div>
