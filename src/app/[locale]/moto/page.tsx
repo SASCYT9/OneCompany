@@ -585,7 +585,7 @@ export default function MotoPage() {
                       src={logoSrc}
                       alt={brand.name}
                       fill
-                      className={`object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] ${isDarkLogo(logoSrc) ? 'brightness-0 invert' : ''}`}
+                      className="object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] brightness-0 invert"
                       sizes="(max-width: 768px) 100vw, 300px"
                       unoptimized
                     />
@@ -636,7 +636,7 @@ export default function MotoPage() {
                     src={getBrandLogo(selectedBrand.name)}
                     alt={selectedBrand.name}
                     fill
-                    className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''}`}
+                    className="object-contain brightness-0 invert"
                     sizes="160px"
                     unoptimized
                   />
@@ -828,7 +828,7 @@ export default function MotoPage() {
                       src={getBrandLogo(brand.name)}
                       alt={brand.name}
                       fill
-                      className={`object-contain ${isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''}`}
+                      className="object-contain brightness-0 invert"
                       sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                       unoptimized
                     />

@@ -547,7 +547,6 @@ export default function AutomotivePage() {
               const subcategory = getBrandSubcategory(brand);
               const collections = getBrandCollections(brand.name);
               const logoSrc = getBrandLogo(brand.name);
-              const isDark = isDarkLogo(logoSrc);
 
               return (
                 <motion.button
@@ -577,7 +576,7 @@ export default function AutomotivePage() {
                       src={logoSrc}
                       alt={brand.name}
                       fill
-                      className={`object-contain ${isDark ? 'brightness-0 invert' : ''}`}
+                      className={`object-contain ${isDarkLogo(logoSrc) ? 'brightness-0 invert' : ''}`}
                       sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                       unoptimized
                     />
