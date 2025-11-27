@@ -455,109 +455,287 @@ export default function AutomotivePage() {
         </div>
       </section>
 
-      <section className="relative py-20 sm:py-24 md:py-32">
-        {/* Clean background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/50 to-black" />
+      {/* BENTO GRID - Premium Brand Showcase */}
+      <section className="relative py-20 sm:py-28 md:py-36 overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 bg-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.03),_transparent_50%)]" />
         
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
           {/* Header */}
-          <div className="mb-12 text-center sm:mb-16">
-            <p className="text-xs uppercase tracking-[0.3em] text-white/50 sm:text-sm">
+          <div className="mb-12 sm:mb-16 md:mb-20">
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-xs uppercase tracking-[0.4em] text-zinc-500 sm:text-sm"
+            >
               {t('featuredBrands')}
-            </p>
-            <h2 className={`mt-3 font-light text-white ${typography.sectionHeading}`}>
-              {locale === 'ua' ? 'Топ бренди' : 'Top Brands'}
-            </h2>
+            </motion.p>
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="mt-4 text-4xl font-light text-white sm:text-5xl md:text-6xl"
+            >
+              {locale === 'ua' ? 'Бренди світового рівня' : 'World-class brands'}
+            </motion.h2>
           </div>
           
-          {/* Cards Grid - 2x4 */}
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4 lg:gap-8">
-            {topBrands.map((brand, index) => {
-              const logoSrc = getBrandLogo(brand.name);
-              const isPlaceholder = logoSrc === '/logos/placeholder.svg';
-              const isDark = isDarkLogo(logoSrc);
-              const meta = getBrandMetadata(brand.name);
-              const country = meta ? getLocalizedCountry(meta.country, locale) : '';
+          {/* Bento Grid */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 md:grid-rows-3 lg:gap-5">
+            
+            {/* Card 1 - Akrapovic - Large Left */}
+            <motion.button
+              onClick={() => setSelectedBrand(topBrands[0])}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              whileHover={{ scale: 1.02 }}
+              className="group relative col-span-2 row-span-2 cursor-pointer overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-900 to-zinc-950 p-6 text-left sm:p-8 md:p-10"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-red-500/10 blur-3xl opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
               
-              return (
-                <motion.button
-                  key={brand.name}
-                  onClick={() => setSelectedBrand(brand)}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
-                  whileHover={{ y: -8, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="group relative cursor-pointer text-left"
-                >
-                  {/* Card */}
-                  <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-800/80 sm:rounded-3xl">
-                    
-                    {/* Logo Area - Large & Visible */}
-                    <div className="relative flex h-40 items-center justify-center bg-gradient-to-b from-zinc-800/50 to-zinc-900 p-6 sm:h-48 sm:p-8">
-                      {/* Subtle glow behind logo */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="h-24 w-24 rounded-full bg-white/5 blur-2xl transition-all duration-500 group-hover:bg-white/10 group-hover:scale-150" />
-                      </div>
-                      
-                      {isPlaceholder ? (
-                        <span className="relative text-2xl font-bold uppercase tracking-wider text-white/60 sm:text-3xl">
-                          {brand.name}
-                        </span>
-                      ) : (
-                        <div className="relative h-16 w-full max-w-[160px] sm:h-20 sm:max-w-[180px]">
-                          <Image
-                            src={logoSrc}
-                            alt={brand.name}
-                            fill
-                            className={`object-contain transition-all duration-300 ${
-                              isDark 
-                                ? 'brightness-0 invert opacity-80 group-hover:opacity-100' 
-                                : 'opacity-90 group-hover:opacity-100'
-                            }`}
-                            sizes="180px"
-                            unoptimized
-                          />
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Info Bar */}
-                    <div className="flex items-center justify-between border-t border-zinc-800 bg-zinc-900/80 px-4 py-3 sm:px-5 sm:py-4">
-                      <div>
-                        <p className="font-medium text-white text-sm sm:text-base">
-                          {brand.name}
-                        </p>
-                        {country && (
-                          <p className="mt-0.5 text-xs text-zinc-500 uppercase tracking-wide">
-                            {country}
-                          </p>
-                        )}
-                      </div>
-                      
-                      {/* Arrow */}
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 transition-all duration-300 group-hover:bg-white sm:h-10 sm:w-10">
-                        <svg 
-                          className="h-4 w-4 text-zinc-400 transition-all duration-300 group-hover:text-black group-hover:-rotate-45" 
-                          fill="none" 
-                          viewBox="0 0 24 24" 
-                          stroke="currentColor" 
-                          strokeWidth={2}
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </div>
+              <div className="relative flex h-full flex-col">
+                <div className="flex-1 flex items-center justify-center py-8">
+                  <div className="relative h-24 w-full max-w-[280px] sm:h-32 md:h-40">
+                    <Image
+                      src={getBrandLogo('Akrapovic')}
+                      alt="Akrapovic"
+                      fill
+                      className="object-contain opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105"
+                      unoptimized
+                    />
                   </div>
-                </motion.button>
-              );
-            })}
+                </div>
+                <div className="mt-auto">
+                  <p className="text-2xl font-medium text-white sm:text-3xl">Akrapovic</p>
+                  <p className="mt-1 text-sm text-zinc-500 uppercase tracking-wider">{locale === 'ua' ? 'Словенія · Вихлопні системи' : 'Slovenia · Exhaust Systems'}</p>
+                </div>
+              </div>
+              
+              <div className="absolute bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 backdrop-blur transition-all duration-300 group-hover:bg-white group-hover:scale-110 sm:bottom-8 sm:right-8">
+                <svg className="h-5 w-5 text-white transition-all duration-300 group-hover:text-black group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </div>
+            </motion.button>
+
+            {/* Card 2 - Eventuri */}
+            <motion.button
+              onClick={() => setSelectedBrand(topBrands[1])}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              whileHover={{ scale: 1.03 }}
+              className="group relative cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 p-5 text-left sm:p-6"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="flex h-full flex-col">
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="relative h-12 w-full max-w-[120px] sm:h-14">
+                    <Image src={getBrandLogo('Eventuri')} alt="Eventuri" fill className="object-contain brightness-0 invert opacity-80 group-hover:opacity-100 transition-opacity" unoptimized />
+                  </div>
+                </div>
+                <p className="mt-auto text-base font-medium text-white">Eventuri</p>
+                <p className="text-xs text-zinc-600 uppercase tracking-wider">{locale === 'ua' ? 'Велика Британія' : 'UK'}</p>
+              </div>
+            </motion.button>
+
+            {/* Card 3 - Brembo */}
+            <motion.button
+              onClick={() => setSelectedBrand(topBrands[2])}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.15 }}
+              whileHover={{ scale: 1.03 }}
+              className="group relative cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 p-5 text-left sm:p-6"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-red-600/15 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="flex h-full flex-col">
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="relative h-12 w-full max-w-[100px] sm:h-14">
+                    <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
+                  </div>
+                </div>
+                <p className="mt-auto text-base font-medium text-white">Brembo</p>
+                <p className="text-xs text-zinc-600 uppercase tracking-wider">{locale === 'ua' ? 'Італія' : 'Italy'}</p>
+              </div>
+            </motion.button>
+
+            {/* Card 4 - Vorsteiner */}
+            <motion.button
+              onClick={() => setSelectedBrand(topBrands[3])}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              whileHover={{ scale: 1.03 }}
+              className="group relative cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 p-5 text-left sm:p-6"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-zinc-600/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="flex h-full flex-col">
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="relative h-10 w-full max-w-[130px] sm:h-12">
+                    <Image src={getBrandLogo('Vorsteiner')} alt="Vorsteiner" fill className="object-contain brightness-0 invert opacity-80 group-hover:opacity-100 transition-opacity" unoptimized />
+                  </div>
+                </div>
+                <p className="mt-auto text-base font-medium text-white">Vorsteiner</p>
+                <p className="text-xs text-zinc-600 uppercase tracking-wider">{locale === 'ua' ? 'США' : 'USA'}</p>
+              </div>
+            </motion.button>
+
+            {/* Card 5 - Mansory - Large Right */}
+            <motion.button
+              onClick={() => setSelectedBrand(topBrands[7])}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.25 }}
+              whileHover={{ scale: 1.02 }}
+              className="group relative col-span-2 row-span-2 cursor-pointer overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-900 to-black p-6 text-left sm:p-8 md:p-10"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
+              
+              <div className="relative flex h-full flex-col">
+                <div className="flex-1 flex items-center justify-center py-8">
+                  <div className="relative h-20 w-full max-w-[260px] sm:h-28 md:h-32">
+                    <Image
+                      src={getBrandLogo('Mansory')}
+                      alt="Mansory"
+                      fill
+                      className="object-contain brightness-0 invert opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105"
+                      unoptimized
+                    />
+                  </div>
+                </div>
+                <div className="mt-auto">
+                  <p className="text-2xl font-medium text-white sm:text-3xl">Mansory</p>
+                  <p className="mt-1 text-sm text-zinc-500 uppercase tracking-wider">{locale === 'ua' ? 'Німеччина · Luxury Tuning' : 'Germany · Luxury Tuning'}</p>
+                </div>
+              </div>
+              
+              <div className="absolute bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 backdrop-blur transition-all duration-300 group-hover:bg-white group-hover:scale-110 sm:bottom-8 sm:right-8">
+                <svg className="h-5 w-5 text-white transition-all duration-300 group-hover:text-black group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </div>
+            </motion.button>
+
+            {/* Card 6 - Manhart */}
+            <motion.button
+              onClick={() => setSelectedBrand(topBrands[6])}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              whileHover={{ scale: 1.03 }}
+              className="group relative cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 p-5 text-left sm:p-6"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/15 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="flex h-full flex-col">
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="relative h-10 w-full max-w-[130px] sm:h-12">
+                    <Image src={getBrandLogo('Manhart')} alt="Manhart" fill className="object-contain opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
+                  </div>
+                </div>
+                <p className="mt-auto text-base font-medium text-white">Manhart</p>
+                <p className="text-xs text-zinc-600 uppercase tracking-wider">{locale === 'ua' ? 'Німеччина' : 'Germany'}</p>
+              </div>
+            </motion.button>
+
+            {/* Card 7 - CSF */}
+            <motion.button
+              onClick={() => setSelectedBrand(topBrands[5])}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+              whileHover={{ scale: 1.03 }}
+              className="group relative cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 p-5 text-left sm:p-6"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="flex h-full flex-col">
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="relative h-12 w-full max-w-[100px] sm:h-14">
+                    <Image src={getBrandLogo('CSF')} alt="CSF" fill className="object-contain opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
+                  </div>
+                </div>
+                <p className="mt-auto text-base font-medium text-white">CSF Racing</p>
+                <p className="text-xs text-zinc-600 uppercase tracking-wider">{locale === 'ua' ? 'США' : 'USA'}</p>
+              </div>
+            </motion.button>
+
+            {/* Card 8 - Armytrix */}
+            <motion.button
+              onClick={() => setSelectedBrand(topBrands[4])}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              whileHover={{ scale: 1.03 }}
+              className="group relative cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 p-5 text-left sm:p-6"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="flex h-full flex-col">
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="relative h-10 w-full max-w-[130px] sm:h-12">
+                    <Image src={getBrandLogo('Armytrix')} alt="Armytrix" fill className="object-contain brightness-0 invert opacity-80 group-hover:opacity-100 transition-opacity" unoptimized />
+                  </div>
+                </div>
+                <p className="mt-auto text-base font-medium text-white">Armytrix</p>
+                <p className="text-xs text-zinc-600 uppercase tracking-wider">{locale === 'ua' ? 'Тайвань' : 'Taiwan'}</p>
+              </div>
+            </motion.button>
+
+            {/* Card 9 - "+160 Brands" CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.45 }}
+              className="group relative col-span-2 cursor-pointer overflow-hidden rounded-3xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 text-left backdrop-blur-sm transition-all duration-500 hover:from-white/[0.12] hover:to-white/[0.04] sm:p-8"
+              onClick={() => {
+                const catalogSection = document.getElementById('brand-catalog');
+                catalogSection?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <div className="absolute inset-0 border border-white/10 rounded-3xl transition-colors duration-500 group-hover:border-white/20" />
+              
+              <div className="relative flex h-full items-center justify-between gap-6">
+                <div>
+                  <p className="text-5xl font-light text-white sm:text-6xl md:text-7xl">
+                    +160
+                  </p>
+                  <p className="mt-2 text-lg text-zinc-400 sm:text-xl">
+                    {locale === 'ua' ? 'преміум брендів' : 'premium brands'}
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-600">
+                    {locale === 'ua' ? 'Відкрити каталог →' : 'Explore catalog →'}
+                  </p>
+                </div>
+                
+                <div className="hidden sm:grid grid-cols-3 gap-2 opacity-40 group-hover:opacity-60 transition-opacity">
+                  {['Brabus', 'Novitec', 'Techart', 'HRE', 'BBS', 'Bilstein'].map((name) => (
+                    <div key={name} className="h-8 w-16 relative">
+                      <Image src={getBrandLogo(name)} alt={name} fill className="object-contain brightness-0 invert opacity-50" unoptimized />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+      <section id="brand-catalog" className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
         <div className="mb-8 text-center sm:mb-10 md:mb-12">
           <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
           <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>{t('allBrands')}</h2>
