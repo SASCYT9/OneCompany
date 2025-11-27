@@ -15,7 +15,7 @@ const hits: Record<string, { count: number; windowStart: number }> = {};
 type PartnershipRequestBody = {
   companyName: string;
   website?: string;
-  type: 'supplier' | 'dealer' | 'media';
+  type: 'sto' | 'dealer' | 'detailing' | 'tuning' | 'other';
   contactName: string;
   email: string;
   phone: string;

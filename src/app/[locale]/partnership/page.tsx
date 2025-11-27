@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader, Building2, Globe, User, Mail, Phone, FileText } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-type PartnershipType = "supplier" | "dealer" | "media" | "other";
+type PartnershipType = "sto" | "dealer" | "detailing" | "tuning" | "other";
 type FormState = "idle" | "loading" | "success" | "error";
 
 export default function PartnershipPage() {
@@ -17,7 +17,7 @@ export default function PartnershipPage() {
     contactPerson: "",
     email: "",
     phone: "",
-    type: "supplier" as PartnershipType,
+    type: "sto" as PartnershipType,
     message: "",
   });
   const [status, setStatus] = useState<FormState>("idle");
@@ -74,7 +74,7 @@ export default function PartnershipPage() {
           contactPerson: "",
           email: "",
           phone: "",
-          type: "supplier",
+          type: "sto",
           message: "",
         });
       } else {
@@ -140,7 +140,7 @@ export default function PartnershipPage() {
                     {t("form.typeLabel")}
                   </label>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    {(["supplier", "dealer", "media", "other"] as const).map((type) => (
+                    {(["sto", "dealer", "detailing", "tuning", "other"] as const).map((type) => (
                       <button
                         key={type}
                         type="button"

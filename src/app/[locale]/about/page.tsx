@@ -3,13 +3,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  ArrowUpRight,
   Layers,
   Network,
-  PackageCheck,
   Sparkles,
-  Wrench,
-  Workflow
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
@@ -26,10 +22,6 @@ const AboutPage: React.FC = () => {
     {
       value: t('stats.items.brands.value'),
       label: t('stats.items.brands.label'),
-    },
-    {
-      value: t('stats.items.projects.value'),
-      label: t('stats.items.projects.label'),
     },
     {
       value: t('stats.items.countries.value'),
@@ -55,29 +47,6 @@ const AboutPage: React.FC = () => {
     },
   ];
 
-  const capabilities = [
-    {
-      icon: <Sparkles className="h-6 w-6" />,
-      title: t('capabilities.items.consulting.title'),
-      description: t('capabilities.items.consulting.description'),
-    },
-    {
-      icon: <PackageCheck className="h-6 w-6" />,
-      title: t('capabilities.items.procurement.title'),
-      description: t('capabilities.items.procurement.description'),
-    },
-    {
-      icon: <Wrench className="h-6 w-6" />,
-      title: t('capabilities.items.installation.title'),
-      description: t('capabilities.items.installation.description'),
-    },
-    {
-      icon: <Workflow className="h-6 w-6" />,
-      title: t('capabilities.items.aftercare.title'),
-      description: t('capabilities.items.aftercare.description'),
-    },
-  ];
-
   const timeline = [
     {
       year: '2007',
@@ -85,9 +54,9 @@ const AboutPage: React.FC = () => {
       description: t('timeline.events.2007.description'),
     },
     {
-      year: '2012',
-      title: t('timeline.events.2012.title'),
-      description: t('timeline.events.2012.description'),
+      year: '2008',
+      title: t('timeline.events.2008.title'),
+      description: t('timeline.events.2008.description'),
     },
     {
       year: '2016',
@@ -95,14 +64,14 @@ const AboutPage: React.FC = () => {
       description: t('timeline.events.2016.description'),
     },
     {
-      year: '2020',
-      title: t('timeline.events.2020.title'),
-      description: t('timeline.events.2020.description'),
+      year: '2022',
+      title: t('timeline.events.2022.title'),
+      description: t('timeline.events.2022.description'),
     },
     {
-      year: '2024',
-      title: t('timeline.events.2024.title'),
-      description: t('timeline.events.2024.description'),
+      year: '2023',
+      title: t('timeline.events.2023.title'),
+      description: t('timeline.events.2023.description'),
     },
   ];
 
@@ -226,36 +195,6 @@ const AboutPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Capabilities */}
-      <section className="relative bg-white/[0.02] px-6 py-24 md:px-10">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-16 space-y-4 text-center">
-            <p className="text-sm uppercase tracking-[0.35em] text-white/60">{t('capabilities.title')}</p>
-            <h3 className="text-4xl font-extralight leading-tight text-white md:text-5xl">
-              {t('hero.eyebrow')}
-            </h3>
-          </div>
-          <div className="grid gap-8 md:grid-cols-2">
-            {capabilities.map((capability) => (
-              <motion.div
-                key={capability.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-500 hover:bg-white/[0.05] hover:border-white/20 hover:scale-[1.02]"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white group-hover:bg-white group-hover:text-black transition-colors">
-                  {capability.icon}
-                </div>
-                <p className="mt-6 text-2xl font-light text-white">{capability.title}</p>
-                <p className="mt-3 text-sm text-white/70">{capability.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Timeline */}
       <section className="px-6 py-24 md:px-10">
         <div className="mx-auto max-w-5xl">
@@ -280,45 +219,6 @@ const AboutPage: React.FC = () => {
                 <p className="mt-2 text-base text-white/70">{event.description}</p>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="px-6 pb-24 md:px-10">
-        <div className="mx-auto max-w-5xl rounded-3xl border border-white/10 bg-white/[0.02] p-12 text-center backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500">
-          <motion.h3
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-4xl font-extralight text-white text-balance"
-          >
-            {t('cta.title')}
-          </motion.h3>
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mx-auto mt-6 max-w-3xl text-lg font-light text-white/70 text-pretty"
-          >
-            {t('cta.subtitle')}
-          </motion.p>
-          <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <Link
-              href={`/${locale}/contact`}
-              className="inline-flex items-center justify-center rounded-full border border-white bg-white px-8 py-3 text-sm font-semibold uppercase tracking-wide text-black transition hover:bg-transparent hover:text-white"
-            >
-              {t('cta.primaryCta')}
-            </Link>
-            <Link
-              href={`/${locale}/brands`}
-              className="inline-flex items-center justify-center rounded-full border border-white/30 px-8 py-3 text-sm uppercase tracking-wide text-white transition hover:border-white"
-            >
-              {t('cta.secondaryCta')}
-              <ArrowUpRight className="ml-3 h-4 w-4" />
-            </Link>
           </div>
         </div>
       </section>

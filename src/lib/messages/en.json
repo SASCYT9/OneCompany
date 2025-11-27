@@ -261,8 +261,8 @@
   "aboutPage": {
     "hero": {
       "eyebrow": "Importer since 2007",
-      "title": "We engineer flagship builds for ourselves.",
-      "subtitle": "ONE COMPANY curates 200+ premium brands, integrates them with certified partners, and delivers white-glove support across 30+ countries.",
+      "title": "We engineer flagship builds.",
+      "subtitle": "ONE COMPANY unites 200+ premium brands and uses its experience for the best solution.",
       "primaryCta": "Speak with a specialist",
       "secondaryCta": "Browse categories"
     },
@@ -277,22 +277,18 @@
           "value": "200+",
           "label": "Curated performance and lifestyle brands"
         },
-        "projects": {
-          "value": "400+",
-          "label": "Bespoke automotive & moto builds"
-        },
         "countries": {
-          "value": "30+",
+          "value": "5+",
           "label": "Countries served with personal delivery"
         }
       }
     },
     "narrative": {
-      "title": "A boutique operation with global reach",
-      "paragraph1": "We started as enthusiasts building dream cars for friends. Today, we orchestrate complex performance programs for collectors, athletes, and brand houses.",
-      "paragraph2": "Our team obsesses over compatibility, lead times, and installation geometry so that every component lands flawlessly and performs as promised.",
-      "paragraph3": "This is not e-commerce. This is partnership—transparent sourcing, engineering rigor, and handover rituals that feel as premium as the parts themselves.",
-      "signature": "ONE COMPANY importer"
+      "title": "Your partner with global coverage",
+      "paragraph1": "We started as enthusiasts dreaming about fast cars. Today we are a team of professionals managing complex tuning programs to meet demand in various countries around the world.",
+      "paragraph2": "The team 24/7 controls supply conditions, compatibility and timelines to make your dream project flawless.",
+      "paragraph3": "This is not e-commerce. This is partnership: transparent terms, engineering discipline and premium service.",
+      "signature": "ONE COMPANY"
     },
     "pillars": {
       "title": "How we deliver",
@@ -303,11 +299,11 @@
         },
         "integration": {
           "title": "Integration & visualization",
-          "description": "CAD reviews, fitment checks, and visualization decks ensure every upgrade complements the original design language."
+          "description": "Fitment and visual presentations to select the perfect solution."
         },
         "partnerNetwork": {
           "title": "Partner importer network",
-          "description": "Certified body, paint, and performance partners across Europe, the US, and the Middle East for flawless execution."
+          "description": "Certified body, paint, and performance partners worldwide."
         }
       }
     },
@@ -337,21 +333,21 @@
       "events": {
         "2007": {
           "title": "Origins",
-          "description": "ONE COMPANY is founded in Kyiv as a bespoke sourcing outfit for European tuning houses."
+          "description": "ONE COMPANY is founded in Kyiv as a tuning procurement company."
         },
-        "2012": {
+        "2008": {
           "title": "USA Fulfillment Center",
           "description": "Dedicated warehouse and logistics hub for consolidating shipments from North America."
         },
         "2016": {
           "title": "Europe Fulfillment Center",
-          "description": "Centralized order collection from European factories with quality control."
+          "description": "Centralized order collection from European manufacturers and further dispatch."
         },
-        "2020": {
+        "2022": {
           "title": "Global Network",
           "description": "Installation partners worldwide and direct door-to-door DHL delivery."
         },
-        "2024": {
+        "2023": {
           "title": "Consulting & Selection",
           "description": "Expert support: from concept and component selection to full project organization."
         }
@@ -378,7 +374,7 @@
       "hero": {
         "eyebrow": "Expert inquiry",
         "heading": "Get in touch",
-        "subheading": "Bespoke selection for your car or motorcycle. Share the chassis, wishlist, and deadline—we will coordinate the program."
+        "subheading": "We will select the optimal kit for your car or motorcycle. Specify make, model, year and preferences — we will provide a solution."
       },
       "info": {
         "title": "Contact information",
@@ -435,14 +431,15 @@
     "hero": {
       "eyebrow": "Become a Partner",
       "heading": "Grow Your Business With Us",
-      "subheading": "Join the global OneCompany network. We offer favorable conditions for suppliers, dealers, and media partners."
+      "subheading": "Join the global OneCompany network. We offer favorable conditions for service stations, dealers, detailing studios and tuning shops."
     },
     "form": {
       "typeLabel": "Partnership Type",
       "types": {
-        "supplier": "Supplier",
-        "dealer": "Dealer",
-        "media": "Media",
+        "sto": "Service Station",
+        "dealer": "Auto/Moto Dealer",
+        "detailing": "Detailing Studio",
+        "tuning": "Tuning Atelier",
         "other": "Other"
       },
       "companyLabel": "Company Name",
