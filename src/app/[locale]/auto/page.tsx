@@ -32,16 +32,12 @@ type BrandStory = {
 const TOP_AUTOMOTIVE_BRANDS = [
   'Akrapovic',
   'Eventuri',
-  'KW',
-  'HRE',
   'Brembo',
   'Vorsteiner',
   'Armytrix',
   'CSF',
   'Manhart',
-  'Renntech',
-  'Velos Wheels',
-  'Weistec',
+  'Mansory',
 ];
 
 const heroStats: { value: string | LocalizedCopy; label: LocalizedCopy; caption: LocalizedCopy }[] = [
@@ -459,188 +455,100 @@ export default function AutomotivePage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden border-y border-white/5 py-16 sm:py-20 md:py-28">
-        {/* Ultimate ambient background */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,_rgba(120,119,198,0.15),_transparent)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(255,255,255,0.02)_0%,_transparent_60%)]" />
-          <div className="absolute left-0 top-0 h-full w-1/2 bg-gradient-to-r from-purple-500/[0.03] to-transparent" />
-          <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-blue-500/[0.03] to-transparent" />
-          {/* Floating orbs */}
-          <div className="absolute -left-20 top-1/3 h-96 w-96 animate-pulse rounded-full bg-violet-600/[0.08] blur-[150px]" />
-          <div className="absolute -right-20 bottom-1/3 h-96 w-96 animate-pulse rounded-full bg-cyan-500/[0.08] blur-[150px]" style={{ animationDelay: '1s' }} />
-          <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/[0.03] blur-[100px]" />
-        </div>
+      <section className="relative py-20 sm:py-24 md:py-32">
+        {/* Clean background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/50 to-black" />
         
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="mb-12 text-center sm:mb-16 md:mb-20">
-            <motion.p 
-              initial={{ opacity: 0, y: 10, filter: 'blur(10px)' }}
-              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="text-[9px] uppercase tracking-[0.5em] text-white/40 sm:text-[10px] sm:tracking-[0.6em]"
-            >
+          {/* Header */}
+          <div className="mb-12 text-center sm:mb-16">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/50 sm:text-sm">
               {t('featuredBrands')}
-            </motion.p>
-            <motion.h2 
-              initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
-              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1, duration: 0.8 }}
-              className={`mt-4 font-extralight text-white text-balance ${typography.sectionHeading}`}
-            >
-              {locale === 'ua' ? 'Ікони, що задають темп' : 'Icons that set the tempo'}
-            </motion.h2>
+            </p>
+            <h2 className={`mt-3 font-light text-white ${typography.sectionHeading}`}>
+              {locale === 'ua' ? 'Топ бренди' : 'Top Brands'}
+            </h2>
           </div>
           
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {/* Cards Grid - 2x4 */}
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4 lg:gap-8">
             {topBrands.map((brand, index) => {
               const logoSrc = getBrandLogo(brand.name);
               const isPlaceholder = logoSrc === '/logos/placeholder.svg';
               const isDark = isDarkLogo(logoSrc);
-              
-              // Unique gradient colors per card
-              const gradientColors = [
-                { from: 'rgba(139,92,246,0.15)', to: 'rgba(59,130,246,0.08)' },   // Purple to Blue
-                { from: 'rgba(236,72,153,0.12)', to: 'rgba(168,85,247,0.08)' },   // Pink to Purple
-                { from: 'rgba(34,211,238,0.12)', to: 'rgba(59,130,246,0.08)' },   // Cyan to Blue
-                { from: 'rgba(251,191,36,0.1)', to: 'rgba(251,146,60,0.06)' },    // Amber to Orange
-                { from: 'rgba(52,211,153,0.12)', to: 'rgba(34,211,238,0.08)' },   // Emerald to Cyan
-                { from: 'rgba(244,114,182,0.12)', to: 'rgba(251,113,133,0.08)' }, // Pink to Rose
-                { from: 'rgba(99,102,241,0.15)', to: 'rgba(139,92,246,0.08)' },   // Indigo to Violet
-                { from: 'rgba(167,139,250,0.12)', to: 'rgba(196,181,253,0.06)' }, // Violet
-                { from: 'rgba(56,189,248,0.12)', to: 'rgba(14,165,233,0.06)' },   // Sky
-                { from: 'rgba(74,222,128,0.1)', to: 'rgba(34,197,94,0.06)' },     // Green
-                { from: 'rgba(251,146,60,0.12)', to: 'rgba(249,115,22,0.06)' },   // Orange
-                { from: 'rgba(248,113,113,0.1)', to: 'rgba(239,68,68,0.06)' },    // Red
-              ];
-              const colors = gradientColors[index % gradientColors.length];
+              const meta = getBrandMetadata(brand.name);
+              const country = meta ? getLocalizedCountry(meta.country, locale) : '';
               
               return (
                 <motion.button
                   key={brand.name}
                   onClick={() => setSelectedBrand(brand)}
-                  initial={{ opacity: 0, y: 60, rotateX: -15 }}
-                  whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ 
-                    delay: index * 0.1, 
-                    duration: 0.9,
-                    ease: [0.16, 1, 0.3, 1]
-                  }}
-                  whileHover={{ y: -20, scale: 1.03, rotateY: 5 }}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                  whileHover={{ y: -8, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
-                  className="group relative cursor-pointer"
+                  className="group relative cursor-pointer text-left"
                 >
-                  {/* Multi-layer glow effect */}
-                  <div 
-                    className="pointer-events-none absolute -inset-6 rounded-[48px] opacity-0 blur-3xl transition-all duration-700 group-hover:opacity-100"
-                    style={{ background: `radial-gradient(ellipse at center, ${colors.from}, transparent 70%)` }}
-                  />
-                  <div className="pointer-events-none absolute -inset-3 rounded-[44px] bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 blur-xl transition-all duration-500 group-hover:opacity-60" />
-                  
-                  {/* Main card container */}
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-[36px] border border-white/[0.06] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] transition-all duration-700 group-hover:border-white/20 group-hover:shadow-[0_35px_70px_-15px_rgba(0,0,0,0.9)]">
+                  {/* Card */}
+                  <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-800/80 sm:rounded-3xl">
                     
-                    {/* Glass background layers */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/[0.08] via-white/[0.02] to-black/20 backdrop-blur-2xl" />
-                    <div 
-                      className="absolute inset-0 opacity-0 transition-opacity duration-700 group-hover:opacity-100"
-                      style={{ background: `linear-gradient(135deg, ${colors.from}, transparent 60%)` }}
-                    />
-                    
-                    {/* Noise texture overlay */}
-                    <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }} />
-                    
-                    {/* Animated shimmer */}
-                    <div className="absolute inset-0 translate-x-[-150%] skew-x-[-20deg] bg-gradient-to-r from-transparent via-white/[0.1] to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%]" />
-                    
-                    {/* Top highlight arc */}
-                    <div className="absolute -top-20 left-1/2 h-40 w-[120%] -translate-x-1/2 rounded-[100%] bg-gradient-to-b from-white/[0.15] to-transparent opacity-0 blur-2xl transition-opacity duration-700 group-hover:opacity-100" />
-                    
-                    {/* Content wrapper with 3D depth */}
-                    <div className="relative flex h-full flex-col p-7 sm:p-8">
-                      
-                      {/* Floating particles (decorative) */}
-                      <div className="absolute right-4 top-4 h-1 w-1 animate-pulse rounded-full bg-white/30" style={{ animationDuration: '2s' }} />
-                      <div className="absolute right-8 top-8 h-0.5 w-0.5 animate-pulse rounded-full bg-white/20" style={{ animationDuration: '3s', animationDelay: '0.5s' }} />
-                      <div className="absolute left-6 bottom-24 h-0.5 w-0.5 animate-pulse rounded-full bg-white/20" style={{ animationDuration: '2.5s', animationDelay: '1s' }} />
-                      
-                      {/* Logo section - central focus */}
-                      <div className="flex flex-1 items-center justify-center py-4">
-                        <div className="relative h-24 w-full max-w-[200px] transition-all duration-700 ease-out group-hover:scale-115 group-hover:drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                          {isPlaceholder ? (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <span className="text-3xl font-extralight uppercase tracking-[0.25em] text-white/25 transition-all duration-500 group-hover:text-white/50 group-hover:tracking-[0.35em]">
-                                {brand.name.split(' ')[0]}
-                              </span>
-                            </div>
-                          ) : (
-                            <Image
-                              src={logoSrc}
-                              alt={brand.name}
-                              fill
-                              className={`object-contain transition-all duration-700 ${isDark ? 'brightness-0 invert opacity-50 group-hover:opacity-95' : 'opacity-60 group-hover:opacity-100'}`}
-                              sizes="200px"
-                              unoptimized
-                            />
-                          )}
-                        </div>
+                    {/* Logo Area - Large & Visible */}
+                    <div className="relative flex h-40 items-center justify-center bg-gradient-to-b from-zinc-800/50 to-zinc-900 p-6 sm:h-48 sm:p-8">
+                      {/* Subtle glow behind logo */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="h-24 w-24 rounded-full bg-white/5 blur-2xl transition-all duration-500 group-hover:bg-white/10 group-hover:scale-150" />
                       </div>
                       
-                      {/* Bottom content zone */}
-                      <div className="mt-auto space-y-5">
-                        {/* Animated separator */}
-                        <div className="relative h-px w-full overflow-hidden">
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-                          <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
+                      {isPlaceholder ? (
+                        <span className="relative text-2xl font-bold uppercase tracking-wider text-white/60 sm:text-3xl">
+                          {brand.name}
+                        </span>
+                      ) : (
+                        <div className="relative h-16 w-full max-w-[160px] sm:h-20 sm:max-w-[180px]">
+                          <Image
+                            src={logoSrc}
+                            alt={brand.name}
+                            fill
+                            className={`object-contain transition-all duration-300 ${
+                              isDark 
+                                ? 'brightness-0 invert opacity-80 group-hover:opacity-100' 
+                                : 'opacity-90 group-hover:opacity-100'
+                            }`}
+                            sizes="180px"
+                            unoptimized
+                          />
                         </div>
-                        
-                        {/* Brand info + Action */}
-                        <div className="flex items-end justify-between gap-3">
-                          <div className="space-y-1.5">
-                            <p className="text-base font-light tracking-wide text-white/95 transition-all duration-500 group-hover:text-white sm:text-lg">
-                              {brand.name}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <span className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-r from-white/40 to-white/20 transition-all duration-500 group-hover:from-white/80 group-hover:to-white/40 group-hover:shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-white/35 transition-colors duration-500 group-hover:text-white/60 sm:text-[11px]">
-                                {(() => {
-                                  const meta = getBrandMetadata(brand.name);
-                                  return meta ? getLocalizedCountry(meta.country, locale) : 'Premium';
-                                })()}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          {/* Morphing action button */}
-                          <div className="relative">
-                            <div className="absolute inset-0 rounded-full bg-white/20 blur-xl opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-150" />
-                            <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl transition-all duration-500 group-hover:border-white/40 group-hover:bg-white group-hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] sm:h-14 sm:w-14">
-                              <svg 
-                                className="h-4 w-4 text-white/40 transition-all duration-500 group-hover:-rotate-45 group-hover:scale-110 group-hover:text-black sm:h-5 sm:w-5" 
-                                fill="none" 
-                                viewBox="0 0 24 24" 
-                                stroke="currentColor" 
-                                strokeWidth={1.5}
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      )}
                     </div>
                     
-                    {/* Edge highlights */}
-                    <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                    <div className="pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                    
-                    {/* Corner orb accent */}
-                    <div className="absolute -right-16 -top-16 h-32 w-32 rounded-full bg-gradient-to-br from-white/[0.15] to-transparent opacity-0 blur-2xl transition-all duration-700 group-hover:opacity-100 group-hover:scale-125" />
-                    <div className="absolute -bottom-10 -left-10 h-24 w-24 rounded-full opacity-0 blur-2xl transition-all duration-700 group-hover:opacity-80" style={{ background: colors.from }} />
+                    {/* Info Bar */}
+                    <div className="flex items-center justify-between border-t border-zinc-800 bg-zinc-900/80 px-4 py-3 sm:px-5 sm:py-4">
+                      <div>
+                        <p className="font-medium text-white text-sm sm:text-base">
+                          {brand.name}
+                        </p>
+                        {country && (
+                          <p className="mt-0.5 text-xs text-zinc-500 uppercase tracking-wide">
+                            {country}
+                          </p>
+                        )}
+                      </div>
+                      
+                      {/* Arrow */}
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 transition-all duration-300 group-hover:bg-white sm:h-10 sm:w-10">
+                        <svg 
+                          className="h-4 w-4 text-zinc-400 transition-all duration-300 group-hover:text-black group-hover:-rotate-45" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor" 
+                          strokeWidth={2}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </motion.button>
               );
