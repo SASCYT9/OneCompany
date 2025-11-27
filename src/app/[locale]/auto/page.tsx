@@ -455,278 +455,383 @@ export default function AutomotivePage() {
         </div>
       </section>
 
-      {/* BENTO GRID - Premium Brand Showcase */}
-      <section className="relative py-20 sm:py-28 md:py-36 overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0 bg-black" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.03),_transparent_50%)]" />
+      {/* PREMIUM BRAND SHOWCASE - Glassmorphism Design */}
+      <section className="relative py-24 sm:py-32 md:py-40 overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(120,119,198,0.15),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,100,50,0.08),transparent_50%)]" />
         
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+        {/* Floating Orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-orange-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+        
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="mb-12 sm:mb-16 md:mb-20">
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
+          <div className="mb-16 sm:mb-20 md:mb-24 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-xs uppercase tracking-[0.4em] text-zinc-500 sm:text-sm"
+              className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-4 py-2 mb-6"
             >
-              {t('featuredBrands')}
-            </motion.p>
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+              </span>
+              <span className="text-xs uppercase tracking-widest text-zinc-400">
+                {locale === 'ua' ? 'Офіційний дистриб\'ютор' : 'Official distributor'}
+              </span>
+            </motion.div>
+            
             <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="mt-4 text-4xl font-light text-white sm:text-5xl md:text-6xl"
+              className="text-4xl font-extralight tracking-tight text-white sm:text-5xl md:text-7xl"
             >
-              {locale === 'ua' ? 'Бренди світового рівня' : 'World-class brands'}
+              {locale === 'ua' ? 'Легендарні' : 'Legendary'}
+              <span className="block mt-2 bg-gradient-to-r from-white via-zinc-300 to-zinc-500 bg-clip-text text-transparent">
+                {locale === 'ua' ? 'бренди' : 'brands'}
+              </span>
             </motion.h2>
           </div>
           
-          {/* Bento Grid */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 md:grid-rows-3 lg:gap-5">
+          {/* Premium Grid - Masonry Style */}
+          <div className="grid grid-cols-12 gap-4 sm:gap-5 lg:gap-6">
             
-            {/* Card 1 - Akrapovic - Large Left */}
+            {/* AKRAPOVIC - Hero Card */}
             <motion.button
               onClick={() => setSelectedBrand(topBrands[0])}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              whileHover={{ scale: 1.02 }}
-              className="group relative col-span-2 row-span-2 cursor-pointer overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-900 to-zinc-950 p-6 text-left sm:p-8 md:p-10"
+              transition={{ duration: 0.7 }}
+              className="group relative col-span-12 md:col-span-7 aspect-[2/1] md:aspect-[16/9] cursor-pointer overflow-hidden rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-red-500/10 blur-3xl opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
+              {/* Card Background with Gradient Border */}
+              <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-red-500/20 via-orange-500/10 to-transparent p-[1px]">
+                <div className="absolute inset-[1px] rounded-[calc(2rem-1px)] bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950" />
+              </div>
               
-              <div className="relative flex h-full flex-col">
-                <div className="flex-1 flex items-center justify-center py-8">
-                  <div className="relative h-24 w-full max-w-[280px] sm:h-32 md:h-40">
+              {/* Hover Glow */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                <div className="absolute -inset-1 bg-gradient-to-r from-red-500/30 via-orange-500/20 to-yellow-500/10 rounded-[2rem] blur-2xl" />
+              </div>
+              
+              {/* Content */}
+              <div className="relative h-full p-6 sm:p-8 md:p-10 flex flex-col">
+                {/* Top Label */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-red-400/80 font-medium">
+                    {locale === 'ua' ? '🇸🇮 Словенія' : '🇸🇮 Slovenia'}
+                  </span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-600">
+                    Exhaust
+                  </span>
+                </div>
+                
+                {/* Logo */}
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="relative w-full max-w-[320px] h-20 sm:h-28 md:h-36">
                     <Image
                       src={getBrandLogo('Akrapovic')}
                       alt="Akrapovic"
                       fill
-                      className="object-contain opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105"
+                      className="object-contain drop-shadow-[0_0_30px_rgba(255,100,50,0.3)] transition-transform duration-700 group-hover:scale-110"
                       unoptimized
                     />
                   </div>
                 </div>
-                <div className="mt-auto">
-                  <p className="text-2xl font-medium text-white sm:text-3xl">Akrapovic</p>
-                  <p className="mt-1 text-sm text-zinc-500 uppercase tracking-wider">{locale === 'ua' ? 'Словенія · Вихлопні системи' : 'Slovenia · Exhaust Systems'}</p>
-                </div>
-              </div>
-              
-              <div className="absolute bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 backdrop-blur transition-all duration-300 group-hover:bg-white group-hover:scale-110 sm:bottom-8 sm:right-8">
-                <svg className="h-5 w-5 text-white transition-all duration-300 group-hover:text-black group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </div>
-            </motion.button>
-
-            {/* Card 2 - Eventuri */}
-            <motion.button
-              onClick={() => setSelectedBrand(topBrands[1])}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              whileHover={{ scale: 1.03 }}
-              className="group relative cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 p-5 text-left sm:p-6"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="flex h-full flex-col">
-                <div className="flex-1 flex items-center justify-center py-4">
-                  <div className="relative h-12 w-full max-w-[120px] sm:h-14">
-                    <Image src={getBrandLogo('Eventuri')} alt="Eventuri" fill className="object-contain brightness-0 invert opacity-80 group-hover:opacity-100 transition-opacity" unoptimized />
+                
+                {/* Bottom */}
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-xl sm:text-2xl md:text-3xl font-light text-white">Akrapovic</p>
+                    <p className="text-xs sm:text-sm text-zinc-500 mt-1">{locale === 'ua' ? 'Титанові вихлопні системи' : 'Titanium exhaust systems'}</p>
+                  </div>
+                  <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-gradient-to-br from-red-500/20 to-orange-500/10 border border-red-500/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-red-500/40 group-hover:shadow-[0_0_30px_rgba(255,100,50,0.3)]">
+                    <svg className="h-5 w-5 sm:h-6 sm:w-6 text-red-400 transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                    </svg>
                   </div>
                 </div>
-                <p className="mt-auto text-base font-medium text-white">Eventuri</p>
-                <p className="text-xs text-zinc-600 uppercase tracking-wider">{locale === 'ua' ? 'Велика Британія' : 'UK'}</p>
               </div>
             </motion.button>
 
-            {/* Card 3 - Brembo */}
-            <motion.button
-              onClick={() => setSelectedBrand(topBrands[2])}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.15 }}
-              whileHover={{ scale: 1.03 }}
-              className="group relative cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 p-5 text-left sm:p-6"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-red-600/15 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="flex h-full flex-col">
-                <div className="flex-1 flex items-center justify-center py-4">
-                  <div className="relative h-12 w-full max-w-[100px] sm:h-14">
-                    <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
-                  </div>
-                </div>
-                <p className="mt-auto text-base font-medium text-white">Brembo</p>
-                <p className="text-xs text-zinc-600 uppercase tracking-wider">{locale === 'ua' ? 'Італія' : 'Italy'}</p>
-              </div>
-            </motion.button>
-
-            {/* Card 4 - Vorsteiner */}
-            <motion.button
-              onClick={() => setSelectedBrand(topBrands[3])}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              whileHover={{ scale: 1.03 }}
-              className="group relative cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 p-5 text-left sm:p-6"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-zinc-600/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="flex h-full flex-col">
-                <div className="flex-1 flex items-center justify-center py-4">
-                  <div className="relative h-10 w-full max-w-[130px] sm:h-12">
-                    <Image src={getBrandLogo('Vorsteiner')} alt="Vorsteiner" fill className="object-contain brightness-0 invert opacity-80 group-hover:opacity-100 transition-opacity" unoptimized />
-                  </div>
-                </div>
-                <p className="mt-auto text-base font-medium text-white">Vorsteiner</p>
-                <p className="text-xs text-zinc-600 uppercase tracking-wider">{locale === 'ua' ? 'США' : 'USA'}</p>
-              </div>
-            </motion.button>
-
-            {/* Card 5 - Mansory - Large Right */}
+            {/* MANSORY - Side Hero */}
             <motion.button
               onClick={() => setSelectedBrand(topBrands[7])}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.25 }}
-              whileHover={{ scale: 1.02 }}
-              className="group relative col-span-2 row-span-2 cursor-pointer overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-900 to-black p-6 text-left sm:p-8 md:p-10"
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="group relative col-span-12 md:col-span-5 aspect-[2/1] md:aspect-auto md:row-span-2 cursor-pointer overflow-hidden rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
+              {/* Gold Gradient Border */}
+              <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-amber-400/30 via-yellow-500/10 to-transparent p-[1px]">
+                <div className="absolute inset-[1px] rounded-[calc(2rem-1px)] bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
+              </div>
               
-              <div className="relative flex h-full flex-col">
-                <div className="flex-1 flex items-center justify-center py-8">
-                  <div className="relative h-20 w-full max-w-[260px] sm:h-28 md:h-32">
+              {/* Luxury Glow */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                <div className="absolute -inset-1 bg-gradient-to-br from-amber-500/20 via-yellow-500/10 to-transparent rounded-[2rem] blur-2xl" />
+              </div>
+              
+              {/* Content */}
+              <div className="relative h-full p-6 sm:p-8 flex flex-col">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-amber-400/80 font-medium">
+                    {locale === 'ua' ? '🇩🇪 Німеччина' : '🇩🇪 Germany'}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs uppercase tracking-widest text-amber-500/60 bg-amber-500/10 px-2 py-1 rounded-full">
+                    <span className="text-amber-400">★</span> Luxury
+                  </span>
+                </div>
+                
+                <div className="flex-1 flex items-center justify-center py-6 md:py-10">
+                  <div className="relative w-full max-w-[260px] h-16 sm:h-20 md:h-24">
                     <Image
                       src={getBrandLogo('Mansory')}
                       alt="Mansory"
                       fill
-                      className="object-contain brightness-0 invert opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105"
+                      className="object-contain brightness-0 invert opacity-90 drop-shadow-[0_0_20px_rgba(255,200,50,0.2)] transition-transform duration-700 group-hover:scale-110"
                       unoptimized
                     />
                   </div>
                 </div>
-                <div className="mt-auto">
-                  <p className="text-2xl font-medium text-white sm:text-3xl">Mansory</p>
-                  <p className="mt-1 text-sm text-zinc-500 uppercase tracking-wider">{locale === 'ua' ? 'Німеччина · Luxury Tuning' : 'Germany · Luxury Tuning'}</p>
+                
+                <div className="flex items-end justify-between mt-auto">
+                  <div>
+                    <p className="text-xl sm:text-2xl font-light text-white">Mansory</p>
+                    <p className="text-xs sm:text-sm text-zinc-500 mt-1">{locale === 'ua' ? 'Ексклюзивний тюнінг' : 'Exclusive tuning'}</p>
+                  </div>
+                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/20 to-yellow-500/10 border border-amber-500/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-amber-500/40">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                    </svg>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="absolute bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 backdrop-blur transition-all duration-300 group-hover:bg-white group-hover:scale-110 sm:bottom-8 sm:right-8">
-                <svg className="h-5 w-5 text-white transition-all duration-300 group-hover:text-black group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
               </div>
             </motion.button>
 
-            {/* Card 6 - Manhart */}
+            {/* MANHART */}
             <motion.button
               onClick={() => setSelectedBrand(topBrands[6])}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.15 }}
+              className="group relative col-span-6 sm:col-span-4 md:col-span-3 lg:col-span-2 aspect-square cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-yellow-500/20 to-transparent p-[1px]">
+                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className="relative h-full p-4 sm:p-5 flex flex-col">
+                <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-yellow-400/70">🇩🇪</span>
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="relative w-full h-10 sm:h-12">
+                    <Image src={getBrandLogo('Manhart')} alt="Manhart" fill className="object-contain transition-transform duration-500 group-hover:scale-110" unoptimized />
+                  </div>
+                </div>
+                <p className="text-sm sm:text-base font-medium text-white">Manhart</p>
+              </div>
+            </motion.button>
+
+            {/* BREMBO */}
+            <motion.button
+              onClick={() => setSelectedBrand(topBrands[2])}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="group relative col-span-6 sm:col-span-4 md:col-span-4 lg:col-span-3 aspect-[4/3] cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-red-600/30 to-transparent p-[1px]">
+                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-red-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className="relative h-full p-4 sm:p-5 flex flex-col">
+                <div className="flex justify-between items-start">
+                  <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-red-400/70">🇮🇹 {locale === 'ua' ? 'Італія' : 'Italy'}</span>
+                  <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-zinc-600">Brakes</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="relative w-full max-w-[120px] h-12 sm:h-16">
+                    <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain transition-transform duration-500 group-hover:scale-110" unoptimized />
+                  </div>
+                </div>
+                <p className="text-sm sm:text-base font-medium text-white">Brembo</p>
+              </div>
+            </motion.button>
+
+            {/* EVENTURI */}
+            <motion.button
+              onClick={() => setSelectedBrand(topBrands[1])}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.25 }}
+              className="group relative col-span-6 sm:col-span-4 md:col-span-3 lg:col-span-2 aspect-square cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-blue-500/20 to-transparent p-[1px]">
+                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className="relative h-full p-4 sm:p-5 flex flex-col">
+                <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-blue-400/70">🇬🇧</span>
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="relative w-full h-10 sm:h-12">
+                    <Image src={getBrandLogo('Eventuri')} alt="Eventuri" fill className="object-contain brightness-0 invert opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                  </div>
+                </div>
+                <p className="text-sm sm:text-base font-medium text-white">Eventuri</p>
+              </div>
+            </motion.button>
+
+            {/* VORSTEINER */}
+            <motion.button
+              onClick={() => setSelectedBrand(topBrands[3])}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              whileHover={{ scale: 1.03 }}
-              className="group relative cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 p-5 text-left sm:p-6"
+              className="group relative col-span-6 sm:col-span-4 md:col-span-4 aspect-[4/3] cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/15 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="flex h-full flex-col">
-                <div className="flex-1 flex items-center justify-center py-4">
-                  <div className="relative h-10 w-full max-w-[130px] sm:h-12">
-                    <Image src={getBrandLogo('Manhart')} alt="Manhart" fill className="object-contain opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-zinc-400/20 to-transparent p-[1px]">
+                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-zinc-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className="relative h-full p-4 sm:p-5 flex flex-col">
+                <div className="flex justify-between items-start">
+                  <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-zinc-400/70">🇺🇸 USA</span>
+                  <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-zinc-600">Carbon</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="relative w-full max-w-[140px] h-10 sm:h-12">
+                    <Image src={getBrandLogo('Vorsteiner')} alt="Vorsteiner" fill className="object-contain brightness-0 invert opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
-                <p className="mt-auto text-base font-medium text-white">Manhart</p>
-                <p className="text-xs text-zinc-600 uppercase tracking-wider">{locale === 'ua' ? 'Німеччина' : 'Germany'}</p>
+                <p className="text-sm sm:text-base font-medium text-white">Vorsteiner</p>
               </div>
             </motion.button>
 
-            {/* Card 7 - CSF */}
+            {/* ARMYTRIX */}
             <motion.button
-              onClick={() => setSelectedBrand(topBrands[5])}
-              initial={{ opacity: 0, y: 40 }}
+              onClick={() => setSelectedBrand(topBrands[4])}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.35 }}
-              whileHover={{ scale: 1.03 }}
-              className="group relative cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 p-5 text-left sm:p-6"
+              className="group relative col-span-6 sm:col-span-4 md:col-span-4 aspect-[4/3] cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="flex h-full flex-col">
-                <div className="flex-1 flex items-center justify-center py-4">
-                  <div className="relative h-12 w-full max-w-[100px] sm:h-14">
-                    <Image src={getBrandLogo('CSF')} alt="CSF" fill className="object-contain opacity-90 group-hover:opacity-100 transition-opacity" unoptimized />
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-purple-500/20 to-transparent p-[1px]">
+                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className="relative h-full p-4 sm:p-5 flex flex-col">
+                <div className="flex justify-between items-start">
+                  <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-purple-400/70">🇹🇼 Taiwan</span>
+                  <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-zinc-600">Exhaust</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="relative w-full max-w-[140px] h-10 sm:h-12">
+                    <Image src={getBrandLogo('Armytrix')} alt="Armytrix" fill className="object-contain brightness-0 invert opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
-                <p className="mt-auto text-base font-medium text-white">CSF Racing</p>
-                <p className="text-xs text-zinc-600 uppercase tracking-wider">{locale === 'ua' ? 'США' : 'USA'}</p>
+                <p className="text-sm sm:text-base font-medium text-white">Armytrix</p>
               </div>
             </motion.button>
 
-            {/* Card 8 - Armytrix */}
+            {/* CSF */}
             <motion.button
-              onClick={() => setSelectedBrand(topBrands[4])}
-              initial={{ opacity: 0, y: 40 }}
+              onClick={() => setSelectedBrand(topBrands[5])}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              whileHover={{ scale: 1.03 }}
-              className="group relative cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 p-5 text-left sm:p-6"
+              className="group relative col-span-6 sm:col-span-4 md:col-span-4 aspect-[4/3] cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="flex h-full flex-col">
-                <div className="flex-1 flex items-center justify-center py-4">
-                  <div className="relative h-10 w-full max-w-[130px] sm:h-12">
-                    <Image src={getBrandLogo('Armytrix')} alt="Armytrix" fill className="object-contain brightness-0 invert opacity-80 group-hover:opacity-100 transition-opacity" unoptimized />
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-orange-500/20 to-transparent p-[1px]">
+                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className="relative h-full p-4 sm:p-5 flex flex-col">
+                <div className="flex justify-between items-start">
+                  <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-orange-400/70">🇺🇸 USA</span>
+                  <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-zinc-600">Cooling</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="relative w-full max-w-[120px] h-12 sm:h-14">
+                    <Image src={getBrandLogo('CSF')} alt="CSF" fill className="object-contain transition-transform duration-500 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
-                <p className="mt-auto text-base font-medium text-white">Armytrix</p>
-                <p className="text-xs text-zinc-600 uppercase tracking-wider">{locale === 'ua' ? 'Тайвань' : 'Taiwan'}</p>
+                <p className="text-sm sm:text-base font-medium text-white">CSF Racing</p>
               </div>
             </motion.button>
 
-            {/* Card 9 - "+160 Brands" CTA */}
+            {/* +160 BRANDS CTA - Full Width */}
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.45 }}
-              className="group relative col-span-2 cursor-pointer overflow-hidden rounded-3xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 text-left backdrop-blur-sm transition-all duration-500 hover:from-white/[0.12] hover:to-white/[0.04] sm:p-8"
+              transition={{ duration: 0.7, delay: 0.45 }}
+              className="group relative col-span-12 cursor-pointer overflow-hidden rounded-[2rem] text-left"
               onClick={() => {
                 const catalogSection = document.getElementById('brand-catalog');
                 catalogSection?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              <div className="absolute inset-0 border border-white/10 rounded-3xl transition-colors duration-500 group-hover:border-white/20" />
+              {/* Animated Gradient Border */}
+              <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-r from-purple-500/30 via-pink-500/20 to-orange-500/30 p-[1px] animate-gradient-x">
+                <div className="absolute inset-[1px] rounded-[calc(2rem-1px)] bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
+              </div>
               
-              <div className="relative flex h-full items-center justify-between gap-6">
-                <div>
-                  <p className="text-5xl font-light text-white sm:text-6xl md:text-7xl">
-                    +160
-                  </p>
-                  <p className="mt-2 text-lg text-zinc-400 sm:text-xl">
-                    {locale === 'ua' ? 'преміум брендів' : 'premium brands'}
-                  </p>
-                  <p className="mt-1 text-sm text-zinc-600">
-                    {locale === 'ua' ? 'Відкрити каталог →' : 'Explore catalog →'}
+              <div className="relative p-6 sm:p-8 md:p-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="text-center sm:text-left">
+                  <div className="flex items-baseline gap-2 justify-center sm:justify-start">
+                    <span className="text-6xl sm:text-7xl md:text-8xl font-extralight bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+                      +160
+                    </span>
+                    <span className="text-lg sm:text-xl text-zinc-400 font-light">
+                      {locale === 'ua' ? 'брендів' : 'brands'}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm sm:text-base text-zinc-500">
+                    {locale === 'ua' ? 'Повний каталог преміум автозапчастин' : 'Complete premium auto parts catalog'}
                   </p>
                 </div>
                 
-                <div className="hidden sm:grid grid-cols-3 gap-2 opacity-40 group-hover:opacity-60 transition-opacity">
-                  {['Brabus', 'Novitec', 'Techart', 'HRE', 'BBS', 'Bilstein'].map((name) => (
-                    <div key={name} className="h-8 w-16 relative">
-                      <Image src={getBrandLogo(name)} alt={name} fill className="object-contain brightness-0 invert opacity-50" unoptimized />
-                    </div>
-                  ))}
+                {/* Brand Preview Marquee */}
+                <div className="flex items-center gap-8 overflow-hidden">
+                  <div className="flex gap-6 sm:gap-8 items-center opacity-60 group-hover:opacity-80 transition-opacity">
+                    {['Brabus', 'Novitec', 'Techart', 'HRE', 'BBS', 'Bilstein', 'KW', 'Ohlins'].map((name) => (
+                      <div key={name} className="relative h-8 w-20 sm:h-10 sm:w-24 flex-shrink-0">
+                        <Image 
+                          src={getBrandLogo(name)} 
+                          alt={name} 
+                          fill 
+                          className="object-contain brightness-0 invert opacity-70" 
+                          unoptimized 
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* CTA Button */}
+                <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/10 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/30 group-hover:shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+                  <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                  </svg>
                 </div>
               </div>
             </motion.div>
