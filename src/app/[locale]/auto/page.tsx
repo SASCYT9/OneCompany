@@ -460,77 +460,120 @@ export default function AutomotivePage() {
       </section>
 
       <section className="relative overflow-hidden border-y border-white/5 py-16 sm:py-20 md:py-28">
-        {/* Ambient background effects */}
+        {/* Ultimate ambient background */}
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(255,255,255,0.03)_0%,_transparent_70%)]" />
-          <div className="absolute -left-40 top-1/4 h-80 w-80 rounded-full bg-blue-500/5 blur-[120px]" />
-          <div className="absolute -right-40 bottom-1/4 h-80 w-80 rounded-full bg-purple-500/5 blur-[120px]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,_rgba(120,119,198,0.15),_transparent)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(255,255,255,0.02)_0%,_transparent_60%)]" />
+          <div className="absolute left-0 top-0 h-full w-1/2 bg-gradient-to-r from-purple-500/[0.03] to-transparent" />
+          <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-blue-500/[0.03] to-transparent" />
+          {/* Floating orbs */}
+          <div className="absolute -left-20 top-1/3 h-96 w-96 animate-pulse rounded-full bg-violet-600/[0.08] blur-[150px]" />
+          <div className="absolute -right-20 bottom-1/3 h-96 w-96 animate-pulse rounded-full bg-cyan-500/[0.08] blur-[150px]" style={{ animationDelay: '1s' }} />
+          <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/[0.03] blur-[100px]" />
         </div>
         
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-12 text-center sm:mb-16 md:mb-20">
             <motion.p 
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 10, filter: 'blur(10px)' }}
+              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
               className="text-[9px] uppercase tracking-[0.5em] text-white/40 sm:text-[10px] sm:tracking-[0.6em]"
             >
               {t('featuredBrands')}
             </motion.p>
             <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
+              transition={{ delay: 0.1, duration: 0.8 }}
               className={`mt-4 font-extralight text-white text-balance ${typography.sectionHeading}`}
             >
               {locale === 'ua' ? 'Ікони, що задають темп' : 'Icons that set the tempo'}
             </motion.h2>
           </div>
           
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {topBrands.map((brand, index) => {
               const logoSrc = getBrandLogo(brand.name);
               const isPlaceholder = logoSrc === '/logos/placeholder.svg';
               const isDark = isDarkLogo(logoSrc);
               
+              // Unique gradient colors per card
+              const gradientColors = [
+                { from: 'rgba(139,92,246,0.15)', to: 'rgba(59,130,246,0.08)' },   // Purple to Blue
+                { from: 'rgba(236,72,153,0.12)', to: 'rgba(168,85,247,0.08)' },   // Pink to Purple
+                { from: 'rgba(34,211,238,0.12)', to: 'rgba(59,130,246,0.08)' },   // Cyan to Blue
+                { from: 'rgba(251,191,36,0.1)', to: 'rgba(251,146,60,0.06)' },    // Amber to Orange
+                { from: 'rgba(52,211,153,0.12)', to: 'rgba(34,211,238,0.08)' },   // Emerald to Cyan
+                { from: 'rgba(244,114,182,0.12)', to: 'rgba(251,113,133,0.08)' }, // Pink to Rose
+                { from: 'rgba(99,102,241,0.15)', to: 'rgba(139,92,246,0.08)' },   // Indigo to Violet
+                { from: 'rgba(167,139,250,0.12)', to: 'rgba(196,181,253,0.06)' }, // Violet
+                { from: 'rgba(56,189,248,0.12)', to: 'rgba(14,165,233,0.06)' },   // Sky
+                { from: 'rgba(74,222,128,0.1)', to: 'rgba(34,197,94,0.06)' },     // Green
+                { from: 'rgba(251,146,60,0.12)', to: 'rgba(249,115,22,0.06)' },   // Orange
+                { from: 'rgba(248,113,113,0.1)', to: 'rgba(239,68,68,0.06)' },    // Red
+              ];
+              const colors = gradientColors[index % gradientColors.length];
+              
               return (
                 <motion.button
                   key={brand.name}
                   onClick={() => setSelectedBrand(brand)}
-                  initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={{ once: true, margin: "-50px" }}
+                  initial={{ opacity: 0, y: 60, rotateX: -15 }}
+                  whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+                  viewport={{ once: true, margin: "-80px" }}
                   transition={{ 
-                    delay: index * 0.08, 
-                    duration: 0.7,
+                    delay: index * 0.1, 
+                    duration: 0.9,
                     ease: [0.16, 1, 0.3, 1]
                   }}
-                  whileHover={{ y: -16, scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ y: -20, scale: 1.03, rotateY: 5 }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
                   className="group relative cursor-pointer"
                 >
-                  {/* Outer glow on hover */}
-                  <div className="pointer-events-none absolute -inset-4 rounded-[40px] bg-gradient-to-b from-white/[0.15] via-white/[0.05] to-transparent opacity-0 blur-2xl transition-all duration-700 group-hover:opacity-100" />
+                  {/* Multi-layer glow effect */}
+                  <div 
+                    className="pointer-events-none absolute -inset-6 rounded-[48px] opacity-0 blur-3xl transition-all duration-700 group-hover:opacity-100"
+                    style={{ background: `radial-gradient(ellipse at center, ${colors.from}, transparent 70%)` }}
+                  />
+                  <div className="pointer-events-none absolute -inset-3 rounded-[44px] bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 blur-xl transition-all duration-500 group-hover:opacity-60" />
                   
-                  {/* Card container */}
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-[32px] border border-white/[0.08] bg-gradient-to-b from-white/[0.06] via-white/[0.02] to-transparent backdrop-blur-xl transition-all duration-500 group-hover:border-white/20">
+                  {/* Main card container */}
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-[36px] border border-white/[0.06] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] transition-all duration-700 group-hover:border-white/20 group-hover:shadow-[0_35px_70px_-15px_rgba(0,0,0,0.9)]">
                     
-                    {/* Subtle inner gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-white/[0.02]" />
+                    {/* Glass background layers */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/[0.08] via-white/[0.02] to-black/20 backdrop-blur-2xl" />
+                    <div 
+                      className="absolute inset-0 opacity-0 transition-opacity duration-700 group-hover:opacity-100"
+                      style={{ background: `linear-gradient(135deg, ${colors.from}, transparent 60%)` }}
+                    />
                     
-                    {/* Shimmer effect on hover */}
-                    <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/[0.07] to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[100%]" />
+                    {/* Noise texture overlay */}
+                    <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }} />
                     
-                    {/* Content wrapper */}
-                    <div className="relative flex h-full flex-col p-8">
+                    {/* Animated shimmer */}
+                    <div className="absolute inset-0 translate-x-[-150%] skew-x-[-20deg] bg-gradient-to-r from-transparent via-white/[0.1] to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%]" />
+                    
+                    {/* Top highlight arc */}
+                    <div className="absolute -top-20 left-1/2 h-40 w-[120%] -translate-x-1/2 rounded-[100%] bg-gradient-to-b from-white/[0.15] to-transparent opacity-0 blur-2xl transition-opacity duration-700 group-hover:opacity-100" />
+                    
+                    {/* Content wrapper with 3D depth */}
+                    <div className="relative flex h-full flex-col p-7 sm:p-8">
                       
-                      {/* Logo section - takes most space */}
-                      <div className="flex flex-1 items-center justify-center">
-                        <div className="relative h-20 w-full max-w-[180px] transition-all duration-700 ease-out group-hover:scale-110">
+                      {/* Floating particles (decorative) */}
+                      <div className="absolute right-4 top-4 h-1 w-1 animate-pulse rounded-full bg-white/30" style={{ animationDuration: '2s' }} />
+                      <div className="absolute right-8 top-8 h-0.5 w-0.5 animate-pulse rounded-full bg-white/20" style={{ animationDuration: '3s', animationDelay: '0.5s' }} />
+                      <div className="absolute left-6 bottom-24 h-0.5 w-0.5 animate-pulse rounded-full bg-white/20" style={{ animationDuration: '2.5s', animationDelay: '1s' }} />
+                      
+                      {/* Logo section - central focus */}
+                      <div className="flex flex-1 items-center justify-center py-4">
+                        <div className="relative h-24 w-full max-w-[200px] transition-all duration-700 ease-out group-hover:scale-115 group-hover:drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
                           {isPlaceholder ? (
                             <div className="flex h-full w-full items-center justify-center">
-                              <span className="text-2xl font-extralight uppercase tracking-[0.2em] text-white/30">
+                              <span className="text-3xl font-extralight uppercase tracking-[0.25em] text-white/25 transition-all duration-500 group-hover:text-white/50 group-hover:tracking-[0.35em]">
                                 {brand.name.split(' ')[0]}
                               </span>
                             </div>
@@ -539,50 +582,65 @@ export default function AutomotivePage() {
                               src={logoSrc}
                               alt={brand.name}
                               fill
-                              className={`object-contain transition-all duration-700 ${isDark ? 'brightness-0 invert opacity-60 group-hover:opacity-90' : 'opacity-70 group-hover:opacity-100'}`}
-                              sizes="180px"
+                              className={`object-contain transition-all duration-700 ${isDark ? 'brightness-0 invert opacity-50 group-hover:opacity-95' : 'opacity-60 group-hover:opacity-100'}`}
+                              sizes="200px"
                               unoptimized
                             />
                           )}
                         </div>
                       </div>
                       
-                      {/* Bottom section */}
-                      <div className="mt-auto space-y-4">
-                        {/* Separator line */}
-                        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                      {/* Bottom content zone */}
+                      <div className="mt-auto space-y-5">
+                        {/* Animated separator */}
+                        <div className="relative h-px w-full overflow-hidden">
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                          <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
+                        </div>
                         
-                        {/* Brand name + Arrow */}
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-light tracking-wide text-white/90">
+                        {/* Brand info + Action */}
+                        <div className="flex items-end justify-between gap-3">
+                          <div className="space-y-1.5">
+                            <p className="text-base font-light tracking-wide text-white/95 transition-all duration-500 group-hover:text-white sm:text-lg">
                               {brand.name}
                             </p>
-                            <p className="mt-1 text-[10px] uppercase tracking-[0.15em] text-white/40">
-                              {(() => {
-                                const meta = getBrandMetadata(brand.name);
-                                return meta ? getLocalizedCountry(meta.country, locale) : 'Premium';
-                              })()}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <span className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-r from-white/40 to-white/20 transition-all duration-500 group-hover:from-white/80 group-hover:to-white/40 group-hover:shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+                              <p className="text-[10px] uppercase tracking-[0.2em] text-white/35 transition-colors duration-500 group-hover:text-white/60 sm:text-[11px]">
+                                {(() => {
+                                  const meta = getBrandMetadata(brand.name);
+                                  return meta ? getLocalizedCountry(meta.country, locale) : 'Premium';
+                                })()}
+                              </p>
+                            </div>
                           </div>
                           
-                          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] transition-all duration-500 group-hover:border-white/30 group-hover:bg-white group-hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]">
-                            <svg 
-                              className="h-4 w-4 text-white/50 transition-all duration-500 group-hover:-rotate-45 group-hover:text-black" 
-                              fill="none" 
-                              viewBox="0 0 24 24" 
-                              stroke="currentColor" 
-                              strokeWidth={1.5}
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                            </svg>
+                          {/* Morphing action button */}
+                          <div className="relative">
+                            <div className="absolute inset-0 rounded-full bg-white/20 blur-xl opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-150" />
+                            <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl transition-all duration-500 group-hover:border-white/40 group-hover:bg-white group-hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] sm:h-14 sm:w-14">
+                              <svg 
+                                className="h-4 w-4 text-white/40 transition-all duration-500 group-hover:-rotate-45 group-hover:scale-110 group-hover:text-black sm:h-5 sm:w-5" 
+                                fill="none" 
+                                viewBox="0 0 24 24" 
+                                stroke="currentColor" 
+                                strokeWidth={1.5}
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                              </svg>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Corner accent */}
-                    <div className="absolute right-0 top-0 h-32 w-32 translate-x-16 -translate-y-16 rounded-full bg-gradient-to-br from-white/[0.1] to-transparent blur-2xl transition-opacity duration-500 group-hover:opacity-100 opacity-0" />
+                    {/* Edge highlights */}
+                    <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                    <div className="pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                    
+                    {/* Corner orb accent */}
+                    <div className="absolute -right-16 -top-16 h-32 w-32 rounded-full bg-gradient-to-br from-white/[0.15] to-transparent opacity-0 blur-2xl transition-all duration-700 group-hover:opacity-100 group-hover:scale-125" />
+                    <div className="absolute -bottom-10 -left-10 h-24 w-24 rounded-full opacity-0 blur-2xl transition-all duration-700 group-hover:opacity-80" style={{ background: colors.from }} />
                   </div>
                 </motion.button>
               );
