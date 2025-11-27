@@ -7,7 +7,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { TiltedCard } from '@/components/ui/TiltedCard';
 
 import {
   allAutomotiveBrands,
@@ -41,7 +40,7 @@ const TOP_AUTOMOTIVE_BRANDS = [
   'CSF',
   'Manhart',
   'Renntech',
-  'Velos',
+  'Velos Wheels',
   'Weistec',
 ];
 
@@ -468,55 +467,64 @@ export default function AutomotivePage() {
               {locale === 'ua' ? 'Ікони, що задають темп' : 'Icons that set the tempo'}
             </h2>
           </div>
-          <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 perspective-1000">
+          <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {topBrands.map((brand) => {
               const logoSrc = getBrandLogo(brand.name);
               const isPlaceholder = logoSrc === '/logos/placeholder.svg';
               const isDark = isDarkLogo(logoSrc);
               
               return (
-              <TiltedCard
-                key={brand.name}
-                onClick={() => setSelectedBrand(brand)}
-                className="flex min-h-[320px] cursor-pointer flex-col items-center justify-center gap-8 p-8 text-center group"
-              >
-                <div className="absolute right-4 top-4" style={{ transform: 'translateZ(20px)' }}>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition-colors group-hover:border-white/30 group-hover:bg-white/10 group-hover:text-white">
-                    ↗
-                  </div>
-                </div>
-                
-                <div className="relative h-32 w-full transition-transform duration-500 group-hover:scale-110" style={{ transform: 'translateZ(40px)' }}>
-                  {isPlaceholder ? (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <span className="text-2xl font-bold text-white/20 uppercase tracking-widest">{brand.name}</span>
-                    </div>
-                  ) : (
-                    <Image
-                      src={logoSrc}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] ${isDark ? 'brightness-0 invert' : ''}`}
-                      sizes="(max-width: 768px) 100vw, 300px"
-                      unoptimized
-                    />
-                  )}
-                </div>
-
-                <div className="space-y-4" style={{ transform: 'translateZ(30px)' }}>
-                  <p className="text-[10px] uppercase tracking-[0.25em] text-white/40 transition-colors group-hover:text-white/60">
-                    {locale === 'ua' ? 'Офіційна програма' : 'Official Program'}
-                  </p>
+                <motion.button
+                  key={brand.name}
+                  onClick={() => setSelectedBrand(brand)}
+                  whileHover={{ y: -8, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group relative flex min-h-[280px] cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/90 via-zinc-900/50 to-black p-6 text-center backdrop-blur-xl transition-all duration-500 hover:border-white/25 hover:shadow-[0_20px_60px_rgba(255,255,255,0.08)]"
+                >
+                  {/* Gradient overlay on hover */}
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-white/[0.03] via-transparent to-white/[0.02] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                   
-                  <div className="relative mt-2 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 transition-all duration-300 group-hover:border-white/20 group-hover:bg-white/10">
-                    <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/80">
-                      {locale === 'ua' ? 'Відкрити' : 'Explore'}
-                    </span>
-                    <span className="text-white/60 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white">→</span>
+                  {/* Corner accent */}
+                  <div className="absolute right-3 top-3 z-10">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[10px] text-white/30 transition-all duration-300 group-hover:border-white/30 group-hover:bg-white/10 group-hover:text-white">
+                      ↗
+                    </div>
                   </div>
-                </div>
-              </TiltedCard>
-            )})}
+                  
+                  {/* Logo container */}
+                  <div className="relative flex flex-1 items-center justify-center py-6">
+                    <div className="relative h-20 w-full max-w-[180px] transition-transform duration-500 group-hover:scale-110">
+                      {isPlaceholder ? (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <span className="text-lg font-bold text-white/15 uppercase tracking-[0.2em]">{brand.name}</span>
+                        </div>
+                      ) : (
+                        <Image
+                          src={logoSrc}
+                          alt={brand.name}
+                          fill
+                          className={`object-contain transition-all duration-300 ${isDark ? 'brightness-0 invert opacity-80 group-hover:opacity-100' : 'opacity-90 group-hover:opacity-100'}`}
+                          sizes="180px"
+                          unoptimized
+                        />
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Bottom section */}
+                  <div className="relative mt-auto space-y-3 pt-4 border-t border-white/5">
+                    <p className="text-[9px] uppercase tracking-[0.3em] text-white/40 transition-colors group-hover:text-white/60">
+                      {locale === 'ua' ? 'Офіційна програма' : 'Official Program'}
+                    </p>
+                    
+                    <div className="flex items-center justify-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-white/60 transition-colors group-hover:text-white">
+                      <span>{locale === 'ua' ? 'Відкрити' : 'Explore'}</span>
+                      <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                    </div>
+                  </div>
+                </motion.button>
+              );
+            })}
           </div>
         </div>
       </section>
