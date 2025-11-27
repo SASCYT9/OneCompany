@@ -15,7 +15,9 @@ interface BrandWithCategory extends Brand {
 const LOGO_DIR = path.join(process.cwd(), 'public', 'logos');
 const BRANDS_LIST_PATH = path.join(process.cwd(), 'scripts', 'brands-list.json');
 const BRAND_LOGOS_PATH = path.join(process.cwd(), 'src', 'lib', 'brandLogos.ts');
-const SUPPORTED_EXTENSIONS = ['.svg', '.png', '.webp', '.jpg', '.jpeg'];
+// Priority order: SVG (best quality), WebP (great compression + quality), PNG, JPEG
+const SUPPORTED_EXTENSIONS = ['.svg', '.webp', '.png', '.jpg', '.jpeg'];
+const PREFERRED_FORMAT = '.webp'; // Prefer WebP for new downloads
 const DELAY_MS = 1000; // Delay between requests to avoid rate limiting
 const MAX_RETRIES = 3;
 
@@ -93,13 +95,20 @@ const findExistingLogo = async (slug: string): Promise<string | null> => {
 // Try to download logo from multiple sources
 const downloadLogo = async (brandName: string, domain: string, slug: string): Promise<string | null> => {
   const sources = [
+    // WebP sources (best compression + quality)
+    {
+      name: 'Logo.dev WebP',
+      url: `https://img.logo.dev/${domain}?token=pk_X-FqniF5QEWLDfaalwQ0mA&format=webp&size=400`,
+      extension: '.webp',
+    },
+    // PNG fallbacks
     {
       name: 'Clearbit',
       url: `https://logo.clearbit.com/${domain}`,
       extension: '.png',
     },
     {
-      name: 'Logo.dev',
+      name: 'Logo.dev PNG',
       url: `https://img.logo.dev/${domain}?token=pk_X-FqniF5QEWLDfaalwQ0mA&format=png&size=400`,
       extension: '.png',
     },
