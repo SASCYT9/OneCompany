@@ -559,7 +559,10 @@ export default function AutomotivePage() {
                               {brand.name}
                             </p>
                             <p className="mt-1 text-[10px] uppercase tracking-[0.15em] text-white/40">
-                              {getLocalizedCountry(getBrandMetadata(brand.name).country, locale) || 'Premium'}
+                              {(() => {
+                                const meta = getBrandMetadata(brand.name);
+                                return meta ? getLocalizedCountry(meta.country, locale) : 'Premium';
+                              })()}
                             </p>
                           </div>
                           
