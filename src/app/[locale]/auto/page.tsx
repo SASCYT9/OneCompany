@@ -675,25 +675,32 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="group relative col-span-6 sm:col-span-4 lg:col-span-3 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative col-span-6 sm:col-span-6 lg:col-span-4 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-blue-500/25 to-transparent p-[1px]">
-                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-sky-500/30 to-blue-600/10 p-[1.5px]">
+                <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] sm:rounded-[calc(2rem-1.5px)] bg-gradient-to-br from-zinc-900 to-zinc-950" />
               </div>
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-br from-sky-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🇺🇸</span>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-blue-400/70">USA</span>
+              <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[180px]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇺🇸</span>
+                    <span className="text-[10px] sm:text-xs uppercase tracking-widest text-sky-400/80 font-medium">USA</span>
+                  </div>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-2.5 py-1 rounded-full">Forged Wheels</span>
                 </div>
-                <div className="flex-1 flex items-center justify-center py-3">
-                  <div className="relative w-full max-w-[100px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('HRE')} alt="HRE" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:scale-110" unoptimized />
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="relative w-full max-w-[160px] h-16 sm:h-20">
+                    <Image src={getBrandLogo('HRE')} alt="HRE" fill className="object-contain drop-shadow-[0_0_20px_rgba(56,189,248,0.2)] transition-all duration-500 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
-                <p className="text-sm sm:text-base font-medium text-white">HRE Wheels</p>
-                <p className="text-[10px] sm:text-xs text-zinc-600 mt-0.5">{locale === 'ua' ? 'Ковані диски' : 'Forged wheels'}</p>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-base sm:text-lg font-medium text-white">HRE Wheels</p>
+                    <p className="text-[10px] sm:text-xs text-zinc-500 mt-0.5">{locale === 'ua' ? 'Ковані диски преміум класу' : 'Premium forged wheels'}</p>
+                  </div>
+                </div>
               </div>
             </motion.button>
 
