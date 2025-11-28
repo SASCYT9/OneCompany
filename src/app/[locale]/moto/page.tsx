@@ -720,7 +720,7 @@ export default function MotoPage() {
                 </div>
                 <div className="flex-1 flex items-center justify-center py-3 sm:py-4">
                   <div className="relative w-full max-w-[120px] h-12 sm:h-14">
-                    <Image src={getBrandLogo('SC-Project')} alt="SC-Project" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                    <Image src={getBrandLogo('SC-Project')} alt="SC-Project" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${isDarkLogo(getBrandLogo('SC-Project')) ? 'brightness-0 invert' : ''}`} unoptimized />
                   </div>
                 </div>
                 <p className="text-base sm:text-lg font-light text-white">SC-Project</p>
@@ -747,7 +747,7 @@ export default function MotoPage() {
                 </div>
                 <div className="flex-1 flex items-center justify-center py-3 sm:py-4">
                   <div className="relative w-full max-w-[120px] h-12 sm:h-14">
-                    <Image src={getBrandLogo('Termignoni')} alt="Termignoni" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                    <Image src={getBrandLogo('Termignoni')} alt="Termignoni" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Termignoni')) ? 'brightness-0 invert' : ''}`} unoptimized />
                   </div>
                 </div>
                 <p className="text-base sm:text-lg font-light text-white">Termignoni</p>
@@ -801,7 +801,7 @@ export default function MotoPage() {
                 </div>
                 <div className="flex-1 flex items-center justify-center py-3 sm:py-4">
                   <div className="relative w-full max-w-[120px] h-12 sm:h-14">
-                    <Image src={getBrandLogo('Ilmberger Carbon')} alt="Ilmberger Carbon" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                    <Image src={getBrandLogo('Ilmberger Carbon')} alt="Ilmberger Carbon" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Ilmberger Carbon')) ? 'brightness-0 invert' : ''}`} unoptimized />
                   </div>
                 </div>
                 <p className="text-base sm:text-lg font-light text-white">Ilmberger</p>
@@ -831,7 +831,7 @@ export default function MotoPage() {
                   <p className="text-[10px] sm:text-xs text-zinc-500 mt-1">{locale === 'ua' ? 'Карбонові диски нового покоління' : 'Next-gen carbon wheels'}</p>
                 </div>
                 <div className="relative w-full sm:w-40 h-16 sm:h-20 mt-4 sm:mt-0">
-                  <Image src={getBrandLogo('Rotobox')} alt="Rotobox" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                  <Image src={getBrandLogo('Rotobox')} alt="Rotobox" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Rotobox')) ? 'brightness-0 invert' : ''}`} unoptimized />
                 </div>
               </div>
             </motion.button>
@@ -855,7 +855,7 @@ export default function MotoPage() {
                 </div>
                 <div className="flex-1 flex items-center justify-center py-3 sm:py-4">
                   <div className="relative w-full max-w-[110px] h-12 sm:h-14">
-                    <Image src={getBrandLogo('Austin Racing')} alt="Austin Racing" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                    <Image src={getBrandLogo('Austin Racing')} alt="Austin Racing" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Austin Racing')) ? 'brightness-0 invert' : ''}`} unoptimized />
                   </div>
                 </div>
                 <p className="text-base sm:text-lg font-light text-white">Austin Racing</p>
@@ -882,7 +882,7 @@ export default function MotoPage() {
                 </div>
                 <div className="flex-1 flex items-center justify-center py-3 sm:py-4">
                   <div className="relative w-full max-w-[110px] h-12 sm:h-14">
-                    <Image src={getBrandLogo('CNC Racing')} alt="CNC Racing" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                    <Image src={getBrandLogo('CNC Racing')} alt="CNC Racing" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${isDarkLogo(getBrandLogo('CNC Racing')) ? 'brightness-0 invert' : ''}`} unoptimized />
                   </div>
                 </div>
                 <p className="text-base sm:text-lg font-light text-white">CNC Racing</p>
