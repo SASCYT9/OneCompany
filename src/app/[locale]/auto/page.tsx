@@ -38,6 +38,7 @@ const TOP_AUTOMOTIVE_BRANDS = [
   'Eventuri',
   'KW',
   'Novitec',
+  'ABT',
 ];
 
 const heroStats: { value: string | LocalizedCopy; label: LocalizedCopy; caption: LocalizedCopy }[] = [
@@ -241,9 +242,100 @@ const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Remote + on-site calibration days', ua: 'Віддалені й виїзні дні калібрування' },
     ],
   },
+  'ABT': {
+    headline: { en: 'ABT Sportsline Power Programs', ua: 'ABT Sportsline — програми потужності' },
+    description: {
+      en: 'Official Audi tuning partner with ECU calibrations, aero kits and forged wheels for the VAG platform.',
+      ua: 'Офіційний тюнінг-партнер Audi з прошивками ECU, аеро-китами та кованими дисками для платформи VAG.',
+    },
+    highlights: [
+      { en: 'ABT Power S stages with warranty', ua: 'ABT Power S з гарантією' },
+      { en: 'RS & RSQ aero programs', ua: 'Аеро програми для RS та RSQ' },
+      { en: 'Sport wheels & suspension kits', ua: 'Спортивні диски та комплекти підвіски' },
+    ],
+  },
 };
 
 const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto');
+
+// Brand configurations for the legendary grid
+const LEGENDARY_BRAND_CONFIG: Record<string, {
+  flag: string;
+  country: string;
+  tag?: string;
+  tagColor?: string;
+  accentColor: string;
+  description: { en: string; ua: string };
+  invertLogo?: boolean;
+}> = {
+  'Akrapovic': {
+    flag: '🇸🇮',
+    country: 'Slovenia',
+    tag: 'Performance Exhaust',
+    accentColor: 'red',
+    description: { en: 'Premium titanium exhaust systems', ua: 'Титанові вихлопні системи преміум класу' },
+  },
+  'Brabus': {
+    flag: '🇩🇪',
+    country: 'Germany',
+    accentColor: 'zinc',
+    description: { en: 'Mercedes tuning', ua: 'Mercedes тюнінг' },
+    invertLogo: true,
+  },
+  'Mansory': {
+    flag: '🇩🇪',
+    country: 'Germany',
+    tag: 'Luxury',
+    tagColor: 'amber',
+    accentColor: 'amber',
+    description: { en: 'Luxury car tuning', ua: 'Лакшері тюнінг' },
+    invertLogo: true,
+  },
+  'HRE': {
+    flag: '🇺🇸',
+    country: 'USA',
+    tag: 'Forged Wheels',
+    accentColor: 'sky',
+    description: { en: 'Premium forged wheels', ua: 'Ковані диски преміум класу' },
+  },
+  'Urban Automotive': {
+    flag: '🇬🇧',
+    country: 'UK',
+    tag: 'Land Rover',
+    accentColor: 'emerald',
+    description: { en: 'Land Rover specialists', ua: 'Спеціалісти Land Rover' },
+    invertLogo: true,
+  },
+  'Eventuri': {
+    flag: '🇬🇧',
+    country: 'UK',
+    accentColor: 'cyan',
+    description: { en: 'Intake systems', ua: 'Впускні системи' },
+    invertLogo: true,
+  },
+  'KW': {
+    flag: '🇩🇪',
+    country: 'Germany',
+    accentColor: 'orange',
+    description: { en: 'Suspension', ua: 'Підвіска' },
+  },
+  'Novitec': {
+    flag: '🇩🇪',
+    country: 'Germany',
+    tag: 'Ferrari • Lamborghini',
+    accentColor: 'rose',
+    description: { en: 'Supercar tuning', ua: 'Суперкар тюнінг' },
+    invertLogo: true,
+  },
+  'ABT': {
+    flag: '🇩🇪',
+    country: 'Germany',
+    tag: 'Audi • VW',
+    accentColor: 'violet',
+    description: { en: 'Audi & VW tuning', ua: 'Audi та VW тюнінг' },
+    invertLogo: true,
+  },
+};
 
 export default function AutomotivePage() {
   const params = useParams();
@@ -270,6 +362,19 @@ export default function AutomotivePage() {
   });
 
   const topBrands = useMemo(() => getBrandsByNames(TOP_AUTOMOTIVE_BRANDS, 'auto'), []);
+
+  // Helper to find brand by name
+  const findBrandByName = useCallback((name: string) => {
+    return topBrands.find(b => b.name === name) || allAutomotiveBrands.find(b => b.name === name);
+  }, [topBrands]);
+
+  // Click handler for legendary brand cards
+  const handleBrandClick = useCallback((brandName: string) => {
+    const brand = findBrandByName(brandName);
+    if (brand) {
+      setSelectedBrand(brand);
+    }
+  }, [findBrandByName]);
 
   const brandCategoryMap = useMemo(() => {
     const map = new Map<string, CategoryData[]>();
@@ -513,7 +618,7 @@ export default function AutomotivePage() {
             
             {/* AKRAPOVIC - Hero Card */}
             <motion.button
-              onClick={() => setSelectedBrand(topBrands[0])}
+              onClick={() => handleBrandClick('Akrapovic')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -572,7 +677,7 @@ export default function AutomotivePage() {
 
             {/* BRABUS - Tall Card */}
             <motion.button
-              onClick={() => setSelectedBrand(topBrands[1])}
+              onClick={() => handleBrandClick('Brabus')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -620,7 +725,7 @@ export default function AutomotivePage() {
 
             {/* MANSORY - Wide Card */}
             <motion.button
-              onClick={() => setSelectedBrand(topBrands[2])}
+              onClick={() => handleBrandClick('Mansory')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -670,7 +775,7 @@ export default function AutomotivePage() {
 
             {/* HRE */}
             <motion.button
-              onClick={() => setSelectedBrand(topBrands[3])}
+              onClick={() => handleBrandClick('HRE')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -706,7 +811,7 @@ export default function AutomotivePage() {
 
             {/* URBAN AUTOMOTIVE */}
             <motion.button
-              onClick={() => setSelectedBrand(topBrands[4])}
+              onClick={() => handleBrandClick('Urban Automotive')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -737,7 +842,7 @@ export default function AutomotivePage() {
 
             {/* EVENTURI */}
             <motion.button
-              onClick={() => setSelectedBrand(topBrands[5])}
+              onClick={() => handleBrandClick('Eventuri')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -766,7 +871,7 @@ export default function AutomotivePage() {
 
             {/* KW */}
             <motion.button
-              onClick={() => setSelectedBrand(topBrands[6])}
+              onClick={() => handleBrandClick('KW')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -795,7 +900,7 @@ export default function AutomotivePage() {
 
             {/* NOVITEC */}
             <motion.button
-              onClick={() => setSelectedBrand(topBrands[7])}
+              onClick={() => handleBrandClick('Novitec')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -838,6 +943,58 @@ export default function AutomotivePage() {
                   </div>
                   <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-rose-500/10 border border-rose-500/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-rose-400/40">
                     <svg className="h-4 w-4 sm:h-5 sm:w-5 text-rose-400 transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </motion.button>
+
+            {/* ABT */}
+            <motion.button
+              onClick={() => handleBrandClick('ABT')}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.45 }}
+              className="group relative col-span-12 sm:col-span-4 lg:col-span-6 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-violet-500/30 via-purple-500/15 to-transparent p-[1.5px]">
+                <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
+              </div>
+              
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
+                <div className="absolute -inset-2 bg-gradient-to-br from-violet-500/20 to-transparent rounded-[3rem] blur-2xl" />
+              </div>
+              
+              <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇩🇪</span>
+                    <span className="text-[10px] sm:text-xs uppercase tracking-[0.15em] text-violet-400/80 font-medium">Germany</span>
+                  </div>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-3 py-1.5 rounded-full">Audi • VW</span>
+                </div>
+                
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="relative w-full max-w-[140px] h-14 sm:h-16">
+                    <Image
+                      src={getBrandLogo('ABT')}
+                      alt="ABT"
+                      fill
+                      className="object-contain brightness-0 invert opacity-95 drop-shadow-[0_0_20px_rgba(139,92,246,0.2)] transition-all duration-700 group-hover:scale-110"
+                      unoptimized
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-lg sm:text-xl font-light text-white">ABT Sportsline</p>
+                    <p className="text-xs sm:text-sm text-zinc-500 mt-1">{locale === 'ua' ? 'Audi та VW тюнінг' : 'Audi & VW tuning'}</p>
+                  </div>
+                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-violet-500/10 border border-violet-500/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-violet-400/40">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400 transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                     </svg>
                   </div>
