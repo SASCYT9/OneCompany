@@ -95,6 +95,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'HRE': '/logos/hre.png',
   'HRE wheels': '/logos/hre.png',
   'KW': '/logos/kw.svg',
+  'KW Suspension': '/logos/kw.svg',
   'Eventuri': '/logos/eventuri.png',
   'Akrapovic': '/logos/akrapovic.svg',
   // Moto brand aliases (case-sensitive names from brands.ts)
@@ -200,7 +201,6 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   "Kline Innovation": "/logos/kline-innovation.webp",
   "Klm Race": "/logos/klm-race.webp",
   "Kooks Headers": "/logos/kooks-headers.svg",
-  "KW Suspension": "/logos/kw-suspension.webp",
   "Lamborghini": "/logos/lamborghini.svg",
   "Lamspeed": "/logos/lamspeed.webp",
   "Larte Design": "/logos/larte-design.webp",
