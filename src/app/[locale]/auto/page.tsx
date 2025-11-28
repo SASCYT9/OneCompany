@@ -33,10 +33,10 @@ const TOP_AUTOMOTIVE_BRANDS = [
   'Akrapovic',
   'Brabus',
   'Mansory',
-  'HRE',
+  'HRE wheels',
   'Urban Automotive',
   'Eventuri',
-  'KW',
+  'KW Suspension',
   'Novitec',
   'ABT',
 ];
@@ -122,7 +122,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Coordinated install + ECU calibration', ua: 'Координація встановлення та калібрування ECU' },
     ],
   },
-  'KW': {
+  'KW Suspension': {
     headline: { en: 'KW · Adaptive Control', ua: 'KW · адаптивний контроль' },
     description: {
       en: 'Variant, Clubsport and DDC plug & play kits with geo setup plans from our chassis lab.',
@@ -134,7 +134,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Warranty preserved via OEM torque specs', ua: 'Збережена гарантія завдяки OEM моментам затягування' },
     ],
   },
-  'HRE': {
+  'HRE wheels': {
     headline: { en: 'HRE Wheels Forged Program', ua: 'HRE Wheels — програма forged' },
     description: {
       en: 'Bespoke monoblock, 2-piece and 3-piece sets engineered for hypercar tolerances.',
@@ -291,7 +291,7 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     description: { en: 'Luxury car tuning', ua: 'Лакшері тюнінг' },
     invertLogo: true,
   },
-  'HRE': {
+  'HRE wheels': {
     flag: '🇺🇸',
     country: 'USA',
     tag: 'Forged Wheels',
@@ -313,7 +313,7 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     description: { en: 'Intake systems', ua: 'Впускні системи' },
     invertLogo: true,
   },
-  'KW': {
+  'KW Suspension': {
     flag: '🇩🇪',
     country: 'Germany',
     accentColor: 'orange',
@@ -775,7 +775,7 @@ export default function AutomotivePage() {
 
             {/* HRE */}
             <motion.button
-              onClick={() => handleBrandClick('HRE')}
+              onClick={() => handleBrandClick('HRE wheels')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -871,7 +871,7 @@ export default function AutomotivePage() {
 
             {/* KW */}
             <motion.button
-              onClick={() => handleBrandClick('KW')}
+              onClick={() => handleBrandClick('KW Suspension')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -1015,47 +1015,79 @@ export default function AutomotivePage() {
               }}
             >
               {/* Animated Gradient Border */}
-              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-r from-violet-500/30 via-fuchsia-500/20 to-orange-500/30 p-[1.5px] animate-gradient-x">
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-r from-violet-500/30 via-fuchsia-500/20 to-orange-500/30 p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
               </div>
               
-              <div className="relative p-6 sm:p-8 lg:p-10 flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div className="text-center sm:text-left">
-                  <div className="flex items-baseline gap-3 justify-center sm:justify-start">
-                    <span className="text-6xl sm:text-7xl lg:text-8xl font-extralight bg-gradient-to-r from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">
-                      +160
-                    </span>
-                    <span className="text-lg sm:text-xl lg:text-2xl text-zinc-400 font-light">
-                      {locale === 'ua' ? 'брендів' : 'brands'}
-                    </span>
+              <div className="relative p-6 sm:p-8 lg:p-10">
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
+                  <div className="text-center lg:text-left">
+                    <div className="flex items-baseline gap-3 justify-center lg:justify-start">
+                      <span className="text-5xl sm:text-6xl lg:text-7xl font-extralight bg-gradient-to-r from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">
+                        +160
+                      </span>
+                      <span className="text-lg sm:text-xl text-zinc-400 font-light">
+                        {locale === 'ua' ? 'брендів' : 'brands'}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm text-zinc-500">
+                      {locale === 'ua' ? 'Повний каталог преміум автозапчастин та аксесуарів' : 'Complete catalog of premium auto parts & accessories'}
+                    </p>
                   </div>
-                  <p className="mt-3 text-sm sm:text-base text-zinc-500">
-                    {locale === 'ua' ? 'Повний каталог преміум автозапчастин та аксесуарів' : 'Complete catalog of premium auto parts & accessories'}
-                  </p>
+                  
+                  {/* CTA Button */}
+                  <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-gradient-to-br from-white/15 to-white/5 border border-white/15 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/30 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.15)]">
+                    <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                    </svg>
+                  </div>
                 </div>
                 
-                {/* Brand Preview */}
-                <div className="flex items-center gap-6 sm:gap-8 overflow-hidden">
-                  <div className="flex gap-5 sm:gap-6 items-center opacity-50 group-hover:opacity-70 transition-opacity duration-500">
-                    {['Bilstein', 'Ohlins', 'Recaro', 'Sparco', 'BBS', 'Brembo'].map((name) => (
-                      <div key={name} className="relative h-8 w-20 sm:h-10 sm:w-24 flex-shrink-0">
-                        <Image 
-                          src={getBrandLogo(name)} 
-                          alt={name} 
-                          fill 
-                          className="object-contain brightness-0 invert opacity-60" 
-                          unoptimized 
-                        />
+                {/* Infinite Scrolling Carousel */}
+                <div className="relative overflow-hidden">
+                  {/* Gradient fades */}
+                  <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none" />
+                  <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
+                  
+                  {/* First row - scrolling left */}
+                  <div className="flex gap-6 mb-4 animate-scroll-left">
+                    {[...allAutomotiveBrands.slice(0, 20), ...allAutomotiveBrands.slice(0, 20)].map((brand, idx) => (
+                      <div 
+                        key={`row1-${brand.name}-${idx}`} 
+                        className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                      >
+                        <div className="relative w-full h-full">
+                          <Image 
+                            src={getBrandLogo(brand.name)} 
+                            alt={brand.name} 
+                            fill 
+                            className="object-contain brightness-0 invert opacity-70 hover:opacity-100 transition-opacity" 
+                            unoptimized 
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
-                
-                {/* CTA Button */}
-                <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-gradient-to-br from-white/15 to-white/5 border border-white/15 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/30 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.15)]">
-                  <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
-                  </svg>
+                  
+                  {/* Second row - scrolling right */}
+                  <div className="flex gap-6 animate-scroll-right">
+                    {[...allAutomotiveBrands.slice(20, 40), ...allAutomotiveBrands.slice(20, 40)].map((brand, idx) => (
+                      <div 
+                        key={`row2-${brand.name}-${idx}`} 
+                        className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                      >
+                        <div className="relative w-full h-full">
+                          <Image 
+                            src={getBrandLogo(brand.name)} 
+                            alt={brand.name} 
+                            fill 
+                            className="object-contain brightness-0 invert opacity-70 hover:opacity-100 transition-opacity" 
+                            unoptimized 
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -1197,13 +1229,13 @@ export default function AutomotivePage() {
               style={{ maxHeight: 'calc(100vh - 3rem)' }}
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-                <div className="relative h-12 w-32 sm:h-14 sm:w-36 md:h-16 md:w-40">
+                <div className="relative h-14 w-36 sm:h-16 sm:w-44 md:h-20 md:w-52 rounded-xl bg-white/95 p-3 flex items-center justify-center">
                   <Image
                     src={getBrandLogo(selectedBrand.name)}
                     alt={selectedBrand.name}
                     fill
-                    className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''}`}
-                    sizes="160px"
+                    className="object-contain p-2"
+                    sizes="208px"
                     unoptimized
                   />
                 </div>
