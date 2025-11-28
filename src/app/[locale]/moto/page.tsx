@@ -58,6 +58,93 @@ const TOP_MOTO_BRANDS = [
   'ValterMoto',
 ];
 
+// Legendary 8 moto brands for showcase section
+const LEGENDARY_MOTO_BRANDS = [
+  'Akrapovic',
+  'SC-Project', 
+  'Termignoni',
+  'Brembo',
+  'Ilmberger Carbon',
+  'Rotobox',
+  'Austin Racing',
+  'CNC Racing',
+];
+
+// Brand metadata for legendary section
+const LEGENDARY_MOTO_CONFIG: Record<string, {
+  country: string;
+  flag: string;
+  category: { en: string; ua: string };
+  tagline: { en: string; ua: string };
+  gradient: string;
+  glowColor: string;
+}> = {
+  'Akrapovic': {
+    country: 'Slovenia',
+    flag: '🇸🇮',
+    category: { en: 'Performance Exhaust', ua: 'Вихлопні системи' },
+    tagline: { en: 'Titanium exhaust mastery', ua: 'Титанові вихлопні системи' },
+    gradient: 'from-red-500/40 via-orange-500/20 to-transparent',
+    glowColor: 'rgba(255,100,50,0.4)',
+  },
+  'SC-Project': {
+    country: 'Italy',
+    flag: '🇮🇹',
+    category: { en: 'Race Exhaust', ua: 'Гоночні вихлопи' },
+    tagline: { en: 'MotoGP-proven technology', ua: 'Технології з MotoGP' },
+    gradient: 'from-emerald-500/30 via-teal-500/15 to-transparent',
+    glowColor: 'rgba(16,185,129,0.3)',
+  },
+  'Termignoni': {
+    country: 'Italy',
+    flag: '🇮🇹',
+    category: { en: 'Exhaust Systems', ua: 'Вихлопні системи' },
+    tagline: { en: 'Italian exhaust heritage', ua: 'Італійська спадщина вихлопів' },
+    gradient: 'from-amber-500/30 via-yellow-500/15 to-transparent',
+    glowColor: 'rgba(245,158,11,0.3)',
+  },
+  'Brembo': {
+    country: 'Italy',
+    flag: '🇮🇹',
+    category: { en: 'Braking Systems', ua: 'Гальмівні системи' },
+    tagline: { en: 'The art of stopping', ua: 'Мистецтво гальмування' },
+    gradient: 'from-red-600/35 via-red-500/15 to-transparent',
+    glowColor: 'rgba(220,38,38,0.35)',
+  },
+  'Ilmberger Carbon': {
+    country: 'Germany',
+    flag: '🇩🇪',
+    category: { en: 'Carbon Fiber', ua: 'Карбонові елементи' },
+    tagline: { en: 'German carbon precision', ua: 'Німецька карбонова точність' },
+    gradient: 'from-zinc-400/30 via-zinc-500/10 to-transparent',
+    glowColor: 'rgba(161,161,170,0.25)',
+  },
+  'Rotobox': {
+    country: 'Slovenia',
+    flag: '🇸🇮',
+    category: { en: 'Carbon Wheels', ua: 'Карбонові диски' },
+    tagline: { en: 'Lightweight carbon wheels', ua: 'Легкі карбонові диски' },
+    gradient: 'from-blue-500/30 via-cyan-500/15 to-transparent',
+    glowColor: 'rgba(59,130,246,0.3)',
+  },
+  'Austin Racing': {
+    country: 'UK',
+    flag: '🇬🇧',
+    category: { en: 'Race Exhaust', ua: 'Гоночні вихлопи' },
+    tagline: { en: 'British racing exhaust', ua: 'Британські гоночні вихлопи' },
+    gradient: 'from-purple-500/30 via-violet-500/15 to-transparent',
+    glowColor: 'rgba(139,92,246,0.3)',
+  },
+  'CNC Racing': {
+    country: 'Italy',
+    flag: '🇮🇹',
+    category: { en: 'Racing Components', ua: 'Гоночні компоненти' },
+    tagline: { en: 'Precision billet parts', ua: 'Точні деталі з білета' },
+    gradient: 'from-rose-500/30 via-pink-500/15 to-transparent',
+    glowColor: 'rgba(244,63,94,0.3)',
+  },
+};
+
 const heroStats: { value: LocalizedCopy | string; label: LocalizedCopy; caption: LocalizedCopy }[] = [
   {
     value: '40+',
@@ -399,6 +486,19 @@ export default function MotoPage() {
 
   const topBrands = useMemo(() => getBrandsByNames(TOP_MOTO_BRANDS, 'moto'), []);
 
+  // Helper to find brand by name
+  const findBrandByName = useCallback((name: string) => {
+    return topBrands.find(b => b.name === name) || allMotoBrands.find(b => b.name === name);
+  }, [topBrands]);
+
+  // Click handler for legendary brand cards
+  const handleBrandClick = useCallback((brandName: string) => {
+    const brand = findBrandByName(brandName);
+    if (brand) {
+      setSelectedBrand(brand);
+    }
+  }, [findBrandByName]);
+
   const getBrandOrigin = useCallback(
     (brand: LocalBrand) => {
       const metadata = getBrandMetadata(brand.name);
@@ -497,6 +597,299 @@ export default function MotoPage() {
                 <p className="mt-2 text-xs text-white/60 sm:mt-3 sm:text-sm">{stat.caption[locale]}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* LEGENDARY MOTO BRANDS SHOWCASE */}
+      <section className="relative py-24 sm:py-32 md:py-40 overflow-hidden">
+        {/* Epic Background */}
+        <div className="absolute inset-0 bg-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-30%,rgba(239,68,68,0.12),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_90%,rgba(16,185,129,0.08),transparent_40%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_80%,rgba(59,130,246,0.06),transparent_40%)]" />
+        
+        {/* Animated Glow Orbs */}
+        <div className="absolute top-20 left-1/3 w-[500px] h-[500px] bg-red-600/8 rounded-full blur-[150px] animate-pulse" />
+        <div className="absolute bottom-20 right-1/3 w-[400px] h-[400px] bg-emerald-500/8 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-10 w-[300px] h-[300px] bg-blue-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+        
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="mb-16 sm:mb-20 md:mb-28 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-white/10 to-white/5 border border-white/10 px-5 py-2.5 mb-8 backdrop-blur-sm"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-400" />
+              </span>
+              <span className="text-xs uppercase tracking-[0.25em] text-zinc-300 font-medium">
+                {locale === 'ua' ? 'Ексклюзивний дистриб\'ютор' : 'Exclusive distributor'}
+              </span>
+            </motion.div>
+            
+            <motion.h2 
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1, duration: 0.8 }}
+              className="text-5xl font-extralight tracking-tight text-white sm:text-6xl md:text-8xl"
+            >
+              <span className="bg-gradient-to-b from-white via-white to-zinc-400 bg-clip-text text-transparent">
+                {locale === 'ua' ? 'Легенди' : 'Legends'}
+              </span>
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              className="mt-4 text-lg sm:text-xl text-zinc-500 max-w-xl mx-auto"
+            >
+              {locale === 'ua' ? 'Бренди, що формують індустрію мото' : 'Brands that shape the moto industry'}
+            </motion.p>
+          </div>
+          
+          {/* Legendary Grid - 4 columns layout */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+            
+            {/* AKRAPOVIC - Hero Card (spans 2 cols) */}
+            <motion.button
+              onClick={() => handleBrandClick('Akrapovic')}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="group relative col-span-2 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-red-500/40 via-orange-500/20 to-transparent p-[1.5px]">
+                <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-black" />
+              </div>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-1000">
+                <div className="absolute -inset-4 bg-gradient-to-r from-red-500/25 via-orange-500/15 to-yellow-500/10 rounded-[3rem] blur-3xl" />
+              </div>
+              <div className="relative h-full min-h-[280px] sm:min-h-[340px] p-5 sm:p-8 lg:p-10 flex flex-col">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <span className="text-xl sm:text-2xl">🇸🇮</span>
+                    <span className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-red-400/90 font-medium">Slovenia</span>
+                  </div>
+                  <span className="text-[9px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                    Performance Exhaust
+                  </span>
+                </div>
+                <div className="flex-1 flex items-center justify-center py-4 sm:py-8">
+                  <div className="relative w-full max-w-[280px] sm:max-w-[350px] h-20 sm:h-28 lg:h-36">
+                    <Image src={getBrandLogo('Akrapovic')} alt="Akrapovic" fill className="object-contain drop-shadow-[0_0_60px_rgba(255,100,50,0.4)] transition-all duration-700 group-hover:scale-110" unoptimized />
+                  </div>
+                </div>
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-light text-white tracking-tight">Akrapovic</p>
+                    <p className="text-xs sm:text-sm text-zinc-400 mt-1 sm:mt-2">{locale === 'ua' ? 'Титанові вихлопні системи' : 'Titanium exhaust mastery'}</p>
+                  </div>
+                  <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-gradient-to-br from-red-500/30 to-orange-500/20 border border-red-500/30 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-red-400/50">
+                    <svg className="h-5 w-5 sm:h-6 sm:w-6 text-red-400 transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </motion.button>
+
+            {/* SC-PROJECT */}
+            <motion.button
+              onClick={() => handleBrandClick('SC-Project')}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-emerald-500/30 via-teal-500/15 to-transparent p-[1.5px]">
+                <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] sm:rounded-[calc(2rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
+              </div>
+              <div className="relative h-full min-h-[180px] sm:min-h-[200px] p-4 sm:p-5 flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🇮🇹</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-emerald-400/80 font-medium">Italy</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center py-3 sm:py-4">
+                  <div className="relative w-full max-w-[120px] h-12 sm:h-14">
+                    <Image src={getBrandLogo('SC-Project')} alt="SC-Project" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                  </div>
+                </div>
+                <p className="text-base sm:text-lg font-light text-white">SC-Project</p>
+                <p className="text-[10px] sm:text-xs text-zinc-500 mt-1">{locale === 'ua' ? 'MotoGP технології' : 'MotoGP technology'}</p>
+              </div>
+            </motion.button>
+
+            {/* TERMIGNONI */}
+            <motion.button
+              onClick={() => handleBrandClick('Termignoni')}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.15 }}
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-amber-500/30 via-yellow-500/15 to-transparent p-[1.5px]">
+                <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] sm:rounded-[calc(2rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
+              </div>
+              <div className="relative h-full min-h-[180px] sm:min-h-[200px] p-4 sm:p-5 flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🇮🇹</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-amber-400/80 font-medium">Italy</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center py-3 sm:py-4">
+                  <div className="relative w-full max-w-[120px] h-12 sm:h-14">
+                    <Image src={getBrandLogo('Termignoni')} alt="Termignoni" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                  </div>
+                </div>
+                <p className="text-base sm:text-lg font-light text-white">Termignoni</p>
+                <p className="text-[10px] sm:text-xs text-zinc-500 mt-1">{locale === 'ua' ? 'Італійська класика' : 'Italian heritage'}</p>
+              </div>
+            </motion.button>
+
+            {/* BREMBO */}
+            <motion.button
+              onClick={() => handleBrandClick('Brembo')}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-red-600/35 via-red-500/15 to-transparent p-[1.5px]">
+                <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] sm:rounded-[calc(2rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
+              </div>
+              <div className="relative h-full min-h-[180px] sm:min-h-[200px] p-4 sm:p-5 flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🇮🇹</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-red-400/80 font-medium">Italy</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center py-3 sm:py-4">
+                  <div className="relative w-full max-w-[100px] h-12 sm:h-14">
+                    <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+                  </div>
+                </div>
+                <p className="text-base sm:text-lg font-light text-white">Brembo</p>
+                <p className="text-[10px] sm:text-xs text-zinc-500 mt-1">{locale === 'ua' ? 'Гальма #1 у світі' : 'World\'s #1 brakes'}</p>
+              </div>
+            </motion.button>
+
+            {/* ILMBERGER CARBON */}
+            <motion.button
+              onClick={() => handleBrandClick('Ilmberger Carbon')}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.25 }}
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-zinc-400/30 via-zinc-500/10 to-transparent p-[1.5px]">
+                <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] sm:rounded-[calc(2rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
+              </div>
+              <div className="relative h-full min-h-[180px] sm:min-h-[200px] p-4 sm:p-5 flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🇩🇪</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-zinc-400/80 font-medium">Germany</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center py-3 sm:py-4">
+                  <div className="relative w-full max-w-[120px] h-12 sm:h-14">
+                    <Image src={getBrandLogo('Ilmberger Carbon')} alt="Ilmberger Carbon" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                  </div>
+                </div>
+                <p className="text-base sm:text-lg font-light text-white">Ilmberger</p>
+                <p className="text-[10px] sm:text-xs text-zinc-500 mt-1">{locale === 'ua' ? 'Карбонова точність' : 'Carbon precision'}</p>
+              </div>
+            </motion.button>
+
+            {/* ROTOBOX - spans 2 cols */}
+            <motion.button
+              onClick={() => handleBrandClick('Rotobox')}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="group relative col-span-2 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-blue-500/30 via-cyan-500/15 to-transparent p-[1.5px]">
+                <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] sm:rounded-[calc(2rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
+              </div>
+              <div className="relative h-full min-h-[180px] sm:min-h-[200px] p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:gap-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">🇸🇮</span>
+                    <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-blue-400/80 font-medium">Slovenia</span>
+                  </div>
+                  <p className="text-lg sm:text-xl font-light text-white">Rotobox</p>
+                  <p className="text-[10px] sm:text-xs text-zinc-500 mt-1">{locale === 'ua' ? 'Карбонові диски нового покоління' : 'Next-gen carbon wheels'}</p>
+                </div>
+                <div className="relative w-full sm:w-40 h-16 sm:h-20 mt-4 sm:mt-0">
+                  <Image src={getBrandLogo('Rotobox')} alt="Rotobox" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                </div>
+              </div>
+            </motion.button>
+
+            {/* AUSTIN RACING */}
+            <motion.button
+              onClick={() => handleBrandClick('Austin Racing')}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.35 }}
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-purple-500/30 via-violet-500/15 to-transparent p-[1.5px]">
+                <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] sm:rounded-[calc(2rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
+              </div>
+              <div className="relative h-full min-h-[180px] sm:min-h-[200px] p-4 sm:p-5 flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🇬🇧</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-purple-400/80 font-medium">UK</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center py-3 sm:py-4">
+                  <div className="relative w-full max-w-[110px] h-12 sm:h-14">
+                    <Image src={getBrandLogo('Austin Racing')} alt="Austin Racing" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                  </div>
+                </div>
+                <p className="text-base sm:text-lg font-light text-white">Austin Racing</p>
+                <p className="text-[10px] sm:text-xs text-zinc-500 mt-1">{locale === 'ua' ? 'Британський звук' : 'British sound'}</p>
+              </div>
+            </motion.button>
+
+            {/* CNC RACING */}
+            <motion.button
+              onClick={() => handleBrandClick('CNC Racing')}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-rose-500/30 via-pink-500/15 to-transparent p-[1.5px]">
+                <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] sm:rounded-[calc(2rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
+              </div>
+              <div className="relative h-full min-h-[180px] sm:min-h-[200px] p-4 sm:p-5 flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🇮🇹</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-rose-400/80 font-medium">Italy</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center py-3 sm:py-4">
+                  <div className="relative w-full max-w-[110px] h-12 sm:h-14">
+                    <Image src={getBrandLogo('CNC Racing')} alt="CNC Racing" fill className="object-contain brightness-0 invert opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                  </div>
+                </div>
+                <p className="text-base sm:text-lg font-light text-white">CNC Racing</p>
+                <p className="text-[10px] sm:text-xs text-zinc-500 mt-1">{locale === 'ua' ? 'Білетні деталі' : 'Billet precision'}</p>
+              </div>
+            </motion.button>
+
           </div>
         </div>
       </section>
@@ -636,7 +1029,7 @@ export default function MotoPage() {
                     src={getBrandLogo(selectedBrand.name)}
                     alt={selectedBrand.name}
                     fill
-                    className="object-contain brightness-0 invert"
+                    className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''}`}
                     sizes="160px"
                     unoptimized
                   />

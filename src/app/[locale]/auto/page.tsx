@@ -797,7 +797,7 @@ export default function AutomotivePage() {
                 </div>
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[160px] h-16 sm:h-20">
-                    <Image src={getBrandLogo('HRE')} alt="HRE" fill className="object-contain drop-shadow-[0_0_20px_rgba(56,189,248,0.2)] transition-all duration-500 group-hover:scale-110" unoptimized />
+                    <Image src={getBrandLogo('HRE wheels')} alt="HRE" fill className="object-contain drop-shadow-[0_0_20px_rgba(56,189,248,0.2)] transition-all duration-500 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <div className="flex items-end justify-between">
@@ -890,7 +890,7 @@ export default function AutomotivePage() {
                 </div>
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[90px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('KW')} alt="KW" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+                    <Image src={getBrandLogo('KW Suspension')} alt="KW" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <p className="text-sm sm:text-base font-medium text-white">KW Suspensions</p>
