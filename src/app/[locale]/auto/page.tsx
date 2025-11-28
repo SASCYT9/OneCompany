@@ -1229,13 +1229,13 @@ export default function AutomotivePage() {
               style={{ maxHeight: 'calc(100vh - 3rem)' }}
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-                <div className="relative h-14 w-36 sm:h-16 sm:w-44 md:h-20 md:w-52 rounded-xl bg-white/95 p-3 flex items-center justify-center">
+                <div className="relative h-16 w-40 sm:h-20 sm:w-48 md:h-24 md:w-56">
                   <Image
                     src={getBrandLogo(selectedBrand.name)}
                     alt={selectedBrand.name}
                     fill
-                    className="object-contain p-2"
-                    sizes="208px"
+                    className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''}`}
+                    sizes="224px"
                     unoptimized
                   />
                 </div>
