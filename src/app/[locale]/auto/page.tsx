@@ -279,7 +279,7 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     flag: '🇩🇪',
     country: 'Germany',
     accentColor: 'zinc',
-    description: { en: 'Mercedes tuning', ua: 'Mercedes тюнінг' },
+    description: { en: 'Premium tuning', ua: 'Преміум тюнінг' },
     invertLogo: true,
   },
   'Mansory': {
@@ -709,7 +709,7 @@ export default function AutomotivePage() {
                 
                 <div>
                   <p className="text-xl sm:text-2xl font-light text-white">BRABUS</p>
-                  <p className="text-xs sm:text-sm text-zinc-500 mt-1">{locale === 'ua' ? 'Mercedes тюнінг' : 'Mercedes tuning'}</p>
+                  <p className="text-xs sm:text-sm text-zinc-500 mt-1">{locale === 'ua' ? 'Преміум тюнінг' : 'Premium tuning'}</p>
                 </div>
                 
                 <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/5 border border-white/10 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:bg-white/10 group-hover:border-white/20">
