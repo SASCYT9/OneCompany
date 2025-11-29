@@ -288,7 +288,7 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     tag: 'Luxury',
     tagColor: 'amber',
     accentColor: 'amber',
-    description: { en: 'Luxury car tuning', ua: 'Лакшері тюнінг' },
+    description: { en: 'Premium body kits', ua: 'Преміум обвіси' },
     invertLogo: true,
   },
   'HRE wheels': {
