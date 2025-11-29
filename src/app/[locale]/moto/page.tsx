@@ -1313,7 +1313,7 @@ export default function MotoPage() {
                       src={getBrandLogo(brand.name)}
                       alt={brand.name}
                       fill
-                      className="object-contain brightness-0 invert"
+                      className={`object-contain transition-all duration-500 ${isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''}`}
                       sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                       unoptimized
                     />
