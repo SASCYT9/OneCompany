@@ -146,6 +146,30 @@ const carbonTypes = [
   },
 ];
 
+// Materials info
+const materials = [
+  {
+    name: { en: 'Pre-preg Carbon', ua: 'Препрег-карбон' },
+    description: { en: 'Autoclave-cured aerospace-grade carbon fiber', ua: 'Автоклавний аерокосмічний карбон' },
+    color: 'from-gray-800 to-black',
+  },
+  {
+    name: { en: 'Dry Carbon', ua: 'Сухий карбон' },
+    description: { en: 'Lightest carbon with no resin excess', ua: 'Найлегший карбон без надлишку смоли' },
+    color: 'from-zinc-600 to-zinc-800',
+  },
+  {
+    name: { en: 'Fiberglass', ua: 'Склопластик' },
+    description: { en: 'Cost-effective race bodywork option', ua: 'Бюджетний варіант гоночного обвісу' },
+    color: 'from-amber-400 to-orange-500',
+  },
+  {
+    name: { en: 'Kevlar Blend', ua: 'Кевлар-бленд' },
+    description: { en: 'Carbon-Kevlar for extra impact resistance', ua: 'Карбон-кевлар для додаткової ударостійкості' },
+    color: 'from-yellow-500 to-amber-600',
+  },
+];
+
 export default function MotoCarbonCategoryPage() {
   const params = useParams();
   const locale = (params?.locale as Locale) || 'ua';
@@ -163,6 +187,7 @@ export default function MotoCarbonCategoryPage() {
     sections: {
       brands: { en: 'Featured Brands', ua: 'Провідні бренди' },
       types: { en: 'Product Types', ua: 'Типи продуктів' },
+      materials: { en: 'Materials', ua: 'Матеріали' },
       cta: { en: 'Request Quote', ua: 'Запросити ціну' },
     },
     back: { en: '← Back to Moto', ua: '← Назад до Мото' },
@@ -198,6 +223,33 @@ export default function MotoCarbonCategoryPage() {
               {content.hero.subtitle[locale]}
             </p>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Materials Section */}
+      <section className="border-b border-white/10 py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="text-center text-2xl font-light sm:text-3xl mb-10">
+            {content.sections.materials[locale]}
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {materials.map((material, i) => (
+              <motion.div
+                key={material.name.en}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 transition-all duration-300"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${material.color} opacity-10 group-hover:opacity-20 transition-opacity`} />
+                <div className="relative">
+                  <h3 className="text-lg font-medium text-white">{material.name[locale]}</h3>
+                  <p className="mt-2 text-sm text-white/60">{material.description[locale]}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 

@@ -146,6 +146,30 @@ const electronicsTypes = [
   },
 ];
 
+// Materials info
+const materials = [
+  {
+    name: { en: 'Billet Aluminum', ua: 'Білетний алюміній' },
+    description: { en: 'CNC-machined housings for dashboards and sensors', ua: 'CNC-оброблені корпуси для панелей та датчиків' },
+    color: 'from-zinc-400 to-zinc-600',
+  },
+  {
+    name: { en: 'Military-Grade PCB', ua: 'Військові плати' },
+    description: { en: 'Vibration-resistant circuit boards for reliability', ua: 'Вібростійкі плати для надійності' },
+    color: 'from-green-400 to-emerald-500',
+  },
+  {
+    name: { en: 'Waterproof Connectors', ua: 'Водонепроникні конектори' },
+    description: { en: 'IP67-rated plugs and sockets', ua: 'IP67-сертифіковані штекери та розетки' },
+    color: 'from-blue-400 to-cyan-500',
+  },
+  {
+    name: { en: 'Silicone Wiring', ua: 'Силіконова проводка' },
+    description: { en: 'Heat-resistant flexible wiring harnesses', ua: 'Термостійкі гнучкі джгути проводки' },
+    color: 'from-orange-400 to-red-500',
+  },
+];
+
 export default function MotoElectronicsCategoryPage() {
   const params = useParams();
   const locale = (params?.locale as Locale) || 'ua';
@@ -163,6 +187,7 @@ export default function MotoElectronicsCategoryPage() {
     sections: {
       brands: { en: 'Featured Brands', ua: 'Провідні бренди' },
       types: { en: 'Product Types', ua: 'Типи продуктів' },
+      materials: { en: 'Materials', ua: 'Матеріали' },
       cta: { en: 'Request Quote', ua: 'Запросити ціну' },
     },
     back: { en: '← Back to Moto', ua: '← Назад до Мото' },
@@ -198,6 +223,33 @@ export default function MotoElectronicsCategoryPage() {
               {content.hero.subtitle[locale]}
             </p>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Materials Section */}
+      <section className="border-b border-white/10 py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="text-center text-2xl font-light sm:text-3xl mb-10">
+            {content.sections.materials[locale]}
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {materials.map((material, i) => (
+              <motion.div
+                key={material.name.en}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 transition-all duration-300"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${material.color} opacity-10 group-hover:opacity-20 transition-opacity`} />
+                <div className="relative">
+                  <h3 className="text-lg font-medium text-white">{material.name[locale]}</h3>
+                  <p className="mt-2 text-sm text-white/60">{material.description[locale]}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 

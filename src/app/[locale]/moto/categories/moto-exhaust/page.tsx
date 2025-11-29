@@ -146,6 +146,30 @@ const exhaustTypes = [
   },
 ];
 
+// Materials info
+const materials = [
+  {
+    name: { en: 'Titanium', ua: 'Титан' },
+    description: { en: '40-50% lighter than steel, extreme heat resistance, signature blue hue', ua: 'На 40-50% легше сталі, екстремальна термостійкість, фірмовий синій відтінок' },
+    color: 'from-blue-400 to-purple-500',
+  },
+  {
+    name: { en: 'Inconel', ua: 'Інконель' },
+    description: { en: 'MotoGP-grade superalloy for 1000°C+ tolerance', ua: 'MotoGP суперсплав для температур 1000°C+' },
+    color: 'from-orange-400 to-red-500',
+  },
+  {
+    name: { en: 'Stainless Steel', ua: 'Нержавіюча сталь' },
+    description: { en: 'Durable, corrosion resistant, classic sound', ua: 'Довговічна, корозійностійка, класичний звук' },
+    color: 'from-zinc-400 to-zinc-600',
+  },
+  {
+    name: { en: 'Carbon Fiber', ua: 'Карбон' },
+    description: { en: 'Lightweight muffler cans and heat shields', ua: 'Легкі глушники та теплозахисні елементи' },
+    color: 'from-gray-800 to-black',
+  },
+];
+
 export default function MotoExhaustCategoryPage() {
   const params = useParams();
   const locale = (params?.locale as Locale) || 'ua';
@@ -163,6 +187,7 @@ export default function MotoExhaustCategoryPage() {
     sections: {
       brands: { en: 'Featured Brands', ua: 'Провідні бренди' },
       types: { en: 'Product Types', ua: 'Типи продуктів' },
+      materials: { en: 'Materials', ua: 'Матеріали' },
       cta: { en: 'Request Quote', ua: 'Запросити ціну' },
     },
     back: { en: '← Back to Moto', ua: '← Назад до Мото' },
@@ -198,6 +223,33 @@ export default function MotoExhaustCategoryPage() {
               {content.hero.subtitle[locale]}
             </p>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Materials Section */}
+      <section className="border-b border-white/10 py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="text-center text-2xl font-light sm:text-3xl mb-10">
+            {content.sections.materials[locale]}
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {materials.map((material, i) => (
+              <motion.div
+                key={material.name.en}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 transition-all duration-300"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${material.color} opacity-10 group-hover:opacity-20 transition-opacity`} />
+                <div className="relative">
+                  <h3 className="text-lg font-medium text-white">{material.name[locale]}</h3>
+                  <p className="mt-2 text-sm text-white/60">{material.description[locale]}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
