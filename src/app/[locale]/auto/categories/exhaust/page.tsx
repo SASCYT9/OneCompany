@@ -266,26 +266,6 @@ export default function ExhaustCategoryPage() {
               {content.hero.subtitle[locale]}
             </p>
           </motion.div>
-
-          {/* Quick stats */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6"
-          >
-            {[
-              { value: '12+', label: { en: 'Premium Brands', ua: 'Преміум брендів' } },
-              { value: '500+', label: { en: 'Systems Available', ua: 'Систем у каталозі' } },
-              { value: '50%', label: { en: 'Weight Savings', ua: 'Економія ваги' } },
-              { value: '+15-40', label: { en: 'HP Gains', ua: 'К.с. приріст' } },
-            ].map((stat, i) => (
-              <div key={i} className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                <div className="text-2xl font-light text-white sm:text-3xl">{stat.value}</div>
-                <div className="mt-1 text-xs text-white/50 uppercase tracking-wider">{stat.label[locale]}</div>
-              </div>
-            ))}
-          </motion.div>
         </div>
       </section>
 
