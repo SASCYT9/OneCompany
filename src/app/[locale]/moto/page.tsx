@@ -600,6 +600,54 @@ export default function MotoPage() {
         </div>
       </section>
 
+      {/* Product Categories Section */}
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+        <div className="mb-8 text-center sm:mb-10 md:mb-12">
+          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('productCategories')}</p>
+          <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>
+            {locale === 'ua' ? 'Мото ' : 'Engineering Modules'}
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr">
+          {categoryData.filter(cat => cat.segment === 'moto').map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/${locale}/categories/${cat.slug}`}
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/30 p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-zinc-900/50 hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8 h-full"
+            >
+              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
+                backgroundImage:
+                  'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
+              }} />
+              <div className="relative flex flex-col gap-3 sm:gap-4 flex-1">
+                <h3 className="text-xl font-light text-white sm:text-2xl text-balance">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                <p className="text-xs text-white/70 sm:text-sm text-pretty">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                <p className="text-[11px] text-white/50 sm:text-xs text-pretty">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] uppercase tracking-[0.25em] text-white/50 sm:mt-4 sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
+                  {cat.brands.slice(0, 4).map((name) => (
+                    <span key={name} className="rounded-full border border-white/10 px-2.5 py-0.5 text-white/70 sm:px-3 sm:py-1">
+                      {name}
+                    </span>
+                  ))}
+                  {cat.brands.length > 4 && (
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/50 sm:px-3 sm:py-1">
+                      +{cat.brands.length - 4} {tPage('more')}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:pt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
+                  <span className="transition-colors duration-300 group-hover:text-white">
+                    {tPage('open')}
+                  </span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent transition-all duration-300 group-hover:from-white/50" />
+                  <span className="transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white">→</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* LEGENDARY MOTO BRANDS SHOWCASE */}
       <section className="relative py-24 sm:py-32 md:py-40 overflow-hidden">
         {/* Video Background */}
@@ -709,28 +757,23 @@ export default function MotoPage() {
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-emerald-500/30 via-teal-500/15 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
               </div>
-              
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
                 <div className="absolute -inset-2 bg-gradient-to-br from-emerald-500/20 to-transparent rounded-[3rem] blur-2xl" />
               </div>
-              
               <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-5 sm:p-6 lg:p-8 flex flex-col">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">🇮🇹</span>
                   <span className="text-[10px] sm:text-xs uppercase tracking-[0.15em] text-emerald-400 font-medium">Italy</span>
                 </div>
-                
                 <div className="flex-1 flex items-center justify-center py-8">
                   <div className="relative w-full max-w-[200px] h-16 sm:h-20 lg:h-24">
                     <Image src={getBrandLogo('SC-Project')} alt="SC-Project" fill className={`object-contain drop-shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all duration-700 group-hover:scale-110 ${isDarkLogo(getBrandLogo('SC-Project')) ? 'brightness-0 invert' : ''}`} unoptimized />
                   </div>
                 </div>
-                
                 <div>
                   <p className="text-xl sm:text-2xl font-light text-white">SC-Project</p>
                   <p className="text-xs sm:text-sm text-zinc-500 mt-1">{locale === 'ua' ? 'MotoGP технології' : 'MotoGP technology'}</p>
                 </div>
-                
                 <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:bg-emerald-500/20 group-hover:border-emerald-400/40">
                   <svg className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400 transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
@@ -751,11 +794,9 @@ export default function MotoPage() {
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-amber-400/40 via-yellow-500/15 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
               </div>
-              
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
                 <div className="absolute -inset-2 bg-gradient-to-br from-amber-500/25 via-yellow-500/15 to-transparent rounded-[3rem] blur-2xl" />
               </div>
-              
               <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[200px]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -766,16 +807,13 @@ export default function MotoPage() {
                     <span className="text-amber-400">★</span> Ducati Partner
                   </span>
                 </div>
-                
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[220px] h-12 sm:h-16">
                     <Image src={getBrandLogo('Termignoni')} alt="Termignoni" fill className={`object-contain opacity-95 drop-shadow-[0_0_25px_rgba(255,200,50,0.25)] transition-all duration-700 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Termignoni')) ? 'brightness-0 invert' : ''}`} unoptimized />
                   </div>
                 </div>
-                
                 <p className="text-lg sm:text-xl font-light text-white">Termignoni</p>
               </div>
-              
               <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-amber-400/40">
                 <svg className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
@@ -796,7 +834,6 @@ export default function MotoPage() {
                 <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] sm:rounded-[calc(2rem-1.5px)] bg-gradient-to-br from-zinc-900 to-zinc-950" />
               </div>
               <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
               <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[180px]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -832,7 +869,6 @@ export default function MotoPage() {
                 <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
               </div>
               <div className="absolute inset-0 bg-gradient-to-br from-zinc-400/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
               <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -864,7 +900,6 @@ export default function MotoPage() {
                 <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
               </div>
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
               <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">🇸🇮</span>
@@ -893,7 +928,6 @@ export default function MotoPage() {
                 <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
               </div>
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
               <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">🇬🇧</span>
@@ -921,11 +955,9 @@ export default function MotoPage() {
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-orange-500/30 via-amber-500/15 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
               </div>
-              
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
                 <div className="absolute -inset-2 bg-gradient-to-br from-orange-500/20 to-transparent rounded-[3rem] blur-2xl" />
               </div>
-              
               <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -934,13 +966,11 @@ export default function MotoPage() {
                   </div>
                   <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-3 py-1.5 rounded-full">Racing Exhaust</span>
                 </div>
-                
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[180px] h-14 sm:h-16">
                     <Image src={getBrandLogo('Arrow')} alt="Arrow" fill className={`object-contain opacity-95 drop-shadow-[0_0_20px_rgba(255,150,50,0.2)] transition-all duration-700 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Arrow')) ? 'brightness-0 invert' : ''}`} unoptimized />
                   </div>
                 </div>
-                
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-lg sm:text-xl font-light text-white">Arrow Exhaust</p>
@@ -967,11 +997,9 @@ export default function MotoPage() {
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-rose-500/30 via-pink-500/15 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
               </div>
-              
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
                 <div className="absolute -inset-2 bg-gradient-to-br from-rose-500/20 to-transparent rounded-[3rem] blur-2xl" />
               </div>
-              
               <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -980,13 +1008,11 @@ export default function MotoPage() {
                   </div>
                   <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-3 py-1.5 rounded-full">Billet Parts</span>
                 </div>
-                
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[140px] h-14 sm:h-16">
                     <Image src={getBrandLogo('CNC Racing')} alt="CNC Racing" fill className={`object-contain opacity-95 drop-shadow-[0_0_20px_rgba(244,63,94,0.2)] transition-all duration-700 group-hover:scale-110 ${isDarkLogo(getBrandLogo('CNC Racing')) ? 'brightness-0 invert' : ''}`} unoptimized />
                   </div>
                 </div>
-                
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-lg sm:text-xl font-light text-white">CNC Racing</p>
@@ -1017,7 +1043,6 @@ export default function MotoPage() {
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-r from-red-500/30 via-orange-500/20 to-emerald-500/30 p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
               </div>
-              
               <div className="relative p-6 sm:p-8 lg:p-10">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
                   <div className="text-center lg:text-left">
@@ -1033,7 +1058,6 @@ export default function MotoPage() {
                       {locale === 'ua' ? 'Повний каталог мото-компонентів преміум класу' : 'Complete catalog of premium moto parts & accessories'}
                     </p>
                   </div>
-                  
                   {/* CTA Button */}
                   <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-gradient-to-br from-white/15 to-white/5 border border-white/15 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/30 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.15)]">
                     <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -1041,48 +1065,24 @@ export default function MotoPage() {
                     </svg>
                   </div>
                 </div>
-                
                 {/* Infinite Scrolling Carousel */}
                 <div className="relative overflow-hidden">
-                  {/* Gradient fades */}
                   <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none" />
                   <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
-                  
-                  {/* First row - scrolling left */}
                   <div className="flex gap-6 mb-4 animate-scroll-left">
                     {[...allMotoBrands.slice(0, 15), ...allMotoBrands.slice(0, 15)].map((brand, idx) => (
-                      <div 
-                        key={`row1-${brand.name}-${idx}`} 
-                        className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-                      >
+                      <div key={`row1-${brand.name}-${idx}`} className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300">
                         <div className="relative w-full h-full">
-                          <Image 
-                            src={getBrandLogo(brand.name)} 
-                            alt={brand.name} 
-                            fill 
-                            className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''}`}
-                            unoptimized 
-                          />
+                          <Image src={getBrandLogo(brand.name)} alt={brand.name} fill className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''}`} unoptimized />
                         </div>
                       </div>
                     ))}
                   </div>
-                  
-                  {/* Second row - scrolling right */}
                   <div className="flex gap-6 animate-scroll-right">
                     {[...allMotoBrands.slice(15, 30), ...allMotoBrands.slice(15, 30)].map((brand, idx) => (
-                      <div 
-                        key={`row2-${brand.name}-${idx}`} 
-                        className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-                      >
+                      <div key={`row2-${brand.name}-${idx}`} className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300">
                         <div className="relative w-full h-full">
-                          <Image 
-                            src={getBrandLogo(brand.name)} 
-                            alt={brand.name} 
-                            fill 
-                            className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''}`}
-                            unoptimized 
-                          />
+                          <Image src={getBrandLogo(brand.name)} alt={brand.name} fill className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''}`} unoptimized />
                         </div>
                       </div>
                     ))}
@@ -1092,54 +1092,6 @@ export default function MotoPage() {
             </motion.div>
 
           </div>
-        </div>
-      </section>
-
-      {/* Product Categories Section - Moved Up */}
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
-        <div className="mb-8 text-center sm:mb-10 md:mb-12">
-          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('productCategories')}</p>
-          <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>
-            {locale === 'ua' ? 'Мото ' : 'Engineering Modules'}
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr">
-          {categoryData.filter(cat => cat.segment === 'moto').map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/${locale}/categories/${cat.slug}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/30 p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-zinc-900/50 hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8 h-full"
-            >
-              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
-                backgroundImage:
-                  'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
-              }} />
-              <div className="relative flex flex-col gap-3 sm:gap-4 flex-1">
-                <h3 className="text-xl font-light text-white sm:text-2xl text-balance">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
-                <p className="text-xs text-white/70 sm:text-sm text-pretty">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                <p className="text-[11px] text-white/50 sm:text-xs text-pretty">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
-                <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] uppercase tracking-[0.25em] text-white/50 sm:mt-4 sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
-                  {cat.brands.slice(0, 4).map((name) => (
-                    <span key={name} className="rounded-full border border-white/10 px-2.5 py-0.5 text-white/70 sm:px-3 sm:py-1">
-                      {name}
-                    </span>
-                  ))}
-                  {cat.brands.length > 4 && (
-                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/50 sm:px-3 sm:py-1">
-                      +{cat.brands.length - 4} {tPage('more')}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:pt-6 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
-                  <span className="transition-colors duration-300 group-hover:text-white">
-                    {tPage('open')}
-                  </span>
-                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent transition-all duration-300 group-hover:from-white/50" />
-                  <span className="transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white">→</span>
-                </div>
-              </div>
-            </Link>
-          ))}
         </div>
       </section>
 
