@@ -330,9 +330,9 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
   'ABT': {
     flag: '🇩🇪',
     country: 'Germany',
-    tag: 'Audi • VW',
+    tag: 'VAG',
     accentColor: 'violet',
-    description: { en: 'Audi & VW tuning', ua: 'Audi та VW тюнінг' },
+    description: { en: 'Premium VAG tuning', ua: 'Преміум тюнінг VAG' },
     invertLogo: true,
   },
 };
