@@ -628,21 +628,6 @@ export default function MotoPage() {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-16 sm:mb-20 md:mb-28 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-white/10 to-white/5 border border-white/10 px-5 py-2.5 mb-8 backdrop-blur-sm"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-400" />
-              </span>
-              <span className="text-xs uppercase tracking-[0.25em] text-zinc-300 font-medium">
-                {locale === 'ua' ? 'Ексклюзивний дистриб\'ютор' : 'Exclusive distributor'}
-              </span>
-            </motion.div>
-            
             <motion.h2 
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
