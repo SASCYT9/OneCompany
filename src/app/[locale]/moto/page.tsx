@@ -6,7 +6,6 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
-import { TiltedCard } from '@/components/ui/TiltedCard';
 
 import {
   allMotoBrands,
@@ -1156,67 +1155,6 @@ export default function MotoPage() {
               </div>
             </Link>
           ))}
-        </div>
-      </section>
-
-      {/* Featured Brands Section - Moved Up */}
-      <section className="relative border-y border-white/5 bg-gradient-to-b from-black via-black/80 to-black py-12 sm:py-16 md:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="mb-10 text-center sm:mb-12 md:mb-16">
-            <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('featuredBrands')}</p>
-            <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>
-              {locale === 'ua' ? 'Ікони продуктивності' : 'Icons of Performance'}
-            </h2>
-          </div>
-          <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 perspective-1000">
-            {topBrands.map((brand) => {
-              const logoSrc = getBrandLogo(brand.name);
-              const isPlaceholder = logoSrc === '/logos/placeholder.svg';
-              
-              return (
-              <TiltedCard
-                key={brand.name}
-                onClick={() => setSelectedBrand(brand)}
-                className="flex min-h-[320px] cursor-pointer flex-col items-center justify-center gap-8 p-8 text-center group"
-              >
-                <div className="absolute right-4 top-4" style={{ transform: 'translateZ(20px)' }}>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition-colors group-hover:border-white/30 group-hover:bg-white/10 group-hover:text-white">
-                    ↗
-                  </div>
-                </div>
-                
-                <div className="relative h-32 w-full transition-transform duration-500 group-hover:scale-110" style={{ transform: 'translateZ(40px)' }}>
-                  {isPlaceholder ? (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <span className="text-2xl font-bold text-white/20 uppercase tracking-widest">{brand.name}</span>
-                    </div>
-                  ) : (
-                    <Image
-                      src={logoSrc}
-                      alt={brand.name}
-                      fill
-                      className="object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] brightness-0 invert"
-                      sizes="(max-width: 768px) 100vw, 300px"
-                      unoptimized
-                    />
-                  )}
-                </div>
-
-                <div className="space-y-4" style={{ transform: 'translateZ(30px)' }}>
-                  <p className="text-[10px] uppercase tracking-[0.25em] text-white/40 transition-colors group-hover:text-white/60">
-                    {locale === 'ua' ? 'Офіційна програма постачання' : 'Official supply program'}
-                  </p>
-                  
-                  <div className="relative mt-2 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 transition-all duration-300 group-hover:border-white/20 group-hover:bg-white/10">
-                    <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/80">
-                      {locale === 'ua' ? 'Відкрити' : 'Explore'}
-                    </span>
-                    <span className="text-white/60 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white">→</span>
-                  </div>
-                </div>
-              </TiltedCard>
-            )})}
-          </div>
         </div>
       </section>
 
