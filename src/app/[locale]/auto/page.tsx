@@ -301,9 +301,9 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
   'Urban Automotive': {
     flag: '🇬🇧',
     country: 'UK',
-    tag: 'Land Rover',
+    tag: 'Body Kits',
     accentColor: 'emerald',
-    description: { en: 'Land Rover specialists', ua: 'Спеціалісти Land Rover' },
+    description: { en: 'Premium body kits', ua: 'Преміум обвіси' },
     invertLogo: true,
   },
   'Eventuri': {
@@ -826,7 +826,7 @@ export default function AutomotivePage() {
                     <span className="text-lg">🇬🇧</span>
                     <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-emerald-400/70">UK</span>
                   </div>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-600">Land Rover</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-600">Body Kits</span>
                 </div>
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[140px] h-10 sm:h-12">
@@ -834,6 +834,7 @@ export default function AutomotivePage() {
                   </div>
                 </div>
                 <p className="text-sm sm:text-base font-medium text-white">Urban Automotive</p>
+                <p className="text-[10px] sm:text-xs text-zinc-600 mt-0.5">{locale === 'ua' ? 'Преміум обвіси' : 'Premium body kits'}</p>
               </div>
             </motion.button>
 
