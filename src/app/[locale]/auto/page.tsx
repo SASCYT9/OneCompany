@@ -461,13 +461,13 @@ export default function AutomotivePage() {
             loop
             muted
             playsInline
-            className="h-full w-full object-cover opacity-60"
+            className="h-full w-full object-cover opacity-70 sm:opacity-60"
             poster="/images/eventuri/carbon-intake.jpg"
           >
             <source src="/videos/rollsbg-v3.mp4" type="video/mp4" />
           </video>
-          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black sm:from-black sm:via-black/70 sm:to-black" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_55%)] sm:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
         </div>
         <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6 px-4 py-16 sm:gap-8 sm:px-6 sm:py-20 md:gap-10 md:py-28">
           <div className="text-[9px] uppercase tracking-[0.4em] text-white/60 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">
@@ -562,16 +562,28 @@ export default function AutomotivePage() {
 
       {/* LEGENDARY BRANDS SHOWCASE */}
       <section className="relative py-24 sm:py-32 md:py-40 overflow-hidden">
-        {/* Epic Background */}
-        <div className="absolute inset-0 bg-black" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-30%,rgba(120,50,255,0.12),transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_90%,rgba(255,150,50,0.08),transparent_40%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_80%,rgba(255,50,100,0.06),transparent_40%)]" />
+        {/* Video Background */}
+        <div className="absolute inset-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="h-full w-full object-cover opacity-30 sm:opacity-25"
+          >
+            <source src="/videos/rollsbg-v3.mp4" type="video/mp4" />
+          </video>
+        </div>
+        {/* Epic Background Overlays */}
+        <div className="absolute inset-0 bg-black/70 sm:bg-black/75" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-30%,rgba(120,50,255,0.15),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_90%,rgba(255,150,50,0.1),transparent_40%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_80%,rgba(255,50,100,0.08),transparent_40%)]" />
         
         {/* Animated Glow Orbs */}
-        <div className="absolute top-20 left-1/3 w-[500px] h-[500px] bg-purple-600/8 rounded-full blur-[150px] animate-pulse" />
-        <div className="absolute bottom-20 right-1/3 w-[400px] h-[400px] bg-amber-500/8 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-10 w-[300px] h-[300px] bg-red-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-20 left-1/3 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[150px] animate-pulse" />
+        <div className="absolute bottom-20 right-1/3 w-[400px] h-[400px] bg-amber-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-10 w-[300px] h-[300px] bg-red-500/8 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
         
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
