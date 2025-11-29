@@ -322,9 +322,9 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
   'Novitec': {
     flag: '🇩🇪',
     country: 'Germany',
-    tag: 'Ferrari • Lamborghini',
+    tag: 'Supercars',
     accentColor: 'rose',
-    description: { en: 'Supercar tuning', ua: 'Суперкар тюнінг' },
+    description: { en: 'Supercar tuning', ua: 'Тюнінг суперкарів' },
     invertLogo: true,
   },
   'ABT': {
