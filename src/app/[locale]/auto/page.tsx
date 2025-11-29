@@ -529,7 +529,7 @@ export default function AutomotivePage() {
           {automotiveCategories.map((cat) => (
             <Link
               key={cat.slug}
-              href={`/${locale}/categories/${cat.slug}`}
+              href={`/${locale}/auto/categories/${cat.slug}`}
               className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/30 p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-zinc-900/50 hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8 h-full"
             >
               <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
