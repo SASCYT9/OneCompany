@@ -41,9 +41,8 @@ export function registerCommands(bot: Bot<BotContext>) {
 
 Premium importer для СТО, детейлінг-студій та тюнінг-ательє.
 
-• 200+ performance брендів
 • 18 років на ринку
-• Глобальна логістика 36 годин
+• 200+ performance брендів
 • VIP expert programs
 
 Натисніть кнопку нижче 👇
@@ -57,9 +56,6 @@ Premium importer для СТО, детейлінг-студій та тюнін�
             text: 'Відкрити OneCompany',
             web_app: { url: WEBAPP_URL }
           }],
-          [
-            { text: 'Написати запит', callback_data: 'contact:general' },
-          ],
           [
             { text: 'Сайт', url: 'https://one-company.vercel.app/ua' }
           ]
