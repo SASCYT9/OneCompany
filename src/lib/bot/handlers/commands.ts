@@ -37,17 +37,16 @@ export function registerCommands(bot: Bot<BotContext>) {
     
     // Main welcome with Web App button
     const welcomeText = `
-🚗 <b>Вітаємо в OneCompany!</b>
+<b>OneCompany</b> · B2B Wholesale
 
-Преміум автосервіс у Києві:
-• 🏎️ Чіп-тюнінг Stage 1-3
-• ⚙️ Оригінальні запчастини
-• 🔧 Сервіс та ремонт
-• ✨ Детейлінг та полірування
-• 🎨 Оклейка плівками
-• 🔊 Аудіосистеми
+Premium importer для СТО, детейлінг-студій та тюнінг-ательє.
 
-Натисніть кнопку нижче, щоб відкрити наш додаток 👇
+• 200+ performance брендів
+• 18 років на ринку
+• Глобальна логістика 36 годин
+• VIP expert programs
+
+Натисніть кнопку нижче 👇
     `.trim();
     
     await ctx.reply(welcomeText, { 
@@ -55,15 +54,14 @@ export function registerCommands(bot: Bot<BotContext>) {
       reply_markup: {
         inline_keyboard: [
           [{
-            text: '🚀 Відкрити OneCompany',
+            text: 'Відкрити OneCompany',
             web_app: { url: WEBAPP_URL }
           }],
           [
-            { text: '📞 Зв\'язатись', callback_data: 'contact:general' },
-            { text: '📍 На карті', url: 'https://maps.google.com/?q=Kiev+Ukraine' }
+            { text: 'Написати запит', callback_data: 'contact:general' },
           ],
           [
-            { text: '🌐 Сайт', url: 'https://one-company.vercel.app/ua' }
+            { text: 'Сайт', url: 'https://one-company.vercel.app/ua' }
           ]
         ]
       }
