@@ -333,13 +333,13 @@ export function formatStatsMessage(
 • Партнерство: ${conversion.partnershipFunnel.conversionRate}% (${conversion.partnershipFunnel.completed}/${conversion.partnershipFunnel.started})`;
   }
 
-  if (responseTime && responseTime.totalReplied > 0) {
+  if (responseTime && (responseTime.totalReplied ?? 0) > 0) {
     text += `
 
 ⏱️ <b>Час відповіді:</b>
-• Середній: ${responseTime.averageResponseTime} хв
-• Медіана: ${responseTime.medianResponseTime} хв
-• Відповіли: ${responseTime.totalReplied} запитів`;
+• Середній: ${responseTime.averageResponseTime ?? 0} хв
+• Медіана: ${responseTime.medianResponseTime ?? 0} хв
+• Відповіли: ${responseTime.totalReplied ?? 0} запитів`;
   }
 
   return text;
