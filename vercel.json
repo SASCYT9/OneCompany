@@ -11,11 +11,7 @@
   ],
   "crons": [
     {
-      "path": "/api/telegram/cron?task=reminders",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/telegram/cron?task=digest",
+      "path": "/api/telegram/cron?task=all",
       "schedule": "0 9 * * *"
     }
   ]
