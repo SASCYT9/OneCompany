@@ -7,16 +7,44 @@ import { getBrandLogo } from '@/lib/brandLogos';
 import Image from 'next/image';
 import Link from 'next/link';
 
-// Define product categories
+// Define moto product categories with brand tags
 const productCategories = [
-  { name: 'exhaust', href: '/categories/exhaust' },
-  { name: 'suspension', href: '/categories/suspension' },
-  { name: 'brakes', href: '/categories/brakes' },
-  { name: 'gear', href: '/categories/gear' },
-  { name: 'helmets', href: '/categories/helmets' },
-  { name: 'accessories', href: '/categories/accessories' },
-  { name: 'luggage', href: '/categories/luggage' },
-  { name: 'carbon', href: '/categories/carbon' },
+  { 
+    name: 'exhaust', 
+    href: '/moto/categories/moto-exhaust',
+    brands: ['Akrapovic', 'SC-Project', 'Termignoni', 'Arrow'],
+    hiddenBrandsCount: 4
+  },
+  { 
+    name: 'suspension', 
+    href: '/moto/categories/moto-suspension',
+    brands: ['Bitubo', 'Öhlins', 'Nitron', 'Hyperpro'],
+    hiddenBrandsCount: 4
+  },
+  { 
+    name: 'wheels', 
+    href: '/moto/categories/moto-wheels',
+    brands: ['Rotobox', 'BST Carbon Fiber', 'Marchesini', 'Brembo'],
+    hiddenBrandsCount: 4
+  },
+  { 
+    name: 'carbon', 
+    href: '/moto/categories/moto-carbon',
+    brands: ['Ilmberger Carbon', 'Fullsix Carbon', 'Carbon2Race', 'CRC Fairings'],
+    hiddenBrandsCount: 4
+  },
+  { 
+    name: 'controls', 
+    href: '/moto/categories/moto-controls',
+    brands: ['CNC Racing', 'Valtermoto', 'Gilles Tooling', 'Rizoma'],
+    hiddenBrandsCount: 4
+  },
+  { 
+    name: 'electronics', 
+    href: '/moto/categories/moto-electronics',
+    brands: ['Starlane', 'AiM Sports', 'Dynojet', 'Bazzaz'],
+    hiddenBrandsCount: 4
+  },
 ];
 
 // Placeholder for featured brands
@@ -68,23 +96,65 @@ export default function MotoPageClient({ brands, locale }: MotoPageClientProps) 
 
       {/* Product Categories Section */}
       <section className="container mx-auto px-6 py-20">
+        <p className="text-center text-white/50 text-sm tracking-[0.3em] uppercase mb-4">
+          {locale === 'ua' ? 'Категорії брендів' : 'Brand Categories'}
+        </p>
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-          {t('productCategories')}
+          {t('title')}
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {productCategories.map((cat) => (
-            <Link 
+            <div 
               key={cat.name} 
-              href={`/${locale}${cat.href}`}
-              className="group relative p-8 bg-gradient-to-br from-white/5 to-white/[0.02] hover:from-orange-500/20 hover:to-orange-600/10 rounded-2xl transition-all duration-300 text-center border border-white/5 hover:border-orange-500/50 overflow-hidden"
+              className="group relative p-6 bg-black rounded-2xl border border-white/10 hover:border-white/20 transition-all duration-300"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-orange-500/0 to-orange-500/0 group-hover:from-orange-500/10 group-hover:via-orange-500/5 group-hover:to-transparent transition-all duration-500" />
-              <div className="relative">
-                <h3 className="text-lg md:text-xl font-semibold text-white/90 group-hover:text-white transition-colors">
-                  {t(`categories.${cat.name}`)}
-                </h3>
+              {/* Category Title */}
+              <h3 className="text-xl font-semibold text-white mb-3">
+                {t(`categories.${cat.name}`)}
+              </h3>
+              
+              {/* Category Description */}
+              <p className="text-white/60 text-sm mb-2 leading-relaxed">
+                {t(`categoryDescriptions.${cat.name}.line1`)}
+              </p>
+              <p className="text-white/40 text-xs mb-6 leading-relaxed">
+                {t(`categoryDescriptions.${cat.name}.line2`)}
+              </p>
+              
+              {/* Brand Tags */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                {cat.brands.map((brand) => (
+                  <span 
+                    key={brand}
+                    className="px-3 py-1.5 text-xs font-medium text-white/80 bg-white/5 border border-white/10 rounded-full"
+                  >
+                    {brand.toUpperCase()}
+                  </span>
+                ))}
+                {cat.hiddenBrandsCount > 0 && (
+                  <span className="px-3 py-1.5 text-xs font-medium text-white/60 bg-white/5 border border-white/10 rounded-full">
+                    +{cat.hiddenBrandsCount} {locale === 'ua' ? 'ЩЕ' : 'MORE'}
+                  </span>
+                )}
               </div>
-            </Link>
+              
+              {/* Open Link */}
+              <Link 
+                href={`/${locale}${cat.href}`}
+                className="flex items-center gap-2 text-white/60 hover:text-white text-sm font-medium tracking-wide uppercase transition-colors group/link"
+              >
+                <span>{locale === 'ua' ? 'Відкрити' : 'Open'}</span>
+                <span className="w-16 h-px bg-white/20 group-hover/link:bg-white/40 transition-colors" />
+                <svg 
+                  className="w-4 h-4 transform group-hover/link:translate-x-1 transition-transform" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            </div>
           ))}
         </div>
       </section>

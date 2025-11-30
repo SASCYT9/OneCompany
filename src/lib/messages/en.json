@@ -158,7 +158,7 @@
     }
   },
   "moto": {
-    "title": "Motorcycles",
+    "title": "Moto",
     "heading": "Premium Exhaust & Suspension",
     "subtitle": "40+ premium brands for your motorcycle",
     "featuredBrands": "Featured Brands",
@@ -168,14 +168,38 @@
     "noBrands": "No brands found",
     "productCategories": "Brand Categories",
     "categories": {
-      "exhaust": "Exhaust Systems",
-      "suspension": "Suspension",
-      "brakes": "Brake Systems",
-      "gear": "Riding Gear",
-      "helmets": "Helmets",
-      "accessories": "Accessories",
-      "luggage": "Luggage",
-      "carbon": "Carbon"
+      "exhaust": "Exhaust & Sound",
+      "suspension": "Suspension & Chassis",
+      "wheels": "Wheels & Brakes",
+      "carbon": "Carbon & Aero",
+      "controls": "Controls & Ergonomics",
+      "electronics": "Electronics & Data"
+    },
+    "categoryDescriptions": {
+      "exhaust": {
+        "line1": "Full titanium systems, slip-ons and track exhausts with FIM homologation and proven power gains.",
+        "line2": "Designed for WorldSBK, MotoGP and track days."
+      },
+      "suspension": {
+        "line1": "Cartridges, fully adjustable forks and rear shocks with dyno-matched shim stacks and link geometry.",
+        "line2": "From road comfort to track-level damping control."
+      },
+      "wheels": {
+        "line1": "Carbon and forged aluminum wheels with radial calipers, sport pads and floating discs.",
+        "line2": "Reduced unsprung mass and stable braking for lightweight bikes."
+      },
+      "carbon": {
+        "line1": "Pre-preg carbon fairings, tanks, wings and crash guards for weight reduction and track legality.",
+        "line2": "FIM-certified kits with custom paint finishes."
+      },
+      "controls": {
+        "line1": "Adjustable rearsets, clip-ons, billet levers and quickshifters for precise control and faster lap times.",
+        "line2": "CNC-machined with multiple positions for track ergonomics."
+      },
+      "electronics": {
+        "line1": "ECU flashes, quickshifter modules, traction control and GPS telemetry for data-driven tuning optimization.",
+        "line2": "From road unlocking to full track telemetry."
+      }
     },
     "services": {
       "selectionTitle": "Assistance with Selection",
