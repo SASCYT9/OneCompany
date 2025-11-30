@@ -454,17 +454,22 @@ export default function TelegramMiniApp() {
       </main>
 
       {/* Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-neutral-900 px-2 py-2 z-50">
-        <div className="flex justify-around max-w-md mx-auto">
+      <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-neutral-900 px-4 py-3 z-50 safe-area-inset-bottom">
+        <div className="flex justify-center items-center gap-1 max-w-sm mx-auto">
           {([
-            { id: 'home' as Tab, labelUk: 'Головна', labelEn: 'Home' },
-            { id: 'auto' as Tab, labelUk: 'Авто', labelEn: 'Auto' },
-            { id: 'moto' as Tab, labelUk: 'Мото', labelEn: 'Moto' },
-            { id: 'contact' as Tab, labelUk: 'Контакти', labelEn: 'Contact' },
+            { id: 'home' as Tab, labelUk: 'Головна', labelEn: 'Home', icon: '🏠' },
+            { id: 'auto' as Tab, labelUk: 'Авто', labelEn: 'Auto', icon: '🚗' },
+            { id: 'moto' as Tab, labelUk: 'Мото', labelEn: 'Moto', icon: '🏍️' },
+            { id: 'contact' as Tab, labelUk: 'Контакти', labelEn: 'Contact', icon: '✉️' },
           ]).map((tab) => (
             <button key={tab.id} onClick={() => handleTabChange(tab.id)} 
-              className={`flex-1 py-2 text-center transition-colors ${activeTab === tab.id ? 'text-white' : 'text-neutral-600'}`}>
-              <span className="text-[10px] tracking-wide">{lang === 'uk' ? tab.labelUk : tab.labelEn}</span>
+              className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-xl transition-all ${
+                activeTab === tab.id 
+                  ? 'text-white bg-neutral-800/80' 
+                  : 'text-neutral-500 hover:text-neutral-400'
+              }`}>
+              <span className="text-base mb-0.5">{tab.icon}</span>
+              <span className="text-[9px] tracking-wide font-medium">{lang === 'uk' ? tab.labelUk : tab.labelEn}</span>
             </button>
           ))}
         </div>
