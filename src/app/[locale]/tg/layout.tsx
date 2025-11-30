@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import '../globals.css';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'OneCompany | Telegram Mini App',
@@ -20,13 +20,11 @@ export default function TelegramAppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="uk">
-      <head>
-        <script src="https://telegram.org/js/telegram-web-app.js" />
-      </head>
-      <body className="bg-[#0a0a0a] text-white antialiased overflow-x-hidden">
+    <>
+      <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
+      <div className="bg-[#0a0a0a] text-white antialiased overflow-x-hidden min-h-screen">
         {children}
-      </body>
-    </html>
+      </div>
+    </>
   );
 }

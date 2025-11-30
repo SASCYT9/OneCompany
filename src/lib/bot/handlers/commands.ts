@@ -5,8 +5,8 @@ import { mainMenu, languageMenu, adminMenu, catalogMenu } from '../menus';
 
 // Web App URL
 const WEBAPP_URL = process.env.NEXT_PUBLIC_SITE_URL 
-  ? `${process.env.NEXT_PUBLIC_SITE_URL}/tg`
-  : 'https://one-company.vercel.app/tg';
+  ? `${process.env.NEXT_PUBLIC_SITE_URL}/ua/tg`
+  : 'https://one-company.vercel.app/ua/tg';
 
 export function registerCommands(bot: Bot<BotContext>) {
   // /start command - opens Web App
