@@ -16,6 +16,7 @@ import { registerCallbacks } from './handlers/callbacks';
 
 // Bot instance (will be initialized with token)
 let bot: Bot<BotContext> | null = null;
+let botInitialized = false;
 
 // Get or create bot instance
 export function getBot(token?: string): Bot<BotContext> {
@@ -26,7 +27,19 @@ export function getBot(token?: string): Bot<BotContext> {
     throw new Error('TELEGRAM_BOT_TOKEN is not set');
   }
   
-  bot = new Bot<BotContext>(botToken);
+  // For serverless, we need to provide botInfo statically to avoid init() call
+  // This is the bot info for @OneCompanyUA_bot
+  bot = new Bot<BotContext>(botToken, {
+    botInfo: {
+      id: 8449589510,
+      is_bot: true,
+      first_name: 'OneCompany',
+      username: 'OneCompanyUA_bot',
+      can_join_groups: true,
+      can_read_all_group_messages: false,
+      supports_inline_queries: false,
+    },
+  });
   
   // Auto-retry on rate limits
   bot.api.config.use(autoRetry({
