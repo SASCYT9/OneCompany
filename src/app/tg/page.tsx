@@ -4,14 +4,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Telegram WebApp types
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp: TelegramWebApp;
-    };
-  }
-}
-
 interface TelegramWebApp {
   ready: () => void;
   expand: () => void;
@@ -98,8 +90,10 @@ export default function TelegramMiniApp() {
   // Initialize Telegram WebApp
   useEffect(() => {
     const initWebApp = () => {
-      if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-        const tg = window.Telegram.WebApp;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const tgWindow = window as any;
+      if (typeof window !== 'undefined' && tgWindow.Telegram?.WebApp) {
+        const tg = tgWindow.Telegram.WebApp as TelegramWebApp;
         tg.ready();
         tg.expand();
         
