@@ -39,6 +39,7 @@ model Reply {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   replyText String   @db.Text
+  sentVia   String?  @default("email") // email, telegram
   message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
   messageId String
 
@@ -48,7 +49,9 @@ model Reply {
 enum Status {
   NEW
   READ
+  IN_PROGRESS
   REPLIED
+  COMPLETED
   ARCHIVED
 }
 
@@ -56,5 +59,69 @@ enum Category {
   AUTO
   MOTO
   GENERAL
+  PARTNERSHIP
+}
+
+// Telegram Bot Models
+model TelegramUser {
+  id            String    @id @default(cuid())
+  telegramId    BigInt    @unique
+  username      String?
+  firstName     String?
+  lastName      String?
+  languageCode  String    @default("uk")
+  isAdmin       Boolean   @default(false)
+  isBlocked     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastActiveAt  DateTime  @default(now())
+  
+  sessions      TelegramSession[]
+  conversations TelegramConversation[]
+
+  @@index([telegramId])
+}
+
+model TelegramSession {
+  id          String        @id @default(cuid())
+  telegramId  BigInt        @unique
+  data        Json          @default("{}")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  user        TelegramUser? @relation(fields: [telegramId], references: [telegramId], onDelete: Cascade)
+
+  @@index([telegramId])
+}
+
+model TelegramConversation {
+  id              String        @id @default(cuid())
+  telegramId      BigInt
+  chatId          BigInt
+  messageId       Int?
+  conversationType String       @default("general")
+  state           Json          @default("{}")
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  user            TelegramUser  @relation(fields: [telegramId], references: [telegramId], onDelete: Cascade)
+
+  @@index([telegramId])
+  @@index([chatId])
+}
+
+model TelegramAdmin {
+  id          String    @id @default(cuid())
+  telegramId  BigInt    @unique
+  username    String?
+  name        String
+  role        String    @default("admin") // admin, superadmin
+  permissions Json      @default("[]")    // ["messages", "users", "settings"]
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([telegramId])
 }
 
