@@ -30,11 +30,11 @@ export async function trackEvent(
         telegramId,
         chatId: telegramId,
         conversationType: 'analytics',
-        state: {
+        state: JSON.parse(JSON.stringify({
           event,
           data: data || {},
           timestamp: new Date().toISOString(),
-        },
+        })),
         isActive: false,
       },
     });
