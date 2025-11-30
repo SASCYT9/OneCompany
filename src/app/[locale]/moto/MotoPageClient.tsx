@@ -11,37 +11,37 @@ import Link from 'next/link';
 const productCategories = [
   { 
     name: 'exhaust', 
-    href: '/moto/categories/moto-exhaust',
+    href: '/categories/moto-exhaust',
     brands: ['Akrapovic', 'SC-Project', 'Termignoni', 'Arrow'],
     hiddenBrandsCount: 4
   },
   { 
     name: 'suspension', 
-    href: '/moto/categories/moto-suspension',
+    href: '/categories/moto-suspension',
     brands: ['Bitubo', 'Öhlins', 'Nitron', 'Hyperpro'],
     hiddenBrandsCount: 4
   },
   { 
     name: 'wheels', 
-    href: '/moto/categories/moto-wheels',
+    href: '/categories/moto-wheels',
     brands: ['Rotobox', 'BST Carbon Fiber', 'Marchesini', 'Brembo'],
     hiddenBrandsCount: 4
   },
   { 
     name: 'carbon', 
-    href: '/moto/categories/moto-carbon',
+    href: '/categories/moto-carbon',
     brands: ['Ilmberger Carbon', 'Fullsix Carbon', 'Carbon2Race', 'CRC Fairings'],
     hiddenBrandsCount: 4
   },
   { 
     name: 'controls', 
-    href: '/moto/categories/moto-controls',
+    href: '/categories/moto-controls',
     brands: ['CNC Racing', 'Valtermoto', 'Gilles Tooling', 'Rizoma'],
     hiddenBrandsCount: 4
   },
   { 
     name: 'electronics', 
-    href: '/moto/categories/moto-electronics',
+    href: '/categories/moto-electronics',
     brands: ['Starlane', 'AiM Sports', 'Dynojet', 'Bazzaz'],
     hiddenBrandsCount: 4
   },
