@@ -3,8 +3,13 @@ import type { Bot } from 'grammy';
 import type { BotContext } from '../types';
 import { mainMenu, languageMenu, adminMenu, catalogMenu } from '../menus';
 
+// Web App URL
+const WEBAPP_URL = process.env.NEXT_PUBLIC_SITE_URL 
+  ? `${process.env.NEXT_PUBLIC_SITE_URL}/tg`
+  : 'https://one-company.vercel.app/tg';
+
 export function registerCommands(bot: Bot<BotContext>) {
-  // /start command
+  // /start command - opens Web App
   bot.command('start', async (ctx) => {
     // Check for deeplink (e.g., /start admin)
     const payload = ctx.match;
@@ -30,9 +35,38 @@ export function registerCommands(bot: Bot<BotContext>) {
       return;
     }
     
-    await ctx.reply(ctx.t('welcome'), { 
-      reply_markup: mainMenu,
+    // Main welcome with Web App button
+    const welcomeText = `
+🚗 <b>Вітаємо в OneCompany!</b>
+
+Преміум автосервіс у Києві:
+• 🏎️ Чіп-тюнінг Stage 1-3
+• ⚙️ Оригінальні запчастини
+• 🔧 Сервіс та ремонт
+• ✨ Детейлінг та полірування
+• 🎨 Оклейка плівками
+• 🔊 Аудіосистеми
+
+Натисніть кнопку нижче, щоб відкрити наш додаток 👇
+    `.trim();
+    
+    await ctx.reply(welcomeText, { 
       parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: [
+          [{
+            text: '🚀 Відкрити OneCompany',
+            web_app: { url: WEBAPP_URL }
+          }],
+          [
+            { text: '📞 Зв\'язатись', callback_data: 'contact:general' },
+            { text: '📍 На карті', url: 'https://maps.google.com/?q=Kiev+Ukraine' }
+          ],
+          [
+            { text: '🌐 Сайт', url: 'https://one-company.vercel.app/ua' }
+          ]
+        ]
+      }
     });
   });
   
