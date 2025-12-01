@@ -78,7 +78,7 @@ export default async function LocalizedHomePage({
           <p>{heroBadgeCopy}</p>
         </div>
 
-        <div className="relative isolate flex flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:gap-4 sm:px-6 sm:pb-6 sm:pt-6 md:flex-row md:gap-4 md:px-8 max-w-5xl mx-auto w-full">
+        <div className="relative isolate flex flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:gap-4 sm:px-6 sm:pb-6 sm:pt-6 md:flex-row md:gap-4 md:px-8 max-w-[1400px] mx-auto w-full">
           
           <div className="relative flex flex-1 flex-col gap-4 md:flex-row md:gap-4">
             {experiences.map((experience, index) => (
@@ -143,12 +143,12 @@ export default async function LocalizedHomePage({
           {/* Address moved to footer; hero no longer displays physical address */}
         </div>
       </section>
-      <section className="border-t border-white/10 bg-black/40 backdrop-blur-xl">
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-6 py-12 text-center text-white md:grid-cols-4">
+      <section className="border-t border-white/10 bg-black/40 backdrop-blur-xl px-4 sm:px-6 md:px-8">
+        <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-4 py-8 text-center text-white md:grid-cols-4 sm:gap-6">
           {statHighlights.map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center justify-center gap-3 p-4 h-full min-h-[160px] rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300">
-              <div className="text-3xl sm:text-4xl font-light tracking-tight text-center text-balance">{stat.value}</div>
-              <p className="text-[11px] uppercase tracking-[0.35em] text-white/60 text-center">{stat.label}</p>
+            <div key={stat.label} className="flex flex-col items-center justify-center gap-2 p-3 h-full min-h-[120px] rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300 sm:min-h-[140px] sm:p-4 sm:gap-3">
+              <div className="text-2xl sm:text-3xl font-light tracking-tight text-center text-balance">{stat.value}</div>
+              <p className="text-[9px] uppercase tracking-[0.3em] text-white/60 text-center sm:text-[10px] sm:tracking-[0.35em]">{stat.label}</p>
             </div>
           ))}
         </div>
