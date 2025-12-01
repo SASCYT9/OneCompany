@@ -73,67 +73,57 @@ export default async function LocalizedHomePage({
 
   return (
     <main className="text-white">
-      <section className="relative flex min-h-screen flex-col justify-between pt-12">
-        <div className="px-4 pt-12 text-center text-[8px] uppercase tracking-[0.4em] text-white/55 sm:px-6 sm:pt-16 sm:text-[10px] sm:tracking-[0.5em]">
+      <section className="relative flex min-h-[70vh] flex-col justify-center pt-8">
+        <div className="px-4 pt-8 text-center text-[8px] uppercase tracking-[0.4em] text-white/55 sm:px-6 sm:pt-10 sm:text-[10px] sm:tracking-[0.5em]">
           <p>{heroBadgeCopy}</p>
         </div>
 
-        <div className="relative isolate flex flex-1 flex-col gap-4 px-3 pb-3 pt-6 sm:gap-6 sm:px-4 sm:pb-4 sm:pt-8 md:flex-row md:gap-0 md:px-0">
-          <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-[1px] -translate-x-1/2 bg-gradient-to-b from-transparent via-white/20 to-transparent md:block" />
+        <div className="relative isolate flex flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:gap-4 sm:px-6 sm:pb-6 sm:pt-6 md:flex-row md:gap-4 md:px-8 max-w-5xl mx-auto w-full">
           
-          <div className="relative flex flex-1 flex-col gap-6 md:flex-row md:gap-0">
+          <div className="relative flex flex-1 flex-col gap-4 md:flex-row md:gap-4">
             {experiences.map((experience, index) => (
               <Link
                 key={experience.label}
                 href={experience.href}
                 className={clsx(
-                  "group relative flex flex-1 min-h-[450px] flex-col justify-between gap-6 overflow-hidden p-6 text-left text-white sm:min-h-[600px] sm:gap-10 sm:p-8",
-                  "border border-white/10 backdrop-blur-sm shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-500 hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)]",
-                  "rounded-3xl",
-                  index === 0 ? "md:mr-3" : "md:ml-3"
+                  "group relative flex flex-1 min-h-[280px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-white sm:min-h-[320px] sm:gap-6 sm:p-5",
+                  "border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]",
+                  "rounded-2xl",
+                  index === 0 ? "md:mr-2" : "md:ml-2"
                 )}
               >
-                {/* Background Image */}
+                {/* Background Image - full opacity */}
                 <Image
                   src={experience.bgImage}
                   alt={experience.label}
                   fill
-                  className="object-cover opacity-50 group-hover:opacity-70 group-hover:scale-105 transition-all duration-700"
+                  className="object-cover group-hover:scale-105 transition-all duration-700"
                   priority
                   quality={90}
                 />
-                {/* Dark overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent" />
-                <div
-                  aria-hidden
-                  className={clsx(
-                    "pointer-events-none absolute inset-0 opacity-20 transition duration-500 group-hover:opacity-40",
-                    "bg-gradient-to-br",
-                    experience.accent
-                  )}
-                />
+                {/* Subtle gradient for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 
-                <div className="relative flex flex-col items-center justify-center space-y-6 text-center flex-1">
+                <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
                   <div>
-                    <span className="inline-block rounded-full border border-white/50 bg-white/10 backdrop-blur-md px-10 py-4 text-sm font-bold tracking-[0.35em] text-white shadow-[0_0_30px_rgba(255,255,255,0.5)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_50px_rgba(255,255,255,0.8)] sm:px-12 sm:py-5 sm:text-base sm:tracking-[0.45em]">
+                    <span className="inline-block rounded-full border border-white/50 bg-white/10 backdrop-blur-md px-6 py-2.5 text-xs font-bold tracking-[0.3em] text-white shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_40px_rgba(255,255,255,0.7)] sm:px-8 sm:py-3 sm:text-sm sm:tracking-[0.35em]">
                       {experience.label}
                     </span>
                   </div>
-                  <p className="text-sm leading-relaxed text-white/80 text-pretty sm:text-base font-light tracking-wide max-w-md mx-auto">
+                  <p className="text-xs leading-relaxed text-white/80 text-pretty sm:text-sm font-light tracking-wide max-w-xs mx-auto">
                     {experience.description}
                   </p>
                 </div>
-                <div className="relative flex w-full items-end justify-between gap-3 pt-4 sm:gap-6 sm:pt-6">
-                  <div className="flex flex-wrap gap-3 text-white/80 sm:gap-6">
+                <div className="relative flex w-full items-end justify-between gap-2 pt-2 sm:gap-4 sm:pt-3">
+                  <div className="flex flex-wrap gap-2 text-white/80 sm:gap-4">
                     {experience.stats.map((stat) => (
                       <div key={stat.note}>
-                        <p className="text-xl tracking-tight text-white sm:text-2xl md:text-3xl font-light">{stat.value}</p>
-                        <p className="text-[9px] uppercase tracking-[0.25em] text-white/55 sm:text-[11px] sm:tracking-[0.35em]">{stat.note}</p>
+                        <p className="text-lg tracking-tight text-white sm:text-xl font-light">{stat.value}</p>
+                        <p className="text-[8px] uppercase tracking-[0.2em] text-white/55 sm:text-[9px] sm:tracking-[0.3em]">{stat.note}</p>
                       </div>
                     ))}
                   </div>
-                  <span className="inline-flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/5 backdrop-blur-sm text-lg text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] sm:h-20 sm:w-20">
+                  <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/5 backdrop-blur-sm text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] sm:h-12 sm:w-12">
                     →
                   </span>
                 </div>
@@ -142,13 +132,13 @@ export default async function LocalizedHomePage({
           </div>
         </div>
         
-        <div className="flex flex-col items-center gap-4 px-4 pb-10 text-center">
+        <div className="flex flex-col items-center gap-3 px-4 pb-6 text-center">
           <Link
             href="#expert-programs"
-            className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 backdrop-blur-xl px-5 py-2.5 text-[9px] uppercase tracking-[0.3em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)] sm:gap-3 sm:px-6 sm:py-3 sm:text-[11px] sm:tracking-[0.4em]"
+            className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 backdrop-blur-xl px-4 py-2 text-[8px] uppercase tracking-[0.25em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)] sm:gap-2 sm:px-5 sm:py-2.5 sm:text-[9px] sm:tracking-[0.3em]"
           >
             {t('conciergeService')}
-            <span className="text-sm sm:text-base">↘</span>
+            <span className="text-xs sm:text-sm">↘</span>
           </Link>
           {/* Address moved to footer; hero no longer displays physical address */}
         </div>
