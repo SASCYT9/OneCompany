@@ -92,15 +92,12 @@ export default async function LocalizedHomePage({
                   index === 0 ? "md:mr-2" : "md:ml-2"
                 )}
               >
-                {/* Background Image - full opacity, mirrored for auto */}
+                {/* Background Image - full opacity */}
                 <Image
                   src={experience.bgImage}
                   alt={experience.label}
                   fill
-                  className={clsx(
-                    "object-cover group-hover:scale-105 transition-all duration-700",
-                    index === 0 && "-scale-x-100"
-                  )}
+                  className="object-cover group-hover:scale-105 transition-all duration-700"
                   priority
                   quality={90}
                 />
