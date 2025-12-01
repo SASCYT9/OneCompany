@@ -92,15 +92,18 @@ export default async function LocalizedHomePage({
                   index === 0 ? "md:mr-2" : "md:ml-2"
                 )}
               >
-                {/* Background Image - full opacity */}
+                {/* Background Image - grayscale with blue tint */}
                 <Image
                   src={experience.bgImage}
                   alt={experience.label}
                   fill
-                  className="object-cover group-hover:scale-105 transition-all duration-700"
+                  className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+                  style={{ filter: 'grayscale(100%) brightness(0.9) sepia(20%) hue-rotate(180deg) saturate(0.5)' }}
                   priority
                   quality={90}
                 />
+                {/* Blue tint overlay */}
+                <div className="absolute inset-0 bg-blue-950/20 mix-blend-overlay group-hover:opacity-0 transition-opacity duration-700" />
                 {/* Subtle gradient for text readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 
