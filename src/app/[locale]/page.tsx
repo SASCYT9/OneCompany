@@ -154,6 +154,7 @@ export default async function LocalizedHomePage({
         </div>
       </section>
 
+      {/* Hidden for now - duplicates hero cards functionality
       <section id="expert-programs" className="relative overflow-hidden py-20 text-white">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-transparent" aria-hidden />
         <div className="relative mx-auto max-w-4xl px-6 text-center">
@@ -188,6 +189,7 @@ export default async function LocalizedHomePage({
           </div>
         </div>
       </section>
+      */}
 
       <section className="relative overflow-hidden px-6 py-20 text-white">
         <div className="relative mx-auto max-w-6xl">
