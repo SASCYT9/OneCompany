@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import clsx from "clsx";
 import { getTranslations } from "next-intl/server";
 import { Globe } from "lucide-react";
@@ -9,6 +10,7 @@ type ExperienceSplit = {
   description: string;
   href: string;
   accent: string;
+  bgImage: string;
   stats: { value: string; note: string }[];
 };
 
@@ -29,6 +31,7 @@ export default async function LocalizedHomePage({
       description: t('hypercarDescription'),
       href: `/${locale}/auto`,
       accent: "from-amber-400/20 via-orange-500/10 to-transparent",
+      bgImage: "/images/hero-auto.png",
       stats: [
         { value: "160+", note: t('autoBrands') },
         { value: "11", note: t('autoCategories') },
@@ -40,6 +43,7 @@ export default async function LocalizedHomePage({
       description: t('factoryRaceDescription'),
       href: `/${locale}/moto`,
       accent: "from-blue-400/25 via-purple-500/15 to-transparent",
+      bgImage: "/images/hero-moto.png",
       stats: [
         { value: "40+", note: t('motoPartners') },
         { value: "6", note: t('motoSeries') },
@@ -84,16 +88,27 @@ export default async function LocalizedHomePage({
                 href={experience.href}
                 className={clsx(
                   "group relative flex flex-1 min-h-[450px] flex-col justify-between gap-6 overflow-hidden p-6 text-left text-white sm:min-h-[600px] sm:gap-10 sm:p-8",
-                  "border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-500 hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)]",
+                  "border border-white/10 backdrop-blur-sm shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-500 hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)]",
                   "rounded-3xl",
                   index === 0 ? "md:mr-3" : "md:ml-3"
                 )}
               >
+                {/* Background Image */}
+                <Image
+                  src={experience.bgImage}
+                  alt={experience.label}
+                  fill
+                  className="object-cover opacity-50 group-hover:opacity-70 group-hover:scale-105 transition-all duration-700"
+                  priority
+                  quality={90}
+                />
+                {/* Dark overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent" />
                 <div
                   aria-hidden
                   className={clsx(
-                    "pointer-events-none absolute inset-0 opacity-20 transition duration-500 group-hover:opacity-50",
+                    "pointer-events-none absolute inset-0 opacity-20 transition duration-500 group-hover:opacity-40",
                     "bg-gradient-to-br",
                     experience.accent
                   )}

@@ -16,14 +16,14 @@ export default function SplitHero() {
   const panels: Panel[] = [
     {
       href: 'auto',
-      imageSrc: '/images/hero-auto.jpg',
+      imageSrc: '/images/hero-auto.png',
       title: tChoice('automotive'),
       subtitle: tChoice('automotiveSubtitle'),
       stats: { value: '160+', label: 'брендів' }
     },
     {
       href: 'moto',
-      imageSrc: '/images/hero-moto.jpg',
+      imageSrc: '/images/hero-moto.png',
       title: tChoice('motorcycles'),
       subtitle: tChoice('motorcyclesSubtitle'),
       stats: { value: '40+', label: 'брендів' }
