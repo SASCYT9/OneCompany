@@ -1,11 +1,13 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 
 type Panel = {
   href: string;
-  videoSrc: string;
+  imageSrc: string;
   title: string;
   subtitle: string;
+  stats: { value: string; label: string };
 };
 
 export default function SplitHero() {
@@ -14,15 +16,17 @@ export default function SplitHero() {
   const panels: Panel[] = [
     {
       href: 'auto',
-      videoSrc: '/videos/eventuri-intake.mp4',
+      imageSrc: '/images/hero-auto.jpg',
       title: tChoice('automotive'),
-      subtitle: tChoice('automotiveSubtitle')
+      subtitle: tChoice('automotiveSubtitle'),
+      stats: { value: '160+', label: 'брендів' }
     },
     {
       href: 'moto',
-      videoSrc: '/videos/kw-suspension.mp4',
+      imageSrc: '/images/hero-moto.jpg',
       title: tChoice('motorcycles'),
-      subtitle: tChoice('motorcyclesSubtitle')
+      subtitle: tChoice('motorcyclesSubtitle'),
+      stats: { value: '40+', label: 'брендів' }
     }
   ];
 
@@ -34,19 +38,19 @@ export default function SplitHero() {
           href={panel.href}
           className="relative group h-[50vh] lg:h-auto flex items-center justify-center overflow-hidden"
         >
-          {/* background video */}
-          <video
-            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-70 transition-opacity duration-500"
-            src={panel.videoSrc}
-            autoPlay
-            muted
-            loop
-            playsInline
+          {/* background image */}
+          <Image
+            src={panel.imageSrc}
+            alt={panel.title}
+            fill
+            className="object-cover opacity-60 group-hover:opacity-75 group-hover:scale-105 transition-all duration-700"
+            priority
+            quality={90}
           />
           {/* dark overlay and subtle vignette */}
-          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/30" />
           <div className="absolute inset-0 pointer-events-none" style={{
-            background: 'radial-gradient(1200px 400px at 50% 0%, rgba(255,255,255,0.06), transparent 60%)'
+            background: 'radial-gradient(1200px 400px at 50% 0%, rgba(255,255,255,0.08), transparent 60%)'
           }} />
 
           {/* content */}
