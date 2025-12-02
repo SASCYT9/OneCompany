@@ -116,10 +116,10 @@ const Footer = () => {
               </Link>
               <a 
                 href="mailto:info@onecompany.global"
-                className="group inline-flex w-full font-display items-center justify-center gap-3 rounded-full border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-white transition-all duration-300 hover:bg-white/10 hover:border-white/40 sm:w-auto sm:px-8 sm:py-4"
+                className="group inline-flex w-full font-display items-center justify-center gap-2 sm:gap-3 rounded-full border border-white/20 bg-white/5 px-3 py-3 sm:px-8 sm:py-4 text-sm font-medium text-white transition-all duration-300 hover:bg-white/10 hover:border-white/40 sm:w-auto"
               >
                 <Mail className="h-4 w-4 flex-shrink-0" />
-                <span className="uppercase tracking-widest text-[10px] sm:text-sm break-all sm:break-normal sm:whitespace-nowrap">info@onecompany.global</span>
+                <span className="uppercase tracking-wide sm:tracking-widest text-[9px] sm:text-sm break-all sm:break-normal sm:whitespace-nowrap">info@onecompany.global</span>
               </a>
             </div>
           </div>
