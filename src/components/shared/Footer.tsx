@@ -46,7 +46,7 @@ const Footer = () => {
           <path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4" />
         </svg>
       ),
-      href: "https://t.me/onecompany_bot", 
+      href: "https://t.me/OneCompanyAutoBot", 
       label: "Telegram Bot" 
     },
   ];
@@ -109,7 +109,7 @@ const Footer = () => {
             <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
               <Link 
                 href={`/${locale}/contact`}
-                className="group relative inline-flex w-full font-display items-center justify-center gap-3 overflow-hidden rounded-full bg-white px-8 py-4 text-sm font-medium text-black transition-transform duration-300 hover:scale-105 sm:w-auto"
+                className="group relative inline-flex w-full font-display items-center justify-center gap-3 overflow-hidden rounded-full bg-white px-8 py-4 text-sm font-medium text-black transition-transform duration-300 hover:scale-105 sm:w-auto sm:whitespace-nowrap"
               >
                 <span className="uppercase tracking-widest">{t('contactUs')}</span>
                 <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
@@ -119,7 +119,7 @@ const Footer = () => {
                 className="group inline-flex w-full font-display items-center justify-center gap-3 rounded-full border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-white transition-all duration-300 hover:bg-white/10 hover:border-white/40 sm:w-auto sm:px-8 sm:py-4"
               >
                 <Mail className="h-4 w-4 flex-shrink-0" />
-                <span className="uppercase tracking-widest text-[10px] sm:text-sm break-all">info@onecompany.global</span>
+                <span className="uppercase tracking-widest text-[10px] sm:text-sm break-all sm:break-normal sm:whitespace-nowrap">info@onecompany.global</span>
               </a>
             </div>
           </div>
