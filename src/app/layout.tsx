@@ -3,8 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
-import localFont from "next/font/local";
-import { IBM_Plex_Mono, Manrope } from "next/font/google";
+import { IBM_Plex_Mono, Unbounded, Inter } from "next/font/google";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 export const metadata: Metadata = {
@@ -36,68 +35,18 @@ export const metadata: Metadata = {
 
 import { cn } from "@/lib/utils";
 
-const fontManrope = Manrope({
+// Unbounded - гострий шрифт для заголовків
+const fontDisplay = Unbounded({
   subsets: ["latin", "cyrillic"],
-  variable: "--font-manrope",
-  display: "swap",
-});
-
-const fontSans = localFont({
-  src: [
-    {
-      path: "../assets/fonts/unison/unison-pro-light.otf",
-      weight: "300",
-      style: "normal",
-    },
-    {
-      path: "../assets/fonts/unison/unison-pro-light.otf",
-      weight: "400", // Mapping regular to light as per design preference for thin look
-      style: "normal",
-    },
-    {
-      path: "../assets/fonts/unison/unison-pro-light.otf",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../assets/fonts/unison/unison-pro-bold.otf",
-      weight: "600",
-      style: "normal",
-    },
-    {
-      path: "../assets/fonts/unison/unison-pro-bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-    {
-      path: "../assets/fonts/unison/unison-pro-light-italic.otf",
-      weight: "300",
-      style: "italic",
-    },
-    {
-      path: "../assets/fonts/unison/unison-pro-bold-italic.otf",
-      weight: "700",
-      style: "italic",
-    },
-  ],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const fontDisplay = localFont({
-  src: [
-    {
-      path: "../assets/fonts/unison/unison-pro-light.otf",
-      weight: "300",
-      style: "normal",
-    },
-    {
-      path: "../assets/fonts/unison/unison-pro-bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
   variable: "--font-display",
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700"],
+});
+
+// Inter - чіткий шрифт для тексту
+const fontSans = Inter({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-sans",
   display: "swap",
 });
 
@@ -119,7 +68,6 @@ export default function RootLayout({
           "min-h-screen bg-background text-foreground antialiased",
           fontSans.variable,
           fontDisplay.variable,
-          fontManrope.variable,
           fontMono.variable
         )}
         suppressHydrationWarning
