@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import HeroVideoWrapper from '@/components/layout/HeroVideoWrapper';
 import LocaleLangSetter from '@/components/LocaleLangSetter';
 import { readVideoConfig } from '@/lib/videoConfig';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 type Props = {
   children: ReactNode;
@@ -35,6 +36,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         {videoConfig.heroPoster && (
           <link rel="preload" href={`/images/${videoConfig.heroPoster}`} as="image" />
         )}
+        <LoadingScreen />
         <div
           data-server-hero-enabled={videoConfig.heroEnabled ? 'true' : 'false'}
           className={cn('flex flex-col min-h-screen', locale === 'ua' && 'locale-ua')}

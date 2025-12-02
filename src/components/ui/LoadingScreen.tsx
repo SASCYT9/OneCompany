@@ -1,64 +1,60 @@
-'use client';
+"use client";
 
-export function LoadingScreen() {
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Logo } from "@/components/ui/Logo";
+
+export default function LoadingScreen() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Prevent scrolling while loading
+    document.body.style.overflow = 'hidden';
+    
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      document.body.style.overflow = 'unset';
+    }, 2500);
+
+    return () => {
+      clearTimeout(timer);
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-      {/* Animated background */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-black to-blue-500/10 animate-gradient-shift" />
-        <div 
-          className="absolute inset-0 opacity-[0.015]"
-          style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' /%3E%3C/svg%3E")',
-          }}
-        />
-      </div>
-
-      {/* Loading content */}
-      <div className="relative z-10 text-center space-y-8">
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2 text-5xl md:text-6xl font-thin">
-          <span className="text-white/90">one</span>
-          <span 
-            className="font-light bg-gradient-to-br from-orange-400 via-red-400 to-blue-400 bg-clip-text text-transparent animate-gradient-shift"
-            style={{
-              filter: 'drop-shadow(0 0 20px rgba(255,136,0,0.4))',
-            }}
+    <AnimatePresence>
+      {isLoading && (
+        <motion.div
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8, ease: "easeInOut" }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="relative"
           >
-            company
-          </span>
-        </div>
-
-        {/* Animated dots */}
-        <div className="flex items-center justify-center gap-2">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="w-2 h-2 rounded-full bg-white/40"
-              style={{
-                animation: `pulse 1.5s ease-in-out infinite`,
-                animationDelay: `${i * 0.2}s`,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Loading text */}
-        <p className="text-white/40 text-sm tracking-wider uppercase">Завантаження</p>
-      </div>
-
-      <style jsx>{`
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 0.2;
-            transform: scale(0.8);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.2);
-          }
-        }
-      `}</style>
-    </div>
+            <Logo tone="light" className="w-48 sm:w-64" priority />
+            <motion.div 
+              className="absolute -bottom-8 left-0 right-0 h-0.5 bg-white/20 rounded-full overflow-hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <motion.div 
+                className="h-full bg-white"
+                initial={{ width: "0%" }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 2, ease: "easeInOut" }}
+              />
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

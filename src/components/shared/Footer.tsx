@@ -31,6 +31,24 @@ const Footer = () => {
     { icon: Instagram, href: "https://instagram.com/onecompany", label: "Instagram" },
     { icon: Youtube, href: "https://youtube.com/@onecompany", label: "YouTube" },
     { icon: Facebook, href: "https://facebook.com/onecompany", label: "Facebook" },
+    { 
+      icon: (props: any) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          {...props}
+        >
+          <path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4" />
+        </svg>
+      ),
+      href: "https://t.me/onecompany_bot", 
+      label: "Telegram Bot" 
+    },
   ];
 
   const scopeRef = useRef<HTMLDivElement | null>(null);
@@ -59,7 +77,7 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="relative border-t border-white/5 bg-[#050505] text-white overflow-hidden">
+    <footer className="relative font-display border-t border-white/5 bg-[#050505] text-white overflow-hidden">
       {/* Ambient Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[500px] bg-white/[0.02] blur-[120px] rounded-full" />
@@ -91,17 +109,17 @@ const Footer = () => {
             <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
               <Link 
                 href={`/${locale}/contact`}
-                className="group relative inline-flex w-full items-center justify-center gap-3 overflow-hidden rounded-full bg-white px-8 py-4 text-sm font-medium text-black transition-transform duration-300 hover:scale-105 sm:w-auto"
+                className="group relative inline-flex w-full font-display items-center justify-center gap-3 overflow-hidden rounded-full bg-white px-8 py-4 text-sm font-medium text-black transition-transform duration-300 hover:scale-105 sm:w-auto"
               >
                 <span className="uppercase tracking-widest">{t('contactUs')}</span>
                 <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
               </Link>
               <a 
                 href="mailto:info@onecompany.global"
-                className="group inline-flex w-full items-center justify-center gap-3 rounded-full border border-white/20 bg-white/5 px-8 py-4 text-sm font-medium text-white transition-all duration-300 hover:bg-white/10 hover:border-white/40 sm:w-auto"
+                className="group inline-flex w-full font-display items-center justify-center gap-3 rounded-full border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-white transition-all duration-300 hover:bg-white/10 hover:border-white/40 sm:w-auto sm:px-8 sm:py-4"
               >
-                <Mail className="h-4 w-4" />
-                <span className="uppercase tracking-widest">info@onecompany.global</span>
+                <Mail className="h-4 w-4 flex-shrink-0" />
+                <span className="uppercase tracking-widest text-[10px] sm:text-sm break-all">info@onecompany.global</span>
               </a>
             </div>
           </div>
