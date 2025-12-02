@@ -3,7 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
-import { IBM_Plex_Mono, Inter, Science_Gothic } from "next/font/google";
+import { IBM_Plex_Mono, Inter, Unbounded } from "next/font/google";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 export const metadata: Metadata = {
@@ -35,11 +35,12 @@ export const metadata: Metadata = {
 
 import { cn } from "@/lib/utils";
 
-// Science Gothic - гострий variable шрифт для заголовків
-const fontDisplay = Science_Gothic({
+// Unbounded - гострий шрифт для заголовків
+const fontDisplay = Unbounded({
   subsets: ["latin", "cyrillic"],
   variable: "--font-display",
   display: "swap",
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 // Inter - чіткий шрифт для тексту
