@@ -3,7 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
-import { IBM_Plex_Mono, Inter, Unbounded } from "next/font/google";
+import { IBM_Plex_Mono, Unbounded } from "next/font/google";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 export const metadata: Metadata = {
@@ -43,8 +43,8 @@ const fontDisplay = Unbounded({
   weight: ["300", "400", "500", "600", "700"],
 });
 
-// Inter - чіткий шрифт для тексту
-const fontSans = Inter({
+// Unbounded - тепер використовуємо всюди
+const fontSans = Unbounded({
   subsets: ["latin", "cyrillic"],
   variable: "--font-sans",
   display: "swap",
