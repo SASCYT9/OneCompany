@@ -128,8 +128,8 @@
   }
 
   .locale-ua {
-    --font-stack-sans: var(--font-manrope), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --font-stack-display: var(--font-manrope), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-stack-sans: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-stack-display: var(--font-display), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-family: var(--font-stack-sans);
   }
 
