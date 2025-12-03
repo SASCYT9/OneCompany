@@ -263,6 +263,14 @@ export const DARK_LOGOS = [
   "accossato.svg",
   "accossato.png",
   "ac-schnitzer.svg",
+  "abt.svg",
+  "abt.png",
+  "abt.webp",
+  "adv-1.png",
+  "adv-1-wheels.png",
+  "adv-1-wheels.webp",
+  "autofella.png",
+  "autofella.webp",
   "3d-design.png",
   "1016-industries.webp"
 ];

@@ -1165,7 +1165,7 @@ export default function AutomotivePage() {
                         src={logoSrc}
                         alt={brand.name}
                         fill
-                        className={`object-contain ${isDarkLogo(logoSrc) ? 'grayscale invert mix-blend-screen' : ''}`}
+                        className={`object-contain ${isDarkLogo(logoSrc) ? 'invert hue-rotate-180 mix-blend-screen' : ''}`}
                         sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                         unoptimized
                       />
@@ -1254,7 +1254,7 @@ export default function AutomotivePage() {
                       src={getBrandLogo(selectedBrand.name)}
                       alt={selectedBrand.name}
                       fill
-                      className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'grayscale invert mix-blend-screen' : ''}`}
+                      className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'invert hue-rotate-180 mix-blend-screen' : ''}`}
                       sizes="224px"
                       unoptimized
                     />

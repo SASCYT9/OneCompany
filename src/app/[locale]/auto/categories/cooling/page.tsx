@@ -291,7 +291,7 @@ export default function CoolingCategoryPage() {
                         alt={brand.name}
                         fill
                         className={`object-contain object-center transition-all duration-300 group-hover:scale-110 ${
-                          isDarkLogo(getBrandLogo(brand.name)) ? 'grayscale invert mix-blend-screen' : ''
+                          isDarkLogo(getBrandLogo(brand.name)) ? 'invert hue-rotate-180 mix-blend-screen' : ''
                         }`}
                         unoptimized
                       />
