@@ -38,7 +38,7 @@ ${data.username ? `💬 <b>Telegram:</b> @${escapeHtml(data.username)}` : ''}
 ${escapeHtml(data.message)}
     `.trim();
     
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.ua';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
     
     for (const admin of admins) {
       try {
@@ -99,7 +99,7 @@ ${escapeHtml(replyText)}
       reply_markup: {
         inline_keyboard: [[
           { text: '✉️ Написати', callback_data: 'new_message' },
-          { text: '🌐 Сайт', url: 'https://onecompany.ua' }
+          { text: '🌐 Сайт', url: 'https://onecompany.global' }
         ]]
       }
     });

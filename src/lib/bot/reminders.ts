@@ -85,7 +85,7 @@ export async function sendAdminReminders() {
   
   const admins = await getAllAdmins();
   const bot = getBot();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.ua';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
   
   let text = `⏰ <b>Нагадування</b>\n\n`;
   
@@ -201,7 +201,7 @@ export async function sendUserFollowUp(messageId: string) {
       reply_markup: {
         inline_keyboard: [[
           { text: '✉️ Написати ще', callback_data: 'new_message' },
-          { text: '🌐 Сайт', url: 'https://onecompany.ua' },
+          { text: '🌐 Сайт', url: 'https://onecompany.global' },
         ]],
       },
     });

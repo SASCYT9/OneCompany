@@ -73,7 +73,7 @@ export function registerCallbacks(bot: Bot<BotContext>) {
         return;
       }
       
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.ua';
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
       
       await ctx.answerCallbackQuery();
       await ctx.reply(`✉️ Відповідь на повідомлення від ${message.userName}:`, {
@@ -261,7 +261,7 @@ ${message.replies.length > 0 ? `\n📨 <b>Відповіді (${message.replies.
     
     if (action === 'export') {
       // Generate export link
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.ua';
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
       const secret = process.env.ADMIN_SECRET || '';
       
       await ctx.answerCallbackQuery();

@@ -2,7 +2,7 @@
 import { Menu } from '@grammyjs/menu';
 import type { BotContext } from './types';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.ua';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
 
 // Main menu - redesigned with more options
 export const mainMenu = new Menu<BotContext>('main-menu')

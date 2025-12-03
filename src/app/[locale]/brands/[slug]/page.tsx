@@ -1,10 +1,12 @@
+import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getBrandWithCategory, getBrandSlug, allAutomotiveBrands, allMotoBrands } from '@/lib/brands';
+import { getBrandWithCategory, getBrandSlug, allAutomotiveBrands, allMotoBrands, getBrandMetadata } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import ProductCard from '@/components/products/ProductCard';
+import { buildPageMetadata, resolveLocale, type SupportedLocale } from '@/lib/seo';
 
 interface BrandDetailPageProps {
   params: Promise<{
@@ -20,6 +22,47 @@ export async function generateStaticParams() {
   return allBrands.map((brand) => ({
     slug: getBrandSlug(brand),
   }));
+}
+
+// Dynamic metadata for each brand page
+export async function generateMetadata({ params }: BrandDetailPageProps): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const resolvedLocale = resolveLocale(locale);
+  const brand = getBrandWithCategory(slug);
+  
+  if (!brand) {
+    return {};
+  }
+  
+  const brandMeta = getBrandMetadata(brand.name);
+  const isMoto = brand.category === 'moto';
+  const category = isMoto ? 'Moto' : 'Auto';
+  const categoryUa = isMoto ? 'Мото' : 'Авто';
+  
+  const meta = {
+    en: {
+      title: `${brand.name} · Official ${category} Tuning Importer Ukraine | onecompany`,
+      description: `Buy ${brand.name} ${brandMeta?.subcategory || 'performance parts'} in Ukraine. Official importer with warranty, expert support & global logistics. ${brand.description || ''}`.trim(),
+    },
+    ua: {
+      title: `${brand.name} · Офіційний ${categoryUa} Тюнінг Імпортер Україна | onecompany`,
+      description: `Купити ${brand.name} ${brandMeta?.subcategory || 'тюнінг'} в Україні. Офіційний імпортер з гарантією, експертною підтримкою та глобальною логістикою. ${brand.description || ''}`.trim(),
+    },
+  };
+
+  return {
+    ...buildPageMetadata(resolvedLocale, `brands/${slug}`, meta[resolvedLocale]),
+    keywords: [
+      brand.name,
+      `${brand.name} Ukraine`,
+      `${brand.name} Україна`,
+      `buy ${brand.name}`,
+      `купити ${brand.name}`,
+      brandMeta?.subcategory || 'tuning',
+      isMoto ? 'motorcycle parts' : 'car parts',
+      'official importer',
+    ],
+  };
 }
 
 export default async function BrandDetailPage({ params }: BrandDetailPageProps) {

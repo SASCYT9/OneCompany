@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>OG Image Generator - onecompany</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Unbounded', system-ui, -apple-system, sans-serif;
+      background: #111;
+    }
+    
+    .og-container {
+      width: 1200px;
+      height: 630px;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0d0d0d 100%);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Subtle gradient orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.3;
+    }
+    
+    .orb-1 {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%);
+      top: -200px;
+      left: -100px;
+    }
+    
+    .orb-2 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(249, 115, 22, 0.3) 0%, transparent 70%);
+      bottom: -150px;
+      right: -100px;
+    }
+    
+    .orb-3 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.2) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    /* Grid pattern */
+    .grid-pattern {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    
+    /* Content */
+    .content {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 60px;
+    }
+    
+    .logo {
+      width: 320px;
+      height: auto;
+      margin-bottom: 40px;
+      filter: drop-shadow(0 0 60px rgba(255,255,255,0.15));
+    }
+    
+    .tagline {
+      font-size: 28px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    
+    .description {
+      font-size: 20px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.5);
+      max-width: 700px;
+      line-height: 1.6;
+    }
+    
+    /* Brand strip */
+    .brand-strip {
+      position: absolute;
+      bottom: 60px;
+      display: flex;
+      gap: 40px;
+      align-items: center;
+    }
+    
+    .brand-name {
+      font-size: 14px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    
+    /* Border */
+    .border-glow {
+      position: absolute;
+      inset: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      pointer-events: none;
+    }
+    
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 60px;
+      margin-top: 40px;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 42px;
+      font-weight: 300;
+      color: white;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-top: 8px;
+    }
+    
+    /* Instructions */
+    .instructions {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: #222;
+      color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      max-width: 400px;
+      line-height: 1.6;
+    }
+    
+    .instructions h3 {
+      margin-bottom: 10px;
+      color: #8b5cf6;
+    }
+    
+    .instructions code {
+      background: #333;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <!-- OG Image Canvas - exactly 1200x630 -->
+  <div class="og-container" id="og-image">
+    <!-- Background effects -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid-pattern"></div>
+    <div class="border-glow"></div>
+    
+    <!-- Main content -->
+    <div class="content">
+      <!-- Logo SVG inline (white version) -->
+      <svg class="logo" viewBox="0 0 422.44 154.58" fill="white">
+        <g>
+          <path d="M42.51,146.67h-24.38v-17.52h24.38v3.52h9.78c-.47-10.8-3.45-11.42-21.82-11.42-21.09,0-22,.85-22,16.66s.87,16.68,22,16.68c18.41,0,21.35-.65,21.82-11.38h-9.78v3.47Z"/>
+          <path d="M90.31,121.24c-21.09,0-22,.85-22,16.66s.87,16.68,22,16.68,21.91-.87,21.91-16.68-.87-16.66-21.91-16.66ZM102.56,146.67h-24.58v-17.52h24.58v17.52Z"/>
+          <path d="M168.09,122.09l-13.14,21.55-13.18-21.55h-12.42v31.62h9.66v-19.46l11.87,19.46h8.08l11.89-19.46v19.46h9.66v-31.62h-12.42Z"/>
+          <path d="M225.87,122.09h-27.68v31.62h9.66v-7.55h18.01c12.6,0,13.83-1.43,13.83-12.05s-1.58-12.02-13.83-12.02ZM230.08,138.28h-22.22v-8.28h22.22v8.28Z"/>
+          <path d="M281.21,122.09h-14.01l-17.15,31.62h10.78l2.85-5.19h21.04l2.85,5.19h10.8l-17.17-31.62ZM267.49,141.48l6.72-12.38,6.72,12.38h-13.45Z"/>
+          <path d="M346.38,122.09v22.82l-20.4-22.82h-12.69v31.62h9.66v-21.71l19.42,21.71h13.63v-31.62h-9.62Z"/>
+          <path d="M405.57,122.09l-11.78,12.47-11.8-12.47h-11.33l18.35,19.39v12.22h9.62v-12.27l18.28-19.35h-11.33Z"/>
+        </g>
+        <g>
+          <path d="M65.66,0C2.69,0,0,2.56,0,49.77s2.56,49.74,65.66,49.74,65.4-2.54,65.4-49.74S128.5,0,65.66,0ZM102.2,75.93H28.86V23.6h73.35v52.33Z"/>
+          <path d="M244.69,44.47v26.21L183.74,2.56h-37.9v94.41h28.86V32.11l57.98,64.86h40.73v-52.5h-28.72ZM264.97,17.7c4.3-3.85,7.3-9.11,8.37-15.14h-28.66v22.78h1.29c7.3,0,14.05-2.92,18.99-7.64Z"/>
+          <path d="M422.44,26.16V2.56h-122.18v94.41l122.18-.13v-23.47h-93.32v-13.09h90.89v-21.02h-90.89v-13.09h93.32Z"/>
+        </g>
+      </svg>
+      
+      <p class="tagline">Premium Auto & Moto Tuning</p>
+      <p class="description">Офіційний імпортер 200+ преміум брендів в Україні</p>
+      
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">200+</div>
+          <div class="stat-label">Брендів</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">18</div>
+          <div class="stat-label">Років досвіду</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">5</div>
+          <div class="stat-label">Країн</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Brand names at bottom -->
+    <div class="brand-strip">
+      <span class="brand-name">Akrapovič</span>
+      <span class="brand-name">Brabus</span>
+      <span class="brand-name">HRE</span>
+      <span class="brand-name">KW</span>
+      <span class="brand-name">Brembo</span>
+      <span class="brand-name">Mansory</span>
+    </div>
+  </div>
+  
+  <!-- Instructions (won't be in screenshot) -->
+  <div class="instructions">
+    <h3>📸 Як зробити OG Image:</h3>
+    <ol>
+      <li>Відкрийте цю сторінку в Chrome</li>
+      <li>Натисніть <code>F12</code> → DevTools</li>
+      <li>Натисніть <code>Ctrl+Shift+P</code></li>
+      <li>Введіть <code>screenshot</code></li>
+      <li>Виберіть <strong>"Capture node screenshot"</strong></li>
+      <li>Клікніть на блок з OG Image</li>
+      <li>Збережіть як <code>og-image.png</code></li>
+      <li>Перемістіть в <code>/public/branding/</code></li>
+    </ol>
+  </div>
+</body>
+</html>

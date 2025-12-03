@@ -224,7 +224,7 @@ ${data.username ? `💬 <b>Telegram:</b> @${escapeHtml(data.username)}` : ''}
 ${data.message ? `\n💬 <b>Додатково:</b>\n${escapeHtml(data.message)}` : ''}
     `.trim();
     
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.ua';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
     
     for (const admin of admins) {
       try {

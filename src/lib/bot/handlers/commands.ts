@@ -85,8 +85,8 @@ ${ctx.isAdmin ? '/admin - Панель адміністратора\n/admins - �
 🤝 Партнерська програма для СТО, дилерів, тюнінг-ательє
 
 <b>Контакти:</b>
-🌐 onecompany.ua
-📧 info@onecompany.ua
+🌐 onecompany.global
+📧 info@onecompany.global
     `.trim();
     
     await ctx.reply(helpText, { 
@@ -166,7 +166,7 @@ ${ctx.isAdmin ? '/admin - Панель адміністратора\n/admins - �
   
   // /webapp command - opens web app
   bot.command('webapp', async (ctx) => {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.ua';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
     
     await ctx.reply('🌐 Відкрийте наш сайт:', {
       reply_markup: {

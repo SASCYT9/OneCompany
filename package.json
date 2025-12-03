@@ -83,6 +83,7 @@
     "@types/react-dom": "^19",
     "@types/three": "^0.181.0",
     "autoprefixer": "^10.4.21",
+    "canvas": "^3.2.0",
     "eslint": "^9",
     "eslint-config-next": "^16.0.3",
     "image-size": "^2.0.2",
