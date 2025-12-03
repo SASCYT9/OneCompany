@@ -536,12 +536,12 @@ export default function AutoPageClient() {
                   'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
               }} />
               <div className="relative flex flex-col gap-3 sm:gap-4 flex-1">
-                <h3 className="text-xl font-light text-white sm:text-2xl text-balance">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                <h3 className="text-xl font-light sm:text-2xl text-balance bg-gradient-to-r from-white via-emerald-200 to-white bg-clip-text text-transparent">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
                 <p className="text-xs text-white/70 sm:text-sm text-pretty">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                <p className="text-[11px] text-white/50 sm:text-xs text-pretty">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                <p className="text-[11px] text-emerald-400/60 sm:text-xs text-pretty">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
                 <div className="mt-2 grid grid-cols-2 gap-1.5 text-[10px] uppercase tracking-[0.25em] text-white/50 sm:mt-4 sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
                   {cat.brands.map((name) => (
-                    <span key={name} className="flex items-center justify-center rounded-full border border-white/10 px-2.5 py-0.5 text-center text-white/70 sm:px-3 sm:py-1">
+                    <span key={name} className="flex items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-0.5 text-center text-white/80 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-colors sm:px-3 sm:py-1">
                       {name}
                     </span>
                   ))}
