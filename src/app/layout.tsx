@@ -15,12 +15,12 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://onecompany.global"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://one-company.vercel.app"),
   title: {
-    default: "onecompany — Premium Auto & Moto Tuning Importer Ukraine | Since 2007",
+    default: "onecompany — Premium Auto & Moto Performance Hub",
     template: "%s | onecompany",
   },
-  description: "Офіційний B2B дистриб'ютор 200+ преміум брендів авто та мото тюнінгу в Україні. Akrapovic, Brabus, HRE, KW, Brembo. Експертний підбір, глобальна логістика з 2007.",
+  description: "Провідний B2B дистриб'ютор та експертна підтримка преміум тюнінгу",
   keywords: [
     "auto tuning Ukraine",
     "moto tuning Ukraine",
@@ -45,26 +45,27 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "premium tuning parts · 200+ brands · one company",
-    description: "Official importer of premium auto & moto tuning in Ukraine. Akrapovič, Brabus, HRE, KW, Brembo, Mansory.",
+    description: "Провідний B2B дистриб'ютор та експертна підтримка преміум тюнінгу",
     type: "website",
     siteName: "onecompany",
     locale: "uk_UA",
     alternateLocale: "en_US",
-    url: "https://onecompany.global",
+    url: "https://one-company.vercel.app",
     images: [
       {
-        url: "/branding/og-image.png",
+        url: "https://one-company.vercel.app/branding/og-image.png",
         width: 1200,
         height: 630,
-        alt: "onecompany - Premium Tuning Parts",
+        alt: "onecompany - premium tuning parts · 200+ brands",
+        type: "image/png",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "premium tuning parts · 200+ brands · one company",
-    description: "Official importer of premium auto & moto tuning in Ukraine",
-    images: ["/branding/og-image.png"],
+    description: "Провідний B2B дистриб'ютор та експертна підтримка преміум тюнінгу",
+    images: ["https://one-company.vercel.app/branding/og-image.png"],
   },
   robots: {
     index: true,
