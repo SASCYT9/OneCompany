@@ -269,5 +269,12 @@ export const DARK_LOGOS = [
 
 export const isDarkLogo = (logoPath: string): boolean => {
   const filename = logoPath.split('/').pop();
-  return filename ? DARK_LOGOS.includes(filename) : false;
+  if (!filename) return false;
+  
+  // Check exact match first
+  if (DARK_LOGOS.includes(filename)) return true;
+  
+  // Check if the base name matches any dark logo base name (ignoring extension)
+  const baseName = filename.split('.')[0];
+  return DARK_LOGOS.some(darkLogo => darkLogo.split('.')[0] === baseName);
 };
