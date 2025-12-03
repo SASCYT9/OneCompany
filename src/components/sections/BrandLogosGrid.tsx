@@ -79,15 +79,12 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
 
                       {/* Logo with unified sizing and drop shadow */}
                       <div className="relative w-full z-10" style={{ paddingTop: '56%' }}>
-                        <div className="absolute inset-0" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                        <div className="absolute inset-0 p-2" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
                           <Image
                             src={logoSrc}
                             alt={name}
                             fill
                             className="object-contain opacity-80 group-hover:opacity-100 transition-opacity"
-                            style={{ 
-                              objectFit: 'contain'
-                            }}
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
                             unoptimized
                             priority={false}
