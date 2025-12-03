@@ -73,7 +73,7 @@ export const countryNames: Record<CountryOfOrigin, { en: string; ua: string }> =
 
 // Localized subcategory names
 export const subcategoryNames: Record<ProductSubcategory, { en: string; ua: string }> = {
-  'Engine': { en: 'Engine', ua: 'Двигатель' },
+  'Engine': { en: 'Engine', ua: 'Двигун' },
   'Exterior': { en: 'Exterior', ua: 'Екстер\'єр' },
   'Suspension': { en: 'Suspension', ua: 'Підвіска' },
   'Brakes': { en: 'Brakes', ua: 'Гальма' },
