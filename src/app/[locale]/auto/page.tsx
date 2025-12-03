@@ -453,7 +453,7 @@ export default function AutomotivePage() {
   const selectedBrandSubcategory = selectedBrand ? getBrandSubcategory(selectedBrand) : null;
 
   return (
-    <div className="min-h-screen bg-black text-white font-[family:var(--font-sans)]">
+    <div className="min-h-screen bg-black text-white font-sans">
       <section className="relative isolate overflow-hidden rounded-b-[40px] border-b border-white/10">
         <div className="absolute inset-0">
           <video

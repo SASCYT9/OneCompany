@@ -62,7 +62,7 @@
     background-color: hsl(var(--background));
     font-family: var(--font-stack-sans);
     -webkit-font-smoothing: antialiased;
-    font-feature-settings: "ss03" on, "ss04" on;
+    -moz-osx-font-smoothing: grayscale;
     background-image:
       radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.03), transparent 45%),
       radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.05), transparent 50%),
@@ -131,10 +131,6 @@
     --font-stack-sans: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-stack-display: var(--font-display), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-family: var(--font-stack-sans);
-  }
-
-  .locale-ua body {
-    font-feature-settings: normal;
   }
 }
 

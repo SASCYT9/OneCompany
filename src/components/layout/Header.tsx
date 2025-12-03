@@ -73,7 +73,7 @@ export function Header() {
                 key={item.key}
                 href={target}
                 className={cn(
-                  "relative text-xs font-light uppercase tracking-[0.2em] text-white/60 transition-colors md:text-sm md:tracking-[0.25em]",
+                  "relative font-display text-xs uppercase tracking-[0.2em] text-white/60 transition-colors md:text-sm md:tracking-[0.25em]",
                   isActive && "text-white"
                 )}
               >
@@ -121,7 +121,7 @@ export function Header() {
           </button>
           <Link
             href={`/${locale}/partnership`}
-            className="group hidden items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-white transition hover:border-white hover:bg-white hover:text-black sm:inline-flex sm:gap-3 sm:px-5 sm:py-2 sm:text-xs sm:tracking-[0.35em]"
+            className="group hidden items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 font-display text-[10px] font-semibold uppercase tracking-[0.25em] text-white transition hover:border-white hover:bg-white hover:text-black sm:inline-flex sm:gap-3 sm:px-5 sm:py-2 sm:text-xs sm:tracking-[0.35em]"
           >
             <span className="hidden sm:inline">{tNav("bookAtelier")}</span>
             <span className="sm:hidden">Book</span>
@@ -158,7 +158,7 @@ export function Header() {
                     href={target}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      "relative border-b border-white/10 pb-3 text-sm font-light uppercase tracking-[0.25em] text-white/60 transition-colors",
+                      "relative font-display border-b border-white/10 pb-3 text-sm uppercase tracking-[0.25em] text-white/60 transition-colors",
                       isActive && "text-white"
                     )}
                   >

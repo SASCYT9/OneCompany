@@ -37,7 +37,7 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
 
 const main = {
   backgroundColor: '#050505',
-  fontFamily: '"Manrope", "Helvetica Neue", Helvetica, Arial, sans-serif',
+  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   color: '#ffffff',
 };
 
