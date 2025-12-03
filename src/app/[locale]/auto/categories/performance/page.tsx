@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
-import { Cpu, Wind, Zap, Wrench, Fuel, BarChart3 } from 'lucide-react';
+import { ECUIcon, TurboIcon, EngineIcon, IntercoolerIcon, ExhaustSystemIcon, AirFilterIcon } from '@/components/icons/CategoryIcons';
 
 type Locale = 'en' | 'ua';
 
@@ -143,7 +143,7 @@ const performanceTypes = [
       en: 'Software calibrations for enhanced power, torque curves and throttle response.',
       ua: 'Програмні калібрування для збільшеної потужності, кривих крутного моменту та відгуку дроселя.',
     },
-    icon: Cpu,
+    icon: ECUIcon,
     color: 'text-cyan-400',
   },
   {
@@ -152,7 +152,7 @@ const performanceTypes = [
       en: 'Hybrid turbos, turbo kits and complete forced induction solutions.',
       ua: 'Гібридні турбіни, турбо кіти та комплексні рішення примусової індукції.',
     },
-    icon: Wind,
+    icon: TurboIcon,
     color: 'text-blue-400',
   },
   {
@@ -161,7 +161,7 @@ const performanceTypes = [
       en: 'Centrifugal and positive displacement supercharger systems for instant power.',
       ua: 'Центробіжні та роторні компресорні системи для миттєвої потужності.',
     },
-    icon: Zap,
+    icon: EngineIcon,
     color: 'text-amber-400',
   },
   {
@@ -170,7 +170,7 @@ const performanceTypes = [
       en: 'Forged pistons, rods, crankshafts and valve train upgrades for high power builds.',
       ua: 'Ковані поршні, шатуни, колінвали та апгрейди клапанного механізму для потужних білдів.',
     },
-    icon: Wrench,
+    icon: IntercoolerIcon,
     color: 'text-violet-400',
   },
   {
@@ -179,7 +179,7 @@ const performanceTypes = [
       en: 'High-flow injectors, fuel pumps, rails and flex fuel systems.',
       ua: 'Високопропускні форсунки, паливні насоси, рейки та flex fuel системи.',
     },
-    icon: Fuel,
+    icon: ExhaustSystemIcon,
     color: 'text-red-400',
   },
   {
@@ -188,7 +188,7 @@ const performanceTypes = [
       en: 'Wideband O2, boost gauges, data loggers and dash displays.',
       ua: 'Широкосмугові O2, буст-датчики, логери даних та дисплеї.',
     },
-    icon: BarChart3,
+    icon: AirFilterIcon,
     color: 'text-emerald-400',
   },
 ];
@@ -302,15 +302,21 @@ export default function PerformanceCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                        isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                      }`}
-                      unoptimized
-                    />
+                    {/* Radial backlight for dark logos */}
+                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
+                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    </div>
+                    <div className="relative" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                      <Image
+                        src={getBrandLogo(brand.name)}
+                        alt={brand.name}
+                        fill
+                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
+                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
+                        }`}
+                        unoptimized
+                      />
+                    </div>
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>

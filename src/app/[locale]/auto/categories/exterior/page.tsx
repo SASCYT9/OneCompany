@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
-import { Car, ArrowDown, ChevronDown, Trophy, Wrench, Sparkles } from 'lucide-react';
+import { BodyKitIcon, SpoilerIcon, CarbonIcon, WheelIcon, BrakeDiscIcon, ExhaustSystemIcon } from '@/components/icons/CategoryIcons';
 
 type Locale = 'en' | 'ua';
 
@@ -123,7 +123,7 @@ const exteriorTypes = [
       en: 'Complete wide body transformations with extended fenders, side skirts and bumpers.',
       ua: 'Повні widebody трансформації з розширеними крилами, порогами та бамперами.',
     },
-    icon: Car,
+    icon: BodyKitIcon,
     color: 'text-violet-400',
   },
   {
@@ -132,7 +132,7 @@ const exteriorTypes = [
       en: 'Front splitters and lip spoilers for increased downforce and aggressive front-end styling.',
       ua: 'Передні сплітери та ліп-спойлери для збільшення притискної сили та агресивного стайлінгу.',
     },
-    icon: ArrowDown,
+    icon: SpoilerIcon,
     color: 'text-cyan-400',
   },
   {
@@ -141,7 +141,7 @@ const exteriorTypes = [
       en: 'Rear diffusers that accelerate airflow under the car for reduced lift and better stability.',
       ua: 'Задні дифузори, що прискорюють потік під автомобілем для зменшення підйому та кращої стабільності.',
     },
-    icon: ChevronDown,
+    icon: CarbonIcon,
     color: 'text-blue-400',
   },
   {
@@ -150,7 +150,7 @@ const exteriorTypes = [
       en: 'Rear spoilers and wings from subtle lip designs to full GT wings for maximum downforce.',
       ua: 'Задні спойлери та антикрила від мінімальних ліпів до повних GT антикрил для максимального притиску.',
     },
-    icon: Trophy,
+    icon: WheelIcon,
     color: 'text-amber-400',
   },
   {
@@ -159,7 +159,7 @@ const exteriorTypes = [
       en: 'Carbon fiber hoods, trunk lids and vented designs for weight reduction and heat extraction.',
       ua: 'Карбонові капоти, кришки багажника та вентильовані дизайни для зниження ваги та відведення тепла.',
     },
-    icon: Wrench,
+    icon: BrakeDiscIcon,
     color: 'text-red-400',
   },
   {
@@ -168,7 +168,7 @@ const exteriorTypes = [
       en: 'Carbon fiber mirror caps, grille inserts and exterior trim pieces for subtle upgrades.',
       ua: 'Карбонові накладки дзеркал, вставки решітки та зовнішній декор для м\'яких апгрейдів.',
     },
-    icon: Sparkles,
+    icon: ExhaustSystemIcon,
     color: 'text-emerald-400',
   },
 ];
@@ -282,15 +282,21 @@ export default function ExteriorCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                        isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                      }`}
-                      unoptimized
-                    />
+                    {/* Radial backlight for dark logos */}
+                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
+                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    </div>
+                    <div className="relative" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                      <Image
+                        src={getBrandLogo(brand.name)}
+                        alt={brand.name}
+                        fill
+                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
+                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
+                        }`}
+                        unoptimized
+                      />
+                    </div>
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>

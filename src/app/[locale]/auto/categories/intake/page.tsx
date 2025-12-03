@@ -8,9 +8,56 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
-import { Snowflake, RotateCcw, Wind, Wrench, CircleDot, Shield } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
+
+// Custom SVG Icons for Intake/Turbo
+const IntercoolerIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="4" y="7" width="16" height="10" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M7 7V17M10 7V17M14 7V17M17 7V17" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M2 12H4M20 12H22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
+const TurboIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M12 6C12 6 15 8 15 12C15 16 12 18 12 18M12 18C12 18 9 16 9 12C9 8 12 6 12 6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+    <circle cx="12" cy="12" r="2" fill="currentColor"/>
+  </svg>
+);
+
+const AirFilterIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="5" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M9 5V19M12 5V19M15 5V19" stroke="currentColor" strokeWidth="1.5"/>
+  </svg>
+);
+
+const IntakeManifoldIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 12H8M16 12H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    <rect x="8" y="8" width="8" height="8" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M10 8V6M14 8V6M10 16V18M14 16V18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
+const BlowOffValveIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M12 8V4M12 20V16M8 12H4M20 12H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M15 9L17 7M15 15L17 17M9 9L7 7M9 15L7 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
+const IntakePipingIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 12C4 12 6 8 12 8C18 8 20 12 20 12C20 12 18 16 12 16C6 16 4 12 4 12Z" stroke="currentColor" strokeWidth="1.5"/>
+    <circle cx="8" cy="12" r="1.5" fill="currentColor"/>
+    <circle cx="16" cy="12" r="1.5" fill="currentColor"/>
+  </svg>
+);
 
 const intakeBrands = [
   {
@@ -103,7 +150,7 @@ const intakeTypes = [
       en: 'Sealed airbox systems that draw cooler air from outside the engine bay for denser air charge.',
       ua: 'Герметичні системи, що забирають холодніше повітря ззовні моторного відсіку для щільнішого заряду.',
     },
-    icon: Snowflake,
+    icon: IntercoolerIcon,
     color: 'text-cyan-400',
   },
   {
@@ -112,7 +159,7 @@ const intakeTypes = [
       en: 'Venturi-shaped carbon fiber stacks that accelerate and smooth airflow into the throttle body.',
       ua: 'Вентурі-подібні карбонові воронки, що прискорюють і згладжують потік повітря до дроселя.',
     },
-    icon: RotateCcw,
+    icon: TurboIcon,
     color: 'text-violet-400',
   },
   {
@@ -121,7 +168,7 @@ const intakeTypes = [
       en: 'Dynamic pressure intakes that force air into the engine at speed for increased volumetric efficiency.',
       ua: 'Динамічні впуски, що нагнітають повітря в двигун на швидкості для збільшення об\'ємної ефективності.',
     },
-    icon: Wind,
+    icon: AirFilterIcon,
     color: 'text-blue-400',
   },
   {
@@ -130,7 +177,7 @@ const intakeTypes = [
       en: 'Upgraded boost pipes with larger diameter and smoother bends for turbocharged applications.',
       ua: 'Апгрейдовані буст-патрубки з більшим діаметром та плавнішими вигинами для турбо застосувань.',
     },
-    icon: Wrench,
+    icon: IntakeManifoldIcon,
     color: 'text-amber-400',
   },
   {
@@ -139,7 +186,7 @@ const intakeTypes = [
       en: 'Reusable cotton gauze or foam filters with improved airflow and filtration efficiency.',
       ua: 'Багаторазові бавовняні або поролонові фільтри з покращеним потоком та ефективністю фільтрації.',
     },
-    icon: CircleDot,
+    icon: BlowOffValveIcon,
     color: 'text-red-400',
   },
   {
@@ -148,7 +195,7 @@ const intakeTypes = [
       en: 'Thermal barriers that isolate the intake from engine heat for consistent inlet temperatures.',
       ua: 'Термобар\'єри, що ізолюють впуск від тепла двигуна для стабільних температур на вході.',
     },
-    icon: Shield,
+    icon: IntakePipingIcon,
     color: 'text-emerald-400',
   },
 ];
@@ -262,15 +309,21 @@ export default function IntakeCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                        isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                      }`}
-                      unoptimized
-                    />
+                    {/* Radial backlight for dark logos */}
+                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
+                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    </div>
+                    <div className="relative" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                      <Image
+                        src={getBrandLogo(brand.name)}
+                        alt={brand.name}
+                        fill
+                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
+                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
+                        }`}
+                        unoptimized
+                      />
+                    </div>
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>

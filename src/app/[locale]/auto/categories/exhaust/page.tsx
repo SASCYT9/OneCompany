@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
-import { Wrench, Zap, Car, Smartphone, Trophy, Flag } from 'lucide-react';
+import { ExhaustSystemIcon, MufflerIcon, CatIcon, TurboIcon, EngineIcon, SpoilerIcon } from '@/components/icons/CategoryIcons';
 
 type Locale = 'en' | 'ua';
 
@@ -145,7 +145,7 @@ const exhaustTypes = [
       en: 'Complete replacement from catalytic converter to tailpipes. Optimal balance of sound and performance.',
       ua: 'Повна заміна від каталізатора до вихлопних труб. Оптимальний баланс звуку та продуктивності.',
     },
-    icon: Wrench,
+    icon: ExhaustSystemIcon,
     color: 'text-violet-400',
   },
   {
@@ -154,7 +154,7 @@ const exhaustTypes = [
       en: 'High-flow downpipes for turbocharged engines. Significant power gains with reduced backpressure.',
       ua: 'Високопродуктивні даунпайпи для турбо двигунів. Значний приріст потужності зі зменшенням опору.',
     },
-    icon: Zap,
+    icon: TurboIcon,
     color: 'text-amber-400',
   },
   {
@@ -163,7 +163,7 @@ const exhaustTypes = [
       en: 'Equal-length headers and performance manifolds for naturally aspirated power delivery.',
       ua: 'Рівнодовгі колектори для атмосферних двигунів з покращеною віддачею потужності.',
     },
-    icon: Car,
+    icon: EngineIcon,
     color: 'text-red-400',
   },
   {
@@ -172,7 +172,7 @@ const exhaustTypes = [
       en: 'Electronically controlled valves for on-demand sound adjustment. Quiet to aggressive at a button press.',
       ua: 'Електронно керовані клапани для налаштування звуку. Від тихого до агресивного одним натиском.',
     },
-    icon: Smartphone,
+    icon: MufflerIcon,
     color: 'text-blue-400',
   },
   {
@@ -181,7 +181,7 @@ const exhaustTypes = [
       en: 'Lightweight titanium construction with weight savings up to 50%. Ultimate performance choice.',
       ua: 'Легкі титанові конструкції зі зменшенням ваги до 50%. Найвищий вибір для продуктивності.',
     },
-    icon: Trophy,
+    icon: SpoilerIcon,
     color: 'text-cyan-400',
   },
   {
@@ -190,7 +190,7 @@ const exhaustTypes = [
       en: 'Track-only systems without catalytic converters. Maximum flow and power for competition use.',
       ua: 'Трекові системи без каталізаторів. Максимальний потік та потужність для змагань.',
     },
-    icon: Flag,
+    icon: CatIcon,
     color: 'text-emerald-400',
   },
 ];
@@ -360,15 +360,21 @@ export default function ExhaustCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                        isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                      }`}
-                      unoptimized
-                    />
+                    {/* Radial backlight for dark logos */}
+                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
+                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    </div>
+                    <div className="relative" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                      <Image
+                        src={getBrandLogo(brand.name)}
+                        alt={brand.name}
+                        fill
+                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
+                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
+                        }`}
+                        unoptimized
+                      />
+                    </div>
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>

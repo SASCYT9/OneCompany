@@ -45,17 +45,32 @@ export default function BrandsPage() {
           {filteredBrands.map(([name, logo]) => (
             <div 
               key={name}
-              className="group relative aspect-[3/2] flex items-center justify-center p-6 bg-white/[0.02] border border-white/10 rounded-2xl hover:bg-white/[0.05] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all duration-500 backdrop-blur-sm"
+              className="group relative aspect-[3/2] flex items-center justify-center p-6 bg-white/[0.02] border border-white/10 rounded-2xl hover:bg-white/[0.05] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all duration-500 backdrop-blur-sm overflow-hidden"
             >
-              <div className="relative w-full h-full flex items-center justify-center grayscale group-hover:grayscale-0 opacity-60 group-hover:opacity-100 transition-all duration-500">
-                <Image
-                  src={logo}
-                  alt={name}
-                  fill
-                  className="object-contain p-2"
-                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
-                />
+              {/* Radial white backlight for dark logos */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-[80%] h-[80%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
               </div>
+
+              {/* Logo with unified sizing */}
+              <div className="relative w-full h-full flex items-center justify-center grayscale group-hover:grayscale-0 opacity-70 group-hover:opacity-100 transition-all duration-500">
+                <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                  <Image
+                    src={logo}
+                    alt={name}
+                    fill
+                    className="object-contain"
+                    style={{ 
+                      objectFit: 'contain',
+                      maxHeight: '100%',
+                      maxWidth: '100%'
+                    }}
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
+                  />
+                </div>
+              </div>
+
+              {/* Brand name tooltip */}
               <div className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <span className="text-[10px] uppercase tracking-wider text-white/50 font-light truncate px-2">{name}</span>
               </div>

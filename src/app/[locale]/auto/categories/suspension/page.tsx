@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
-import { Wrench, Wind, ArrowDown, ArrowLeftRight, Ruler, Circle } from 'lucide-react';
+import { ShockAbsorberIcon, CoiloverIcon, SwaybарIcon, BrakeDiscIcon, WheelIcon, TireIcon } from '@/components/icons/CategoryIcons';
 
 type Locale = 'en' | 'ua';
 
@@ -123,7 +123,7 @@ const suspensionTypes = [
       en: 'Fully adjustable height and damping coilover kits for street, track and competition use.',
       ua: 'Повністю регульовані по висоті та жорсткості койловери для вулиці, треку та змагань.',
     },
-    icon: Wrench,
+    icon: BrakeDiscIcon,
     color: 'text-violet-400',
   },
   {
@@ -132,7 +132,7 @@ const suspensionTypes = [
       en: 'Adjustable air suspension systems with digital management for ultimate stance flexibility.',
       ua: 'Регульовані пневмопідвіски з цифровим управлінням для максимальної гнучкості стійки.',
     },
-    icon: Wind,
+    icon: CoiloverIcon,
     color: 'text-cyan-400',
   },
   {
@@ -141,7 +141,7 @@ const suspensionTypes = [
       en: 'Sport springs that lower ride height while maintaining factory damper compatibility.',
       ua: 'Спортивні пружини, що занижують авто зі збереженням сумісності із заводськими амортизаторами.',
     },
-    icon: ArrowDown,
+    icon: ShockAbsorberIcon,
     color: 'text-emerald-400',
   },
   {
@@ -150,7 +150,7 @@ const suspensionTypes = [
       en: 'Anti-roll bars that reduce body roll and improve cornering stability and response.',
       ua: 'Стабілізатори поперечної стійкості, що зменшують крени та покращують стабільність у поворотах.',
     },
-    icon: ArrowLeftRight,
+    icon: SwaybарIcon,
     color: 'text-amber-400',
   },
   {
@@ -159,7 +159,7 @@ const suspensionTypes = [
       en: 'Adjustable camber arms and plates for proper alignment after lowering.',
       ua: 'Регульовані розвальні важелі та пластини для правильного розвалу після заниження.',
     },
-    icon: Ruler,
+    icon: WheelIcon,
     color: 'text-blue-400',
   },
   {
@@ -168,7 +168,7 @@ const suspensionTypes = [
       en: 'Polyurethane and solid bushings for improved suspension response and reduced flex.',
       ua: 'Поліуретанові та суцільні втулки для покращеного відгуку підвіски та зменшення люфтів.',
     },
-    icon: Circle,
+    icon: TireIcon,
     color: 'text-red-400',
   },
 ];
@@ -282,15 +282,21 @@ export default function SuspensionCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                        isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                      }`}
-                      unoptimized
-                    />
+                    {/* Radial backlight for dark logos */}
+                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
+                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    </div>
+                    <div className="relative" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                      <Image
+                        src={getBrandLogo(brand.name)}
+                        alt={brand.name}
+                        fill
+                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
+                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
+                        }`}
+                        unoptimized
+                      />
+                    </div>
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>

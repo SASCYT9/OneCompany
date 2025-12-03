@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
-import { CircleDot, Disc, Settings, Flag, Wrench, Droplets } from 'lucide-react';
+import { BrakeDiscIcon, CaliperIcon, BrakeLinesIcon, WheelIcon, TireIcon, RadiatorIcon } from '@/components/icons/CategoryIcons';
 
 type Locale = 'en' | 'ua';
 
@@ -103,7 +103,7 @@ const brakeTypes = [
       en: 'Complete brake upgrades with larger rotors and multi-piston calipers for improved stopping power.',
       ua: 'Повні апгрейди гальм з більшими дисками та багатопоршневими супортами для кращого гальмування.',
     },
-    icon: CircleDot,
+    icon: TireIcon,
     color: 'text-red-400',
   },
   {
@@ -112,7 +112,7 @@ const brakeTypes = [
       en: 'Ultra-lightweight ceramic composite rotors with extreme heat tolerance for track and street.',
       ua: 'Надлегкі керамічні композитні диски з екстремальною термостійкістю для треку та вулиці.',
     },
-    icon: Disc,
+    icon: BrakeDiscIcon,
     color: 'text-zinc-300',
   },
   {
@@ -121,7 +121,7 @@ const brakeTypes = [
       en: 'Floating rotors with aluminum hats reduce weight and allow for thermal expansion.',
       ua: 'Плаваючі диски з алюмінієвими хабами зменшують вагу та дозволяють термічне розширення.',
     },
-    icon: Settings,
+    icon: WheelIcon,
     color: 'text-violet-400',
   },
   {
@@ -130,7 +130,7 @@ const brakeTypes = [
       en: 'High-friction compounds designed for track temperatures and repeated hard braking.',
       ua: 'Високофрикційні компаунди для трекових температур та повторного інтенсивного гальмування.',
     },
-    icon: Flag,
+    icon: CaliperIcon,
     color: 'text-emerald-400',
   },
   {
@@ -139,7 +139,7 @@ const brakeTypes = [
       en: 'Stainless steel braided lines for improved pedal feel and consistent pressure delivery.',
       ua: 'Плетені шланги з нержавіючої сталі для кращого відчуття педалі та стабільного тиску.',
     },
-    icon: Wrench,
+    icon: BrakeLinesIcon,
     color: 'text-amber-400',
   },
   {
@@ -148,7 +148,7 @@ const brakeTypes = [
       en: 'High-temperature DOT 4 and racing fluids to prevent brake fade under extreme conditions.',
       ua: 'Високотемпературні DOT 4 та гоночні рідини для запобігання затуханню гальм в екстремальних умовах.',
     },
-    icon: Droplets,
+    icon: RadiatorIcon,
     color: 'text-blue-400',
   },
 ];
@@ -262,15 +262,21 @@ export default function BrakesCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                        isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                      }`}
-                      unoptimized
-                    />
+                    {/* Radial backlight for dark logos */}
+                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
+                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    </div>
+                    <div className="relative" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                      <Image
+                        src={getBrandLogo(brand.name)}
+                        alt={brand.name}
+                        fill
+                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
+                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
+                        }`}
+                        unoptimized
+                      />
+                    </div>
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>

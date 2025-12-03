@@ -530,34 +530,40 @@ export default function AutomotivePage() {
             <Link
               key={cat.slug}
               href={`/${locale}/auto/categories/${cat.slug}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/30 p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-zinc-900/50 hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8 h-full"
+              className="group relative flex flex-col overflow-hidden rounded-2xl bg-black transition-all duration-300 hover:translate-y-[-4px] sm:rounded-3xl h-full"
             >
-              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
-                backgroundImage:
-                  'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
-              }} />
-              <div className="relative flex flex-col flex-1">
-                {/* Title & Description - fixed height */}
+              {/* Multi-layer box shadows for depth */}
+              <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),inset_0_0_0_1px_rgba(255,255,255,0.05)] sm:rounded-3xl" />
+              
+              {/* Bottom glow on hover */}
+              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              
+              <div className="relative p-6 sm:p-7 md:p-8 flex flex-col flex-1 shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.6)] group-hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_16px_40px_rgba(0,0,0,0.7)] transition-shadow duration-300">
+                {/* Title & Description */}
                 <div className="min-h-[120px] sm:min-h-[140px]">
-                  <h3 className="text-xl font-light sm:text-2xl text-balance text-white">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
-                  <p className="mt-3 text-xs text-white/70 sm:text-sm text-pretty">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                  <p className="mt-2 text-[11px] text-white/40 sm:text-xs text-pretty">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                  <h3 className="text-xl font-light text-white text-balance sm:text-2xl">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                  <p className="mt-3 text-[13px] leading-relaxed text-white/60 text-pretty sm:text-[15px]">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                  <p className="mt-2 text-[11px] text-white/40 text-pretty sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
                 </div>
-                {/* Brand tags - fixed height area */}
-                <div className="mt-4 min-h-[80px] grid grid-cols-2 gap-1.5 text-[10px] uppercase tracking-[0.25em] content-start sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
+                
+                {/* Brand tags with relief */}
+                <div className="mt-5 min-h-[80px] grid grid-cols-2 gap-2 text-[10px] uppercase tracking-wider content-start sm:text-[11px]">
                   {cat.brands.map((name) => (
-                    <span key={name} className="flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-2.5 py-0.5 text-center text-white/70 hover:border-white/40 hover:bg-white/10 transition-colors sm:px-3 sm:py-1">
+                    <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/[0.08] bg-gradient-to-b from-white/[0.04] to-transparent px-3 py-1.5 text-center font-medium text-white/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] transition-colors duration-200 hover:border-white/[0.12] hover:from-white/[0.08]">
                       {name}
                     </span>
                   ))}
                 </div>
-                {/* Open link - always at bottom */}
-                <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
-                  <span className="text-emerald-400 transition-colors duration-300 group-hover:text-emerald-300">
+                
+                {/* Open button - clear affordance */}
+                <div className="mt-auto pt-6 flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3">
                     {locale === 'ua' ? 'Відкрити' : 'Open'}
-                  </span>
-                  <span className="h-px flex-1 bg-gradient-to-r from-emerald-500/40 to-transparent transition-all duration-300 group-hover:from-emerald-400/60" />
-                  <span className="text-emerald-400 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-emerald-300">→</span>
+                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                  <span className="text-xs text-white/30">{cat.brands.length} брендів</span>
                 </div>
               </div>
             </Link>

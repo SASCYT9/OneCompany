@@ -8,9 +8,52 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
-import { Square, Armchair, Sparkles, Car, Target, Shield } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
+
+// Custom SVG Icons for Interior
+const CarbonIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M8 8L16 16M16 8L8 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
+const LeatherIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7 9C7 7.34315 8.34315 6 10 6H14C15.6569 6 17 7.34315 17 9V15C17 16.6569 15.6569 18 14 18H10C8.34315 18 7 16.6569 7 15V9Z" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M9 10H15M9 12H15M9 14H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
+const AlcantaraIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 3L14 8L19 9L15 13L16 18L12 16L8 18L9 13L5 9L10 8L12 3Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+  </svg>
+);
+
+const SeatIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 20V10C6 8.89543 6.89543 8 8 8H16C17.1046 8 18 8.89543 18 10V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M4 20H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    <circle cx="12" cy="5" r="2" stroke="currentColor" strokeWidth="1.5"/>
+  </svg>
+);
+
+const SteeringWheelIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5"/>
+    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M12 3V9M12 15V21M3 12H9M15 12H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
+const RollCageIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="4" y="4" width="16" height="16" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M8 4V20M16 4V20M4 8H20M4 16H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
 
 const interiorBrands = [
   {
@@ -123,7 +166,7 @@ const interiorTypes = [
       en: 'Carbon fiber interior trim panels, console covers and dashboard accents in various weave patterns.',
       ua: 'Карбонові інтер\'єрні панелі, накладки консолі та акценти приладової панелі різних текстур.',
     },
-    icon: Square,
+    icon: CarbonIcon,
     color: 'text-zinc-400',
   },
   {
@@ -132,7 +175,7 @@ const interiorTypes = [
       en: 'Complete leather retrim with custom colors, stitching patterns and exotic leather options.',
       ua: 'Повна перетяжка шкірою з кастомними кольорами, візерунками шиття та екзотичною шкірою.',
     },
-    icon: Armchair,
+    icon: LeatherIcon,
     color: 'text-amber-400',
   },
   {
@@ -141,7 +184,7 @@ const interiorTypes = [
       en: 'Alcantara headliner, door panels, steering wheel and trim upgrades for sporty luxury feel.',
       ua: 'Алькантара на стелі, дверних панелях, кермі та оздобленні для спортивного лакшері відчуття.',
     },
-    icon: Sparkles,
+    icon: AlcantaraIcon,
     color: 'text-violet-400',
   },
   {
@@ -150,7 +193,7 @@ const interiorTypes = [
       en: 'Aftermarket sport and racing bucket seats with improved bolstering and weight savings.',
       ua: 'Aftermarket спортивні та гоночні ковші з покращеною боковою підтримкою та зниженою вагою.',
     },
-    icon: Car,
+    icon: SeatIcon,
     color: 'text-red-400',
   },
   {
@@ -159,7 +202,7 @@ const interiorTypes = [
       en: 'Custom steering wheels with carbon fiber, Alcantara wrap and performance features.',
       ua: 'Кастомні кермові колеса з карбоном, обшивкою алькантарою та performance функціями.',
     },
-    icon: Target,
+    icon: SteeringWheelIcon,
     color: 'text-emerald-400',
   },
   {
@@ -168,7 +211,7 @@ const interiorTypes = [
       en: 'FIA-certified roll cages and harness bars for track safety and structural rigidity.',
       ua: 'FIA-сертифіковані каркаси безпеки та harness бари для безпеки на треку та жорсткості кузова.',
     },
-    icon: Shield,
+    icon: RollCageIcon,
     color: 'text-cyan-400',
   },
 ];
@@ -282,15 +325,21 @@ export default function InteriorCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                        isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                      }`}
-                      unoptimized
-                    />
+                    {/* Radial backlight for dark logos */}
+                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
+                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    </div>
+                    <div className="relative" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                      <Image
+                        src={getBrandLogo(brand.name)}
+                        alt={brand.name}
+                        fill
+                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
+                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
+                        }`}
+                        unoptimized
+                      />
+                    </div>
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>

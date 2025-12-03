@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
-import { Diamond, Cog, RotateCcw, Settings, Car, Flag } from 'lucide-react';
+import { WheelIcon, TireIcon, BrakeDiscIcon, CaliperIcon, CoiloverIcon, SpoilerIcon } from '@/components/icons/CategoryIcons';
 
 type Locale = 'en' | 'ua';
 
@@ -143,7 +143,7 @@ const wheelTypes = [
       en: 'Single-piece forged from aerospace-grade aluminum for ultimate strength and weight savings.',
       ua: 'Одноцільні, ковані з аерокосмічного алюмінію для максимальної міцності та економії ваги.',
     },
-    icon: Diamond,
+    icon: WheelIcon,
     color: 'text-cyan-400',
   },
   {
@@ -152,7 +152,7 @@ const wheelTypes = [
       en: '2 or 3-piece construction allowing custom widths, offsets and lip configurations.',
       ua: '2 або 3-частинна конструкція для кастомної ширини, вильоту та конфігурації полки.',
     },
-    icon: Cog,
+    icon: TireIcon,
     color: 'text-violet-400',
   },
   {
@@ -161,7 +161,7 @@ const wheelTypes = [
       en: 'Cast center with forged barrel for near-forged strength at cast wheel pricing.',
       ua: 'Литий центр з кованим барелем для майже кованої міцності за ціною литих.',
     },
-    icon: RotateCcw,
+    icon: BrakeDiscIcon,
     color: 'text-blue-400',
   },
   {
@@ -170,7 +170,7 @@ const wheelTypes = [
       en: 'Gravity or low-pressure cast wheels offering great value with proven designs.',
       ua: 'Гравітаційні або низькотискові литі диски з відмінним співвідношенням ціни та якості.',
     },
-    icon: Settings,
+    icon: CaliperIcon,
     color: 'text-amber-400',
   },
   {
@@ -179,7 +179,7 @@ const wheelTypes = [
       en: 'Cutting-edge carbon fiber wheels for extreme weight savings and exotic aesthetics.',
       ua: 'Найсучасніші карбонові диски для екстремальної економії ваги та екзотичної естетики.',
     },
-    icon: Car,
+    icon: CoiloverIcon,
     color: 'text-red-400',
   },
   {
@@ -188,7 +188,7 @@ const wheelTypes = [
       en: 'Racing-specific wheels designed for endurance, sprint and circuit applications.',
       ua: 'Диски спеціально для перегонів — витривалість, спринт та кільцеві гонки.',
     },
-    icon: Flag,
+    icon: SpoilerIcon,
     color: 'text-emerald-400',
   },
 ];
@@ -302,15 +302,21 @@ export default function WheelsCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                        isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                      }`}
-                      unoptimized
-                    />
+                    {/* Radial backlight for dark logos */}
+                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
+                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    </div>
+                    <div className="relative" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                      <Image
+                        src={getBrandLogo(brand.name)}
+                        alt={brand.name}
+                        fill
+                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
+                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
+                        }`}
+                        unoptimized
+                      />
+                    </div>
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>

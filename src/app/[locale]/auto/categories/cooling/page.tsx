@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
-import { Thermometer, Snowflake, Droplets, Circle, Wind, Waves } from 'lucide-react';
+import { RadiatorIcon, IntercoolerIcon, WaterPumpIcon, TurboIcon, AirFilterIcon, EngineIcon } from '@/components/icons/CategoryIcons';
 
 type Locale = 'en' | 'ua';
 
@@ -123,7 +123,7 @@ const coolingTypes = [
       en: 'Aluminum performance radiators with increased core thickness and tube rows for enhanced cooling.',
       ua: 'Алюмінієві performance радіатори зі збільшеною товщиною ядра та рядами трубок для кращого охолодження.',
     },
-    icon: Thermometer,
+    icon: RadiatorIcon,
     color: 'text-red-400',
   },
   {
@@ -132,7 +132,7 @@ const coolingTypes = [
       en: 'Front-mount and top-mount intercoolers for reduced intake air temperatures.',
       ua: 'Фронтальні та верхні інтеркулери для зниження температури впускного повітря.',
     },
-    icon: Snowflake,
+    icon: IntercoolerIcon,
     color: 'text-cyan-400',
   },
   {
@@ -141,7 +141,7 @@ const coolingTypes = [
       en: 'Engine and transmission oil coolers for maintaining optimal lubricant temperatures.',
       ua: 'Маслоохолоджувачі двигуна та трансмісії для підтримки оптимальної температури мастила.',
     },
-    icon: Droplets,
+    icon: WaterPumpIcon,
     color: 'text-amber-400',
   },
   {
@@ -150,7 +150,7 @@ const coolingTypes = [
       en: 'High-temperature silicone coolant hoses with improved pressure ratings and custom colors.',
       ua: 'Високотемпературні силіконові патрубки з покращеними характеристиками тиску та кастомними кольорами.',
     },
-    icon: Circle,
+    icon: AirFilterIcon,
     color: 'text-blue-400',
   },
   {
@@ -159,7 +159,7 @@ const coolingTypes = [
       en: 'High-CFM electric cooling fans with digital controllers for precise temperature management.',
       ua: 'Високопродуктивні електро вентилятори з цифровими контролерами для точного управління температурою.',
     },
-    icon: Wind,
+    icon: TurboIcon,
     color: 'text-violet-400',
   },
   {
@@ -168,7 +168,7 @@ const coolingTypes = [
       en: 'High-flow mechanical and electric water pumps for improved coolant circulation.',
       ua: 'Високопропускні механічні та електричні помпи для покращеної циркуляції охолоджувача.',
     },
-    icon: Waves,
+    icon: EngineIcon,
     color: 'text-emerald-400',
   },
 ];
@@ -282,15 +282,21 @@ export default function CoolingCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                        isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                      }`}
-                      unoptimized
-                    />
+                    {/* Radial backlight for dark logos */}
+                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
+                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    </div>
+                    <div className="relative" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                      <Image
+                        src={getBrandLogo(brand.name)}
+                        alt={brand.name}
+                        fill
+                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
+                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
+                        }`}
+                        unoptimized
+                      />
+                    </div>
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>

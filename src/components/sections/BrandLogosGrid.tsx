@@ -69,23 +69,35 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
                   {groupedItems[letter].map(({ name, logoSrc, country, subcategory }) => (
                     <li
                       key={name}
-                      className="group rounded-md border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-colors p-4 flex flex-col items-center justify-center text-center"
+                      className="group relative rounded-md border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-colors p-4 flex flex-col items-center justify-center text-center overflow-hidden"
                       title={name}
                     >
-                      <div className="relative w-full" style={{ paddingTop: '56%' }}>
-                        <Image
-                          src={logoSrc}
-                          alt={name}
-                          fill
-                          className="object-contain opacity-80 group-hover:opacity-100 transition-opacity"
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
-                          unoptimized
-                          priority={false}
-                        />
+                      {/* Radial white backlight for dark logos */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-[80%] h-[60%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
                       </div>
-                      <span className="mt-3 text-xs text-white/70 truncate w-full font-medium">{name}</span>
+
+                      {/* Logo with unified sizing and drop shadow */}
+                      <div className="relative w-full z-10" style={{ paddingTop: '56%' }}>
+                        <div className="absolute inset-0" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                          <Image
+                            src={logoSrc}
+                            alt={name}
+                            fill
+                            className="object-contain opacity-80 group-hover:opacity-100 transition-opacity"
+                            style={{ 
+                              objectFit: 'contain'
+                            }}
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
+                            unoptimized
+                            priority={false}
+                          />
+                        </div>
+                      </div>
+
+                      <span className="relative z-10 mt-3 text-xs text-white/70 truncate w-full font-medium">{name}</span>
                       {(country || subcategory) && (
-                        <div className="flex flex-col items-center mt-1 gap-0.5">
+                        <div className="relative z-10 flex flex-col items-center mt-1 gap-0.5">
                           {country && <span className="text-[10px] text-white/40 uppercase tracking-wider">{country}</span>}
                           {subcategory && <span className="text-[10px] text-blue-400/60">{subcategory}</span>}
                         </div>
