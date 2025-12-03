@@ -318,7 +318,7 @@ export default function IntakeCategoryPage() {
                         alt={brand.name}
                         fill
                         className={`object-contain object-center transition-all duration-300 group-hover:scale-110 ${
-                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
+                          isDarkLogo(getBrandLogo(brand.name)) ? 'grayscale invert mix-blend-screen' : ''
                         }`}
                         unoptimized
                       />
