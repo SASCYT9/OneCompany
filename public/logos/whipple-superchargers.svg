@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122 40">
+  <defs>
+    <style>
+	/* Custom Css here */
+	* {
+	font-size: 7px;
+	font-family: arial;
+	}
+	.trustGuard {
+	transform:translate(1px, 0);
+	fill:#ffffff;
+	}
+	.secured {
+	fill:#ffffff;
+	}
+	.seal-bg {
+	fill:#33981F;
+	}
+	#tgShield {
+	transform:scale(1)!important;
+	}
+	.shield-Top{
+		fill:#33981F;
+	}
+	.shield-Layer1 {
+		fill:#333333;
+	}
+	.shield-Layer2 {
+		fill:#FFFFFF;
+	}
+	.shield-Left {
+		fill:#66CC3E;
+	}
+	.shield-Right {
+		fill:#33981F;
+	}
+	.shield-Hole {
+		fill:#ffffff;
+	}
+
+	.primaryLayer {
+	animation: fade1 6s ease alternate infinite;
+	animation-iteration-count:1;
+	fill:#ffffff;
+	}
+	@keyframes fade1 {
+	  0% { opacity:0; }
+	  40% { opacity:0; }
+	  50% { opacity:0; }
+	 100% { opacity:1; }
+	}
+	.secondaryLayer {
+		opacity:0;
+		fill:#ffffff;
+		animation: fade2 6s ease alternate infinite;
+		animation-iteration-count:1;
+		letter-spacing:0.4!important;
+	}
+	@keyframes fade2 {
+	  0% { opacity:1; }
+	  50% { opacity:1; }
+	  60% { opacity:0; }
+	  100% { opacity:0; }
+	}
+      .edge-border{
+      fill:#33981F;
+      transform: translate(-0.38px,-.22px)scale(1.002);
+      stroke-width: 0.2px;
+      }
+    </style>
+  </defs>
+  <title>sample</title>
+  <g id="Layer_1" data-name="Layer 1">
+    <!-- Background STARTS HERE -->
+	<path class="seal-bg cls-1" d="M0,5V35a5,5,0,0,0,5,5H117a5,5,0,0,0,5-5V5a5,5,0,0,0-5-5H5A5,5,0,0,0,0,5Z"/>
+
+	<g transform="translate(0 0)">
+	<!-- Trust Guard STARTS HERE -->
+    <path class="cls-6 trustGuard" d="M55.93,7.54V4H57V7.32a.71.71,0,0,0,.71.71h.71a.7.7,0,0,0,.7-.7h0V4h1.08V7.54A1.49,1.49,0,0,1,58.73,9H57.41A1.49,1.49,0,0,1,55.93,7.54Z"/>
+    <path class="cls-6 trustGuard" d="M47.43,5V9H46.34V5H44.62V4h4.53V5Z"/>
+    <path class="cls-6 trustGuard" d="M69.86,5V9H68.74V5H67V4h4.53V5Z"/>
+    <path class="cls-6 trustGuard" d="M64.44,6H63.31a.51.51,0,0,1-.6-.4.5.5,0,0,1,.4-.6.34.34,0,0,1,.2,0h2.21l.42-1H63.17A1.47,1.47,0,0,0,61.7,5.5h0A1.48,1.48,0,0,0,63.18,7h1.15a.51.51,0,0,1,.51.51h0a.51.51,0,0,1-.51.51H62.11L61.7,9h2.74a1.5,1.5,0,0,0,1.48-1.48h0A1.48,1.48,0,0,0,64.46,6Z"/>
+    <path class="cls-6 trustGuard" d="M53.41,9h1.27L53.46,7.25A1.71,1.71,0,0,0,54.35,5a1.19,1.19,0,0,0-.13-.25A1.49,1.49,0,0,0,52.93,4H50.38V9h1.08V7.37h.84Zm-2-2.61V5h1.22a.7.7,0,0,1,.7.7h0a.7.7,0,0,1-.7.7Z"/>
+    <path class="cls-6 trustGuard" d="M80.86,7.54V4h1.08V7.32a.71.71,0,0,0,.71.71h.71a.7.7,0,0,0,.7-.7h0V4h1.08V7.54A1.49,1.49,0,0,1,83.66,9H82.34A1.49,1.49,0,0,1,80.86,7.54Z"/>
+    <path class="cls-6 trustGuard" d="M90,9l-.45-1.11H87.47L87,9h-1.1L88,4h1l2.12,5ZM88.51,5.38,87.86,7h1.3Z"/>
+    <path class="cls-6 trustGuard" d="M100.55,9h-3V4h3A1.49,1.49,0,0,1,102,5.52v2A1.49,1.49,0,0,1,100.57,9Zm-.35-4H98.59V8h1.61a.72.72,0,0,0,.71-.7V5.75a.7.7,0,0,0-.68-.74h0Z"/>
+    <path class="cls-6 trustGuard" d="M77.49,7.05h1.09v1H76.93a.71.71,0,0,1-.71-.69h0V5.75A.71.71,0,0,1,76.93,5H79.2l.42-1h-3a1.49,1.49,0,0,0-1.49,1.49v2A1.49,1.49,0,0,0,76.62,9h2.2a.85.85,0,0,0,.84-.84V6.11H77.49Z"/>
+    <path class="cls-6 trustGuard" d="M95.09,9h1.26L95.13,7.25A1.71,1.71,0,0,0,96,5a1.36,1.36,0,0,0-.13-.24A1.47,1.47,0,0,0,94.58,4H92V9H93.1V7.37H94Zm-2-2.61V5h1.22a.71.71,0,0,1,.71.71h0a.7.7,0,0,1-.7.7H93.09Z"/>
+    <path class="cls-6 trustGuard" d="M104.92,5.1a1.09,1.09,0,0,1-2.18.08,1.09,1.09,0,0,1,1.05-1.13h.07A1.06,1.06,0,0,1,104.92,5.1Zm-1.9,0a.82.82,0,0,0,.8.84h0a.8.8,0,0,0,.8-.8v0A.82.82,0,1,0,103,4.93a.54.54,0,0,0,0,.18Zm.65.56h-.24V4.6a1.34,1.34,0,0,1,.4,0,.68.68,0,0,1,.37.07.31.31,0,0,1,.1.24.28.28,0,0,1-.22.24h0a.3.3,0,0,1,.2.26.92.92,0,0,0,.08.27h-.27a.87.87,0,0,1-.08-.26c0-.12-.09-.17-.22-.17h-.12Zm0-.6h.11c.14,0,.25,0,.25-.16s-.06-.15-.17-.15h-.13Z"/>
+
+	<!-- Secured -->
+	<g class="secured" transform="translate(6.5 0)">
+	<path class="cls-6 secured" d="M36.64,15.67a1.07,1.07,0,0,0-.39.85,1,1,0,0,0,.48.84,9.47,9.47,0,0,0,2.2.73,6.23,6.23,0,0,1,2.67,1.27,3.15,3.15,0,0,1,.95,2.46,3.26,3.26,0,0,1-1.22,2.64,4.83,4.83,0,0,1-3.21,1A7.43,7.43,0,0,1,33,23.35l1.61-2a5.7,5.7,0,0,0,3.61,1.7,1.84,1.84,0,0,0,1.16-.32,1.06,1.06,0,0,0,.25-1.48,1.18,1.18,0,0,0-.25-.25,5.89,5.89,0,0,0-1.77-.65,7.78,7.78,0,0,1-3.07-1.28,3.07,3.07,0,0,1-1-2.53,3.1,3.1,0,0,1,1.24-2.64,5,5,0,0,1,3.08-1,7.93,7.93,0,0,1,2.42.41,6.39,6.39,0,0,1,2.11,1.19l-1.37,2a5.27,5.27,0,0,0-3.24-1.19A1.6,1.6,0,0,0,36.64,15.67Z"/>
+    <path class="cls-6 secured" d="M53.55,13.26v2.4h-6v2.49h5.4v2.29h-5.4V23h6.2v2.39h-8.9V13.26Z"/>
+    <path class="cls-6 secured" d="M61.68,23A4,4,0,0,0,65,21.37l1.73,1.79a6.52,6.52,0,0,1-9.19.77l-.26-.22a6,6,0,0,1-1.81-4.45,6.07,6.07,0,0,1,1.84-4.49A6.29,6.29,0,0,1,61.79,13a6.41,6.41,0,0,1,5,2.26l-1.68,1.91a3.91,3.91,0,0,0-3.18-1.59,3.72,3.72,0,0,0-2.6,1,3.47,3.47,0,0,0-1.11,2.75,3.65,3.65,0,0,0,1.06,2.67A3.4,3.4,0,0,0,61.68,23Z"/>
+    <path class="cls-6 secured" d="M72,22.21a2.19,2.19,0,0,0,1.82.84,2.15,2.15,0,0,0,1.8-.84,3.51,3.51,0,0,0,.66-2.28V13.26H79V20a5.4,5.4,0,0,1-1.45,4,5.63,5.63,0,0,1-7.44,0,5.4,5.4,0,0,1-1.46-4V13.26H71.3v6.67A3.59,3.59,0,0,0,72,22.21Z"/>
+    <path class="cls-6 secured" d="M91.55,17.27A3.59,3.59,0,0,1,89.26,21l3,4.33H89l-2.68-3.86h-1.9v3.86H81.76V13.26h4.57a6.52,6.52,0,0,1,4,1A3.65,3.65,0,0,1,91.55,17.27ZM88.3,18.7a1.83,1.83,0,0,0,.51-1.42,1.49,1.49,0,0,0-.53-1.34,3.32,3.32,0,0,0-1.81-.37h-2v3.58h2A2.89,2.89,0,0,0,88.3,18.7Z"/>
+    <path class="cls-6 secured" d="M103.08,13.26v2.4h-6v2.49h5.41v2.29H97.06V23h6.2v2.39h-9V13.26Z"/>
+    </g>
+
+	<!-- ACTIVE TEXT -->
+	<text class="cls-7 primaryLayer scan-status" transform="translate(32.96 35.03)">ACTIVE</text>
+	<!-- DATE TEXT -->
+		<g>
+		<text class="cls-8 primaryLayer date" transform="translate(87.00 35.03)">12-03-25</text>
+		</g>
+		<text class="secondaryLayer" x="61%" y="83.3%"  dominant-baseline="middle" text-anchor="middle" font-size="7" fill="#fff" font-family="arial">WHIPPLESUPERCHARGERS...</text>
+    </g>
+
+	<!-- Start TG shield -->
+	<g class="tgShield"  transform="translate(0 0)">
+	<path class="shield-Layer1 cls-2" d="M24.28,13V11.94a7.85,7.85,0,0,0-7.85-7.85h0a7.85,7.85,0,0,0-7.85,7.84h0V13l-3.16.66v9c0,8.68,9.56,12.12,10,12.26l1,.37,1-.37c.41-.1,10-3.57,10-12.25v-9ZM11.16,11.94a5.27,5.27,0,0,1,10.54,0v.52l-5.27-1.13-5.27,1.13Z"/>
+    <path class="cls-3 shield-Layer2" d="M15.91,33.5C15.54,33.37,7,30.31,7,22.73V15l9.43-2,9.43,2v7.76c0,7.58-8.55,10.64-8.91,10.77l-.52.18Z"/>
+	<path class="shield-Left cls-5" d="M8.58,16.24v6.49c0,6.54,7.85,9.28,7.85,9.28V14.57Z"/>
+    <path class="shield-Right cls-4" d="M16.43,32s7.85-2.74,7.85-9.28V16.24l-7.85-1.67Z"/>
+    <path class="shield-Hole cls-2" d="M18.32,21a1.89,1.89,0,1,0-3.78,0,1.87,1.87,0,0,0,1.1,1.71l-.3,3.62h2.15l-.3-3.62A1.87,1.87,0,0,0,18.32,21Z"/>
+	</g>
+	<!-- End TG shield -->
+
+    <path xmlns="http://www.w3.org/2000/svg" class="edge-border" d="M117.27,1.18a4,4,0,0,1,4,4v30a4,4,0,0,1-4,4H5.27a4,4,0,0,1-4-4v-30a4,4,0,0,1,4-4h112m0-1H5.27a5,5,0,0,0-5,5v30a5,5,0,0,0,5,5h112a5,5,0,0,0,5-5v-30a5,5,0,0,0-5-5Z"/>
+  </g>
+</svg>
