@@ -54,17 +54,12 @@ export default function BrandsPage() {
 
               {/* Logo with unified sizing */}
               <div className="relative w-full h-full flex items-center justify-center grayscale group-hover:grayscale-0 opacity-70 group-hover:opacity-100 transition-all duration-500">
-                <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                <div className="relative w-full h-full p-2" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
                   <Image
                     src={logo}
                     alt={name}
                     fill
                     className="object-contain"
-                    style={{ 
-                      objectFit: 'contain',
-                      maxHeight: '100%',
-                      maxWidth: '100%'
-                    }}
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
                   />
                 </div>
