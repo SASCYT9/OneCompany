@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Square, Armchair, Sparkles, Car, Target, Shield } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -122,7 +123,8 @@ const interiorTypes = [
       en: 'Carbon fiber interior trim panels, console covers and dashboard accents in various weave patterns.',
       ua: 'Карбонові інтер\'єрні панелі, накладки консолі та акценти приладової панелі різних текстур.',
     },
-    icon: '⬛',
+    icon: Square,
+    color: 'text-zinc-400',
   },
   {
     name: { en: 'Custom Leather', ua: 'Кастомна шкіра' },
@@ -130,7 +132,8 @@ const interiorTypes = [
       en: 'Complete leather retrim with custom colors, stitching patterns and exotic leather options.',
       ua: 'Повна перетяжка шкірою з кастомними кольорами, візерунками шиття та екзотичною шкірою.',
     },
-    icon: '🪑',
+    icon: Armchair,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Alcantara Work', ua: 'Алькантара' },
@@ -138,7 +141,8 @@ const interiorTypes = [
       en: 'Alcantara headliner, door panels, steering wheel and trim upgrades for sporty luxury feel.',
       ua: 'Алькантара на стелі, дверних панелях, кермі та оздобленні для спортивного лакшері відчуття.',
     },
-    icon: '✨',
+    icon: Sparkles,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Sport Seats', ua: 'Спортивні сидіння' },
@@ -146,7 +150,8 @@ const interiorTypes = [
       en: 'Aftermarket sport and racing bucket seats with improved bolstering and weight savings.',
       ua: 'Aftermarket спортивні та гоночні ковші з покращеною боковою підтримкою та зниженою вагою.',
     },
-    icon: '🏎️',
+    icon: Car,
+    color: 'text-red-400',
   },
   {
     name: { en: 'Steering Wheels', ua: 'Кермові колеса' },
@@ -154,7 +159,8 @@ const interiorTypes = [
       en: 'Custom steering wheels with carbon fiber, Alcantara wrap and performance features.',
       ua: 'Кастомні кермові колеса з карбоном, обшивкою алькантарою та performance функціями.',
     },
-    icon: '🎯',
+    icon: Target,
+    color: 'text-emerald-400',
   },
   {
     name: { en: 'Roll Cages', ua: 'Каркаси безпеки' },
@@ -162,7 +168,8 @@ const interiorTypes = [
       en: 'FIA-certified roll cages and harness bars for track safety and structural rigidity.',
       ua: 'FIA-сертифіковані каркаси безпеки та harness бари для безпеки на треку та жорсткості кузова.',
     },
-    icon: '🛡️',
+    icon: Shield,
+    color: 'text-cyan-400',
   },
 ];
 
@@ -237,7 +244,9 @@ export default function InteriorCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Wrench, Wind, ArrowDown, ArrowLeftRight, Ruler, Circle } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -122,7 +123,8 @@ const suspensionTypes = [
       en: 'Fully adjustable height and damping coilover kits for street, track and competition use.',
       ua: 'Повністю регульовані по висоті та жорсткості койловери для вулиці, треку та змагань.',
     },
-    icon: '🔧',
+    icon: Wrench,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Air Suspension', ua: 'Пневмопідвіска' },
@@ -130,7 +132,8 @@ const suspensionTypes = [
       en: 'Adjustable air suspension systems with digital management for ultimate stance flexibility.',
       ua: 'Регульовані пневмопідвіски з цифровим управлінням для максимальної гнучкості стійки.',
     },
-    icon: '💨',
+    icon: Wind,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'Lowering Springs', ua: 'Занижуючі пружини' },
@@ -138,7 +141,8 @@ const suspensionTypes = [
       en: 'Sport springs that lower ride height while maintaining factory damper compatibility.',
       ua: 'Спортивні пружини, що занижують авто зі збереженням сумісності із заводськими амортизаторами.',
     },
-    icon: '⬇️',
+    icon: ArrowDown,
+    color: 'text-emerald-400',
   },
   {
     name: { en: 'Sway Bars', ua: 'Стабілізатори' },
@@ -146,7 +150,8 @@ const suspensionTypes = [
       en: 'Anti-roll bars that reduce body roll and improve cornering stability and response.',
       ua: 'Стабілізатори поперечної стійкості, що зменшують крени та покращують стабільність у поворотах.',
     },
-    icon: '↔️',
+    icon: ArrowLeftRight,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Camber Kits', ua: 'Розвальні важелі' },
@@ -154,7 +159,8 @@ const suspensionTypes = [
       en: 'Adjustable camber arms and plates for proper alignment after lowering.',
       ua: 'Регульовані розвальні важелі та пластини для правильного розвалу після заниження.',
     },
-    icon: '📐',
+    icon: Ruler,
+    color: 'text-blue-400',
   },
   {
     name: { en: 'Bushings', ua: 'Втулки' },
@@ -162,7 +168,8 @@ const suspensionTypes = [
       en: 'Polyurethane and solid bushings for improved suspension response and reduced flex.',
       ua: 'Поліуретанові та суцільні втулки для покращеного відгуку підвіски та зменшення люфтів.',
     },
-    icon: '🔘',
+    icon: Circle,
+    color: 'text-red-400',
   },
 ];
 
@@ -237,7 +244,9 @@ export default function SuspensionCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

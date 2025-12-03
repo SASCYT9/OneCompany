@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Footprints, Bike, Hand, Zap, Wrench, Cog } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -102,7 +103,8 @@ const controlTypes = [
       en: 'Adjustable rider foot pegs with multiple position options for aggressive or comfortable riding positions.',
       ua: 'Регульовані підніжки райдера з багатьма позиціями для агресивної або комфортної посадки.',
     },
-    icon: '👟',
+    icon: Footprints,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'Clip-Ons', ua: 'Кліпони' },
@@ -110,7 +112,8 @@ const controlTypes = [
       en: 'Replacement handlebars that mount below triple clamps for sportbike ergonomics.',
       ua: 'Кермові кріплення, що монтуються під траверсами для спортбайкової ергономіки.',
     },
-    icon: '🏍️',
+    icon: Bike,
+    color: 'text-red-400',
   },
   {
     name: { en: 'Brake Levers', ua: 'Гальмівні важелі' },
@@ -118,7 +121,8 @@ const controlTypes = [
       en: 'Adjustable and folding brake levers with reach adjustment for precise finger placement.',
       ua: 'Регульовані та складні гальмівні важелі з налаштуванням вильоту для точного розташування пальців.',
     },
-    icon: '✋',
+    icon: Hand,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Quick-Shifters', ua: 'Квікшифтери' },
@@ -126,7 +130,8 @@ const controlTypes = [
       en: 'Electronic shift sensors for clutchless upshifts and downshifts on track and street.',
       ua: 'Електронні датчики перемикання для беззчепленнєвих перемикань вгору та вниз на треку та вулиці.',
     },
-    icon: '⚡',
+    icon: Zap,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Grips & Bar Ends', ua: 'Грипси та баренди' },
@@ -134,7 +139,8 @@ const controlTypes = [
       en: 'Replacement grips and weighted bar-ends for vibration reduction and style.',
       ua: 'Замінні грипси та баренди з важелями для зменшення вібрації та стилю.',
     },
-    icon: '🔧',
+    icon: Wrench,
+    color: 'text-emerald-400',
   },
   {
     name: { en: 'Triple Clamps', ua: 'Траверси' },
@@ -142,7 +148,8 @@ const controlTypes = [
       en: 'Billet aluminum triple clamps with adjustable offset and reduced flex.',
       ua: 'Білетні алюмінієві траверси з регульованим офсетом та зменшеним прогином.',
     },
-    icon: '⚙️',
+    icon: Cog,
+    color: 'text-orange-400',
   },
 ];
 
@@ -269,7 +276,9 @@ export default function MotoControlsCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

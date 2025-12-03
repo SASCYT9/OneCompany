@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Trophy, Wrench, Flame, Circle, CheckCircle, Flag } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -102,7 +103,8 @@ const exhaustTypes = [
       en: 'Complete exhaust from headers to muffler in aerospace-grade titanium for maximum weight savings.',
       ua: 'Повний вихлоп від колекторів до глушника з аерокосмічного титану для максимального зниження ваги.',
     },
-    icon: '🏆',
+    icon: Trophy,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Slip-On Mufflers', ua: 'Slip-On глушники' },
@@ -110,7 +112,8 @@ const exhaustTypes = [
       en: 'Bolt-on replacement mufflers that retain factory headers for quick installation and improved sound.',
       ua: 'Глушники на заміну заводських з простим монтажем для швидкого встановлення та покращеного звуку.',
     },
-    icon: '🔧',
+    icon: Wrench,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'Race Headers', ua: 'Гоночні колектори' },
@@ -118,7 +121,8 @@ const exhaustTypes = [
       en: 'High-flow racing headers without catalysts for track-only use and maximum power gains.',
       ua: 'Високопропускні гоночні колектори без каталізаторів для треку та максимального приросту потужності.',
     },
-    icon: '🔥',
+    icon: Flame,
+    color: 'text-orange-400',
   },
   {
     name: { en: 'Carbon Fiber Cans', ua: 'Карбонові глушники' },
@@ -126,7 +130,8 @@ const exhaustTypes = [
       en: 'Lightweight carbon fiber muffler bodies for heat resistance and aggressive styling.',
       ua: 'Легкі карбонові корпуси глушників для термостійкості та агресивного стайлінгу.',
     },
-    icon: '⚫',
+    icon: Circle,
+    color: 'text-zinc-400',
   },
   {
     name: { en: 'EC-Approved', ua: 'EC-сертифіковані' },
@@ -134,7 +139,8 @@ const exhaustTypes = [
       en: 'Street-legal systems with European type approval for daily riding and touring.',
       ua: 'Вуличні системи з європейською сертифікацією для щоденної їзди та туризму.',
     },
-    icon: '✅',
+    icon: CheckCircle,
+    color: 'text-emerald-400',
   },
   {
     name: { en: 'MotoGP Replicas', ua: 'MotoGP репліки' },
@@ -142,7 +148,8 @@ const exhaustTypes = [
       en: 'Exact replica systems used by factory MotoGP teams for the ultimate exhaust experience.',
       ua: 'Точні репліки систем заводських команд MotoGP для найкращого вихлопного досвіду.',
     },
-    icon: '🏁',
+    icon: Flag,
+    color: 'text-red-400',
   },
 ];
 
@@ -269,7 +276,9 @@ export default function MotoExhaustCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

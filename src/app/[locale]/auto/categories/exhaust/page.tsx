@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Wrench, Zap, Car, Smartphone, Trophy, Flag } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -144,7 +145,8 @@ const exhaustTypes = [
       en: 'Complete replacement from catalytic converter to tailpipes. Optimal balance of sound and performance.',
       ua: 'Повна заміна від каталізатора до вихлопних труб. Оптимальний баланс звуку та продуктивності.',
     },
-    icon: '🔧',
+    icon: Wrench,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Downpipes', ua: 'Даунпайпи' },
@@ -152,7 +154,8 @@ const exhaustTypes = [
       en: 'High-flow downpipes for turbocharged engines. Significant power gains with reduced backpressure.',
       ua: 'Високопродуктивні даунпайпи для турбо двигунів. Значний приріст потужності зі зменшенням опору.',
     },
-    icon: '⚡',
+    icon: Zap,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Headers & Manifolds', ua: 'Колектори' },
@@ -160,7 +163,8 @@ const exhaustTypes = [
       en: 'Equal-length headers and performance manifolds for naturally aspirated power delivery.',
       ua: 'Рівнодовгі колектори для атмосферних двигунів з покращеною віддачею потужності.',
     },
-    icon: '🏎️',
+    icon: Car,
+    color: 'text-red-400',
   },
   {
     name: { en: 'Valvetronic Systems', ua: 'Клапанні системи' },
@@ -168,7 +172,8 @@ const exhaustTypes = [
       en: 'Electronically controlled valves for on-demand sound adjustment. Quiet to aggressive at a button press.',
       ua: 'Електронно керовані клапани для налаштування звуку. Від тихого до агресивного одним натиском.',
     },
-    icon: '📱',
+    icon: Smartphone,
+    color: 'text-blue-400',
   },
   {
     name: { en: 'Titanium Systems', ua: 'Титанові системи' },
@@ -176,7 +181,8 @@ const exhaustTypes = [
       en: 'Lightweight titanium construction with weight savings up to 50%. Ultimate performance choice.',
       ua: 'Легкі титанові конструкції зі зменшенням ваги до 50%. Найвищий вибір для продуктивності.',
     },
-    icon: '🏆',
+    icon: Trophy,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'Race Systems', ua: 'Гоночні системи' },
@@ -184,7 +190,8 @@ const exhaustTypes = [
       en: 'Track-only systems without catalytic converters. Maximum flow and power for competition use.',
       ua: 'Трекові системи без каталізаторів. Максимальний потік та потужність для змагань.',
     },
-    icon: '🏁',
+    icon: Flag,
+    color: 'text-emerald-400',
   },
 ];
 
@@ -312,7 +319,9 @@ export default function ExhaustCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

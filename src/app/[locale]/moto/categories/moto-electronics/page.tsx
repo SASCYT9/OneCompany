@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { BarChart3, Settings, Zap, Smartphone, Target, Cable } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -102,7 +103,8 @@ const electronicsTypes = [
       en: 'GPS-enabled lap timers and data acquisition systems for track analysis and improvement.',
       ua: 'GPS-хронометри та системи збору даних для аналізу та покращення на треку.',
     },
-    icon: '📊',
+    icon: BarChart3,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'ECU Tuning', ua: 'ECU тюнінг' },
@@ -110,7 +112,8 @@ const electronicsTypes = [
       en: 'Fuel controllers and ECU flash kits for custom fueling, ignition and throttle response.',
       ua: 'Паливні контролери та комплекти прошивки ECU для налаштування паливоподачі, запалення та відгуку дроселя.',
     },
-    icon: '🔧',
+    icon: Settings,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Quick-Shifters', ua: 'Квікшифтери' },
@@ -118,7 +121,8 @@ const electronicsTypes = [
       en: 'Electronic shift sensors for clutchless upshifts and auto-blipper downshifts.',
       ua: 'Електронні датчики перемикання для беззчепленнєвих перемикань та авто-перегазовки.',
     },
-    icon: '⚡',
+    icon: Zap,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Dashboards', ua: 'Приладові панелі' },
@@ -126,7 +130,8 @@ const electronicsTypes = [
       en: 'Aftermarket digital displays with lap timing, shift lights and data overlay.',
       ua: 'Aftermarket цифрові дисплеї з хронометражем, ліхтарями перемикання та накладенням даних.',
     },
-    icon: '📱',
+    icon: Smartphone,
+    color: 'text-blue-400',
   },
   {
     name: { en: 'Sensors', ua: 'Датчики' },
@@ -134,7 +139,8 @@ const electronicsTypes = [
       en: 'Suspension potentiometers, tire pressure monitors and exhaust gas analyzers.',
       ua: 'Потенціометри підвіски, монітори тиску шин та аналізатори вихлопних газів.',
     },
-    icon: '🎯',
+    icon: Target,
+    color: 'text-emerald-400',
   },
   {
     name: { en: 'Wiring Harnesses', ua: 'Проводка' },
@@ -142,7 +148,8 @@ const electronicsTypes = [
       en: 'Race wiring harnesses, quick-disconnect plugs and waterproof connectors.',
       ua: 'Гоночна проводка, швидкороз\'ємні штекери та водонепроникні конектори.',
     },
-    icon: '🔌',
+    icon: Cable,
+    color: 'text-orange-400',
   },
 ];
 
@@ -269,7 +276,9 @@ export default function MotoElectronicsCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

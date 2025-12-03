@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Snowflake, RotateCcw, Wind, Wrench, CircleDot, Shield } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -102,7 +103,8 @@ const intakeTypes = [
       en: 'Sealed airbox systems that draw cooler air from outside the engine bay for denser air charge.',
       ua: 'Герметичні системи, що забирають холодніше повітря ззовні моторного відсіку для щільнішого заряду.',
     },
-    icon: '❄️',
+    icon: Snowflake,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'Carbon Velocity Stacks', ua: 'Карбонові воронки' },
@@ -110,7 +112,8 @@ const intakeTypes = [
       en: 'Venturi-shaped carbon fiber stacks that accelerate and smooth airflow into the throttle body.',
       ua: 'Вентурі-подібні карбонові воронки, що прискорюють і згладжують потік повітря до дроселя.',
     },
-    icon: '🌀',
+    icon: RotateCcw,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Ram Air Systems', ua: 'Ram Air системи' },
@@ -118,7 +121,8 @@ const intakeTypes = [
       en: 'Dynamic pressure intakes that force air into the engine at speed for increased volumetric efficiency.',
       ua: 'Динамічні впуски, що нагнітають повітря в двигун на швидкості для збільшення об\'ємної ефективності.',
     },
-    icon: '💨',
+    icon: Wind,
+    color: 'text-blue-400',
   },
   {
     name: { en: 'Charge Pipes', ua: 'Charge Pipes' },
@@ -126,7 +130,8 @@ const intakeTypes = [
       en: 'Upgraded boost pipes with larger diameter and smoother bends for turbocharged applications.',
       ua: 'Апгрейдовані буст-патрубки з більшим діаметром та плавнішими вигинами для турбо застосувань.',
     },
-    icon: '🔧',
+    icon: Wrench,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'High-Flow Filters', ua: 'Високопродуктивні фільтри' },
@@ -134,7 +139,8 @@ const intakeTypes = [
       en: 'Reusable cotton gauze or foam filters with improved airflow and filtration efficiency.',
       ua: 'Багаторазові бавовняні або поролонові фільтри з покращеним потоком та ефективністю фільтрації.',
     },
-    icon: '🔴',
+    icon: CircleDot,
+    color: 'text-red-400',
   },
   {
     name: { en: 'Heat Shields', ua: 'Теплозахист' },
@@ -142,7 +148,8 @@ const intakeTypes = [
       en: 'Thermal barriers that isolate the intake from engine heat for consistent inlet temperatures.',
       ua: 'Термобар\'єри, що ізолюють впуск від тепла двигуна для стабільних температур на вході.',
     },
-    icon: '🛡️',
+    icon: Shield,
+    color: 'text-emerald-400',
   },
 ];
 
@@ -217,7 +224,9 @@ export default function IntakeCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Diamond, Cog, RotateCcw, Settings, Car, Flag } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -142,7 +143,8 @@ const wheelTypes = [
       en: 'Single-piece forged from aerospace-grade aluminum for ultimate strength and weight savings.',
       ua: 'Одноцільні, ковані з аерокосмічного алюмінію для максимальної міцності та економії ваги.',
     },
-    icon: '💎',
+    icon: Diamond,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'Forged Multi-Piece', ua: 'Ковані збірні' },
@@ -150,7 +152,8 @@ const wheelTypes = [
       en: '2 or 3-piece construction allowing custom widths, offsets and lip configurations.',
       ua: '2 або 3-частинна конструкція для кастомної ширини, вильоту та конфігурації полки.',
     },
-    icon: '🔩',
+    icon: Cog,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Flow Formed', ua: 'Flow Formed' },
@@ -158,7 +161,8 @@ const wheelTypes = [
       en: 'Cast center with forged barrel for near-forged strength at cast wheel pricing.',
       ua: 'Литий центр з кованим барелем для майже кованої міцності за ціною литих.',
     },
-    icon: '🌀',
+    icon: RotateCcw,
+    color: 'text-blue-400',
   },
   {
     name: { en: 'Cast Wheels', ua: 'Литі диски' },
@@ -166,7 +170,8 @@ const wheelTypes = [
       en: 'Gravity or low-pressure cast wheels offering great value with proven designs.',
       ua: 'Гравітаційні або низькотискові литі диски з відмінним співвідношенням ціни та якості.',
     },
-    icon: '⚙️',
+    icon: Settings,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Carbon Fiber', ua: 'Карбонові' },
@@ -174,7 +179,8 @@ const wheelTypes = [
       en: 'Cutting-edge carbon fiber wheels for extreme weight savings and exotic aesthetics.',
       ua: 'Найсучасніші карбонові диски для екстремальної економії ваги та екзотичної естетики.',
     },
-    icon: '🏎️',
+    icon: Car,
+    color: 'text-red-400',
   },
   {
     name: { en: 'Motorsport', ua: 'Мотоспорт' },
@@ -182,7 +188,8 @@ const wheelTypes = [
       en: 'Racing-specific wheels designed for endurance, sprint and circuit applications.',
       ua: 'Диски спеціально для перегонів — витривалість, спринт та кільцеві гонки.',
     },
-    icon: '🏁',
+    icon: Flag,
+    color: 'text-emerald-400',
   },
 ];
 
@@ -257,7 +264,9 @@ export default function WheelsCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

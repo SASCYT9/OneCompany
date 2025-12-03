@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { CircleDot, Disc, Settings, Flag, Wrench, Droplets } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -102,7 +103,8 @@ const brakeTypes = [
       en: 'Complete brake upgrades with larger rotors and multi-piston calipers for improved stopping power.',
       ua: 'Повні апгрейди гальм з більшими дисками та багатопоршневими супортами для кращого гальмування.',
     },
-    icon: '🔴',
+    icon: CircleDot,
+    color: 'text-red-400',
   },
   {
     name: { en: 'Carbon Ceramic', ua: 'Карбон-кераміка' },
@@ -110,7 +112,8 @@ const brakeTypes = [
       en: 'Ultra-lightweight ceramic composite rotors with extreme heat tolerance for track and street.',
       ua: 'Надлегкі керамічні композитні диски з екстремальною термостійкістю для треку та вулиці.',
     },
-    icon: '⚫',
+    icon: Disc,
+    color: 'text-zinc-300',
   },
   {
     name: { en: '2-Piece Rotors', ua: '2-секційні диски' },
@@ -118,7 +121,8 @@ const brakeTypes = [
       en: 'Floating rotors with aluminum hats reduce weight and allow for thermal expansion.',
       ua: 'Плаваючі диски з алюмінієвими хабами зменшують вагу та дозволяють термічне розширення.',
     },
-    icon: '⚙️',
+    icon: Settings,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Racing Pads', ua: 'Гоночні колодки' },
@@ -126,7 +130,8 @@ const brakeTypes = [
       en: 'High-friction compounds designed for track temperatures and repeated hard braking.',
       ua: 'Високофрикційні компаунди для трекових температур та повторного інтенсивного гальмування.',
     },
-    icon: '🏁',
+    icon: Flag,
+    color: 'text-emerald-400',
   },
   {
     name: { en: 'Brake Lines', ua: 'Гальмівні шланги' },
@@ -134,7 +139,8 @@ const brakeTypes = [
       en: 'Stainless steel braided lines for improved pedal feel and consistent pressure delivery.',
       ua: 'Плетені шланги з нержавіючої сталі для кращого відчуття педалі та стабільного тиску.',
     },
-    icon: '🔧',
+    icon: Wrench,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Brake Fluid', ua: 'Гальмівна рідина' },
@@ -142,7 +148,8 @@ const brakeTypes = [
       en: 'High-temperature DOT 4 and racing fluids to prevent brake fade under extreme conditions.',
       ua: 'Високотемпературні DOT 4 та гоночні рідини для запобігання затуханню гальм в екстремальних умовах.',
     },
-    icon: '💧',
+    icon: Droplets,
+    color: 'text-blue-400',
   },
 ];
 
@@ -217,7 +224,9 @@ export default function BrakesCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

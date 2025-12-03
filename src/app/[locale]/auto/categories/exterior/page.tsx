@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Car, ArrowDown, ChevronDown, Trophy, Wrench, Sparkles } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -122,7 +123,8 @@ const exteriorTypes = [
       en: 'Complete wide body transformations with extended fenders, side skirts and bumpers.',
       ua: 'Повні widebody трансформації з розширеними крилами, порогами та бамперами.',
     },
-    icon: '🚗',
+    icon: Car,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Carbon Splitters', ua: 'Карбонові сплітери' },
@@ -130,7 +132,8 @@ const exteriorTypes = [
       en: 'Front splitters and lip spoilers for increased downforce and aggressive front-end styling.',
       ua: 'Передні сплітери та ліп-спойлери для збільшення притискної сили та агресивного стайлінгу.',
     },
-    icon: '⬇️',
+    icon: ArrowDown,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'Diffusers', ua: 'Дифузори' },
@@ -138,7 +141,8 @@ const exteriorTypes = [
       en: 'Rear diffusers that accelerate airflow under the car for reduced lift and better stability.',
       ua: 'Задні дифузори, що прискорюють потік під автомобілем для зменшення підйому та кращої стабільності.',
     },
-    icon: '🔽',
+    icon: ChevronDown,
+    color: 'text-blue-400',
   },
   {
     name: { en: 'Spoilers & Wings', ua: 'Спойлери та антикрила' },
@@ -146,7 +150,8 @@ const exteriorTypes = [
       en: 'Rear spoilers and wings from subtle lip designs to full GT wings for maximum downforce.',
       ua: 'Задні спойлери та антикрила від мінімальних ліпів до повних GT антикрил для максимального притиску.',
     },
-    icon: '🏎️',
+    icon: Trophy,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Hood & Trunk', ua: 'Капот та багажник' },
@@ -154,7 +159,8 @@ const exteriorTypes = [
       en: 'Carbon fiber hoods, trunk lids and vented designs for weight reduction and heat extraction.',
       ua: 'Карбонові капоти, кришки багажника та вентильовані дизайни для зниження ваги та відведення тепла.',
     },
-    icon: '🔧',
+    icon: Wrench,
+    color: 'text-red-400',
   },
   {
     name: { en: 'Mirror Caps & Trim', ua: 'Накладки дзеркал' },
@@ -162,7 +168,8 @@ const exteriorTypes = [
       en: 'Carbon fiber mirror caps, grille inserts and exterior trim pieces for subtle upgrades.',
       ua: 'Карбонові накладки дзеркал, вставки решітки та зовнішній декор для м\'яких апгрейдів.',
     },
-    icon: '✨',
+    icon: Sparkles,
+    color: 'text-emerald-400',
   },
 ];
 
@@ -237,7 +244,9 @@ export default function ExteriorCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

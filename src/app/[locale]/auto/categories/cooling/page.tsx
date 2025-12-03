@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Thermometer, Snowflake, Droplets, Circle, Wind, Waves } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -122,7 +123,8 @@ const coolingTypes = [
       en: 'Aluminum performance radiators with increased core thickness and tube rows for enhanced cooling.',
       ua: 'Алюмінієві performance радіатори зі збільшеною товщиною ядра та рядами трубок для кращого охолодження.',
     },
-    icon: '🌡️',
+    icon: Thermometer,
+    color: 'text-red-400',
   },
   {
     name: { en: 'Intercoolers', ua: 'Інтеркулери' },
@@ -130,7 +132,8 @@ const coolingTypes = [
       en: 'Front-mount and top-mount intercoolers for reduced intake air temperatures.',
       ua: 'Фронтальні та верхні інтеркулери для зниження температури впускного повітря.',
     },
-    icon: '❄️',
+    icon: Snowflake,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'Oil Coolers', ua: 'Маслоохолоджувачі' },
@@ -138,7 +141,8 @@ const coolingTypes = [
       en: 'Engine and transmission oil coolers for maintaining optimal lubricant temperatures.',
       ua: 'Маслоохолоджувачі двигуна та трансмісії для підтримки оптимальної температури мастила.',
     },
-    icon: '🛢️',
+    icon: Droplets,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Silicone Hoses', ua: 'Силіконові патрубки' },
@@ -146,7 +150,8 @@ const coolingTypes = [
       en: 'High-temperature silicone coolant hoses with improved pressure ratings and custom colors.',
       ua: 'Високотемпературні силіконові патрубки з покращеними характеристиками тиску та кастомними кольорами.',
     },
-    icon: '🔵',
+    icon: Circle,
+    color: 'text-blue-400',
   },
   {
     name: { en: 'Electric Fans', ua: 'Електро вентилятори' },
@@ -154,7 +159,8 @@ const coolingTypes = [
       en: 'High-CFM electric cooling fans with digital controllers for precise temperature management.',
       ua: 'Високопродуктивні електро вентилятори з цифровими контролерами для точного управління температурою.',
     },
-    icon: '💨',
+    icon: Wind,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Water Pumps', ua: 'Водяні помпи' },
@@ -162,7 +168,8 @@ const coolingTypes = [
       en: 'High-flow mechanical and electric water pumps for improved coolant circulation.',
       ua: 'Високопропускні механічні та електричні помпи для покращеної циркуляції охолоджувача.',
     },
-    icon: '💧',
+    icon: Waves,
+    color: 'text-emerald-400',
   },
 ];
 
@@ -237,7 +244,9 @@ export default function CoolingCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

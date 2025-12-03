@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Bike, Shield, Wrench, Cog, Link2, Flame } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -102,7 +103,8 @@ const carbonTypes = [
       en: 'Complete race fairing sets with upper, lowers and belly pan for track transformation.',
       ua: 'Повні гоночні комплекти обтічників з верхнім, нижніми та піддоном для трекової трансформації.',
     },
-    icon: '🏍️',
+    icon: Bike,
+    color: 'text-red-400',
   },
   {
     name: { en: 'Tank Covers', ua: 'Накладки на бак' },
@@ -110,7 +112,8 @@ const carbonTypes = [
       en: 'Carbon fiber tank covers and protectors for scratch protection and weight savings.',
       ua: 'Карбонові накладки та протектори бака для захисту від подряпин та зниження ваги.',
     },
-    icon: '🛡️',
+    icon: Shield,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'Fenders', ua: 'Крила' },
@@ -118,7 +121,8 @@ const carbonTypes = [
       en: 'Front and rear fenders in carbon or fiberglass for lighter unsprung weight.',
       ua: 'Передні та задні крила з карбону або склопластику для легшої непідресореної маси.',
     },
-    icon: '🔧',
+    icon: Wrench,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Frame Covers', ua: 'Накладки рами' },
@@ -126,7 +130,8 @@ const carbonTypes = [
       en: 'Carbon fiber frame sliders and covers for crash protection with minimal weight.',
       ua: 'Карбонові слайдери та накладки рами для захисту від падінь з мінімальною вагою.',
     },
-    icon: '⚙️',
+    icon: Cog,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Swingarm Covers', ua: 'Накладки маятника' },
@@ -134,7 +139,8 @@ const carbonTypes = [
       en: 'Carbon swingarm protectors and chain guard covers for rear-end protection.',
       ua: 'Карбонові протектори маятника та накладки ланцюгозахисту для захисту задньої частини.',
     },
-    icon: '🔗',
+    icon: Link2,
+    color: 'text-emerald-400',
   },
   {
     name: { en: 'Heat Shields', ua: 'Теплозахисні екрани' },
@@ -142,7 +148,8 @@ const carbonTypes = [
       en: 'Exhaust heat shields and engine covers in carbon for heat management and style.',
       ua: 'Теплозахисні екрани вихлопу та накладки двигуна з карбону для управління теплом та стилю.',
     },
-    icon: '🔥',
+    icon: Flame,
+    color: 'text-orange-400',
   },
 ];
 
@@ -269,7 +276,9 @@ export default function MotoCarbonCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

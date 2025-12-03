@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Circle, Diamond, Wrench, RotateCcw, Cog, Link2 } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -102,7 +103,8 @@ const productTypes = [
       en: 'Pre-preg carbon wheels for 40-50% unsprung weight reduction. Improved acceleration and handling.',
       ua: 'Препрег-карбонові диски для зниження непідресореної маси на 40-50%. Покращене прискорення та керованість.',
     },
-    icon: '⚫',
+    icon: Circle,
+    color: 'text-zinc-400',
   },
   {
     name: { en: 'Forged Aluminum', ua: 'Ковані алюмінієві' },
@@ -110,7 +112,8 @@ const productTypes = [
       en: 'Lightweight forged wheels from aerospace-grade aluminum for street and track performance.',
       ua: 'Легкі ковані диски з аерокосмічного алюмінію для вуличної та трекової продуктивності.',
     },
-    icon: '💎',
+    icon: Diamond,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Radial Calipers', ua: 'Радіальні супорти' },
@@ -118,7 +121,8 @@ const productTypes = [
       en: 'Monoblock radial-mount calipers for improved rigidity and consistent braking performance.',
       ua: 'Моноблочні радіальні супорти для підвищеної жорсткості та стабільного гальмування.',
     },
-    icon: '🔧',
+    icon: Wrench,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'Floating Rotors', ua: 'Плаваючі диски' },
@@ -126,7 +130,8 @@ const productTypes = [
       en: 'T-Drive and floating disc designs for heat management and reduced warping.',
       ua: 'Дизайни T-Drive та плаваючих дисків для управління теплом та зменшення викривлення.',
     },
-    icon: '🌀',
+    icon: RotateCcw,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Master Cylinders', ua: 'Головні циліндри' },
@@ -134,7 +139,8 @@ const productTypes = [
       en: 'Radial and axial master cylinders with adjustable ratio for precise brake feel.',
       ua: 'Радіальні та аксіальні головні циліндри з регульованим співвідношенням для точного відчуття гальма.',
     },
-    icon: '⚙️',
+    icon: Cog,
+    color: 'text-emerald-400',
   },
   {
     name: { en: 'Brake Lines', ua: 'Гальмівні магістралі' },
@@ -142,7 +148,8 @@ const productTypes = [
       en: 'Braided steel brake lines for improved pedal feedback and reduced expansion.',
       ua: 'Армовані сталеві магістралі для кращого зворотного зв\'язку та зменшеного розширення.',
     },
-    icon: '🔗',
+    icon: Link2,
+    color: 'text-orange-400',
   },
 ];
 
@@ -269,7 +276,9 @@ export default function MotoWheelsCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>

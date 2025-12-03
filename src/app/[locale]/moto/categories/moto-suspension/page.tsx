@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Wrench, Cog, Trophy, Target, ArrowUpDown, Microscope } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -102,7 +103,8 @@ const suspensionTypes = [
       en: 'Pressurized or open cartridge kits that replace stock internals for adjustable damping.',
       ua: 'Газові або відкриті картриджні кіти на заміну стокових внутрішностей для регульованого демпфування.',
     },
-    icon: '🔧',
+    icon: Wrench,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'Rear Shocks', ua: 'Задні амортизатори' },
@@ -110,7 +112,8 @@ const suspensionTypes = [
       en: 'Fully adjustable mono-shocks with high/low speed compression and rebound control.',
       ua: 'Повністю регульовані моноамортизатори з контролем стиснення на високій/низькій швидкості та відбоєм.',
     },
-    icon: '⚙️',
+    icon: Cog,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Complete Fork Assemblies', ua: 'Повні вилки в зборі' },
@@ -118,7 +121,8 @@ const suspensionTypes = [
       en: 'Race-spec fork assemblies with prestige internals and custom spring rates.',
       ua: 'Гоночні вилки в зборі з преміальними внутрішностями та кастомними пружинами.',
     },
-    icon: '🏆',
+    icon: Trophy,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Steering Dampers', ua: 'Стабілізатори керма' },
@@ -126,7 +130,8 @@ const suspensionTypes = [
       en: 'Rotary and linear steering dampers for high-speed stability and headshake prevention.',
       ua: 'Ротаційні та лінійні стабілізатори керма для стабільності на швидкості та запобігання розгойдуванню.',
     },
-    icon: '🎯',
+    icon: Target,
+    color: 'text-emerald-400',
   },
   {
     name: { en: 'Lowering & Raising Kits', ua: 'Комплекти заниження/підняття' },
@@ -134,7 +139,8 @@ const suspensionTypes = [
       en: 'Ride height adjusters and dog-bone links for custom ergonomics and stance.',
       ua: 'Регулятори висоти посадки та лінки для кастомної ергономіки та стійки.',
     },
-    icon: '↕️',
+    icon: ArrowUpDown,
+    color: 'text-blue-400',
   },
   {
     name: { en: 'Suspension Service', ua: 'Сервіс підвіски' },
@@ -142,7 +148,8 @@ const suspensionTypes = [
       en: 'Fork and shock rebuilds, revalving, spring changes and dyno testing.',
       ua: 'Ребілд вилок та амортизаторів, ревалвінг, заміна пружин та діно-тестування.',
     },
-    icon: '🔬',
+    icon: Microscope,
+    color: 'text-orange-400',
   },
 ];
 
@@ -269,7 +276,9 @@ export default function MotoSuspensionCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>
