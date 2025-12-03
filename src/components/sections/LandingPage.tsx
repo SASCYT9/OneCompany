@@ -33,14 +33,14 @@ const topAutomotiveBrands = [
 const topMotoBrands = [
   { name: 'Akrapovic', logo: '/logos/akrapovic.png' },
   { name: 'SC-Project', logo: '/logos/sc-project.png' },
-  { name: 'Rizoma', logo: '/logos/rizoma.webp' },
+  { name: 'Ohlins', logo: '/logos/ohlins.png' },
   { name: 'Brembo', logo: '/logos/brembo.png' },
-  { name: 'Arrow', logo: '/logos/arrow.png' },
+  { name: 'Marchesini', logo: '/logos/marchesini.png' },
+  { name: 'OZ Racing', logo: '/logos/oz-racing.png' },
   { name: 'Termignoni', logo: '/logos/termignoni.png' },
-  { name: 'Yoshimura', logo: '/logos/yoshimura.png' },
-  { name: 'Scorpion', logo: '/logos/scorpion.png' },
-  { name: 'Alpha Racing', logo: '/logos/alpha-racing.png' },
-  { name: 'CNC Racing', logo: '/logos/cnc-racing.png' },
+  { name: 'Arrow', logo: '/logos/arrow.png' },
+  { name: 'SparkExhaust', logo: '/logos/sparkexhaust.png' },
+  { name: 'Bitubo', logo: '/logos/bitubo.svg' },
 ];
 
 const LandingPage = () => {

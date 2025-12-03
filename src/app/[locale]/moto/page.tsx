@@ -47,26 +47,27 @@ const TOP_MOTO_BRANDS = [
   'SC-Project',
   'Termignoni',
   'Arrow',
-  'Austin Racing',
-  'Bitubo Suspension',
+  'Ohlins',
+  'Bitubo',
   'Brembo',
-  'Ilmberger Carbon',
-  'Rotobox',
-  'CNC Racing',
+  'Marchesini',
+  'OZ Racing',
+  'SparkExhaust',
   'Accossato',
   'ValterMoto',
 ];
 
-// Legendary 8 moto brands for showcase section
+// Legendary 9 moto brands for showcase section
 const LEGENDARY_MOTO_BRANDS = [
   'Akrapovic',
   'SC-Project', 
   'Termignoni',
   'Brembo',
-  'Ilmberger Carbon',
-  'Rotobox',
-  'Austin Racing',
-  'CNC Racing',
+  'Ohlins',
+  'Marchesini',
+  'OZ Racing',
+  'Arrow',
+  'SparkExhaust',
 ];
 
 // Brand metadata for legendary section
@@ -110,36 +111,44 @@ const LEGENDARY_MOTO_CONFIG: Record<string, {
     gradient: 'from-red-600/35 via-red-500/15 to-transparent',
     glowColor: 'rgba(220,38,38,0.35)',
   },
-  'Ilmberger Carbon': {
-    country: 'Germany',
-    flag: '🇩🇪',
-    category: { en: 'Carbon Fiber', ua: 'Карбонові елементи' },
-    tagline: { en: 'German carbon precision', ua: 'Німецька карбонова точність' },
-    gradient: 'from-zinc-400/30 via-zinc-500/10 to-transparent',
-    glowColor: 'rgba(161,161,170,0.25)',
+  'Ohlins': {
+    country: 'Sweden',
+    flag: '🇸🇪',
+    category: { en: 'Suspension', ua: 'Підвіска' },
+    tagline: { en: 'Advanced suspension technology', ua: 'Передові технології підвіски' },
+    gradient: 'from-yellow-500/30 via-amber-500/15 to-transparent',
+    glowColor: 'rgba(234,179,8,0.3)',
   },
-  'Rotobox': {
-    country: 'Slovenia',
-    flag: '🇸🇮',
-    category: { en: 'Carbon Wheels', ua: 'Карбонові диски' },
-    tagline: { en: 'Lightweight carbon wheels', ua: 'Легкі карбонові диски' },
-    gradient: 'from-blue-500/30 via-cyan-500/15 to-transparent',
-    glowColor: 'rgba(59,130,246,0.3)',
-  },
-  'Austin Racing': {
-    country: 'UK',
-    flag: '🇬🇧',
-    category: { en: 'Race Exhaust', ua: 'Гоночні вихлопи' },
-    tagline: { en: 'British racing exhaust', ua: 'Британські гоночні вихлопи' },
-    gradient: 'from-purple-500/30 via-violet-500/15 to-transparent',
-    glowColor: 'rgba(139,92,246,0.3)',
-  },
-  'CNC Racing': {
+  'Marchesini': {
     country: 'Italy',
     flag: '🇮🇹',
-    category: { en: 'Racing Components', ua: 'Гоночні компоненти' },
-    tagline: { en: 'Precision billet parts', ua: 'Точні деталі з білета' },
-    gradient: 'from-rose-500/30 via-pink-500/15 to-transparent',
+    category: { en: 'Forged Wheels', ua: 'Ковані диски' },
+    tagline: { en: 'Magnesium racing wheels', ua: 'Магнієві гоночні диски' },
+    gradient: 'from-blue-600/30 via-indigo-500/15 to-transparent',
+    glowColor: 'rgba(37,99,235,0.3)',
+  },
+  'OZ Racing': {
+    country: 'Italy',
+    flag: '🇮🇹',
+    category: { en: 'Racing Wheels', ua: 'Гоночні диски' },
+    tagline: { en: 'Winning wheel technology', ua: 'Переможні технології дисків' },
+    gradient: 'from-zinc-500/30 via-zinc-600/15 to-transparent',
+    glowColor: 'rgba(82,82,91,0.3)',
+  },
+  'Arrow': {
+    country: 'Italy',
+    flag: '🇮🇹',
+    category: { en: 'Exhaust Systems', ua: 'Вихлопні системи' },
+    tagline: { en: 'World champion exhausts', ua: 'Вихлопи чемпіонів світу' },
+    gradient: 'from-orange-500/30 via-yellow-500/15 to-transparent',
+    glowColor: 'rgba(249,115,22,0.3)',
+  },
+  'SparkExhaust': {
+    country: 'Italy',
+    flag: '🇮🇹',
+    category: { en: 'High Performance', ua: 'Висока продуктивність' },
+    tagline: { en: 'Italian passion & sound', ua: 'Італійська пристрасть та звук' },
+    gradient: 'from-rose-500/30 via-red-500/15 to-transparent',
     glowColor: 'rgba(244,63,94,0.3)',
   },
 };
@@ -360,19 +369,55 @@ const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Dyno-verified gains per platform', ua: 'Діно-графіки для кожної платформи' },
     ],
   },
-  'Austin Racing': {
-    headline: { en: 'Austin Racing handmade titanium', ua: 'Austin Racing · titanium hand-made' },
+  'Ohlins': {
+    headline: { en: 'Ohlins Advanced Suspension', ua: 'Ohlins · передова підвіска' },
     description: {
-      en: 'Handcrafted titanium exhausts for superbikes with bespoke geometry and custom branding.',
-      ua: 'Титанові вихлопи ручної роботи для супербайків з індивідуальною геометрією та брендингом.',
+      en: 'The gold standard in suspension technology for street and track performance.',
+      ua: 'Золотий стандарт у технологіях підвіски для вулиці та треку.',
     },
     highlights: [
-      { en: 'TIG-welded race manifolds', ua: 'TIG-колектори для треку' },
-      { en: 'Weight-saving titanium headers', ua: 'Титанові колектори з легкою вагою' },
-      { en: 'Lifetime structural warranty', ua: 'Довічна структурна гарантія' },
+      { en: 'TTX technology shock absorbers', ua: 'Амортизатори технології TTX' },
+      { en: 'NIX 30 cartridge kits', ua: 'Картриджні комплекти NIX 30' },
+      { en: 'Electronic suspension upgrades', ua: 'Електронні апгрейди підвіски' },
     ],
   },
-  'Bitubo Suspension': {
+  'Marchesini': {
+    headline: { en: 'Marchesini Forged Wheels', ua: 'Marchesini · ковані диски' },
+    description: {
+      en: 'Lightweight magnesium and aluminum forged wheels used by MotoGP champions.',
+      ua: 'Легкі магнієві та алюмінієві ковані диски, що використовуються чемпіонами MotoGP.',
+    },
+    highlights: [
+      { en: 'M7R Genesi magnesium wheels', ua: 'Магнієві диски M7R Genesi' },
+      { en: 'M10RS Kompe aluminum wheels', ua: 'Алюмінієві диски M10RS Kompe' },
+      { en: 'Significant weight reduction', ua: 'Значне зниження ваги' },
+    ],
+  },
+  'OZ Racing': {
+    headline: { en: 'OZ Racing Technology', ua: 'OZ Racing · технології перемог' },
+    description: {
+      en: 'High-performance wheels derived from F1 and MotoGP experience.',
+      ua: 'Високопродуктивні диски, створені на основі досвіду F1 та MotoGP.',
+    },
+    highlights: [
+      { en: 'GASS RS-A forged aluminum', ua: 'Кований алюміній GASS RS-A' },
+      { en: 'Piega forged aluminum', ua: 'Кований алюміній Piega' },
+      { en: 'Cattiva forged magnesium', ua: 'Кований магній Cattiva' },
+    ],
+  },
+  'SparkExhaust': {
+    headline: { en: 'Spark Italian Passion', ua: 'Spark · італійська пристрасть' },
+    description: {
+      en: 'High-performance exhaust systems with a unique sound and design.',
+      ua: 'Високопродуктивні вихлопні системи з унікальним звуком та дизайном.',
+    },
+    highlights: [
+      { en: 'Dyno-tested performance', ua: 'Перевірена на діно продуктивність' },
+      { en: 'Dark style silencers', ua: 'Глушники в стилі Dark' },
+      { en: 'Handcrafted in Italy', ua: 'Ручна робота з Італії' },
+    ],
+  },
+  'Bitubo': {
     headline: { en: 'Bitubo track-day suspension', ua: 'Bitubo · трекові підвіски' },
     description: {
       en: 'Competition-ready cartridge kits, steering dampers and full-rebuild services for race bikes.',
@@ -396,43 +441,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'On-site pedal feel tuning', ua: 'Налаштування педалі на місці' },
     ],
   },
-  'Ilmberger Carbon': {
-    headline: { en: 'Ilmberger autoclave carbon', ua: 'Ilmberger · автоклавний карбон' },
-    description: {
-      en: 'Autoclave pre-preg carbon bodywork with FIM certification and paint-matched finishing.',
-      ua: 'Автоклавний препрег-карбон з FIM сертифікацією та фарбуванням під ключ.',
-    },
-    highlights: [
-      { en: 'UV-stable clear coat finishes', ua: 'UV-стабільні лакові покриття' },
-      { en: 'Integrated mounting hardware', ua: 'Вбудоване кріплення' },
-      { en: 'Lifetime structural warranty', ua: 'Довічна структурна гарантія' },
-    ],
-  },
-  Rotobox: {
-    headline: { en: 'Rotobox carbon wheel lab', ua: 'Rotobox · лабораторія карбонових дисків' },
-    description: {
-      en: 'Monocoque carbon wheels with TÜV paperwork and custom ceramic coating.',
-      ua: 'Монококові карбонові диски з TÜV документами та кастомним керамічним покриттям.',
-    },
-    highlights: [
-      { en: 'Engineered for ABS & TPMS', ua: 'Розроблені під ABS та TPMS' },
-      { en: 'Integrated ceramic bearings', ua: 'Вбудовані керамічні підшипники' },
-      { en: 'Precision balancing service', ua: 'Прецизійне балансування' },
-    ],
-  },
-  'CNC Racing': {
-    headline: { en: 'CNC Racing billet controls', ua: 'CNC Racing · білетний контроль' },
-    description: {
-      en: 'CNC-machined rearsets, clip-ons and master cylinders with ergonomic geometry for track use.',
-      ua: 'CNC-фрезеровані rearsets, кліпони та головні циліндри з ергономічною геометрією для треку.',
-    },
-    highlights: [
-      { en: 'Adjustable footpeg positioning', ua: 'Регульовані позиції підніжок' },
-      { en: 'Quick-shifter compatible', ua: 'Сумісність з квік-шифтером' },
-      { en: 'Anodized or ceramic finishes', ua: 'Анодовані або керамічні фініші' },
-    ],
-  },
-  Accossato: {
+  'Accossato': {
     headline: { en: 'Accossato race controls', ua: 'Accossato · рейсинг-контролі' },
     description: {
       en: 'Radial master cylinders, folding levers and lightweight rearsets engineered for Italian superbikes.',
@@ -444,7 +453,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Race-proven ergonomics', ua: 'Перевірена трековою ергономіка' },
     ],
   },
-  ValterMoto: {
+  'ValterMoto': {
     headline: { en: 'ValterMoto pit equipment', ua: 'ValterMoto · піт-обладнання' },
     description: {
       en: 'Track-side tools, paddock stands and quick-change kits for race-day efficiency.',
@@ -867,90 +876,90 @@ export default function MotoPage() {
               </div>
             </motion.button>
 
-            {/* ILMBERGER CARBON (4 cols) */}
+            {/* OHLINS (4 cols) */}
             <motion.button
-              onClick={() => handleBrandClick('Ilmberger Carbon')}
+              onClick={() => handleBrandClick('Ohlins')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.25 }}
               className="group relative col-span-6 sm:col-span-4 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-zinc-400/30 via-zinc-500/10 to-transparent p-[1px]">
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-yellow-500/30 via-amber-500/10 to-transparent p-[1px]">
                 <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
               </div>
-              <div className="absolute inset-0 bg-gradient-to-br from-zinc-400/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">🇩🇪</span>
-                    <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-400/70">Germany</span>
+                    <span className="text-lg">🇸🇪</span>
+                    <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-yellow-400/70">Sweden</span>
                   </div>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-600">Carbon Fiber</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-600">Suspension</span>
                 </div>
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[140px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('Ilmberger Carbon')} alt="Ilmberger Carbon" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Ilmberger Carbon')) ? 'brightness-0 invert opacity-85' : ''}`} unoptimized />
+                    <Image src={getBrandLogo('Ohlins')} alt="Ohlins" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Ohlins')) ? 'brightness-0 invert opacity-85' : ''}`} unoptimized />
                   </div>
                 </div>
-                <p className="text-sm sm:text-base font-medium text-white">Ilmberger Carbon</p>
-                <p className="text-[10px] sm:text-xs text-zinc-600 mt-0.5">{locale === 'ua' ? 'Карбонова точність' : 'Carbon precision'}</p>
+                <p className="text-sm sm:text-base font-medium text-white">Ohlins</p>
+                <p className="text-[10px] sm:text-xs text-zinc-600 mt-0.5">{locale === 'ua' ? 'Золотий стандарт' : 'The Gold Standard'}</p>
               </div>
             </motion.button>
 
-            {/* ROTOBOX (3 cols) */}
+            {/* MARCHESINI (3 cols) */}
             <motion.button
-              onClick={() => handleBrandClick('Rotobox')}
+              onClick={() => handleBrandClick('Marchesini')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.3 }}
               className="group relative col-span-6 sm:col-span-4 lg:col-span-3 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-blue-500/25 to-transparent p-[1px]">
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-blue-600/25 to-transparent p-[1px]">
                 <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
               </div>
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">🇸🇮</span>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-blue-400/70">Slovenia</span>
+                  <span className="text-lg">🇮🇹</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-blue-400/70">Italy</span>
                 </div>
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[110px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('Rotobox')} alt="Rotobox" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Rotobox')) ? 'brightness-0 invert opacity-85' : ''}`} unoptimized />
+                    <Image src={getBrandLogo('Marchesini')} alt="Marchesini" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Marchesini')) ? 'brightness-0 invert opacity-85' : ''}`} unoptimized />
                   </div>
                 </div>
-                <p className="text-sm sm:text-base font-medium text-white">Rotobox</p>
-                <p className="text-[10px] sm:text-xs text-zinc-600 mt-0.5">{locale === 'ua' ? 'Карбонові диски' : 'Carbon wheels'}</p>
+                <p className="text-sm sm:text-base font-medium text-white">Marchesini</p>
+                <p className="text-[10px] sm:text-xs text-zinc-600 mt-0.5">{locale === 'ua' ? 'Легендарні диски' : 'Legendary wheels'}</p>
               </div>
             </motion.button>
 
-            {/* AUSTIN RACING (3 cols) */}
+            {/* OZ RACING (3 cols) */}
             <motion.button
-              onClick={() => handleBrandClick('Austin Racing')}
+              onClick={() => handleBrandClick('OZ Racing')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.35 }}
               className="group relative col-span-6 sm:col-span-4 lg:col-span-3 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-purple-500/25 to-transparent p-[1px]">
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-zinc-500/25 to-transparent p-[1px]">
                 <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
               </div>
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-br from-zinc-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">🇬🇧</span>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-purple-400/70">UK</span>
+                  <span className="text-lg">🇮🇹</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-400/70">Italy</span>
                 </div>
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[100px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('Austin Racing')} alt="Austin Racing" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Austin Racing')) ? 'brightness-0 invert opacity-85' : ''}`} unoptimized />
+                    <Image src={getBrandLogo('OZ Racing')} alt="OZ Racing" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${isDarkLogo(getBrandLogo('OZ Racing')) ? 'brightness-0 invert opacity-85' : ''}`} unoptimized />
                   </div>
                 </div>
-                <p className="text-sm sm:text-base font-medium text-white">Austin Racing</p>
-                <p className="text-[10px] sm:text-xs text-zinc-600 mt-0.5">{locale === 'ua' ? 'Британський звук' : 'British sound'}</p>
+                <p className="text-sm sm:text-base font-medium text-white">OZ Racing</p>
+                <p className="text-[10px] sm:text-xs text-zinc-600 mt-0.5">{locale === 'ua' ? 'Технології перемог' : 'Winning technology'}</p>
               </div>
             </motion.button>
 
@@ -996,16 +1005,16 @@ export default function MotoPage() {
               </div>
             </motion.button>
 
-            {/* CNC RACING (6 cols) */}
+            {/* SPARK EXHAUST (6 cols) */}
             <motion.button
-              onClick={() => handleBrandClick('CNC Racing')}
+              onClick={() => handleBrandClick('SparkExhaust')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.45 }}
               className="group relative col-span-12 sm:col-span-4 lg:col-span-6 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-rose-500/30 via-pink-500/15 to-transparent p-[1.5px]">
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-rose-500/30 via-red-500/15 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
               </div>
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
@@ -1017,17 +1026,17 @@ export default function MotoPage() {
                     <span className="text-xl">🇮🇹</span>
                     <span className="text-[10px] sm:text-xs uppercase tracking-[0.15em] text-rose-400/80 font-medium">Italy</span>
                   </div>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-3 py-1.5 rounded-full">Billet Parts</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-3 py-1.5 rounded-full">High Performance</span>
                 </div>
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[140px] h-14 sm:h-16">
-                    <Image src={getBrandLogo('CNC Racing')} alt="CNC Racing" fill className={`object-contain opacity-95 drop-shadow-[0_0_20px_rgba(244,63,94,0.2)] transition-all duration-700 group-hover:scale-110 ${isDarkLogo(getBrandLogo('CNC Racing')) ? 'brightness-0 invert' : ''}`} unoptimized />
+                    <Image src={getBrandLogo('SparkExhaust')} alt="SparkExhaust" fill className={`object-contain opacity-95 drop-shadow-[0_0_20px_rgba(244,63,94,0.2)] transition-all duration-700 group-hover:scale-110 ${isDarkLogo(getBrandLogo('SparkExhaust')) ? 'brightness-0 invert' : ''}`} unoptimized />
                   </div>
                 </div>
                 <div className="flex items-end justify-between">
                   <div>
-                    <p className="text-lg sm:text-xl font-light text-white">CNC Racing</p>
-                    <p className="text-xs sm:text-sm text-zinc-500 mt-1">{locale === 'ua' ? 'Білетна точність' : 'Billet precision'}</p>
+                    <p className="text-lg sm:text-xl font-light text-white">Spark Exhaust</p>
+                    <p className="text-xs sm:text-sm text-zinc-500 mt-1">{locale === 'ua' ? 'Італійська пристрасть' : 'Italian passion'}</p>
                   </div>
                   <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-rose-500/10 border border-rose-500/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-rose-400/40">
                     <svg className="h-4 w-4 sm:h-5 sm:w-5 text-rose-400 transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

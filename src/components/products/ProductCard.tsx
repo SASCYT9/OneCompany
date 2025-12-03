@@ -14,23 +14,18 @@ interface ProductCardProps {
 export default function ProductCard({ name, image, href, category }: ProductCardProps) {
   return (
     <Link href={href}>
-      <motion.div
-        className="group relative overflow-hidden bg-white dark:bg-zinc-900/30 hover:shadow-2xl dark:hover:shadow-white/5 transition-all duration-500"
-        whileHover={{ y: -8 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      <div
+        className="group relative overflow-hidden bg-white dark:bg-zinc-900/30 border border-zinc-100 dark:border-white/5 transition-colors duration-300"
       >
         {/* Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-zinc-50 dark:bg-zinc-900/50">
+        <div className="relative aspect-square overflow-hidden bg-zinc-50 dark:bg-zinc-900/50 p-8">
           <Image
             src={image}
             alt={name}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            className="object-contain p-4"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-          
-          {/* Overlay on Hover */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
           
           {/* Category Badge */}
           {category && (
@@ -43,17 +38,12 @@ export default function ProductCard({ name, image, href, category }: ProductCard
         </div>
 
         {/* Content */}
-        <div className="p-6">
-          <h3 className="text-lg font-light text-zinc-900 dark:text-white tracking-wide group-hover:text-zinc-600 dark:group-hover:text-white/80 transition-colors duration-300">
+        <div className="p-6 border-t border-zinc-100 dark:border-white/5">
+          <h3 className="text-lg font-light text-zinc-900 dark:text-white tracking-wide">
             {name}
           </h3>
-          
-          {/* Animated Underline */}
-          <div className="mt-3 h-px bg-zinc-200 dark:bg-white/10 relative overflow-hidden">
-            <div className="absolute inset-0 bg-zinc-900 dark:bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
-          </div>
         </div>
-      </motion.div>
+      </div>
     </Link>
   );
 }

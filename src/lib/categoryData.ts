@@ -326,12 +326,12 @@ export const categoryData: CategoryData[] = [
     brands: [
       'CNC Racing',
       'ValterMoto',
+      'Melotti Racing',
       'Gilles Tooling',
       'Rizoma',
       'Lightech',
       'Sato Racing',
       'Woodcraft',
-      'DP Brakes',
     ],
   },
   {
