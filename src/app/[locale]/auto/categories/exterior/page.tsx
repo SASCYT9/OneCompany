@@ -283,16 +283,18 @@ export default function ExteriorCategoryPage() {
                   <div className="relative h-16 mb-4">
                     {/* Radial backlight for dark logos - intensified */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-[120%] h-[120%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.4)_0%,_rgba(255,255,255,0.15)_50%,_transparent_70%)] transition-all duration-500" />
+                      <div className={`w-[120%] h-[120%] transition-all duration-500 ${
+                        isDarkLogo(getBrandLogo(brand.name))
+                          ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
+                          : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
+                      }`} />
                     </div>
                     <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
                       <Image
                         src={getBrandLogo(brand.name)}
                         alt={brand.name}
                         fill
-                        className={`object-contain object-center transition-all duration-300 group-hover:scale-110 ${
-                          isDarkLogo(getBrandLogo(brand.name)) ? 'invert hue-rotate-180 mix-blend-screen' : ''
-                        }`}
+                        className="object-contain object-center transition-all duration-300 group-hover:scale-110"
                         unoptimized
                       />
                     </div>
@@ -381,13 +383,19 @@ export default function ExteriorCategoryPage() {
               </div>
               
               <div className="relative h-20 mb-6">
+                {/* Radial backlight for dark logos */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className={`w-[120%] h-[120%] ${
+                    isDarkLogo(getBrandLogo(selectedBrand.name))
+                      ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
+                      : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
+                  }`} />
+                </div>
                 <Image
                   src={getBrandLogo(selectedBrand.name)}
                   alt={selectedBrand.name}
                   fill
-                  className={`object-contain object-left ${
-                    isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''
-                  }`}
+                  className="object-contain object-left"
                   unoptimized
                 />
               </div>

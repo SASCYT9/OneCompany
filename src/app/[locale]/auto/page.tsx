@@ -1131,6 +1131,7 @@ export default function AutomotivePage() {
               const subcategory = getBrandSubcategory(brand);
               const collections = getBrandCollections(brand.name);
               const logoSrc = getBrandLogo(brand.name);
+              const isDark = isDarkLogo(logoSrc);
 
               return (
                 <motion.button
@@ -1158,14 +1159,18 @@ export default function AutomotivePage() {
                   <div className="relative mt-3 h-16 sm:mt-4 sm:h-20">
                     {/* Radial backlight for dark logos */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-[120%] h-[120%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.4)_0%,_rgba(255,255,255,0.15)_50%,_transparent_70%)] transition-all duration-500" />
+                      <div className={`w-[120%] h-[120%] transition-all duration-500 ${
+                        isDark 
+                          ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
+                          : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
+                      }`} />
                     </div>
                     <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
                       <Image
                         src={logoSrc}
                         alt={brand.name}
                         fill
-                        className={`object-contain ${isDarkLogo(logoSrc) ? 'invert hue-rotate-180 mix-blend-screen' : ''}`}
+                        className="object-contain"
                         sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                         unoptimized
                       />
@@ -1247,14 +1252,18 @@ export default function AutomotivePage() {
                 <div className="relative h-16 w-40 sm:h-20 sm:w-48 md:h-24 md:w-56">
                   {/* Radial backlight for dark logos */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-[120%] h-[120%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]" />
+                    <div className={`w-[120%] h-[120%] ${
+                      isDarkLogo(getBrandLogo(selectedBrand.name))
+                        ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
+                        : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
+                    }`} />
                   </div>
                   <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
                     <Image
                       src={getBrandLogo(selectedBrand.name)}
                       alt={selectedBrand.name}
                       fill
-                      className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'invert hue-rotate-180 mix-blend-screen' : ''}`}
+                      className="object-contain"
                       sizes="224px"
                       unoptimized
                     />
