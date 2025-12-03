@@ -326,7 +326,7 @@ export default function InteriorCategoryPage() {
                   <div className="relative h-16 mb-4">
                     {/* Radial backlight for dark logos - intensified */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.4)_0%,_rgba(255,255,255,0.15)_40%,_transparent_70%)] transition-all duration-500" />
+                      <div className="w-[120%] h-[120%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.4)_0%,_rgba(255,255,255,0.15)_50%,_transparent_70%)] transition-all duration-500" />
                     </div>
                     <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
                       <Image

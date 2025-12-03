@@ -1158,7 +1158,7 @@ export default function AutomotivePage() {
                   <div className="relative mt-3 h-16 sm:mt-4 sm:h-20">
                     {/* Radial backlight for dark logos */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.4)_0%,_rgba(255,255,255,0.15)_40%,_transparent_70%)] transition-all duration-500" />
+                      <div className="w-[120%] h-[120%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.4)_0%,_rgba(255,255,255,0.15)_50%,_transparent_70%)] transition-all duration-500" />
                     </div>
                     <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
                       <Image
@@ -1247,7 +1247,7 @@ export default function AutomotivePage() {
                 <div className="relative h-16 w-40 sm:h-20 sm:w-48 md:h-24 md:w-56">
                   {/* Radial backlight for dark logos */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_40%,_transparent_70%)]" />
+                    <div className="w-[120%] h-[120%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]" />
                   </div>
                   <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
                     <Image
