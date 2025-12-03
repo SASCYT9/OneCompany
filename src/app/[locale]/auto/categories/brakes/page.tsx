@@ -256,14 +256,13 @@ export default function BrakesCategoryPage() {
                 <div className={`absolute inset-0 bg-gradient-to-br ${brand.accentColor} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                 
                 <div className="relative">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center mb-4">
                     <span className="text-xs text-white/50">{brand.country}</span>
-                    <span className="text-xs text-white/50 uppercase tracking-wider">{brand.specialty[locale]}</span>
                   </div>
                   
                   <div className="relative h-16 mb-4">
                     {/* Radial backlight for dark logos */}
-                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
                     </div>
                     <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
@@ -271,7 +270,7 @@ export default function BrakesCategoryPage() {
                         src={getBrandLogo(brand.name)}
                         alt={brand.name}
                         fill
-                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
+                        className={`object-contain object-center transition-all duration-300 group-hover:scale-105 ${
                           isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
                         }`}
                         unoptimized
