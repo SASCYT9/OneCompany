@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { isDarkLogo } from '@/lib/darkLogos';
+import { Cpu, Wind, Zap, Wrench, Fuel, BarChart3 } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -142,7 +143,8 @@ const performanceTypes = [
       en: 'Software calibrations for enhanced power, torque curves and throttle response.',
       ua: 'Програмні калібрування для збільшеної потужності, кривих крутного моменту та відгуку дроселя.',
     },
-    icon: '💻',
+    icon: Cpu,
+    color: 'text-cyan-400',
   },
   {
     name: { en: 'Turbo Upgrades', ua: 'Турбо апгрейди' },
@@ -150,7 +152,8 @@ const performanceTypes = [
       en: 'Hybrid turbos, turbo kits and complete forced induction solutions.',
       ua: 'Гібридні турбіни, турбо кіти та комплексні рішення примусової індукції.',
     },
-    icon: '🌀',
+    icon: Wind,
+    color: 'text-blue-400',
   },
   {
     name: { en: 'Superchargers', ua: 'Компресори' },
@@ -158,7 +161,8 @@ const performanceTypes = [
       en: 'Centrifugal and positive displacement supercharger systems for instant power.',
       ua: 'Центробіжні та роторні компресорні системи для миттєвої потужності.',
     },
-    icon: '⚡',
+    icon: Zap,
+    color: 'text-amber-400',
   },
   {
     name: { en: 'Engine Internals', ua: 'Внутрішні компоненти' },
@@ -166,7 +170,8 @@ const performanceTypes = [
       en: 'Forged pistons, rods, crankshafts and valve train upgrades for high power builds.',
       ua: 'Ковані поршні, шатуни, колінвали та апгрейди клапанного механізму для потужних білдів.',
     },
-    icon: '🔧',
+    icon: Wrench,
+    color: 'text-violet-400',
   },
   {
     name: { en: 'Fuel Systems', ua: 'Паливні системи' },
@@ -174,7 +179,8 @@ const performanceTypes = [
       en: 'High-flow injectors, fuel pumps, rails and flex fuel systems.',
       ua: 'Високопропускні форсунки, паливні насоси, рейки та flex fuel системи.',
     },
-    icon: '⛽',
+    icon: Fuel,
+    color: 'text-red-400',
   },
   {
     name: { en: 'Data & Gauges', ua: 'Дані та прилади' },
@@ -182,7 +188,8 @@ const performanceTypes = [
       en: 'Wideband O2, boost gauges, data loggers and dash displays.',
       ua: 'Широкосмугові O2, буст-датчики, логери даних та дисплеї.',
     },
-    icon: '📊',
+    icon: BarChart3,
+    color: 'text-emerald-400',
   },
 ];
 
@@ -257,7 +264,9 @@ export default function PerformanceCategoryPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
-                <div className="text-3xl mb-4">{type.icon}</div>
+                <div className={`mb-4 ${type.color}`}>
+                  <type.icon className="w-8 h-8 stroke-[1.5]" />
+                </div>
                 <h3 className="text-lg font-medium text-white">{type.name[locale]}</h3>
                 <p className="mt-2 text-sm text-white/60">{type.description[locale]}</p>
               </motion.div>
