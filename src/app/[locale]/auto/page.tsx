@@ -536,23 +536,28 @@ export default function AutomotivePage() {
                 backgroundImage:
                   'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
               }} />
-              <div className="relative flex flex-col gap-3 sm:gap-4 flex-1">
-                <h3 className="text-xl font-light sm:text-2xl text-balance bg-gradient-to-r from-white via-emerald-200 to-white bg-clip-text text-transparent">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
-                <p className="text-xs text-white/70 sm:text-sm text-pretty">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                <p className="text-[11px] text-emerald-400/60 sm:text-xs text-pretty">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
-                <div className="mt-2 grid grid-cols-2 gap-1.5 text-[10px] uppercase tracking-[0.25em] text-white/50 sm:mt-4 sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
+              <div className="relative flex flex-col flex-1">
+                {/* Title & Description - fixed height */}
+                <div className="min-h-[120px] sm:min-h-[140px]">
+                  <h3 className="text-xl font-light sm:text-2xl text-balance text-white">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                  <p className="mt-3 text-xs text-white/70 sm:text-sm text-pretty">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                  <p className="mt-2 text-[11px] text-white/40 sm:text-xs text-pretty">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                </div>
+                {/* Brand tags - fixed height area */}
+                <div className="mt-4 min-h-[80px] grid grid-cols-2 gap-1.5 text-[10px] uppercase tracking-[0.25em] content-start sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
                   {cat.brands.map((name) => (
-                    <span key={name} className="flex items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-0.5 text-center text-white/80 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-colors sm:px-3 sm:py-1">
+                    <span key={name} className="flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-2.5 py-0.5 text-center text-white/70 hover:border-white/40 hover:bg-white/10 transition-colors sm:px-3 sm:py-1">
                       {name}
                     </span>
                   ))}
                 </div>
-                <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
-                  <span className="transition-colors duration-300 group-hover:text-white">
-                    {locale === 'ua' ? 'Переглянути' : 'Open'}
+                {/* Open link - always at bottom */}
+                <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
+                  <span className="text-emerald-400 transition-colors duration-300 group-hover:text-emerald-300">
+                    {locale === 'ua' ? 'Відкрити' : 'Open'}
                   </span>
-                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent transition-all duration-300 group-hover:from-white/50" />
-                  <span className="transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white">→</span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-emerald-500/40 to-transparent transition-all duration-300 group-hover:from-emerald-400/60" />
+                  <span className="text-emerald-400 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-emerald-300">→</span>
                 </div>
               </div>
             </Link>
