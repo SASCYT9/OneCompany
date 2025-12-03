@@ -507,11 +507,11 @@ export default function AutomotivePage() {
           {programHighlights.map((card) => (
             <div
               key={card.title.en}
-              className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:rounded-3xl sm:p-6"
+              className="h-full flex flex-col rounded-2xl border border-white/10 bg-white/[0.02] p-5 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:rounded-3xl sm:p-6"
             >
               <div className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em]">{card.eyebrow[locale]}</div>
               <h3 className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{card.title[locale]}</h3>
-              <p className="mt-2 text-xs text-white/70 sm:mt-3 sm:text-sm">{card.description[locale]}</p>
+              <p className="mt-2 flex-1 text-xs text-white/70 sm:mt-3 sm:text-sm">{card.description[locale]}</p>
               <p className="mt-4 text-[10px] uppercase tracking-[0.25em] text-white/60 sm:mt-6 sm:text-xs sm:tracking-[0.3em]">{card.meta[locale]}</p>
             </div>
           ))}
