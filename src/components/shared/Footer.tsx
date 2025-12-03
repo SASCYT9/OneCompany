@@ -92,16 +92,22 @@ const Footer = () => {
           className="relative mb-12 sm:mb-20 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.02] p-6 sm:p-12 lg:p-16 backdrop-blur-3xl"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
+          
+          {/* Large decorative logo on the right - desktop only */}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/4 opacity-[0.03] pointer-events-none hidden lg:block">
+            <Logo tone="light" className="w-[500px] h-[500px]" />
+          </div>
+          
           <div className="relative z-10 flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
-            <div className="max-w-2xl space-y-6">
+            <div className="w-full lg:max-w-3xl space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/80 backdrop-blur-md">
                 <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
                 {t('b2bWholesale')}
               </div>
-              <h2 className="font-display text-3xl font-light leading-tight tracking-tight sm:text-4xl lg:text-5xl text-balance">
+              <h2 className="font-display text-3xl font-light leading-tight tracking-tight sm:text-4xl lg:text-5xl xl:text-6xl text-balance">
                 {t('brandsFor')}
               </h2>
-              <p className="text-sm text-white/60 sm:text-base max-w-lg leading-relaxed">
+              <p className="text-sm text-white/60 sm:text-base lg:text-lg max-w-2xl leading-relaxed">
                 {t('aboutText')}
               </p>
             </div>
