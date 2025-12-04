@@ -13,7 +13,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   "AMS Alpha Performance": "/logos/ams-alpha-performance.png",
   "AP Racing": "/logos/ap-racing.svg",
   "APR": "/logos/apr.svg",
-  "Accossato": "/logos/accossato.png",
+  "Accossato": "/logos/accossato.svg",
   "Accuair": "/logos/accuair.png",
   "Adro": "/logos/adro.svg",
   "Aem Factory": "/logos/aem-factory.png",
