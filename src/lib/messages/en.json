@@ -26,10 +26,10 @@
     "workingHours": "Mon-Fri, 10:00 - 19:00",
     "engineeredIn": "Engineered in Kyiv",
     "about": "About Us",
-    "aboutText": "Since 2007, onecompany has been shaping the culture of premium tuning: over 12,000 satisfied customers, hundreds of custom projects, and uncompromising post-installation support.",
+    "aboutText": "Since 2007, onecompany has been shaping the culture of premium tuning and providing uncompromising support.",
     "navigate": "Navigate",
     "home": "Home",
-    "automotive": "Automotive",
+    "automotive": "Auto",
     "motorcycles": "Motorcycles",
     "aboutUs": "About Us",
     "brands": "Brands",
@@ -52,13 +52,13 @@
     "brandPromise": "200+ brands · Service stations, detailing, tuning shops",
     "atelierAddress": "21B BASEINA ST · KYIV IMPORTER",
     "conciergeService": "ONECOMPANY B2B SUPPORT",
-    "automotive": "Automotive",
-    "moto": "Moto",
+    "automotive": "AUTO",
+    "moto": "MOTO",
     "programAccess": "program access",
     "hypercarPrograms": "SPORTS CAR TUNING",
-    "hypercarDescription": "Forged wheels, carbon, suspension, intake and exhaust systems and much more.",
-    "factoryRacePackages": "Factory race packages",
-    "factoryRaceDescription": "WorldSBK-grade exhausts, ECU calibrations, carbon protection and track-ready ergonomics for litre bikes and much more.",
+    "hypercarDescription": "Forged wheels, exterior, suspension, brakes, intake, exhaust and much more.",
+    "factoryRacePackages": "MOTORCYCLE TUNING",
+    "factoryRaceDescription": "Exhaust systems, suspension, brakes, wheels, carbon, electronics and much more.",
     "autoBrands": "brands",
     "autoCategories": "categories",
     "motoPartners": "brands",
@@ -66,13 +66,14 @@
     "statsExperience": "years experience",
     "statsBrands": "brands",
     "statsLogistics": "fast delivery",
-    "statsContinents": "cooperation",
-    "statsBestConditions": "Best conditions",
+    "statsContinents": "",
+    "statsBestConditions": "Best",
+    "statsBestConditionsSub": "conditions",
     "ourSites": "Our sites",
-    "automotiveMotoBrands": "Automotive and moto brands",
+    "automotiveMotoBrands": "Auto and moto brands",
     "exclusiveAllocations": "Exclusive allocations, custom specifications, and dual auto/moto expertise.",
     "autoCatalog": "Auto",
-    "autoCatalogBrands": "160+ automotive brands",
+    "autoCatalogBrands": "160+ auto brands",
     "motoCatalog": "Moto",
     "motoCatalogBrands": "40+ moto brands",
     "viewCatalog": "View catalog",
@@ -103,15 +104,34 @@
     "heading1": "100+ brands.",
     "heading2": "one company.",
     "subtitle": "High-quality tuning parts",
-    "automotive": "AUTOMOTIVE",
-    "motorcycles": "MOTORCYCLES",
+    "automotive": "AUTO",
+    "motorcycles": "MOTO",
     "automotiveSubtitle": "High-performance parts",
     "motorcyclesSubtitle": "Premium exhaust & suspension",
     "loading": "Loading...",
-    "featuredBrands": "Featured Brands"
+    "featuredBrands": "Featured Brands",
+    "seeAll": "View All Categories",
+    "hero": {
+      "title": "Premium Tuning Parts",
+      "subtitle": "Choose Your Category",
+      "cta": "View All Categories"
+    },
+    "categories": {
+      "exhaust": "Exhaust Systems",
+      "suspension": "Suspension",
+      "wheels": "Wheels & Tires",
+      "brakes": "Brake Systems",
+      "intake": "Intake Systems",
+      "interior": "Interior",
+      "exterior": "Exterior & Aero",
+      "cooling": "Cooling",
+      "performance": "Performance",
+      "aero": "Aerodynamics",
+      "engine": "Engine"
+    }
   },
   "auto": {
-    "title": "Automotive",
+    "title": "Auto",
     "heading": "High-Performance Parts",
     "subtitle": "160+ premium brands for your car",
     "featuredBrands": "Top 10 Popular Brands",
@@ -222,7 +242,7 @@
   },
 
   "about": {
-    "intro": "Since 2007, we have been shaping the culture of premium tuning: 12,000+ satisfied customers, hundreds of individual projects, and uncompromising support after installation."
+    "intro": "Since 2007, we have been shaping the culture of premium tuning and providing uncompromising support after installation."
   },
   "categories": {
     "usa": "USA",
@@ -235,8 +255,8 @@
     "logoDisclaimer": "Logos shown where available – others use a placeholder until assets are added."
   },
   "landing": {
-    "automotive": "AUTOMOTIVE",
-    "motorcycles": "MOTORCYCLES",
+    "automotive": "AUTO",
+    "motorcycles": "MOTO",
     "learnMore": "Learn More",
     "premiumPerformance": "200 Premium Tuning Brands",
     "welcomeHeading": "Welcome to the world of",
@@ -259,8 +279,8 @@
     "brands": "Brands",
     "brandsDesc": "We represent over 200+ world-leading brands in performance automotive and motorcycle parts",
     "viewAllBrands": "View All Brands",
-    "productCategories": "Brand",
-    "products": "Categories",
+    "productCategories": "Brand Categories",
+    "products": "Products",
     "exhaustSystems": "Exhaust Systems",
     "exhaustDesc": "Performance exhausts, valved systems, headers",
     "suspension": "Suspension",
@@ -299,11 +319,11 @@
         },
         "brands": {
           "value": "200+",
-          "label": "Curated performance and lifestyle brands"
+          "label": "Best tuning brands worldwide"
         },
         "countries": {
           "value": "5+",
-          "label": "Countries served with personal delivery"
+          "label": "Countries with our partners"
         }
       }
     },

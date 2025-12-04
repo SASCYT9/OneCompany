@@ -56,7 +56,7 @@ export default async function LocalizedHomePage({
   const statHighlights = [
     { value: "18", label: t('statsExperience') },
     { value: "200+", label: t('statsBrands') },
-    { value: t('statsBestConditions'), label: t('statsContinents') },
+    { value: <><span className="font-bold">{t('statsBestConditions')}</span><br/><span className="text-white/50 font-normal">{t('statsBestConditionsSub')}</span></>, label: "" },
     { value: <Globe className="w-9 h-9 mx-auto" strokeWidth={1.5} />, label: t('logisticsTitle') },
   ];
 
