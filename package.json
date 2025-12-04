@@ -19,9 +19,7 @@
     "download-logos-advanced": "tsx scripts/download-logos-advanced.ts",
     "download-missing-logos": "tsx scripts/download-missing-logos.ts",
     "check-missing-logos": "tsx scripts/check-missing-logos.ts",
-    "upgrade-all-small-logos": "tsx scripts/upgrade-all-small-logos.ts",
-    "analyze-logos": "tsx scripts/analyze-logos-gemini.ts",
-    "fix-logos": "tsx scripts/fix-bad-logos-auto.ts"
+    "upgrade-all-small-logos": "tsx scripts/upgrade-all-small-logos.ts"
   },
   "dependencies": {
     "@grammyjs/auto-retry": "^2.0.2",
