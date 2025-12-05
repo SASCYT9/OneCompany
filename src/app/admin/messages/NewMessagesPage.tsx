@@ -65,7 +65,7 @@ export default function NewMessagesPage() {
     }
   };
 
-  const updateStatus = async (messageId: string, newStatus: string) => {
+  const updateStatus = async (messageId: string, newStatus: Message['status']) => {
     try {
       const response = await fetch('/api/messages', {
         method: 'POST',
@@ -77,7 +77,7 @@ export default function NewMessagesPage() {
         loadStats();
         // Update local state immediately for better UX
         if (selectedMessage && selectedMessage.id === messageId) {
-          setSelectedMessage({ ...selectedMessage, status: newStatus as any });
+          setSelectedMessage({ ...selectedMessage, status: newStatus });
         }
       }
     } catch (error) {

@@ -32,7 +32,7 @@ const Footer = () => {
     { icon: Youtube, href: "https://youtube.com/@onecompany", label: "YouTube" },
     { icon: Facebook, href: "https://facebook.com/onecompany", label: "Facebook" },
     { 
-      icon: (props: any) => (
+      icon: (props: React.SVGProps<SVGSVGElement>) => (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"

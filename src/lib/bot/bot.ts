@@ -16,7 +16,6 @@ import { registerCallbacks } from './handlers/callbacks';
 
 // Bot instance (will be initialized with token)
 let bot: Bot<BotContext> | null = null;
-let botInitialized = false;
 
 // Get or create bot instance
 export function getBot(token?: string): Bot<BotContext> {
