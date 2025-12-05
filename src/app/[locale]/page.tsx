@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import Script from "next/script";
 import clsx from "clsx";
 import { getTranslations } from "next-intl/server";
 import { Globe } from "lucide-react";
@@ -73,8 +74,26 @@ export default async function LocalizedHomePage({
     },
   ];
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "OneCompany",
+    "url": "https://onecompany.com.ua",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://onecompany.com.ua/search?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return (
-    <main className="text-white">
+    <>
+      <Script
+        id="website-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <main className="text-white">
       <section className="relative flex min-h-[70vh] flex-col justify-center pt-8">
         <div className="px-4 pt-24 text-center text-[8px] uppercase tracking-[0.4em] text-white/55 sm:px-6 md:pt-36 sm:text-[10px] sm:tracking-[0.5em]">
           <p>{heroBadgeCopy}</p>
@@ -216,6 +235,7 @@ export default async function LocalizedHomePage({
       </section>
 
 
-    </main>
+      </main>
+    </>
   );
 }

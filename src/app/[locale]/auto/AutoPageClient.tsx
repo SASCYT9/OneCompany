@@ -1,3 +1,4 @@
+// src/app/[locale]/auto/AutoPageClient.tsx
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
@@ -337,7 +338,7 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
   },
 };
 
-export default function AutoPageClient() {
+export default function AutomotivePage() {
   const params = useParams();
   const locale = (params.locale === 'en' ? 'en' : 'ua') as 'en' | 'ua';
   const t = useTranslations('auto');
@@ -530,29 +531,40 @@ export default function AutoPageClient() {
             <Link
               key={cat.slug}
               href={`/${locale}/auto/categories/${cat.slug}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/30 p-5 transition-all duration-500 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-zinc-900/50 hover:border-white/20 hover:scale-[1.02] hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-6 md:p-8 h-full"
+              className="group relative flex flex-col overflow-hidden rounded-2xl bg-black transition-all duration-300 hover:translate-y-[-4px] sm:rounded-3xl h-full"
             >
-              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
-                backgroundImage:
-                  'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 55%)',
-              }} />
-              <div className="relative flex flex-col gap-3 sm:gap-4 flex-1">
-                <h3 className="text-xl font-light sm:text-2xl text-balance bg-gradient-to-r from-white via-emerald-200 to-white bg-clip-text text-transparent">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
-                <p className="text-xs text-white/70 sm:text-sm text-pretty">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                <p className="text-[11px] text-emerald-400/60 sm:text-xs text-pretty">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
-                <div className="mt-2 grid grid-cols-2 gap-1.5 text-[10px] uppercase tracking-[0.25em] text-white/50 sm:mt-4 sm:gap-2 sm:text-[11px] sm:tracking-[0.3em]">
+              {/* Multi-layer box shadows for depth */}
+              <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),inset_0_0_0_1px_rgba(255,255,255,0.05)] sm:rounded-3xl" />
+              
+              {/* Bottom glow on hover */}
+              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              
+              <div className="relative p-6 sm:p-7 md:p-8 flex flex-col flex-1 shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.6)] group-hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_16px_40px_rgba(0,0,0,0.7)] transition-shadow duration-300">
+                {/* Title & Description */}
+                <div className="min-h-[120px] sm:min-h-[140px]">
+                  <h3 className="text-xl font-light text-white text-balance sm:text-2xl">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                  <p className="mt-3 text-[13px] leading-relaxed text-white/60 text-pretty sm:text-[15px]">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                  <p className="mt-2 text-[11px] text-white/40 text-pretty sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                </div>
+                
+                {/* Brand tags with relief */}
+                <div className="mt-5 min-h-[80px] grid grid-cols-2 gap-2 text-[10px] uppercase tracking-wider content-start sm:text-[11px]">
                   {cat.brands.map((name) => (
-                    <span key={name} className="flex items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-0.5 text-center text-white/80 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-colors sm:px-3 sm:py-1">
+                    <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/[0.08] bg-gradient-to-b from-white/[0.04] to-transparent px-3 py-1.5 text-center font-medium text-white/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] transition-colors duration-200 hover:border-white/[0.12] hover:from-white/[0.08]">
                       {name}
                     </span>
                   ))}
                 </div>
-                <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/70 sm:gap-3 sm:text-xs sm:tracking-[0.35em]">
-                  <span className="transition-colors duration-300 group-hover:text-white">
-                    {locale === 'ua' ? 'Переглянути' : 'Open'}
-                  </span>
-                  <span className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent transition-all duration-300 group-hover:from-white/50" />
-                  <span className="transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white">→</span>
+                
+                {/* Open button - clear affordance */}
+                <div className="mt-auto pt-6 flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3">
+                    {locale === 'ua' ? 'Відкрити' : 'Open'}
+                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                  <span className="text-xs text-white/30">{cat.brands.length} брендів</span>
                 </div>
               </div>
             </Link>
@@ -1120,6 +1132,7 @@ export default function AutoPageClient() {
               const subcategory = getBrandSubcategory(brand);
               const collections = getBrandCollections(brand.name);
               const logoSrc = getBrandLogo(brand.name);
+              const isDark = isDarkLogo(logoSrc);
 
               return (
                 <motion.button
@@ -1145,14 +1158,24 @@ export default function AutoPageClient() {
                     <span className="text-white/70 group-hover:text-white">↗</span>
                   </div>
                   <div className="relative mt-3 h-16 sm:mt-4 sm:h-20">
-                    <Image
-                      src={logoSrc}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain ${isDarkLogo(logoSrc) ? 'brightness-0 invert' : ''}`}
-                      sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
-                      unoptimized
-                    />
+                    {/* Radial backlight for dark logos */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className={`w-[120%] h-[120%] transition-all duration-500 ${
+                        isDark 
+                          ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
+                          : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
+                      }`} />
+                    </div>
+                    <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
+                      <Image
+                        src={logoSrc}
+                        alt={brand.name}
+                        fill
+                        className="object-contain"
+                        sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
+                        unoptimized
+                      />
+                    </div>
                   </div>
                   <div className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{brand.name}</div>
                   <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
@@ -1228,14 +1251,24 @@ export default function AutoPageClient() {
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
                 <div className="relative h-16 w-40 sm:h-20 sm:w-48 md:h-24 md:w-56">
-                  <Image
-                    src={getBrandLogo(selectedBrand.name)}
-                    alt={selectedBrand.name}
-                    fill
-                    className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''}`}
-                    sizes="224px"
-                    unoptimized
-                  />
+                  {/* Radial backlight for dark logos */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className={`w-[120%] h-[120%] ${
+                      isDarkLogo(getBrandLogo(selectedBrand.name))
+                        ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
+                        : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
+                    }`} />
+                  </div>
+                  <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
+                    <Image
+                      src={getBrandLogo(selectedBrand.name)}
+                      alt={selectedBrand.name}
+                      fill
+                      className="object-contain"
+                      sizes="224px"
+                      unoptimized
+                    />
+                  </div>
                 </div>
                 <button
                   onClick={() => setSelectedBrand(null)}

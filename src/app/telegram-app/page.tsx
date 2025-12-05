@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Script from "next/script";
 import { ArrowUpRight, MessageCircle, Phone, Send, Shield, Sparkles, Clock } from "lucide-react";
 
 import TelegramUserGreeting from "@/components/telegram/TelegramUserGreeting";
@@ -89,8 +90,22 @@ export default async function TelegramAppPage() {
 
   const successStories = contact.successStories.slice(0, 2);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "OneCompany",
+    "url": "https://onecompany.com.ua",
+    "logo": "https://onecompany.com.ua/logo.png"
+  };
+
   return (
-    <main className="relative isolate min-h-screen overflow-hidden bg-[#04050a] pb-16 pt-10 text-white">
+    <>
+      <Script
+        id="telegram-app-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <main className="relative isolate min-h-screen overflow-hidden bg-[#04050a] pb-16 pt-10 text-white">
       <div className="pointer-events-none absolute inset-0 opacity-80">
         <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(255,179,71,0.25),_transparent_65%)] blur-[140px]" />
         <div className="absolute right-0 top-40 h-64 w-64 rounded-full bg-[radial-gradient(circle,_rgba(92,188,255,0.25),_transparent_60%)] blur-[120px]" />
@@ -236,6 +251,7 @@ export default async function TelegramAppPage() {
           </div>
         </section>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

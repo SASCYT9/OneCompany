@@ -5,6 +5,9 @@ import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
 import { IBM_Plex_Mono, Unbounded } from "next/font/google";
 import { OrganizationSchema, WebSiteSchema, LocalBusinessSchema } from "@/components/seo/StructuredData";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import MicrosoftClarity from "@/components/analytics/MicrosoftClarity";
+import MetaPixel from "@/components/analytics/MetaPixel";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 export const viewport: Viewport = {
@@ -79,8 +82,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    // Add your verification codes here when ready
-    // google: "your-google-verification-code",
+    google: "google-site-verification=YOUR_CODE_HERE",
     // yandex: "your-yandex-verification-code",
   },
   icons: {
@@ -149,6 +151,18 @@ export default function RootLayout({
         <WebSiteSchema />
         <LocalBusinessSchema />
         
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
+        
+        {process.env.NEXT_PUBLIC_CLARITY_ID && (
+          <MicrosoftClarity id={process.env.NEXT_PUBLIC_CLARITY_ID} />
+        )}
+
+        {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
+          <MetaPixel id={process.env.NEXT_PUBLIC_FB_PIXEL_ID} />
+        )}
+
         {/* Optional: Plausible analytics if NEXT_PUBLIC_PLAUSIBLE_DOMAIN is configured */}
         {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN ? (
           <Script
