@@ -7,8 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { isDarkLogo } from '@/lib/darkLogos';
-import { WheelIcon, TireIcon, BrakeDiscIcon, CaliperIcon, CoiloverIcon, SpoilerIcon } from '@/components/icons/CategoryIcons';
+import { Disc, Hexagon, Box, Circle, Cylinder, Cable } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -103,7 +102,7 @@ const productTypes = [
       en: 'Pre-preg carbon wheels for 40-50% unsprung weight reduction. Improved acceleration and handling.',
       ua: 'Препрег-карбонові диски для зниження непідресореної маси на 40-50%. Покращене прискорення та керованість.',
     },
-    icon: WheelIcon,
+    icon: Disc,
     color: 'text-zinc-400',
   },
   {
@@ -112,7 +111,7 @@ const productTypes = [
       en: 'Lightweight forged wheels from aerospace-grade aluminum for street and track performance.',
       ua: 'Легкі ковані диски з аерокосмічного алюмінію для вуличної та трекової продуктивності.',
     },
-    icon: TireIcon,
+    icon: Hexagon,
     color: 'text-amber-400',
   },
   {
@@ -121,7 +120,7 @@ const productTypes = [
       en: 'Monoblock radial-mount calipers for improved rigidity and consistent braking performance.',
       ua: 'Моноблочні радіальні супорти для підвищеної жорсткості та стабільного гальмування.',
     },
-    icon: BrakeDiscIcon,
+    icon: Box,
     color: 'text-cyan-400',
   },
   {
@@ -130,7 +129,7 @@ const productTypes = [
       en: 'T-Drive and floating disc designs for heat management and reduced warping.',
       ua: 'Дизайни T-Drive та плаваючих дисків для управління теплом та зменшення викривлення.',
     },
-    icon: CaliperIcon,
+    icon: Circle,
     color: 'text-violet-400',
   },
   {
@@ -139,7 +138,7 @@ const productTypes = [
       en: 'Radial and axial master cylinders with adjustable ratio for precise brake feel.',
       ua: 'Радіальні та аксіальні головні циліндри з регульованим співвідношенням для точного відчуття гальма.',
     },
-    icon: CoiloverIcon,
+    icon: Cylinder,
     color: 'text-emerald-400',
   },
   {
@@ -148,7 +147,7 @@ const productTypes = [
       en: 'Braided steel brake lines for improved pedal feedback and reduced expansion.',
       ua: 'Армовані сталеві магістралі для кращого зворотного зв\'язку та зменшеного розширення.',
     },
-    icon: SpoilerIcon,
+    icon: Cable,
     color: 'text-orange-400',
   },
 ];
@@ -314,21 +313,16 @@ export default function MotoWheelsCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    {/* Radial backlight for dark logos */}
-                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
-                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
                     </div>
-                    <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
-                      <Image
-                        src={getBrandLogo(brand.name)}
-                        alt={brand.name}
-                        fill
-                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                        }`}
-                        unoptimized
-                      />
-                    </div>
+                    <Image
+                      src={getBrandLogo(brand.name)}
+                      alt={brand.name}
+                      fill
+                      className="object-contain object-center transition-transform duration-500 group-hover:scale-110"
+                      unoptimized
+                    />
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>
@@ -414,13 +408,14 @@ export default function MotoWheelsCategoryPage() {
               </div>
               
               <div className="relative h-20 mb-6">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] rounded-full" />
+                </div>
                 <Image
                   src={getBrandLogo(selectedBrand.name)}
                   alt={selectedBrand.name}
                   fill
-                  className={`object-contain object-left ${
-                    isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''
-                  }`}
+                  className="object-contain object-center"
                   unoptimized
                 />
               </div>

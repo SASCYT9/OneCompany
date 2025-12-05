@@ -7,8 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { isDarkLogo } from '@/lib/darkLogos';
-import { BrakeDiscIcon, CaliperIcon, BrakeLinesIcon, WheelIcon, TireIcon, RadiatorIcon } from '@/components/icons/CategoryIcons';
+import { Disc, CircleDot, Activity, Zap, Triangle, Hexagon } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -103,7 +102,7 @@ const brakeTypes = [
       en: 'Complete brake upgrades with larger rotors and multi-piston calipers for improved stopping power.',
       ua: 'Повні апгрейди гальм з більшими дисками та багатопоршневими супортами для кращого гальмування.',
     },
-    icon: TireIcon,
+    icon: Disc,
     color: 'text-red-400',
   },
   {
@@ -112,7 +111,7 @@ const brakeTypes = [
       en: 'Ultra-lightweight ceramic composite rotors with extreme heat tolerance for track and street.',
       ua: 'Надлегкі керамічні композитні диски з екстремальною термостійкістю для треку та вулиці.',
     },
-    icon: BrakeDiscIcon,
+    icon: CircleDot,
     color: 'text-zinc-300',
   },
   {
@@ -121,7 +120,7 @@ const brakeTypes = [
       en: 'Floating rotors with aluminum hats reduce weight and allow for thermal expansion.',
       ua: 'Плаваючі диски з алюмінієвими хабами зменшують вагу та дозволяють термічне розширення.',
     },
-    icon: WheelIcon,
+    icon: Activity,
     color: 'text-violet-400',
   },
   {
@@ -130,7 +129,7 @@ const brakeTypes = [
       en: 'High-friction compounds designed for track temperatures and repeated hard braking.',
       ua: 'Високофрикційні компаунди для трекових температур та повторного інтенсивного гальмування.',
     },
-    icon: CaliperIcon,
+    icon: Zap,
     color: 'text-emerald-400',
   },
   {
@@ -139,7 +138,7 @@ const brakeTypes = [
       en: 'Stainless steel braided lines for improved pedal feel and consistent pressure delivery.',
       ua: 'Плетені шланги з нержавіючої сталі для кращого відчуття педалі та стабільного тиску.',
     },
-    icon: BrakeLinesIcon,
+    icon: Triangle,
     color: 'text-amber-400',
   },
   {
@@ -148,7 +147,7 @@ const brakeTypes = [
       en: 'High-temperature DOT 4 and racing fluids to prevent brake fade under extreme conditions.',
       ua: 'Високотемпературні DOT 4 та гоночні рідини для запобігання затуханню гальм в екстремальних умовах.',
     },
-    icon: RadiatorIcon,
+    icon: Hexagon,
     color: 'text-blue-400',
   },
 ];
@@ -261,22 +260,21 @@ export default function BrakesCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    {/* Radial backlight for dark logos - intensified */}
+                    {/* Radial white backlight for dark logos */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className={`w-[120%] h-[120%] transition-all duration-500 ${
-                        isDarkLogo(getBrandLogo(brand.name))
-                          ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
-                          : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
-                      }`} />
+                      <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
                     </div>
-                    <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
-                      <Image
-                        src={getBrandLogo(brand.name)}
-                        alt={brand.name}
-                        fill
-                        className="object-contain object-center transition-all duration-300 group-hover:scale-110"
-                        unoptimized
-                      />
+                    
+                    <div className="relative w-full h-full flex items-center justify-center opacity-90 group-hover:opacity-100 transition-all duration-500">
+                      <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                        <Image
+                          src={getBrandLogo(brand.name)}
+                          alt={brand.name}
+                          fill
+                          className="object-contain object-center transition-all duration-300 group-hover:scale-110"
+                          unoptimized
+                        />
+                      </div>
                     </div>
                   </div>
                   
@@ -365,19 +363,17 @@ export default function BrakesCategoryPage() {
               <div className="relative h-20 mb-6">
                 {/* Radial backlight for dark logos */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className={`w-[120%] h-[120%] ${
-                    isDarkLogo(getBrandLogo(selectedBrand.name))
-                      ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
-                      : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
-                  }`} />
+                  <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] rounded-full" />
                 </div>
-                <Image
-                  src={getBrandLogo(selectedBrand.name)}
-                  alt={selectedBrand.name}
-                  fill
-                  className="object-contain object-left"
-                  unoptimized
-                />
+                <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                  <Image
+                    src={getBrandLogo(selectedBrand.name)}
+                    alt={selectedBrand.name}
+                    fill
+                    className="object-contain object-left"
+                    unoptimized
+                  />
+                </div>
               </div>
               
               <h3 className="text-2xl font-light text-white mb-4">{selectedBrand.name}</h3>

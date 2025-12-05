@@ -538,8 +538,8 @@ export default function MotoPage() {
     }
     return {
       headline: {
-        en: `\${brand.name} — bespoke moto supply`,
-        ua: `\${brand.name} — індивідуальне постачання`,
+        en: `${brand.name} — bespoke moto supply`,
+        ua: `${brand.name} — індивідуальне постачання`,
       },
       description: {
         en: 'Expert sourcing, homologation paperwork and paddock-ready logistics directed from our Kyiv headquarters.',

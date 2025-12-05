@@ -70,7 +70,7 @@ export default function BrandsMarquee() {
           {featuredBrands.map((brand) => (
             <div
               key={brand.name}
-              className="flex items-center justify-center w-40 h-24 grayscale hover:grayscale-0 opacity-50 hover:opacity-100 transition-all duration-500"
+              className="flex items-center justify-center w-40 h-24 opacity-80 hover:opacity-100 transition-all duration-500"
             >
               <Image
                 src={brand.logo}

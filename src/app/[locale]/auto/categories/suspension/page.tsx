@@ -7,8 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { isDarkLogo } from '@/lib/darkLogos';
-import { ShockAbsorberIcon, CoiloverIcon, SwaybарIcon, BrakeDiscIcon, WheelIcon, TireIcon } from '@/components/icons/CategoryIcons';
+import { MoveVertical, Wind, ChevronsDown, Activity, Settings, Circle } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -123,7 +122,7 @@ const suspensionTypes = [
       en: 'Fully adjustable height and damping coilover kits for street, track and competition use.',
       ua: 'Повністю регульовані по висоті та жорсткості койловери для вулиці, треку та змагань.',
     },
-    icon: BrakeDiscIcon,
+    icon: MoveVertical,
     color: 'text-violet-400',
   },
   {
@@ -132,7 +131,7 @@ const suspensionTypes = [
       en: 'Adjustable air suspension systems with digital management for ultimate stance flexibility.',
       ua: 'Регульовані пневмопідвіски з цифровим управлінням для максимальної гнучкості стійки.',
     },
-    icon: CoiloverIcon,
+    icon: Wind,
     color: 'text-cyan-400',
   },
   {
@@ -141,7 +140,7 @@ const suspensionTypes = [
       en: 'Sport springs that lower ride height while maintaining factory damper compatibility.',
       ua: 'Спортивні пружини, що занижують авто зі збереженням сумісності із заводськими амортизаторами.',
     },
-    icon: ShockAbsorberIcon,
+    icon: ChevronsDown,
     color: 'text-emerald-400',
   },
   {
@@ -150,7 +149,7 @@ const suspensionTypes = [
       en: 'Anti-roll bars that reduce body roll and improve cornering stability and response.',
       ua: 'Стабілізатори поперечної стійкості, що зменшують крени та покращують стабільність у поворотах.',
     },
-    icon: SwaybарIcon,
+    icon: Activity,
     color: 'text-amber-400',
   },
   {
@@ -159,7 +158,7 @@ const suspensionTypes = [
       en: 'Adjustable camber arms and plates for proper alignment after lowering.',
       ua: 'Регульовані розвальні важелі та пластини для правильного розвалу після заниження.',
     },
-    icon: WheelIcon,
+    icon: Settings,
     color: 'text-blue-400',
   },
   {
@@ -168,7 +167,7 @@ const suspensionTypes = [
       en: 'Polyurethane and solid bushings for improved suspension response and reduced flex.',
       ua: 'Поліуретанові та суцільні втулки для покращеного відгуку підвіски та зменшення люфтів.',
     },
-    icon: TireIcon,
+    icon: Circle,
     color: 'text-red-400',
   },
 ];
@@ -281,23 +280,16 @@ export default function SuspensionCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    {/* Radial backlight for dark logos - intensified */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className={`w-[120%] h-[120%] transition-all duration-500 ${
-                        isDarkLogo(getBrandLogo(brand.name))
-                          ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
-                          : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
-                      }`} />
+                      <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
                     </div>
-                    <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
-                      <Image
-                        src={getBrandLogo(brand.name)}
-                        alt={brand.name}
-                        fill
-                        className="object-contain object-center transition-all duration-300 group-hover:scale-110"
-                        unoptimized
-                      />
-                    </div>
+                    <Image
+                      src={getBrandLogo(brand.name)}
+                      alt={brand.name}
+                      fill
+                      className="object-contain object-center transition-transform duration-500 group-hover:scale-110"
+                      unoptimized
+                    />
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>
@@ -383,13 +375,8 @@ export default function SuspensionCategoryPage() {
               </div>
               
               <div className="relative h-20 mb-6">
-                {/* Radial backlight for dark logos */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className={`w-[120%] h-[120%] ${
-                    isDarkLogo(getBrandLogo(selectedBrand.name))
-                      ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
-                      : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
-                  }`} />
+                  <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] rounded-full" />
                 </div>
                 <Image
                   src={getBrandLogo(selectedBrand.name)}

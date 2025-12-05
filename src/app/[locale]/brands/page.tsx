@@ -53,7 +53,7 @@ export default function BrandsPage() {
               </div>
 
               {/* Logo with unified sizing */}
-              <div className="relative w-full h-full flex items-center justify-center grayscale group-hover:grayscale-0 opacity-70 group-hover:opacity-100 transition-all duration-500">
+              <div className="relative w-full h-full flex items-center justify-center opacity-90 group-hover:opacity-100 transition-all duration-500">
                 <div className="relative w-full h-full p-2" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
                   <Image
                     src={logo}

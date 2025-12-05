@@ -7,8 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { isDarkLogo } from '@/lib/darkLogos';
-import { ExhaustSystemIcon, MufflerIcon, TurboIcon, CatIcon, EngineIcon, SpoilerIcon } from '@/components/icons/CategoryIcons';
+import { AudioWaveform, Wind, Volume2, Flame, Zap, Activity } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -103,7 +102,7 @@ const exhaustTypes = [
       en: 'Complete exhaust from headers to muffler in aerospace-grade titanium for maximum weight savings.',
       ua: 'Повний вихлоп від колекторів до глушника з аерокосмічного титану для максимального зниження ваги.',
     },
-    icon: ExhaustSystemIcon,
+    icon: AudioWaveform,
     color: 'text-amber-400',
   },
   {
@@ -112,7 +111,7 @@ const exhaustTypes = [
       en: 'Bolt-on replacement mufflers that retain factory headers for quick installation and improved sound.',
       ua: 'Глушники на заміну заводських з простим монтажем для швидкого встановлення та покращеного звуку.',
     },
-    icon: MufflerIcon,
+    icon: Wind,
     color: 'text-cyan-400',
   },
   {
@@ -121,7 +120,7 @@ const exhaustTypes = [
       en: 'High-flow racing headers without catalysts for track-only use and maximum power gains.',
       ua: 'Високопропускні гоночні колектори без каталізаторів для треку та максимального приросту потужності.',
     },
-    icon: TurboIcon,
+    icon: Volume2,
     color: 'text-orange-400',
   },
   {
@@ -130,7 +129,7 @@ const exhaustTypes = [
       en: 'Lightweight carbon fiber muffler bodies for heat resistance and aggressive styling.',
       ua: 'Легкі карбонові корпуси глушників для термостійкості та агресивного стайлінгу.',
     },
-    icon: CatIcon,
+    icon: Flame,
     color: 'text-zinc-400',
   },
   {
@@ -139,7 +138,7 @@ const exhaustTypes = [
       en: 'Street-legal systems with European type approval for daily riding and touring.',
       ua: 'Вуличні системи з європейською сертифікацією для щоденної їзди та туризму.',
     },
-    icon: EngineIcon,
+    icon: Zap,
     color: 'text-emerald-400',
   },
   {
@@ -148,7 +147,7 @@ const exhaustTypes = [
       en: 'Exact replica systems used by factory MotoGP teams for the ultimate exhaust experience.',
       ua: 'Точні репліки систем заводських команд MotoGP для найкращого вихлопного досвіду.',
     },
-    icon: SpoilerIcon,
+    icon: Activity,
     color: 'text-red-400',
   },
 ];
@@ -314,20 +313,21 @@ export default function MotoExhaustCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    {/* Radial backlight for dark logos */}
-                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
-                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    {/* Radial white backlight for dark logos */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
                     </div>
-                    <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
-                      <Image
-                        src={getBrandLogo(brand.name)}
-                        alt={brand.name}
-                        fill
-                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                        }`}
-                        unoptimized
-                      />
+                    
+                    <div className="relative w-full h-full flex items-center justify-center opacity-90 group-hover:opacity-100 transition-all duration-500">
+                      <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                        <Image
+                          src={getBrandLogo(brand.name)}
+                          alt={brand.name}
+                          fill
+                          className="object-contain object-center transition-all duration-300 group-hover:scale-110"
+                          unoptimized
+                        />
+                      </div>
                     </div>
                   </div>
                   
@@ -414,15 +414,18 @@ export default function MotoExhaustCategoryPage() {
               </div>
               
               <div className="relative h-20 mb-6">
-                <Image
-                  src={getBrandLogo(selectedBrand.name)}
-                  alt={selectedBrand.name}
-                  fill
-                  className={`object-contain object-left ${
-                    isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''
-                  }`}
-                  unoptimized
-                />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] rounded-full" />
+                </div>
+                <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                  <Image
+                    src={getBrandLogo(selectedBrand.name)}
+                    alt={selectedBrand.name}
+                    fill
+                    className="object-contain object-left"
+                    unoptimized
+                  />
+                </div>
               </div>
               
               <h3 className="text-2xl font-light text-white mb-4">{selectedBrand.name}</h3>

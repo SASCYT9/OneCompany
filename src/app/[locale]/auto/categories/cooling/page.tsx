@@ -7,8 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { isDarkLogo } from '@/lib/darkLogos';
-import { RadiatorIcon, IntercoolerIcon, WaterPumpIcon, TurboIcon, AirFilterIcon, EngineIcon } from '@/components/icons/CategoryIcons';
+import { Thermometer, Wind, Droplets, Fan, Waves, Zap } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -123,7 +122,7 @@ const coolingTypes = [
       en: 'Aluminum performance radiators with increased core thickness and tube rows for enhanced cooling.',
       ua: 'Алюмінієві performance радіатори зі збільшеною товщиною ядра та рядами трубок для кращого охолодження.',
     },
-    icon: RadiatorIcon,
+    icon: Thermometer,
     color: 'text-red-400',
   },
   {
@@ -132,7 +131,7 @@ const coolingTypes = [
       en: 'Front-mount and top-mount intercoolers for reduced intake air temperatures.',
       ua: 'Фронтальні та верхні інтеркулери для зниження температури впускного повітря.',
     },
-    icon: IntercoolerIcon,
+    icon: Wind,
     color: 'text-cyan-400',
   },
   {
@@ -141,7 +140,7 @@ const coolingTypes = [
       en: 'Engine and transmission oil coolers for maintaining optimal lubricant temperatures.',
       ua: 'Маслоохолоджувачі двигуна та трансмісії для підтримки оптимальної температури мастила.',
     },
-    icon: WaterPumpIcon,
+    icon: Droplets,
     color: 'text-amber-400',
   },
   {
@@ -150,7 +149,7 @@ const coolingTypes = [
       en: 'High-temperature silicone coolant hoses with improved pressure ratings and custom colors.',
       ua: 'Високотемпературні силіконові патрубки з покращеними характеристиками тиску та кастомними кольорами.',
     },
-    icon: AirFilterIcon,
+    icon: Waves,
     color: 'text-blue-400',
   },
   {
@@ -159,7 +158,7 @@ const coolingTypes = [
       en: 'High-CFM electric cooling fans with digital controllers for precise temperature management.',
       ua: 'Високопродуктивні електро вентилятори з цифровими контролерами для точного управління температурою.',
     },
-    icon: TurboIcon,
+    icon: Fan,
     color: 'text-violet-400',
   },
   {
@@ -168,7 +167,7 @@ const coolingTypes = [
       en: 'High-flow mechanical and electric water pumps for improved coolant circulation.',
       ua: 'Високопропускні механічні та електричні помпи для покращеної циркуляції охолоджувача.',
     },
-    icon: EngineIcon,
+    icon: Zap,
     color: 'text-emerald-400',
   },
 ];
@@ -281,22 +280,21 @@ export default function CoolingCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    {/* Radial backlight for dark logos - intensified */}
+                    {/* Radial white backlight for dark logos */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className={`w-[120%] h-[120%] transition-all duration-500 ${
-                        isDarkLogo(getBrandLogo(brand.name))
-                          ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
-                          : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
-                      }`} />
+                      <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
                     </div>
-                    <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
-                      <Image
-                        src={getBrandLogo(brand.name)}
-                        alt={brand.name}
-                        fill
-                        className="object-contain object-center transition-all duration-300 group-hover:scale-110"
-                        unoptimized
-                      />
+                    
+                    <div className="relative w-full h-full flex items-center justify-center opacity-90 group-hover:opacity-100 transition-all duration-500">
+                      <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                        <Image
+                          src={getBrandLogo(brand.name)}
+                          alt={brand.name}
+                          fill
+                          className="object-contain object-center transition-all duration-300 group-hover:scale-110"
+                          unoptimized
+                        />
+                      </div>
                     </div>
                   </div>
                   
@@ -385,19 +383,17 @@ export default function CoolingCategoryPage() {
               <div className="relative h-20 mb-6">
                 {/* Radial backlight for dark logos */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className={`w-[120%] h-[120%] ${
-                    isDarkLogo(getBrandLogo(selectedBrand.name))
-                      ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
-                      : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
-                  }`} />
+                  <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] rounded-full" />
                 </div>
-                <Image
-                  src={getBrandLogo(selectedBrand.name)}
-                  alt={selectedBrand.name}
-                  fill
-                  className="object-contain object-left"
-                  unoptimized
-                />
+                <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                  <Image
+                    src={getBrandLogo(selectedBrand.name)}
+                    alt={selectedBrand.name}
+                    fill
+                    className="object-contain object-left"
+                    unoptimized
+                  />
+                </div>
               </div>
               
               <h3 className="text-2xl font-light text-white mb-4">{selectedBrand.name}</h3>

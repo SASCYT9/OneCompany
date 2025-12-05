@@ -7,8 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { isDarkLogo } from '@/lib/darkLogos';
-import { ECUIcon, TurboIcon, EngineIcon, IntercoolerIcon, ExhaustSystemIcon, AirFilterIcon } from '@/components/icons/CategoryIcons';
+import { Cpu, Rocket, Zap, Activity, Droplets, Gauge } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -143,7 +142,7 @@ const performanceTypes = [
       en: 'Software calibrations for enhanced power, torque curves and throttle response.',
       ua: 'Програмні калібрування для збільшеної потужності, кривих крутного моменту та відгуку дроселя.',
     },
-    icon: ECUIcon,
+    icon: Cpu,
     color: 'text-cyan-400',
   },
   {
@@ -152,7 +151,7 @@ const performanceTypes = [
       en: 'Hybrid turbos, turbo kits and complete forced induction solutions.',
       ua: 'Гібридні турбіни, турбо кіти та комплексні рішення примусової індукції.',
     },
-    icon: TurboIcon,
+    icon: Rocket,
     color: 'text-blue-400',
   },
   {
@@ -161,7 +160,7 @@ const performanceTypes = [
       en: 'Centrifugal and positive displacement supercharger systems for instant power.',
       ua: 'Центробіжні та роторні компресорні системи для миттєвої потужності.',
     },
-    icon: EngineIcon,
+    icon: Zap,
     color: 'text-amber-400',
   },
   {
@@ -170,7 +169,7 @@ const performanceTypes = [
       en: 'Forged pistons, rods, crankshafts and valve train upgrades for high power builds.',
       ua: 'Ковані поршні, шатуни, колінвали та апгрейди клапанного механізму для потужних білдів.',
     },
-    icon: IntercoolerIcon,
+    icon: Activity,
     color: 'text-violet-400',
   },
   {
@@ -179,7 +178,7 @@ const performanceTypes = [
       en: 'High-flow injectors, fuel pumps, rails and flex fuel systems.',
       ua: 'Високопропускні форсунки, паливні насоси, рейки та flex fuel системи.',
     },
-    icon: ExhaustSystemIcon,
+    icon: Droplets,
     color: 'text-red-400',
   },
   {
@@ -188,7 +187,7 @@ const performanceTypes = [
       en: 'Wideband O2, boost gauges, data loggers and dash displays.',
       ua: 'Широкосмугові O2, буст-датчики, логери даних та дисплеї.',
     },
-    icon: AirFilterIcon,
+    icon: Gauge,
     color: 'text-emerald-400',
   },
 ];
@@ -301,23 +300,16 @@ export default function PerformanceCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    {/* Radial backlight for dark logos - intensified */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className={`w-[120%] h-[120%] transition-all duration-500 ${
-                        isDarkLogo(getBrandLogo(brand.name))
-                          ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
-                          : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
-                      }`} />
+                      <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
                     </div>
-                    <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
-                      <Image
-                        src={getBrandLogo(brand.name)}
-                        alt={brand.name}
-                        fill
-                        className="object-contain object-center transition-all duration-300 group-hover:scale-110"
-                        unoptimized
-                      />
-                    </div>
+                    <Image
+                      src={getBrandLogo(brand.name)}
+                      alt={brand.name}
+                      fill
+                      className="object-contain object-center transition-transform duration-500 group-hover:scale-110"
+                      unoptimized
+                    />
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>
@@ -403,13 +395,8 @@ export default function PerformanceCategoryPage() {
               </div>
               
               <div className="relative h-20 mb-6">
-                {/* Radial backlight for dark logos */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className={`w-[120%] h-[120%] ${
-                    isDarkLogo(getBrandLogo(selectedBrand.name))
-                      ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
-                      : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
-                  }`} />
+                  <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] rounded-full" />
                 </div>
                 <Image
                   src={getBrandLogo(selectedBrand.name)}

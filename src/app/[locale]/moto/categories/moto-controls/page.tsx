@@ -7,8 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { isDarkLogo } from '@/lib/darkLogos';
-import { TireIcon, WheelIcon, SteeringWheelIcon, ECUIcon, SeatIcon, CaliperIcon } from '@/components/icons/CategoryIcons';
+import { MoveVertical, MoveHorizontal, Settings, Zap, Circle, Triangle } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -103,7 +102,7 @@ const controlTypes = [
       en: 'Adjustable rider foot pegs with multiple position options for aggressive or comfortable riding positions.',
       ua: 'Регульовані підніжки райдера з багатьма позиціями для агресивної або комфортної посадки.',
     },
-    icon: TireIcon,
+    icon: MoveVertical,
     color: 'text-cyan-400',
   },
   {
@@ -112,7 +111,7 @@ const controlTypes = [
       en: 'Replacement handlebars that mount below triple clamps for sportbike ergonomics.',
       ua: 'Кермові кріплення, що монтуються під траверсами для спортбайкової ергономіки.',
     },
-    icon: WheelIcon,
+    icon: MoveHorizontal,
     color: 'text-red-400',
   },
   {
@@ -121,7 +120,7 @@ const controlTypes = [
       en: 'Adjustable and folding brake levers with reach adjustment for precise finger placement.',
       ua: 'Регульовані та складні гальмівні важелі з налаштуванням вильоту для точного розташування пальців.',
     },
-    icon: SteeringWheelIcon,
+    icon: Settings,
     color: 'text-violet-400',
   },
   {
@@ -130,7 +129,7 @@ const controlTypes = [
       en: 'Electronic shift sensors for clutchless upshifts and downshifts on track and street.',
       ua: 'Електронні датчики перемикання для беззчепленнєвих перемикань вгору та вниз на треку та вулиці.',
     },
-    icon: ECUIcon,
+    icon: Zap,
     color: 'text-amber-400',
   },
   {
@@ -139,7 +138,7 @@ const controlTypes = [
       en: 'Replacement grips and weighted bar-ends for vibration reduction and style.',
       ua: 'Замінні грипси та баренди з важелями для зменшення вібрації та стилю.',
     },
-    icon: SeatIcon,
+    icon: Circle,
     color: 'text-emerald-400',
   },
   {
@@ -148,7 +147,7 @@ const controlTypes = [
       en: 'Billet aluminum triple clamps with adjustable offset and reduced flex.',
       ua: 'Білетні алюмінієві траверси з регульованим офсетом та зменшеним прогином.',
     },
-    icon: CaliperIcon,
+    icon: Triangle,
     color: 'text-orange-400',
   },
 ];
@@ -314,21 +313,16 @@ export default function MotoControlsCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    {/* Radial backlight for dark logos */}
-                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
-                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
                     </div>
-                    <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
-                      <Image
-                        src={getBrandLogo(brand.name)}
-                        alt={brand.name}
-                        fill
-                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                        }`}
-                        unoptimized
-                      />
-                    </div>
+                    <Image
+                      src={getBrandLogo(brand.name)}
+                      alt={brand.name}
+                      fill
+                      className="object-contain object-center transition-transform duration-500 group-hover:scale-110"
+                      unoptimized
+                    />
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>
@@ -414,13 +408,14 @@ export default function MotoControlsCategoryPage() {
               </div>
               
               <div className="relative h-20 mb-6">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] rounded-full" />
+                </div>
                 <Image
                   src={getBrandLogo(selectedBrand.name)}
                   alt={selectedBrand.name}
                   fill
-                  className={`object-contain object-left ${
-                    isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''
-                  }`}
+                  className="object-contain object-center"
                   unoptimized
                 />
               </div>

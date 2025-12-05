@@ -472,36 +472,42 @@
     "submitting": "Sending..."
   },
   "partnershipPage": {
-    "hero": {
-      "eyebrow": "Become a Partner",
-      "heading": "Grow Your Business With Us",
-      "subheading": "Join the global OneCompany network. We offer favorable conditions for service stations, dealers, detailing studios and tuning shops."
+    "title": "Become a Partner",
+    "description": "Join the global OneCompany network. We offer favorable conditions for service stations, dealers, detailing studios and tuning shops.",
+    "benefits": {
+      "official": {
+        "title": "Official Distributor",
+        "description": "Direct supplies from manufacturers without intermediaries."
+      },
+      "logistics": {
+        "title": "Global Logistics",
+        "description": "Delivery from anywhere in the world in the shortest possible time."
+      },
+      "support": {
+        "title": "Technical Support",
+        "description": "Expert advice and assistance in selecting parts."
+      }
     },
     "form": {
-      "typeLabel": "Partnership Type",
-      "types": {
-        "sto": "Service Station",
-        "dealer": "Auto/Moto Dealer",
-        "detailing": "Detailing Studio",
-        "tuning": "Tuning Atelier",
-        "other": "Other"
-      },
-      "companyLabel": "Company Name",
-      "companyPlaceholder": "Your Company",
-      "websiteLabel": "Website / Social Media",
-      "optional": "(optional)",
-      "contactPersonLabel": "Contact Person",
-      "contactPersonPlaceholder": "Full Name",
-      "emailLabel": "Email",
-      "phoneLabel": "Phone",
-      "messageLabel": "Message",
+      "companyName": "Company Name",
+      "website": "Website",
+      "contactPerson": "Contact Person",
+      "email": "Email",
+      "phone": "Phone",
+      "type": "Partnership Type",
+      "message": "Message",
       "messagePlaceholder": "Tell us about your proposal...",
-      "progressLabel": "Progress",
       "submit": "Submit Application",
-      "submitting": "Sending...",
-      "success": "Thank you! Your application has been received.",
-      "error": "Something went wrong. Please try again.",
-      "connectionError": "Unable to send. Check your connection."
-    }
+      "submitting": "Sending..."
+    },
+    "types": {
+      "sto": "Service Station",
+      "dealer": "Auto/Moto Dealer",
+      "detailing": "Detailing Studio",
+      "tuning": "Tuning Atelier",
+      "other": "Other"
+    },
+    "successMessage": "Thank you! Your application has been received.",
+    "errorMessage": "Something went wrong. Please try again."
   }
 }

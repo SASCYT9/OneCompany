@@ -7,8 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { isDarkLogo } from '@/lib/darkLogos';
-import { CarbonIcon, AlcantaraIcon, SteeringWheelIcon, LeatherIcon, SeatIcon, RollCageIcon } from '@/components/icons/CategoryIcons';
+import { Layers, Shield, Wind, Box, Activity, Flame } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -103,7 +102,7 @@ const carbonTypes = [
       en: 'Complete race fairing sets with upper, lowers and belly pan for track transformation.',
       ua: 'Повні гоночні комплекти обтічників з верхнім, нижніми та піддоном для трекової трансформації.',
     },
-    icon: CarbonIcon,
+    icon: Layers,
     color: 'text-red-400',
   },
   {
@@ -112,7 +111,7 @@ const carbonTypes = [
       en: 'Carbon fiber tank covers and protectors for scratch protection and weight savings.',
       ua: 'Карбонові накладки та протектори бака для захисту від подряпин та зниження ваги.',
     },
-    icon: AlcantaraIcon,
+    icon: Shield,
     color: 'text-cyan-400',
   },
   {
@@ -121,7 +120,7 @@ const carbonTypes = [
       en: 'Front and rear fenders in carbon or fiberglass for lighter unsprung weight.',
       ua: 'Передні та задні крила з карбону або склопластику для легшої непідресореної маси.',
     },
-    icon: SteeringWheelIcon,
+    icon: Wind,
     color: 'text-violet-400',
   },
   {
@@ -130,7 +129,7 @@ const carbonTypes = [
       en: 'Carbon fiber frame sliders and covers for crash protection with minimal weight.',
       ua: 'Карбонові слайдери та накладки рами для захисту від падінь з мінімальною вагою.',
     },
-    icon: LeatherIcon,
+    icon: Box,
     color: 'text-amber-400',
   },
   {
@@ -139,7 +138,7 @@ const carbonTypes = [
       en: 'Carbon swingarm protectors and chain guard covers for rear-end protection.',
       ua: 'Карбонові протектори маятника та накладки ланцюгозахисту для захисту задньої частини.',
     },
-    icon: SeatIcon,
+    icon: Activity,
     color: 'text-emerald-400',
   },
   {
@@ -148,7 +147,7 @@ const carbonTypes = [
       en: 'Exhaust heat shields and engine covers in carbon for heat management and style.',
       ua: 'Теплозахисні екрани вихлопу та накладки двигуна з карбону для управління теплом та стилю.',
     },
-    icon: RollCageIcon,
+    icon: Flame,
     color: 'text-orange-400',
   },
 ];
@@ -314,21 +313,16 @@ export default function MotoCarbonCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    {/* Radial backlight for dark logos */}
-                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
-                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
                     </div>
-                    <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
-                      <Image
-                        src={getBrandLogo(brand.name)}
-                        alt={brand.name}
-                        fill
-                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                        }`}
-                        unoptimized
-                      />
-                    </div>
+                    <Image
+                      src={getBrandLogo(brand.name)}
+                      alt={brand.name}
+                      fill
+                      className="object-contain object-center transition-transform duration-500 group-hover:scale-110"
+                      unoptimized
+                    />
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>
@@ -414,13 +408,14 @@ export default function MotoCarbonCategoryPage() {
               </div>
               
               <div className="relative h-20 mb-6">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] rounded-full" />
+                </div>
                 <Image
                   src={getBrandLogo(selectedBrand.name)}
                   alt={selectedBrand.name}
                   fill
-                  className={`object-contain object-left ${
-                    isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''
-                  }`}
+                  className="object-contain object-center"
                   unoptimized
                 />
               </div>

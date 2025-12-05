@@ -134,7 +134,7 @@ export default function ContactPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="mx-auto w-full max-w-2xl rounded-2xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-3xl sm:rounded-3xl sm:p-10 md:rounded-[32px] md:p-12 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
+              className="mx-auto w-full max-w-3xl rounded-2xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-3xl sm:rounded-3xl sm:p-10 md:rounded-[32px] md:p-12 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
             >
               <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7 md:space-y-8">
                 {/* Progress bar */}

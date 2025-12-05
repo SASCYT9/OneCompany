@@ -7,8 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { isDarkLogo } from '@/lib/darkLogos';
-import { ShockAbsorberIcon, CoiloverIcon, BrakeDiscIcon, WheelIcon, TireIcon, SwaybарIcon } from '@/components/icons/CategoryIcons';
+import { MoveVertical, Activity, Columns, MoveHorizontal, ChevronsDown, Settings } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -103,7 +102,7 @@ const suspensionTypes = [
       en: 'Pressurized or open cartridge kits that replace stock internals for adjustable damping.',
       ua: 'Газові або відкриті картриджні кіти на заміну стокових внутрішностей для регульованого демпфування.',
     },
-    icon: ShockAbsorberIcon,
+    icon: MoveVertical,
     color: 'text-cyan-400',
   },
   {
@@ -112,7 +111,7 @@ const suspensionTypes = [
       en: 'Fully adjustable mono-shocks with high/low speed compression and rebound control.',
       ua: 'Повністю регульовані моноамортизатори з контролем стиснення на високій/низькій швидкості та відбоєм.',
     },
-    icon: CoiloverIcon,
+    icon: Activity,
     color: 'text-violet-400',
   },
   {
@@ -121,7 +120,7 @@ const suspensionTypes = [
       en: 'Race-spec fork assemblies with prestige internals and custom spring rates.',
       ua: 'Гоночні вилки в зборі з преміальними внутрішностями та кастомними пружинами.',
     },
-    icon: BrakeDiscIcon,
+    icon: Columns,
     color: 'text-amber-400',
   },
   {
@@ -130,7 +129,7 @@ const suspensionTypes = [
       en: 'Rotary and linear steering dampers for high-speed stability and headshake prevention.',
       ua: 'Ротаційні та лінійні стабілізатори керма для стабільності на швидкості та запобігання розгойдуванню.',
     },
-    icon: WheelIcon,
+    icon: MoveHorizontal,
     color: 'text-emerald-400',
   },
   {
@@ -139,7 +138,7 @@ const suspensionTypes = [
       en: 'Ride height adjusters and dog-bone links for custom ergonomics and stance.',
       ua: 'Регулятори висоти посадки та лінки для кастомної ергономіки та стійки.',
     },
-    icon: TireIcon,
+    icon: ChevronsDown,
     color: 'text-blue-400',
   },
   {
@@ -148,7 +147,7 @@ const suspensionTypes = [
       en: 'Fork and shock rebuilds, revalving, spring changes and dyno testing.',
       ua: 'Ребілд вилок та амортизаторів, ревалвінг, заміна пружин та діно-тестування.',
     },
-    icon: SwaybарIcon,
+    icon: Settings,
     color: 'text-orange-400',
   },
 ];
@@ -314,21 +313,16 @@ export default function MotoSuspensionCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    {/* Radial backlight for dark logos */}
-                    <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
-                      <div className="w-[80%] h-[100%] bg-[radial-gradient(ellipse,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(ellipse,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500" />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
                     </div>
-                    <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
-                      <Image
-                        src={getBrandLogo(brand.name)}
-                        alt={brand.name}
-                        fill
-                        className={`object-contain object-left transition-all duration-300 group-hover:scale-105 ${
-                          isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''
-                        }`}
-                        unoptimized
-                      />
-                    </div>
+                    <Image
+                      src={getBrandLogo(brand.name)}
+                      alt={brand.name}
+                      fill
+                      className="object-contain object-center transition-transform duration-500 group-hover:scale-110"
+                      unoptimized
+                    />
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>
@@ -414,13 +408,14 @@ export default function MotoSuspensionCategoryPage() {
               </div>
               
               <div className="relative h-20 mb-6">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] rounded-full" />
+                </div>
                 <Image
                   src={getBrandLogo(selectedBrand.name)}
                   alt={selectedBrand.name}
                   fill
-                  className={`object-contain object-left ${
-                    isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''
-                  }`}
+                  className="object-contain object-center"
                   unoptimized
                 />
               </div>

@@ -7,8 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { isDarkLogo } from '@/lib/darkLogos';
-import { WheelIcon, TireIcon, BrakeDiscIcon, CaliperIcon, CoiloverIcon, SpoilerIcon } from '@/components/icons/CategoryIcons';
+import { Disc, Layers, Wind, Hexagon, Feather, Flag } from 'lucide-react';
 
 type Locale = 'en' | 'ua';
 
@@ -143,7 +142,7 @@ const wheelTypes = [
       en: 'Single-piece forged from aerospace-grade aluminum for ultimate strength and weight savings.',
       ua: 'Одноцільні, ковані з аерокосмічного алюмінію для максимальної міцності та економії ваги.',
     },
-    icon: WheelIcon,
+    icon: Disc,
     color: 'text-cyan-400',
   },
   {
@@ -152,7 +151,7 @@ const wheelTypes = [
       en: '2 or 3-piece construction allowing custom widths, offsets and lip configurations.',
       ua: '2 або 3-частинна конструкція для кастомної ширини, вильоту та конфігурації полки.',
     },
-    icon: TireIcon,
+    icon: Layers,
     color: 'text-violet-400',
   },
   {
@@ -161,7 +160,7 @@ const wheelTypes = [
       en: 'Cast center with forged barrel for near-forged strength at cast wheel pricing.',
       ua: 'Литий центр з кованим барелем для майже кованої міцності за ціною литих.',
     },
-    icon: BrakeDiscIcon,
+    icon: Wind,
     color: 'text-blue-400',
   },
   {
@@ -170,7 +169,7 @@ const wheelTypes = [
       en: 'Gravity or low-pressure cast wheels offering great value with proven designs.',
       ua: 'Гравітаційні або низькотискові литі диски з відмінним співвідношенням ціни та якості.',
     },
-    icon: CaliperIcon,
+    icon: Hexagon,
     color: 'text-amber-400',
   },
   {
@@ -179,7 +178,7 @@ const wheelTypes = [
       en: 'Cutting-edge carbon fiber wheels for extreme weight savings and exotic aesthetics.',
       ua: 'Найсучасніші карбонові диски для екстремальної економії ваги та екзотичної естетики.',
     },
-    icon: CoiloverIcon,
+    icon: Feather,
     color: 'text-red-400',
   },
   {
@@ -188,7 +187,7 @@ const wheelTypes = [
       en: 'Racing-specific wheels designed for endurance, sprint and circuit applications.',
       ua: 'Диски спеціально для перегонів — витривалість, спринт та кільцеві гонки.',
     },
-    icon: SpoilerIcon,
+    icon: Flag,
     color: 'text-emerald-400',
   },
 ];
@@ -301,23 +300,16 @@ export default function WheelsCategoryPage() {
                   </div>
                   
                   <div className="relative h-16 mb-4">
-                    {/* Radial backlight for dark logos - intensified */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className={`w-[120%] h-[120%] transition-all duration-500 ${
-                        isDarkLogo(getBrandLogo(brand.name))
-                          ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
-                          : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
-                      }`} />
+                      <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
                     </div>
-                    <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
-                      <Image
-                        src={getBrandLogo(brand.name)}
-                        alt={brand.name}
-                        fill
-                        className="object-contain object-center transition-all duration-300 group-hover:scale-110"
-                        unoptimized
-                      />
-                    </div>
+                    <Image
+                      src={getBrandLogo(brand.name)}
+                      alt={brand.name}
+                      fill
+                      className="object-contain object-center transition-transform duration-500 group-hover:scale-110"
+                      unoptimized
+                    />
                   </div>
                   
                   <h3 className="text-xl font-light text-white mb-2">{brand.name}</h3>
@@ -403,13 +395,8 @@ export default function WheelsCategoryPage() {
               </div>
               
               <div className="relative h-20 mb-6">
-                {/* Radial backlight for dark logos */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className={`w-[120%] h-[120%] ${
-                    isDarkLogo(getBrandLogo(selectedBrand.name))
-                      ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
-                      : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
-                  }`} />
+                  <div className="w-[120%] h-[120%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] rounded-full" />
                 </div>
                 <Image
                   src={getBrandLogo(selectedBrand.name)}
