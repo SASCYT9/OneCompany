@@ -1227,7 +1227,7 @@ export default function MotoPage() {
         )}
       </AnimatePresence>
 
-      <section className="relative border-b border-white/5 bg-black/60 py-12 sm:py-16 md:py-20">
+      {/* <section className="relative border-b border-white/5 bg-black/60 py-12 sm:py-16 md:py-20">
         <div className="absolute inset-x-0 top-0 mx-auto h-px w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-10 text-center sm:mb-12 md:mb-16">
@@ -1276,7 +1276,7 @@ export default function MotoPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* All Brands Section - Moved Down */}
       <section id="moto-brand-catalog" className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
