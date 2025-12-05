@@ -58,6 +58,7 @@ const TOP_MOTO_BRANDS = [
 ];
 
 // Legendary 9 moto brands for showcase section
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const LEGENDARY_MOTO_BRANDS = [
   'Akrapovic',
   'SC-Project', 
@@ -71,6 +72,7 @@ const LEGENDARY_MOTO_BRANDS = [
 ];
 
 // Brand metadata for legendary section
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const LEGENDARY_MOTO_CONFIG: Record<string, {
   country: string;
   flag: string;
@@ -275,6 +277,7 @@ const motoModuleCards: MotoModuleCard[] = [
   },
 ];
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const pitCrewChecklist: PitChecklistItem[] = [
   {
     label: {

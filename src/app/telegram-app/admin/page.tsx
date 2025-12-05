@@ -300,7 +300,7 @@ export default function TelegramAdminPage() {
   }, [tg, viewMode]);
   
   // Theme-aware colors
-  const isDark = tg?.colorScheme === 'dark' || true;
+  // const isDark = tg?.colorScheme === 'dark' || true;
   const bgColor = tg?.themeParams?.bg_color || '#000000';
   const textColor = tg?.themeParams?.text_color || '#ffffff';
   const secondaryBg = tg?.themeParams?.secondary_bg_color || '#1a1a1a';

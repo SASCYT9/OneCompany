@@ -17,7 +17,7 @@ interface NavigatorWithConnection extends Navigator {
 export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true }: { src: string, mobileSrc?: string, poster?: string, serverEnabled?: boolean }) {
   const [disabled, setDisabled] = useState(false);
   // Always load hero video immediately - no lazy loading for LCP element
-  const [shouldLoad, setShouldLoad] = useState(true);
+  const [shouldLoad] = useState(true);
   const ref = useRef<HTMLDivElement | null>(null);
   const t = useTranslations('admin');
 

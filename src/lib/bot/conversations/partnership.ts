@@ -1,7 +1,7 @@
 // Partnership form conversation
 import type { BotConversation, BotContext, PartnershipType } from '../types';
 import { prisma } from '../storage';
-import { notifyAdminsNewMessage } from '../notifications';
+// import { notifyAdminsNewMessage } from '../notifications';
 import { InlineKeyboard } from 'grammy';
 
 // Email validation regex

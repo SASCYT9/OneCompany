@@ -27,7 +27,7 @@ export async function readVideoConfig(): Promise<VideoConfig> {
     const data = await fs.readFile(configPath, 'utf-8');
     const parsed = JSON.parse(data) as VideoConfig;
     return { ...defaultConfig, ...parsed };
-  } catch (error) {
+  } catch {
     // If file doesn't exist or fails to parse, return defaults
     // Do not attempt to create file in production/read-only environments
     return defaultConfig;

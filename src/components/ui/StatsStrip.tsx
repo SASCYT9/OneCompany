@@ -7,7 +7,7 @@ export default function StatsStrip() {
   const { locale } = useLanguage();
   const years = yearsOfExcellence();
 
-  const fmt = (n: number) => locale === 'ua' ? n.toLocaleString('uk-UA') : n.toLocaleString('en-US');
+  // const fmt = (n: number) => locale === 'ua' ? n.toLocaleString('uk-UA') : n.toLocaleString('en-US');
 
   const items = [
     {

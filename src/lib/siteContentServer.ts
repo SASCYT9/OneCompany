@@ -44,7 +44,7 @@ export async function readSiteContent(): Promise<SiteContent> {
         moto: parsed.brandSections?.moto ?? defaultSiteContent.brandSections.moto,
       },
     };
-  } catch (error) {
+  } catch {
     // If file doesn't exist or fails to parse, return defaults
     // Do not attempt to create file in production/read-only environments
     return defaultSiteContent;

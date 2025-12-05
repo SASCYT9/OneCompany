@@ -11,6 +11,7 @@ export type ReminderType =
   | 'scheduled'             // Custom scheduled message
   | 'daily_digest';         // Daily summary for admins
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 interface Reminder {
   id: string;
   type: ReminderType;

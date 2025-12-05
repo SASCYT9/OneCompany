@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, Volume2, Shield, Moon, Smartphone, Check } from 'lucide-react';
+import { Bell, Shield } from 'lucide-react';
 
 export default function SettingsPage() {
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  // const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState('default');
 
@@ -16,7 +16,7 @@ export default function SettingsPage() {
     // Check notification permission
     if ('Notification' in window) {
       setPermissionStatus(Notification.permission);
-      setNotificationsEnabled(Notification.permission === 'granted');
+      // setNotificationsEnabled(Notification.permission === 'granted');
     }
   }, []);
 
@@ -29,7 +29,7 @@ export default function SettingsPage() {
     try {
       const permission = await Notification.requestPermission();
       setPermissionStatus(permission);
-      setNotificationsEnabled(permission === 'granted');
+      // setNotificationsEnabled(permission === 'granted');
       
       if (permission === 'granted') {
         new Notification('OneCompany Admin', {
@@ -49,7 +49,7 @@ export default function SettingsPage() {
     
     if (newState) {
       // Play a test sound
-      const audio = new Audio('/sounds/notification.mp3'); // We might need to add this file or use a data URI
+      // const audio = new Audio('/sounds/notification.mp3'); // We might need to add this file or use a data URI
       // Fallback beep if file doesn't exist
       // audio.play().catch(() => {});
     }

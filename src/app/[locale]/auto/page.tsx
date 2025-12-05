@@ -259,6 +259,7 @@ const curatedBrandStories: Record<string, BrandStory> = {
 const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto');
 
 // Brand configurations for the legendary grid
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const LEGENDARY_BRAND_CONFIG: Record<string, {
   flag: string;
   country: string;

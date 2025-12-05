@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import ProductCard from '@/components/products/ProductCard';
-import { buildPageMetadata, resolveLocale, type SupportedLocale } from '@/lib/seo';
+import { buildPageMetadata, resolveLocale } from '@/lib/seo';
 
 interface BrandDetailPageProps {
   params: Promise<{

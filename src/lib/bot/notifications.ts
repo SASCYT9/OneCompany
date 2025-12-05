@@ -149,7 +149,7 @@ ${changedBy ? `👤 <b>Змінив:</b> ${escapeHtml(changedBy)}` : ''}
         await bot.api.sendMessage(admin.telegramId.toString(), text, {
           parse_mode: 'HTML',
         });
-      } catch (error) {
+      } catch {
         // Silently ignore - admin might have blocked the bot
       }
     }

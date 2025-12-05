@@ -39,7 +39,7 @@ export async function readSiteMedia(): Promise<SiteMedia> {
         eventuri: mergeStoreSection('eventuri', parsed.stores?.eventuri),
       },
     };
-  } catch (error) {
+  } catch {
     // If file doesn't exist or fails to parse, return defaults
     // Do not attempt to create file in production/read-only environments
     return defaultSiteMedia;

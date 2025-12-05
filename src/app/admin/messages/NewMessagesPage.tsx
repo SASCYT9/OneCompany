@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Send, Trash2, X, RefreshCw, Mail, Phone, MessageCircle, ExternalLink } from 'lucide-react';
+import { Search, Send, Trash2, X, RefreshCw, Mail, MessageCircle } from 'lucide-react';
 
 interface Message {
   id: string;
