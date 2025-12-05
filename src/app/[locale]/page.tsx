@@ -4,6 +4,8 @@ import clsx from "clsx";
 import { getTranslations } from "next-intl/server";
 import { Globe } from "lucide-react";
 
+export { generateMetadata } from './metadata';
+
 type ExperienceSplit = {
   label: string;
   title: string;

@@ -16,7 +16,7 @@ const localeToOg: Record<SupportedLocale, string> = {
   en: "en_US",
 };
 
-const defaultOgImage = "/branding/one-company-logo.svg";
+const defaultOgImage = "/branding/og-image.png";
 
 export function resolveLocale(locale?: string): SupportedLocale {
   return siteConfig.locales.includes(locale as SupportedLocale)
