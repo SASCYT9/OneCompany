@@ -216,3 +216,37 @@ export function LocalBusinessSchema({ locale = "ua" }: LocalBusinessSchemaProps)
     />
   );
 }
+
+interface BrandSchemaProps {
+  name: string;
+  description: string;
+  url: string;
+  logo?: string;
+  country?: string;
+}
+
+export function BrandSchema({ name, description, url, logo, country }: BrandSchemaProps) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Brand",
+    name: name,
+    description: description,
+    url: url,
+    logo: logo,
+    ...(country && {
+      address: {
+        "@type": "PostalAddress",
+        addressCountry: country,
+      },
+    }),
+  };
+
+  return (
+    <Script
+      id={`brand-schema-${name.toLowerCase().replace(/\s+/g, '-')}`}
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+

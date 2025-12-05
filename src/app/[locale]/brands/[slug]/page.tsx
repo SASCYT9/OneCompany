@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ProductCard from '@/components/products/ProductCard';
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
+import { BrandSchema, BreadcrumbSchema } from '@/components/seo/StructuredData';
 
 interface BrandDetailPageProps {
   params: Promise<{
@@ -78,6 +79,15 @@ export default async function BrandDetailPage({ params }: BrandDetailPageProps) 
   
   const logoSrc = getBrandLogo(brand.name);
   const isMoto = brand.category === 'moto';
+  const brandMeta = getBrandMetadata(brand.name);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
+  const currentUrl = `${baseUrl}/${locale}/brands/${slug}`;
+
+  const breadcrumbs = [
+    { name: locale === 'ua' ? 'Головна' : 'Home', url: `${baseUrl}/${locale}` },
+    { name: locale === 'ua' ? 'Бренди' : 'Brands', url: `${baseUrl}/${locale}/brands` },
+    { name: brand.name, url: currentUrl },
+  ];
   
   // Get related brands from the same category (max 8)
   const relatedBrands = (isMoto ? allMotoBrands : allAutomotiveBrands)
@@ -91,6 +101,14 @@ export default async function BrandDetailPage({ params }: BrandDetailPageProps) 
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
+      <BrandSchema 
+        name={brand.name}
+        description={brand.description || (locale === 'ua' ? `Офіційний імпортер ${brand.name} в Україні` : `Official ${brand.name} importer in Ukraine`)}
+        url={currentUrl}
+        logo={`${baseUrl}${logoSrc}`}
+        country={brandMeta?.country}
+      />
+      <BreadcrumbSchema items={breadcrumbs} />
       {/* Full-Screen Hero with Brand Logo */}
       <div className="relative h-screen flex items-center justify-center overflow-hidden bg-zinc-100 dark:bg-zinc-950">
         {/* Background Pattern */}
