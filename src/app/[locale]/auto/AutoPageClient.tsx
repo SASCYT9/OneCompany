@@ -1139,7 +1139,7 @@ export default function AutomotivePage() {
                   key={brand.name}
                   onClick={() => setSelectedBrand(brand)}
                   whileHover={{ y: -6 }}
-                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-left transition backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-5 md:p-6"
+                  className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-4 text-left transition backdrop-blur-3xl shadow-sm hover:bg-white/20 hover:border-white/30 hover:shadow-md sm:rounded-3xl sm:p-5 md:p-6"
                 >
                   <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                     background:
@@ -1157,27 +1157,19 @@ export default function AutomotivePage() {
                     </div>
                     <span className="text-white/70 group-hover:text-white">↗</span>
                   </div>
-                  <div className="relative mt-3 h-16 sm:mt-4 sm:h-20">
-                    {/* Radial backlight for dark logos */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className={`w-[120%] h-[120%] transition-all duration-500 ${
-                        isDark 
-                          ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
-                          : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
-                      }`} />
-                    </div>
-                    <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
+                  <div className="relative mt-4 h-20 sm:mt-6 sm:h-24">
+                    <div className="relative w-full h-full">
                       <Image
                         src={logoSrc}
                         alt={brand.name}
                         fill
-                        className="object-contain"
+                        className={`object-contain ${isDark ? 'brightness-0 invert' : ''}`}
                         sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                         unoptimized
                       />
                     </div>
                   </div>
-                  <div className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{brand.name}</div>
+                  <div className="mt-4 text-xl font-light text-white sm:mt-6 sm:text-2xl">{brand.name}</div>
                   <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
                     {collections.length > 0
                       ? collections.slice(0, 3).map((collection) => (
@@ -1246,26 +1238,18 @@ export default function AutomotivePage() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="mx-4 mt-6 max-w-4xl overflow-y-auto rounded-2xl border border-white/10 bg-gradient-to-br from-black to-white/[0.05] p-5 text-white shadow-2xl sm:mx-auto sm:mt-10 sm:rounded-3xl sm:p-6 md:mt-16 md:rounded-[32px] md:p-8"
+              className="mx-4 mt-6 max-w-4xl overflow-y-auto rounded-2xl border border-white/20 bg-zinc-900 p-5 text-white shadow-2xl sm:mx-auto sm:mt-10 sm:rounded-3xl sm:p-6 md:mt-16 md:rounded-[32px] md:p-8"
               style={{ maxHeight: 'calc(100vh - 3rem)' }}
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-                <div className="relative h-16 w-40 sm:h-20 sm:w-48 md:h-24 md:w-56">
-                  {/* Radial backlight for dark logos */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className={`w-[120%] h-[120%] ${
-                      isDarkLogo(getBrandLogo(selectedBrand.name))
-                        ? 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.9)_0%,_rgba(255,255,255,0.6)_40%,_transparent_70%)]' 
-                        : 'bg-[radial-gradient(ellipse,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.1)_50%,_transparent_70%)]'
-                    }`} />
-                  </div>
-                  <div className="relative w-full h-full" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))' }}>
+                <div className="relative h-20 w-full sm:h-24 sm:w-64 md:h-28 md:w-72">
+                  <div className="relative w-full h-full">
                     <Image
                       src={getBrandLogo(selectedBrand.name)}
                       alt={selectedBrand.name}
                       fill
-                      className="object-contain"
-                      sizes="224px"
+                      className={`object-contain object-left sm:object-center ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''}`}
+                      sizes="(max-width: 640px) 100vw, 300px"
                       unoptimized
                     />
                   </div>

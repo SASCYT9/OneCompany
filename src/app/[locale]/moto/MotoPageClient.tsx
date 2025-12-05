@@ -1136,16 +1136,16 @@ export default function MotoPage() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="mx-auto mt-16 max-w-4xl rounded-[32px] border border-white/10 bg-gradient-to-br from-black to-white/[0.05] p-8 text-white shadow-2xl"
+              className="mx-auto mt-16 max-w-4xl rounded-[32px] border border-white/20 bg-zinc-900 p-8 text-white shadow-2xl"
             >
               <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                <div className="relative h-16 w-40">
+                <div className="relative h-20 w-full sm:h-24 sm:w-64 md:h-28 md:w-72">
                   <Image
                     src={getBrandLogo(selectedBrand.name)}
                     alt={selectedBrand.name}
                     fill
-                    className={`object-contain ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''}`}
-                    sizes="160px"
+                    className={`object-contain object-left sm:object-center ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''}`}
+                    sizes="(max-width: 640px) 100vw, 300px"
                     unoptimized
                   />
                 </div>
@@ -1311,7 +1311,7 @@ export default function MotoPage() {
                   key={brand.name}
                   onClick={() => setSelectedBrand(brand)}
                   whileHover={{ y: -6 }}
-                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-left transition backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] sm:rounded-3xl sm:p-5 md:p-6"
+                  className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-4 text-left transition backdrop-blur-3xl shadow-sm hover:bg-white/20 hover:border-white/30 hover:shadow-md sm:rounded-3xl sm:p-5 md:p-6"
                 >
                   <div
                     className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
@@ -1331,7 +1331,7 @@ export default function MotoPage() {
                     </div>
                     <span className="text-white/70 group-hover:text-white">↗</span>
                   </div>
-                  <div className="relative mt-5 h-20">
+                  <div className="relative mt-4 h-20 sm:mt-6 sm:h-24">
                     <Image
                       src={getBrandLogo(brand.name)}
                       alt={brand.name}
@@ -1341,7 +1341,7 @@ export default function MotoPage() {
                       unoptimized
                     />
                   </div>
-                  <div className="mt-5 text-2xl font-light text-white">{brand.name}</div>
+                  <div className="mt-4 text-2xl font-light text-white">{brand.name}</div>
                 </motion.button>
               );
             })

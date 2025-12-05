@@ -20,7 +20,7 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
   const l = resolveLocale(locale);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16 text-white sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-4xl px-4 pt-32 pb-16 text-white sm:px-6 lg:px-8">
       <div className="prose prose-invert max-w-none">
         <h1 className="text-3xl font-light sm:text-4xl text-balance mb-8">
           {l === "ua" ? "Умови надання послуг" : "Terms of Service"}
