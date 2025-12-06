@@ -26,7 +26,7 @@ export const translations = {
     
     // Auto Page
     auto: {
-      title: 'Автомобільні',
+      title: 'Авто',
       heading: 'Високопродуктивні запчастини',
       subtitle: '100+ преміум брендів для вашого автомобіля',
       featuredBrands: 'Популярні бренди',
