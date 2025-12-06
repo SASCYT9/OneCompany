@@ -354,6 +354,7 @@ export default function AutomotivePage() {
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<LocalBrand | null>(null);
   const [isModulesOpen, setIsModulesOpen] = useState(false);
+  const [isBrandsOpen, setIsBrandsOpen] = useState(false);
 
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -1137,7 +1138,7 @@ export default function AutomotivePage() {
           <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>{t('allBrands')}</h2>
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-6">
           <div className="relative w-full max-w-3xl">
             <input
               type="text"
@@ -1148,9 +1149,58 @@ export default function AutomotivePage() {
             />
             <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">⌕</div>
           </div>
+
+          {/* Alphabet Filter */}
+          <div className="flex flex-wrap justify-center gap-2 px-4">
+            <button
+              onClick={() => setActiveLetter(null)}
+              className={`h-8 w-8 rounded-full text-xs font-medium transition-all ${
+                activeLetter === null
+                  ? 'bg-white text-black'
+                  : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
+            >
+              ALL
+            </button>
+            {alphabet.map((letter) => (
+              <button
+                key={letter}
+                onClick={() => setActiveLetter(activeLetter === letter ? null : letter)}
+                className={`h-8 w-8 rounded-full text-xs font-medium transition-all ${
+                  activeLetter === letter
+                    ? 'bg-white text-black'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+              >
+                {letter}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setIsBrandsOpen(!isBrandsOpen)}
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 hover:border-white/40"
+          >
+            <span>{isBrandsOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
+            <motion.span
+              animate={{ rotate: isBrandsOpen ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              ↓
+            </motion.span>
+          </button>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:mt-12 xl:grid-cols-4">
+        <AnimatePresence>
+          {isBrandsOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:mt-12 xl:grid-cols-4 pb-4">
           {filteredBrands.length > 0 ? (
             filteredBrands.map((brand) => {
               const origin = getBrandOrigin(brand);
@@ -1216,33 +1266,10 @@ export default function AutomotivePage() {
               {t('noBrands')}
             </div>
           )}
-        </div>
-
-        <div className="mt-6 flex flex-wrap justify-center gap-1.5 sm:mt-8 sm:gap-2 md:mt-12">
-          <button
-            onClick={() => setActiveLetter(null)}
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] transition sm:px-4 sm:py-2 sm:text-sm sm:tracking-[0.3em] ${
-              !activeLetter
-                ? 'bg-white text-black'
-                : 'border border-white/20 text-white/60 hover:border-white/40 hover:text-white'
-            }`}
-          >
-            {t('all')}
-          </button>
-          {alphabet.map((letter) => (
-            <button
-              key={letter}
-              onClick={() => setActiveLetter(letter)}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.3em] ${
-                activeLetter === letter
-                  ? 'bg-white text-black'
-                  : 'border border-white/15 text-white/60 hover:border-white/40 hover:text-white'
-              }`}
-            >
-              {letter}
-            </button>
-          ))}
-        </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
       <AnimatePresence>
