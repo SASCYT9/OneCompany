@@ -78,16 +78,16 @@ const Footer = () => {
 
       <div ref={scopeRef} className="relative mx-auto max-w-7xl px-6 pt-12 pb-8 sm:px-8 sm:pt-20 sm:pb-12 lg:px-12">
         
-        <div className="grid gap-8 sm:gap-12 lg:grid-cols-12 lg:gap-8 border-t border-white/10 pt-12 sm:pt-16">
+        <div className="grid gap-8 sm:gap-12 lg:grid-cols-12 lg:gap-8 border-t border-white/10 pt-12 sm:pt-16 text-center lg:text-left">
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-6">
             <Link href={`/${locale}`} className="block" aria-label="OneCompany Home">
-              <Logo tone="light" className="w-40" />
+              <Logo tone="light" className="w-40 mx-auto lg:mx-0" />
             </Link>
-            <p className="text-sm leading-relaxed text-white/50 max-w-xs">
+            <p className="text-sm leading-relaxed text-white/50 max-w-xs mx-auto lg:mx-0">
               {t('description')}
             </p>
-            <div className="flex gap-4 pt-2">
+            <div className="flex gap-4 pt-2 justify-center lg:justify-start">
               {socials.map(({ icon: Icon, href, label }) => (
                 <motion.a
                   key={label}

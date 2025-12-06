@@ -113,7 +113,7 @@ export function Header() {
                   </Link>
                 );
               })}
-              <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-4">
+              <div className="mt-2 flex flex-col items-center gap-4 border-t border-white/10 pt-4">
                 <div className="flex items-center gap-3">
                   <LocaleSwitcher />
                 </div>

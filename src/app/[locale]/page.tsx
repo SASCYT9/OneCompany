@@ -206,7 +206,7 @@ export default async function LocalizedHomePage({
           <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
             <div>
               <p className="text-xs uppercase tracking-[0.4em] text-white/50">{t('b2bPrograms')}</p>
-              <h3 className="mt-3 text-4xl text-balance">{t('partnerWithLeading')}</h3>
+              <h3 className="mt-3 text-2xl sm:text-4xl text-balance">{t('partnerWithLeading')}</h3>
               <p className="mt-3 text-sm text-white/60 text-pretty">{t('partnerTypes')}</p>
             </div>
             <Link
