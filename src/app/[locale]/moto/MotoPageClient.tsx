@@ -486,6 +486,7 @@ export default function MotoPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<LocalBrand | null>(null);
+  const [isModulesOpen, setIsModulesOpen] = useState(false);
 
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -619,8 +620,29 @@ export default function MotoPage() {
           <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>
             {locale === 'ua' ? 'Мото ' : 'Engineering Modules'}
           </h2>
+          <button
+            onClick={() => setIsModulesOpen(!isModulesOpen)}
+            className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 hover:border-white/40"
+          >
+            <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
+            <motion.span
+              animate={{ rotate: isModulesOpen ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              ↓
+            </motion.span>
+          </button>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr">
+        <AnimatePresence>
+          {isModulesOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr pb-4">
           {categoryData.filter(cat => cat.segment === 'moto').map((cat) => (
             <Link
               key={cat.slug}
@@ -668,7 +690,10 @@ export default function MotoPage() {
               </div>
             </Link>
           ))}
-        </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
       {/* LEGENDARY MOTO BRANDS SHOWCASE */}
