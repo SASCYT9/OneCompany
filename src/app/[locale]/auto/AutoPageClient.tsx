@@ -679,11 +679,11 @@ export default function AutomotivePage() {
               </div>
               
               {/* Content */}
-              <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-6 sm:p-8 lg:p-12 flex flex-col">
+              <div className="relative h-full min-h-[280px] sm:min-h-[320px] p-6 sm:p-8 lg:p-12 flex flex-col">
 
                 
                 <div className="flex-1 flex items-center justify-center py-6 sm:py-10">
-                  <div className="relative w-full max-w-[420px] h-28 sm:h-36 lg:h-44">
+                  <div className="relative w-full max-w-[420px] h-24 sm:h-32 lg:h-40">
                     <Image
                       src={getBrandLogo('Akrapovic')}
                       alt="Akrapovic"
@@ -723,11 +723,11 @@ export default function AutomotivePage() {
                 <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
               </div>
               
-              <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-5 sm:p-6 lg:p-8 flex flex-col">
+              <div className="relative h-full min-h-[280px] sm:min-h-[320px] p-5 sm:p-6 lg:p-8 flex flex-col">
 
                 
                 <div className="flex-1 flex items-center justify-center py-8">
-                  <div className="relative w-full max-w-[200px] h-16 sm:h-20 lg:h-24">
+                  <div className="relative w-full max-w-[200px] h-14 sm:h-18 lg:h-22">
                     <Image
                       src={getBrandLogo('Brabus')}
                       alt="Brabus"
