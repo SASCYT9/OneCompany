@@ -106,11 +106,11 @@ const Footer = () => {
 
           {/* Links Columns */}
           <div className="lg:col-span-2 lg:col-start-6 space-y-6">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">{t('company')}</h3>
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">{t('company')}</h3>
             <ul className="space-y-4">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
-                  <Link className="text-sm text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4" href={link.href}>
+                  <Link className="text-xs text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4" href={link.href}>
                     {link.name}
                   </Link>
                 </li>
@@ -119,11 +119,11 @@ const Footer = () => {
           </div>
 
           <div className="lg:col-span-2 space-y-6">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">{t('disciplines')}</h3>
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">{t('disciplines')}</h3>
             <ul className="space-y-4">
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
-                  <Link className="text-sm text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4" href={link.href}>
+                  <Link className="text-xs text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4" href={link.href}>
                     {link.name}
                   </Link>
                 </li>
@@ -132,8 +132,8 @@ const Footer = () => {
           </div>
 
           <div className="lg:col-span-3 space-y-6">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">{t('headquarters')}</h3>
-            <div className="space-y-4 text-sm text-white/70">
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">{t('headquarters')}</h3>
+            <div className="space-y-4 text-xs text-white/70">
               <p className="leading-relaxed">
                 {t('addressLine1')}<br />
                 {t('addressLine2')}<br />

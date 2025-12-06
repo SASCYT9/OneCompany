@@ -28,10 +28,10 @@ export function Header() {
     <>
     <a href="#main-content" className="sr-only focus:not-sr-only absolute top-2 left-2 z-50 rounded-md bg-white/90 px-3 py-2 text-sm text-black">Skip to content</a>
     <header className="fixed top-0 left-0 right-0 z-50 pt-2 sm:pt-4">
-      <div className="mx-2 flex max-w-6xl items-center rounded-2xl border border-white/10 bg-gradient-to-r from-white/5 via-white/5 to-transparent px-3 py-2.5 backdrop-blur-3xl sm:mx-auto sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8">
+      <div className="relative mx-2 flex max-w-6xl items-center rounded-2xl border border-white/10 bg-gradient-to-r from-white/5 via-white/5 to-transparent px-3 py-2.5 backdrop-blur-3xl sm:mx-auto sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8">
         <Link
           href={`/${locale}`}
-          className="relative inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          className="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0 inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           aria-label="ONE COMPANY home"
         >
           <Logo className="w-20 sm:w-28 md:w-32" priority tone="light" size="compact" />
@@ -92,7 +92,7 @@ export function Header() {
             transition={{ duration: 0.2 }}
             className="fixed inset-x-0 top-16 z-40 mx-2 rounded-2xl border border-white/10 bg-gradient-to-b from-black/95 to-black/90 p-6 backdrop-blur-3xl sm:top-20 sm:mx-auto sm:max-w-md"
           >
-            <nav className="flex flex-col gap-4">
+            <nav className="flex flex-col gap-4 text-center">
               {navItems.map((item) => {
                 const target = `/${locale}${item.href}`;
                 const isActive = pathname === target || pathname?.startsWith(`${target}/`);
