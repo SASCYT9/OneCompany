@@ -118,7 +118,7 @@ export default async function LocalizedHomePage({
                   src={experience.bgImage}
                   alt={experience.label}
                   fill
-                  className="object-cover group-hover:scale-105 transition-all duration-700"
+                  className="object-cover group-hover:scale-105 transition-all duration-700 grayscale"
                   priority
                   quality={90}
                 />
