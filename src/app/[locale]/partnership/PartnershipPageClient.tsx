@@ -59,7 +59,7 @@ export default function PartnershipPageClient() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white pt-32 md:pt-40 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
@@ -74,10 +74,10 @@ export default function PartnershipPageClient() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+            <h1 className="text-3xl md:text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
               {t("title")}
             </h1>
-            <p className="text-lg text-white/60 mb-12 leading-relaxed">
+            <p className="text-base text-white/60 mb-12 leading-relaxed">
               {t("description")}
             </p>
 
@@ -87,8 +87,8 @@ export default function PartnershipPageClient() {
                   <Building2 className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">{t("benefits.official.title")}</h3>
-                  <p className="text-white/50">{t("benefits.official.description")}</p>
+                  <h3 className="text-lg font-semibold mb-2">{t("benefits.official.title")}</h3>
+                  <p className="text-sm text-white/50">{t("benefits.official.description")}</p>
                 </div>
               </div>
 
@@ -97,8 +97,8 @@ export default function PartnershipPageClient() {
                   <Globe className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">{t("benefits.logistics.title")}</h3>
-                  <p className="text-white/50">{t("benefits.logistics.description")}</p>
+                  <h3 className="text-lg font-semibold mb-2">{t("benefits.logistics.title")}</h3>
+                  <p className="text-sm text-white/50">{t("benefits.logistics.description")}</p>
                 </div>
               </div>
 
@@ -107,8 +107,8 @@ export default function PartnershipPageClient() {
                   <User className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">{t("benefits.support.title")}</h3>
-                  <p className="text-white/50">{t("benefits.support.description")}</p>
+                  <h3 className="text-lg font-semibold mb-2">{t("benefits.support.title")}</h3>
+                  <p className="text-sm text-white/50">{t("benefits.support.description")}</p>
                 </div>
               </div>
             </div>
@@ -177,7 +177,6 @@ export default function PartnershipPageClient() {
                     value={formData.companyName}
                     onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/30 transition-colors"
-                    placeholder="Garage Inc."
                   />
                 </div>
                 <div className="space-y-2">
@@ -189,7 +188,6 @@ export default function PartnershipPageClient() {
                     value={formData.website}
                     onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/30 transition-colors"
-                    placeholder="https://..."
                   />
                 </div>
               </div>
@@ -205,7 +203,6 @@ export default function PartnershipPageClient() {
                     value={formData.contactPerson}
                     onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/30 transition-colors"
-                    placeholder="John Doe"
                   />
                 </div>
                 <div className="space-y-2">
@@ -218,7 +215,6 @@ export default function PartnershipPageClient() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/30 transition-colors"
-                    placeholder="john@example.com"
                   />
                 </div>
               </div>
@@ -233,22 +229,21 @@ export default function PartnershipPageClient() {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/30 transition-colors"
-                  placeholder="+380..."
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm text-white/60">{t("form.type")}</label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="flex flex-wrap gap-2">
                   {(["sto", "dealer", "detailing", "tuning", "other"] as const).map((type) => (
                     <button
                       key={type}
                       type="button"
                       onClick={() => setFormData({ ...formData, type })}
-                      className={`px-4 py-2 rounded-lg text-sm border transition-all ${
+                      className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all duration-300 ${
                         formData.type === type
-                          ? "bg-white text-black border-white"
-                          : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                          ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                          : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/20 hover:text-white"
                       }`}
                     >
                       {t(`types.${type}`)}
@@ -267,7 +262,6 @@ export default function PartnershipPageClient() {
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   rows={4}
                   className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/30 transition-colors resize-none"
-                  placeholder={t("form.messagePlaceholder")}
                 />
               </div>
 

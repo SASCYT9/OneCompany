@@ -48,14 +48,14 @@ const heroStats: { value: string | LocalizedCopy; label: LocalizedCopy; caption:
     caption: { en: 'Official programs since 2007', ua: 'Офіційні програми з 2007 року' },
   },
   {
-    value: '5',
-    label: { en: 'countries installed', ua: 'країн з інсталяціями' },
-    caption: { en: 'Certified partner garages', ua: 'Сертифіковані партнерські майстерні' },
+    value: { en: 'Network', ua: 'Мережа' },
+    label: { en: 'partner garages', ua: 'партнерських майстерень' },
+    caption: { en: 'Installation & setup', ua: 'Встановлення та налаштування' },
   },
   {
     value: { en: 'Kyiv', ua: 'Київ' },
     label: { en: 'Baseina St, 21B', ua: 'вул. Басейна, 21Б' },
-    caption: { en: 'Headquarters & logistics hub', ua: 'Штаб-квартира та логістичний хаб' },
+    caption: { en: 'Headquarters', ua: 'Штаб-квартира' },
   },
 ];
 
@@ -345,10 +345,10 @@ export default function AutomotivePage() {
   const tPage = useTranslations('autoPage');
   const isUa = locale === 'ua';
   const typography = {
-    heroTitle: isUa ? 'text-3xl sm:text-4xl lg:text-5xl' : 'text-4xl sm:text-5xl lg:text-6xl',
+    heroTitle: isUa ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-3xl sm:text-4xl lg:text-5xl',
     heroSubtitle: isUa ? 'text-sm sm:text-base' : 'text-base sm:text-lg',
-    statValue: isUa ? 'text-2xl' : 'text-3xl',
-    sectionHeading: isUa ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl',
+    statValue: isUa ? 'text-xl' : 'text-2xl',
+    sectionHeading: isUa ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl',
   } as const;
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
@@ -456,23 +456,26 @@ export default function AutomotivePage() {
   const selectedBrandSubcategory = selectedBrand ? getBrandSubcategory(selectedBrand) : null;
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans">
+    <div className="min-h-screen bg-black text-white font-sans relative">
+      <div className="fixed inset-0 z-0">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="h-full w-full object-cover opacity-40"
+        >
+          <source src="/videos/rollsbg-v3.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div className="relative z-10">
       <section className="relative isolate overflow-hidden rounded-b-[40px] border-b border-white/10">
         <div className="absolute inset-0">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="h-full w-full object-cover opacity-70 sm:opacity-60"
-            poster="/images/eventuri/carbon-intake.jpg"
-          >
-            <source src="/videos/rollsbg-v3.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black sm:from-black sm:via-black/70 sm:to-black" />
+          
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black/80 sm:from-black sm:via-black/70 sm:to-black/80" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_55%)] sm:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
         </div>
-        <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6 px-4 py-16 sm:gap-8 sm:px-6 sm:py-20 md:gap-10 md:py-28">
+        <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6 px-4 pt-32 pb-16 sm:gap-8 sm:px-6 sm:pt-40 sm:pb-20 md:gap-10 md:pt-48 md:pb-28">
           <div className="text-[9px] uppercase tracking-[0.4em] text-white/60 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">
             {locale === 'ua' ? 'Преміум програми · авто' : 'Premium programs · auto'}
           </div>
@@ -491,7 +494,7 @@ export default function AutomotivePage() {
             {heroStats.map((stat) => (
               <div
                 key={stat.label.en}
-                className="flex flex-col items-center text-center rounded-2xl border border-white/10 bg-white/[0.02] p-4 backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] sm:rounded-3xl sm:p-5 md:p-6"
+                className="flex flex-col items-center text-center rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] sm:rounded-3xl sm:p-5 md:p-6"
               >
                 <div className={`${typography.statValue} font-light text-white`}>
                   {typeof stat.value === 'string' ? stat.value : stat.value[locale]}
@@ -504,13 +507,13 @@ export default function AutomotivePage() {
         </div>
       </section>
 
-      <section className="relative border-b border-white/5 bg-black/60 py-12 sm:py-16 md:py-20">
+      <section className="relative border-b border-white/5 bg-black/30 py-12 sm:py-16 md:py-20">
         <div className="absolute inset-x-0 top-0 mx-auto h-px w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
         <div className="mx-auto grid max-w-6xl gap-4 px-4 sm:gap-5 sm:px-6 md:grid-cols-3 md:gap-6">
           {programHighlights.map((card) => (
             <div
               key={card.title.en}
-              className="h-full flex flex-col rounded-2xl border border-white/10 bg-white/[0.02] p-5 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:rounded-3xl sm:p-6"
+              className="h-full flex flex-col rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:rounded-3xl sm:p-6"
             >
               <div className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em]">{card.eyebrow[locale]}</div>
               <h3 className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{card.title[locale]}</h3>
@@ -569,7 +572,7 @@ export default function AutomotivePage() {
             <Link
               key={cat.slug}
               href={`/${locale}/auto/categories/${cat.slug}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/[0.03] border border-white/10 transition-all duration-300 hover:bg-white/[0.06] hover:border-white/30 hover:translate-y-[-4px] sm:rounded-3xl h-full"
+              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/10 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:border-white/40 hover:translate-y-[-4px] sm:rounded-3xl h-full backdrop-blur-3xl"
             >
               {/* Multi-layer box shadows for depth */}
               <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] sm:rounded-3xl" />
@@ -617,18 +620,10 @@ export default function AutomotivePage() {
       <section className="relative py-24 sm:py-32 md:py-40 overflow-hidden">
         {/* Video Background */}
         <div className="absolute inset-0">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="h-full w-full object-cover opacity-30 sm:opacity-25"
-          >
-            <source src="/videos/rollsbg-v3.mp4" type="video/mp4" />
-          </video>
+          
         </div>
         {/* Epic Background Overlays */}
-        <div className="absolute inset-0 bg-black/70 sm:bg-black/75" />
+        <div className="absolute inset-0 bg-black/40 sm:bg-black/50" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-30%,rgba(120,50,255,0.15),transparent)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_90%,rgba(255,150,50,0.1),transparent_40%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_80%,rgba(255,50,100,0.08),transparent_40%)]" />
@@ -675,29 +670,17 @@ export default function AutomotivePage() {
               transition={{ duration: 0.8 }}
               className="group relative col-span-12 lg:col-span-6 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
-              {/* Gradient Border */}
-              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-red-500/40 via-orange-500/20 to-transparent p-[1.5px]">
-                <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-black" />
-              </div>
+              {/* Glass Border/Background */}
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               
               {/* Animated Glow on Hover */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-1000">
-                <div className="absolute -inset-4 bg-gradient-to-r from-red-500/25 via-orange-500/15 to-yellow-500/10 rounded-[3rem] blur-3xl" />
+                <div className="absolute -inset-4 bg-gradient-to-r from-white/10 via-white/5 to-transparent rounded-[3rem] blur-3xl" />
               </div>
               
               {/* Content */}
               <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-6 sm:p-8 lg:p-12 flex flex-col">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">🇸🇮</span>
-                    <span className="text-xs sm:text-sm uppercase tracking-[0.2em] text-red-400/90 font-medium">
-                      Slovenia
-                    </span>
-                  </div>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-3 py-1.5 rounded-full">
-                    Performance Exhaust
-                  </span>
-                </div>
+
                 
                 <div className="flex-1 flex items-center justify-center py-6 sm:py-10">
                   <div className="relative w-full max-w-[420px] h-28 sm:h-36 lg:h-44">
@@ -705,7 +688,7 @@ export default function AutomotivePage() {
                       src={getBrandLogo('Akrapovic')}
                       alt="Akrapovic"
                       fill
-                      className="object-contain drop-shadow-[0_0_60px_rgba(255,100,50,0.4)] transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_80px_rgba(255,100,50,0.5)]"
+                      className="object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_80px_rgba(255,255,255,0.2)]"
                       unoptimized
                     />
                   </div>
@@ -714,10 +697,10 @@ export default function AutomotivePage() {
                 <div className="flex items-end justify-between gap-4">
                   <div>
                     <p className="text-2xl sm:text-3xl lg:text-4xl font-light text-white tracking-tight">Akrapovic</p>
-                    <p className="text-sm sm:text-base text-zinc-400 mt-2">{locale === 'ua' ? 'Титанові вихлопні системи преміум класу' : 'Premium titanium exhaust systems'}</p>
+                    <p className="text-sm sm:text-base text-white/60 mt-2">{locale === 'ua' ? 'Титанові вихлопні системи преміум класу' : 'Premium titanium exhaust systems'}</p>
                   </div>
-                  <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-500/30 to-orange-500/20 border border-red-500/30 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-red-400/50 group-hover:shadow-[0_0_40px_rgba(255,100,50,0.4)]">
-                    <svg className="h-6 w-6 sm:h-7 sm:w-7 text-red-400 transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
+                    <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                     </svg>
                   </div>
@@ -734,19 +717,14 @@ export default function AutomotivePage() {
               transition={{ duration: 0.8, delay: 0.1 }}
               className="group relative col-span-6 lg:col-span-6 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-zinc-400/30 via-zinc-500/10 to-transparent p-[1.5px]">
-                <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
-              </div>
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
-                <div className="absolute -inset-2 bg-gradient-to-br from-zinc-400/20 to-transparent rounded-[3rem] blur-2xl" />
+                <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
               </div>
               
               <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-5 sm:p-6 lg:p-8 flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">🇩🇪</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-[0.15em] text-zinc-400 font-medium">Germany</span>
-                </div>
+
                 
                 <div className="flex-1 flex items-center justify-center py-8">
                   <div className="relative w-full max-w-[200px] h-16 sm:h-20 lg:h-24">
@@ -762,11 +740,11 @@ export default function AutomotivePage() {
                 
                 <div>
                   <p className="text-xl sm:text-2xl font-light text-white">BRABUS</p>
-                  <p className="text-xs sm:text-sm text-zinc-500 mt-1">{locale === 'ua' ? 'Преміум тюнінг' : 'Premium tuning'}</p>
+                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Преміум тюнінг' : 'Premium tuning'}</p>
                 </div>
                 
-                <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/5 border border-white/10 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:bg-white/10 group-hover:border-white/20">
-                  <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white/70 transition-transform duration-500 group-hover:-rotate-45 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:bg-white/20 group-hover:border-white/40">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                   </svg>
                 </div>
@@ -782,24 +760,14 @@ export default function AutomotivePage() {
               transition={{ duration: 0.8, delay: 0.15 }}
               className="group relative col-span-6 lg:col-span-4 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-amber-400/40 via-yellow-500/15 to-transparent p-[1.5px]">
-                <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
-              </div>
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
-                <div className="absolute -inset-2 bg-gradient-to-br from-amber-500/25 via-yellow-500/15 to-transparent rounded-[3rem] blur-2xl" />
+                <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
               </div>
               
               <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[200px]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">🇩🇪</span>
-                    <span className="text-[10px] sm:text-xs uppercase tracking-[0.15em] text-amber-400/80 font-medium">Germany</span>
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs uppercase tracking-widest text-amber-400/70 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-                    <span className="text-amber-400">★</span> Luxury
-                  </span>
-                </div>
+
                 
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[220px] h-12 sm:h-16">
@@ -807,7 +775,7 @@ export default function AutomotivePage() {
                       src={getBrandLogo('Mansory')}
                       alt="Mansory"
                       fill
-                      className="object-contain brightness-0 invert opacity-95 drop-shadow-[0_0_25px_rgba(255,200,50,0.25)] transition-all duration-700 group-hover:scale-110"
+                      className="object-contain brightness-0 invert opacity-95 drop-shadow-[0_0_25px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110"
                       unoptimized
                     />
                   </div>
@@ -816,8 +784,8 @@ export default function AutomotivePage() {
                 <p className="text-lg sm:text-xl font-light text-white">Mansory</p>
               </div>
               
-              <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-amber-400/40">
-                <svg className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                 </svg>
               </div>
@@ -832,19 +800,11 @@ export default function AutomotivePage() {
               transition={{ duration: 0.7, delay: 0.2 }}
               className="group relative col-span-6 sm:col-span-6 lg:col-span-4 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-sky-500/30 to-blue-600/10 p-[1.5px]">
-                <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] sm:rounded-[calc(2rem-1.5px)] bg-gradient-to-br from-zinc-900 to-zinc-950" />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-br from-sky-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[180px]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">🇺🇸</span>
-                    <span className="text-[10px] sm:text-xs uppercase tracking-widest text-sky-400/80 font-medium">USA</span>
-                  </div>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-2.5 py-1 rounded-full">Forged Wheels</span>
-                </div>
+
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[160px] h-16 sm:h-20">
                     <Image src={getBrandLogo('HRE wheels')} alt="HRE" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
@@ -853,7 +813,7 @@ export default function AutomotivePage() {
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-base sm:text-lg font-medium text-white">HRE Wheels</p>
-                    <p className="text-[10px] sm:text-xs text-zinc-500 mt-0.5">{locale === 'ua' ? 'Ковані диски преміум класу' : 'Premium forged wheels'}</p>
+                    <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Ковані диски преміум класу' : 'Premium forged wheels'}</p>
                   </div>
                 </div>
               </div>
@@ -868,26 +828,18 @@ export default function AutomotivePage() {
               transition={{ duration: 0.7, delay: 0.25 }}
               className="group relative col-span-6 sm:col-span-4 lg:col-span-4 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-emerald-500/25 to-transparent p-[1px]">
-                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🇬🇧</span>
-                    <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-emerald-400/70">UK</span>
-                  </div>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-600">Body Kits</span>
-                </div>
+
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[140px] h-10 sm:h-12">
                     <Image src={getBrandLogo('Urban Automotive')} alt="Urban Automotive" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <p className="text-sm sm:text-base font-medium text-white">Urban Automotive</p>
-                <p className="text-[10px] sm:text-xs text-zinc-600 mt-0.5">{locale === 'ua' ? 'Преміум обвіси' : 'Premium body kits'}</p>
+                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Преміум обвіси' : 'Premium body kits'}</p>
               </div>
             </motion.button>
 
@@ -900,23 +852,18 @@ export default function AutomotivePage() {
               transition={{ duration: 0.7, delay: 0.3 }}
               className="group relative col-span-6 sm:col-span-4 lg:col-span-3 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-cyan-500/25 to-transparent p-[1px]">
-                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🇬🇧</span>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-cyan-400/70">UK</span>
-                </div>
+
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[110px] h-10 sm:h-12">
                     <Image src={getBrandLogo('Eventuri')} alt="Eventuri" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <p className="text-sm sm:text-base font-medium text-white">Eventuri</p>
-                <p className="text-[10px] sm:text-xs text-zinc-600 mt-0.5">{locale === 'ua' ? 'Впускні системи' : 'Intake systems'}</p>
+                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Впускні системи' : 'Intake systems'}</p>
               </div>
             </motion.button>
 
@@ -929,23 +876,18 @@ export default function AutomotivePage() {
               transition={{ duration: 0.7, delay: 0.35 }}
               className="group relative col-span-6 sm:col-span-4 lg:col-span-3 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-orange-500/25 to-transparent p-[1px]">
-                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🇩🇪</span>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-orange-400/70">Germany</span>
-                </div>
+
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[90px] h-10 sm:h-12">
                     <Image src={getBrandLogo('KW Suspension')} alt="KW" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <p className="text-sm sm:text-base font-medium text-white">KW Suspensions</p>
-                <p className="text-[10px] sm:text-xs text-zinc-600 mt-0.5">{locale === 'ua' ? 'Підвіска' : 'Suspension'}</p>
+                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Підвіска' : 'Suspension'}</p>
               </div>
             </motion.button>
 
@@ -958,22 +900,14 @@ export default function AutomotivePage() {
               transition={{ duration: 0.7, delay: 0.4 }}
               className="group relative col-span-12 sm:col-span-6 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-rose-500/30 via-pink-500/15 to-transparent p-[1.5px]">
-                <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
-              </div>
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
-                <div className="absolute -inset-2 bg-gradient-to-br from-rose-500/20 to-transparent rounded-[3rem] blur-2xl" />
+                <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
               </div>
               
               <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">🇩🇪</span>
-                    <span className="text-[10px] sm:text-xs uppercase tracking-[0.15em] text-rose-400/80 font-medium">Germany</span>
-                  </div>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-3 py-1.5 rounded-full">Ferrari • Lamborghini</span>
-                </div>
+
                 
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[180px] h-14 sm:h-16">
@@ -990,10 +924,10 @@ export default function AutomotivePage() {
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-lg sm:text-xl font-light text-white">Novitec</p>
-                    <p className="text-xs sm:text-sm text-zinc-500 mt-1">{locale === 'ua' ? 'Суперкар тюнінг' : 'Supercar tuning'}</p>
+                    <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Суперкар тюнінг' : 'Supercar tuning'}</p>
                   </div>
-                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-rose-500/10 border border-rose-500/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-rose-400/40">
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-rose-400 transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                     </svg>
                   </div>
@@ -1010,22 +944,14 @@ export default function AutomotivePage() {
               transition={{ duration: 0.7, delay: 0.45 }}
               className="group relative col-span-12 sm:col-span-6 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
-              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-violet-500/30 via-purple-500/15 to-transparent p-[1.5px]">
-                <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
-              </div>
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
-                <div className="absolute -inset-2 bg-gradient-to-br from-violet-500/20 to-transparent rounded-[3rem] blur-2xl" />
+                <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
               </div>
               
               <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">🇩🇪</span>
-                    <span className="text-[10px] sm:text-xs uppercase tracking-[0.15em] text-violet-400/80 font-medium">Germany</span>
-                  </div>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-3 py-1.5 rounded-full">Audi • VW</span>
-                </div>
+
                 
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[140px] h-14 sm:h-16">
@@ -1042,10 +968,10 @@ export default function AutomotivePage() {
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-lg sm:text-xl font-light text-white">ABT Sportsline</p>
-                    <p className="text-xs sm:text-sm text-zinc-500 mt-1">{locale === 'ua' ? 'Audi та VW тюнінг' : 'Audi & VW tuning'}</p>
+                    <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Audi та VW тюнінг' : 'Audi & VW tuning'}</p>
                   </div>
-                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-violet-500/10 border border-violet-500/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-violet-400/40">
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400 transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                     </svg>
                   </div>
@@ -1065,29 +991,27 @@ export default function AutomotivePage() {
                 catalogSection?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              {/* Animated Gradient Border */}
-              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-r from-violet-500/30 via-fuchsia-500/20 to-orange-500/30 p-[1.5px]">
-                <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
-              </div>
+              {/* Background */}
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               
               <div className="relative p-6 sm:p-8 lg:p-10">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
                   <div className="text-center lg:text-left">
                     <div className="flex items-baseline gap-3 justify-center lg:justify-start">
-                      <span className="text-5xl sm:text-6xl lg:text-7xl font-extralight bg-gradient-to-r from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">
+                      <span className="text-5xl sm:text-6xl lg:text-7xl font-extralight text-white">
                         +160
                       </span>
-                      <span className="text-lg sm:text-xl text-zinc-400 font-light">
+                      <span className="text-lg sm:text-xl text-white/60 font-light">
                         {locale === 'ua' ? 'брендів' : 'brands'}
                       </span>
                     </div>
-                    <p className="mt-2 text-sm text-zinc-500">
+                    <p className="mt-2 text-sm text-white/50">
                       {locale === 'ua' ? 'Повний каталог преміум автозапчастин та аксесуарів' : 'Complete catalog of premium auto parts & accessories'}
                     </p>
                   </div>
                   
                   {/* CTA Button */}
-                  <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-gradient-to-br from-white/15 to-white/5 border border-white/15 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/30 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.15)]">
+                  <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.15)]">
                     <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                     </svg>
@@ -1096,10 +1020,6 @@ export default function AutomotivePage() {
                 
                 {/* Infinite Scrolling Carousel */}
                 <div className="relative overflow-hidden">
-                  {/* Gradient fades */}
-                  <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none" />
-                  <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
-                  
                   {/* First row - scrolling left */}
                   <div className="flex gap-6 mb-4 animate-scroll-left">
                     {[...allAutomotiveBrands.slice(0, 20), ...allAutomotiveBrands.slice(0, 20)].map((brand, idx) => (
@@ -1248,13 +1168,13 @@ export default function AutomotivePage() {
                   key={brand.name}
                   onClick={() => setSelectedBrand(brand)}
                   whileHover={{ y: -6 }}
-                  className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-4 text-left transition backdrop-blur-3xl shadow-sm hover:bg-white/20 hover:border-white/30 hover:shadow-md sm:rounded-3xl sm:p-5 md:p-6"
+                  className="group relative flex flex-col items-center text-center overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-4 transition backdrop-blur-3xl shadow-sm hover:bg-white/20 hover:border-white/30 hover:shadow-md sm:rounded-3xl sm:p-5 md:p-6"
                 >
                   <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{
                     background:
                       'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 60%)',
                   }} />
-                  <div className="relative flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.3em]">
+                  <div className="relative w-full flex items-center justify-center text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.3em]">
                     <div className="flex items-center gap-2">
                       <span>{origin}</span>
                       {subcategory && (
@@ -1264,34 +1184,20 @@ export default function AutomotivePage() {
                         </>
                       )}
                     </div>
-                    <span className="text-white/70 group-hover:text-white">↗</span>
                   </div>
-                  <div className="relative mt-4 h-20 sm:mt-6 sm:h-24">
+                  <div className="relative mt-4 h-20 w-full sm:mt-6 sm:h-24">
                     <div className="relative w-full h-full">
                       <Image
                         src={logoSrc}
                         alt={brand.name}
                         fill
-                        className="object-contain"
+                        className="object-contain object-center"
                         sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                         unoptimized
                       />
                     </div>
                   </div>
-                  <div className="mt-4 text-xl font-light text-white sm:mt-6 sm:text-2xl">{brand.name}</div>
-                  <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
-                    {collections.length > 0
-                      ? collections.slice(0, 3).map((collection) => (
-                          <span key={collection.slug} className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] text-white/70 sm:px-3 sm:py-1 sm:text-xs">
-                            {locale === 'ua' ? collection.title.ua : collection.title.en}
-                          </span>
-                        ))
-                      : (
-                          <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] text-white/50 sm:px-3 sm:py-1 sm:text-xs">
-                            {locale === 'ua' ? 'Індивідуально' : 'Bespoke'}
-                          </span>
-                        )}
-                  </div>
+                  <div className="mt-4 text-lg font-light leading-tight text-white sm:mt-6 sm:text-xl w-full px-1 break-words">{brand.name}</div>
                 </motion.button>
               );
             })
@@ -1411,6 +1317,7 @@ export default function AutomotivePage() {
       </AnimatePresence>
 
       <div className="pb-10" />
+      </div>
     </div>
   );
 }

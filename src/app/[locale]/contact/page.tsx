@@ -124,7 +124,7 @@ export default function ContactPage() {
               {t("hero.heading")}
             </h1>
             <div className="mx-auto mb-6 h-px w-20 bg-white/20 sm:w-24 sm:mb-8 md:w-32 md:mb-10" />
-            <p className="mx-auto max-w-3xl text-base font-light text-white/70 sm:text-lg md:text-xl lg:text-2xl text-pretty">
+            <p className="mx-auto max-w-5xl text-base font-light text-white/70 sm:text-lg md:text-xl lg:text-2xl text-pretty">
               {t("hero.subheading")}
             </p>
           </motion.div>
@@ -134,9 +134,9 @@ export default function ContactPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="mx-auto w-full max-w-3xl rounded-2xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-3xl sm:rounded-3xl sm:p-10 md:rounded-[32px] md:p-12 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
+              className="mx-auto w-full max-w-6xl rounded-2xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl sm:rounded-3xl sm:p-12 md:rounded-[32px] md:p-16 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
             >
-              <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7 md:space-y-8">
+              <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-10 md:space-y-12">
                 {/* Progress bar */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-[9px] sm:text-[10px] tracking-[0.15em] uppercase text-white/40 font-light">
@@ -171,10 +171,10 @@ export default function ContactPage() {
                   ))}
                 </div>
 
-                <div className="space-y-4 sm:space-y-5">
-                  <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
+                <div className="space-y-6 sm:space-y-8">
+                  <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2">
                     <div>
-                      <label htmlFor="model" className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                      <label htmlFor="model" className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
                         {modelLabel}
                       </label>
                       <input
@@ -183,13 +183,13 @@ export default function ContactPage() {
                         name="model"
                         value={formData.model}
                         onChange={handleChange}
-                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={modelPlaceholder}
                         required
                       />
                     </div>
                     <div>
-                      <label htmlFor="vin" className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                      <label htmlFor="vin" className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
                         {t("form.vinLabel")} <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
                       </label>
                       <input
@@ -198,7 +198,7 @@ export default function ContactPage() {
                         name="vin"
                         value={formData.vin}
                         onChange={handleChange}
-                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={t("form.vinPlaceholder")}
                         maxLength={17}
                       />
@@ -206,7 +206,7 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="wishes" className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                    <label htmlFor="wishes" className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
                       {t("form.wishesLabel")}
                     </label>
                     <textarea
@@ -215,15 +215,15 @@ export default function ContactPage() {
                       rows={4}
                       value={formData.wishes}
                       onChange={handleChange}
-                      className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all resize-none font-light"
+                      className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all resize-none font-light"
                       placeholder={t("form.wishesPlaceholder")}
                       required
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                     <div>
-                      <label htmlFor="budget" className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                      <label htmlFor="budget" className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
                         {t("form.budgetLabel")} <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
                       </label>
                       <input
@@ -232,12 +232,12 @@ export default function ContactPage() {
                         name="budget"
                         value={formData.budget}
                         onChange={handleChange}
-                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={t("form.budgetPlaceholder")}
                       />
                     </div>
                     <div>
-                      <label htmlFor="email" className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                      <label htmlFor="email" className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
                         {t("form.emailLabel")}
                       </label>
                       <input
@@ -246,16 +246,16 @@ export default function ContactPage() {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder="example@mail.com"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                     <div>
-                      <label htmlFor="phone" className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                      <label htmlFor="phone" className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
                         {t("form.phoneLabel")}
                       </label>
                       <input
@@ -264,7 +264,7 @@ export default function ContactPage() {
                         name="phone"
                         value={formData.phone}
                         onChange={handlePhoneChange}
-                        className="w-full px-0 py-2 sm:py-2.5 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
                         placeholder={t("form.phonePlaceholder")}
                         required
                         aria-label={t("form.phoneLabel")}
@@ -272,7 +272,7 @@ export default function ContactPage() {
                       <p className="mt-1 text-[8px] text-white/30 tracking-wide">{t("form.phoneHint")}</p>
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                      <label className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
                         {t("form.contactMethodLabel")}
                       </label>
                       <div className="flex gap-2 pt-1">
@@ -281,7 +281,7 @@ export default function ContactPage() {
                             key={method}
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, contactMethod: method }))}
-                            className={`flex-1 relative rounded-full border px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-light tracking-[0.1em] transition-all duration-300 ${formData.contactMethod === method ? 'border-white bg-white text-black' : 'border-white/15 text-white/50 hover:border-white/30 hover:text-white/70'}`}
+                            className={`flex-1 relative rounded-full border px-3 py-2.5 sm:py-3 text-[10px] sm:text-xs font-light tracking-[0.1em] transition-all duration-300 ${formData.contactMethod === method ? 'border-white bg-white text-black' : 'border-white/15 text-white/50 hover:border-white/30 hover:text-white/70'}`}
                             aria-pressed={formData.contactMethod===method}
                           >
                             <span className="relative z-10">
@@ -331,7 +331,7 @@ export default function ContactPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="mx-auto w-full max-w-5xl"
+              className="mx-auto w-full max-w-6xl"
             >
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 <div className="group flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center backdrop-blur-xl transition-all duration-300 hover:bg-white/[0.05] hover:border-white/20">
