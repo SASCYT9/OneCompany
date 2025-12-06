@@ -736,7 +736,7 @@ export default function MotoPage() {
         <div className="absolute bottom-20 right-1/3 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
         <div className="absolute top-1/2 left-10 w-[300px] h-[300px] bg-blue-500/8 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
         
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto w-full px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-16 sm:mb-20 md:mb-28 text-center">
             <motion.h2 

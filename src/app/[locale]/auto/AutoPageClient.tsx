@@ -638,7 +638,7 @@ export default function AutomotivePage() {
         <div className="absolute bottom-20 right-1/3 w-[400px] h-[400px] bg-amber-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
         <div className="absolute top-1/2 left-10 w-[300px] h-[300px] bg-red-500/8 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
         
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto w-full px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-16 sm:mb-20 md:mb-28 text-center">
             <motion.h2 
@@ -673,7 +673,7 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="group relative col-span-12 lg:col-span-8 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative col-span-12 lg:col-span-6 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               {/* Gradient Border */}
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-red-500/40 via-orange-500/20 to-transparent p-[1.5px]">
@@ -732,7 +732,7 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="group relative col-span-6 lg:col-span-4 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative col-span-6 lg:col-span-6 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-zinc-400/30 via-zinc-500/10 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
@@ -780,7 +780,7 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.15 }}
-              className="group relative col-span-6 lg:col-span-5 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative col-span-6 lg:col-span-4 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-amber-400/40 via-yellow-500/15 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
@@ -956,7 +956,7 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.4 }}
-              className="group relative col-span-12 sm:col-span-8 lg:col-span-6 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative col-span-12 sm:col-span-6 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-rose-500/30 via-pink-500/15 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
@@ -1008,7 +1008,7 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.45 }}
-              className="group relative col-span-12 sm:col-span-4 lg:col-span-6 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative col-span-12 sm:col-span-6 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-violet-500/30 via-purple-500/15 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
