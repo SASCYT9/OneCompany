@@ -356,7 +356,7 @@ export default function TelegramMiniApp() {
                   <motion.div key={brand.name} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }} 
                     className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-2 flex flex-col items-center justify-center aspect-square">
                     <div className="w-10 h-10 relative mb-1">
-                      <Image src={brand.logo} alt={brand.name} fill className="object-contain filter brightness-0 invert opacity-70" />
+                      <Image src={brand.logo} alt={brand.name} fill className="object-contain" />
                     </div>
                     <div className="text-[8px] text-neutral-400 text-center leading-tight">{brand.name}</div>
                   </motion.div>
@@ -387,7 +387,7 @@ export default function TelegramMiniApp() {
                   <motion.div key={brand.name} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }} 
                     className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-2 flex flex-col items-center justify-center aspect-square">
                     <div className="w-10 h-10 relative mb-1">
-                      <Image src={brand.logo} alt={brand.name} fill className="object-contain filter brightness-0 invert opacity-70" />
+                      <Image src={brand.logo} alt={brand.name} fill className="object-contain" />
                     </div>
                     <div className="text-[8px] text-neutral-400 text-center leading-tight">{brand.name}</div>
                   </motion.div>

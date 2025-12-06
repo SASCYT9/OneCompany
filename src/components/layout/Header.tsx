@@ -4,13 +4,11 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
 import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
-import { Menu, X, Video, VideoOff } from "lucide-react";
-import Snackbar from '@/components/ui/Snackbar';
-import { trackEvent } from '@/lib/analytics';
+import { Menu, X } from "lucide-react";
 
 const navItems = [
   { key: "automotive", href: "/auto" },
@@ -24,32 +22,7 @@ export function Header() {
   const pathname = usePathname();
   const locale = (params?.locale as string) || "en";
   const tNav = useTranslations("nav");
-  const tAdmin = useTranslations("admin");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [videoDisabled, setVideoDisabled] = useState(false);
-  const [snackOpen, setSnackOpen] = useState(false);
-  const [snackMessage, setSnackMessage] = useState('');
-  const [serverDisabled, setServerDisabled] = useState(false);
-
-  // Read user preference for hero video on mount
-  useEffect(() => {
-    try {
-      const value = localStorage.getItem('heroVideoDisabled');
-      setVideoDisabled(value === 'true');
-    } catch {
-      // ignore
-    }
-    try {
-      const doc = document.querySelector('[data-server-hero-enabled]');
-      const serverEnabled = doc?.getAttribute('data-server-hero-enabled');
-      if (serverEnabled === 'false') {
-        setVideoDisabled(true);
-        setServerDisabled(true);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
 
   return (
     <>
@@ -90,35 +63,6 @@ export function Header() {
         </nav>
         <div className="ml-auto flex items-center gap-2 sm:gap-4">
           <LocaleSwitcher className="hidden md:flex" />
-          <button
-            aria-label={videoDisabled ? tNav('toggleHeroVideoEnable') : tNav('toggleHeroVideoDisable')}
-            aria-pressed={!videoDisabled}
-            title={serverDisabled ? tAdmin('heroVideoDisabledByAdmin') : (videoDisabled ? tNav('toggleHeroVideoEnable') : tNav('toggleHeroVideoDisable'))}
-            onClick={() => {
-              try {
-                if (serverDisabled) {
-                  setSnackMessage(tAdmin('heroVideoDisabledByAdmin'));
-                  setSnackOpen(true);
-                  return;
-                }
-                localStorage.setItem('heroVideoDisabled', (!videoDisabled).toString());
-                setVideoDisabled(!videoDisabled);
-                window.dispatchEvent(new Event('heroVideoToggle'));
-                setSnackMessage(!videoDisabled ? tNav('toggleHeroVideoDisable') : tNav('toggleHeroVideoEnable'));
-                setSnackOpen(true);
-                try { trackEvent('hero_video_toggle', { enabled: (!videoDisabled) }) } catch {};
-              } catch {
-                // ignore
-              }
-            }}
-            className={cn(
-              "hidden items-center gap-2 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] transition sm:inline-flex",
-              videoDisabled ? "border-white/20 bg-white/10 text-white hover:border-white hover:bg-white/20" : "border-transparent bg-white text-black hover:bg-white/90",
-              serverDisabled && 'opacity-60 cursor-not-allowed'
-            )}
-          >
-            {videoDisabled ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
-          </button>
           <Link
             href={`/${locale}/partnership`}
             className="group hidden items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 font-display text-[10px] font-semibold uppercase tracking-[0.25em] text-white transition hover:border-white hover:bg-white hover:text-black sm:inline-flex sm:gap-3 sm:px-5 sm:py-2 sm:text-xs sm:tracking-[0.35em]"
@@ -172,34 +116,6 @@ export function Header() {
               <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-4">
                 <div className="flex items-center gap-3">
                   <LocaleSwitcher />
-                  <button
-                    aria-label={videoDisabled ? tNav('toggleHeroVideoEnable') : tNav('toggleHeroVideoDisable')}
-                    aria-pressed={!videoDisabled}
-                    title={serverDisabled ? tAdmin('heroVideoDisabledByAdmin') : (videoDisabled ? tNav('toggleHeroVideoEnable') : tNav('toggleHeroVideoDisable'))}
-                    onClick={() => {
-                      if (serverDisabled) {
-                        setSnackMessage(tAdmin('heroVideoDisabledByAdmin'));
-                        setSnackOpen(true);
-                        return;
-                      }
-                      try {
-                        localStorage.setItem('heroVideoDisabled', (!videoDisabled).toString());
-                        setVideoDisabled(!videoDisabled);
-                        window.dispatchEvent(new Event('heroVideoToggle'));
-                          setSnackMessage(!videoDisabled ? tNav('toggleHeroVideoDisable') : tNav('toggleHeroVideoEnable'));
-                          setSnackOpen(true);
-                      } catch {
-                        // ignore
-                      }
-                    }}
-                    className={cn(
-                      "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] transition",
-                      videoDisabled ? "border-white/20 bg-white/10 text-white hover:border-white hover:bg-white/20" : "border-transparent bg-white text-black hover:bg-white/90",
-                      serverDisabled && 'opacity-60 cursor-not-allowed'
-                    )}
-                  >
-                    {videoDisabled ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
-                  </button>
                 </div>
                 <Link
                   href={`/${locale}/partnership`}
@@ -214,11 +130,6 @@ export function Header() {
         )}
       </AnimatePresence>
     </header>
-      <Snackbar
-        message={snackMessage}
-        open={snackOpen}
-        onClose={() => setSnackOpen(false)}
-      />
     </>
   );
 }

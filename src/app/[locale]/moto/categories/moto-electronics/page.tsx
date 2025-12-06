@@ -34,26 +34,6 @@ const electronicsBrands = [
     accentColor: 'from-red-500/30 to-orange-500/20',
   },
   {
-    name: 'Dynojet',
-    country: '🇺🇸 USA',
-    specialty: { en: 'ECU Tuning', ua: 'ECU тюнінг' },
-    description: {
-      en: 'American tuning specialist. Power Commander, AutoTune and Power Vision for comprehensive fuel and ignition mapping.',
-      ua: 'Американський спеціаліст тюнінгу. Power Commander, AutoTune та Power Vision для повного налаштування паливних та запальних карт.',
-    },
-    accentColor: 'from-green-500/30 to-emerald-500/20',
-  },
-  {
-    name: 'Bazzaz',
-    country: '🇺🇸 USA',
-    specialty: { en: 'Fuel Controllers', ua: 'Паливні контролери' },
-    description: {
-      en: 'American fuel controller specialist. Z-Fi and Z-AFM systems for precise fueling adjustments and self-tuning.',
-      ua: 'Американський спеціаліст паливних контролерів. Системи Z-Fi та Z-AFM для точного налаштування паливоподачі та автотюнінгу.',
-    },
-    accentColor: 'from-purple-500/30 to-pink-500/20',
-  },
-  {
     name: 'RapidBike',
     country: '🇮🇹 Italy',
     specialty: { en: 'Italian ECU Tuning', ua: 'Італійський ECU тюнінг' },

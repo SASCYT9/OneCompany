@@ -16,7 +16,6 @@ import {
   getLocalizedSubcategory,
 } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { isDarkLogo } from '@/lib/darkLogos';
 import { categoryData } from '@/lib/categoryData';
 
 type LocalizedCopy = { en: string; ua: string; [key: string]: string };
@@ -477,10 +476,10 @@ export default function MotoPage() {
   const tPage = useTranslations('autoPage');
   const isUa = locale === 'ua';
   const typography = {
-    heroTitle: isUa ? 'text-4xl sm:text-5xl lg:text-6xl' : 'text-5xl sm:text-6xl lg:text-7xl',
-    heroSubtitle: isUa ? 'text-base sm:text-lg' : 'text-lg sm:text-xl',
-    statValue: isUa ? 'text-3xl' : 'text-4xl',
-    sectionHeading: isUa ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl',
+    heroTitle: isUa ? 'text-3xl sm:text-4xl lg:text-5xl' : 'text-4xl sm:text-5xl lg:text-6xl',
+    heroSubtitle: isUa ? 'text-sm sm:text-base' : 'text-base sm:text-lg',
+    statValue: isUa ? 'text-2xl' : 'text-3xl',
+    sectionHeading: isUa ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl',
   } as const;
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -626,12 +625,27 @@ export default function MotoPage() {
             className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 hover:border-white/40"
           >
             <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
-            <motion.span
+            <motion.div
               animate={{ rotate: isModulesOpen ? 180 : 0 }}
               transition={{ duration: 0.3 }}
             >
-              ↓
-            </motion.span>
+              <svg 
+                width="10" 
+                height="10" 
+                viewBox="0 0 10 10" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="opacity-70"
+              >
+                <path 
+                  d="M1 3L5 7L9 3" 
+                  stroke="currentColor" 
+                  strokeWidth="1.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </motion.div>
           </button>
         </div>
         <AnimatePresence>
@@ -648,31 +662,31 @@ export default function MotoPage() {
             <Link
               key={cat.slug}
               href={`/${locale}/moto/categories/${cat.slug}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl bg-black p-6 sm:p-7 md:p-8 transition-all duration-300 hover:translate-y-[-4px] sm:rounded-3xl h-full"
+              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/[0.03] border border-white/10 transition-all duration-300 hover:bg-white/[0.06] hover:border-white/30 hover:translate-y-[-4px] sm:rounded-3xl h-full"
             >
               {/* Multi-layer box shadows for depth */}
-              <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),inset_0_0_0_1px_rgba(255,255,255,0.05),0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.6)] group-hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),inset_0_0_0_1px_rgba(255,255,255,0.05),0_0_0_1px_rgba(255,255,255,0.12),0_16px_40px_rgba(0,0,0,0.7)] transition-shadow duration-300 sm:rounded-3xl" />
+              <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] sm:rounded-3xl" />
               
               {/* Bottom glow on hover */}
-              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               
-              <div className="relative flex flex-col flex-1 shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.6)] group-hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_16px_40px_rgba(0,0,0,0.7)] transition-shadow duration-300">
+              <div className="relative p-6 sm:p-7 md:p-8 flex flex-col flex-1">
                 {/* Title & Description */}
                 <div className="min-h-[120px] sm:min-h-[140px]">
-                  <h3 className="text-xl font-light text-white text-balance sm:text-2xl">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
-                  <p className="mt-3 text-[13px] leading-relaxed text-white/60 text-pretty sm:text-[15px]">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                  <p className="mt-2 text-[11px] text-white/40 text-pretty sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                  <h3 className="text-xl font-normal text-white text-balance sm:text-2xl tracking-wide">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                  <p className="mt-3 text-[13px] leading-relaxed text-white/80 text-pretty sm:text-[15px] font-light">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                  <p className="mt-2 text-[11px] text-white/50 text-pretty sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
                 </div>
                 
                 {/* Brand tags with relief */}
                 <div className="mt-5 min-h-[80px] flex flex-wrap content-start gap-2 text-[10px] uppercase tracking-wider sm:text-[11px]">
                   {cat.brands.slice(0, 4).map((name) => (
-                    <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/[0.08] bg-gradient-to-b from-white/[0.04] to-transparent px-3 py-1.5 text-center font-medium text-white/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] transition-colors duration-200 hover:border-white/[0.12] hover:from-white/[0.08]">
+                    <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10">
                       {name}
                     </span>
                   ))}
                   {cat.brands.length > 4 && (
-                    <span className="inline-flex items-center justify-center rounded-lg border border-white/[0.08] bg-gradient-to-b from-white/[0.04] to-transparent px-3 py-1.5 text-center font-medium text-white/50 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                    <span className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/50">
                       +{cat.brands.length - 4} {tPage('more')}
                     </span>
                   )}
@@ -680,13 +694,13 @@ export default function MotoPage() {
                 
                 {/* Open button - clear affordance */}
                 <div className="mt-auto pt-6 flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3">
+                  <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3 group-hover:text-white">
                     {tPage('open')}
                     <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-                  <span className="text-xs text-white/30">{cat.brands.length} брендів</span>
+                  <span className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{cat.brands.length} брендів</span>
                 </div>
               </div>
             </Link>
@@ -730,7 +744,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1, duration: 0.8 }}
-              className="text-5xl font-extralight tracking-tight text-white sm:text-6xl md:text-8xl"
+              className="text-4xl font-extralight tracking-tight text-white sm:text-5xl md:text-6xl"
             >
               <span className="bg-gradient-to-b from-white via-white to-zinc-400 bg-clip-text text-transparent">
                 {locale === 'ua' ? 'Легенди' : 'Legends'}
@@ -747,17 +761,17 @@ export default function MotoPage() {
             </motion.p>
           </div>
           
-          {/* Legendary Grid - 12 columns layout like auto page */}
-          <div className="grid grid-cols-12 gap-4 sm:gap-5 lg:gap-6 auto-rows-[minmax(180px,auto)]">
+          {/* Legendary Grid - Uniform Layout */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             
-            {/* AKRAPOVIC - Hero Card (spans 8 cols, 2 rows) */}
+            {/* AKRAPOVIC */}
             <motion.button
               onClick={() => handleBrandClick('Akrapovic')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="group relative col-span-12 lg:col-span-8 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[320px]"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-red-500/40 via-orange-500/20 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-black" />
@@ -765,16 +779,7 @@ export default function MotoPage() {
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-1000">
                 <div className="absolute -inset-4 bg-gradient-to-r from-red-500/25 via-orange-500/15 to-yellow-500/10 rounded-[3rem] blur-3xl" />
               </div>
-              <div className="relative h-full min-h-[280px] sm:min-h-[340px] p-5 sm:p-8 lg:p-10 flex flex-col">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <span className="text-xl sm:text-2xl">🇸🇮</span>
-                    <span className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-red-400/90 font-medium">Slovenia</span>
-                  </div>
-                  <span className="text-[9px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
-                    Performance Exhaust
-                  </span>
-                </div>
+              <div className="relative h-full p-5 sm:p-8 lg:p-10 flex flex-col">
                 <div className="flex-1 flex items-center justify-center py-4 sm:py-8">
                   <div className="relative w-full max-w-[280px] sm:max-w-[350px] h-20 sm:h-28 lg:h-36">
                     <Image src={getBrandLogo('Akrapovic')} alt="Akrapovic" fill className="object-contain drop-shadow-[0_0_60px_rgba(255,100,50,0.4)] transition-all duration-700 group-hover:scale-110" unoptimized />
@@ -794,14 +799,14 @@ export default function MotoPage() {
               </div>
             </motion.button>
 
-            {/* SC-PROJECT - Tall Card (4 cols, 2 rows) */}
+            {/* SC-PROJECT */}
             <motion.button
               onClick={() => handleBrandClick('SC-Project')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="group relative col-span-6 lg:col-span-4 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[320px]"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-emerald-500/30 via-teal-500/15 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
@@ -809,14 +814,10 @@ export default function MotoPage() {
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
                 <div className="absolute -inset-2 bg-gradient-to-br from-emerald-500/20 to-transparent rounded-[3rem] blur-2xl" />
               </div>
-              <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-5 sm:p-6 lg:p-8 flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">🇮🇹</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-[0.15em] text-emerald-400 font-medium">Italy</span>
-                </div>
+              <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col">
                 <div className="flex-1 flex items-center justify-center py-8">
                   <div className="relative w-full max-w-[200px] h-16 sm:h-20 lg:h-24">
-                    <Image src={getBrandLogo('SC-Project')} alt="SC-Project" fill className={`object-contain drop-shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all duration-700 group-hover:scale-110 ${isDarkLogo(getBrandLogo('SC-Project')) ? 'brightness-0 invert' : ''}`} unoptimized />
+                    <Image src={getBrandLogo('SC-Project')} alt="SC-Project" fill className="object-contain transition-all duration-700 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <div>
@@ -831,14 +832,14 @@ export default function MotoPage() {
               </div>
             </motion.button>
 
-            {/* TERMIGNONI - Wide Card (5 cols) */}
+            {/* TERMIGNONI */}
             <motion.button
               onClick={() => handleBrandClick('Termignoni')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.15 }}
-              className="group relative col-span-6 lg:col-span-5 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[320px]"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-amber-400/40 via-yellow-500/15 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
@@ -846,19 +847,10 @@ export default function MotoPage() {
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
                 <div className="absolute -inset-2 bg-gradient-to-br from-amber-500/25 via-yellow-500/15 to-transparent rounded-[3rem] blur-2xl" />
               </div>
-              <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[200px]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">🇮🇹</span>
-                    <span className="text-[10px] sm:text-xs uppercase tracking-[0.15em] text-amber-400/80 font-medium">Italy</span>
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs uppercase tracking-widest text-amber-400/70 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-                    <span className="text-amber-400">★</span> Ducati Partner
-                  </span>
-                </div>
+              <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col">
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[220px] h-12 sm:h-16">
-                    <Image src={getBrandLogo('Termignoni')} alt="Termignoni" fill className={`object-contain opacity-95 drop-shadow-[0_0_25px_rgba(255,200,50,0.25)] transition-all duration-700 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Termignoni')) ? 'brightness-0 invert' : ''}`} unoptimized />
+                    <Image src={getBrandLogo('Termignoni')} alt="Termignoni" fill className="object-contain opacity-95 transition-all duration-700 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <p className="text-lg sm:text-xl font-light text-white">Termignoni</p>
@@ -870,30 +862,23 @@ export default function MotoPage() {
               </div>
             </motion.button>
 
-            {/* BREMBO (4 cols) */}
+            {/* BREMBO */}
             <motion.button
               onClick={() => handleBrandClick('Brembo')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="group relative col-span-6 lg:col-span-4 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[320px]"
             >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-red-600/35 via-red-500/15 to-transparent p-[1.5px]">
-                <div className="absolute inset-[1.5px] rounded-[calc(1.5rem-1.5px)] sm:rounded-[calc(2rem-1.5px)] bg-gradient-to-br from-zinc-900 to-zinc-950" />
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-red-600/35 via-red-500/15 to-transparent p-[1.5px]">
+                <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-zinc-950" />
               </div>
               <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[180px]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">🇮🇹</span>
-                    <span className="text-[10px] sm:text-xs uppercase tracking-widest text-red-400/80 font-medium">Italy</span>
-                  </div>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-2.5 py-1 rounded-full">Braking Systems</span>
-                </div>
+              <div className="relative h-full p-5 sm:p-6 flex flex-col">
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[140px] h-16 sm:h-20">
-                    <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain drop-shadow-[0_0_20px_rgba(220,38,38,0.2)] transition-all duration-500 group-hover:scale-110" unoptimized />
+                    <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <div className="flex items-end justify-between">
@@ -905,30 +890,23 @@ export default function MotoPage() {
               </div>
             </motion.button>
 
-            {/* OHLINS (4 cols) */}
+            {/* OHLINS */}
             <motion.button
               onClick={() => handleBrandClick('Ohlins')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.25 }}
-              className="group relative col-span-6 sm:col-span-4 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[320px]"
             >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-yellow-500/30 via-amber-500/10 to-transparent p-[1px]">
-                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-yellow-500/30 via-amber-500/10 to-transparent p-[1px]">
+                <div className="absolute inset-[1px] rounded-[calc(2rem-1px)] sm:rounded-[calc(2.5rem-1px)] bg-zinc-900" />
               </div>
               <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🇸🇪</span>
-                    <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-yellow-400/70">Sweden</span>
-                  </div>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-600">Suspension</span>
-                </div>
+              <div className="relative h-full p-4 sm:p-5 flex flex-col">
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[140px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('Ohlins')} alt="Ohlins" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Ohlins')) ? 'brightness-0 invert opacity-85' : ''}`} unoptimized />
+                    <Image src={getBrandLogo('Ohlins')} alt="Ohlins" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <p className="text-sm sm:text-base font-medium text-white">Ohlins</p>
@@ -936,27 +914,23 @@ export default function MotoPage() {
               </div>
             </motion.button>
 
-            {/* MARCHESINI (3 cols) */}
+            {/* MARCHESINI */}
             <motion.button
               onClick={() => handleBrandClick('Marchesini')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.3 }}
-              className="group relative col-span-6 sm:col-span-4 lg:col-span-3 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[320px]"
             >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-blue-600/25 to-transparent p-[1px]">
-                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-blue-600/25 to-transparent p-[1px]">
+                <div className="absolute inset-[1px] rounded-[calc(2rem-1px)] sm:rounded-[calc(2.5rem-1px)] bg-zinc-900" />
               </div>
               <div className="absolute inset-0 bg-gradient-to-br from-blue-600/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🇮🇹</span>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-blue-400/70">Italy</span>
-                </div>
+              <div className="relative h-full p-4 sm:p-5 flex flex-col">
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[110px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('Marchesini')} alt="Marchesini" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Marchesini')) ? 'brightness-0 invert opacity-85' : ''}`} unoptimized />
+                    <Image src={getBrandLogo('Marchesini')} alt="Marchesini" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <p className="text-sm sm:text-base font-medium text-white">Marchesini</p>
@@ -964,27 +938,23 @@ export default function MotoPage() {
               </div>
             </motion.button>
 
-            {/* OZ RACING (3 cols) */}
+            {/* OZ RACING */}
             <motion.button
               onClick={() => handleBrandClick('OZ Racing')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.35 }}
-              className="group relative col-span-6 sm:col-span-4 lg:col-span-3 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[320px]"
             >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-zinc-500/25 to-transparent p-[1px]">
-                <div className="absolute inset-[1px] rounded-[calc(1.5rem-1px)] sm:rounded-[calc(2rem-1px)] bg-zinc-900" />
+              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-zinc-500/25 to-transparent p-[1px]">
+                <div className="absolute inset-[1px] rounded-[calc(2rem-1px)] sm:rounded-[calc(2.5rem-1px)] bg-zinc-900" />
               </div>
               <div className="absolute inset-0 bg-gradient-to-br from-zinc-500/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🇮🇹</span>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-400/70">Italy</span>
-                </div>
+              <div className="relative h-full p-4 sm:p-5 flex flex-col">
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[100px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('OZ Racing')} alt="OZ Racing" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${isDarkLogo(getBrandLogo('OZ Racing')) ? 'brightness-0 invert opacity-85' : ''}`} unoptimized />
+                    <Image src={getBrandLogo('OZ Racing')} alt="OZ Racing" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <p className="text-sm sm:text-base font-medium text-white">OZ Racing</p>
@@ -992,14 +962,14 @@ export default function MotoPage() {
               </div>
             </motion.button>
 
-            {/* ARROW - Wide Card (6 cols) */}
+            {/* ARROW */}
             <motion.button
               onClick={() => handleBrandClick('Arrow')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.4 }}
-              className="group relative col-span-12 sm:col-span-8 lg:col-span-6 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[320px]"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-orange-500/30 via-amber-500/15 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
@@ -1007,17 +977,10 @@ export default function MotoPage() {
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
                 <div className="absolute -inset-2 bg-gradient-to-br from-orange-500/20 to-transparent rounded-[3rem] blur-2xl" />
               </div>
-              <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">🇮🇹</span>
-                    <span className="text-[10px] sm:text-xs uppercase tracking-[0.15em] text-orange-400/80 font-medium">Italy</span>
-                  </div>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-3 py-1.5 rounded-full">Racing Exhaust</span>
-                </div>
+              <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col">
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[180px] h-14 sm:h-16">
-                    <Image src={getBrandLogo('Arrow')} alt="Arrow" fill className={`object-contain opacity-95 drop-shadow-[0_0_20px_rgba(255,150,50,0.2)] transition-all duration-700 group-hover:scale-110 ${isDarkLogo(getBrandLogo('Arrow')) ? 'brightness-0 invert' : ''}`} unoptimized />
+                    <Image src={getBrandLogo('Arrow')} alt="Arrow" fill className="object-contain opacity-95 transition-all duration-700 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <div className="flex items-end justify-between">
@@ -1034,14 +997,14 @@ export default function MotoPage() {
               </div>
             </motion.button>
 
-            {/* SPARK EXHAUST (6 cols) */}
+            {/* SPARK EXHAUST */}
             <motion.button
               onClick={() => handleBrandClick('SparkExhaust')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.45 }}
-              className="group relative col-span-12 sm:col-span-4 lg:col-span-6 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[320px]"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-rose-500/30 via-red-500/15 to-transparent p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 to-black" />
@@ -1049,17 +1012,10 @@ export default function MotoPage() {
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
                 <div className="absolute -inset-2 bg-gradient-to-br from-rose-500/20 to-transparent rounded-[3rem] blur-2xl" />
               </div>
-              <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">🇮🇹</span>
-                    <span className="text-[10px] sm:text-xs uppercase tracking-[0.15em] text-rose-400/80 font-medium">Italy</span>
-                  </div>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 bg-zinc-800/50 px-3 py-1.5 rounded-full">High Performance</span>
-                </div>
+              <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col">
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[140px] h-14 sm:h-16">
-                    <Image src={getBrandLogo('SparkExhaust')} alt="SparkExhaust" fill className={`object-contain opacity-95 drop-shadow-[0_0_20px_rgba(244,63,94,0.2)] transition-all duration-700 group-hover:scale-110 ${isDarkLogo(getBrandLogo('SparkExhaust')) ? 'brightness-0 invert' : ''}`} unoptimized />
+                    <Image src={getBrandLogo('SparkExhaust')} alt="SparkExhaust" fill className="object-contain opacity-95 transition-all duration-700 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <div className="flex items-end justify-between">
@@ -1082,7 +1038,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="group relative col-span-12 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative col-span-1 sm:col-span-2 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[320px]"
               onClick={() => {
                 const catalogSection = document.getElementById('moto-brand-catalog');
                 catalogSection?.scrollIntoView({ behavior: 'smooth' });
@@ -1092,7 +1048,7 @@ export default function MotoPage() {
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-r from-red-500/30 via-orange-500/20 to-emerald-500/30 p-[1.5px]">
                 <div className="absolute inset-[1.5px] rounded-[calc(2rem-1.5px)] sm:rounded-[calc(2.5rem-1.5px)] bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
               </div>
-              <div className="relative p-6 sm:p-8 lg:p-10">
+              <div className="relative p-6 sm:p-8 lg:p-10 h-full flex flex-col justify-center">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
                   <div className="text-center lg:text-left">
                     <div className="flex items-baseline gap-3 justify-center lg:justify-start">
@@ -1122,7 +1078,7 @@ export default function MotoPage() {
                     {[...allMotoBrands.slice(0, 15), ...allMotoBrands.slice(0, 15)].map((brand, idx) => (
                       <div key={`row1-${brand.name}-${idx}`} className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300">
                         <div className="relative w-full h-full">
-                          <Image src={getBrandLogo(brand.name)} alt={brand.name} fill className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''}`} unoptimized />
+                          <Image src={getBrandLogo(brand.name)} alt={brand.name} fill className="object-contain opacity-70 hover:opacity-100 transition-opacity" unoptimized />
                         </div>
                       </div>
                     ))}
@@ -1131,7 +1087,7 @@ export default function MotoPage() {
                     {[...allMotoBrands.slice(15, 30), ...allMotoBrands.slice(15, 30)].map((brand, idx) => (
                       <div key={`row2-${brand.name}-${idx}`} className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300">
                         <div className="relative w-full h-full">
-                          <Image src={getBrandLogo(brand.name)} alt={brand.name} fill className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''}`} unoptimized />
+                          <Image src={getBrandLogo(brand.name)} alt={brand.name} fill className="object-contain opacity-70 hover:opacity-100 transition-opacity" unoptimized />
                         </div>
                       </div>
                     ))}
@@ -1170,7 +1126,7 @@ export default function MotoPage() {
                     src={getBrandLogo(selectedBrand.name)}
                     alt={selectedBrand.name}
                     fill
-                    className={`object-contain object-left sm:object-center ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''}`}
+                    className="object-contain object-left sm:object-center"
                     sizes="(max-width: 640px) 100vw, 300px"
                     unoptimized
                   />
@@ -1358,12 +1314,27 @@ export default function MotoPage() {
             className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 hover:border-white/40"
           >
             <span>{isBrandsOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
-            <motion.span
+            <motion.div
               animate={{ rotate: isBrandsOpen ? 180 : 0 }}
               transition={{ duration: 0.3 }}
             >
-              ↓
-            </motion.span>
+              <svg 
+                width="10" 
+                height="10" 
+                viewBox="0 0 10 10" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="opacity-70"
+              >
+                <path 
+                  d="M1 3L5 7L9 3" 
+                  stroke="currentColor" 
+                  strokeWidth="1.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </motion.div>
           </button>
         </div>
 
@@ -1411,7 +1382,7 @@ export default function MotoPage() {
                       src={getBrandLogo(brand.name)}
                       alt={brand.name}
                       fill
-                      className={`object-contain transition-all duration-500 ${isDarkLogo(getBrandLogo(brand.name)) ? 'brightness-0 invert' : ''}`}
+                      className="object-contain transition-all duration-500"
                       sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                       unoptimized
                     />

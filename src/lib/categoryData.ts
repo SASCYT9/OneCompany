@@ -316,8 +316,8 @@ export const categoryData: CategoryData[] = [
     segment: 'moto',
     title: { en: 'Controls & Ergonomics', ua: 'Керування та ергономіка' },
     description: {
-      en: 'Adjustable rearsets, clip-ons, billet levers and quick-shifters for precise rider interface and lap time gains.',
-      ua: 'Регульовані підніжки, кліпони, білетні важелі та квікшифтери для точного керування та кращих часів кіл.',
+      en: 'Adjustable rearsets, clip-ons and billet levers for precise rider interface and lap time gains.',
+      ua: 'Регульовані підніжки, кліпони та білетні важелі для точного керування та кращих часів кіл.',
     },
     spotlight: {
       en: 'CNC-machined with multiple position options for track ergonomics.',
@@ -349,8 +349,6 @@ export const categoryData: CategoryData[] = [
     brands: [
       'Starlane',
       'AIM Sports',
-      'Dynojet',
-      'Bazzaz',
       'Jetprime',
       'Woolich Racing',
       'RapidBike',

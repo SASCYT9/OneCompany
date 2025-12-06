@@ -57,7 +57,7 @@ export function BrandExpandableCard({ name, logo, categoryLabel, href }: Props) 
               src={imgSrc}
               alt={name}
               fill
-              className="object-contain invert opacity-60 group-hover:opacity-100 transition-opacity duration-300"
+              className="object-contain opacity-60 group-hover:opacity-100 transition-opacity duration-300"
               onError={() => setImgSrc('/logos/placeholder.svg')}
             />
           </div>
@@ -96,7 +96,7 @@ export function BrandExpandableCard({ name, logo, categoryLabel, href }: Props) 
                       src={modalImgSrc}
                       alt=""
                       fill
-                      className="object-contain p-2 invert opacity-80"
+                      className="object-contain p-2 opacity-80"
                       onError={() => setModalImgSrc('/logos/placeholder.svg')}
                     />
                   </div>

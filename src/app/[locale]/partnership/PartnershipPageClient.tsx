@@ -84,7 +84,7 @@ export default function PartnershipPageClient() {
             <div className="space-y-8">
               <div className="flex items-start space-x-4">
                 <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                  <Building2 className="w-6 h-6 text-blue-400" />
+                  <Building2 className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold mb-2">{t("benefits.official.title")}</h3>
@@ -94,7 +94,7 @@ export default function PartnershipPageClient() {
 
               <div className="flex items-start space-x-4">
                 <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                  <Globe className="w-6 h-6 text-purple-400" />
+                  <Globe className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold mb-2">{t("benefits.logistics.title")}</h3>
@@ -104,13 +104,47 @@ export default function PartnershipPageClient() {
 
               <div className="flex items-start space-x-4">
                 <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                  <User className="w-6 h-6 text-green-400" />
+                  <User className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold mb-2">{t("benefits.support.title")}</h3>
                   <p className="text-white/50">{t("benefits.support.description")}</p>
                 </div>
               </div>
+            </div>
+
+            <div className="mt-12 flex flex-col gap-4">
+              <a 
+                href="https://t.me/OneCompanyAutoBot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] text-white group w-fit"
+              >
+                <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">
+                  <Send className="w-5 h-5" />
+                </div>
+                <span className="font-medium tracking-wide">Telegram</span>
+              </a>
+
+              <a 
+                href="mailto:info@onecompany.global"
+                className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] text-white group w-fit"
+              >
+                <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <span className="font-medium tracking-wide">info@onecompany.global</span>
+              </a>
+
+              <a 
+                href="#"
+                className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] text-white group w-fit"
+              >
+                <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">
+                  <Phone className="w-5 h-5" />
+                </div>
+                <span className="font-medium tracking-wide">+380 (00) 000 00 00</span>
+              </a>
             </div>
           </motion.div>
 

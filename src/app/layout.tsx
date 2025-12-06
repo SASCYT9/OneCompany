@@ -8,6 +8,7 @@ import { OrganizationSchema, WebSiteSchema, LocalBusinessSchema } from "@/compon
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import MicrosoftClarity from "@/components/analytics/MicrosoftClarity";
 import MetaPixel from "@/components/analytics/MetaPixel";
+import { Analytics } from "@vercel/analytics/react";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 export const viewport: Viewport = {
@@ -162,6 +163,8 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
           <MetaPixel id={process.env.NEXT_PUBLIC_FB_PIXEL_ID} />
         )}
+
+        <Analytics />
 
         {/* Optional: Plausible analytics if NEXT_PUBLIC_PLAUSIBLE_DOMAIN is configured */}
         {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN ? (

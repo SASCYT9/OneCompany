@@ -113,18 +113,15 @@ export default async function LocalizedHomePage({
                   index === 0 ? "md:mr-2" : "md:ml-2"
                 )}
               >
-                {/* Background Image - grayscale with blue tint */}
+                {/* Background Image - raw photo */}
                 <Image
                   src={experience.bgImage}
                   alt={experience.label}
                   fill
-                  className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
-                  style={{ filter: 'grayscale(100%) brightness(0.9) sepia(20%) hue-rotate(180deg) saturate(0.5)' }}
+                  className="object-cover group-hover:scale-105 transition-all duration-700"
                   priority
                   quality={90}
                 />
-                {/* Blue tint overlay */}
-                <div className="absolute inset-0 bg-blue-950/20 mix-blend-overlay group-hover:opacity-0 transition-opacity duration-700" />
                 {/* Subtle gradient for text readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 
@@ -157,7 +154,7 @@ export default async function LocalizedHomePage({
         </div>
       </section>
       <section className="border-t border-white/10 bg-black/40 backdrop-blur-xl px-4 sm:px-6 md:px-8">
-        <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-4 py-8 text-center text-white md:grid-cols-4 sm:gap-6">
+        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 py-8 text-center text-white md:grid-cols-4 sm:gap-6">
           {statHighlights.map((stat) => (
             <div key={stat.label} className="flex flex-col items-center justify-center gap-2 p-3 h-full min-h-[120px] rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300 sm:min-h-[140px] sm:p-4 sm:gap-3">
               <div className="text-2xl font-display sm:text-3xl tracking-tight text-center text-balance">{stat.value}</div>

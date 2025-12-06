@@ -345,10 +345,10 @@ export default function AutomotivePage() {
   const tPage = useTranslations('autoPage');
   const isUa = locale === 'ua';
   const typography = {
-    heroTitle: isUa ? 'text-4xl sm:text-5xl lg:text-6xl' : 'text-5xl sm:text-6xl lg:text-7xl',
-    heroSubtitle: isUa ? 'text-base sm:text-lg' : 'text-lg sm:text-xl',
-    statValue: isUa ? 'text-3xl' : 'text-4xl',
-    sectionHeading: isUa ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl',
+    heroTitle: isUa ? 'text-3xl sm:text-4xl lg:text-5xl' : 'text-4xl sm:text-5xl lg:text-6xl',
+    heroSubtitle: isUa ? 'text-sm sm:text-base' : 'text-base sm:text-lg',
+    statValue: isUa ? 'text-2xl' : 'text-3xl',
+    sectionHeading: isUa ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl',
   } as const;
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
@@ -532,12 +532,27 @@ export default function AutomotivePage() {
             className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 hover:border-white/40"
           >
             <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
-            <motion.span
+            <motion.div
               animate={{ rotate: isModulesOpen ? 180 : 0 }}
               transition={{ duration: 0.3 }}
             >
-              ↓
-            </motion.span>
+              <svg 
+                width="10" 
+                height="10" 
+                viewBox="0 0 10 10" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="opacity-70"
+              >
+                <path 
+                  d="M1 3L5 7L9 3" 
+                  stroke="currentColor" 
+                  strokeWidth="1.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </motion.div>
           </button>
         </div>
         <AnimatePresence>
@@ -554,26 +569,26 @@ export default function AutomotivePage() {
             <Link
               key={cat.slug}
               href={`/${locale}/auto/categories/${cat.slug}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl bg-black transition-all duration-300 hover:translate-y-[-4px] sm:rounded-3xl h-full"
+              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/[0.03] border border-white/10 transition-all duration-300 hover:bg-white/[0.06] hover:border-white/30 hover:translate-y-[-4px] sm:rounded-3xl h-full"
             >
               {/* Multi-layer box shadows for depth */}
-              <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),inset_0_0_0_1px_rgba(255,255,255,0.05)] sm:rounded-3xl" />
+              <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] sm:rounded-3xl" />
               
               {/* Bottom glow on hover */}
-              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               
-              <div className="relative p-6 sm:p-7 md:p-8 flex flex-col flex-1 shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.6)] group-hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_16px_40px_rgba(0,0,0,0.7)] transition-shadow duration-300">
+              <div className="relative p-6 sm:p-7 md:p-8 flex flex-col flex-1">
                 {/* Title & Description */}
                 <div className="min-h-[120px] sm:min-h-[140px]">
-                  <h3 className="text-xl font-light text-white text-balance sm:text-2xl">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
-                  <p className="mt-3 text-[13px] leading-relaxed text-white/60 text-pretty sm:text-[15px]">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                  <p className="mt-2 text-[11px] text-white/40 text-pretty sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                  <h3 className="text-xl font-normal text-white text-balance sm:text-2xl tracking-wide">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                  <p className="mt-3 text-[13px] leading-relaxed text-white/80 text-pretty sm:text-[15px] font-light">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                  <p className="mt-2 text-[11px] text-white/50 text-pretty sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
                 </div>
                 
                 {/* Brand tags with relief */}
                 <div className="mt-5 min-h-[80px] grid grid-cols-2 gap-2 text-[10px] uppercase tracking-wider content-start sm:text-[11px]">
                   {cat.brands.map((name) => (
-                    <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/[0.08] bg-gradient-to-b from-white/[0.04] to-transparent px-3 py-1.5 text-center font-medium text-white/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] transition-colors duration-200 hover:border-white/[0.12] hover:from-white/[0.08]">
+                    <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10">
                       {name}
                     </span>
                   ))}
@@ -581,13 +596,13 @@ export default function AutomotivePage() {
                 
                 {/* Open button - clear affordance */}
                 <div className="mt-auto pt-6 flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3">
+                  <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3 group-hover:text-white">
                     {locale === 'ua' ? 'Відкрити' : 'Open'}
                     <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-                  <span className="text-xs text-white/30">{cat.brands.length} брендів</span>
+                  <span className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{cat.brands.length} брендів</span>
                 </div>
               </div>
             </Link>
@@ -631,7 +646,7 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1, duration: 0.8 }}
-              className="text-5xl font-extralight tracking-tight text-white sm:text-6xl md:text-8xl"
+              className="text-4xl font-extralight tracking-tight text-white sm:text-5xl md:text-6xl"
             >
               <span className="bg-gradient-to-b from-white via-white to-zinc-400 bg-clip-text text-transparent">
                 {locale === 'ua' ? 'Легенди' : 'Legends'}
@@ -832,7 +847,7 @@ export default function AutomotivePage() {
                 </div>
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[160px] h-16 sm:h-20">
-                    <Image src={getBrandLogo('HRE wheels')} alt="HRE" fill className="object-contain drop-shadow-[0_0_20px_rgba(56,189,248,0.2)] transition-all duration-500 group-hover:scale-110" unoptimized />
+                    <Image src={getBrandLogo('HRE wheels')} alt="HRE" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <div className="flex items-end justify-between">
@@ -868,7 +883,7 @@ export default function AutomotivePage() {
                 </div>
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[140px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('Urban Automotive')} alt="Urban Automotive" fill className="object-contain brightness-0 invert opacity-85 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                    <Image src={getBrandLogo('Urban Automotive')} alt="Urban Automotive" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <p className="text-sm sm:text-base font-medium text-white">Urban Automotive</p>
@@ -897,7 +912,7 @@ export default function AutomotivePage() {
                 </div>
                 <div className="flex-1 flex items-center justify-center py-3">
                   <div className="relative w-full max-w-[110px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('Eventuri')} alt="Eventuri" fill className="object-contain brightness-0 invert opacity-85 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                    <Image src={getBrandLogo('Eventuri')} alt="Eventuri" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
                 <p className="text-sm sm:text-base font-medium text-white">Eventuri</p>
@@ -966,7 +981,7 @@ export default function AutomotivePage() {
                       src={getBrandLogo('Novitec')}
                       alt="Novitec"
                       fill
-                      className="object-contain brightness-0 invert opacity-95 drop-shadow-[0_0_20px_rgba(255,100,150,0.2)] transition-all duration-700 group-hover:scale-110"
+                      className="object-contain opacity-95 transition-all duration-700 group-hover:scale-110"
                       unoptimized
                     />
                   </div>
@@ -1018,7 +1033,7 @@ export default function AutomotivePage() {
                       src={getBrandLogo('ABT')}
                       alt="ABT"
                       fill
-                      className="object-contain brightness-0 invert opacity-95 drop-shadow-[0_0_20px_rgba(139,92,246,0.2)] transition-all duration-700 group-hover:scale-110"
+                      className="object-contain opacity-95 transition-all duration-700 group-hover:scale-110"
                       unoptimized
                     />
                   </div>
@@ -1097,7 +1112,7 @@ export default function AutomotivePage() {
                             src={getBrandLogo(brand.name)} 
                             alt={brand.name} 
                             fill 
-                            className="object-contain brightness-0 invert opacity-70 hover:opacity-100 transition-opacity" 
+                            className="object-contain opacity-70 hover:opacity-100 transition-opacity" 
                             unoptimized 
                           />
                         </div>
@@ -1117,7 +1132,7 @@ export default function AutomotivePage() {
                             src={getBrandLogo(brand.name)} 
                             alt={brand.name} 
                             fill 
-                            className="object-contain brightness-0 invert opacity-70 hover:opacity-100 transition-opacity" 
+                            className="object-contain opacity-70 hover:opacity-100 transition-opacity" 
                             unoptimized 
                           />
                         </div>
@@ -1177,23 +1192,42 @@ export default function AutomotivePage() {
             ))}
           </div>
 
-          <button
-            onClick={() => setIsBrandsOpen(!isBrandsOpen)}
-            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 hover:border-white/40"
-          >
-            <span>{isBrandsOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
-            <motion.span
-              animate={{ rotate: isBrandsOpen ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
+          <div className="flex flex-col items-center gap-4">
+            <button
+              onClick={() => setIsBrandsOpen(!isBrandsOpen)}
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 hover:border-white/40"
             >
-              ↓
-            </motion.span>
-          </button>
+              <span>{isBrandsOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
+              <motion.span
+                animate={{ rotate: isBrandsOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                ↓
+              </motion.span>
+            </button>
+
+            {/* Scroll Down Arrow */}
+            <button
+              onClick={() => {
+                if (!isBrandsOpen) setIsBrandsOpen(true);
+                setTimeout(() => {
+                  document.getElementById('brand-list-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+              }}
+              className="animate-bounce p-2 text-white/30 hover:text-white transition-colors"
+              aria-label="Scroll to brands"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 13l-7 7-7-7m14-8l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <AnimatePresence>
           {isBrandsOpen && (
             <motion.div
+              id="brand-list-container"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
@@ -1238,7 +1272,7 @@ export default function AutomotivePage() {
                         src={logoSrc}
                         alt={brand.name}
                         fill
-                        className={`object-contain ${isDark ? 'brightness-0 invert' : ''}`}
+                        className="object-contain"
                         sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                         unoptimized
                       />
@@ -1300,7 +1334,7 @@ export default function AutomotivePage() {
                       src={getBrandLogo(selectedBrand.name)}
                       alt={selectedBrand.name}
                       fill
-                      className={`object-contain object-left sm:object-center ${isDarkLogo(getBrandLogo(selectedBrand.name)) ? 'brightness-0 invert' : ''}`}
+                      className="object-contain object-left sm:object-center"
                       sizes="(max-width: 640px) 100vw, 300px"
                       unoptimized
                     />

@@ -42,7 +42,7 @@ export function BrandCard({ name, logo, url, description, category }: BrandCardP
               src={logo}
               alt={name}
               fill
-              className="object-contain filter brightness-0 invert opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+              className="object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-300"
             />
           </div>
         </div>

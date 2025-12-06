@@ -124,15 +124,6 @@ const controlTypes = [
     color: 'text-violet-400',
   },
   {
-    name: { en: 'Quick-Shifters', ua: 'Квікшифтери' },
-    description: {
-      en: 'Electronic shift sensors for clutchless upshifts and downshifts on track and street.',
-      ua: 'Електронні датчики перемикання для беззчепленнєвих перемикань вгору та вниз на треку та вулиці.',
-    },
-    icon: Zap,
-    color: 'text-amber-400',
-  },
-  {
     name: { en: 'Grips & Bar Ends', ua: 'Грипси та баренди' },
     description: {
       en: 'Replacement grips and weighted bar-ends for vibration reduction and style.',
@@ -186,8 +177,8 @@ export default function MotoControlsCategoryPage() {
       eyebrow: { en: 'Moto Category', ua: 'Мото категорія' },
       title: { en: 'Controls & Ergonomics', ua: 'Керування та ергономіка' },
       subtitle: {
-        en: 'Adjustable rearsets, clip-ons, billet levers and quick-shifters for precise rider interface. CNC-machined with multiple position options for track ergonomics.',
-        ua: 'Регульовані підніжки, кліпони, білетні важелі та квікшифтери для точного інтерфейсу райдера. CNC-оброблені з кількома позиціями для трекової ергономіки.',
+        en: 'Adjustable rearsets, clip-ons and billet levers for precise rider interface. CNC-machined with multiple position options for track ergonomics.',
+        ua: 'Регульовані підніжки, кліпони та білетні важелі для точного інтерфейсу райдера. CNC-оброблені з кількома позиціями для трекової ергономіки.',
       },
     },
     sections: {

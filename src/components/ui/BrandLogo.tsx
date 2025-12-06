@@ -66,7 +66,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({ name, src, className = '',
           src={current}
           alt={alt || name}
           fill
-          className={`object-contain transition-all duration-500 ${loaded ? 'opacity-90 hover:opacity-100' : 'opacity-0'} ${monochrome ? 'grayscale contrast-125 hover:grayscale-0 hover:contrast-100' : ''}`}
+          className={`object-contain transition-all duration-500 ${loaded ? 'opacity-90 hover:opacity-100' : 'opacity-0'}`}
           loading={lazy ? 'lazy' : 'eager'}
           onLoad={() => setLoaded(true)}
           onError={() => {
