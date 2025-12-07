@@ -82,7 +82,7 @@ const LEGENDARY_MOTO_CONFIG: Record<string, {
 }> = {
   'Akrapovic': {
     country: 'Slovenia',
-    flag: '🇸🇮',
+    flag: '????',
     category: { en: 'Performance Exhaust', ua: 'Вихлопні системи' },
     tagline: { en: 'Titanium exhaust mastery', ua: 'Титанові вихлопні системи' },
     gradient: 'from-red-500/40 via-orange-500/20 to-transparent',
@@ -90,7 +90,7 @@ const LEGENDARY_MOTO_CONFIG: Record<string, {
   },
   'SC-Project': {
     country: 'Italy',
-    flag: '🇮🇹',
+    flag: '????',
     category: { en: 'Race Exhaust', ua: 'Гоночні вихлопи' },
     tagline: { en: 'MotoGP-proven technology', ua: 'Технології з MotoGP' },
     gradient: 'from-emerald-500/30 via-teal-500/15 to-transparent',
@@ -98,7 +98,7 @@ const LEGENDARY_MOTO_CONFIG: Record<string, {
   },
   'Termignoni': {
     country: 'Italy',
-    flag: '🇮🇹',
+    flag: '????',
     category: { en: 'Exhaust Systems', ua: 'Вихлопні системи' },
     tagline: { en: 'Italian exhaust heritage', ua: 'Італійська спадщина вихлопів' },
     gradient: 'from-amber-500/30 via-yellow-500/15 to-transparent',
@@ -106,7 +106,7 @@ const LEGENDARY_MOTO_CONFIG: Record<string, {
   },
   'Brembo': {
     country: 'Italy',
-    flag: '🇮🇹',
+    flag: '????',
     category: { en: 'Braking Systems', ua: 'Гальмівні системи' },
     tagline: { en: 'The art of stopping', ua: 'Мистецтво гальмування' },
     gradient: 'from-red-600/35 via-red-500/15 to-transparent',
@@ -114,7 +114,7 @@ const LEGENDARY_MOTO_CONFIG: Record<string, {
   },
   'Ohlins': {
     country: 'Sweden',
-    flag: '🇸🇪',
+    flag: '????',
     category: { en: 'Suspension', ua: 'Підвіска' },
     tagline: { en: 'Advanced suspension technology', ua: 'Передові технології підвіски' },
     gradient: 'from-yellow-500/30 via-amber-500/15 to-transparent',
@@ -122,7 +122,7 @@ const LEGENDARY_MOTO_CONFIG: Record<string, {
   },
   'Marchesini': {
     country: 'Italy',
-    flag: '🇮🇹',
+    flag: '????',
     category: { en: 'Forged Wheels', ua: 'Ковані диски' },
     tagline: { en: 'Magnesium racing wheels', ua: 'Магнієві гоночні диски' },
     gradient: 'from-blue-600/30 via-indigo-500/15 to-transparent',
@@ -130,7 +130,7 @@ const LEGENDARY_MOTO_CONFIG: Record<string, {
   },
   'OZ Racing': {
     country: 'Italy',
-    flag: '🇮🇹',
+    flag: '????',
     category: { en: 'Racing Wheels', ua: 'Гоночні диски' },
     tagline: { en: 'Winning wheel technology', ua: 'Переможні технології дисків' },
     gradient: 'from-zinc-500/30 via-zinc-600/15 to-transparent',
@@ -138,7 +138,7 @@ const LEGENDARY_MOTO_CONFIG: Record<string, {
   },
   'Arrow': {
     country: 'Italy',
-    flag: '🇮🇹',
+    flag: '????',
     category: { en: 'Exhaust Systems', ua: 'Вихлопні системи' },
     tagline: { en: 'World champion exhausts', ua: 'Вихлопи чемпіонів світу' },
     gradient: 'from-orange-500/30 via-yellow-500/15 to-transparent',
@@ -146,7 +146,7 @@ const LEGENDARY_MOTO_CONFIG: Record<string, {
   },
   'SparkExhaust': {
     country: 'Italy',
-    flag: '🇮🇹',
+    flag: '????',
     category: { en: 'High Performance', ua: 'Висока продуктивність' },
     tagline: { en: 'Italian passion & sound', ua: 'Італійська пристрасть та звук' },
     gradient: 'from-rose-500/30 via-red-500/15 to-transparent',
@@ -878,7 +878,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="group relative col-span-6 sm:col-span-4 lg:col-span-4 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -905,7 +905,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.25 }}
-              className="group relative col-span-6 sm:col-span-4 lg:col-span-4 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -928,7 +928,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.3 }}
-              className="group relative col-span-6 sm:col-span-4 lg:col-span-4 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -951,7 +951,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.35 }}
-              className="group relative col-span-6 sm:col-span-4 lg:col-span-4 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -974,7 +974,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.4 }}
-              className="group relative col-span-6 sm:col-span-4 lg:col-span-4 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -1000,7 +1000,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.45 }}
-              className="group relative col-span-6 sm:col-span-4 lg:col-span-4 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -1025,7 +1025,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="group relative col-span-12 lg:col-span-8 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[200px]"
+              className="group relative col-span-1 sm:col-span-2 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[200px]"
               onClick={() => {
                 const catalogSection = document.getElementById('moto-brand-catalog');
                 catalogSection?.scrollIntoView({ behavior: 'smooth' });
@@ -1254,7 +1254,7 @@ export default function MotoPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-2xl border border-white/15 bg-white px-6 py-3 text-base text-black placeholder-black/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:p-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
             />
-            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">⌕</div>
+            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">?</div>
           </div>
 
           {/* Alphabet Filter */}
