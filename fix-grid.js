@@ -1,0 +1,12 @@
+﻿const fs = require('fs');
+const filePath = 'src/app/[locale]/auto/AutoPageClient.tsx';
+console.log('Reading...');
+let content = fs.readFileSync(filePath, 'utf8');
+content = content.replace(/grid grid-cols-12 gap-4 sm:gap-5 lg:gap-6 auto-rows-\[minmax\(180px,auto\)\]/g, 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6');
+content = content.replace(/col-span-12 lg:col-span-6 row-span-2 cursor-pointer overflow-hidden rounded-\[2rem\]/g, 'sm:col-span-2 lg:row-span-2 cursor-pointer overflow-hidden rounded-[2rem]');
+content = content.replace(/col-span-6 lg:col-span-6 row-span-2 cursor-pointer overflow-hidden rounded-\[2rem\]/g, 'lg:row-span-2 cursor-pointer overflow-hidden rounded-[2rem]');
+content = content.replace(/col-span-1 cursor-pointer overflow-hidden/g, 'cursor-pointer overflow-hidden');
+content = content.replace(/col-span-6 sm:col-span-1 cursor-pointer overflow-hidden/g, 'cursor-pointer overflow-hidden');
+content = content.replace(/col-span-1 sm:col-span-2 lg:col-span-3 cursor-pointer/g, 'sm:col-span-2 lg:col-span-3 cursor-pointer');
+fs.writeFileSync(filePath, content, 'utf8');
+console.log('Fixed!');

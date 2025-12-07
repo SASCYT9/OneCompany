@@ -44,18 +44,18 @@ const TOP_AUTOMOTIVE_BRANDS = [
 const heroStats: { value: string | LocalizedCopy; label: LocalizedCopy; caption: LocalizedCopy }[] = [
   {
     value: '160+',
-    label: { en: 'brands curated', ua: 'Р±СЂРµРЅРґС–РІ Сѓ РєР°С‚Р°Р»РѕР·С–' },
-    caption: { en: 'Official programs since 2007', ua: 'РћС„С–С†С–Р№РЅС– РїСЂРѕРіСЂР°РјРё Р· 2007 СЂРѕРєСѓ' },
+    label: { en: 'brands curated', ua: 'брендів у каталозі' },
+    caption: { en: 'Official programs since 2007', ua: 'Офіційні програми з 2007 року' },
   },
   {
-    value: { en: 'Network', ua: 'РњРµСЂРµР¶Р°' },
-    label: { en: 'partner garages', ua: 'РїР°СЂС‚РЅРµСЂСЃСЊРєРёС… РјР°Р№СЃС‚РµСЂРµРЅСЊ' },
-    caption: { en: 'Installation & setup', ua: 'Р’СЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ С‚Р° РЅР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ' },
+    value: { en: 'Network', ua: 'Мережа' },
+    label: { en: 'partner garages', ua: 'партнерських майстерень' },
+    caption: { en: 'Installation & setup', ua: 'Встановлення та налаштування' },
   },
   {
-    value: { en: 'Kyiv', ua: 'РљРёС—РІ' },
-    label: { en: 'Baseina St, 21B', ua: 'РІСѓР». Р‘Р°СЃРµР№РЅР°, 21Р‘' },
-    caption: { en: 'Headquarters', ua: 'РЁС‚Р°Р±-РєРІР°СЂС‚РёСЂР°' },
+    value: { en: 'Kyiv', ua: 'Київ' },
+    label: { en: 'Baseina St, 21B', ua: 'вул. Басейна, 21Б' },
+    caption: { en: 'Headquarters', ua: 'Штаб-квартира' },
   },
 ];
 
@@ -66,31 +66,31 @@ const programHighlights: {
   meta: LocalizedCopy;
 }[] = [
   {
-    eyebrow: { en: 'Expert sourcing', ua: 'Р•РєСЃРїРµСЂС‚РЅРµ РїРѕСЃС‚Р°С‡Р°РЅРЅСЏ' },
-    title: { en: 'Bespoke part selection', ua: 'Р†РЅРґРёРІС–РґСѓР°Р»СЊРЅРёР№ РїС–РґР±С–СЂ' },
+    eyebrow: { en: 'Expert sourcing', ua: 'Експертне постачання' },
+    title: { en: 'Bespoke part selection', ua: 'Індивідуальний підбір' },
     description: {
       en: 'We audit build sheets, plan compatibility and secure allocations before money moves.',
-      ua: 'РђРЅР°Р»С–Р·СѓС”РјРѕ РїСЂРѕС”РєС‚, РїРµСЂРµРІС–СЂСЏС”РјРѕ СЃСѓРјС–СЃРЅС–СЃС‚СЊ С‚Р° РЅР°РґР°С”РјРѕ СЂРµРєРѕРјРµРЅРґР°С†С–С—.',
+      ua: 'Аналізуємо проєкт, перевіряємо сумісність та надаємо рекомендації.',
     },
-    meta: { en: 'VIN verification & spec sheets', ua: 'РџРµСЂРµРІС–СЂРєР° VIN С‚Р° РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ СЃСѓРјС–СЃРЅРѕСЃС‚С–' },
+    meta: { en: 'VIN verification & spec sheets', ua: 'Перевірка VIN та підтвердження сумісності' },
   },
   {
-    eyebrow: { en: 'Logistics', ua: 'Р›РѕРіС–СЃС‚РёРєР°' },
-    title: { en: 'Global delivery windows', ua: 'Р“Р»РѕР±Р°Р»СЊРЅР° РґРѕСЃС‚Р°РІРєР°' },
+    eyebrow: { en: 'Logistics', ua: 'Логістика' },
+    title: { en: 'Global delivery windows', ua: 'Глобальна доставка' },
     description: {
       en: 'Air freight, EU road convoys and customs supervision to Kyiv, Warsaw, Dubai and beyond.',
-      ua: 'Р”РѕСЃС‚Р°РІР»СЏС”РјРѕ РєР»С–С”РЅС‚Р°Рј РїРѕ РІСЃСЊРѕРјСѓ СЃРІС–С‚Сѓ. РћРїС‚РёРјР°Р»СЊРЅС– С‚Р° РіРЅСѓС‡РєС– СѓРјРѕРІРё.',
+      ua: 'Доставляємо клієнтам по всьому світу. Оптимальні та гнучкі умови.',
     },
-    meta: { en: 'Insurance & tracking every 48h', ua: 'One Company Global В· РќР°РґС–Р№РЅС–СЃС‚СЊ С‚Р° Р±РµР·РїРµРєР°' },
+    meta: { en: 'Insurance & tracking every 48h', ua: 'One Company Global · Надійність та безпека' },
   },
   {
-    eyebrow: { en: 'Installation network', ua: 'РЎРІС–С‚РѕРІС– Р±СЂРµРЅРґРё' },
-    title: { en: 'OEM-safe partners', ua: 'РўРѕРїРѕРІС– СЃРІС–С‚РѕРІС– Р±СЂРµРЅРґРё' },
+    eyebrow: { en: 'Installation network', ua: 'Світові бренди' },
+    title: { en: 'OEM-safe partners', ua: 'Топові світові бренди' },
     description: {
       en: 'Certified importer partners for titanium welding, ECU calibration and track alignment.',
-      ua: 'РњРё РїСЂР°С†СЋС”РјРѕ РІРёРєР»СЋС‡РЅРѕ Р· РїСЂРѕРІС–РґРЅРёРјРё СЃРІС–С‚РѕРІРёРјРё РІРёСЂРѕР±РЅРёРєР°РјРё Р°РІС‚Рѕ С‚Р° РјРѕС‚Рѕ С‚СЋРЅС–РЅРіСѓ.',
+      ua: 'Ми працюємо виключно з провідними світовими виробниками авто та мото тюнінгу.',
     },
-    meta: { en: '18 countries В· on-site inspection', ua: 'Р“Р°СЂР°РЅС‚С–СЏ СЏРєРѕСЃС‚С– С‚Р° Р°РІС‚РµРЅС‚РёС‡РЅРѕСЃС‚С–' },
+    meta: { en: '18 countries · on-site inspection', ua: 'Гарантія якості та автентичності' },
   },
 ];
 
@@ -98,160 +98,160 @@ const curatedBrandStories: Record<string, BrandStory> = {
   Akrapovic: {
     headline: {
       en: 'Akrapovic Titanium Sound Architecture',
-      ua: 'Akrapovic вЂ” С‚РёС‚Р°РЅРѕРІРёР№ СЃР°СѓРЅРґ-РґРёР·Р°Р№РЅ',
+      ua: 'Akrapovic — титановий саунд-дизайн',
     },
     description: {
       en: 'Factory-backed titanium exhaust solutions tuned on European proving grounds with expert logistics.',
-      ua: 'Р—Р°РІРѕРґСЃСЊРєС– С‚РёС‚Р°РЅРѕРІС– СЃРёСЃС‚РµРјРё, РЅР°Р»Р°С€С‚РѕРІР°РЅС– РЅР° С”РІСЂРѕРїРµР№СЃСЊРєРёС… РїРѕР»С–РіРѕРЅР°С…, Р· Р»РѕРіС–СЃС‚РёРєРѕСЋ РїС–Рґ РєР»СЋС‡.',
+      ua: 'Заводські титанові системи, налаштовані на європейських полігонах, з логістикою під ключ.',
     },
     highlights: [
-      { en: 'Evolution Line allocations & race support', ua: 'РљРІРѕС‚Рё Evolution Line С‚Р° С‚СЂРµРєРѕРІР° РїС–РґС‚СЂРёРјРєР°' },
-      { en: 'Custom branding + heat treatment options', ua: 'РљР°СЃС‚РѕРјРЅРёР№ Р±СЂРµРЅРґРёРЅРі С‚Р° С‚РµСЂРјРѕРѕР±СЂРѕР±РєР°' },
-      { en: 'Door-to-door insured delivery', ua: 'Door-to-door РґРѕСЃС‚Р°РІРєР° Р·С– СЃС‚СЂР°С…СѓРІР°РЅРЅСЏРј' },
+      { en: 'Evolution Line allocations & race support', ua: 'Квоти Evolution Line та трекова підтримка' },
+      { en: 'Custom branding + heat treatment options', ua: 'Кастомний брендинг та термообробка' },
+      { en: 'Door-to-door insured delivery', ua: 'Door-to-door доставка зі страхуванням' },
     ],
   },
   Eventuri: {
-    headline: { en: 'Eventuri Carbon Intake Lab', ua: 'Eventuri вЂ” Р»Р°Р±РѕСЂР°С‚РѕСЂС–СЏ РєР°СЂР±РѕРЅСѓ' },
+    headline: { en: 'Eventuri Carbon Intake Lab', ua: 'Eventuri — лабораторія карбону' },
     description: {
       en: 'Autoclave carbon assemblies that stabilise IAT and add theatre to every throttle input.',
-      ua: 'РђРІС‚РѕРєР»Р°РІРЅС– РєР°СЂР±РѕРЅРѕРІС– СЃРёСЃС‚РµРјРё, С‰Рѕ СЃС‚Р°Р±С–Р»С–Р·СѓСЋС‚СЊ IAT С‚Р° РґРѕРґР°СЋС‚СЊ РґСЂР°РјСѓ РєРѕР¶РЅРѕРјСѓ РЅР°С‚РёСЃРєР°РЅРЅСЋ.',
+      ua: 'Автоклавні карбонові системи, що стабілізують IAT та додають драму кожному натисканню.',
     },
     highlights: [
-      { en: 'Pre-preg carbon options with kevlar cores', ua: 'РџСЂРµРїСЂРµРі-РєР°СЂР±РѕРЅ Р· РєРµРІР»Р°СЂРѕРІРёРјРё РѕСЃРµСЂРґСЏРјРё' },
-      { en: 'Dyno-verified gains for M, RS, AMG platforms', ua: 'Р”С–РЅРѕ-РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ РґР»СЏ РїР»Р°С‚С„РѕСЂРј M, RS, AMG' },
-      { en: 'Coordinated install + ECU calibration', ua: 'РљРѕРѕСЂРґРёРЅР°С†С–СЏ РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ С‚Р° РєР°Р»С–Р±СЂСѓРІР°РЅРЅСЏ ECU' },
+      { en: 'Pre-preg carbon options with kevlar cores', ua: 'Препрег-карбон з кевларовими осердями' },
+      { en: 'Dyno-verified gains for M, RS, AMG platforms', ua: 'Діно-підтвердження для платформ M, RS, AMG' },
+      { en: 'Coordinated install + ECU calibration', ua: 'Координація встановлення та калібрування ECU' },
     ],
   },
   'KW Suspension': {
-    headline: { en: 'KW В· Adaptive Control', ua: 'KW В· Р°РґР°РїС‚РёРІРЅРёР№ РєРѕРЅС‚СЂРѕР»СЊ' },
+    headline: { en: 'KW · Adaptive Control', ua: 'KW · адаптивний контроль' },
     description: {
       en: 'Variant, Clubsport and DDC plug & play kits with geo setup plans from our chassis lab.',
-      ua: 'Variant, Clubsport С‚Р° DDC-РєРѕРјРїР»РµРєС‚Рё Р· РЅР°Р»Р°С€С‚СѓРІР°РЅРЅСЏРј РіРµРѕРјРµС‚СЂС–С— РІС–Рґ РЅР°С€РѕС— С€Р°СЃС–-Р»Р°Р±РѕСЂР°С‚РѕСЂС–С—.',
+      ua: 'Variant, Clubsport та DDC-комплекти з налаштуванням геометрії від нашої шасі-лабораторії.',
     },
     highlights: [
-      { en: 'Track sheets + corner-weighting in Kyiv', ua: 'РќР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ РєСѓС‚С–РІ С‚Р° РІР°РіРё РІ РљРёС”РІС–' },
-      { en: 'Road + snow presets for SUVs', ua: 'РќР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ РґР»СЏ РґРѕСЂС–Рі С‚Р° СЃРЅС–РіСѓ РґР»СЏ SUV' },
-      { en: 'Warranty preserved via OEM torque specs', ua: 'Р—Р±РµСЂРµР¶РµРЅР° РіР°СЂР°РЅС‚С–СЏ Р·Р°РІРґСЏРєРё OEM РјРѕРјРµРЅС‚Р°Рј Р·Р°С‚СЏРіСѓРІР°РЅРЅСЏ' },
+      { en: 'Track sheets + corner-weighting in Kyiv', ua: 'Налаштування кутів та ваги в Києві' },
+      { en: 'Road + snow presets for SUVs', ua: 'Налаштування для доріг та снігу для SUV' },
+      { en: 'Warranty preserved via OEM torque specs', ua: 'Збережена гарантія завдяки OEM моментам затягування' },
     ],
   },
   'HRE wheels': {
-    headline: { en: 'HRE Wheels Forged Program', ua: 'HRE Wheels вЂ” РїСЂРѕРіСЂР°РјР° forged' },
+    headline: { en: 'HRE Wheels Forged Program', ua: 'HRE Wheels — програма forged' },
     description: {
       en: 'Bespoke monoblock, 2-piece and 3-piece sets engineered for hypercar tolerances.',
-      ua: 'РљР°СЃС‚РѕРјРЅС– РјРѕРЅРѕР±Р»РѕРєРё, РґРІРѕ- С‚Р° С‚СЂРёСЃРµРєС†С–Р№РЅС– РґРёСЃРєРё Р· РґРѕРїСѓСЃРєР°РјРё РіС–РїРµСЂРєР°СЂС–РІ.',
+      ua: 'Кастомні моноблоки, дво- та трисекційні диски з допусками гіперкарів.',
     },
     highlights: [
-      { en: 'Aerospace-grade forgings + TГњV paperwork', ua: 'РђРІС–Р°С†С–Р№РЅС– Р·Р°РіРѕС‚РѕРІРєРё С‚Р° РґРѕРєСѓРјРµРЅС‚Рё TГњV' },
-      { en: 'Finish library + transparent timelines', ua: 'Р‘С–Р±Р»С–РѕС‚РµРєР° С„С–РЅС–С€С–РІ С‚Р° РїСЂРѕР·РѕСЂС– СЃС‚СЂРѕРєРё' },
-      { en: 'Ceramic coating + TPMS setup on delivery', ua: 'РљРµСЂР°РјС–С‡РЅРµ РїРѕРєСЂРёС‚С‚СЏ С‚Р° TPMS РїСЂРё РІРёРґР°С‡С–' },
+      { en: 'Aerospace-grade forgings + T\u00DCV paperwork', ua: 'Авіаційні заготовки та документи TÜV' },
+      { en: 'Finish library + transparent timelines', ua: 'Бібліотека фінішів та прозорі строки' },
+      { en: 'Ceramic coating + TPMS setup on delivery', ua: 'Керамічне покриття та TPMS при видачі' },
     ],
   },
   Brembo: {
-    headline: { en: 'Brembo GT & Race Systems', ua: 'Brembo вЂ” GT С‚Р° РіРѕРЅРѕС‡РЅС– СЃРёСЃС‚РµРјРё' },
+    headline: { en: 'Brembo GT & Race Systems', ua: 'Brembo — GT та гоночні системи' },
     description: {
       en: 'Monoblock brake solutions with track-proven pad libraries and telemetry guidance.',
-      ua: 'РњРѕРЅРѕР±Р»РѕС‡РЅС– РіР°Р»СЊРјР° Р· С‚СЂРµРєРѕРІРёРјРё РєРѕР»РѕРґРєР°РјРё С‚Р° С‚РµР»РµРјРµС‚СЂС–С”СЋ.',
+      ua: 'Моноблочні гальма з трековими колодками та телеметрією.',
     },
     highlights: [
-      { en: 'BBK conversions with hub machining', ua: 'BBK-РєРѕРЅРІРµСЂСЃС–С— Р· С„СЂРµР·РµСЂСѓРІР°РЅРЅСЏРј РјР°С‚РѕС‡РёРЅ' },
-      { en: 'Brake-in procedures + fluid packages', ua: 'РџСЂРѕС†РµРґСѓСЂРё РѕР±РєР°С‚РєРё С‚Р° РєРѕРјРїР»РµРєС‚Рё СЂС–РґРёРЅ' },
-      { en: 'On-site pedal feel tuning', ua: 'РўРѕРЅРєРµ РЅР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ РїРµРґР°Р»С– РЅР° РјС–СЃС†С–' },
+      { en: 'BBK conversions with hub machining', ua: 'BBK-конверсії з фрезеруванням маточин' },
+      { en: 'Brake-in procedures + fluid packages', ua: 'Процедури обкатки та комплекти рідин' },
+      { en: 'On-site pedal feel tuning', ua: 'Тонке налаштування педалі на місці' },
     ],
   },
   Vorsteiner: {
-    headline: { en: 'Vorsteiner Carbon Importer', ua: 'Vorsteiner вЂ” РєР°СЂР±РѕРЅРѕРІРёР№ С–РјРїРѕСЂС‚РµСЂ' },
+    headline: { en: 'Vorsteiner Carbon Importer', ua: 'Vorsteiner — карбоновий імпортер' },
     description: {
       en: 'Carbon aero programs for Lamborghini, Porsche, BMW and SUV flagships with factory-level fit.',
-      ua: 'РљР°СЂР±РѕРЅРѕРІС– Р°РµСЂРѕРїР°РєРµС‚Рё РґР»СЏ Lamborghini, Porsche, BMW С‚Р° С„Р»Р°РіРјР°РЅСЃСЊРєРёС… SUV Р· OEM-РїР°СЃСѓРІР°РЅРЅСЏРј.',
+      ua: 'Карбонові аеропакети для Lamborghini, Porsche, BMW та флагманських SUV з OEM-пасуванням.',
     },
     highlights: [
-      { en: 'Autoclave dry carbon & forged options', ua: 'РЎСѓС…РёР№ С‚Р° РєРѕРІР°РЅРёР№ РєР°СЂР±РѕРЅ Р· Р°РІС‚РѕРєР»Р°РІР°' },
-      { en: 'Paint-to-sample & PPF ready finishing', ua: 'Р†РЅРґРёРІС–РґСѓР°Р»СЊРЅРµ С„Р°СЂР±СѓРІР°РЅРЅСЏ С‚Р° РіРѕС‚РѕРІРЅС–СЃС‚СЊ РїС–Рґ PPF' },
-      { en: 'Install supervision + alignment presets', ua: 'РљРѕРЅС‚СЂРѕР»СЊ РјРѕРЅС‚Р°Р¶Сѓ С‚Р° РЅР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ СЃС…РѕРґР¶РµРЅРЅСЏ' },
+      { en: 'Autoclave dry carbon & forged options', ua: 'Сухий та кований карбон з автоклава' },
+      { en: 'Paint-to-sample & PPF ready finishing', ua: 'Індивідуальне фарбування та готовність під PPF' },
+      { en: 'Install supervision + alignment presets', ua: 'Контроль монтажу та налаштування сходження' },
     ],
   },
   Armytrix: {
-    headline: { en: 'Armytrix Valvetronic Theatre', ua: 'Armytrix вЂ” РєР»Р°РїР°РЅРЅРёР№ СЃР°СѓРЅРґ' },
+    headline: { en: 'Armytrix Valvetronic Theatre', ua: 'Armytrix — клапанний саунд' },
     description: {
       en: 'Valvetronic exhausts with smart remotes, bluetooth control and night stealth modes.',
-      ua: 'РљР»Р°РїР°РЅРЅС– РІРёС…Р»РѕРїРё Р·С– СЃРјР°СЂС‚-Р±СЂРµР»РѕРєР°РјРё, bluetooth-РєРѕРЅС‚СЂРѕР»РµРј С‚Р° С‚РёС…РёРјРё СЂРµР¶РёРјР°РјРё.',
+      ua: 'Клапанні вихлопи зі смарт-брелоками, bluetooth-контролем та тихими режимами.',
     },
     highlights: [
-      { en: 'Titanium + stainless options in stock', ua: 'РўРёС‚Р°РЅРѕРІС– С‚Р° СЃС‚Р°Р»РµРІС– РѕРїС†С–С— РЅР° СЃРєР»Р°РґС–' },
-      { en: 'ECU-safe valve modules', ua: 'Р‘Р»РѕРєРё РєР»Р°РїР°РЅС–РІ Р±РµР· РїРѕРјРёР»РѕРє ECU' },
-      { en: 'Install + wiring diagrams translated', ua: 'РЎС…РµРјРё РјРѕРЅС‚Р°Р¶Сѓ С‚Р° РїСЂРѕРІРѕРґРєРё СѓРєСЂР°С—РЅСЃСЊРєРѕСЋ' },
+      { en: 'Titanium + stainless options in stock', ua: 'Титанові та сталеві опції на складі' },
+      { en: 'ECU-safe valve modules', ua: 'Блоки клапанів без помилок ECU' },
+      { en: 'Install + wiring diagrams translated', ua: 'Схеми монтажу та проводки українською' },
     ],
   },
   CSF: {
-    headline: { en: 'CSF Cooling Program', ua: 'CSF вЂ” РїСЂРѕРіСЂР°РјР° РѕС…РѕР»РѕРґР¶РµРЅРЅСЏ' },
+    headline: { en: 'CSF Cooling Program', ua: 'CSF — програма охолодження' },
     description: {
       en: 'Billet end-tank intercoolers and radiators that keep intake temps repeatable on stage 3 builds.',
-      ua: 'Р†РЅС‚РµСЂРєСѓР»РµСЂРё С‚Р° СЂР°РґС–Р°С‚РѕСЂРё Р· Р±С–Р»РµС‚РЅРёРјРё Р±Р°РєР°РјРё РґР»СЏ СЃС‚Р°Р±С–Р»СЊРЅРёС… С‚РµРјРїРµСЂР°С‚СѓСЂ РЅР° stage 3.',
+      ua: 'Інтеркулери та радіатори з білетними баками для стабільних температур на stage 3.',
     },
     highlights: [
-      { en: 'Drag + track proven cores', ua: 'РџРµСЂРµРІС–СЂРµРЅС– РЅР° РґСЂР°РіСѓ С‚Р° С‚СЂРµРєСѓ СЏРґСЂР°' },
-      { en: 'Heat exchanger bundles in stock', ua: 'Р“РѕС‚РѕРІС– РєРѕРјРїР»РµРєС‚Рё С‚РµРїР»РѕРѕР±РјС–РЅРЅРёРєС–РІ' },
-      { en: 'Coolant bleeding with telemetry report', ua: 'РџСЂРѕРєР°С‡РєР° Р· СЂРёРїРѕСЂС‚РѕРј С‚РµР»РµРјРµС‚СЂС–С—' },
+      { en: 'Drag + track proven cores', ua: 'Перевірені на драгу та треку ядра' },
+      { en: 'Heat exchanger bundles in stock', ua: 'Готові комплекти теплообмінників' },
+      { en: 'Coolant bleeding with telemetry report', ua: 'Прокачка з рипортом телеметрії' },
     ],
   },
   Manhart: {
-    headline: { en: 'Manhart Bespoke Builds', ua: 'Manhart вЂ” С–РЅРґРёРІС–РґСѓР°Р»СЊРЅРёР№ СЃРµСЂРІС–СЃ' },
+    headline: { en: 'Manhart Bespoke Builds', ua: 'Manhart — індивідуальний сервіс' },
     description: {
       en: 'Complete conversion kits with aero, wheels and ECU calibrations for BMW, Audi and Mercedes.',
-      ua: 'РџРѕРІРЅС– РєРѕРјРїР»РµРєС‚Рё РєРѕРЅРІРµСЂСЃС–Р№ Р· Р°РµСЂРѕ, РґРёСЃРєР°РјРё С‚Р° РїСЂРѕС€РёРІРєР°РјРё РґР»СЏ BMW, Audi, Mercedes.',
+      ua: 'Повні комплекти конверсій з аеро, дисками та прошивками для BMW, Audi, Mercedes.',
     },
     highlights: [
-      { en: 'Stage packages shipped as one crate', ua: 'Stage-РєРѕРјРїР»РµРєС‚Рё РІ РѕРґРЅРѕРјСѓ СЏС‰РёРєСѓ' },
-      { en: 'Interior trims + steering wheels included', ua: 'Р’РєР»СЋС‡РµРЅС– С–РЅС‚РµСЂКјС”СЂРЅС– РµР»РµРјРµРЅС‚Рё С‚Р° РєРµСЂРјР°' },
-      { en: 'On-site coding and warranty docs', ua: 'РљРѕРґСѓРІР°РЅРЅСЏ С‚Р° РіР°СЂР°РЅС‚С–Р№РЅС– РґРѕРєСѓРјРµРЅС‚Рё РЅР° РјС–СЃС†С–' },
+      { en: 'Stage packages shipped as one crate', ua: 'Stage-комплекти в одному ящику' },
+      { en: 'Interior trims + steering wheels included', ua: 'Включені інтерʼєрні елементи та керма' },
+      { en: 'On-site coding and warranty docs', ua: 'Кодування та гарантійні документи на місці' },
     ],
   },
   Renntech: {
-    headline: { en: 'Renntech AMG Power Stages', ua: 'Renntech вЂ” СЃС‚СѓРїРµРЅС– РїРѕС‚СѓР¶РЅРѕСЃС‚С– AMG' },
+    headline: { en: 'Renntech AMG Power Stages', ua: 'Renntech — ступені потужності AMG' },
     description: {
       en: 'Turbo, cooling and ECU programs engineered by ex-AMG powertrain teams.',
-      ua: 'РўСѓСЂР±С–РЅРё, РѕС…РѕР»РѕРґР¶РµРЅРЅСЏ С‚Р° ECU РІС–Рґ РµРєСЃ-РєРѕРјР°РЅРґРё AMG.',
+      ua: 'Турбіни, охолодження та ECU від екс-команди AMG.',
     },
     highlights: [
-      { en: 'Stage 1-4 calibrations with dyno sheets', ua: 'Stage 1-4 Р· РґС–РЅРѕ-СЂР°РїРѕСЂС‚Р°РјРё' },
-      { en: 'TCU + gearbox cooling upgrades', ua: 'TCU С‚Р° РѕС…РѕР»РѕРґР¶РµРЅРЅСЏ РљРџРџ' },
-      { en: 'Worldwide warranty honoured via us', ua: 'Р“Р°СЂР°РЅС‚С–СЏ РїРѕ РІСЃСЊРѕРјСѓ СЃРІС–С‚Сѓ С‡РµСЂРµР· РЅР°СЃ' },
+      { en: 'Stage 1-4 calibrations with dyno sheets', ua: 'Stage 1-4 з діно-рапортами' },
+      { en: 'TCU + gearbox cooling upgrades', ua: 'TCU та охолодження КПП' },
+      { en: 'Worldwide warranty honoured via us', ua: 'Гарантія по всьому світу через нас' },
     ],
   },
   'Velos': {
-    headline: { en: 'Velos Forged Luxury', ua: 'Velos вЂ” СЂРѕР·РєС–С€РЅРµ РєСѓРІР°РЅРЅСЏ' },
+    headline: { en: 'Velos Forged Luxury', ua: 'Velos — розкішне кування' },
     description: {
       en: 'Luxury-focused forged sets with marble, brushed and two-tone finishes for SUVs and limousines.',
-      ua: 'Р РѕР·РєС–С€РЅС– РєРѕРІР°РЅС– РєРѕРјРїР»РµРєС‚Рё Р· РјР°СЂРјСѓСЂРѕРІРёРјРё, Р±СЂР°С€РѕРІР°РЅРёРјРё С‚Р° РґРІРѕС‚РѕРЅРѕРІРёРјРё С„С–РЅС–С€Р°РјРё РґР»СЏ SUV С‚Р° Р»С–РјСѓР·РёРЅС–РІ.',
+      ua: 'Розкішні ковані комплекти з мармуровими, брашованими та двотоновими фінішами для SUV та лімузинів.',
     },
     highlights: [
-      { en: '24-26 inch fitments verified for Maybach & Cullinan', ua: '24-26" РїС–РґР±РѕСЂРё РґР»СЏ Maybach С‚Р° Cullinan' },
-      { en: 'Floating centre caps + bespoke engraving', ua: 'РџР»Р°РІР°СЋС‡С– РєРѕРІРїР°С‡РєРё С‚Р° РіСЂР°РІС–СЋРІР°РЅРЅСЏ' },
-      { en: 'TPMS + run-flat compatible', ua: 'РЎСѓРјС–СЃРЅС–СЃС‚СЊ Р· TPMS С‚Р° run-flat' },
+      { en: '24-26 inch fitments verified for Maybach & Cullinan', ua: '24-26" підбори для Maybach та Cullinan' },
+      { en: 'Floating centre caps + bespoke engraving', ua: 'Плаваючі ковпачки та гравіювання' },
+      { en: 'TPMS + run-flat compatible', ua: 'Сумісність з TPMS та run-flat' },
     ],
   },
   'Weistec': {
-    headline: { en: 'Weistec Engineering Power Lab', ua: 'Weistec Engineering вЂ” Р»Р°Р±РѕСЂР°С‚РѕСЂС–СЏ РїРѕС‚СѓР¶РЅРѕСЃС‚С–' },
+    headline: { en: 'Weistec Engineering Power Lab', ua: 'Weistec Engineering — лабораторія потужності' },
     description: {
       en: 'Billet turbos, meth kits and calibration suites for AMG, McLaren and exotic SUV platforms.',
-      ua: 'Р‘С–Р»РµС‚РЅС– С‚СѓСЂР±С–РЅРё, РјРµС‚Р°РЅРѕР»СЊРЅС– РєРѕРјРїР»РµРєС‚Рё С‚Р° РєР°Р»С–Р±СЂСѓРІР°РЅРЅСЏ РґР»СЏ AMG, McLaren С‚Р° РµРєР·РѕС‚РёС‡РЅРёС… SUV.',
+      ua: 'Білетні турбіни, метанольні комплекти та калібрування для AMG, McLaren та екзотичних SUV.',
     },
     highlights: [
-      { en: 'Complete fuel system solutions', ua: 'РџРѕРІРЅС– РїР°Р»РёРІРЅС– СЃРёСЃС‚РµРјРё' },
-      { en: 'Built transmissions with break-in support', ua: 'РџС–РґРіРѕС‚РѕРІР»РµРЅС– РљРџРџ Р· РїС–РґС‚СЂРёРјРєРѕСЋ РѕР±РєР°С‚РєРё' },
-      { en: 'Remote + on-site calibration days', ua: 'Р’С–РґРґР°Р»РµРЅС– Р№ РІРёС—Р·РЅС– РґРЅС– РєР°Р»С–Р±СЂСѓРІР°РЅРЅСЏ' },
+      { en: 'Complete fuel system solutions', ua: 'Повні паливні системи' },
+      { en: 'Built transmissions with break-in support', ua: 'Підготовлені КПП з підтримкою обкатки' },
+      { en: 'Remote + on-site calibration days', ua: 'Віддалені й виїзні дні калібрування' },
     ],
   },
   'ABT': {
-    headline: { en: 'ABT Sportsline Power Programs', ua: 'ABT Sportsline вЂ” РїСЂРѕРіСЂР°РјРё РїРѕС‚СѓР¶РЅРѕСЃС‚С–' },
+    headline: { en: 'ABT Sportsline Power Programs', ua: 'ABT Sportsline — програми потужності' },
     description: {
       en: 'Official Audi tuning partner with ECU calibrations, aero kits and forged wheels for the VAG platform.',
-      ua: 'РћС„С–С†С–Р№РЅРёР№ С‚СЋРЅС–РЅРі-РїР°СЂС‚РЅРµСЂ Audi Р· РїСЂРѕС€РёРІРєР°РјРё ECU, Р°РµСЂРѕ-РєРёС‚Р°РјРё С‚Р° РєРѕРІР°РЅРёРјРё РґРёСЃРєР°РјРё РґР»СЏ РїР»Р°С‚С„РѕСЂРјРё VAG.',
+      ua: 'Офіційний тюнінг-партнер Audi з прошивками ECU, аеро-китами та кованими дисками для платформи VAG.',
     },
     highlights: [
-      { en: 'ABT Power S stages with warranty', ua: 'ABT Power S Р· РіР°СЂР°РЅС‚С–С”СЋ' },
-      { en: 'RS & RSQ aero programs', ua: 'РђРµСЂРѕ РїСЂРѕРіСЂР°РјРё РґР»СЏ RS С‚Р° RSQ' },
-      { en: 'Sport wheels & suspension kits', ua: 'РЎРїРѕСЂС‚РёРІРЅС– РґРёСЃРєРё С‚Р° РєРѕРјРїР»РµРєС‚Рё РїС–РґРІС–СЃРєРё' },
+      { en: 'ABT Power S stages with warranty', ua: 'ABT Power S з гарантією' },
+      { en: 'RS & RSQ aero programs', ua: 'Аеро програми для RS та RSQ' },
+      { en: 'Sport wheels & suspension kits', ua: 'Спортивні диски та комплекти підвіски' },
     ],
   },
 };
@@ -274,13 +274,13 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     country: 'Slovenia',
     tag: 'Performance Exhaust',
     accentColor: 'red',
-    description: { en: 'Premium titanium exhaust systems', ua: 'РўРёС‚Р°РЅРѕРІС– РІРёС…Р»РѕРїРЅС– СЃРёСЃС‚РµРјРё РїСЂРµРјС–СѓРј РєР»Р°СЃСѓ' },
+    description: { en: 'Premium titanium exhaust systems', ua: 'Титанові вихлопні системи преміум класу' },
   },
   'Brabus': {
     flag: 'рџ‡©рџ‡Є',
     country: 'Germany',
     accentColor: 'zinc',
-    description: { en: 'Premium tuning', ua: 'РџСЂРµРјС–СѓРј С‚СЋРЅС–РЅРі' },
+    description: { en: 'Premium tuning', ua: 'Преміум тюнінг' },
     invertLogo: true,
   },
   'Mansory': {
@@ -289,7 +289,7 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     tag: 'Luxury',
     tagColor: 'amber',
     accentColor: 'amber',
-    description: { en: 'Premium body kits', ua: 'РџСЂРµРјС–СѓРј РѕР±РІС–СЃРё' },
+    description: { en: 'Premium body kits', ua: 'Преміум обвіси' },
     invertLogo: true,
   },
   'HRE wheels': {
@@ -297,35 +297,35 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     country: 'USA',
     tag: 'Forged Wheels',
     accentColor: 'sky',
-    description: { en: 'Premium forged wheels', ua: 'РљРѕРІР°РЅС– РґРёСЃРєРё РїСЂРµРјС–СѓРј РєР»Р°СЃСѓ' },
+    description: { en: 'Premium forged wheels', ua: 'Ковані диски преміум класу' },
   },
   'Urban Automotive': {
     flag: 'рџ‡¬рџ‡§',
     country: 'UK',
     tag: 'Body Kits',
     accentColor: 'emerald',
-    description: { en: 'Premium body kits', ua: 'РџСЂРµРјС–СѓРј РѕР±РІС–СЃРё' },
+    description: { en: 'Premium body kits', ua: 'Преміум обвіси' },
     invertLogo: true,
   },
   'Eventuri': {
     flag: 'рџ‡¬рџ‡§',
     country: 'UK',
     accentColor: 'cyan',
-    description: { en: 'Intake systems', ua: 'Р’РїСѓСЃРєРЅС– СЃРёСЃС‚РµРјРё' },
+    description: { en: 'Intake systems', ua: 'Впускні системи' },
     invertLogo: true,
   },
   'KW Suspension': {
     flag: 'рџ‡©рџ‡Є',
     country: 'Germany',
     accentColor: 'orange',
-    description: { en: 'Suspension', ua: 'РџС–РґРІС–СЃРєР°' },
+    description: { en: 'Suspension', ua: 'Підвіска' },
   },
   'Novitec': {
     flag: 'рџ‡©рџ‡Є',
     country: 'Germany',
     tag: 'Supercars',
     accentColor: 'rose',
-    description: { en: 'Supercar tuning', ua: 'РўСЋРЅС–РЅРі СЃСѓРїРµСЂРєР°СЂС–РІ' },
+    description: { en: 'Supercar tuning', ua: 'Тюнінг суперкарів' },
     invertLogo: true,
   },
   'ABT': {
@@ -333,7 +333,7 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     country: 'Germany',
     tag: 'VAG',
     accentColor: 'violet',
-    description: { en: 'Premium VAG tuning', ua: 'РџСЂРµРјС–СѓРј С‚СЋРЅС–РЅРі VAG' },
+    description: { en: 'Premium VAG tuning', ua: 'Преміум тюнінг VAG' },
     invertLogo: true,
   },
 };
@@ -345,10 +345,10 @@ export default function AutomotivePage() {
   const tPage = useTranslations('autoPage');
   const isUa = locale === 'ua';
   const typography = {
-    heroTitle: isUa ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-3xl sm:text-4xl lg:text-5xl',
-    heroSubtitle: isUa ? 'text-sm sm:text-base' : 'text-base sm:text-lg',
-    statValue: isUa ? 'text-xl' : 'text-2xl',
-    sectionHeading: isUa ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl',
+    heroTitle: isUa ? 'text-xl sm:text-2xl lg:text-3xl' : 'text-2xl sm:text-3xl lg:text-4xl',
+    heroSubtitle: isUa ? 'text-xs sm:text-sm' : 'text-sm sm:text-base',
+    statValue: isUa ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl',
+    sectionHeading: isUa ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl',
   } as const;
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
@@ -399,7 +399,7 @@ export default function AutomotivePage() {
       if (metadata) {
         return getLocalizedCountry(metadata.country, locale);
       }
-      return locale === 'ua' ? 'РЎРІС–С‚РѕРІРёР№ РїРѕСЂС‚С„РµР»СЊ' : 'Global portfolio';
+      return locale === 'ua' ? 'Світовий портфель' : 'Global portfolio';
     },
     [locale]
   );
@@ -426,25 +426,25 @@ export default function AutomotivePage() {
     }
     return {
       headline: {
-        en: `${brand.name} вЂ” Official Import`,
-        ua: `${brand.name} вЂ” РѕС„С–С†С–Р№РЅРёР№ С–РјРїРѕСЂС‚`,
+        en: `${brand.name} — Official Import`,
+        ua: `${brand.name} — офіційний імпорт`,
       },
       description: {
         en: 'Direct manufacturer supply, authenticity guarantee and professional component selection.',
-        ua: 'РџСЂСЏРјС– РїРѕСЃС‚Р°РІРєРё РІС–Рґ РІРёСЂРѕР±РЅРёРєР°, РіР°СЂР°РЅС‚С–СЏ Р°РІС‚РµРЅС‚РёС‡РЅРѕСЃС‚С– С‚Р° РїСЂРѕС„РµСЃС–Р№РЅРёР№ РїС–РґР±С–СЂ РєРѕРјРїРѕРЅРµРЅС‚С–РІ.',
+        ua: 'Прямі поставки від виробника, гарантія автентичності та професійний підбір компонентів.',
       },
       highlights: [
         {
           en: 'Official warranty & service support',
-          ua: 'РћС„С–С†С–Р№РЅР° РіР°СЂР°РЅС‚С–СЏ С‚Р° СЃРµСЂРІС–СЃРЅР° РїС–РґС‚СЂРёРјРєР°',
+          ua: 'Офіційна гарантія та сервісна підтримка',
         },
         {
           en: 'Fast logistics from Europe & USA',
-          ua: 'РЁРІРёРґРєР° Р»РѕРіС–СЃС‚РёРєР° Р· Р„РІСЂРѕРїРё С‚Р° РЎРЁРђ',
+          ua: 'Швидка логістика з Європи та США',
         },
         {
           en: 'Qualified installation network',
-          ua: 'РљРІР°Р»С–С„С–РєРѕРІР°РЅРµ РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ РїР°СЂС‚РЅРµСЂР°РјРё',
+          ua: 'Кваліфіковане встановлення партнерами',
         },
       ],
     };
@@ -477,16 +477,16 @@ export default function AutomotivePage() {
         </div>
         <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6 px-4 pt-32 pb-16 sm:gap-8 sm:px-6 sm:pt-40 sm:pb-20 md:gap-10 md:pt-48 md:pb-28">
           <div className="text-[9px] uppercase tracking-[0.4em] text-white/60 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">
-            {locale === 'ua' ? 'РџСЂРµРјС–СѓРј РїСЂРѕРіСЂР°РјРё В· Р°РІС‚Рѕ' : 'Premium programs В· auto'}
+            {locale === 'ua' ? 'Преміум програми | авто' : 'Premium programs | auto'}
           </div>
           <div className="max-w-4xl space-y-4 sm:space-y-5 md:space-y-6">
             <h1 className={`font-light leading-tight text-balance ${typography.heroTitle}`}>
-              {t('title')}<span className="text-white/50"> В· </span>
+              {t('title')}<span className="text-white/50"> | </span>
               <span className="text-white/70">{t('subtitle')}</span>
             </h1>
             <p className={`text-white/70 text-pretty ${typography.heroSubtitle}`}>
               {locale === 'ua'
-                ? 'РЎС‚РІРѕСЂСЋС”РјРѕ Р°РІС‚РѕРјРѕР±С–Р»С– Р· С…Р°СЂР°РєС‚РµСЂРѕРј Р· 2007 СЂРѕРєСѓ.'
+                ? 'Створюємо автомобілі з характером з 2007 року.'
                 : 'We build characterful cars with titanium, carbon and electronic suites curated since 2007.'}
             </p>
           </div>
@@ -515,10 +515,10 @@ export default function AutomotivePage() {
               key={card.title.en}
               className="h-full flex flex-col rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:rounded-3xl sm:p-6"
             >
-              <div className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em]">{card.eyebrow[locale]}</div>
+              <div className="text-[7px] uppercase tracking-[0.4em] text-white/50 sm:text-[8px] sm:tracking-[0.5em]">{card.eyebrow[locale]}</div>
               <h3 className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{card.title[locale]}</h3>
-              <p className="mt-2 flex-1 text-xs text-white/70 sm:mt-3 sm:text-sm">{card.description[locale]}</p>
-              <p className="mt-4 text-[10px] uppercase tracking-[0.25em] text-white/60 sm:mt-6 sm:text-xs sm:tracking-[0.3em]">{card.meta[locale]}</p>
+              <p className="mt-2 flex-1 text-[10px] text-white/70 sm:mt-3 sm:text-[11px] leading-relaxed">{card.description[locale]}</p>
+              <p className="mt-4 text-[7px] uppercase tracking-[0.25em] text-white/60 sm:mt-6 sm:text-[9px] sm:tracking-[0.3em]">{card.meta[locale]}</p>
             </div>
           ))}
         </div>
@@ -528,24 +528,24 @@ export default function AutomotivePage() {
         <div className="mb-8 text-center sm:mb-10 md:mb-12">
           <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('productCategories')}</p>
           <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>
-            {locale === 'ua' ? 'РњРѕРґСѓР»С–, СЏРєС– СЃРєР»Р°РґР°СЋС‚СЊ Р°РІС‚Рѕ' : 'Modules we compose cars from'}
+            {locale === 'ua' ? 'Модулі, які складають авто' : 'Modules we compose cars from'}
           </h2>
           <button
             onClick={() => setIsModulesOpen(!isModulesOpen)}
             className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 hover:border-white/40"
           >
-            <span>{isModulesOpen ? (locale === 'ua' ? 'Р—РіРѕСЂРЅСѓС‚Рё' : 'Collapse') : (locale === 'ua' ? 'Р’С–РґРєСЂРёС‚Рё СЃРїРёСЃРѕРє' : 'Open list')}</span>
+            <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
             <motion.div
               animate={{ rotate: isModulesOpen ? 180 : 0 }}
               transition={{ duration: 0.3 }}
             >
               <svg 
-                width="10" 
-                height="10" 
+                width="12" 
+                height="12" 
                 viewBox="0 0 10 10" 
                 fill="none" 
                 xmlns="http://www.w3.org/2000/svg"
-                className="opacity-70"
+                className="text-white"
               >
                 <path 
                   d="M1 3L5 7L9 3" 
@@ -600,12 +600,12 @@ export default function AutomotivePage() {
                 {/* Open button - clear affordance */}
                 <div className="mt-auto pt-6 flex items-center justify-between">
                   <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3 group-hover:text-white">
-                    {locale === 'ua' ? 'Р’С–РґРєСЂРёС‚Рё' : 'Open'}
+                    {locale === 'ua' ? 'Відкрити' : 'Open'}
                     <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-                  <span className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{cat.brands.length} Р±СЂРµРЅРґС–РІ</span>
+                  <span className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{cat.brands.length} брендів</span>
                 </div>
               </div>
             </Link>
@@ -644,7 +644,7 @@ export default function AutomotivePage() {
               className="text-4xl font-extralight tracking-tight text-white sm:text-5xl md:text-6xl"
             >
               <span className="bg-gradient-to-b from-white via-white to-zinc-400 bg-clip-text text-transparent">
-                {locale === 'ua' ? 'Р›РµРіРµРЅРґРё' : 'Legends'}
+                {locale === 'ua' ? 'Легенди' : 'Legends'}
               </span>
             </motion.h2>
             <motion.p
@@ -654,12 +654,12 @@ export default function AutomotivePage() {
               transition={{ delay: 0.2, duration: 0.8 }}
               className="mt-4 text-lg sm:text-xl text-zinc-500 max-w-xl mx-auto"
             >
-              {locale === 'ua' ? 'Р‘СЂРµРЅРґРё, С‰Рѕ С„РѕСЂРјСѓСЋС‚СЊ С–РЅРґСѓСЃС‚СЂС–СЋ' : 'Brands that shape the industry'}
+              {locale === 'ua' ? 'Бренди, що формують індустрію' : 'Brands that shape the industry'}
             </motion.p>
           </div>
           
-          {/* Legendary Grid */}
-          <div className="grid grid-cols-12 gap-4 sm:gap-5 lg:gap-6 auto-rows-[minmax(180px,auto)]">
+          {/* Legendary Grid - Equal Width Masonry */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 auto-rows-max">
             
             {/* AKRAPOVIC - Hero Card */}
             <motion.button
@@ -668,7 +668,7 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="group relative col-span-12 lg:col-span-6 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative lg:row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               {/* Glass Border/Background */}
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
@@ -697,7 +697,7 @@ export default function AutomotivePage() {
                 <div className="flex items-end justify-between gap-4">
                   <div>
                     <p className="text-2xl sm:text-3xl lg:text-4xl font-light text-white tracking-tight">Akrapovic</p>
-                    <p className="text-sm sm:text-base text-white/60 mt-2">{locale === 'ua' ? 'РўРёС‚Р°РЅРѕРІС– РІРёС…Р»РѕРїРЅС– СЃРёСЃС‚РµРјРё РїСЂРµРјС–СѓРј РєР»Р°СЃСѓ' : 'Premium titanium exhaust systems'}</p>
+                    <p className="text-sm sm:text-base text-white/60 mt-2">{locale === 'ua' ? 'Титанові вихлопні системи преміум класу' : 'Premium titanium exhaust systems'}</p>
                   </div>
                   <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
                     <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -715,7 +715,7 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="group relative col-span-6 lg:col-span-6 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative lg:row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               
@@ -740,7 +740,7 @@ export default function AutomotivePage() {
                 
                 <div>
                   <p className="text-xl sm:text-2xl font-light text-white">BRABUS</p>
-                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'РџСЂРµРјС–СѓРј С‚СЋРЅС–РЅРі' : 'Premium tuning'}</p>
+                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Преміум тюнінг' : 'Premium tuning'}</p>
                 </div>
                 
                 <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:bg-white/20 group-hover:border-white/40">
@@ -758,7 +758,7 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.15 }}
-              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               
@@ -798,7 +798,7 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="group relative col-span-6 sm:col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -813,7 +813,7 @@ export default function AutomotivePage() {
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-base sm:text-lg font-medium text-white">HRE Wheels</p>
-                    <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'РљРѕРІР°РЅС– РґРёСЃРєРё РїСЂРµРјС–СѓРј РєР»Р°СЃСѓ' : 'Premium forged wheels'}</p>
+                    <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Ковані диски преміум класу' : 'Premium forged wheels'}</p>
                   </div>
                 </div>
               </div>
@@ -826,20 +826,20 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.25 }}
-              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
+              <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[220px]">
 
-                <div className="flex-1 flex items-center justify-center py-3">
-                  <div className="relative w-full max-w-[140px] h-10 sm:h-12">
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="relative w-full max-w-[160px] h-12 sm:h-16">
                     <Image src={getBrandLogo('Urban Automotive')} alt="Urban Automotive" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
-                <p className="text-sm sm:text-base font-medium text-white">Urban Automotive</p>
-                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'РџСЂРµРјС–СѓРј РѕР±РІС–СЃРё' : 'Premium body kits'}</p>
+                <p className="text-base sm:text-lg font-medium text-white">Urban Automotive</p>
+                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Преміум обвіси' : 'Premium body kits'}</p>
               </div>
             </motion.button>
 
@@ -850,20 +850,20 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.3 }}
-              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
+              <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[220px]">
 
-                <div className="flex-1 flex items-center justify-center py-3">
-                  <div className="relative w-full max-w-[110px] h-10 sm:h-12">
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="relative w-full max-w-[130px] h-12 sm:h-16">
                     <Image src={getBrandLogo('Eventuri')} alt="Eventuri" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
-                <p className="text-sm sm:text-base font-medium text-white">Eventuri</p>
-                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Р’РїСѓСЃРєРЅС– СЃРёСЃС‚РµРјРё' : 'Intake systems'}</p>
+                <p className="text-base sm:text-lg font-medium text-white">Eventuri</p>
+                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Впускні системи' : 'Intake systems'}</p>
               </div>
             </motion.button>
 
@@ -874,31 +874,32 @@ export default function AutomotivePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.35 }}
-              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
+              <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[220px]">
 
-                <div className="flex-1 flex items-center justify-center py-3">
-                  <div className="relative w-full max-w-[90px] h-10 sm:h-12">
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="relative w-full max-w-[110px] h-12 sm:h-16">
                     <Image src={getBrandLogo('KW Suspension')} alt="KW" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
-                <p className="text-sm sm:text-base font-medium text-white">KW Suspensions</p>
-                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'РџС–РґРІС–СЃРєР°' : 'Suspension'}</p>
+                <p className="text-base sm:text-lg font-medium text-white">KW Suspensions</p>
+                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Підвіска' : 'Suspension'}</p>
               </div>
             </motion.button>
-
-            {/* NOVITEC */}
+            {/* NOVITEC & ABT - Split Row */}
+            <div className="sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
+              {/* NOVITEC */}
             <motion.button
               onClick={() => handleBrandClick('Novitec')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.4 }}
-              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               
@@ -924,7 +925,7 @@ export default function AutomotivePage() {
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-lg sm:text-xl font-light text-white">Novitec</p>
-                    <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'РЎСѓРїРµСЂРєР°СЂ С‚СЋРЅС–РЅРі' : 'Supercar tuning'}</p>
+                    <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Суперкар тюнінг' : 'Supercar tuning'}</p>
                   </div>
                   <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
                     <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -934,15 +935,15 @@ export default function AutomotivePage() {
                 </div>
               </div>
             </motion.button>
-
-            {/* ABT */}
+              
+              {/* ABT */}
             <motion.button
               onClick={() => handleBrandClick('ABT')}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.45 }}
-              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               
@@ -968,7 +969,7 @@ export default function AutomotivePage() {
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-lg sm:text-xl font-light text-white">ABT Sportsline</p>
-                    <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Audi С‚Р° VW С‚СЋРЅС–РЅРі' : 'Audi & VW tuning'}</p>
+                    <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Audi та VW тюнінг' : 'Audi & VW tuning'}</p>
                   </div>
                   <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
                     <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -978,14 +979,14 @@ export default function AutomotivePage() {
                 </div>
               </div>
             </motion.button>
-
+            </div>
             {/* +160 BRANDS CTA */}
             <motion.div
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="group relative col-span-1 sm:col-span-2 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative sm:col-span-2 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
               onClick={() => {
                 const catalogSection = document.getElementById('brand-catalog');
                 catalogSection?.scrollIntoView({ behavior: 'smooth' });
@@ -1002,11 +1003,11 @@ export default function AutomotivePage() {
                         +160
                       </span>
                       <span className="text-lg sm:text-xl text-white/60 font-light">
-                        {locale === 'ua' ? 'Р±СЂРµРЅРґС–РІ' : 'brands'}
+                        {locale === 'ua' ? 'брендів' : 'brands'}
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-white/50">
-                      {locale === 'ua' ? 'РџРѕРІРЅРёР№ РєР°С‚Р°Р»РѕРі РїСЂРµРјС–СѓРј Р°РІС‚РѕР·Р°РїС‡Р°СЃС‚РёРЅ С‚Р° Р°РєСЃРµСЃСѓР°СЂС–РІ' : 'Complete catalog of premium auto parts & accessories'}
+                      {locale === 'ua' ? 'Повний каталог преміум автозапчастин та аксесуарів' : 'Complete catalog of premium auto parts & accessories'}
                     </p>
                   </div>
                   
@@ -1069,7 +1070,7 @@ export default function AutomotivePage() {
 
       <section id="brand-catalog" className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
         <div className="mb-8 text-center sm:mb-10 md:mb-12">
-          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'РљР°С‚Р°Р»РѕРі' : 'Atlas'}</p>
+          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
           <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>{t('allBrands')}</h2>
         </div>
 
@@ -1082,7 +1083,11 @@ export default function AutomotivePage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-2xl border border-white/15 bg-gradient-to-r from-white/10 to-white/[0.02] px-6 py-3 text-base text-white placeholder-white/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:px-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
             />
-            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">вЊ•</div>
+            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
           </div>
 
           {/* Alphabet Filter */}
@@ -1117,13 +1122,28 @@ export default function AutomotivePage() {
               onClick={() => setIsBrandsOpen(!isBrandsOpen)}
               className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 hover:border-white/40"
             >
-              <span>{isBrandsOpen ? (locale === 'ua' ? 'Р—РіРѕСЂРЅСѓС‚Рё' : 'Collapse') : (locale === 'ua' ? 'Р’С–РґРєСЂРёС‚Рё СЃРїРёСЃРѕРє' : 'Open list')}</span>
-              <motion.span
+              <span>{isBrandsOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
+              <motion.div
                 animate={{ rotate: isBrandsOpen ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
               >
-                в†“
-              </motion.span>
+                <svg 
+                  width="12" 
+                  height="12" 
+                  viewBox="0 0 10 10" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="text-white"
+                >
+                  <path 
+                    d="M1 3L5 7L9 3" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </motion.div>
             </button>
 
             {/* Scroll Down Arrow */}
@@ -1179,7 +1199,7 @@ export default function AutomotivePage() {
                       <span>{origin}</span>
                       {subcategory && (
                         <>
-                          <span className="text-white/30">В·</span>
+                          <span className="text-white/30">|</span>
                           <span className="text-white/60">{subcategory}</span>
                         </>
                       )}
@@ -1260,7 +1280,7 @@ export default function AutomotivePage() {
                     <span>{selectedBrandOrigin}</span>
                     {selectedBrandSubcategory && (
                       <>
-                        <span className="text-white/30">В·</span>
+                        <span className="text-white/30">|</span>
                         <span className="text-white/60">{selectedBrandSubcategory}</span>
                       </>
                     )}

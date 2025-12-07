@@ -68,6 +68,7 @@ const LEGENDARY_MOTO_BRANDS = [
   'OZ Racing',
   'Arrow',
   'SparkExhaust',
+  'Bitubo',
 ];
 
 // Brand metadata for legendary section
@@ -146,11 +147,19 @@ const LEGENDARY_MOTO_CONFIG: Record<string, {
   },
   'SparkExhaust': {
     country: 'Italy',
-    flag: '????',
+    flag: '🇮🇹',
     category: { en: 'High Performance', ua: 'Висока продуктивність' },
     tagline: { en: 'Italian passion & sound', ua: 'Італійська пристрасть та звук' },
     gradient: 'from-rose-500/30 via-red-500/15 to-transparent',
     glowColor: 'rgba(244,63,94,0.3)',
+  },
+  'Bitubo': {
+    country: 'Italy',
+    flag: '🇮🇹',
+    category: { en: 'Suspension', ua: 'Підвіска' },
+    tagline: { en: 'Race suspension', ua: 'Трекова підвіска' },
+    gradient: 'from-red-500/30 via-red-600/15 to-transparent',
+    glowColor: 'rgba(220,38,38,0.3)',
   },
 };
 
@@ -476,10 +485,10 @@ export default function MotoPage() {
   const tPage = useTranslations('autoPage');
   const isUa = locale === 'ua';
   const typography = {
-    heroTitle: isUa ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-3xl sm:text-4xl lg:text-5xl',
-    heroSubtitle: isUa ? 'text-sm sm:text-base' : 'text-base sm:text-lg',
-    statValue: isUa ? 'text-xl' : 'text-2xl',
-    sectionHeading: isUa ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl',
+    heroTitle: isUa ? 'text-xl sm:text-2xl lg:text-3xl' : 'text-2xl sm:text-3xl lg:text-4xl',
+    heroSubtitle: isUa ? 'text-xs sm:text-sm' : 'text-sm sm:text-base',
+    statValue: isUa ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl',
+    sectionHeading: isUa ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl',
   } as const;
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -624,10 +633,10 @@ export default function MotoPage() {
               key={card.title.en}
               className="h-full flex flex-col rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:rounded-3xl sm:p-6"
             >
-              <div className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em]">{card.eyebrow[locale]}</div>
+              <div className="text-[7px] uppercase tracking-[0.4em] text-white/50 sm:text-[8px] sm:tracking-[0.5em]">{card.eyebrow[locale]}</div>
               <h3 className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{card.title[locale]}</h3>
-              <p className="mt-2 flex-1 text-xs text-white/70 sm:mt-3 sm:text-sm">{card.description[locale]}</p>
-              <p className="mt-4 text-[10px] uppercase tracking-[0.25em] text-white/60 sm:mt-6 sm:text-xs sm:tracking-[0.3em]">{card.meta[locale]}</p>
+              <p className="mt-2 flex-1 text-[10px] text-white/70 sm:mt-3 sm:text-[11px] leading-relaxed">{card.description[locale]}</p>
+              <p className="mt-4 text-[7px] uppercase tracking-[0.25em] text-white/60 sm:mt-6 sm:text-[9px] sm:tracking-[0.3em]">{card.meta[locale]}</p>
             </div>
           ))}
         </div>
@@ -650,12 +659,12 @@ export default function MotoPage() {
               transition={{ duration: 0.3 }}
             >
               <svg 
-                width="10" 
-                height="10" 
+                width="12" 
+                height="12" 
                 viewBox="0 0 10 10" 
                 fill="none" 
                 xmlns="http://www.w3.org/2000/svg"
-                className="opacity-70"
+                className="text-white"
               >
                 <path 
                   d="M1 3L5 7L9 3" 
@@ -773,8 +782,8 @@ export default function MotoPage() {
             </motion.p>
           </div>
           
-          {/* Legendary Grid - Bento Layout */}
-          <div className="grid grid-cols-12 gap-4 sm:gap-5 lg:gap-6 auto-rows-[minmax(180px,auto)]">
+          {/* Legendary Grid - Equal Width Masonry */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 auto-rows-max">
             
             {/* SC-PROJECT - Hero Card (Replaces Akrapovic as Hero) */}
             <motion.button
@@ -783,7 +792,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="group relative col-span-12 lg:col-span-6 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative lg:row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-1000">
@@ -817,7 +826,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="group relative col-span-6 lg:col-span-6 row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative lg:row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
@@ -849,7 +858,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.15 }}
-              className="group relative col-span-6 lg:col-span-4 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
             >
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
@@ -878,7 +887,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -905,7 +914,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.25 }}
-              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -928,7 +937,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.3 }}
-              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -951,7 +960,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.35 }}
-              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -974,7 +983,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.4 }}
-              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -1000,7 +1009,7 @@ export default function MotoPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.45 }}
-              className="group relative col-span-1 cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
             >
               <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -1019,13 +1028,39 @@ export default function MotoPage() {
               </div>
             </motion.button>
 
+            {/* BITUBO */}
+            <motion.button
+              onClick={() => handleBrandClick('Bitubo')}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.5 }}
+              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+            >
+              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🇮🇹</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/60">Italy</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center py-3">
+                  <div className="relative w-full max-w-[140px] h-10 sm:h-12">
+                    <Image src={getBrandLogo('Bitubo')} alt="Bitubo" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+                  </div>
+                </div>
+                <p className="text-sm sm:text-base font-medium text-white">Bitubo</p>
+                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Трекова підвіска' : 'Race suspension'}</p>
+              </div>
+            </motion.button>
+
             {/* +40 BRANDS CTA with Carousel */}
             <motion.div
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="group relative col-span-1 sm:col-span-2 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[200px]"
+              className="group relative sm:col-span-2 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[200px]"
               onClick={() => {
                 const catalogSection = document.getElementById('moto-brand-catalog');
                 catalogSection?.scrollIntoView({ behavior: 'smooth' });
@@ -1254,7 +1289,11 @@ export default function MotoPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-2xl border border-white/15 bg-white px-6 py-3 text-base text-black placeholder-black/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:p-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
             />
-            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">?</div>
+            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
           </div>
 
           {/* Alphabet Filter */}
