@@ -5,6 +5,9 @@ import { useLocale } from 'next-intl';
 import Image from 'next/image';
 import { BRAND_LOGO_MAP } from '@/lib/brandLogos';
 
+import { getBrandSlug } from '@/lib/brands';
+import Link from 'next/link';
+
 export default function BrandsPage() {
   const locale = useLocale();
   const [search, setSearch] = useState('');
@@ -43,8 +46,9 @@ export default function BrandsPage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
           {filteredBrands.map(([name, logo]) => (
-            <div 
+            <Link 
               key={name}
+              href={`/${locale}/brands/${getBrandSlug({ name })}`}
               className="group relative aspect-[3/2] flex items-center justify-center p-6 bg-white/[0.02] border border-white/10 rounded-2xl hover:bg-white/[0.05] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all duration-500 backdrop-blur-sm overflow-hidden"
             >
               {/* Radial white backlight for dark logos */}
@@ -69,7 +73,7 @@ export default function BrandsPage() {
               <div className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <span className="text-[10px] uppercase tracking-wider text-white/50 font-light truncate px-2">{name}</span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 

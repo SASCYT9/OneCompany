@@ -153,7 +153,10 @@ export default async function BrandDetailPage({ params }: BrandDetailPageProps) 
           >
             <div className="prose prose-lg dark:prose-invert prose-zinc max-w-none">
               <p className="text-lg md:text-xl font-light text-zinc-600 dark:text-white/60 leading-relaxed mb-8">
-                {brand.description || `${brand.name} represents excellence in ${isMoto ? 'motorcycle' : 'automotive'} performance and innovation. Discover the premium quality and craftsmanship that sets this brand apart.`}
+                {locale === 'ua' 
+                  ? (brand.descriptionUA || brand.description || `${brand.name} представляє досконалість у ${isMoto ? 'мотоциклетній' : 'автомобільній'} продуктивності та інноваціях. Відкрийте для себе преміальну якість та майстерність, що виділяє цей бренд.`)
+                  : (brand.description || `${brand.name} represents excellence in ${isMoto ? 'motorcycle' : 'automotive'} performance and innovation. Discover the premium quality and craftsmanship that sets this brand apart.`)
+                }
               </p>
               
               {brand.specialties && brand.specialties.length > 0 && (
@@ -176,9 +179,12 @@ export default async function BrandDetailPage({ params }: BrandDetailPageProps) 
                     href={brand.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block px-6 py-3 border border-zinc-900 dark:border-white text-zinc-900 dark:text-white hover:bg-zinc-900 hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 text-xs uppercase tracking-widest font-light"
+                    className="inline-flex items-center gap-3 px-8 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all duration-300 text-xs uppercase tracking-[0.2em] font-medium"
                   >
-                    Visit Website
+                    <span>{locale === 'ua' ? 'Офіційний сайт' : 'Official Website'}</span>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
                   </a>
                 </div>
               )}
