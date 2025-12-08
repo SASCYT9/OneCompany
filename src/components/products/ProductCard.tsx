@@ -8,13 +8,14 @@ interface ProductCardProps {
   image: string;
   href: string;
   category?: string;
+  className?: string;
 }
 
-export default function ProductCard({ name, image, href, category }: ProductCardProps) {
+export default function ProductCard({ name, image, href, category, className }: ProductCardProps) {
   return (
     <Link href={href}>
       <div
-        className="group relative overflow-hidden bg-white dark:bg-zinc-900/30 border border-zinc-100 dark:border-white/5 transition-colors duration-300"
+        className={`group relative overflow-hidden bg-white dark:bg-zinc-900/30 border border-zinc-100 dark:border-white/5 transition-colors duration-300 ${className || ''}`}
       >
         {/* Image Container */}
         <div className="relative aspect-square overflow-hidden bg-zinc-50 dark:bg-zinc-900/50 p-8">
