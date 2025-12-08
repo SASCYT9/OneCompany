@@ -1,7 +1,7 @@
 'use client';
 
 import { categoryData } from '@/lib/categoryData';
-import { getBrandsByNames, getBrandSlug, getLocalizedCountry, CountryOfOrigin } from '@/lib/brands';
+import { getBrandsByNames, getBrandSlug, getLocalizedCountry, CountryOfOrigin, getBrandMetadata } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import ProductCard from '@/components/products/ProductCard';
 import { notFound } from 'next/navigation';
@@ -49,15 +49,18 @@ export default function CategoryPageTemplate({ categorySlug, locale }: Props) {
        {/* Grid */}
        <div className="px-6 md:px-10">
          <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
-           {brands.map(brand => (
-             <ProductCard
-               key={brand.name}
-               name={brand.name}
-               image={getBrandLogo(brand.name)}
-               href={`/${locale}/brands/${getBrandSlug(brand)}`}
-               category={brand.country ? getLocalizedCountry(brand.country as CountryOfOrigin, lang) : undefined}
-             />
-           ))}
+           {brands.map(brand => {
+             const meta = getBrandMetadata(brand.name);
+             return (
+               <ProductCard
+                 key={brand.name}
+                 name={brand.name}
+                 image={getBrandLogo(brand.name)}
+                 href={`/${locale}/brands/${getBrandSlug(brand)}`}
+                 category={meta ? getLocalizedCountry(meta.country, lang) : undefined}
+               />
+             );
+           })}
          </div>
        </div>
     </div>
