@@ -96,7 +96,7 @@ export default async function BrandDetailPage({ params }: BrandDetailPageProps) 
     }));
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
+    <div className="min-h-screen bg-white dark:bg-black pt-20 md:pt-24">
       <BrandSchema 
         name={brand.name}
         description={brand.description || (locale === 'ua' ? `Імпортер ${brand.name} в Україні` : `${brand.name} importer in Ukraine`)}
