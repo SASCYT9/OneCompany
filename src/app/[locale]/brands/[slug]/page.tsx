@@ -3,12 +3,10 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getBrandWithCategory, getBrandSlug, allAutomotiveBrands, allMotoBrands, getBrandMetadata } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import ProductCard from '@/components/products/ProductCard';
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
 import { BrandSchema, BreadcrumbSchema } from '@/components/seo/StructuredData';
-import ReadMore from '@/components/ui/ReadMore';
+import BrandPageClient from './BrandPageClient';
+import { curatedBrandStories } from '@/lib/brandStories';
 
 interface BrandDetailPageProps {
   params: Promise<{
@@ -75,7 +73,6 @@ export default async function BrandDetailPage({ params }: BrandDetailPageProps) 
   }
   
   const logoSrc = getBrandLogo(brand.name);
-  const isMoto = brand.category === 'moto';
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
   const currentUrl = `${baseUrl}/${locale}/brands/${slug}`;
 
@@ -84,19 +81,26 @@ export default async function BrandDetailPage({ params }: BrandDetailPageProps) 
     { name: locale === 'ua' ? 'Бренди' : 'Brands', url: `${baseUrl}/${locale}/brands` },
     { name: brand.name, url: currentUrl },
   ];
-  
-  // Get related brands from the same category (max 8)
-  const relatedBrands = (isMoto ? allMotoBrands : allAutomotiveBrands)
-    .filter(b => getBrandSlug(b) !== slug)
-    .slice(0, 8)
-    .map(b => ({
-      name: b.name,
-      logoSrc: getBrandLogo(b.name),
-      slug: getBrandSlug(b),
-    }));
+
+  // Resolve story
+  const story = curatedBrandStories[brand.name] || {
+    headline: {
+        en: `${brand.name} — premium performance`,
+        ua: `${brand.name} — преміум продуктивність`,
+    },
+    description: {
+        en: brand.description || 'Official distribution, warranty support and direct supply from the manufacturer.',
+        ua: brand.descriptionUA || 'Офіційна дистрибуція, гарантійна підтримка та прямі поставки від виробника.',
+    },
+    highlights: [
+        { en: 'Global warranty', ua: 'Глобальна гарантія' },
+        { en: 'Direct supply', ua: 'Прямі поставки' },
+        { en: 'Expert installation', ua: 'Експертне встановлення' },
+    ],
+  };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black pt-20 md:pt-24">
+    <>
       <BrandSchema 
         name={brand.name}
         description={brand.description || (locale === 'ua' ? `Імпортер ${brand.name} в Україні` : `${brand.name} importer in Ukraine`)}
@@ -104,129 +108,12 @@ export default async function BrandDetailPage({ params }: BrandDetailPageProps) 
         logo={`${baseUrl}${logoSrc}`}
       />
       <BreadcrumbSchema items={breadcrumbs} />
-      {/* Full-Screen Hero with Brand Logo */}
-      <div className="relative h-[70vh] flex items-center justify-center overflow-hidden bg-zinc-100 dark:bg-zinc-950">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5 dark:opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
-            backgroundSize: '40px 40px'
-          }} />
-        </div>
-        
-        {/* Logo Container */}
-        <div className="relative z-10 flex flex-col items-center">
-          <div className="relative w-[300px] h-[300px] md:w-[400px] md:h-[400px] mb-8">
-            <Image
-              src={logoSrc}
-              alt={brand.name}
-              fill
-              className="object-contain p-8"
-              priority
-            />
-          </div>
-          
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extralight tracking-tight text-zinc-900 dark:text-white text-center mb-6">
-            {brand.name}
-          </h1>
-        </div>
-        
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 flex flex-col items-center space-y-3">
-          <span className="text-[10px] uppercase tracking-widest text-zinc-400 dark:text-white/40 font-light">
-            Scroll
-          </span>
-          <div className="w-px h-12 bg-gradient-to-b from-zinc-300 dark:from-white/20 to-transparent" />
-        </div>
-      </div>
-
-      {/* Brand Story Section */}
-      <div className="px-6 md:px-10 py-24 md:py-32">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-extralight tracking-tight text-zinc-900 dark:text-white mb-8">
-            About {brand.name}
-          </h2>
-          
-          <ReadMore 
-            labelOpen={locale === 'ua' ? 'Читати далі' : 'Read More'}
-            labelClose={locale === 'ua' ? 'Згорнути' : 'Show Less'}
-          >
-            <div className="prose prose-lg dark:prose-invert prose-zinc max-w-none">
-              <p className="text-lg md:text-xl font-light text-zinc-600 dark:text-white/60 leading-relaxed mb-8">
-                {locale === 'ua' 
-                  ? (brand.descriptionUA || brand.description || `${brand.name} представляє досконалість у ${isMoto ? 'мотоциклетній' : 'автомобільній'} продуктивності та інноваціях. Відкрийте для себе преміальну якість та майстерність, що виділяє цей бренд.`)
-                  : (brand.description || `${brand.name} represents excellence in ${isMoto ? 'motorcycle' : 'automotive'} performance and innovation. Discover the premium quality and craftsmanship that sets this brand apart.`)
-                }
-              </p>
-              
-              {brand.specialties && brand.specialties.length > 0 && (
-                <div className="mt-12">
-                  <h3 className="text-xl font-light text-zinc-900 dark:text-white mb-6">Specialties</h3>
-                  <ul className="space-y-3">
-                    {brand.specialties.map((specialty, index) => (
-                      <li key={index} className="flex items-start space-x-4">
-                        <span className="text-zinc-400 dark:text-white/40 mt-1">—</span>
-                        <span className="text-base font-light text-zinc-700 dark:text-white/70">{specialty}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              {brand.website && (
-                <div className="mt-12">
-                  <a
-                    href={brand.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-3 px-8 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all duration-300 text-xs uppercase tracking-[0.2em] font-medium"
-                  >
-                    <span>{locale === 'ua' ? 'Офіційний сайт' : 'Official Website'}</span>
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                </div>
-              )}
-            </div>
-          </ReadMore>
-        </div>
-      </div>
-
-      {/* Related Brands Section */}
-      {relatedBrands.length > 0 && (
-        <div className="px-6 md:px-10 py-20 bg-zinc-50 dark:bg-zinc-950">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-extralight tracking-tight text-zinc-900 dark:text-white mb-6">
-                More {isMoto ? 'Moto' : 'Automotive'} Brands
-              </h2>
-              <div className="w-20 h-px bg-zinc-300 dark:bg-white/20 mx-auto" />
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {relatedBrands.map((relatedBrand) => (
-                <ProductCard
-                  key={relatedBrand.name}
-                  name={relatedBrand.name}
-                  image={relatedBrand.logoSrc}
-                  href={`/${locale}/brands/${relatedBrand.slug}`}
-                  category={isMoto ? 'Motorcycle' : 'Automotive'}
-                />
-              ))}
-            </div>
-            
-            <div className="text-center mt-12">
-              <Link
-                href={`/${locale}/brands${isMoto ? '/moto' : ''}`}
-                className="inline-block px-6 py-3 border border-zinc-900 dark:border-white text-zinc-900 dark:text-white hover:bg-zinc-900 hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 text-xs uppercase tracking-widest font-light"
-              >
-                View All Brands
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      
+      <BrandPageClient 
+        brand={brand}
+        story={story}
+        locale={locale}
+      />
+    </>
   );
 }

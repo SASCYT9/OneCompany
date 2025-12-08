@@ -1,5 +1,6 @@
 // src/lib/categoryData.ts
 
+import type { Metadata } from 'next';
 import type { CategorySlug, Localized } from './categoryMeta';
 
 export interface CategoryData {
@@ -348,3 +349,29 @@ export const categoryData: CategoryData[] = [
     ],
   },
 ];
+
+export function getCategoryMetadata(slug: string, locale: string): Metadata {
+  const category = categoryData.find(c => c.slug === slug);
+  if (!category) return {};
+
+  const lang = locale === 'ua' ? 'ua' : 'en';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
+  const url = `${baseUrl}/${locale}/${category.segment}/categories/${slug}`;
+  
+  return {
+    title: category.title[lang],
+    description: category.description[lang],
+    alternates: {
+      canonical: url,
+      languages: {
+        'en': `${baseUrl}/en/${category.segment}/categories/${slug}`,
+        'uk-UA': `${baseUrl}/ua/${category.segment}/categories/${slug}`,
+      }
+    },
+    openGraph: {
+      title: category.title[lang],
+      description: category.description[lang],
+      url: url,
+    }
+  };
+}

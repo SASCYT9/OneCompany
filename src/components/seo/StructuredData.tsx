@@ -250,3 +250,30 @@ export function BrandSchema({ name, description, url, logo, country }: BrandSche
   );
 }
 
+interface CollectionPageSchemaProps {
+  name: string;
+  description: string;
+  url: string;
+}
+
+export function CollectionPageSchema({ name, description, url }: CollectionPageSchemaProps) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: name,
+    description: description,
+    url: url,
+    isPartOf: {
+      "@id": "https://onecompany.global/#website"
+    }
+  };
+
+  return (
+    <Script
+      id={`collection-schema-${name.toLowerCase().replace(/\s+/g, '-')}`}
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
