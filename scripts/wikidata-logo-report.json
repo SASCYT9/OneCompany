@@ -1,0 +1,190 @@
+{
+  "downloaded": 0,
+  "items": [
+    {
+      "name": "AMS / Alpha Performance",
+      "slug": "ams-alpha-performance",
+      "website": "https://www.amsperformance.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Avantgarde Wheels",
+      "slug": "avantgarde-wheels",
+      "website": "https://www.avantgardewheels.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Big Boost",
+      "slug": "big-boost",
+      "website": "https://bigboostllc.com",
+      "status": "no-image-claims",
+      "wikidataEntity": "Q74205260",
+      "wikidataProperty": null,
+      "commonsFilename": null
+    },
+    {
+      "name": "Brixton wheels",
+      "slug": "brixton-wheels",
+      "website": "https://www.brixtonforged.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Fall-Line Motorsports",
+      "slug": "fall-line-motorsports",
+      "website": "https://www.fall-linemotorsports.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Fragola Performance Systems",
+      "slug": "fragola-performance-systems",
+      "website": "https://www.fragolaperformance.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "GTHaus",
+      "slug": "gthaus",
+      "website": "https://www.gthaus.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Paragon brakes",
+      "slug": "paragon-brakes",
+      "website": "https://paragonperformancebrakes.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Pure Drivetrain Solutions",
+      "slug": "pure-drivetrain-solutions",
+      "website": "https://puredrivetrain.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Seibon Carbon",
+      "slug": "seibon-carbon",
+      "website": "https://www.seibon.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "ABT",
+      "slug": "abt",
+      "website": "https://www.abt-sportsline.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "ARMA Speed",
+      "slug": "arma-speed",
+      "website": "https://www.armaspeed.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Black Boost",
+      "slug": "black-boost",
+      "website": "https://blackboost.ae",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Deikin",
+      "slug": "deikin",
+      "website": "https://deikin.ru",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Eventuri",
+      "slug": "eventuri",
+      "website": "https://www.eventuri.net",
+      "status": "no-image-claims",
+      "wikidataEntity": "Q58596955",
+      "wikidataProperty": null,
+      "commonsFilename": null
+    },
+    {
+      "name": "Pulsar turbo",
+      "slug": "pulsar-turbo",
+      "website": "https://pulsarturbo.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Raliw Forged",
+      "slug": "raliw-forged",
+      "website": "https://raliwforged.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Red Star Exhaust",
+      "slug": "red-star-exhaust",
+      "website": "https://redstarexhaust.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Ronin Design",
+      "slug": "ronin-design",
+      "website": "https://ronindesign.ru",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "SCL Concept",
+      "slug": "scl-concept",
+      "website": "https://scl-concept.ru",
+      "status": "no-image-claims",
+      "wikidataEntity": "Q134677752",
+      "wikidataProperty": null,
+      "commonsFilename": null
+    },
+    {
+      "name": "SooQoo",
+      "slug": "sooqoo",
+      "website": "https://www.sooqoo.com",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Urban Automotive",
+      "slug": "urban-automotive",
+      "website": "https://www.urbanautomotive.co.uk",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Kotouc",
+      "slug": "kotouc",
+      "website": "https://kotouc-racing.cz",
+      "status": "no-image-claims",
+      "wikidataEntity": "Q51075193",
+      "wikidataProperty": null,
+      "commonsFilename": null
+    },
+    {
+      "name": "Xshift",
+      "slug": "xshift",
+      "website": "https://xshift.eu",
+      "status": "no-wikidata",
+      "wikidataEntity": null
+    },
+    {
+      "name": "Termignoni",
+      "slug": "termignoni",
+      "website": "https://termignoni.it",
+      "status": "no-image-claims",
+      "wikidataEntity": "Q4050851",
+      "wikidataProperty": null,
+      "commonsFilename": null
+    }
+  ]
+}

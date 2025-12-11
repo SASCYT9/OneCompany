@@ -1,0 +1,31 @@
+{
+  "instructions": "Fill `url` for each brand with a direct image URL (prefer official brand media kits / press pages). Then run: python scripts/download-logos-from-urls.py",
+  "minBytes": 500,
+  "items": [
+    {"name": "ABT", "slug": "abt", "url": ""},
+    {"name": "AMS / Alpha Performance", "slug": "ams-alpha-performance", "url": "https://www.amsperformance.com/wp-content/uploads/2021/05/ams_performance_logo.svg"},
+    {"name": "ARMA Speed", "slug": "arma-speed", "url": ""},
+    {"name": "Avantgarde Wheels", "slug": "avantgarde-wheels", "url": ""},
+    {"name": "Big Boost", "slug": "big-boost", "url": ""},
+    {"name": "Black Boost", "slug": "black-boost", "url": ""},
+    {"name": "Brixton wheels", "slug": "brixton-wheels", "url": ""},
+    {"name": "Deikin", "slug": "deikin", "url": ""},
+    {"name": "Eventuri", "slug": "eventuri", "url": ""},
+    {"name": "Fall-Line Motorsports", "slug": "fall-line-motorsports", "url": ""},
+    {"name": "Fragola Performance Systems", "slug": "fragola-performance-systems", "url": ""},
+    {"name": "GTHaus", "slug": "gthaus", "url": ""},
+    {"name": "Kotouc", "slug": "kotouc", "url": ""},
+    {"name": "Paragon brakes", "slug": "paragon-brakes", "url": ""},
+    {"name": "Pulsar turbo", "slug": "pulsar-turbo", "url": ""},
+    {"name": "Pure Drivetrain Solutions", "slug": "pure-drivetrain-solutions", "url": ""},
+    {"name": "Raliw Forged", "slug": "raliw-forged", "url": ""},
+    {"name": "Red Star Exhaust", "slug": "red-star-exhaust", "url": ""},
+    {"name": "Ronin Design", "slug": "ronin-design", "url": ""},
+    {"name": "SCL Concept", "slug": "scl-concept", "url": ""},
+    {"name": "Seibon Carbon", "slug": "seibon-carbon", "url": ""},
+    {"name": "SooQoo", "slug": "sooqoo", "url": ""},
+    {"name": "Termignoni", "slug": "termignoni", "url": ""},
+    {"name": "Urban Automotive", "slug": "urban-automotive", "url": ""},
+    {"name": "Xshift", "slug": "xshift", "url": ""}
+  ]
+}
