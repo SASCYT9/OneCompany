@@ -83,7 +83,9 @@ function main() {
   const fileOrder = ['svg', 'webp', 'png', 'avif', 'jpg', 'jpeg'];
   
   for (const file of files) {
-    const slug = getSlugFromFilename(file);
+    // Be forgiving about filename casing/spaces: normalize filenames into slugs
+    // so that e.g. "ABT.png" or "Deikin Logo.webp" can still match "abt"/"deikin".
+    const slug = slugify(getSlugFromFilename(file));
     const ext = file.split('.').pop().toLowerCase();
     
     if (!slugToFile[slug] || fileOrder.indexOf(ext) < fileOrder.indexOf(slugToFile[slug].split('.').pop())) {
