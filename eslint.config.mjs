@@ -16,6 +16,10 @@ const eslintConfig = defineConfig([
     "wordpress/**",
     "wp-content/**",
     "scripts/**",
+
+    // Ignore one-off repo maintenance scripts stored at the repo root.
+    "fix-*.js",
+    "restore-auto-blocks*.js",
   ]),
   {
     rules: {

@@ -8,6 +8,29 @@ const path = require('path');
 
 const LOGOS_DIR = path.join(__dirname, '..', 'public', 'logos');
 const OUTPUT_FILE = path.join(__dirname, '..', 'src', 'lib', 'brandLogos.ts');
+const OVERRIDES_FILE = path.join(__dirname, 'brand-logo-overrides.json');
+
+function loadManualOverrides() {
+  try {
+    if (!fs.existsSync(OVERRIDES_FILE)) return {};
+    const raw = fs.readFileSync(OVERRIDES_FILE, 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    return parsed;
+  } catch (e) {
+    console.warn('⚠️ Could not read brand-logo-overrides.json:', e && e.message ? e.message : e);
+    return {};
+  }
+}
+
+function normalizeLogoPath(value) {
+  if (!value || typeof value !== 'string') return null;
+  // Allow either "filename.ext" or "/logos/filename.ext"
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith('/logos/')) return trimmed;
+  return `/logos/${trimmed.replace(/^\/+/, '')}`;
+}
 
 // Brand name to filename mapping for known mismatches
 const NAME_TO_SLUG_OVERRIDES = {
@@ -71,6 +94,12 @@ function getBrandNames() {
 
 function main() {
   console.log('🔍 Scanning logo files...\n');
+
+  const manualOverrides = loadManualOverrides();
+  const manualOverrideCount = Object.keys(manualOverrides).length;
+  if (manualOverrideCount > 0) {
+    console.log(`🧩 Loaded ${manualOverrideCount} manual logo override(s) from scripts/brand-logo-overrides.json\n`);
+  }
   
   // Get all logo files
   const files = fs.readdirSync(LOGOS_DIR)
@@ -103,6 +132,23 @@ function main() {
   let unmatched = 0;
   
   for (const brandName of brandNames) {
+    // Manual override takes precedence
+    if (Object.prototype.hasOwnProperty.call(manualOverrides, brandName)) {
+      const normalized = normalizeLogoPath(manualOverrides[brandName]);
+      if (normalized) {
+        const filename = path.basename(normalized);
+        const full = path.join(LOGOS_DIR, filename);
+        if (fs.existsSync(full)) {
+          logoMap[brandName] = normalized;
+          matched++;
+          continue;
+        }
+        console.log(`⚠️ Override logo file missing for: ${brandName} -> ${normalized}`);
+      } else {
+        console.log(`⚠️ Invalid override value for: ${brandName}`);
+      }
+    }
+
     const slug = brandNameToSlug(brandName);
     
     if (slugToFile[slug]) {

@@ -34,7 +34,7 @@ export default function SettingsPage() {
       if (permission === 'granted') {
         new Notification('OneCompany Admin', {
           body: 'Notifications enabled successfully!',
-          icon: '/branding/logo.png' // Assuming this exists, or fallback
+          icon: '/branding/one-company-logo.png'
         });
       }
     } catch (error) {

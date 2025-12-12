@@ -16,8 +16,6 @@ interface Props {
   locale: string;
 }
 
-type LocalizedCopy = { en: string; ua: string; [key: string]: string };
-
 export default function CategoryPageClient({ category, brands, locale }: Props) {
   const [selectedBrand, setSelectedBrand] = useState<LocalBrand | null>(null);
   const lang = (locale === 'ua' ? 'ua' : 'en') as 'ua' | 'en';

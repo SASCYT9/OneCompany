@@ -25,7 +25,7 @@ function slugify(name: string) {
 // Try multiple extensions prioritizing svg then png
 const EXTENSIONS = ['svg', 'png', 'webp'];
 
-export const BrandLogo: React.FC<BrandLogoProps> = ({ name, src, className = '', alt, variant = 'default', monochrome = false, lazy = true, shimmer = true }) => {
+export const BrandLogo: React.FC<BrandLogoProps> = ({ name, src, className = '', alt, variant = 'default', lazy = true, shimmer = true }) => {
   const slug = useMemo(() => slugify(name), [name]);
   const generated = useMemo(() => EXTENSIONS.map(ext => `/logos/${slug}.${ext}`), [slug]);
   const candidates = useMemo(() => (src ? [src, ...generated] : generated), [src, generated]);

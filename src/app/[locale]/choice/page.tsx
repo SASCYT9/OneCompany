@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/navigation';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { BrandExpandableCard } from '@/components/ui/BrandExpandableCard';

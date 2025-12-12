@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { setRequestLocale } from 'next-intl/server';
 import { getBrandWithCategory, getBrandSlug, allAutomotiveBrands, allMotoBrands, getBrandMetadata } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { notFound } from 'next/navigation';
