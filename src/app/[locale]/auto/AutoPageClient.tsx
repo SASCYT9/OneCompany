@@ -281,114 +281,13 @@ export default function AutomotivePage() {
 
 
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
-        <div className="mb-8 text-center sm:mb-10 md:mb-12">
-          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('productCategories')}</p>
-          <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>
-            {locale === 'ua' ? 'Модулі, які складають авто' : 'Modules we compose cars from'}
-          </h2>
-          <button
-            onClick={() => setIsModulesOpen(!isModulesOpen)}
-            className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white shadow-[0_4px_18px_rgba(255,255,255,0.3)] transition-all hover:border-white/40"
-          >
-            <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
-            <motion.div
-              animate={{ rotate: isModulesOpen ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <svg 
-                width="12" 
-                height="12" 
-                viewBox="0 0 10 10" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-white"
-              >
-                <path 
-                  d="M1 3L5 7L9 3" 
-                  stroke="currentColor" 
-                  strokeWidth="1.5" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </motion.div>
-          </button>
-        </div>
-        <AnimatePresence>
-          {isModulesOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="overflow-hidden"
-            >
-              <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr pb-4">
-          {automotiveCategories.map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/${locale}/auto/categories/${cat.slug}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/10 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:border-white/40 hover:translate-y-[-4px] sm:rounded-3xl h-full backdrop-blur-3xl"
-            >
-              {/* Multi-layer box shadows for depth */}
-              <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] sm:rounded-3xl" />
-              
-              {/* Bottom glow on hover */}
-              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              
-              <div className="relative p-6 sm:p-7 md:p-8 flex flex-col flex-1">
-                {/* Title & Description */}
-                <div className="min-h-[120px] sm:min-h-[140px]">
-                  <h3 className="text-xl font-normal text-white text-balance sm:text-2xl tracking-wide">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
-                  <p className="mt-3 text-[13px] leading-relaxed text-white/80 text-pretty sm:text-[15px] font-light">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                  <p className="mt-2 text-[11px] text-white/50 text-pretty sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
-                </div>
-                
-                {/* Brand tags with relief */}
-                <div className="mt-5 min-h-[80px] grid grid-cols-2 gap-2 text-[10px] uppercase tracking-wider content-start sm:text-[11px]">
-                  {cat.brands.map((name) => (
-                    <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10">
-                      {name}
-                    </span>
-                  ))}
-                </div>
-                
-                {/* Open button - clear affordance */}
-                <div className="mt-auto pt-6 flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3 group-hover:text-white">
-                    {locale === 'ua' ? 'Відкрити' : 'Open'}
-                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  <span className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{cat.brands.length} брендів</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </section>
-
-      {/* LEGENDARY BRANDS SHOWCASE */}
       <section className="relative py-24 sm:py-32 md:py-40 overflow-hidden">
         {/* Video Background */}
         <div className="absolute inset-0">
           
         </div>
-        {/* Epic Background Overlays */}
+        {/* Epic Background Overlays - CLEANED UP */}
         <div className="absolute inset-0 bg-black/40 sm:bg-black/50" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-30%,rgba(120,50,255,0.15),transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_90%,rgba(255,150,50,0.1),transparent_40%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_80%,rgba(255,50,100,0.08),transparent_40%)]" />
-        
-        {/* Animated Glow Orbs */}
-        <div className="absolute top-20 left-1/3 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[150px] animate-pulse" />
-        <div className="absolute bottom-20 right-1/3 w-[400px] h-[400px] bg-amber-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-10 w-[300px] h-[300px] bg-red-500/8 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
         
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -401,7 +300,7 @@ export default function AutomotivePage() {
               className="text-4xl font-extralight tracking-tight text-white sm:text-5xl md:text-6xl"
             >
               <span className="bg-gradient-to-b from-white via-white to-zinc-400 bg-clip-text text-transparent">
-                {locale === 'ua' ? 'Легенди' : 'Legends'}
+                {locale === 'ua' ? 'Легендарні бренди' : 'Legendary Brands'}
               </span>
             </motion.h2>
             <motion.p
@@ -825,6 +724,103 @@ export default function AutomotivePage() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+        <div className="relative mb-8 overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm sm:mb-10 sm:p-12 md:mb-12 md:p-16">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-50" />
+          <div className="relative z-10">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-white/70 sm:text-[11px] sm:tracking-[0.5em] md:text-[12px] md:tracking-[0.6em] font-medium">{t('productCategories')}</p>
+            <h2 className={`mt-3 font-light text-white text-balance sm:mt-4 ${typography.sectionHeading}`}>
+              {locale === 'ua' ? 'Модулі, які складають авто' : 'Modules we compose cars from'}
+            </h2>
+            <button
+              onClick={() => setIsModulesOpen(!isModulesOpen)}
+              className="mt-8 inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-black shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-all hover:bg-white/90 hover:scale-105 hover:shadow-[0_0_35px_rgba(255,255,255,0.4)] active:scale-95"
+            >
+              <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
+              <motion.div
+                animate={{ rotate: isModulesOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <svg 
+                  width="12" 
+                  height="12" 
+                  viewBox="0 0 10 10" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="text-black"
+                >
+                  <path 
+                    d="M1 3L5 7L9 3" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </motion.div>
+            </button>
+          </div>
+        </div>
+        <AnimatePresence>
+          {isModulesOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr pb-4">
+          {automotiveCategories.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/${locale}/auto/categories/${cat.slug}`}
+              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/10 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:border-white/40 hover:translate-y-[-4px] sm:rounded-3xl h-full backdrop-blur-3xl"
+            >
+              {/* Multi-layer box shadows for depth */}
+              <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] sm:rounded-3xl" />
+              
+              {/* Bottom glow on hover */}
+              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              
+              <div className="relative p-6 sm:p-7 md:p-8 flex flex-col flex-1">
+                {/* Title & Description */}
+                <div className="min-h-[120px] sm:min-h-[140px]">
+                  <h3 className="text-xl font-normal text-white text-balance sm:text-2xl tracking-wide">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                  <p className="mt-3 text-[13px] leading-relaxed text-white/80 text-pretty sm:text-[15px] font-light">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                  <p className="mt-2 text-[11px] text-white/50 text-pretty sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                </div>
+                
+                {/* Brand tags with relief */}
+                <div className="mt-5 min-h-[80px] grid grid-cols-2 gap-2 text-[10px] uppercase tracking-wider content-start sm:text-[11px]">
+                  {cat.brands.map((name) => (
+                    <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10">
+                      {name}
+                    </span>
+                  ))}
+                </div>
+                
+                {/* Open button - clear affordance */}
+                <div className="mt-auto pt-6 flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3 group-hover:text-white">
+                    {locale === 'ua' ? 'Відкрити' : 'Open'}
+                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                  <span className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{cat.brands.length} брендів</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </section>
+
+
+
       <section id="brand-catalog" className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
         <div className="mb-8 text-center sm:mb-10 md:mb-12">
           <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
@@ -877,7 +873,7 @@ export default function AutomotivePage() {
           <div className="flex flex-col items-center gap-4">
             <button
               onClick={() => setIsBrandsOpen(!isBrandsOpen)}
-              className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white shadow-[0_4px_18px_rgba(255,255,255,0.3)] transition-all hover:border-white/40"
+              className="inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-black shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-all hover:bg-white/90 hover:scale-105 hover:shadow-[0_0_35px_rgba(255,255,255,0.4)] active:scale-95"
             >
               <span>{isBrandsOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
               <motion.div
@@ -890,12 +886,12 @@ export default function AutomotivePage() {
                   viewBox="0 0 10 10" 
                   fill="none" 
                   xmlns="http://www.w3.org/2000/svg"
-                  className="text-white"
+                  className="text-black"
                 >
                   <path 
                     d="M1 3L5 7L9 3" 
                     stroke="currentColor" 
-                    strokeWidth="1.5" 
+                    strokeWidth="2" 
                     strokeLinecap="round" 
                     strokeLinejoin="round"
                   />

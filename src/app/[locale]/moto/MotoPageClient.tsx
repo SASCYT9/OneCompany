@@ -414,120 +414,14 @@ export default function MotoPage() {
 
 
 
-      {/* Product Categories Section */}
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
-        <div className="mb-8 text-center sm:mb-10 md:mb-12">
-          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{t('productCategories')}</p>
-          <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>
-            {locale === 'ua' ? 'Мото ' : 'Engineering Modules'}
-          </h2>
-          <button
-            onClick={() => setIsModulesOpen(!isModulesOpen)}
-            className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white shadow-[0_4px_18px_rgba(255,255,255,0.3)] transition-all hover:border-white/40"
-          >
-            <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
-            <motion.div
-              animate={{ rotate: isModulesOpen ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <svg 
-                width="12" 
-                height="12" 
-                viewBox="0 0 10 10" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-white"
-              >
-                <path 
-                  d="M1 3L5 7L9 3" 
-                  stroke="currentColor" 
-                  strokeWidth="1.5" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </motion.div>
-          </button>
-        </div>
-        <AnimatePresence>
-          {isModulesOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="overflow-hidden"
-            >
-              <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr pb-4">
-          {categoryData.filter(cat => cat.segment === 'moto').map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/${locale}/moto/categories/${cat.slug}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/10 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:border-white/40 hover:translate-y-[-4px] sm:rounded-3xl h-full backdrop-blur-3xl"
-            >
-              {/* Multi-layer box shadows for depth */}
-              <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] sm:rounded-3xl" />
-              
-              {/* Bottom glow on hover */}
-              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              
-              <div className="relative p-6 sm:p-7 md:p-8 flex flex-col flex-1">
-                {/* Title & Description */}
-                <div className="min-h-[120px] sm:min-h-[140px]">
-                  <h3 className="text-xl font-normal text-white text-balance sm:text-2xl tracking-wide">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
-                  <p className="mt-3 text-[13px] leading-relaxed text-white/80 text-pretty sm:text-[15px] font-light">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                  <p className="mt-2 text-[11px] text-white/50 text-pretty sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
-                </div>
-                
-                {/* Brand tags with relief */}
-                <div className="mt-5 min-h-[80px] flex flex-wrap content-start gap-2 text-[10px] uppercase tracking-wider sm:text-[11px]">
-                  {cat.brands.slice(0, 4).map((name) => (
-                    <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10">
-                      {name}
-                    </span>
-                  ))}
-                  {cat.brands.length > 4 && (
-                    <span className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/50">
-                      +{cat.brands.length - 4} {tPage('more')}
-                    </span>
-                  )}
-                </div>
-                
-                {/* Open button - clear affordance */}
-                <div className="mt-auto pt-6 flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3 group-hover:text-white">
-                    {tPage('open')}
-                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  <span className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{cat.brands.length} брендів</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </section>
-
       {/* LEGENDARY MOTO BRANDS SHOWCASE */}
       <section className="relative py-24 sm:py-32 md:py-40 overflow-hidden">
         {/* Video Background */}
         <div className="absolute inset-0">
           
         </div>
-        {/* Epic Background Overlays */}
+        {/* Epic Background Overlays - CLEANED UP */}
         <div className="absolute inset-0 bg-black/40 sm:bg-black/50" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-30%,rgba(239,68,68,0.15),transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_90%,rgba(16,185,129,0.1),transparent_40%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_80%,rgba(59,130,246,0.08),transparent_40%)]" />
-        
-        {/* Animated Glow Orbs */}
-        <div className="absolute top-20 left-1/3 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[150px] animate-pulse" />
-        <div className="absolute bottom-20 right-1/3 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-10 w-[300px] h-[300px] bg-blue-500/8 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
         
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -540,7 +434,7 @@ export default function MotoPage() {
               className="text-4xl font-extralight tracking-tight text-white sm:text-5xl md:text-6xl"
             >
               <span className="bg-gradient-to-b from-white via-white to-zinc-400 bg-clip-text text-transparent">
-                {locale === 'ua' ? 'Легенди' : 'Legends'}
+                {locale === 'ua' ? 'Легендарні бренди' : 'Legendary Brands'}
               </span>
             </motion.h2>
             <motion.p
@@ -748,100 +642,77 @@ export default function MotoPage() {
               </div>
             </motion.button>
 
-            {/* ARROW */}
-            <motion.button
-              onClick={() => handleBrandClick('Arrow')}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.4 }}
-              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
-            >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🇮🇹</span>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/60">Italy</span>
-                </div>
-                <div className="flex-1 flex items-center justify-center py-3">
-                  <div className="relative w-full max-w-[140px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('Arrow')} alt="Arrow" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+            {/* ARROW & SPARK EXHAUST - Split Row */}
+            <div className="sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
+              {/* ARROW */}
+              <motion.button
+                onClick={() => handleBrandClick('Arrow')}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.4 }}
+                className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              >
+                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🇮🇹</span>
+                    <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/60">Italy</span>
                   </div>
-                </div>
-                <p className="text-sm sm:text-base font-medium text-white">Arrow</p>
-                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Італійський звук' : 'Italian sound'}</p>
-              </div>
-            </motion.button>
-
-            {/* SPARK EXHAUST */}
-            <motion.button
-              onClick={() => handleBrandClick('SparkExhaust')}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.45 }}
-              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
-            >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🇮🇹</span>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/60">Italy</span>
-                </div>
-                <div className="flex-1 flex items-center justify-center py-3">
-                  <div className="relative w-full max-w-[120px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('SparkExhaust')} alt="SparkExhaust" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+                  <div className="flex-1 flex items-center justify-center py-4">
+                    <div className="relative w-full max-w-[140px] h-12 sm:h-14">
+                      <Image src={getBrandLogo('Arrow')} alt="Arrow" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+                    </div>
                   </div>
+                  <p className="text-lg sm:text-xl font-light text-white">Arrow</p>
+                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійський звук' : 'Italian sound'}</p>
                 </div>
-                <p className="text-sm sm:text-base font-medium text-white">Spark</p>
-                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Італійська пристрасть' : 'Italian passion'}</p>
-              </div>
-            </motion.button>
+              </motion.button>
 
-            {/* BITUBO */}
-            <motion.button
-              onClick={() => handleBrandClick('Bitubo')}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.5 }}
-              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
-            >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🇮🇹</span>
-                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/60">Italy</span>
-                </div>
-                <div className="flex-1 flex items-center justify-center py-3">
-                  <div className="relative w-full max-w-[140px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('Bitubo')} alt="Bitubo" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+              {/* SPARK EXHAUST */}
+              <motion.button
+                onClick={() => handleBrandClick('SparkExhaust')}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.45 }}
+                className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              >
+                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🇮🇹</span>
+                    <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/60">Italy</span>
                   </div>
+                  <div className="flex-1 flex items-center justify-center py-4">
+                    <div className="relative w-full max-w-[120px] h-12 sm:h-14">
+                      <Image src={getBrandLogo('SparkExhaust')} alt="SparkExhaust" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+                    </div>
+                  </div>
+                  <p className="text-lg sm:text-xl font-light text-white">Spark</p>
+                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійська пристрасть' : 'Italian passion'}</p>
                 </div>
-                <p className="text-sm sm:text-base font-medium text-white">Bitubo</p>
-                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Трекова підвіска' : 'Race suspension'}</p>
-              </div>
-            </motion.button>
-
-            {/* +40 BRANDS CTA with Carousel */}
+              </motion.button>
+            </div>
+            
+            {/* +40 BRANDS CTA */}
             <motion.div
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="group relative sm:col-span-2 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left min-h-[200px]"
+              className="group relative sm:col-span-2 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
               onClick={() => {
-                const catalogSection = document.getElementById('moto-brand-catalog');
+                const catalogSection = document.getElementById('brand-catalog');
                 catalogSection?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
               {/* Background */}
               <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
               
-              <div className="relative p-6 sm:p-8 lg:p-10 h-full flex flex-col justify-center">
+              <div className="relative p-6 sm:p-8 lg:p-10">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
                   <div className="text-center lg:text-left">
                     <div className="flex items-baseline gap-3 justify-center lg:justify-start">
@@ -853,9 +724,10 @@ export default function MotoPage() {
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-white/50">
-                      {locale === 'ua' ? 'Повний каталог мото-компонентів преміум класу' : 'Complete catalog of premium moto parts & accessories'}
+                      {locale === 'ua' ? 'Повний каталог преміум мотозапчастин та екіпірування' : 'Complete catalog of premium moto parts & gear'}
                     </p>
                   </div>
+                  
                   {/* CTA Button */}
                   <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.15)]">
                     <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -863,13 +735,44 @@ export default function MotoPage() {
                     </svg>
                   </div>
                 </div>
+                
                 {/* Infinite Scrolling Carousel */}
                 <div className="relative overflow-hidden">
+                  {/* First row - scrolling left */}
                   <div className="flex gap-6 mb-4 animate-scroll-left">
-                    {[...allMotoBrands.slice(0, 15), ...allMotoBrands.slice(0, 15)].map((brand, idx) => (
-                      <div key={`row1-${brand.name}-${idx}`} className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+                    {[...allMotoBrands.slice(0, 20), ...allMotoBrands.slice(0, 20)].map((brand, idx) => (
+                      <div 
+                        key={`row1-${brand.name}-${idx}`} 
+                        className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                      >
                         <div className="relative w-full h-full">
-                          <Image src={getBrandLogo(brand.name)} alt={brand.name} fill className="object-contain opacity-70 hover:opacity-100 transition-opacity" unoptimized />
+                          <Image 
+                            src={getBrandLogo(brand.name)} 
+                            alt={brand.name} 
+                            fill 
+                            className="object-contain opacity-70 hover:opacity-100 transition-opacity" 
+                            unoptimized 
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Second row - scrolling right */}
+                  <div className="flex gap-6 animate-scroll-right">
+                    {[...allMotoBrands.slice(20, 40), ...allMotoBrands.slice(20, 40)].map((brand, idx) => (
+                      <div 
+                        key={`row2-${brand.name}-${idx}`} 
+                        className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                      >
+                        <div className="relative w-full h-full">
+                          <Image 
+                            src={getBrandLogo(brand.name)} 
+                            alt={brand.name} 
+                            fill 
+                            className="object-contain opacity-70 hover:opacity-100 transition-opacity" 
+                            unoptimized 
+                          />
                         </div>
                       </div>
                     ))}
@@ -880,6 +783,107 @@ export default function MotoPage() {
 
           </div>
         </div>
+      </section>
+
+      {/* Product Categories Section */}
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+        <div className="relative mb-8 overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm sm:mb-10 sm:p-12 md:mb-12 md:p-16">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-50" />
+          <div className="relative z-10">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-white/70 sm:text-[11px] sm:tracking-[0.5em] md:text-[12px] md:tracking-[0.6em] font-medium">{t('productCategories')}</p>
+            <h2 className={`mt-3 font-light text-white text-balance sm:mt-4 ${typography.sectionHeading}`}>
+              {locale === 'ua' ? 'Мото ' : 'Engineering Modules'}
+            </h2>
+            <button
+              onClick={() => setIsModulesOpen(!isModulesOpen)}
+              className="mt-8 inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-black shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-all hover:bg-white/90 hover:scale-105 hover:shadow-[0_0_35px_rgba(255,255,255,0.4)] active:scale-95"
+            >
+              <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
+              <motion.div
+                animate={{ rotate: isModulesOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <svg 
+                  width="12" 
+                  height="12" 
+                  viewBox="0 0 10 10" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="text-black"
+                >
+                  <path 
+                    d="M1 3L5 7L9 3" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </motion.div>
+            </button>
+          </div>
+        </div>
+        <AnimatePresence>
+          {isModulesOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr pb-4">
+          {categoryData.filter(cat => cat.segment === 'moto').map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/${locale}/moto/categories/${cat.slug}`}
+              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/10 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:border-white/40 hover:translate-y-[-4px] sm:rounded-3xl h-full backdrop-blur-3xl"
+            >
+              {/* Multi-layer box shadows for depth */}
+              <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] sm:rounded-3xl" />
+              
+              {/* Bottom glow on hover */}
+              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              
+              <div className="relative p-6 sm:p-7 md:p-8 flex flex-col flex-1">
+                {/* Title & Description */}
+                <div className="min-h-[120px] sm:min-h-[140px]">
+                  <h3 className="text-xl font-normal text-white text-balance sm:text-2xl tracking-wide">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                  <p className="mt-3 text-[13px] leading-relaxed text-white/80 text-pretty sm:text-[15px] font-light">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                  <p className="mt-2 text-[11px] text-white/50 text-pretty sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                </div>
+                
+                {/* Brand tags with relief */}
+                <div className="mt-5 min-h-[80px] flex flex-wrap content-start gap-2 text-[10px] uppercase tracking-wider sm:text-[11px]">
+                  {cat.brands.slice(0, 4).map((name) => (
+                    <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10">
+                      {name}
+                    </span>
+                  ))}
+                  {cat.brands.length > 4 && (
+                    <span className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/50">
+                      +{cat.brands.length - 4} {tPage('more')}
+                    </span>
+                  )}
+                </div>
+                
+                {/* Open button - clear affordance */}
+                <div className="mt-auto pt-6 flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3 group-hover:text-white">
+                    {tPage('open')}
+                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                  <span className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{cat.brands.length} брендів</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
       <AnimatePresence>
@@ -1048,7 +1052,7 @@ export default function MotoPage() {
 
           <button
             onClick={() => setIsBrandsOpen(!isBrandsOpen)}
-            className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white shadow-[0_4px_18px_rgba(255,255,255,0.3)] transition-all hover:border-white/40"
+            className="inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-black shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-all hover:bg-white/90 hover:scale-105 hover:shadow-[0_0_35px_rgba(255,255,255,0.4)] active:scale-95"
           >
             <span>{isBrandsOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
             <motion.div
@@ -1056,17 +1060,17 @@ export default function MotoPage() {
               transition={{ duration: 0.3 }}
             >
               <svg 
-                width="10" 
-                height="10" 
+                width="12" 
+                height="12" 
                 viewBox="0 0 10 10" 
                 fill="none" 
                 xmlns="http://www.w3.org/2000/svg"
-                className="opacity-70"
+                className="text-black"
               >
                 <path 
                   d="M1 3L5 7L9 3" 
                   stroke="currentColor" 
-                  strokeWidth="1.5" 
+                  strokeWidth="2" 
                   strokeLinecap="round" 
                   strokeLinejoin="round"
                 />
