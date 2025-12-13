@@ -66,7 +66,7 @@ TELEGRAM_WEBHOOK_SECRET=random_secret_string
 TELEGRAM_ADMIN_IDS=123456789,987654321
 
 # Site URL (для Web App)
-NEXT_PUBLIC_SITE_URL=https://onecompany.ua
+NEXT_PUBLIC_SITE_URL=https://onecompany.global
 ```
 
 ### 2. Міграція бази даних
@@ -83,10 +83,10 @@ npx prisma migrate dev --name add_telegram_models
 
 ```bash
 # Встановити webhook (замініть YOUR_SECRET)
-curl "https://onecompany.ua/api/telegram/webhook-grammy?action=set&secret=YOUR_ADMIN_API_SECRET"
+curl "https://onecompany.global/api/telegram/webhook-grammy?action=set&secret=YOUR_ADMIN_API_SECRET"
 
 # Перевірити статус
-curl "https://onecompany.ua/api/telegram/webhook-grammy?action=info&secret=YOUR_ADMIN_API_SECRET"
+curl "https://onecompany.global/api/telegram/webhook-grammy?action=info&secret=YOUR_ADMIN_API_SECRET"
 ```
 
 ### 4. Додати адміністраторів
@@ -96,7 +96,7 @@ curl "https://onecompany.ua/api/telegram/webhook-grammy?action=info&secret=YOUR_
 # Дізнатись свій Telegram ID - напишіть боту @userinfobot
 # Потім відкрийте URL:
 
-https://onecompany.ua/api/telegram/admins?action=add&id=YOUR_TELEGRAM_ID&name=Your%20Name&secret=YOUR_SECRET
+https://onecompany.global/api/telegram/admins?action=add&id=YOUR_TELEGRAM_ID&name=Your%20Name&secret=YOUR_SECRET
 ```
 
 **Спосіб 2: Команда в боті**

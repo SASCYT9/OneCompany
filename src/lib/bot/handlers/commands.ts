@@ -6,7 +6,7 @@ import { mainMenu, languageMenu, adminMenu, catalogMenu } from '../menus';
 // Web App URL
 const WEBAPP_URL = process.env.NEXT_PUBLIC_SITE_URL 
   ? `${process.env.NEXT_PUBLIC_SITE_URL}/ua/tg`
-  : 'https://one-company.vercel.app/ua/tg';
+  : 'https://onecompany.global/ua/tg';
 
 export function registerCommands(bot: Bot<BotContext>) {
   // /start command - opens Web App
@@ -57,7 +57,7 @@ Premium importer для СТО, детейлінг-студій та тюнін�
             web_app: { url: WEBAPP_URL }
           }],
           [
-            { text: 'Сайт', url: 'https://one-company.vercel.app/ua' }
+            { text: 'Сайт', url: 'https://onecompany.global/ua' }
           ]
         ]
       }

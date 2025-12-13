@@ -79,7 +79,7 @@ const translations = {
     leaveRequest: 'Залишити заявку',
     allBrandsTitle: 'Всі наші бренди',
     viewFullCatalog: 'Переглянути повний каталог преміум брендів',
-    catalogLink: 'https://onecompany.com.ua/brands',
+    catalogLink: 'https://onecompany.global/brands',
     onSiteYouWillFind: 'На сайті ви знайдете',
     catalogFeatures: [
       'Детальну інформацію про кожен бренд',
@@ -189,7 +189,7 @@ const translations = {
     leaveRequest: 'Leave Request',
     allBrandsTitle: 'All Our Brands',
     viewFullCatalog: 'View the complete catalog of premium brands',
-    catalogLink: 'https://onecompany.com.ua/brands',
+    catalogLink: 'https://onecompany.global/brands',
     onSiteYouWillFind: 'On the website you will find',
     catalogFeatures: [
       'Detailed information about each brand',
@@ -519,7 +519,7 @@ async function answerCallbackQuery(callbackQueryId: string, text?: string) {
 // Функція для відправки головного меню
 async function sendMainMenu(chatId: number, userName: string, lang: 'uk' | 'en') {
   const t = translations[lang];
-  const dashboardUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.com.ua';
+  const dashboardUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
   
   const message = 
     `${t.welcome(userName)}\n\n` +
@@ -558,7 +558,7 @@ async function sendMainMenu(chatId: number, userName: string, lang: 'uk' | 'en')
 async function handleButtonCallback(chatId: number, data: string, userName: string, userId: number = 0) {
   const lang = getUserLanguage(userId);
   const t = translations[lang];
-  const dashboardUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.com.ua';
+  const dashboardUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
   
   switch (data) {
     case 'lang_uk':

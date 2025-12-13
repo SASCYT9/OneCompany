@@ -38,11 +38,11 @@ export default async function AutoPage({ params }: Props) {
     "description": resolvedLocale === "ua" 
       ? "Каталог преміум тюнінгу для автомобілів." 
       : "Catalog of premium tuning for cars.",
-    "url": `https://onecompany.com.ua/${resolvedLocale}/auto`,
+    "url": `https://onecompany.global/${resolvedLocale}/auto`,
     "isPartOf": {
       "@type": "WebSite",
       "name": "OneCompany",
-      "url": "https://onecompany.com.ua"
+      "url": "https://onecompany.global"
     }
   };
 

@@ -43,8 +43,8 @@ const responseMetrics = [
 export default async function TelegramAppPage() {
   const siteContent = await readSiteContent();
   const contact = siteContent.contactPage;
-  const normalizedSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://onecompany.com.ua").replace(/\/$/, "");
-  const contactFormUrl = `${normalizedSiteUrl}/uk/contact`;
+  const normalizedSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://onecompany.global").replace(/\/$/, "");
+  const contactFormUrl = `${normalizedSiteUrl}/ua/contact`;
 
   const findChannel = (type: ContactChannel["type"]) =>
     contact.channels.find((channel) => channel.type === type);
@@ -94,8 +94,8 @@ export default async function TelegramAppPage() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "OneCompany",
-    "url": "https://onecompany.com.ua",
-    "logo": "https://onecompany.com.ua/logo.png"
+    "url": "https://onecompany.global",
+    "logo": "https://onecompany.global/branding/one-company-logo.png"
   };
 
   return (

@@ -95,7 +95,7 @@ export default async function CookiesPage({ params }: { params: Promise<{ locale
             </h2>
             <div className="mt-4 not-prose border-l-2 border-white/20 pl-4">
               <p className="text-white font-medium">OneCompany</p>
-              <p className="mt-2">Email: support@onecompany.com.ua</p>
+              <p className="mt-2">Email: support@onecompany.global</p>
             </div>
           </section>
         </div>

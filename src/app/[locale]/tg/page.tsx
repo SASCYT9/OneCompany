@@ -443,7 +443,7 @@ export default function TelegramMiniApp() {
                   className="w-full border border-neutral-700 text-white font-medium py-2.5 rounded-lg text-sm">
                   {t('Запит клієнта', 'Client Inquiry')}
                 </button>
-                <button onClick={() => webApp?.openLink('https://one-company.vercel.app/ua')} 
+                <button onClick={() => webApp?.openLink('https://onecompany.global/ua')} 
                   className="w-full border border-neutral-800 text-neutral-400 font-medium py-2.5 rounded-lg text-sm">
                   {t('Відкрити сайт', 'Open website')}
                 </button>

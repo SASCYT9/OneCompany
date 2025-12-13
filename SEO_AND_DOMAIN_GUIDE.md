@@ -17,7 +17,7 @@
 
 ### 2. Google Search Console
 1. Перейдіть на [search.google.com/search-console](https://search.google.com/search-console).
-2. Додайте новий ресурс. Виберіть тип **"Domain"** (Домен), введіть `onecompany.com.ua` (або ваш основний домен).
+2. Додайте новий ресурс. Виберіть тип **"Domain"** (Домен), введіть `onecompany.global` (або ваш основний домен).
 3. Вам дадуть **TXT запис** для верифікації.
 4. **Збережіть цей TXT запис** (ми додамо його в GoDaddy на Етапі 2).
 
@@ -87,7 +87,7 @@ NEXT_PUBLIC_CLARITY_ID=xxxxxxxxx
 NEXT_PUBLIC_FB_PIXEL_ID=xxxxxxxxxxxxxx
 
 # URL сайту (для SEO)
-NEXT_PUBLIC_SITE_URL=https://onecompany.com.ua
+NEXT_PUBLIC_SITE_URL=https://onecompany.global
 ```
 
 ### На Vercel (Production)

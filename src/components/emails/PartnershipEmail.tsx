@@ -31,7 +31,7 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
   ? `${process.env.NEXT_PUBLIC_SITE_URL}`
   : process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
-  : 'http://localhost:3000';
+  : 'https://onecompany.global';
 
 const main = {
   backgroundColor: '#050505',
@@ -163,7 +163,7 @@ export const PartnershipEmail = ({
       <Container style={container}>
         <Section style={logoContainer}>
           <Img
-            src={logoSrc || `${baseUrl}/branding/one-company-logo.svg`}
+            src={logoSrc || `${baseUrl}/branding/one-company-logo.png`}
             width="160"
             alt="OneCompany"
             style={logo}

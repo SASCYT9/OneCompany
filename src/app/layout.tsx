@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { headers } from "next/headers";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
@@ -11,6 +12,9 @@ import MetaPixel from "@/components/analytics/MetaPixel";
 import { Analytics } from "@vercel/analytics/react";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
+const defaultSiteUrl = "https://onecompany.global";
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || defaultSiteUrl).replace(/\/$/, "");
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -19,7 +23,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://one-company.vercel.app"),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "onecompany — Premium Auto & Moto Performance Hub",
     template: "%s | onecompany",
@@ -39,7 +43,7 @@ export const metadata: Metadata = {
     "мото тюнінг Київ",
     "преміум запчастини",
   ],
-  authors: [{ name: "onecompany", url: "https://onecompany.ua" }],
+  authors: [{ name: "onecompany", url: siteUrl }],
   creator: "onecompany",
   publisher: "onecompany",
   formatDetection: {
@@ -54,10 +58,10 @@ export const metadata: Metadata = {
     siteName: "onecompany",
     locale: "uk_UA",
     alternateLocale: "en_US",
-    url: "https://one-company.vercel.app",
+    url: siteUrl,
     images: [
       {
-        url: "https://one-company.vercel.app/branding/og-image.png",
+        url: `${siteUrl}/branding/og-image.png`,
         width: 1200,
         height: 630,
         alt: "onecompany - premium tuning parts · 200+ brands",
@@ -69,7 +73,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "premium tuning parts · 200+ brands · one company",
     description: "Провідний B2B дистриб'ютор та експертна підтримка преміум тюнінгу",
-    images: ["https://one-company.vercel.app/branding/og-image.png"],
+    images: [`${siteUrl}/branding/og-image.png`],
   },
   robots: {
     index: true,
@@ -83,7 +87,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "google-site-verification=YOUR_CODE_HERE",
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
     // yandex: "your-yandex-verification-code",
   },
   icons: {
@@ -121,14 +125,18 @@ const fontMono = IBM_Plex_Mono({
   variable: "--font-mono",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const requestHeaders = await headers();
+  const activeLocale = requestHeaders.get("x-next-intl-locale") ?? "ua";
+  const htmlLang = activeLocale === "ua" ? "uk" : "en";
+
   return (
   <html 
-    lang="uk" 
+    lang={htmlLang}
     suppressHydrationWarning
     className={cn(
       fontSans.variable,

@@ -38,11 +38,11 @@ export default async function MotoPage({ params }: Props) {
     "description": resolvedLocale === "ua" 
       ? "Каталог професійного тюнінгу для мотоциклів." 
       : "Catalog of professional tuning for motorcycles.",
-    "url": `https://onecompany.com.ua/${resolvedLocale}/moto`,
+    "url": `https://onecompany.global/${resolvedLocale}/moto`,
     "isPartOf": {
       "@type": "WebSite",
       "name": "OneCompany",
-      "url": "https://onecompany.com.ua"
+      "url": "https://onecompany.global"
     }
   };
 

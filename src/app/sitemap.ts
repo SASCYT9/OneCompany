@@ -47,7 +47,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Category pages
   const categoryEntries = siteConfig.locales.flatMap((locale) =>
     categoryData.map((category) => {
-      const path = buildLocalizedPath(locale, `/auto/categories/${category.slug}`);
+      const path = buildLocalizedPath(locale, `/${category.segment}/categories/${category.slug}`);
       return {
         url: absoluteUrl(path),
         lastModified,

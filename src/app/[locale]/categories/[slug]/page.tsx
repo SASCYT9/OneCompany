@@ -1,9 +1,8 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import { categoryData } from "@/lib/categoryData";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
-import CategoryPageClient from "./CategoryPageClient";
-import Script from "next/script";
 
 interface Props {
   params: Promise<{
@@ -22,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = resolvedLocale === "ua" ? category.title.ua : category.title.en;
   const description = resolvedLocale === "ua" ? category.description.ua : category.description.en;
 
-  return buildPageMetadata(resolvedLocale, `/categories/${slug}`, {
+  return buildPageMetadata(resolvedLocale, `/${category.segment}/categories/${slug}`, {
     title: `${title} · OneCompany`,
     description,
   });
@@ -37,35 +36,7 @@ export default async function CategoryPage({ params }: Props) {
     notFound();
   }
 
-  const title = resolvedLocale === "ua" ? category.title.ua : category.title.en;
-  const description = resolvedLocale === "ua" ? category.description.ua : category.description.en;
-
-  // CollectionPage Schema
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    "name": title,
-    "description": description,
-    "url": `https://onecompany.com.ua/${resolvedLocale}/categories/${slug}`,
-    "isPartOf": {
-      "@type": "WebSite",
-      "name": "OneCompany",
-      "url": "https://onecompany.com.ua"
-    },
-    "about": {
-      "@type": "Thing",
-      "name": title
-    }
-  };
-
-  return (
-    <>
-      <Script
-        id="category-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <CategoryPageClient category={category} />
-    </>
-  );
+  // Canonical category pages live under the segment route:
+  // /[locale]/{auto|moto}/categories/[slug]
+  permanentRedirect(`/${resolvedLocale}/${category.segment}/categories/${slug}`);
 }

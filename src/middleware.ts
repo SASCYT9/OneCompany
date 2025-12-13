@@ -7,8 +7,8 @@ const intlMiddleware = createMiddleware(routing);
 export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Skip middleware for admin and API routes
-  if (pathname.startsWith('/admin') || pathname.startsWith('/api')) {
+  // Skip middleware for non-localized routes (admin, APIs, Telegram WebApp)
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api') || pathname.startsWith('/telegram-app')) {
     return NextResponse.next();
   }
 

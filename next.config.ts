@@ -75,47 +75,47 @@ const nextConfig: NextConfig = {
       {
         source: '/',
         destination: '/ua',
-        permanent: false
+        permanent: true
       },
       {
         source: '/categories',
         destination: '/ua/categories',
-        permanent: false
+        permanent: true
       },
       {
         source: '/categories/:slug*',
         destination: '/ua/categories/:slug*',
-        permanent: false
+        permanent: true
       },
       {
         source: '/about',
         destination: '/ua/about',
-        permanent: false
+        permanent: true
       },
       {
         source: '/auto',
         destination: '/ua/auto',
-        permanent: false
+        permanent: true
       },
       {
         source: '/moto',
         destination: '/ua/moto',
-        permanent: false
+        permanent: true
       },
       {
         source: '/brands',
         destination: '/ua/brands',
-        permanent: false
+        permanent: true
       },
       {
         source: '/contact',
         destination: '/ua/contact',
-        permanent: false
+        permanent: true
       },
       {
         source: '/choice',
         destination: '/ua/choice',
-        permanent: false
+        permanent: true
       }
     ];
   }

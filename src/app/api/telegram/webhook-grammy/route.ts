@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
   }
   
   if (action === 'set') {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.ua';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
     const webhookUrl = `${siteUrl}/api/telegram/webhook-grammy`;
     
     try {

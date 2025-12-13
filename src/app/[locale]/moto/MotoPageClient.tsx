@@ -500,7 +500,7 @@ export default function MotoPage() {
           </h2>
           <button
             onClick={() => setIsModulesOpen(!isModulesOpen)}
-            className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 hover:border-white/40"
+            className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white shadow-[0_4px_18px_rgba(255,255,255,0.3)] transition-all hover:border-white/40"
           >
             <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
             <motion.div
@@ -1174,7 +1174,7 @@ export default function MotoPage() {
 
           <button
             onClick={() => setIsBrandsOpen(!isBrandsOpen)}
-            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 hover:border-white/40"
+            className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white shadow-[0_4px_18px_rgba(255,255,255,0.3)] transition-all hover:border-white/40"
           >
             <span>{isBrandsOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
             <motion.div

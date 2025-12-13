@@ -23,7 +23,7 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
   ? `${process.env.NEXT_PUBLIC_SITE_URL}`
   : process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
-  : 'http://localhost:3000';
+  : 'https://onecompany.global';
 
 export const ReplyEmail = ({
   userName,
@@ -38,7 +38,7 @@ export const ReplyEmail = ({
         <Container className="border border-solid border-white/10 rounded-2xl my-[40px] mx-auto p-[32px] w-[600px] bg-[#0c0c12] shadow-2xl">
           <Section className="text-center mb-8">
             <Img
-              src={`${baseUrl}/branding/one-company-logo.svg`}
+              src={`${baseUrl}/branding/one-company-logo.png`}
               width="160"
               alt="OneCompany"
               className="my-0 mx-auto"

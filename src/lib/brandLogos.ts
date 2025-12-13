@@ -23,7 +23,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'American Racing Headers': '/logos/american-racing-headers.png',
   'AMS / Alpha Performance': '/logos/ams-alpha-performance.svg',
   'ANRKY wheels': '/logos/anrky-wheels.svg',
-  'APR': '/logos/apr.png',
+  'APR': '/logos/APR.avif',
   'ARE dry sump': '/logos/are-dry-sump.png',
   'ARMA Speed': '/logos/arma-speed.png',
   'Armytrix': '/logos/armytrix.png',

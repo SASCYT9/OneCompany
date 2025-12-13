@@ -38,7 +38,7 @@ export default async function PartnershipPage({ params }: Props) {
     "description": resolvedLocale === "ua" 
       ? "Станьте офіційним партнером OneCompany." 
       : "Become an official OneCompany partner.",
-    "url": `https://onecompany.com.ua/${resolvedLocale}/partnership`
+    "url": `https://onecompany.global/${resolvedLocale}/partnership`
   };
 
   return (
