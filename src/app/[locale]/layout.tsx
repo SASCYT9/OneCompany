@@ -11,6 +11,8 @@ import LocaleLangSetter from '@/components/LocaleLangSetter';
 import { readVideoConfig } from '@/lib/videoConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
+import { ScrollToTop } from '@/components/ScrollToTop';
+
 type Props = {
   children: ReactNode;
   params: Promise<{ locale: string }>;
@@ -48,6 +50,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <main id="main-content" className="flex-grow relative z-10">
             {children}
           </main>
+          <ScrollToTop />
           <Footer />
         </div>
       </AuthProvider>

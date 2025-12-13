@@ -3,7 +3,7 @@ import Image from "next/image";
 import Script from "next/script";
 import clsx from "clsx";
 import { getTranslations } from "next-intl/server";
-import { Globe } from "lucide-react";
+import { StickyScroll } from "@/components/StickyScroll";
 
 export { generateMetadata } from './metadata';
 
@@ -56,11 +56,52 @@ export default async function LocalizedHomePage({
 
   const heroBadgeCopy = t('badge');
 
-  const statHighlights = [
-    { value: "18", label: t('statsExperience') },
-    { value: "200+", label: t('statsBrands') },
-    { value: <span className="font-light">{t('statsBestConditions')}</span>, label: t('statsBestConditionsSub') },
-    { value: <Globe className="w-9 h-9 mx-auto" strokeWidth={1.5} />, label: t('logisticsTitle') },
+  const carouselItems = [
+    {
+      id: 'brands',
+      eyebrow: locale === 'ua' ? 'Світові бренди' : 'Global brands',
+      title: locale === 'ua' ? '200+ брендів' : '200+ brands',
+      description: locale === 'ua' 
+        ? 'Ми працюємо виключно з провідними світовими виробниками авто та мото тюнінгу.' 
+        : 'We work exclusively with leading global manufacturers of auto and moto tuning.',
+      meta: locale === 'ua' ? 'Гарантія якості та автентичності' : 'Quality & authenticity guarantee',
+    },
+    {
+      id: 'sourcing',
+      eyebrow: locale === 'ua' ? 'Експертне постачання' : 'Expert sourcing',
+      title: locale === 'ua' ? 'Індивідуальний підбір' : 'Bespoke selection',
+      description: locale === 'ua'
+        ? 'Аналізуємо проєкт, перевіряємо сумісність та надаємо рекомендації.'
+        : 'We audit build sheets, plan compatibility and secure allocations before money moves.',
+      meta: locale === 'ua' ? 'Перевірка VIN та підтвердження сумісності' : 'VIN verification & spec sheets',
+    },
+    {
+      id: 'logistics',
+      eyebrow: locale === 'ua' ? 'Логістика' : 'Logistics',
+      title: locale === 'ua' ? 'Глобальна доставка' : 'Global delivery',
+      description: locale === 'ua'
+        ? 'Доставляємо клієнтам по всьому світу. Оптимальні та гнучкі умови.'
+        : 'Air freight, EU road convoys and customs supervision to Kyiv, Warsaw, Dubai and beyond.',
+      meta: locale === 'ua' ? 'One Company Global · Надійність та безпека' : 'One Company Global · Reliability & safety',
+    },
+    {
+      id: 'experience',
+      eyebrow: locale === 'ua' ? 'Наш досвід' : 'Our experience',
+      title: locale === 'ua' ? '18 років досвіду' : '18 years experience',
+      description: locale === 'ua'
+        ? 'Формуємо культуру преміум тюнінгу та забезпечує безкомпромісну підтримку.'
+        : 'Shaping premium tuning culture and providing uncompromising support.',
+      meta: locale === 'ua' ? 'Офіційні програми з 2007 року' : 'Official programs since 2007',
+    },
+    {
+      id: 'authenticity',
+      eyebrow: locale === 'ua' ? 'Гарантія' : 'Warranty',
+      title: locale === 'ua' ? 'Автентичність' : 'Authenticity',
+      description: locale === 'ua'
+        ? 'Тільки оригінальна продукція з повною документацією та гарантією від виробника.'
+        : 'Only original products with full documentation and manufacturer warranty.',
+      meta: locale === 'ua' ? 'Без посередників' : 'No intermediaries',
+    },
   ];
 
   const b2bServices = [
@@ -153,16 +194,7 @@ export default async function LocalizedHomePage({
           </div>
         </div>
       </section>
-      <section className="border-t border-white/10 bg-black/40 backdrop-blur-xl px-4 sm:px-6 md:px-8">
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 py-8 text-center text-white md:grid-cols-4 sm:gap-6">
-          {statHighlights.map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center justify-center gap-2 p-3 h-full min-h-[120px] rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300 sm:min-h-[140px] sm:p-4 sm:gap-3">
-              <div className="text-2xl font-display sm:text-3xl tracking-tight text-center text-balance">{stat.value}</div>
-              <p className="text-[9px] uppercase tracking-[0.3em] text-white/60 text-center sm:text-[10px] sm:tracking-[0.35em]">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <StickyScroll items={carouselItems} />
 
       {/* Hidden for now - duplicates hero cards functionality
       <section id="expert-programs" className="relative overflow-hidden py-20 text-white">

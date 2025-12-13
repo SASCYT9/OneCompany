@@ -37,58 +37,9 @@ const TOP_AUTOMOTIVE_BRANDS = [
   'ABT',
 ];
 
-const heroStats: { value: string | LocalizedCopy; label: LocalizedCopy; caption: LocalizedCopy }[] = [
-  {
-    value: '160+',
-    label: { en: 'brands curated', ua: 'брендів у каталозі' },
-    caption: { en: 'Official programs since 2007', ua: 'Офіційні програми з 2007 року' },
-  },
-  {
-    value: { en: 'Network', ua: 'Мережа' },
-    label: { en: 'partner garages', ua: 'партнерських майстерень' },
-    caption: { en: 'Installation & setup', ua: 'Встановлення та налаштування' },
-  },
-  {
-    value: { en: 'Kyiv', ua: 'Київ' },
-    label: { en: 'Baseina St, 21B', ua: 'вул. Басейна, 21Б' },
-    caption: { en: 'Headquarters', ua: 'Штаб-квартира' },
-  },
-];
 
-const programHighlights: {
-  eyebrow: LocalizedCopy;
-  title: LocalizedCopy;
-  description: LocalizedCopy;
-  meta: LocalizedCopy;
-}[] = [
-  {
-    eyebrow: { en: 'Expert sourcing', ua: 'Експертне постачання' },
-    title: { en: 'Bespoke part selection', ua: 'Індивідуальний підбір' },
-    description: {
-      en: 'We audit build sheets, plan compatibility and secure allocations before money moves.',
-      ua: 'Аналізуємо проєкт, перевіряємо сумісність та надаємо рекомендації.',
-    },
-    meta: { en: 'VIN verification & spec sheets', ua: 'Перевірка VIN та підтвердження сумісності' },
-  },
-  {
-    eyebrow: { en: 'Logistics', ua: 'Логістика' },
-    title: { en: 'Global delivery windows', ua: 'Глобальна доставка' },
-    description: {
-      en: 'Air freight, EU road convoys and customs supervision to Kyiv, Warsaw, Dubai and beyond.',
-      ua: 'Доставляємо клієнтам по всьому світу. Оптимальні та гнучкі умови.',
-    },
-    meta: { en: 'Insurance & tracking every 48h', ua: 'One Company Global · Надійність та безпека' },
-  },
-  {
-    eyebrow: { en: 'Installation network', ua: 'Світові бренди' },
-    title: { en: 'OEM-safe partners', ua: 'Топові світові бренди' },
-    description: {
-      en: 'Certified importer partners for titanium welding, ECU calibration and track alignment.',
-      ua: 'Ми працюємо виключно з провідними світовими виробниками авто та мото тюнінгу.',
-    },
-    meta: { en: '18 countries · on-site inspection', ua: 'Гарантія якості та автентичності' },
-  },
-];
+
+
 
 const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto');
 
@@ -324,39 +275,11 @@ export default function AutomotivePage() {
                 : 'We build characterful cars with titanium, carbon and electronic suites curated since 2007.'}
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
-            {heroStats.map((stat) => (
-              <div
-                key={stat.label.en}
-                className="flex flex-col items-center text-center rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] sm:rounded-3xl sm:p-5 md:p-6"
-              >
-                <div className={`${typography.statValue} font-light text-white`}>
-                  {typeof stat.value === 'string' ? stat.value : stat.value[locale]}
-                </div>
-                <div className="mt-1.5 text-[10px] uppercase tracking-[0.3em] text-white/60 sm:mt-2 sm:text-xs sm:tracking-[0.4em]">{stat.label[locale]}</div>
-                <p className="mt-2 text-xs text-white/60 sm:mt-3 sm:text-sm">{stat.caption[locale]}</p>
-              </div>
-            ))}
-          </div>
+
         </div>
       </section>
 
-      <section className="relative border-b border-white/5 bg-black/30 py-12 sm:py-16 md:py-20">
-        <div className="absolute inset-x-0 top-0 mx-auto h-px w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-        <div className="mx-auto grid max-w-6xl gap-4 px-4 sm:gap-5 sm:px-6 md:grid-cols-3 md:gap-6">
-          {programHighlights.map((card) => (
-            <div
-              key={card.title.en}
-              className="h-full flex flex-col rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:rounded-3xl sm:p-6"
-            >
-              <div className="text-[7px] uppercase tracking-[0.4em] text-white/50 sm:text-[8px] sm:tracking-[0.5em]">{card.eyebrow[locale]}</div>
-              <h3 className="mt-3 text-xl font-light text-white sm:mt-4 sm:text-2xl">{card.title[locale]}</h3>
-              <p className="mt-2 flex-1 text-[10px] text-white/70 sm:mt-3 sm:text-[11px] leading-relaxed">{card.description[locale]}</p>
-              <p className="mt-4 text-[7px] uppercase tracking-[0.25em] text-white/60 sm:mt-6 sm:text-[9px] sm:tracking-[0.3em]">{card.meta[locale]}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+
 
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
         <div className="mb-8 text-center sm:mb-10 md:mb-12">
