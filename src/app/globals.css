@@ -50,6 +50,7 @@
 
   html {
     scroll-behavior: smooth;
+    background-color: hsl(var(--background));
   }
 
   ::selection {
@@ -59,12 +60,11 @@
 
   body {
     color: hsl(var(--foreground));
-    background-color: hsl(var(--background));
+    /* Background color moved to html to allow fixed video behind body content if needed */
+    background-color: transparent;
     font-family: var(--font-stack-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Removed opaque background image to allow video to show through */
-    background-color: hsl(var(--background));
     min-height: 100vh;
   }
 
