@@ -1,7 +1,7 @@
 {
-  "heroVideo": "hero-hq.mp4",
+  "heroVideo": "hero-main.mp4",
   "heroEnabled": true,
-  "heroVideoMobile": "hero-hq.mp4",
-  "heroPoster": "hero-background-poster.jpg",
+  "heroVideoMobile": "hero-main.mp4",
+  "heroPoster": "hero-auto.jpg",
   "videos": []
 }
