@@ -1,138 +1,156 @@
 'use client';
 
 import { useEffect } from 'react';
-import { BrandLogo } from '@/components/ui/BrandLogo';
-import Link from 'next/link';
-
-import type { SimpleBrand } from '@/lib/types';
+import Image from 'next/image';
+import { X, ChevronRight, ArrowUpRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BrandItem } from '../sections/BrandLogosGrid';
 
 interface BrandModalProps {
+  brand: BrandItem | null;
   isOpen: boolean;
   onClose: () => void;
-  brand: SimpleBrand | null;
 }
 
-export function BrandModal({ isOpen, onClose, brand }: BrandModalProps) {
+export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
+  // Close on escape key
   useEffect(() => {
-    if (isOpen) {
-      const scrollY = window.scrollY;
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-      document.body.dataset.scrollY = String(scrollY);
-    } else {
-      const scrollY = document.body.dataset.scrollY || '0';
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      window.scrollTo(0, parseInt(scrollY, 10));
-      delete document.body.dataset.scrollY;
-    }
-    return () => {
-      // Ensure styles are cleaned up on unmount
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
     };
-  }, [isOpen]);
-
-  if (!isOpen || !brand) return null;
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/80 backdrop-blur-md animate-fade-in"
-        onClick={onClose}
-      />
+    <AnimatePresence>
+      {isOpen && brand && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+          />
 
-      {/* Modal */}
-      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto my-auto bg-gradient-to-br from-white/[0.12] via-white/[0.08] to-white/[0.04] backdrop-blur-xl animate-scale-in shadow-2xl rounded-xl">
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 z-10 w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 transition-all duration-300 group rounded-full"
-        >
-          <svg className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
-        {/* Content */}
-        <div className="p-8 md:p-12">
-          {/* Header with Logo */}
-          <div className="flex flex-col md:flex-row gap-8 mb-10">
-            <div className="flex-shrink-0 w-full md:w-64 h-40 bg-white/5 p-6 flex items-center justify-center rounded-xl shadow-lg">
-              <BrandLogo name={brand.name} src={brand.logo} className="w-full" />
-            </div>
-            <div className="flex-1">
-              <div className="inline-block px-4 py-1.5 bg-white/10 mb-4 rounded-full">
-                <span className="text-[10px] tracking-[0.3em] uppercase text-white/60 font-light">{brand.category}</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight text-white mb-4">{brand.name}</h2>
-              <p className="text-white/70 leading-relaxed text-base">
-                {brand.description}
-              </p>
-            </div>
-          </div>
-
-          {/* Features */}
-          {brand.features && brand.features.length > 0 && (
-            <div className="mb-10">
-              <h3 className="text-xs tracking-[0.3em] uppercase text-white/40 font-light mb-6">Ключові особливості</h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                {brand.features.map((feature, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-4 bg-white/5 rounded-xl shadow-sm">
-                    <svg className="w-5 h-5 text-orange-400/60 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm text-white/70 font-light">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Technologies */}
-          {brand.technologies && brand.technologies.length > 0 && (
-            <div className="mb-10">
-              <h3 className="text-xs tracking-[0.3em] uppercase text-white/40 font-light mb-6">Технології</h3>
-              <div className="flex flex-wrap gap-3">
-                {brand.technologies.map((tech, idx) => (
-                  <div key={idx} className="px-4 py-2 bg-gradient-to-br from-orange-500/20 to-rose-500/20 backdrop-blur-sm rounded-full">
-                    <span className="text-xs text-white/80 font-light">{tech}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex flex-wrap gap-4 pt-6">
-            <Link 
-              href="/contact"
+          {/* Modal Container */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="relative w-full max-w-4xl overflow-hidden rounded-[24px] bg-[#0A0A0A] shadow-2xl border border-white/10 flex flex-col md:flex-row min-h-[500px]"
+          >
+            {/* Close Button */}
+            <button
               onClick={onClose}
-              className="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-rose-500 text-white hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-500 text-sm tracking-[0.2em] uppercase font-light overflow-hidden"
+              className="absolute top-4 right-4 p-2 text-white/40 hover:text-white transition-colors z-20 rounded-full hover:bg-white/10"
             >
-              <span className="relative z-10">Замовити консультацію</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-rose-500 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            </Link>
-            {brand.website && (
-              <a 
-                href={brand.website} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm tracking-[0.2em] uppercase font-light transition-all duration-300 rounded-xl shadow-sm"
+              <X size={24} />
+            </button>
+
+            {/* Left Column: Logo & Visuals */}
+            <div className="relative w-full md:w-2/5 bg-gradient-to-br from-[#1a1a1a] via-[#151515] to-[#0a0a0a] p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/5">
+               {/* Background Pattern */}
+               <div className="absolute inset-0 opacity-[0.15]" 
+                    style={{ 
+                      backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)', 
+                      backgroundSize: '24px 24px' 
+                    }} 
+               />
+               
+               {/* Logo Container */}
+               <div className="relative w-full aspect-video max-w-[240px] flex items-center justify-center z-10">
+                  {/* Subtle glow behind logo */}
+                  <div className="absolute inset-0 bg-white/5 blur-[60px] rounded-full scale-110 opacity-40" />
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={brand.logoSrc}
+                      alt={brand.name}
+                      fill
+                      className="object-contain drop-shadow-2xl"
+                      unoptimized
+                    />
+                  </div>
+               </div>
+            </div>
+
+            {/* Right Column: Content */}
+            <div className="relative w-full md:w-3/5 p-8 md:p-10 flex flex-col">
+              
+              {/* Headline */}
+              {brand.headline && (
+                <motion.h3 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-xl md:text-2xl font-bold text-white leading-tight mb-6 uppercase tracking-wide"
+                >
+                  {brand.headline}
+                </motion.h3>
+              )}
+
+              {/* Description */}
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="prose prose-invert max-w-none"
               >
-                Офіційний сайт →
-              </a>
-            )}
-          </div>
+                <p className="text-white/70 text-sm md:text-base leading-relaxed font-light">
+                  {brand.description || "Premium automotive brand known for excellence and performance."}
+                </p>
+              </motion.div>
+
+              {/* Highlights List */}
+              {brand.highlights && brand.highlights.length > 0 && (
+                <motion.ul 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-8 space-y-3"
+                >
+                  {brand.highlights.map((highlight, index) => (
+                    <li key={index} className="flex items-start gap-3 text-sm text-white/80">
+                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-red-600 flex-shrink-0" />
+                      <span className="font-medium">{highlight}</span>
+                    </li>
+                  ))}
+                </motion.ul>
+              )}
+
+              {/* Footer Actions */}
+              <div className="mt-auto pt-10 flex flex-col sm:flex-row gap-4 font-sans">
+                {brand.website ? (
+                  <a
+                    href={brand.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/20 rounded-xl text-white text-sm font-medium transition-all uppercase tracking-wider group backdrop-blur-sm"
+                  >
+                    <span>Офіційний сайт</span>
+                    <ArrowUpRight size={16} className="text-white/40 group-hover:text-white transition-colors" />
+                  </a>
+                ) : (
+                   <button disabled className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-white/5 bg-white/[0.02] rounded-xl text-white/20 text-sm font-medium cursor-not-allowed uppercase tracking-wider">
+                    <span>Офіційний сайт</span>
+                   </button>
+                )}
+
+                <button
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-white hover:bg-[#f0f0f0] rounded-xl text-black text-sm font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] uppercase tracking-wider group"
+                >
+                  <span>Замовити</span>
+                  <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
+
+            </div>
+          </motion.div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }

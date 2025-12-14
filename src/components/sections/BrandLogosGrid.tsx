@@ -1,12 +1,17 @@
 "use client";
 import Image from 'next/image';
 import { useState, useMemo } from 'react';
+import { BrandModal } from '../ui/BrandModal';
 
 export interface BrandItem {
   name: string;
   logoSrc: string;
   country?: string;
   subcategory?: string;
+  description?: string;
+  website?: string;
+  headline?: string;
+  highlights?: string[];
 }
 
 interface BrandLogosGridProps {
@@ -16,6 +21,7 @@ interface BrandLogosGridProps {
 
 export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState<BrandItem | null>(null);
 
   const filteredItems = useMemo(() => {
     if (!searchQuery) return items;
@@ -66,23 +72,24 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
                   {letter}
                 </h3>
                 <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-                  {groupedItems[letter].map(({ name, logoSrc, country, subcategory }) => (
+                  {groupedItems[letter].map((brand) => (
                     <li
-                      key={name}
-                      className="group relative rounded-md border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-colors p-4 flex flex-col items-center justify-center text-center overflow-hidden"
-                      title={name}
+                      key={brand.name}
+                      className="group relative rounded-md border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-colors p-4 flex flex-col items-center justify-center text-center overflow-hidden cursor-pointer"
+                      title={brand.name}
+                      onClick={() => setSelectedBrand(brand)}
                     >
                       {/* Radial white backlight for dark logos */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-[80%] h-[60%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
+                        <div className="w-[80%] h-[60%] bg-[radial-gradient(circle,_rgba(255,255,255,0.20)_0%,_rgba(255,255,255,0.05)_50%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.25)_0%,_rgba(255,255,255,0.10)_50%,_transparent_70%)] transition-all duration-500 rounded-full" />
                       </div>
 
                       {/* Logo with unified sizing and drop shadow */}
                       <div className="relative w-full z-10" style={{ paddingTop: '56%' }}>
                         <div className="absolute inset-0 p-2" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
                           <Image
-                            src={logoSrc}
-                            alt={name}
+                            src={brand.logoSrc}
+                            alt={brand.name}
                             fill
                             className="object-contain opacity-80 group-hover:opacity-100 transition-opacity"
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
@@ -92,11 +99,13 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
                         </div>
                       </div>
 
-                      <span className="relative z-10 mt-3 text-xs text-white/70 truncate w-full font-medium">{name}</span>
-                      {(country || subcategory) && (
-                        <div className="relative z-10 flex flex-col items-center mt-1 gap-0.5">
-                          {country && <span className="text-[10px] text-white/40 uppercase tracking-wider">{country}</span>}
-                          {subcategory && <span className="text-[10px] text-blue-400/60">{subcategory}</span>}
+                      {/* Removed duplicated brand name as per design request */}
+                      {/* <span className="relative z-10 mt-3 text-xs text-white/70 truncate w-full font-medium">{brand.name}</span> */}
+                      
+                      {(brand.country || brand.subcategory) && (
+                        <div className="relative z-10 w-full flex justify-between items-end mt-4 pt-2 border-t border-white/5 gap-2">
+                          {brand.country && <span className="text-[9px] text-white/30 uppercase tracking-widest font-sans">{brand.country}</span>}
+                          {brand.subcategory && <span className="text-[9px] text-blue-400/60 font-sans text-right ml-auto">{brand.subcategory}</span>}
                         </div>
                       )}
                     </li>
@@ -124,6 +133,12 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
           </ul>
         </aside>
       </div>
+
+      <BrandModal 
+        brand={selectedBrand} 
+        isOpen={!!selectedBrand} 
+        onClose={() => setSelectedBrand(null)} 
+      />
     </section>
   );
 }

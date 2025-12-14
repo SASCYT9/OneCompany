@@ -5,112 +5,163 @@ export interface BrandStory {
 }
 
 export const curatedBrandStories: Record<string, BrandStory> = {
-  Akrapovic: {
-    headline: { en: 'Akrapovic MotoGP titanium lab', ua: 'Akrapovic · титановий MotoGP-центр' },
+  // Auto-specific story for Akrapovic
+  Akrapovic_Auto: {
+    headline: { en: 'Akrapovic · The Sound of Performance', ua: 'Akrapovic · Звук чистої потужності' },
     description: {
-      en: 'Full titanium systems with carbon sleeves, dyno verified for Ducati, BMW and liter-bike paddocks.',
-      ua: 'Повні титанові системи з карбоновими кожухами, підтверджені діно для Ducati, BMW та літрових байків.',
+      en: 'Lightweight titanium exhaust systems for premium vehicles. Engineered for sound, performance and weight reduction.',
+      ua: 'Легкі титанові вихлопні системи для преміальних авто. Створені для звуку, продуктивності та зниження ваги.',
     },
     highlights: [
-      { en: 'Evolution Racing & Slip-On Street', ua: 'Evolution Racing та Slip-On Street' },
-      { en: 'Custom logo badging + heat mapping', ua: 'Кастомні бейджі та термо-графіки' },
-      { en: 'Door-to-door insured freight', ua: 'Door-to-door доставка зі страхуванням' },
+      { en: 'Evolution Line (Titanium)', ua: 'Evolution Line (Титан)' },
+      { en: 'Slip-On Line (Titanium)', ua: 'Slip-On Line (Титан)' },
+      { en: 'Carbon Fiber Diffusers', ua: 'Карбонові дифузори' },
+    ],
+  },
+  // Moto-specific story (renamed from generic Akrapovic)
+  Akrapovic_Moto: {
+    headline: { en: 'Akrapovic · The Sound of Performance', ua: 'Akrapovic · Еталон звуку та потужності' },
+    description: {
+      en: 'Legendary titanium exhaust systems. The best choice for those seeking perfect sound and maximum performance.',
+      ua: 'Легендарні титанові вихлопні системи. Найкращий вибір для тих, хто шукає ідеальний звук та максимальну продуктивність.',
+    },
+    highlights: [
+      { en: 'Titanium systems', ua: 'Титанові системи' },
+      { en: 'Carbon components', ua: 'Карбонові елементи' },
+      { en: 'Power increase', ua: 'Збільшення потужності' },
+    ],
+  },
+  // Fallback/Generic (optional, keeping for backward compatibility if needed)
+  Akrapovic: {
+    headline: { en: 'Akrapovic Exhaust Systems', ua: 'Вихлопні системи Akrapovic' },
+    description: {
+      en: 'World-class exhaust systems for motorcycles and performance cars.',
+      ua: 'Вихлопні системи світового класу для мотоциклів та спортивних авто.',
+    },
+    highlights: [
+      { en: 'Titanium & Carbon Fiber', ua: 'Титан та Карбон' },
+      { en: 'Performance & Sound', ua: 'Потужність та Звук' },
+      { en: 'Racing Heritage', ua: 'Гоночна спадщина' },
     ],
   },
   'SC-Project': {
-    headline: { en: 'SC-Project WSBK soundtrack', ua: 'SC-Project · звук WSBK' },
+    headline: { en: 'SC-Project · The Voice of MotoGP', ua: 'SC-Project · Голос MotoGP' },
     description: {
-      en: 'Valved and race-only exhausts with double-wall headers and Moto2-derived silencers.',
-      ua: 'Клапанні та трекові вихлопи з двошаровими колекторами та глушниками з Moto2.',
+      en: 'Exhaust systems born on the race track. Maximum volume, aggressive design, and uncompromising quality.',
+      ua: 'Вихлопні системи, народжені на гоночному треку. Максимальна гучність, агресивний дизайн та безкомпромісна якість.',
     },
     highlights: [
-      { en: 'CR-T, S1, S1-GP allocations', ua: 'CR-T, S1, S1-GP квоти' },
-      { en: 'Lambda-safe bungs & hardware kits', ua: 'Лямбда-безпечні бонги й кріплення' },
-      { en: 'Install supervision + ECU pairing', ua: 'Контроль монтажу та підбір ECU' },
+      { en: 'Official MotoGP exhaust', ua: 'Офіційний вихлоп MotoGP' },
+      { en: 'Aggressive sound', ua: 'Агресивний звук' },
+      { en: 'Handmade in Italy', ua: 'Ручна робота з Італії' },
     ],
   },
   Termignoni: {
-    headline: { en: 'Termignoni Corse heritage', ua: 'Termignoni · спадок Corse' },
+    headline: { en: 'Termignoni · Italian Legend', ua: 'Termignoni · Італійська легенда' },
     description: {
-      en: 'Signature systems for Ducati and Aprilia with matching ECU flashes and upmap slots.',
-      ua: 'Фірмові системи Ducati та Aprilia з ECU-прошивками та upmap слотами.',
+      en: 'Historic partner of Ducati and Honda. Exhaust systems combining classic style with modern technology.',
+      ua: 'Історичний партнер Ducati та Honda. Вихлопні системи, що поєднують класичний стиль з сучасними технологіями.',
     },
     highlights: [
-      { en: 'Corse and Relevance lines in stock', ua: 'Лінійки Corse та Relevance на складі' },
-      { en: 'Track-legal paperwork bundles', ua: 'Пакети документів для треку' },
-      { en: 'Paint-to-sample carbon shields', ua: 'Карбонові щитки з індивідуальним фарбуванням' },
+      { en: 'Italian design', ua: 'Італійський дизайн' },
+      { en: 'Deep bass sound', ua: 'Глибокий бас' },
+      { en: 'Racing history', ua: 'Спортивна історія' },
     ],
   },
   Arrow: {
-    headline: { en: 'Arrow Pro-Race studio', ua: 'Arrow Pro-Race студія' },
+    headline: { en: 'Arrow · Accessible Sport', ua: 'Arrow · Доступний спорт' },
     description: {
-      en: 'Slip-ons, headers and MotoGP-inspired silencers with titanium or nichrome options.',
-      ua: 'Slip-on, колектори та глушники в стилі MotoGP з титану чи ніхрому.',
+      en: 'Wide range of exhaust systems for any motorcycle. From street slip-ons to full racing systems.',
+      ua: 'Широкий вибір вихлопних систем для будь-якого мотоцикла. Від вуличних глушників до повних гоночних систем.',
     },
     highlights: [
-      { en: 'Road & race homologations', ua: 'Гомологації для дороги та треку' },
-      { en: 'Quick-turn spare parts', ua: 'Швидкі поставки запчастин' },
-      { en: 'Dyno-verified gains per platform', ua: 'Діно-графіки для кожної платформи' },
+      { en: 'Wide assortment', ua: 'Широкий асортимент' },
+      { en: 'Quality materials', ua: 'Якісні матеріали' },
+      { en: 'Made in Italy', ua: 'Зроблено в Італії' },
     ],
   },
   'Ohlins': {
-    headline: { en: 'Ohlins Advanced Suspension', ua: 'Ohlins · передова підвіска' },
+    headline: { en: 'Ohlins · The Gold Standard', ua: 'Ohlins · Золотий стандарт' },
     description: {
-      en: 'The gold standard in suspension technology for street and track performance.',
-      ua: 'Золотий стандарт у технологіях підвіски для вулиці та треку.',
+      en: 'The best suspension in the world. Improves handling, comfort, and safety of your motorcycle on any road.',
+      ua: 'Найкраща підвіска у світі. Покращує керованість, комфорт та безпеку вашого мотоцикла на будь-якій дорозі.',
     },
     highlights: [
-      { en: 'TTX technology shock absorbers', ua: 'Амортизатори технології TTX' },
-      { en: 'NIX 30 cartridge kits', ua: 'Картриджні комплекти NIX 30' },
-      { en: 'Electronic suspension upgrades', ua: 'Електронні апгрейди підвіски' },
+      { en: 'Swedish quality', ua: 'Шведська якість' },
+      { en: 'Improved handling', ua: 'Покращена керованість' },
+      { en: 'Adjustable suspension', ua: 'Регульована підвіска' },
     ],
   },
   'Marchesini': {
-    headline: { en: 'Marchesini Forged Wheels', ua: 'Marchesini · ковані диски' },
+    headline: { en: 'Marchesini · Lightness of Motion', ua: 'Marchesini · Легкість руху' },
     description: {
-      en: 'Lightweight magnesium and aluminum forged wheels used by MotoGP champions.',
-      ua: 'Легкі магнієві та алюмінієві ковані диски, що використовуються чемпіонами MotoGP.',
+      en: 'Legendary forged wheels that radically change motorcycle handling. Less weight means faster acceleration and braking.',
+      ua: 'Легендарні ковані диски, що кардинально змінюють керування мотоциклом. Менша вага — швидший розгін та гальмування.',
     },
     highlights: [
-      { en: 'M7R Genesi magnesium wheels', ua: 'Магнієві диски M7R Genesi' },
-      { en: 'M10RS Kompe aluminum wheels', ua: 'Алюмінієві диски M10RS Kompe' },
-      { en: 'Significant weight reduction', ua: 'Значне зниження ваги' },
+      { en: 'Forged aluminum', ua: 'Кований алюміній' },
+      { en: 'Forged magnesium', ua: 'Кований магній' },
+      { en: 'Instant reaction', ua: 'Миттєва реакція' },
     ],
   },
   'OZ Racing': {
-    headline: { en: 'OZ Racing Technology', ua: 'OZ Racing · технології перемог' },
+    headline: { en: 'OZ Racing · Style and Speed', ua: 'OZ Racing · Стиль та швидкість' },
     description: {
-      en: 'High-performance wheels derived from F1 and MotoGP experience.',
-      ua: 'Високопродуктивні диски, створені на основі досвіду F1 та MotoGP.',
+      en: 'Premium motorcycle wheels from a world leader. The perfect balance between strength, weight, and design.',
+      ua: 'Преміальні мотоциклетні диски від світового лідера. Ідеальний баланс між міцністю, вагою та дизайном.',
     },
     highlights: [
-      { en: 'GASS RS-A forged aluminum', ua: 'Кований алюміній GASS RS-A' },
-      { en: 'Piega forged aluminum', ua: 'Кований алюміній Piega' },
-      { en: 'Cattiva forged magnesium', ua: 'Кований магній Cattiva' },
+      { en: 'Italian style', ua: 'Італійський стиль' },
+      { en: 'Racing technology', ua: 'Технології з гонок' },
+      { en: 'Reliability', ua: 'Надійність' },
     ],
   },
   'SparkExhaust': {
-    headline: { en: 'Spark Italian Passion', ua: 'Spark · італійська пристрасть' },
+    headline: { en: 'Spark · Design and Sound', ua: 'Spark · Дизайн та звук' },
     description: {
-      en: 'High-performance exhaust systems with a unique sound and design.',
-      ua: 'Високопродуктивні вихлопні системи з унікальним звуком та дизайном.',
+      en: 'Modern exhaust systems with an emphasis on style. Unique silencer shapes and rich sound.',
+      ua: 'Сучасні вихлопні системи з акцентом на стиль. Унікальні форми глушників та насичений звук.',
     },
     highlights: [
-      { en: 'Dyno-tested performance', ua: 'Перевірена на діно продуктивність' },
-      { en: 'Dark style silencers', ua: 'Глушники в стилі Dark' },
-      { en: 'Handcrafted in Italy', ua: 'Ручна робота з Італії' },
+      { en: 'Unique design', ua: 'Унікальний дизайн' },
+      { en: 'Quality sound', ua: 'Якісний звук' },
+      { en: 'Modern technology', ua: 'Сучасні технології' },
     ],
   },
   'Bitubo': {
-    headline: { en: 'Bitubo track-day suspension', ua: 'Bitubo · трекові підвіски' },
+    headline: { en: 'Bitubo · Precision Control', ua: 'Bitubo · Точність контролю' },
     description: {
-      en: 'Competition-ready cartridge kits, steering dampers and full-rebuild services for race bikes.',
-      ua: 'Конкурентні картриджі, демпфери керма та повний ребілд для трекових байків.',
+      en: 'High-tech suspension for those who demand the maximum. Excellent alternative to factory shock absorbers.',
+      ua: 'Високотехнологічна підвіска для тих, хто вимагає максимуму. Відмінна альтернатива заводським амортизаторам.',
     },
     highlights: [
-      { en: 'Dyno-driven valving specs', ua: 'Діно-підібрані клапанні спеки' },
-      { en: 'Track corner-weighting sessions', ua: 'Трекові сесії балансування ваги' },
-      { en: 'Pit-side rebuild service', ua: 'Сервіс ребілду в піт-лейні' },
+      { en: 'Precise tuning', ua: 'Точне налаштування' },
+      { en: 'Stability', ua: 'Стабільність' },
+      { en: 'Italian engineering', ua: 'Італійська інженерія' },
+    ],
+  },
+  Brembo_Auto: {
+    headline: { en: 'Brembo GT Braking Systems', ua: 'Brembo GT гальмівні системи' },
+    description: {
+      en: 'High-performance braking systems for street and track, featuring monoblock calipers and advanced disc technology.',
+      ua: 'Високопродуктивні гальмівні системи для вулиці та треку з моноблочними супортами та передовими дисками.',
+    },
+    highlights: [
+      { en: 'GT | GT-R | Pista Kits', ua: 'Комплекти GT | GT-R | Pista' },
+      { en: 'Carbon Ceramic Discs', ua: 'Карбон-керамічні диски' },
+      { en: 'F1 Derived Technology', ua: 'Технології з Формули-1' },
+    ],
+  },
+  Brembo_Moto: {
+    headline: { en: 'Brembo · Absolute Control', ua: 'Brembo · Абсолютний контроль' },
+    description: {
+      en: 'The best braking systems in the world. Maximum safety and braking efficiency in all conditions.',
+      ua: 'Найкращі гальмівні системи у світі. Максимальна безпека та ефективність гальмування в будь-яких умовах.',
+    },
+    highlights: [
+      { en: 'Powerful braking', ua: 'Потужне гальмування' },
+      { en: 'Reliability', ua: 'Надійність' },
+      { en: 'Choice of professionals', ua: 'Вибір професіоналів' },
     ],
   },
   Brembo: {
@@ -126,65 +177,126 @@ export const curatedBrandStories: Record<string, BrandStory> = {
     ],
   },
   'Accossato': {
-    headline: { en: 'Accossato race controls', ua: 'Accossato · рейсинг-контролі' },
+    headline: { en: 'Accossato · Racing Ergonomics', ua: 'Accossato · Гоночна ергономіка' },
     description: {
-      en: 'Radial master cylinders, folding levers and lightweight rearsets engineered for Italian superbikes.',
-      ua: 'Радіальні головні циліндри, складні важелі та легкі rearsets для італійських супербайків.',
+      en: 'Professional controls for your bike. Master cylinders and levers that give new riding sensations.',
+      ua: 'Професійні органи керування для вашого байка. Гальмівні машинки та ручки, що дарують нові відчуття від їзди.',
     },
     highlights: [
-      { en: 'Billet aluminum construction', ua: 'Конструкція з білетного алюмінію' },
-      { en: 'Lever ratio adjustment', ua: 'Регулювання передатного числа важеля' },
-      { en: 'Race-proven ergonomics', ua: 'Перевірена трековою ергономіка' },
+      { en: 'Control precision', ua: 'Чіткість керування' },
+      { en: 'Bright colors', ua: 'Яскраві кольори' },
+      { en: 'Convenience', ua: 'Зручність' },
     ],
   },
   'ValterMoto': {
-    headline: { en: 'ValterMoto pit equipment', ua: 'ValterMoto · піт-обладнання' },
+    headline: { en: 'ValterMoto · Details Matter', ua: 'ValterMoto · Деталі мають значення' },
     description: {
-      en: 'Track-side tools, paddock stands and quick-change kits for race-day efficiency.',
-      ua: 'Трекові інструменти, паддок-стенди та швидкозмінні комплекти для ефективності в race-day.',
+      en: 'Quality accessories and components for tuning. Rearsets, protection, and maintenance equipment.',
+      ua: 'Якісні аксесуари та компоненти для тюнінгу. Підніжки, захист та обладнання для обслуговування.',
     },
     highlights: [
-      { en: 'Universal fitment stands', ua: 'Універсальні стенди' },
-      { en: 'Tire warmer bundles', ua: 'Комплекти підігрівачів' },
-      { en: 'Pit-lane toolkits', ua: 'Піт-лейн тулкіти' },
+      { en: 'Motorcycle protection', ua: 'Захист мотоцикла' },
+      { en: 'Stylish accessories', ua: 'Стильні аксесуари' },
+      { en: 'Functionality', ua: 'Функціональність' },
     ],
   },
-  Eventuri: {
-    headline: { en: 'Eventuri Carbon Intake Lab', ua: 'Eventuri — лабораторія карбону' },
+  'Brabus': {
+    headline: { en: 'Brabus · High-Performance Automobiles', ua: 'Brabus · Високопродуктивні автомобілі' },
     description: {
-      en: 'Autoclave carbon assemblies that stabilise IAT and add theatre to every throttle input.',
-      ua: 'Автоклавні карбонові системи, що стабілізують IAT та додають драму кожному натисканню.',
+      en: 'The ultimate tuning for premium vehicles. Extreme power, exclusive interiors, and aggressive design.',
+      ua: 'Ультимативний тюнінг для преміальних авто. Екстремальна потужність, ексклюзивні інтер\'єри та агресивний дизайн.',
     },
     highlights: [
-      { en: 'Pre-preg carbon options with kevlar cores', ua: 'Препрег-карбон з кевларовими осердями' },
-      { en: 'Dyno-verified gains for M, RS, AMG platforms', ua: 'Діно-підтвердження для платформ M, RS, AMG' },
-      { en: 'Coordinated install + ECU calibration', ua: 'Координація встановлення та калібрування ECU' },
+      { en: 'Rocket Supercars', ua: 'Суперкари Rocket' },
+      { en: 'Masterpiece Interiors', ua: 'Інтер\'єри Masterpiece' },
+      { en: 'Monoblock Wheels', ua: 'Диски Monoblock' },
     ],
   },
-  'KW Suspension': {
-    headline: { en: 'KW · Adaptive Control', ua: 'KW · адаптивний контроль' },
+  'Mansory': {
+    headline: { en: 'Mansory · More Than Tradition', ua: 'Mansory · Більше ніж традиція' },
     description: {
-      en: 'Variant, Clubsport and DDC plug & play kits with geo setup plans from our chassis lab.',
-      ua: 'Variant, Clubsport та DDC-комплекти з налаштуванням геометрії від нашої шасі-лабораторії.',
+      en: 'Bold customization for luxury cars. Unique carbon fiber bodywork and handcrafted interiors.',
+      ua: 'Смілива кастомізація для розкішних авто. Унікальний карбоновий обвіс та інтер\'єри ручної роботи.',
     },
     highlights: [
-      { en: 'Track sheets + corner-weighting in Kyiv', ua: 'Налаштування кутів та ваги в Києві' },
-      { en: 'Road + snow presets for SUVs', ua: 'Налаштування для доріг та снігу для SUV' },
-      { en: 'Warranty preserved via OEM torque specs', ua: 'Збережена гарантія завдяки OEM моментам затягування' },
+      { en: 'Complete conversions', ua: 'Повні конверсії авто' },
+      { en: 'Forged Carbon', ua: 'Кований карбон' },
+      { en: 'Bespoke leather', ua: 'Індивідуальна шкіра' },
     ],
   },
   'HRE wheels': {
-    headline: { en: 'HRE Wheels Forged Program', ua: 'HRE Wheels — програма forged' },
+    headline: { en: 'HRE · The World\'s Best Custom Forged Wheels', ua: 'HRE · Найкращі у світі ковані диски' },
     description: {
-      en: 'Bespoke monoblock, 2-piece and 3-piece sets engineered for hypercar tolerances.',
-      ua: 'Кастомні моноблоки, дво- та трисекційні диски з допусками гіперкарів.',
+      en: 'Custom forged wheels. Lightweight, strong, and infinitely customizable for your vehicle.',
+      ua: 'Ковані диски на замовлення. Легкі, міцні та з безмежними можливостями індивідуалізації.',
     },
     highlights: [
-      { en: 'Aerospace-grade forgings + T\u00DCV paperwork', ua: 'Авіаційні заготовки та документи TÜV' },
-      { en: 'Finish library + transparent timelines', ua: 'Бібліотека фінішів та прозорі строки' },
-      { en: 'Ceramic coating + TPMS setup on delivery', ua: 'Керамічне покриття та TPMS при видачі' },
+      { en: 'Forged Series P1 / S2', ua: 'Ковані серії P1 / S2' },
+      { en: 'FlowForm Technology', ua: 'Технологія FlowForm' },
+      { en: 'Made in USA', ua: 'Зроблено в США' },
     ],
   },
+  'Urban Automotive': {
+    headline: { en: 'Urban · OEM+ Styling', ua: 'Urban · OEM+ стайлінг' },
+    description: {
+      en: 'Premium styling for luxury SUVs and cars. Carbon fiber kits and custom wheels that enhance the factory look.',
+      ua: 'Преміальний стайлінг для розкішних SUV та авто. Карбонові кити та диски, що покращують заводський вигляд.',
+    },
+    highlights: [
+      { en: 'Widetrack kits', ua: 'Комплекти розширення' },
+      { en: 'Carbon fiber', ua: 'Карбонові деталі' },
+      { en: 'Custom wheels', ua: 'Кастомні диски' },
+    ],
+  },
+  'Eventuri': {
+    headline: { en: 'Eventuri · The Art of Airflow', ua: 'Eventuri · Мистецтво потоку' },
+    description: {
+      en: 'The world\'s best intake systems. Real performance gains, incredible sound, and perfect under-hood aesthetics.',
+      ua: 'Найкращі системи впуску у світі. Реальний приріст потужності, неймовірний звук та ідеальна естетика під капотом.',
+    },
+    highlights: [
+      { en: 'Patented design', ua: 'Запатентований дизайн' },
+      { en: 'Carbon fiber', ua: 'Карбонове виконання' },
+      { en: 'Dyno proven', ua: 'Перевірено на стенді' },
+    ],
+  },
+  'KW Suspension': {
+    headline: { en: 'KW · For Every Demand', ua: 'KW · Для будь-яких завдань' },
+    description: {
+      en: 'The leader in suspension technology. From street comfort to race track performance.',
+      ua: 'Лідер у технологіях підвіски. Від комфорту на вулиці до результатів на гоночному треку.',
+    },
+    highlights: [
+      { en: 'Adjustable coilovers', ua: 'Регульовані койловери' },
+      { en: 'Electronic damping', ua: 'Електронне регулювання' },
+      { en: 'Hydraulic lift', ua: 'Гідравлічний ліфт' },
+    ],
+  },
+  'Novitec': {
+    headline: { en: 'Novitec · Refinement for Supercars', ua: 'Novitec · Вишуканість для суперкарів' },
+    description: {
+      en: 'Performance, sound, and style for the world\'s finest supercars. The gold standard in high-end tuning.',
+      ua: 'Продуктивність, звук та стиль для найкращих суперкарів світу. Золотий стандарт у тюнінгу високого класу.',
+    },
+    highlights: [
+      { en: 'N-Largo Widebody', ua: 'N-Largo Widebody' },
+      { en: 'Inconel exhaust', ua: 'Вихлопні системи Inconel' },
+      { en: 'Carbon aero', ua: 'Карбонова аеродинаміка' },
+    ],
+  },
+  'ABT': {
+    headline: { en: 'ABT · From Racetrack to Road', ua: 'ABT · З треку на дорогу' },
+    description: {
+      en: 'The #1 tuner for German premium vehicles. More power, better handling, and aggressive looks.',
+      ua: 'Тюнер №1 для німецьких преміальних авто. Більше потужності, краща керованість та агресивний вигляд.',
+    },
+    highlights: [
+      { en: 'Power upgrades', ua: 'Збільшення потужності' },
+      { en: 'Sport wheels', ua: 'Спортивні диски' },
+      { en: 'Aerodynamics', ua: 'Аеродинаміка' },
+    ],
+  },
+
   Vorsteiner: {
     headline: { en: 'Vorsteiner Carbon Importer', ua: 'Vorsteiner — карбоновий імпортер' },
     description: {
@@ -242,7 +354,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
     highlights: [
       { en: 'Stage 1-4 calibrations with dyno sheets', ua: 'Stage 1-4 з діно-рапортами' },
       { en: 'TCU + gearbox cooling upgrades', ua: 'TCU та охолодження КПП' },
-      { en: 'Worldwide warranty honoured via us', ua: 'Гарантія по всьому світу через нас' },
+      { en: 'Worldwide warranty support', ua: 'Підтримка світової гарантії' },
     ],
   },
   'Velos': {
@@ -269,18 +381,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'Remote + on-site calibration days', ua: 'Віддалені й виїзні дні калібрування' },
     ],
   },
-  'ABT': {
-    headline: { en: 'ABT Sportsline Power Programs', ua: 'ABT Sportsline — програми потужності' },
-    description: {
-      en: 'Official Audi tuning partner with ECU calibrations, aero kits and forged wheels for the VAG platform.',
-      ua: 'Офіційний тюнінг-партнер Audi з прошивками ECU, аеро-китами та кованими дисками для платформи VAG.',
-    },
-    highlights: [
-      { en: 'ABT Power S stages with warranty', ua: 'ABT Power S з гарантією' },
-      { en: 'RS & RSQ aero programs', ua: 'Аеро програми для RS та RSQ' },
-      { en: 'Sport wheels & suspension kits', ua: 'Спортивні диски та комплекти підвіски' },
-    ],
-  },
+
   'Capristo': {
     headline: { en: 'Capristo Exhaust Systems', ua: 'Capristo — вихлопні системи' },
     description: {
@@ -324,7 +425,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       ua: 'Історичний звук італійських суперкарів, народжений поруч із заводом Ferrari.',
     },
     highlights: [
-      { en: 'Inconel racing systems', ua: 'Гоночні системи з інконелю' },
+      { en: 'Inconel racing systems', ua: 'Гоночні системи Inconel' },
       { en: 'Restoration classics', ua: 'Класика реставрації' },
       { en: 'OEM supplier heritage', ua: 'Спадщина постачальника OEM' },
     ],

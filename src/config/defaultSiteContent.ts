@@ -36,7 +36,7 @@ export const defaultSiteContent: SiteContent = {
   brandSections: {
     automotive: [
       { name: 'Eventuri', logo: '/logos/eventuri.png' },
-      { name: 'KW Suspension', logo: '/logos/kw-suspension.png' },
+      { name: 'KW Suspension', logo: '/logos/kw-suspensions-seeklogo-v3.svg' },
       { name: 'Mansory', logo: '/logos/mansory.png' },
       { name: 'Urban Automotive', logo: '/logos/urban-automotive.png' },
       { name: 'HRE Wheels', logo: '/logos/hre-wheels.png' },

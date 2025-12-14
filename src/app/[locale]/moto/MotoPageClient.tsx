@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
+import { X } from 'lucide-react';
 
 import {
   allMotoBrands,
@@ -17,6 +18,10 @@ import {
 } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { categoryData } from '@/lib/categoryData';
+
+import { BrandModal } from '@/components/ui/BrandModal';
+import { BrandItem } from '@/components/sections/BrandLogosGrid';
+import { curatedBrandStories, BrandStory } from '@/lib/brandStories';
 
 type LocalizedCopy = { en: string; ua: string; [key: string]: string };
 
@@ -276,8 +281,6 @@ const pitCrewChecklist: PitChecklistItem[] = [
   },
 ];
 
-import { curatedBrandStories, BrandStory } from '@/lib/brandStories';
-
 export default function MotoPage() {
   const params = useParams();
   const locale = (params.locale === 'en' ? 'en' : 'ua') as 'en' | 'ua';
@@ -343,6 +346,11 @@ export default function MotoPage() {
   );
 
   const getBrandStory = useCallback((brand: LocalBrand): BrandStory => {
+    // Try to find a moto-specific story first
+    if (curatedBrandStories[`${brand.name}_Moto`]) {
+      return curatedBrandStories[`${brand.name}_Moto`];
+    }
+    // Fallback to generic story
     if (curatedBrandStories[brand.name]) {
       return curatedBrandStories[brand.name];
     }
@@ -374,22 +382,23 @@ export default function MotoPage() {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans relative">
-      <div className="fixed inset-0 z-0">
+      <div className="fixed inset-0 z-0 bg-black">
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="h-full w-full object-cover opacity-40"
+          className="h-full w-full object-cover opacity-30"
         >
           <source src="/videos/MotoBG-web.mp4" type="video/mp4" />
         </video>
+        <div className="absolute inset-0 bg-black/70" />
       </div>
       <div className="relative z-10">
       <section className="relative isolate overflow-hidden rounded-b-[40px] border-b border-white/10">
         <div className="absolute inset-0">
           
-          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black/80 sm:from-black sm:via-black/70 sm:to-black/80" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_55%)] sm:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
         </div>
         <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6 px-4 pt-32 pb-16 sm:gap-8 sm:px-6 sm:pt-40 sm:pb-20 md:gap-10 md:pt-48 md:pb-28">
@@ -421,7 +430,6 @@ export default function MotoPage() {
           
         </div>
         {/* Epic Background Overlays - CLEANED UP */}
-        <div className="absolute inset-0 bg-black/40 sm:bg-black/50" />
         
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -886,118 +894,19 @@ export default function MotoPage() {
         </AnimatePresence>
       </section>
 
-      <AnimatePresence>
-        {selectedBrand && selectedBrandStory && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur"
-            onClick={(e) => {
-              if (e.currentTarget === e.target) {
-                setSelectedBrand(null);
-              }
-            }}
-          >
-            <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mx-auto mt-16 max-w-4xl rounded-[32px] border border-white/20 bg-zinc-900 p-8 text-white shadow-2xl"
-            >
-              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                <div className="relative h-20 w-full sm:h-24 sm:w-64 md:h-28 md:w-72">
-                  <Image
-                    src={getBrandLogo(selectedBrand.name)}
-                    alt={selectedBrand.name}
-                    fill
-                    className="object-contain object-left sm:object-center"
-                    sizes="(max-width: 640px) 100vw, 300px"
-                    unoptimized
-                  />
-                </div>
-                <button
-                  onClick={() => setSelectedBrand(null)}
-                  className="rounded-full border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.4em] text-white/70 hover:border-white hover:text-white"
-                >
-                  {locale === 'ua' ? 'Закрити' : 'Close'}
-                </button>
-              </div>
+      <BrandModal 
+        brand={selectedBrand ? {
+          name: selectedBrand.name,
+          logoSrc: getBrandLogo(selectedBrand.name),
+          description: selectedBrandStory?.description[locale],
+          headline: selectedBrandStory?.headline?.[locale],
+          highlights: selectedBrandStory?.highlights?.map(h => h[locale]),
+          website: selectedBrand.website
+        } : null}
+        isOpen={!!selectedBrand}
+        onClose={() => setSelectedBrand(null)}
+      />
 
-              <div className="mt-6 grid gap-8 md:grid-cols-2">
-                <div>
-                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
-                    <span>{selectedBrandOrigin}</span>
-                    {selectedBrandSubcategory && (
-                      <>
-                        <span className="text-white/30">·</span>
-                        <span className="text-white/60">{selectedBrandSubcategory}</span>
-                      </>
-                    )}
-                  </div>
-                  <h3 className="mt-2 text-3xl font-light">{selectedBrandStory.headline[locale]}</h3>
-                  <p className="mt-4 text-sm text-white/70">{selectedBrandStory.description[locale]}</p>
-                </div>
-                <div className="space-y-4">
-                  {selectedBrandStory.highlights?.map((highlight, index) => (
-                    <div
-                      key={highlight.en + index}
-                      className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/80"
-                    >
-                      {highlight[locale]}
-                    </div>
-                  ))}
-                  <div className="rounded-2xl border border-white/10 p-4">
-                    <p className="text-xs uppercase tracking-[0.4em] text-white/50">
-                      {locale === 'ua' ? 'Модулі' : 'Modules'}
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {selectedBrandPrograms.length > 0 ? (
-                        selectedBrandPrograms.map((module) => (
-                          <span
-                            key={module.key}
-                            className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70"
-                          >
-                            {module.title[locale]}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/50">
-                          {locale === 'ua' ? 'Індивідуальні побудови' : 'Bespoke builds'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-white/80 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-white/50">
-                    {locale === 'ua' ? 'Експертна підтримка' : 'Expert Support'}
-                  </p>
-                  <p className="mt-2 text-base text-white">
-                    {locale === 'ua'
-                      ? 'Залиште контакти — повернемося з таймінгами, слотами для інсталяції та гарантіями.'
-                      : 'Share your contact and we will return with lead times, install slots and warranty coverage.'}
-                  </p>
-                </div>
-                <Link
-                  href={`/${locale}/contact`}
-                  className="inline-flex items-center justify-center rounded-full border border-white bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-transparent hover:text-white"
-                >
-                  {locale === 'ua' ? 'Запросити програму' : 'Request program'}
-                </Link>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-
-
-      {/* All Brands Section - Moved Down */}
       <section id="moto-brand-catalog" className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
         <div className="mb-8 text-center sm:mb-10 md:mb-12">
           <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>

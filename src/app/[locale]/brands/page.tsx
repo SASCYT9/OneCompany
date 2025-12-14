@@ -4,19 +4,48 @@ import { useState } from 'react';
 import { useLocale } from 'next-intl';
 import Image from 'next/image';
 import { BRAND_LOGO_MAP } from '@/lib/brandLogos';
-
-import { getBrandSlug } from '@/lib/brands';
-import Link from 'next/link';
+import { 
+  getBrandMetadata, 
+  countryNames, 
+  subcategoryNames, 
+  allAutomotiveBrands, 
+  allMotoBrands,
+  LocalBrand 
+} from '@/lib/brands';
+import { BrandModal } from '@/components/ui/BrandModal';
+import { BrandItem } from '@/components/sections/BrandLogosGrid';
 
 export default function BrandsPage() {
   const locale = useLocale();
   const [search, setSearch] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState<BrandItem | null>(null);
 
   const brands = Object.entries(BRAND_LOGO_MAP).sort((a, b) => a[0].localeCompare(b[0]));
   
   const filteredBrands = brands.filter(([name]) => 
     name.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleBrandClick = (name: string, logo: string) => {
+    const lang = (locale === 'ua' ? 'ua' : 'en') as 'ua' | 'en';
+    const metadata = getBrandMetadata(name);
+    const country = metadata ? countryNames[metadata.country][lang] : undefined;
+    const subcategory = metadata ? subcategoryNames[metadata.subcategory][lang] : undefined;
+
+    const allBrands = [...allAutomotiveBrands, ...allMotoBrands];
+    const brandData = allBrands.find(b => b.name === name);
+    const description = lang === 'ua' ? brandData?.descriptionUA : brandData?.description;
+    const website = brandData?.website;
+
+    setSelectedBrand({
+      name,
+      logoSrc: logo,
+      country,
+      subcategory,
+      description,
+      website
+    });
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -46,10 +75,10 @@ export default function BrandsPage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
           {filteredBrands.map(([name, logo]) => (
-            <Link 
+            <div 
               key={name}
-              href={`/${locale}/brands/${getBrandSlug({ name })}`}
-              className="group relative aspect-[3/2] flex items-center justify-center p-6 bg-white/[0.02] border border-white/10 rounded-2xl hover:bg-white/[0.05] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all duration-500 backdrop-blur-sm overflow-hidden"
+              onClick={() => handleBrandClick(name, logo)}
+              className="group relative aspect-[3/2] flex items-center justify-center p-6 bg-white/[0.02] border border-white/10 rounded-2xl hover:bg-white/[0.05] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all duration-500 backdrop-blur-sm overflow-hidden cursor-pointer"
             >
               {/* Radial white backlight for dark logos */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -73,7 +102,7 @@ export default function BrandsPage() {
               <div className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <span className="text-[10px] uppercase tracking-wider text-white/50 font-light truncate px-2">{name}</span>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
 
@@ -83,6 +112,12 @@ export default function BrandsPage() {
           </div>
         )}
       </main>
+
+      <BrandModal 
+        brand={selectedBrand} 
+        isOpen={!!selectedBrand} 
+        onClose={() => setSelectedBrand(null)} 
+      />
     </div>
   );
 }

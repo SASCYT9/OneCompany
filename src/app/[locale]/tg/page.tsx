@@ -35,7 +35,7 @@ const stats = [
 // Brand grid - same as site
 const autoBrands = [
   { name: 'Eventuri', logo: '/logos/eventuri.png' },
-  { name: 'KW Suspension', logo: '/logos/kw-suspension.png' },
+  { name: 'KW Suspension', logo: '/logos/kw-suspensions-seeklogo-v3.svg' },
   { name: 'Akrapovič', logo: '/logos/akrapovic.png' },
   { name: 'Brembo', logo: '/logos/brembo.png' },
   { name: 'HRE Wheels', logo: '/logos/hre-wheels.png' },

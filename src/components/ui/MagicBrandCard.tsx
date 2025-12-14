@@ -140,7 +140,7 @@ export function MagicBrandCard({ brand, onClick, index }: MagicBrandCardProps) {
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-rose-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           
           {/* Radial glow */}
-          <div className="absolute inset-0 bg-radial-gradient from-white/5 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle,_rgba(255,255,255,0.15)_0%,_transparent_70%)]" />
           
           {/* Grid pattern */}
           <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-500">

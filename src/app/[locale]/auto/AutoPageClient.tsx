@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
+import { X } from 'lucide-react';
 
 import {
   allAutomotiveBrands,
@@ -23,6 +24,8 @@ import type { CategoryData } from '@/lib/categoryData';
 
 type LocalizedCopy = { en: string; ua: string; [key: string]: string };
 
+import { BrandModal } from '@/components/ui/BrandModal';
+import { BrandItem } from '@/components/sections/BrandLogosGrid';
 import { curatedBrandStories, BrandStory } from '@/lib/brandStories';
 
 const TOP_AUTOMOTIVE_BRANDS = [
@@ -206,6 +209,11 @@ export default function AutomotivePage() {
   );
 
   const getBrandStory = useCallback((brand: LocalBrand): BrandStory => {
+    // Try to find an auto-specific story first
+    if (curatedBrandStories[`${brand.name}_Auto`]) {
+      return curatedBrandStories[`${brand.name}_Auto`];
+    }
+    // Fallback to generic story
     if (curatedBrandStories[brand.name]) {
       return curatedBrandStories[brand.name];
     }
@@ -242,22 +250,23 @@ export default function AutomotivePage() {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans relative">
-      <div className="fixed inset-0 z-0">
+      <div className="fixed inset-0 z-0 bg-black">
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="h-full w-full object-cover opacity-40"
+          className="h-full w-full object-cover opacity-30"
         >
           <source src="/videos/rollsbg-v3.mp4" type="video/mp4" />
         </video>
+        <div className="absolute inset-0 bg-black/70" />
       </div>
       <div className="relative z-10">
       <section className="relative isolate overflow-hidden rounded-b-[40px] border-b border-white/10">
         <div className="absolute inset-0">
           
-          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black/80 sm:from-black sm:via-black/70 sm:to-black/80" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_55%)] sm:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
         </div>
         <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6 px-4 pt-32 pb-16 sm:gap-8 sm:px-6 sm:pt-40 sm:pb-20 md:gap-10 md:pt-48 md:pb-28">
@@ -287,7 +296,6 @@ export default function AutomotivePage() {
           
         </div>
         {/* Epic Background Overlays - CLEANED UP */}
-        <div className="absolute inset-0 bg-black/40 sm:bg-black/50" />
         
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -462,7 +470,7 @@ export default function AutomotivePage() {
               <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[180px]">
 
                 <div className="flex-1 flex items-center justify-center py-4">
-                  <div className="relative w-full max-w-[160px] h-16 sm:h-20">
+                  <div className="relative w-full max-w-[220px] h-20 sm:h-28">
                     <Image src={getBrandLogo('HRE wheels')} alt="HRE" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
@@ -514,7 +522,7 @@ export default function AutomotivePage() {
               <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[220px]">
 
                 <div className="flex-1 flex items-center justify-center py-4">
-                  <div className="relative w-full max-w-[130px] h-12 sm:h-16">
+                  <div className="relative w-full max-w-[180px] h-16 sm:h-24">
                     <Image src={getBrandLogo('Eventuri')} alt="Eventuri" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
@@ -538,7 +546,7 @@ export default function AutomotivePage() {
               <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[220px]">
 
                 <div className="flex-1 flex items-center justify-center py-4">
-                  <div className="relative w-full max-w-[110px] h-12 sm:h-16">
+                  <div className="relative w-full max-w-[180px] h-24 sm:h-32">
                     <Image src={getBrandLogo('KW Suspension')} alt="KW" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                   </div>
                 </div>
@@ -985,109 +993,18 @@ export default function AutomotivePage() {
         </AnimatePresence>
       </section>
 
-      <AnimatePresence>
-        {selectedBrand && selectedBrandStory && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur"
-            onClick={(e) => {
-              if (e.currentTarget === e.target) {
-                setSelectedBrand(null);
-              }
-            }}
-          >
-            <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mx-4 mt-6 max-w-4xl overflow-y-auto rounded-2xl border border-white/20 bg-zinc-900 p-5 text-white shadow-2xl sm:mx-auto sm:mt-10 sm:rounded-3xl sm:p-6 md:mt-16 md:rounded-[32px] md:p-8"
-              style={{ maxHeight: 'calc(100vh - 3rem)' }}
-            >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-                <div className="relative h-20 w-full sm:h-24 sm:w-64 md:h-28 md:w-72">
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={getBrandLogo(selectedBrand.name)}
-                      alt={selectedBrand.name}
-                      fill
-                      className="object-contain object-left sm:object-center"
-                      sizes="(max-width: 640px) 100vw, 300px"
-                      unoptimized
-                    />
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedBrand(null)}
-                  className="self-start rounded-full border border-white/20 px-3 py-1.5 text-[10px] uppercase tracking-[0.3em] text-white/70 hover:border-white hover:text-white sm:self-auto sm:px-4 sm:py-2 sm:text-xs sm:tracking-[0.4em]"
-                >
-                  {tPage('close')}
-                </button>
-              </div>
-
-              <div className="mt-5 grid gap-6 sm:mt-6 sm:gap-7 md:mt-6 md:grid-cols-2 md:gap-8">
-                <div>
-                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
-                    <span>{selectedBrandOrigin}</span>
-                    {selectedBrandSubcategory && (
-                      <>
-                        <span className="text-white/30">|</span>
-                        <span className="text-white/60">{selectedBrandSubcategory}</span>
-                      </>
-                    )}
-                  </div>
-                  <h3 className="mt-1.5 text-2xl font-light sm:mt-2 sm:text-3xl">{selectedBrandStory.headline[locale]}</h3>
-                  <p className="mt-3 text-xs text-white/70 sm:mt-4 sm:text-sm">{selectedBrandStory.description[locale]}</p>
-                </div>
-                <div className="space-y-3 sm:space-y-4">
-                  {selectedBrandStory.highlights?.map((highlight, index) => (
-                    <div key={highlight.en + index} className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/80 sm:rounded-2xl sm:p-4 sm:text-sm">
-                      {highlight[locale]}
-                    </div>
-                  ))}
-                  <div className="rounded-xl border border-white/10 p-3 sm:rounded-2xl sm:p-4">
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
-                      {tPage('categories')}
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
-                      {selectedBrandCollections.length > 0 ? (
-                        selectedBrandCollections.map((collection) => (
-                          <span key={collection.slug} className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] text-white/70 sm:px-3 sm:py-1 sm:text-xs">
-                            {locale === 'ua' ? collection.title.ua : collection.title.en}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] text-white/50 sm:px-3 sm:py-1 sm:text-xs">
-                          {tPage('bespokeBuilds')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/80 sm:mt-7 sm:gap-4 sm:rounded-3xl sm:p-5 sm:text-sm md:mt-8 md:flex-row md:items-center md:justify-between md:p-6">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
-                    {tPage('expertSupport')}
-                  </p>
-                  <p className="mt-1.5 text-sm text-white sm:mt-2 sm:text-base">
-                    {tPage('expertMessage')}
-                  </p>
-                </div>
-                <Link
-                  href={`/${locale}/contact`}
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-full border border-white bg-white px-5 py-2.5 text-xs font-semibold text-black transition hover:bg-transparent hover:text-white sm:px-6 sm:py-3 sm:text-sm"
-                >
-                  {tPage('requestProgram')}
-                </Link>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <BrandModal 
+        brand={selectedBrand ? {
+          name: selectedBrand.name,
+          logoSrc: getBrandLogo(selectedBrand.name),
+          description: selectedBrandStory?.description[locale],
+          headline: selectedBrandStory?.headline?.[locale],
+          highlights: selectedBrandStory?.highlights?.map(h => h[locale]),
+          website: selectedBrand.website
+        } : null}
+        isOpen={!!selectedBrand}
+        onClose={() => setSelectedBrand(null)}
+      />
 
       <div className="pb-10" />
       </div>

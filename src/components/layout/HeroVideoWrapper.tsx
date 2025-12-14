@@ -73,7 +73,7 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
 
   return (
     <>
-      <div ref={(el) => { ref.current = el; }} className="fixed inset-0 -z-10 w-full h-full">
+      <div ref={(el) => { ref.current = el; }} className="fixed inset-0 z-0 w-full h-full pointer-events-none" style={{ transform: 'translateZ(0)' }}>
         <FullScreenVideo src={shouldLoad ? selected : undefined} poster={poster} preload={shouldLoad ? 'metadata' : 'none'} enabled={enabled && shouldLoad} />
         <div className="absolute inset-0 bg-black/60 pointer-events-none" />
       </div>
