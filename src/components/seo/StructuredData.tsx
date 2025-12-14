@@ -40,7 +40,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
         "@type": "ContactPoint",
         telephone: "+380-XX-XXX-XXXX",
         contactType: "customer service",
-        availableLanguage: ["Ukrainian", "English", "Russian"],
+        availableLanguage: ["Ukrainian", "English"],
       },
     ],
     sameAs: [
