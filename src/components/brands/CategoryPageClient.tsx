@@ -105,35 +105,60 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
        </div>
 
        {/* Grid */}
-       <div className="px-6 md:px-10 relative z-10">
-         <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
-           {brands.map(brand => {
+       <div className="px-4 sm:px-6 lg:px-8 relative z-10 pb-24">
+         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 auto-rows-max">
+           {brands.map((brand, index) => {
+             const meta = getBrandMetadata(brand.name);
+             const country = meta ? getLocalizedCountry(meta.country, lang) : undefined;
              const logo = getBrandLogo(brand.name);
+             
              return (
-                <div 
+                <motion.button
                   key={brand.name}
                   onClick={() => handleBrandClick(brand)}
-                  className="group relative aspect-[3/2] flex items-center justify-center p-6 bg-white/[0.02] border border-white/10 rounded-2xl hover:bg-white/[0.05] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all duration-500 backdrop-blur-sm overflow-hidden cursor-pointer"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.05 }}
+                  className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left min-h-[240px]"
                 >
-                  {/* Radial white backlight for dark logos */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-[80%] h-[80%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
-                  </div>
+                  <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <div className="relative h-full p-6 sm:p-8 flex flex-col">
+                    {country && (
+                        <div className="absolute top-6 right-6 px-2 py-1 bg-black/20 rounded text-[10px] uppercase tracking-widest text-white/50 backdrop-blur-sm">
+                          {country}
+                        </div>
+                    )}
 
-                  {/* Logo with unified sizing */}
-                  <div className="relative w-full h-full flex items-center justify-center opacity-90 group-hover:opacity-100 transition-all duration-500">
-                    <div className="relative w-full h-full p-2" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
-                      <Image
-                        src={logo}
-                        alt={brand.name}
-                        fill
-                        className="object-contain"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
-                        unoptimized
-                      />
+                    <div className="flex-1 flex items-center justify-center py-6">
+                      <div className="relative w-full max-w-[200px] h-24 sm:h-32">
+                        <Image
+                          src={logo}
+                          alt={brand.name}
+                          fill
+                          className="object-contain transition-all duration-500 group-hover:scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          unoptimized
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-end justify-between gap-4 mt-4">
+                      <div>
+                        <p className="text-lg sm:text-xl font-light text-white tracking-wide">{brand.name}</p>
+                        {/* Optional: Add short description or category if available */}
+                      </div>
+                      
+                      <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20 shrink-0">
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </motion.button>
              );
            })}
          </div>
