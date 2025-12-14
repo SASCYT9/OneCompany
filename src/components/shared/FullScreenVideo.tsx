@@ -45,14 +45,14 @@ export function FullScreenVideo({ src, enabled = true, overlayOpacity = 'from-bl
   if (hasError || !enabled) {
     console.log('Video error, falling back to gradient background');
     return (
-      <div className="fixed inset-0 w-full h-full -z-10 bg-gradient-to-br from-black via-zinc-900 to-black" />
+      <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-black via-zinc-900 to-black" />
     );
   }
 
   return (
-    <div className="fixed inset-0 w-full h-full -z-10 overflow-hidden">
+    <div className="absolute inset-0 w-full h-full overflow-hidden">
       {poster && (
-        <div className="absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${poster})` }} />
+        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${poster})` }} />
       )}
       <video
         ref={videoRef}
