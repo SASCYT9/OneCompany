@@ -261,7 +261,17 @@ export default function CategoryPage() {
       )}
 
       {selectedBrand && (
-        <BrandModal isOpen={!!selectedBrand} onClose={() => setSelectedBrand(null)} brand={selectedBrand} />
+        <BrandModal 
+          isOpen={!!selectedBrand} 
+          onClose={() => setSelectedBrand(null)} 
+          brand={{
+            name: selectedBrand.name,
+            logoSrc: selectedBrand.logo || '',
+            description: selectedBrand.description,
+            website: selectedBrand.website,
+            highlights: selectedBrand.features
+          }} 
+        />
       )}
     </div>
   );
