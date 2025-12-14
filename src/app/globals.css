@@ -63,10 +63,7 @@
     font-family: var(--font-stack-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image:
-      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.03), transparent 45%),
-      radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.05), transparent 50%),
-      linear-gradient(120deg, rgba(5, 5, 5, 0.98), rgba(0, 0, 0, 1));
+    /* Removed opaque background image to allow video to show through */
     background-color: hsl(var(--background));
     min-height: 100vh;
   }
