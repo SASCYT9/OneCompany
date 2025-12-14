@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getBrandLogo } from '@/lib/brandLogos';
@@ -111,6 +112,7 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
              const meta = getBrandMetadata(brand.name);
              const country = meta ? getLocalizedCountry(meta.country, lang) : undefined;
              const logo = getBrandLogo(brand.name);
+             const isFeatured = index === 0 || index === 1;
              
              return (
                 <motion.button
@@ -120,12 +122,18 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.05 }}
-                  className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left min-h-[240px]"
+                  className={`group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left ${
+                    isFeatured 
+                      ? 'lg:row-span-2 min-h-[320px] sm:min-h-[380px]' 
+                      : 'min-h-[240px]'
+                  }`}
                 >
                   <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
                   <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
-                  <div className="relative h-full p-6 sm:p-8 flex flex-col">
+                  <div className={`relative h-full flex flex-col ${
+                    isFeatured ? 'p-6 sm:p-8 lg:p-12' : 'p-6 sm:p-8'
+                  }`}>
                     {country && (
                         <div className="absolute top-6 right-6 px-2 py-1 bg-black/20 rounded text-[10px] uppercase tracking-widest text-white/50 backdrop-blur-sm">
                           {country}
@@ -133,7 +141,9 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
                     )}
 
                     <div className="flex-1 flex items-center justify-center py-6">
-                      <div className="relative w-full max-w-[200px] h-24 sm:h-32">
+                      <div className={`relative w-full max-w-[200px] ${
+                        isFeatured ? 'h-28 sm:h-36 lg:h-44' : 'h-24 sm:h-32'
+                      }`}>
                         <Image
                           src={logo}
                           alt={brand.name}
@@ -147,12 +157,18 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
 
                     <div className="flex items-end justify-between gap-4 mt-4">
                       <div>
-                        <p className="text-lg sm:text-xl font-light text-white tracking-wide">{brand.name}</p>
+                        <p className={`font-light text-white tracking-wide ${
+                          isFeatured ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-lg sm:text-xl'
+                        }`}>{brand.name}</p>
                         {/* Optional: Add short description or category if available */}
                       </div>
                       
-                      <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20 shrink-0">
-                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <div className={`flex items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20 shrink-0 ${
+                        isFeatured ? 'h-14 w-14 sm:h-16 sm:w-16' : 'h-10 w-10 sm:h-12 sm:w-12'
+                      }`}>
+                        <svg className={`text-white transition-transform duration-500 group-hover:-rotate-45 ${
+                          isFeatured ? 'h-6 w-6 sm:h-7 sm:w-7' : 'h-4 w-4 sm:h-5 sm:w-5'
+                        }`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                         </svg>
                       </div>
