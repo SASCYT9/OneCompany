@@ -36,9 +36,18 @@ export function FullScreenVideo({ src, enabled = true, overlayOpacity = 'from-bl
     video.addEventListener('loadeddata', handleLoadedData);
     video.addEventListener('error', handleError);
 
+    // Fallback: if video doesn't report loaded within 4 seconds, show it anyway (poster will be visible)
+    const timeout = setTimeout(() => {
+      if (!isLoaded) {
+        console.warn('Video load timeout, forcing display');
+        setIsLoaded(true);
+      }
+    }, 4000);
+
     return () => {
       video.removeEventListener('loadeddata', handleLoadedData);
       video.removeEventListener('error', handleError);
+      clearTimeout(timeout);
     };
   }, []);
 
