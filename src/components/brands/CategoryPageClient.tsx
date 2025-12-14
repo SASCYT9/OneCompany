@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { getBrandMetadata, LocalBrand, countryNames, subcategoryNames } from '@/lib/brands';
+import { getBrandMetadata, LocalBrand, countryNames, subcategoryNames, getLocalizedCountry } from '@/lib/brands';
 import { CategoryData } from '@/lib/categoryData';
 import { BreadcrumbSchema, CollectionPageSchema } from '@/components/seo/StructuredData';
 import { curatedBrandStories } from '@/lib/brandStories';
