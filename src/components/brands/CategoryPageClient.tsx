@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { AnimatePresence, motion } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { getBrandMetadata, getLocalizedCountry, getLocalizedSubcategory, LocalBrand } from '@/lib/brands';
+import { getBrandMetadata, LocalBrand, countryNames, subcategoryNames } from '@/lib/brands';
 import { CategoryData } from '@/lib/categoryData';
 import { BreadcrumbSchema, CollectionPageSchema } from '@/components/seo/StructuredData';
 import { curatedBrandStories } from '@/lib/brandStories';
+import { BrandModal } from '@/components/ui/BrandModal';
+import { BrandItem } from '@/components/sections/BrandLogosGrid';
 
 interface Props {
   category: CategoryData;
@@ -17,58 +18,30 @@ interface Props {
 }
 
 export default function CategoryPageClient({ category, brands, locale }: Props) {
-  const [selectedBrand, setSelectedBrand] = useState<LocalBrand | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<BrandItem | null>(null);
   const lang = (locale === 'ua' ? 'ua' : 'en') as 'ua' | 'en';
 
-  const getBrandOrigin = useCallback(
-    (brand: LocalBrand) => {
-      const metadata = getBrandMetadata(brand.name);
-      if (metadata) {
-        return getLocalizedCountry(metadata.country, lang);
-      }
-      return lang === 'ua' ? 'Світовий портфель' : 'Global program';
-    },
-    [lang]
-  );
+  const handleBrandClick = (brand: LocalBrand) => {
+    const logo = getBrandLogo(brand.name);
+    const metadata = getBrandMetadata(brand.name);
+    const country = metadata ? countryNames[metadata.country][lang] : undefined;
+    const subcategory = metadata ? subcategoryNames[metadata.subcategory][lang] : undefined;
+    
+    // Get story data if available
+    const story = curatedBrandStories[brand.name];
+    const headline = story ? story.headline[lang] : undefined;
+    const description = lang === 'ua' ? brand.descriptionUA : brand.description;
 
-  const getBrandSubcategory = useCallback(
-    (brand: LocalBrand) => {
-      const metadata = getBrandMetadata(brand.name);
-      if (metadata) {
-        return getLocalizedSubcategory(metadata.subcategory, lang);
-      }
-      return null;
-    },
-    [lang]
-  );
-
-  const getBrandStory = useCallback((brand: LocalBrand) => {
-    // Check if we have a curated story for this brand
-    if (curatedBrandStories[brand.name]) {
-      return curatedBrandStories[brand.name];
-    }
-
-    // Default story if no specific one exists
-    return {
-      headline: {
-        en: `${brand.name} — premium performance`,
-        ua: `${brand.name} — преміум продуктивність`,
-      },
-      description: {
-        en: brand.description || 'Official distribution, warranty support and direct supply from the manufacturer.',
-        ua: brand.descriptionUA || 'Офіційна дистрибуція, гарантійна підтримка та прямі поставки від виробника.',
-      },
-      highlights: [
-        { en: 'Global warranty', ua: 'Глобальна гарантія' },
-        { en: 'Direct supply', ua: 'Прямі поставки' },
-        { en: 'Expert installation', ua: 'Експертне встановлення' },
-      ],
-    };
-  }, []);
-
-  const selectedBrandStory = selectedBrand ? getBrandStory(selectedBrand) : null;
-  const selectedBrandOrigin = selectedBrand ? getBrandOrigin(selectedBrand) : null;
-  const selectedBrandSubcategory = selectedBrand ? getBrandSubcategory(selectedBrand) : null;
+    setSelectedBrand({
+      name: brand.name,
+      logoSrc: logo,
+      country,
+      subcategory,
+      description,
+      website: brand.website,
+      headline
+    });
+  };
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
   const breadcrumbs = [
@@ -133,128 +106,45 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
 
        {/* Grid */}
        <div className="px-6 md:px-10 relative z-10">
-         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+         <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
            {brands.map(brand => {
-             const meta = getBrandMetadata(brand.name);
-             const country = meta ? getLocalizedCountry(meta.country, lang) : undefined;
-             
+             const logo = getBrandLogo(brand.name);
              return (
-                <motion.button
+                <div 
                   key={brand.name}
-                  onClick={() => setSelectedBrand(brand)}
-                  whileHover={{ y: -6 }}
-                  className="group relative flex flex-col items-start text-left overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 transition backdrop-blur-md hover:bg-white/10 hover:border-white/20"
+                  onClick={() => handleBrandClick(brand)}
+                  className="group relative aspect-[3/2] flex items-center justify-center p-6 bg-white/[0.02] border border-white/10 rounded-2xl hover:bg-white/[0.05] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all duration-500 backdrop-blur-sm overflow-hidden cursor-pointer"
                 >
-                  {country && (
-                    <div className="mb-4 px-2 py-1 bg-black/30 rounded text-[10px] uppercase tracking-widest text-white/70">
-                      {country}
-                    </div>
-                  )}
-                  
-                  <div className="relative w-full aspect-[3/2] mb-4 flex items-center justify-center">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className="object-contain p-4 transition-all duration-500 group-hover:scale-110"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      unoptimized
-                    />
+                  {/* Radial white backlight for dark logos */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-[80%] h-[80%] bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_0%,_rgba(255,255,255,0.04)_40%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_0%,_rgba(255,255,255,0.08)_40%,_transparent_70%)] transition-all duration-500 rounded-full" />
                   </div>
 
-                  <div className="mt-auto w-full border-t border-white/10 pt-4">
-                    <h3 className="text-lg font-light text-white group-hover:text-white/90 transition-colors">
-                      {brand.name}
-                    </h3>
+                  {/* Logo with unified sizing */}
+                  <div className="relative w-full h-full flex items-center justify-center opacity-90 group-hover:opacity-100 transition-all duration-500">
+                    <div className="relative w-full h-full p-2" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                      <Image
+                        src={logo}
+                        alt={brand.name}
+                        fill
+                        className="object-contain"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
+                        unoptimized
+                      />
+                    </div>
                   </div>
-                </motion.button>
+                </div>
              );
            })}
          </div>
        </div>
 
        {/* Modal */}
-       <AnimatePresence>
-        {selectedBrand && selectedBrandStory && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur flex items-center justify-center p-4"
-            onClick={(e) => {
-              if (e.currentTarget === e.target) {
-                setSelectedBrand(null);
-              }
-            }}
-          >
-            <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="w-full max-w-4xl rounded-[32px] border border-white/20 bg-zinc-900 p-8 text-white shadow-2xl max-h-[90vh] overflow-y-auto"
-            >
-              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                <div className="relative h-20 w-full sm:h-24 sm:w-64 md:h-28 md:w-72 bg-white/5 rounded-xl">
-                  <Image
-                    src={getBrandLogo(selectedBrand.name)}
-                    alt={selectedBrand.name}
-                    fill
-                    className="object-contain p-4"
-                    unoptimized
-                  />
-                </div>
-                <button
-                  onClick={() => setSelectedBrand(null)}
-                  className="self-end md:self-auto rounded-full border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.4em] text-white/70 hover:border-white hover:text-white transition-colors"
-                >
-                  {locale === 'ua' ? 'Закрити' : 'Close'}
-                </button>
-              </div>
-
-              <div className="mt-8 grid gap-8 md:grid-cols-2">
-                <div>
-                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/50 sm:text-xs sm:tracking-[0.4em]">
-                    <span>{selectedBrandOrigin}</span>
-                    {selectedBrandSubcategory && (
-                      <>
-                        <span className="text-white/30">·</span>
-                        <span className="text-white/60">{selectedBrandSubcategory}</span>
-                      </>
-                    )}
-                  </div>
-                  <h3 className="mt-4 text-3xl font-light">{selectedBrandStory.headline[lang]}</h3>
-                  <p className="mt-4 text-sm text-white/70 leading-relaxed">{selectedBrandStory.description[lang]}</p>
-                  
-                  {selectedBrand.website && (
-                    <div className="mt-8">
-                      <a 
-                          href={selectedBrand.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center rounded-full bg-white text-black px-8 py-3 text-sm font-medium hover:bg-white/90 transition-colors"
-                      >
-                          {locale === 'ua' ? 'Офіційний сайт' : 'Official Website'}
-                      </a>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="space-y-4">
-                  {selectedBrandStory.highlights?.map((highlight, index) => (
-                    <div
-                      key={index}
-                      className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/80"
-                    >
-                      {highlight[lang]}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+       <BrandModal
+          brand={selectedBrand}
+          isOpen={!!selectedBrand}
+          onClose={() => setSelectedBrand(null)}
+       />
     </div>
   );
 }
