@@ -50,7 +50,7 @@
 
   html {
     scroll-behavior: smooth;
-    background-color: hsl(var(--background));
+    background-color: black; /* Fallback */
   }
 
   ::selection {
@@ -60,7 +60,7 @@
 
   body {
     color: hsl(var(--foreground));
-    /* Background color moved to html to allow fixed video behind body content if needed */
+    /* Ensure body and html are transparent so fixed video at z-index -1 is visible */
     background-color: transparent;
     font-family: var(--font-stack-sans);
     -webkit-font-smoothing: antialiased;
