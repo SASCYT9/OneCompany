@@ -134,12 +134,6 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
                   <div className={`relative h-full flex flex-col ${
                     isFeatured ? 'p-6 sm:p-8 lg:p-12' : 'p-6 sm:p-8'
                   }`}>
-                    {country && (
-                        <div className="absolute top-6 right-6 px-2 py-1 bg-black/20 rounded text-[10px] uppercase tracking-widest text-white/50 backdrop-blur-sm">
-                          {country}
-                        </div>
-                    )}
-
                     <div className="flex-1 flex items-center justify-center py-6">
                       <div className={`relative w-full max-w-[200px] ${
                         isFeatured ? 'h-28 sm:h-36 lg:h-44' : 'h-24 sm:h-32'
@@ -154,6 +148,12 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
                         />
                       </div>
                     </div>
+
+                    {country && (
+                      <div className="flex justify-center -mt-2 mb-2">
+                        <span className="text-[10px] uppercase tracking-widest text-white/50">{country}</span>
+                      </div>
+                    )}
 
                     <div className="flex items-end justify-between gap-4 mt-4">
                       <div>

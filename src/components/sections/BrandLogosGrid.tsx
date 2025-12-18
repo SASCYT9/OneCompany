@@ -102,10 +102,9 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
                       {/* Removed duplicated brand name as per design request */}
                       {/* <span className="relative z-10 mt-3 text-xs text-white/70 truncate w-full font-medium">{brand.name}</span> */}
                       
-                      {(brand.country || brand.subcategory) && (
-                        <div className="relative z-10 w-full flex justify-between items-end mt-4 pt-2 border-t border-white/5 gap-2">
-                          {brand.country && <span className="text-[9px] text-white/30 uppercase tracking-widest font-sans">{brand.country}</span>}
-                          {brand.subcategory && <span className="text-[9px] text-blue-400/60 font-sans text-right ml-auto">{brand.subcategory}</span>}
+                      {brand.country && (
+                        <div className="relative z-10 w-full flex justify-center mt-4 pt-2 border-t border-white/5">
+                          <span className="text-[9px] text-white/30 uppercase tracking-widest font-sans">{brand.country}</span>
                         </div>
                       )}
                     </li>
