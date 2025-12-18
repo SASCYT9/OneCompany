@@ -958,12 +958,6 @@ export default function AutomotivePage() {
                   <div className="relative w-full flex items-center justify-center text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.3em]">
                     <div className="flex items-center gap-2">
                       <span>{origin}</span>
-                      {subcategory && (
-                        <>
-                          <span className="text-white/30">|</span>
-                          <span className="text-white/60">{subcategory}</span>
-                        </>
-                      )}
                     </div>
                   </div>
                   <div className="relative mt-4 h-20 w-full sm:mt-6 sm:h-24">
