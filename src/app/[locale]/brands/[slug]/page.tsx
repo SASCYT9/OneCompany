@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation';
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
 import { BrandSchema, BreadcrumbSchema } from '@/components/seo/StructuredData';
 import BrandPageClient from './BrandPageClient';
-import { curatedBrandStories } from '@/lib/brandStories';
+import { getBrandStoryForBrand } from '@/lib/brandStories';
 
 interface BrandDetailPageProps {
   params: Promise<{
@@ -82,22 +82,14 @@ export default async function BrandDetailPage({ params }: BrandDetailPageProps) 
     { name: brand.name, url: currentUrl },
   ];
 
-  // Resolve story
-  const story = curatedBrandStories[brand.name] || {
-    headline: {
-        en: `${brand.name} — premium performance`,
-        ua: `${brand.name} — преміум продуктивність`,
+  const story = getBrandStoryForBrand(
+    {
+      name: brand.name,
+      description: brand.description,
+      descriptionUA: brand.descriptionUA,
     },
-    description: {
-        en: brand.description || 'Official distribution, warranty support and direct supply from the manufacturer.',
-        ua: brand.descriptionUA || 'Офіційна дистрибуція, гарантійна підтримка та прямі поставки від виробника.',
-    },
-    highlights: [
-        { en: 'Global warranty', ua: 'Глобальна гарантія' },
-        { en: 'Direct supply', ua: 'Прямі поставки' },
-        { en: 'Expert installation', ua: 'Експертне встановлення' },
-    ],
-  };
+    brand.category === 'moto' ? 'Moto' : 'Auto'
+  );
 
   return (
     <>

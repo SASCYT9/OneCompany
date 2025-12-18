@@ -48,7 +48,7 @@ export default async function LocalizedHomePage({
       accent: "from-blue-400/25 via-purple-500/15 to-transparent",
       bgImage: "/images/hero-moto.png",
       stats: [
-        { value: "40+", note: t('motoPartners') },
+        { value: "60+", note: t('motoPartners') },
         { value: "6", note: t('motoSeries') },
       ],
     },

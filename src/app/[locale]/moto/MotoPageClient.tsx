@@ -6,7 +6,6 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
 
 import {
   allMotoBrands,
@@ -20,8 +19,7 @@ import { getBrandLogo } from '@/lib/brandLogos';
 import { categoryData } from '@/lib/categoryData';
 
 import { BrandModal } from '@/components/ui/BrandModal';
-import { BrandItem } from '@/components/sections/BrandLogosGrid';
-import { curatedBrandStories, BrandStory } from '@/lib/brandStories';
+import { getBrandStoryForBrand, BrandStory } from '@/lib/brandStories';
 
 type LocalizedCopy = { en: string; ua: string; [key: string]: string };
 
@@ -346,29 +344,7 @@ export default function MotoPage() {
   );
 
   const getBrandStory = useCallback((brand: LocalBrand): BrandStory => {
-    // Try to find a moto-specific story first
-    if (curatedBrandStories[`${brand.name}_Moto`]) {
-      return curatedBrandStories[`${brand.name}_Moto`];
-    }
-    // Fallback to generic story
-    if (curatedBrandStories[brand.name]) {
-      return curatedBrandStories[brand.name];
-    }
-    return {
-      headline: {
-        en: `${brand.name} — bespoke moto supply`,
-        ua: `${brand.name} — індивідуальне постачання`,
-      },
-      description: {
-        en: 'Expert sourcing, homologation paperwork and paddock-ready logistics directed from our Kyiv headquarters.',
-        ua: 'Персональний підбір, гомологаційні документи та паддок-логістика з Басейної, 21Б.',
-      },
-      highlights: [
-        { en: 'Pit support in 18 countries', ua: 'Pit-підтримка у 18 країнах' },
-        { en: 'Air & road logistics w/ customs', ua: 'Авіа та авто логістика з митницею' },
-        { en: 'Status updates every 48h', ua: 'Статус-апдейти кожні 48 годин' },
-      ],
-    };
+    return getBrandStoryForBrand(brand, 'Moto');
   }, []);
 
   const selectedBrandStory = selectedBrand ? getBrandStory(selectedBrand) : null;

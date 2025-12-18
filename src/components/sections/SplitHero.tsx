@@ -26,7 +26,7 @@ export default function SplitHero() {
       imageSrc: '/images/hero-moto.png',
       title: tChoice('motorcycles'),
       subtitle: tChoice('motorcyclesSubtitle'),
-      stats: { value: '40+', label: 'брендів' }
+      stats: { value: '60+', label: 'брендів' }
     }
   ];
 

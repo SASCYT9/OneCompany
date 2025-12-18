@@ -8,7 +8,7 @@ import { getBrandLogo } from '@/lib/brandLogos';
 import { getBrandMetadata, LocalBrand, countryNames, subcategoryNames, getLocalizedCountry } from '@/lib/brands';
 import { CategoryData } from '@/lib/categoryData';
 import { BreadcrumbSchema, CollectionPageSchema } from '@/components/seo/StructuredData';
-import { curatedBrandStories } from '@/lib/brandStories';
+import { getBrandStoryForBrand } from '@/lib/brandStories';
 import { BrandModal } from '@/components/ui/BrandModal';
 import { BrandItem } from '@/components/sections/BrandLogosGrid';
 
@@ -27,11 +27,11 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
     const metadata = getBrandMetadata(brand.name);
     const country = metadata ? countryNames[metadata.country][lang] : undefined;
     const subcategory = metadata ? subcategoryNames[metadata.subcategory][lang] : undefined;
-    
-    // Get story data if available
-    const story = curatedBrandStories[brand.name];
-    const headline = story ? story.headline[lang] : undefined;
-    const description = lang === 'ua' ? brand.descriptionUA : brand.description;
+
+    const story = getBrandStoryForBrand(brand, category.segment === 'moto' ? 'Moto' : 'Auto');
+    const headline = story.headline[lang];
+    const description = story.description[lang];
+    const highlights = story.highlights.map((h) => h[lang]);
 
     setSelectedBrand({
       name: brand.name,
@@ -40,7 +40,8 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
       subcategory,
       description,
       website: brand.website,
-      headline
+      headline,
+      highlights,
     });
   };
 

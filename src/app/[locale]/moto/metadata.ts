@@ -3,12 +3,12 @@ import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/se
 
 const motoMetaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   en: {
-    title: "Moto Tuning · 40+ Premium Brands · Akrapovic, SC-Project, Brembo | onecompany",
+    title: "Moto Tuning · 60+ Premium Brands · Akrapovic, SC-Project, Brembo | onecompany",
     description:
       "Official importer of premium motorcycle parts: Akrapovic exhausts, SC-Project, Termignoni, Brembo brakes, Rotobox carbon wheels. Race-proven components with global logistics since 2007.",
   },
   ua: {
-    title: "Мото Тюнінг · 40+ Преміум Брендів · Akrapovic, SC-Project, Brembo | onecompany",
+    title: "Мото Тюнінг · 60+ Преміум Брендів · Akrapovic, SC-Project, Brembo | onecompany",
     description:
       "Офіційний імпортер преміум мото деталей: вихлопи Akrapovic, SC-Project, Termignoni, гальма Brembo, карбонові диски Rotobox. Трекові компоненти з глобальною логістикою з 2007.",
   },

@@ -7,7 +7,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
 
 import {
   allAutomotiveBrands,
@@ -22,11 +21,8 @@ import { isDarkLogo } from '@/lib/darkLogos';
 import { categoryData } from '@/lib/categoryData';
 import type { CategoryData } from '@/lib/categoryData';
 
-type LocalizedCopy = { en: string; ua: string; [key: string]: string };
-
 import { BrandModal } from '@/components/ui/BrandModal';
-import { BrandItem } from '@/components/sections/BrandLogosGrid';
-import { curatedBrandStories, BrandStory } from '@/lib/brandStories';
+import { getBrandStoryForBrand, BrandStory } from '@/lib/brandStories';
 
 const TOP_AUTOMOTIVE_BRANDS = [
   'Akrapovic',
@@ -209,38 +205,7 @@ export default function AutomotivePage() {
   );
 
   const getBrandStory = useCallback((brand: LocalBrand): BrandStory => {
-    // Try to find an auto-specific story first
-    if (curatedBrandStories[`${brand.name}_Auto`]) {
-      return curatedBrandStories[`${brand.name}_Auto`];
-    }
-    // Fallback to generic story
-    if (curatedBrandStories[brand.name]) {
-      return curatedBrandStories[brand.name];
-    }
-    return {
-      headline: {
-        en: `${brand.name} — Official Import`,
-        ua: `${brand.name} — офіційний імпорт`,
-      },
-      description: {
-        en: 'Direct manufacturer supply, authenticity guarantee and professional component selection.',
-        ua: 'Прямі поставки від виробника, гарантія автентичності та професійний підбір компонентів.',
-      },
-      highlights: [
-        {
-          en: 'Official warranty & service support',
-          ua: 'Офіційна гарантія та сервісна підтримка',
-        },
-        {
-          en: 'Fast logistics from Europe & USA',
-          ua: 'Швидка логістика з Європи та США',
-        },
-        {
-          en: 'Qualified installation network',
-          ua: 'Кваліфіковане встановлення партнерами',
-        },
-      ],
-    };
+    return getBrandStoryForBrand(brand, 'Auto');
   }, []);
 
   const selectedBrandStory = selectedBrand ? getBrandStory(selectedBrand) : null;

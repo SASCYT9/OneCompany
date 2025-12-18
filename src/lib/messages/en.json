@@ -75,7 +75,7 @@
     "autoCatalog": "Auto",
     "autoCatalogBrands": "160+ auto brands",
     "motoCatalog": "Moto",
-    "motoCatalogBrands": "40+ moto brands",
+    "motoCatalogBrands": "60+ moto brands",
     "viewCatalog": "View catalog",
     "b2bPrograms": "B2B wholesale programs",
     "partnerWithLeading": "Partnership with leading importer",
@@ -180,7 +180,7 @@
   "moto": {
     "title": "Moto",
     "heading": "Premium Exhaust & Suspension",
-    "subtitle": "40+ premium brands for your motorcycle",
+    "subtitle": "60+ premium brands for your motorcycle",
     "featuredBrands": "Featured Brands",
     "allBrands": "All Brands A-Z",
     "searchPlaceholder": "Search brands...",

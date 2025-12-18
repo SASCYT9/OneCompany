@@ -1,7 +1,187 @@
+import { brandMetadata, countryNames, subcategoryNames } from '@/lib/brands';
+import type { ProductSubcategory } from '@/lib/brands';
+
+export type BrandStoryContext = 'Auto' | 'Moto';
+
 export interface BrandStory {
   headline: { en: string; ua: string };
   description: { en: string; ua: string };
   highlights: { en: string; ua: string }[];
+}
+
+export interface BrandStoryInput {
+  name: string;
+  description?: string;
+  descriptionUA?: string;
+}
+
+function pickCuratedBrandStory(brandName: string, context?: BrandStoryContext): BrandStory | undefined {
+  if (context) {
+    return curatedBrandStories[`${brandName}_${context}`] ?? curatedBrandStories[brandName];
+  }
+
+  return (
+    curatedBrandStories[`${brandName}_Auto`] ??
+    curatedBrandStories[`${brandName}_Moto`] ??
+    curatedBrandStories[brandName]
+  );
+}
+
+function getSubcategoryTagline(subcategory: ProductSubcategory | undefined, context?: BrandStoryContext) {
+  const bySubcategory: Partial<Record<ProductSubcategory, { en: string; ua: string }>> = {
+    Engine: { en: 'Power Engineering', ua: 'Інженерія потужності' },
+    Exterior: { en: 'Design & Presence', ua: 'Дизайн та характер' },
+    Suspension: { en: 'Control & Comfort', ua: 'Контроль та комфорт' },
+    Brakes: { en: 'Absolute Control', ua: 'Абсолютний контроль' },
+    Wheels: { en: 'Forged Lightness', ua: 'Кована легкість' },
+    Exhaust: { en: 'Sound & Performance', ua: 'Звук та продуктивність' },
+    Electronics: { en: 'Smart Performance', ua: 'Розумна продуктивність' },
+    Interior: { en: 'Crafted Cockpit', ua: 'Досконалий салон' },
+    Drivetrain: { en: 'Torque Delivered', ua: 'Передача моменту' },
+    Cooling: { en: 'Thermal Advantage', ua: 'Теплова перевага' },
+    'Fuel Systems': { en: 'Fuel Precision', ua: 'Точність палива' },
+    Aero: { en: 'Downforce & Stability', ua: 'Притиск та стабільність' },
+    'Racing Components': { en: 'Track Proven', ua: 'Перевірено треком' },
+    'Full Vehicle': { en: 'Turn-Key Builds', ua: 'Готові рішення' },
+  };
+
+  if (subcategory && bySubcategory[subcategory]) {
+    return bySubcategory[subcategory];
+  }
+
+  if (context === 'Moto') {
+    return { en: 'Moto Performance', ua: 'Мото продуктивність' };
+  }
+  if (context === 'Auto') {
+    return { en: 'Automotive Performance', ua: 'Авто продуктивність' };
+  }
+  return { en: 'Performance Essentials', ua: 'Преміум рішення' };
+}
+
+function getSubcategoryHighlights(subcategory: ProductSubcategory | undefined): { en: string; ua: string }[] {
+  const bySubcategory: Partial<Record<ProductSubcategory, { en: string; ua: string }[]>> = {
+    Exhaust: [
+      { en: 'Premium materials & precise fitment', ua: 'Преміальні матеріали та точна посадка' },
+      { en: 'Sound character with weight reduction', ua: 'Характер звуку та зниження ваги' },
+      { en: 'Track-inspired engineering', ua: 'Інженерія з автоспорту' },
+    ],
+    Wheels: [
+      { en: 'Forged strength with low weight', ua: 'Кована міцність та мала вага' },
+      { en: 'Custom specs and finishes', ua: 'Індивідуальні параметри та покриття' },
+      { en: 'Designed for perfect stance', ua: 'Створено для ідеальної посадки' },
+    ],
+    Suspension: [
+      { en: 'Sharper handling and stability', ua: 'Краще керування та стабільність' },
+      { en: 'Street and track-ready setups', ua: 'Налаштування для міста та треку' },
+      { en: 'Reliable components under load', ua: 'Надійність під навантаженням' },
+    ],
+    Brakes: [
+      { en: 'Consistent bite and pedal feel', ua: 'Стабільний “укус” та відчуття педалі' },
+      { en: 'Fade resistance under heat', ua: 'Стійкість до перегріву' },
+      { en: 'OEM+ fitment and durability', ua: 'OEM+ сумісність та довговічність' },
+    ],
+    Aero: [
+      { en: 'Downforce-focused design', ua: 'Дизайн з фокусом на притиск' },
+      { en: 'Premium carbon and composites', ua: 'Преміум карбон та композити' },
+      { en: 'Track-inspired styling', ua: 'Стиль з автоспортом у ДНК' },
+    ],
+    Engine: [
+      { en: 'Precision parts for power builds', ua: 'Точні деталі для потужних збірок' },
+      { en: 'Proven performance gains', ua: 'Перевірений приріст продуктивності' },
+      { en: 'Durability at high load', ua: 'Ресурс при високих навантаженнях' },
+    ],
+    Electronics: [
+      { en: 'Accurate control and monitoring', ua: 'Точний контроль та моніторинг' },
+      { en: 'OEM-level integration', ua: 'Інтеграція рівня OEM' },
+      { en: 'Tuners and enthusiasts trusted', ua: 'Довіра тюнерів та ентузіастів' },
+    ],
+    Cooling: [
+      { en: 'Lower temps under sustained load', ua: 'Нижчі температури при навантаженні' },
+      { en: 'High-efficiency heat exchange', ua: 'Ефективний теплообмін' },
+      { en: 'Track-ready reliability', ua: 'Надійність для треку' },
+    ],
+    Drivetrain: [
+      { en: 'Stronger torque handling', ua: 'Вища витривалість до моменту' },
+      { en: 'Smooth power delivery', ua: 'Плавна передача потужності' },
+      { en: 'Built for high-power setups', ua: 'Для високопотужних конфігурацій' },
+    ],
+    'Fuel Systems': [
+      { en: 'Stable fueling under boost', ua: 'Стабільна подача під бустом' },
+      { en: 'Precision components and flow', ua: 'Точні компоненти та потоки' },
+      { en: 'Designed for high horsepower', ua: 'Розраховано на високу потужність' },
+    ],
+    Exterior: [
+      { en: 'OEM+ look with premium finish', ua: 'OEM+ вигляд з преміум покриттям' },
+      { en: 'Carbon and aero accents', ua: 'Карбонові та аеро-акценти' },
+      { en: 'Fitment-focused manufacturing', ua: 'Виробництво з фокусом на посадку' },
+    ],
+    Interior: [
+      { en: 'Premium materials and feel', ua: 'Преміум матеріали та тактильність' },
+      { en: 'Detail-driven craftsmanship', ua: 'Ремесло, де важлива деталь' },
+      { en: 'Designed for daily use', ua: 'Створено для щоденного користування' },
+    ],
+    'Racing Components': [
+      { en: 'Motorsport-derived solutions', ua: 'Рішення з автоспорту' },
+      { en: 'Built for extreme conditions', ua: 'Для екстремальних умов' },
+      { en: 'Consistency lap after lap', ua: 'Стабільність коло за колом' },
+    ],
+    'Full Vehicle': [
+      { en: 'Turn-key packages and builds', ua: 'Готові пакети та збірки' },
+      { en: 'Balanced performance strategy', ua: 'Збалансована стратегія продуктивності' },
+      { en: 'One-stop project support', ua: 'Підтримка проєкту “під ключ”' },
+    ],
+  };
+
+  return (
+    (subcategory && bySubcategory[subcategory]) ??
+    [
+      { en: 'Premium selection and fitment', ua: 'Преміум підбір та сумісність' },
+      { en: 'Performance-focused engineering', ua: 'Інженерія з фокусом на результат' },
+      { en: 'Fast sourcing and support', ua: 'Швидке постачання та підтримка' },
+    ]
+  );
+}
+
+function buildDefaultDescription(
+  brandName: string,
+  subcategory: ProductSubcategory | undefined,
+  countryKey?: keyof typeof countryNames,
+  context?: BrandStoryContext
+) {
+  const countryEn = countryKey ? countryNames[countryKey].en : undefined;
+  const countryUa = countryKey ? countryNames[countryKey].ua : undefined;
+  const subEn = subcategory ? subcategoryNames[subcategory].en.toLowerCase() : 'performance parts';
+  const subUa = subcategory ? subcategoryNames[subcategory].ua : 'тюнінг та компоненти';
+
+  const contextEn = context === 'Moto' ? 'motorcycle' : context === 'Auto' ? 'automotive' : 'performance';
+  const contextUa = context === 'Moto' ? 'мото' : context === 'Auto' ? 'авто' : 'преміум';
+
+  return {
+    en: `${brandName} delivers premium ${contextEn} ${subEn}${countryEn ? ` from ${countryEn}` : ''}. Built for performance, fitment, and lasting reliability.`,
+    ua: `${brandName} — преміальні ${contextUa} рішення у категорії «${subUa}»${countryUa ? ` з ${countryUa}` : ''}. Орієнтовано на результат, точну сумісність та надійність.`,
+  };
+}
+
+export function getBrandStoryForBrand(brand: BrandStoryInput, context?: BrandStoryContext): BrandStory {
+  const curated = pickCuratedBrandStory(brand.name, context);
+  if (curated) return curated;
+
+  const meta = brandMetadata[brand.name];
+  const subcategory = meta?.subcategory;
+  const tagline = getSubcategoryTagline(subcategory, context);
+  const fallbackDescription = buildDefaultDescription(brand.name, subcategory, meta?.country, context);
+
+  return {
+    headline: {
+      en: `${brand.name} · ${tagline.en}`,
+      ua: `${brand.name} · ${tagline.ua}`,
+    },
+    description: {
+      en: brand.description ?? fallbackDescription.en,
+      ua: brand.descriptionUA ?? fallbackDescription.ua,
+    },
+    highlights: getSubcategoryHighlights(subcategory),
+  };
 }
 
 export const curatedBrandStories: Record<string, BrandStory> = {
@@ -22,8 +202,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   Akrapovic_Moto: {
     headline: { en: 'Akrapovic · The Sound of Performance', ua: 'Akrapovic · Еталон звуку та потужності' },
     description: {
-      en: 'Legendary titanium exhaust systems. The best choice for those seeking perfect sound and maximum performance.',
-      ua: 'Легендарні титанові вихлопні системи. Найкращий вибір для тих, хто шукає ідеальний звук та максимальну продуктивність.',
+      en: 'Legendary titanium exhaust systems tuned for sound, performance and weight reduction.',
+      ua: 'Легендарні титанові вихлопні системи, створені для звуку, продуктивності та зниження ваги.',
     },
     highlights: [
       { en: 'Titanium systems', ua: 'Титанові системи' },
@@ -51,16 +231,16 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       ua: 'Вихлопні системи, народжені на гоночному треку. Максимальна гучність, агресивний дизайн та безкомпромісна якість.',
     },
     highlights: [
-      { en: 'Official MotoGP exhaust', ua: 'Офіційний вихлоп MotoGP' },
+      { en: 'MotoGP-inspired development', ua: 'Розробка з ДНК MotoGP' },
       { en: 'Aggressive sound', ua: 'Агресивний звук' },
-      { en: 'Handmade in Italy', ua: 'Ручна робота з Італії' },
+      { en: 'Made in Italy', ua: 'Зроблено в Італії' },
     ],
   },
   Termignoni: {
     headline: { en: 'Termignoni · Italian Legend', ua: 'Termignoni · Італійська легенда' },
     description: {
-      en: 'Historic partner of Ducati and Honda. Exhaust systems combining classic style with modern technology.',
-      ua: 'Історичний партнер Ducati та Honda. Вихлопні системи, що поєднують класичний стиль з сучасними технологіями.',
+      en: 'Italian exhaust systems with racing heritage. Classic tone, modern materials, and precise fitment.',
+      ua: 'Італійські вихлопні системи з гоночною спадщиною. Класичний тон, сучасні матеріали та точна посадка.',
     },
     highlights: [
       { en: 'Italian design', ua: 'Італійський дизайн' },
@@ -83,8 +263,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'Ohlins': {
     headline: { en: 'Ohlins · The Gold Standard', ua: 'Ohlins · Золотий стандарт' },
     description: {
-      en: 'The best suspension in the world. Improves handling, comfort, and safety of your motorcycle on any road.',
-      ua: 'Найкраща підвіска у світі. Покращує керованість, комфорт та безпеку вашого мотоцикла на будь-якій дорозі.',
+      en: 'A benchmark in suspension. Improves handling, comfort, and confidence on road and track.',
+      ua: 'Еталон у світі підвісок. Покращує керованість, комфорт та впевненість на дорозі й треку.',
     },
     highlights: [
       { en: 'Swedish quality', ua: 'Шведська якість' },
@@ -107,8 +287,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'OZ Racing': {
     headline: { en: 'OZ Racing · Style and Speed', ua: 'OZ Racing · Стиль та швидкість' },
     description: {
-      en: 'Premium motorcycle wheels from a world leader. The perfect balance between strength, weight, and design.',
-      ua: 'Преміальні мотоциклетні диски від світового лідера. Ідеальний баланс між міцністю, вагою та дизайном.',
+      en: 'Premium motorcycle wheels from a renowned manufacturer. A balanced mix of strength, weight, and design.',
+      ua: 'Преміальні мотоциклетні диски від відомого виробника. Баланс між міцністю, вагою та дизайном.',
     },
     highlights: [
       { en: 'Italian style', ua: 'Італійський стиль' },
@@ -155,8 +335,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   Brembo_Moto: {
     headline: { en: 'Brembo · Absolute Control', ua: 'Brembo · Абсолютний контроль' },
     description: {
-      en: 'The best braking systems in the world. Maximum safety and braking efficiency in all conditions.',
-      ua: 'Найкращі гальмівні системи у світі. Максимальна безпека та ефективність гальмування в будь-яких умовах.',
+      en: 'High-performance braking components designed for confident control on street and track.',
+      ua: 'Високопродуктивні гальмівні компоненти для впевненого контролю на дорозі та треку.',
     },
     highlights: [
       { en: 'Powerful braking', ua: 'Потужне гальмування' },
@@ -275,8 +455,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'Novitec': {
     headline: { en: 'Novitec · Refinement for Supercars', ua: 'Novitec · Вишуканість для суперкарів' },
     description: {
-      en: 'Performance, sound, and style for the world\'s finest supercars. The gold standard in high-end tuning.',
-      ua: 'Продуктивність, звук та стиль для найкращих суперкарів світу. Золотий стандарт у тюнінгу високого класу.',
+      en: 'High-end performance, sound, and styling programs for supercars and GT platforms.',
+      ua: 'Преміальні програми продуктивності, звуку та стилю для суперкарів і GT-платформ.',
     },
     highlights: [
       { en: 'N-Largo Widebody', ua: 'N-Largo Widebody' },
@@ -287,8 +467,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'ABT': {
     headline: { en: 'ABT · From Racetrack to Road', ua: 'ABT · З треку на дорогу' },
     description: {
-      en: 'The #1 tuner for German premium vehicles. More power, better handling, and aggressive looks.',
-      ua: 'Тюнер №1 для німецьких преміальних авто. Більше потужності, краща керованість та агресивний вигляд.',
+      en: 'Performance upgrades and styling with strong racing roots. More power, sharper handling, and a distinctive look.',
+      ua: 'Апгрейди продуктивності та стилю з гоночним корінням. Більше потужності, точніша керованість і впізнаваний вигляд.',
     },
     highlights: [
       { en: 'Power upgrades', ua: 'Збільшення потужності' },
@@ -300,13 +480,13 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   Vorsteiner: {
     headline: { en: 'Vorsteiner Carbon Importer', ua: 'Vorsteiner — карбоновий імпортер' },
     description: {
-      en: 'Carbon aero programs for Lamborghini, Porsche, BMW and SUV flagships with factory-level fit.',
-      ua: 'Карбонові аеропакети для Lamborghini, Porsche, BMW та флагманських SUV з OEM-пасуванням.',
+      en: 'Carbon aero programs for premium performance platforms with precision-focused fitment.',
+      ua: 'Карбонові аеропакети для преміальних платформ з акцентом на точне пасування.',
     },
     highlights: [
       { en: 'Autoclave dry carbon & forged options', ua: 'Сухий та кований карбон з автоклава' },
-      { en: 'Paint-to-sample & PPF ready finishing', ua: 'Індивідуальне фарбування та готовність під PPF' },
-      { en: 'Install supervision + alignment presets', ua: 'Контроль монтажу та налаштування сходження' },
+      { en: 'Finishes ready for paint or PPF', ua: 'Покриття, готові під фарбу або PPF' },
+      { en: 'Fitment guidance for clean installs', ua: 'Поради по встановленню для чистого результату' },
     ],
   },
   Armytrix: {
@@ -316,9 +496,9 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       ua: 'Клапанні вихлопи зі смарт-брелоками, bluetooth-контролем та тихими режимами.',
     },
     highlights: [
-      { en: 'Titanium + stainless options in stock', ua: 'Титанові та сталеві опції на складі' },
-      { en: 'ECU-safe valve modules', ua: 'Блоки клапанів без помилок ECU' },
-      { en: 'Install + wiring diagrams translated', ua: 'Схеми монтажу та проводки українською' },
+      { en: 'Titanium and stainless options', ua: 'Титанові та сталеві опції' },
+      { en: 'Valve control designed to integrate cleanly', ua: 'Керування клапанами для коректної інтеграції' },
+      { en: 'Support for installation planning', ua: 'Підтримка у плануванні монтажу' },
     ],
   },
   CSF: {
@@ -329,8 +509,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
     },
     highlights: [
       { en: 'Drag + track proven cores', ua: 'Перевірені на драгу та треку ядра' },
-      { en: 'Heat exchanger bundles in stock', ua: 'Готові комплекти теплообмінників' },
-      { en: 'Coolant bleeding with telemetry report', ua: 'Прокачка з рипортом телеметрії' },
+      { en: 'Heat exchanger bundles available', ua: 'Доступні комплекти теплообмінників' },
+      { en: 'Cooling setup support and fitment', ua: 'Підбір та підтримка по сумісності' },
     ],
   },
   Manhart: {
@@ -340,9 +520,9 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       ua: 'Повні комплекти конверсій з аеро, дисками та прошивками для BMW, Audi, Mercedes.',
     },
     highlights: [
-      { en: 'Stage packages shipped as one crate', ua: 'Stage-комплекти в одному ящику' },
-      { en: 'Interior trims + steering wheels included', ua: 'Включені інтерʼєрні елементи та керма' },
-      { en: 'On-site coding and warranty docs', ua: 'Кодування та гарантійні документи на місці' },
+      { en: 'Stage-based upgrade philosophy', ua: 'Логіка апгрейдів по стадіях' },
+      { en: 'Exterior and interior styling options', ua: 'Опції екстерʼєру та інтерʼєру' },
+      { en: 'Support for coding/tuning coordination', ua: 'Підтримка з кодуванням/калібруванням' },
     ],
   },
   Renntech: {
@@ -409,8 +589,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'RYFT': {
     headline: { en: 'RYFT Titanium Artisan', ua: 'RYFT — титанове мистецтво' },
     description: {
-      en: "Hand-made titanium exhaust systems and carbon aero for the world's rarest cars.",
-      ua: 'Ручної роботи титанові вихлопи та карбон для найрідкісніших авто світу.',
+      en: 'Hand-finished titanium exhaust systems and carbon aero for limited-run and premium performance builds.',
+      ua: 'Титанові вихлопи та карбон з ручним фінішем для лімітованих і преміальних проєктів.',
     },
     highlights: [
       { en: 'Proprietary velocity loops', ua: 'Фірмові петлі швидкості' },
@@ -421,13 +601,13 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'Tubi Style': {
     headline: { en: 'Tubi Style Maranello', ua: 'Tubi Style — звук Маранелло' },
     description: {
-      en: 'The historic sound of Italian supercars, born and bred next to the Ferrari factory.',
-      ua: 'Історичний звук італійських суперкарів, народжений поруч із заводом Ferrari.',
+      en: 'Maranello-inspired sound and Italian craftsmanship for iconic supercar platforms.',
+      ua: 'Звук у стилі Маранелло та італійська майстерність для культових суперкар-платформ.',
     },
     highlights: [
       { en: 'Inconel racing systems', ua: 'Гоночні системи Inconel' },
       { en: 'Restoration classics', ua: 'Класика реставрації' },
-      { en: 'OEM supplier heritage', ua: 'Спадщина постачальника OEM' },
+      { en: 'Heritage-level craftsmanship', ua: 'Майстерність зі спадщиною' },
     ],
   },
   'Fabspeed': {
@@ -438,7 +618,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
     },
     highlights: [
       { en: 'Dyno-proven performance', ua: 'Підтверджена діно продуктивність' },
-      { en: 'Lifetime warranty', ua: 'Довічна гарантія' },
+      { en: 'Warranty-backed programs', ua: 'Гарантійні програми' },
       { en: 'CNC mandrel bending', ua: 'CNC гнуття' },
     ],
   },
@@ -457,8 +637,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'Nitron Suspension': {
     headline: { en: 'Nitron Racing Shocks', ua: 'Nitron — гоночні амортизатори' },
     description: {
-      en: 'Hand-built suspension systems from the UK, dominating track days and Nurburgring records.',
-      ua: 'Ручної збірки підвіски з Британії, що домінують на трек-днях та Нюрбургринзі.',
+      en: 'Hand-built suspension systems from the UK, popular for track days and performance builds.',
+      ua: 'Підвіски ручної збірки з Британії, популярні для трек-днів та продуктивних збірок.',
     },
     highlights: [
       { en: 'NTR R1/R3 kits', ua: 'Комплекти NTR R1/R3' },
@@ -469,8 +649,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'BC Racing': {
     headline: { en: 'BC Racing Coilovers', ua: 'BC Racing — койловери' },
     description: {
-      en: 'The most customizable coilover platform for street and track, offering immense value and performance.',
-      ua: 'Найбільш кастомізована платформа койловерів для вулиці та треку.',
+      en: 'A highly configurable coilover platform for street and track, balancing value and performance.',
+      ua: 'Гнучка платформа койловерів для вулиці та треку з балансом ціни й можливостей.',
     },
     highlights: [
       { en: 'BR & ER series', ua: 'Серії BR та ER' },
@@ -481,8 +661,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'MCA Suspension': {
     headline: { en: 'MCA Time Attack', ua: 'MCA — тайм-аттак підвіска' },
     description: {
-      en: "Australian engineered suspension that powers the world's fastest time attack cars.",
-      ua: 'Австралійська підвіска, що приводить у рух найшвидші тайм-аттак авто світу.',
+      en: 'Australian engineered suspension focused on time attack and track-focused performance.',
+      ua: 'Австралійська підвіска з фокусом на тайм-аттак та трекову продуктивність.',
     },
     highlights: [
       { en: 'Red Series competition', ua: 'Змагальна серія Red' },
@@ -529,8 +709,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'ADV.1 wheels': {
     headline: { en: 'ADV.1 Engineered Design', ua: 'ADV.1 — інженерний дизайн' },
     description: {
-      en: 'The industry leader in concave wheel design and engineering, offering limitless customization for exotics.',
-      ua: 'Лідер індустрії в дизайні та інженерії увігнутих дисків, що пропонує безмежну кастомізацію для екзотики.',
+      en: 'Known for concave wheel design and engineering, offering extensive customization for exotic builds.',
+      ua: 'Відомі дизайном та інженерією увігнутих дисків з широкою кастомізацією для екзотичних проєктів.',
     },
     highlights: [
       { en: 'Track Spec configurations', ua: 'Конфігурації Track Spec' },
@@ -829,8 +1009,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'Bride': {
     headline: { en: 'Bride Racing Seats', ua: 'Bride — гоночні крісла' },
     description: {
-      en: 'Japan\'s premier racing seat manufacturer, offering lightweight holding capability for circuit and drift.',
-      ua: 'Провідний японський виробник гоночних крісел, що пропонує легку фіксацію для кільця та дрифту.',
+      en: 'Renowned Japanese racing seat manufacturer, delivering lightweight support for circuit and drift.',
+      ua: 'Відомий японський виробник гоночних крісел з легкою фіксацією для кільця та дрифту.',
     },
     highlights: [
       { en: 'Low Max system', ua: 'Система Low Max' },
@@ -853,8 +1033,8 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'OMP': {
     headline: { en: 'OMP Racing', ua: 'OMP — рейсинг' },
     description: {
-      en: 'A world leader in motorsport safety equipment, supplying F1 and WRC teams with seats, suits, and steering wheels.',
-      ua: 'Світовий лідер у обладнанні безпеки для автоспорту, що постачає команди F1 та WRC кріслами, комбінезонами та кермами.',
+      en: 'Motorsport safety equipment brand known for seats, suits, and steering wheels used across racing disciplines.',
+      ua: 'Бренд обладнання безпеки для автоспорту: крісла, комбінезони та керма для різних дисциплін.',
     },
     highlights: [
       { en: 'HTE-R carbon seats', ua: 'Карбонові крісла HTE-R' },
@@ -889,20 +1069,20 @@ export const curatedBrandStories: Record<string, BrandStory> = {
   'Sabelt': {
     headline: { en: 'Sabelt Seatbelts & Seats', ua: 'Sabelt — ремені та крісла' },
     description: {
-      en: 'Italian safety equipment manufacturer providing high-performance seats and harnesses for Ferrari and McLaren.',
-      ua: 'Італійський виробник обладнання безпеки, що надає високопродуктивні крісла та ремені для Ferrari та McLaren.',
+      en: 'Italian safety equipment for performance and motorsport use: seats, belts, and restraint systems.',
+      ua: 'Італійське обладнання безпеки для продуктивних авто та автоспорту: крісла, ремені та системи утримання.',
     },
     highlights: [
       { en: 'Carbon fiber seats', ua: 'Карбонові крісла' },
       { en: 'Lightweight harnesses', ua: 'Легкі ремені' },
-      { en: 'OEM supplier for supercars', ua: 'Постачальник OEM для суперкарів' },
+      { en: 'Track-ready restraint solutions', ua: 'Трекові рішення для фіксації' },
     ],
   },
   'Pure Turbos': {
     headline: { en: 'Pure Turbos Upgrades', ua: 'Pure Turbos — апгрейди' },
     description: {
-      en: 'The world leader in pure turbocharger upgrades, offering stock-housing solutions for massive power gains.',
-      ua: 'Світовий лідер у апгрейдах турбокомпресорів, що пропонує рішення в штатному корпусі для значного приросту потужності.',
+      en: 'Turbocharger upgrade specialists offering stock-housing solutions for meaningful power gains with OEM-like fitment.',
+      ua: 'Спеціалісти з апгрейдів турбокомпресорів: рішення в штатному корпусі для відчутного приросту та коректної посадки.',
     },
     highlights: [
       { en: 'Pure800 / Pure1000 kits', ua: 'Комплекти Pure800 / Pure1000' },

@@ -75,7 +75,7 @@
     "autoCatalog": "Авто",
     "autoCatalogBrands": "160+ автомобільних брендів",
     "motoCatalog": "Мото",
-    "motoCatalogBrands": "40+ мото брендів",
+    "motoCatalogBrands": "60+ мото брендів",
     "viewCatalog": "Переглянути каталог",
     "b2bPrograms": "B2B програми опту",
     "partnerWithLeading": "Партнерство з провідним імпортером",
@@ -136,7 +136,7 @@
   "moto": {
     "title": "Мото",
     "heading": "Преміум вихлоп та підвіска",
-    "subtitle": "40+ преміум брендів для вашого мотоцикла",
+    "subtitle": "60+ преміум брендів для вашого мотоцикла",
     "featuredBrands": "Популярні бренди",
     "allBrands": "Всі бренди A-Z",
     "searchPlaceholder": "Пошук брендів...",

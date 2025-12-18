@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getBrandsByCategory, brandMetadata, countryNames, subcategoryNames } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
+import { getBrandStoryForBrand } from '@/lib/brandStories';
 import BrandLogosGrid from '@/components/sections/BrandLogosGrid';
 import CategoryCard from '@/components/ui/CategoryCard';
 import Link from 'next/link';
@@ -24,11 +25,20 @@ export default async function BrandsCategoryUSAPage({ params }: PageProps) {
 
   const items = brands.map(b => {
     const meta = brandMetadata[b.name];
+    const story = getBrandStoryForBrand(
+      { name: b.name, description: b.description, descriptionUA: b.descriptionUA },
+      'Auto'
+    );
+
     return {
       name: b.name,
       logoSrc: getBrandLogo(b.name),
       country: meta ? countryNames[meta.country][lang] : undefined,
       subcategory: meta ? subcategoryNames[meta.subcategory][lang] : undefined,
+      website: b.website,
+      headline: story.headline[lang],
+      description: story.description[lang],
+      highlights: story.highlights.map((h) => h[lang]),
     };
   });
 

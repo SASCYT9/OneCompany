@@ -10,8 +10,8 @@ import {
   subcategoryNames, 
   allAutomotiveBrands, 
   allMotoBrands,
-  LocalBrand 
 } from '@/lib/brands';
+import { getBrandStoryForBrand } from '@/lib/brandStories';
 import { BrandModal } from '@/components/ui/BrandModal';
 import { BrandItem } from '@/components/sections/BrandLogosGrid';
 
@@ -34,7 +34,20 @@ export default function BrandsPage() {
 
     const allBrands = [...allAutomotiveBrands, ...allMotoBrands];
     const brandData = allBrands.find(b => b.name === name);
-    const description = lang === 'ua' ? brandData?.descriptionUA : brandData?.description;
+
+      const context = brandData?.category === 'moto' ? 'Moto' : brandData?.category === 'auto' ? 'Auto' : undefined;
+      const story = getBrandStoryForBrand(
+        {
+          name,
+          description: brandData?.description,
+          descriptionUA: brandData?.descriptionUA,
+        },
+        context
+      );
+
+    const description = story.description[lang];
+    const headline = story.headline[lang];
+    const highlights = story.highlights.map((h) => h[lang]);
     const website = brandData?.website;
 
     setSelectedBrand({
@@ -43,7 +56,9 @@ export default function BrandsPage() {
       country,
       subcategory,
       description,
-      website
+      website,
+      headline,
+      highlights,
     });
   };
 
