@@ -194,6 +194,7 @@ export default async function LocalizedHomePage({
           </div>
         </div>
       </section>
+      
       <StickyScroll items={carouselItems} />
 
       {/* Hidden for now - duplicates hero cards functionality

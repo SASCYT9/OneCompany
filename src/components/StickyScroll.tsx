@@ -59,25 +59,25 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
   });
 
   return (
-    <section ref={ref} className="relative w-full max-w-6xl mx-auto px-4 sm:px-6 py-24">
-      <div className="flex flex-col lg:flex-row gap-10 lg:gap-20">
-        {/* Left Column: Text Content */}
-        <div className="w-full lg:w-1/2 relative z-10">
+    <section ref={ref} className="relative w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-24">
+      <div className="flex flex-col items-center">
+        {/* Centered Text Content */}
+        <div className="w-full max-w-4xl relative z-10">
           {items.map((item, index) => {
             const Icon = ICONS[item.id] || BadgeCheck;
             return (
               <div 
                 key={item.id} 
                 className={clsx(
-                  "flex flex-col justify-center transition-all duration-500",
+                  "flex flex-col justify-center items-center text-center transition-all duration-500",
                   // Mobile: Card Style
                   "min-h-[50vh] mb-16 p-8 rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-md relative overflow-hidden",
                   // Desktop: Clean Text Style
                   "lg:min-h-[60vh] lg:mb-0 lg:p-0 lg:rounded-none lg:border-none lg:bg-transparent lg:backdrop-blur-none lg:overflow-visible",
                   // Active State
                   activeCard === index 
-                    ? "opacity-100 translate-x-0 scale-100" 
-                    : "opacity-40 blur-[1px] scale-95 lg:opacity-20 lg:blur-[2px] lg:-translate-x-4 lg:scale-100"
+                    ? "opacity-100 translate-y-0 scale-100 blur-0" 
+                    : "opacity-30 blur-[2px] scale-95 translate-y-4"
                 )}
               >
                 {/* Mobile Watermark */}
@@ -90,88 +90,31 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
                    />
                 </div>
 
-                <div className="flex items-center gap-4 mb-6 lg:hidden relative z-10">
-                  <div className="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md">
-                    <Icon className="w-6 h-6 text-white/80" strokeWidth={1.5} />
+                <div className="flex items-center justify-center gap-4 mb-6 relative z-10">
+                  <div className={clsx(
+                    "p-4 rounded-2xl border backdrop-blur-md transition-all duration-500",
+                    activeCard === index 
+                      ? "bg-white/10 border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)]" 
+                      : "bg-white/5 border-white/10"
+                  )}>
+                    <Icon className="w-8 h-8 text-white/90" strokeWidth={1.5} />
                   </div>
                 </div>
 
-                <span className="text-xs font-mono text-white/50 mb-4 block uppercase tracking-widest relative z-10">{item.eyebrow}</span>
-                <h3 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight relative z-10">
+                <span className="text-xs font-mono text-white/50 mb-6 block uppercase tracking-[0.2em] relative z-10">{item.eyebrow}</span>
+                <h3 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight relative z-10 tracking-tight">
                   {item.title}
                 </h3>
-                <p className="text-lg text-white/60 leading-relaxed max-w-md relative z-10">
+                <p className="text-lg md:text-xl text-white/60 leading-relaxed max-w-2xl mx-auto relative z-10 text-pretty">
                   {item.description}
                 </p>
-                <div className="mt-8 pt-8 border-t border-white/10 relative z-10">
+                <div className="mt-10 pt-10 border-t border-white/10 w-full max-w-xs mx-auto relative z-10">
                   <span className="text-sm text-white/40 uppercase tracking-widest">{item.meta}</span>
                 </div>
               </div>
             );
           })}
           <div className="h-[20vh]" />
-        </div>
-
-        {/* Right Column: Sticky Visuals */}
-        <div className="hidden lg:block w-full lg:w-1/2 sticky top-32 h-[600px] flex items-center justify-center">
-           <div className="relative w-full aspect-square max-w-[500px]">
-             {items.map((item, index) => {
-               const Icon = ICONS[item.id] || BadgeCheck;
-               return (
-                 <motion.div
-                   key={item.id}
-                   initial={{ opacity: 0, scale: 0.9, filter: "blur(20px)" }}
-                   animate={{ 
-                     opacity: activeCard === index ? 1 : 0, 
-                     scale: activeCard === index ? 1 : 0.9,
-                     filter: activeCard === index ? "blur(0px)" : "blur(20px)",
-                     zIndex: activeCard === index ? 10 : 0
-                   }}
-                   transition={{ duration: 0.7, ease: "circOut" }}
-                   className="absolute inset-0 rounded-3xl bg-black/80 border border-white/10 backdrop-blur-2xl p-10 flex flex-col justify-between overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-                 >
-                    {/* Cinematic Background - Monochrome Spotlight & Grain */}
-                    <div className="absolute inset-0 bg-[url('/images/noise.png')] opacity-[0.03] mix-blend-overlay pointer-events-none" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-50" />
-                    <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-white/5 blur-[100px] rounded-full pointer-events-none" />
-                    
-                    {/* Watermark Logo */}
-                    <div className="absolute -bottom-20 -right-20 w-[120%] h-[120%] opacity-[0.03] pointer-events-none rotate-[-15deg]">
-                       <Image 
-                         src="/branding/one-company-logo.svg" 
-                         alt="Watermark" 
-                         fill
-                         className="object-contain invert"
-                       />
-                    </div>
-
-                    {/* Content */}
-                    <div className="relative z-10 flex justify-end items-start">
-                      <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl">
-                        <Icon className="w-12 h-12 text-white/80" strokeWidth={1} />
-                      </div>
-                    </div>
-
-                    <div className="relative z-10 mt-auto">
-                       <div className="h-px w-full bg-white/10 mb-6 relative overflow-hidden">
-                          <motion.div 
-                            initial={{ x: "-100%" }}
-                            animate={{ x: activeCard === index ? "0%" : "-100%" }}
-                            transition={{ duration: 1.5, ease: "circOut" }}
-                            className="absolute inset-0 bg-white/50"
-                          />
-                       </div>
-                       <div className="text-2xl font-light text-white mb-2">
-                         {item.title}
-                       </div>
-                       <div className="text-sm text-white/40 font-mono uppercase tracking-widest">
-                         {item.eyebrow}
-                       </div>
-                    </div>
-                 </motion.div>
-               );
-             })}
-           </div>
         </div>
       </div>
     </section>
