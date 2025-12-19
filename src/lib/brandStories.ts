@@ -384,7 +384,7 @@ export const curatedBrandStories: Record<string, BrandStory> = {
     headline: { en: 'Brabus · Status & Elegance', ua: 'Brabus · Статус та елегантність' },
     description: {
       en: 'Luxury tuning for premium vehicles. Focusing on exterior refinement, power upgrades, and signature exhaust systems.',
-      ua: 'Розкішний тюнінг для преміальних авто. Акцент на екстер\'єрі, збільшенні потужності та фірмових вихлопних системах.',
+      ua: 'Розкішний тюнінг для преміальних авто. Елегантний екстер\'єр, вражаюча потужність та фірмове звучання.',
     },
     highlights: [
       { en: 'Exterior Aerodynamics', ua: 'Аеродинаміка екстер\'єру' },
