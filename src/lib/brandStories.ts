@@ -381,27 +381,27 @@ export const curatedBrandStories: Record<string, BrandStory> = {
     ],
   },
   'Brabus': {
-    headline: { en: 'Brabus · High-Performance Automobiles', ua: 'Brabus · Високопродуктивні автомобілі' },
+    headline: { en: 'Brabus · Status & Elegance', ua: 'Brabus · Статус та елегантність' },
     description: {
-      en: 'The ultimate tuning for premium vehicles. Extreme power, exclusive interiors, and aggressive design.',
-      ua: 'Ультимативний тюнінг для преміальних авто. Екстремальна потужність, ексклюзивні інтер\'єри та агресивний дизайн.',
+      en: 'Luxury tuning for premium vehicles. Focusing on exterior refinement, power upgrades, and signature exhaust systems.',
+      ua: 'Розкішний тюнінг для преміальних авто. Акцент на екстер\'єрі, збільшенні потужності та фірмових вихлопних системах.',
     },
     highlights: [
-      { en: 'Rocket Supercars', ua: 'Суперкари Rocket' },
-      { en: 'Masterpiece Interiors', ua: 'Інтер\'єри Masterpiece' },
+      { en: 'Exterior Aerodynamics', ua: 'Аеродинаміка екстер\'єру' },
+      { en: 'PowerXtra Performance', ua: 'Збільшення потужності PowerXtra' },
       { en: 'Monoblock Wheels', ua: 'Диски Monoblock' },
     ],
   },
   'Mansory': {
-    headline: { en: 'Mansory · More Than Tradition', ua: 'Mansory · Більше ніж традиція' },
+    headline: { en: 'Mansory · Carbon Excellence', ua: 'Mansory · Карбонова досконалість' },
     description: {
-      en: 'Bold customization for luxury cars. Unique carbon fiber bodywork and handcrafted interiors.',
-      ua: 'Смілива кастомізація для розкішних авто. Унікальний карбоновий обвіс та інтер\'єри ручної роботи.',
+      en: 'Exclusive customization for luxury cars. Premium carbon fiber body kits, forged wheels, and performance upgrades.',
+      ua: 'Ексклюзивна кастомізація для розкішних авто. Преміальні карбонові обвіси, ковані диски та збільшення потужності.',
     },
     highlights: [
-      { en: 'Complete conversions', ua: 'Повні конверсії авто' },
-      { en: 'Forged Carbon', ua: 'Кований карбон' },
-      { en: 'Bespoke leather', ua: 'Індивідуальна шкіра' },
+      { en: 'Carbon Body Kits', ua: 'Карбонові обвіси' },
+      { en: 'Forged Wheels', ua: 'Ковані диски' },
+      { en: 'Performance Exhaust', ua: 'Вихлопні системи' },
     ],
   },
   'HRE wheels': {

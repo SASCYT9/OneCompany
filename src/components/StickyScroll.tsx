@@ -102,7 +102,7 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
                 </div>
 
                 <span className="text-xs font-mono text-white/50 mb-6 block uppercase tracking-[0.2em] relative z-10">{item.eyebrow}</span>
-                <h3 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight relative z-10 tracking-tight">
+                <h3 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight relative z-10 tracking-tight text-balance">
                   {item.title}
                 </h3>
                 <p className="text-lg md:text-xl text-white/60 leading-relaxed max-w-2xl mx-auto relative z-10 text-pretty">

@@ -31,7 +31,7 @@ export function Header() {
       <div className="relative mx-2 flex max-w-6xl items-center rounded-2xl border border-white/10 bg-gradient-to-r from-white/5 via-white/5 to-transparent px-3 py-2.5 backdrop-blur-3xl sm:mx-auto sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8">
         <Link
           href={`/${locale}`}
-          className="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0 inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           aria-label="ONE COMPANY home"
         >
           <Logo className="w-20 sm:w-28 md:w-32" priority tone="light" size="compact" />
