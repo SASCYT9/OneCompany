@@ -13,7 +13,7 @@ export default function PartnershipPageClient() {
   const [formData, setFormData] = useState({
     companyName: "",
     website: "",
-    contactPerson: "",
+    contactName: "",
     email: "",
     phone: "",
     type: "sto" as PartnershipType,
@@ -23,7 +23,7 @@ export default function PartnershipPageClient() {
   const [message, setMessage] = useState("");
 
   // Progress (percentage of required fields filled)
-  const requiredKeys: (keyof typeof formData)[] = ["companyName", "contactPerson", "email", "phone", "message"];
+  const requiredKeys: (keyof typeof formData)[] = ["companyName", "contactName", "email", "phone", "message"];
   const completion = Math.round(
     (requiredKeys.filter(k => formData[k].trim().length > 0).length / requiredKeys.length) * 100
   );
@@ -46,7 +46,7 @@ export default function PartnershipPageClient() {
       setFormData({
         companyName: "",
         website: "",
-        contactPerson: "",
+        contactName: "",
         email: "",
         phone: "",
         type: "sto",
@@ -184,7 +184,7 @@ export default function PartnershipPageClient() {
                     <Globe className="w-4 h-4" /> {t("form.website")}
                   </label>
                   <input
-                    type="url"
+                    type="text"
                     value={formData.website}
                     onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/30 transition-colors"
@@ -200,8 +200,8 @@ export default function PartnershipPageClient() {
                   <input
                     type="text"
                     required
-                    value={formData.contactPerson}
-                    onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+                    value={formData.contactName}
+                    onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/30 transition-colors"
                   />
                 </div>

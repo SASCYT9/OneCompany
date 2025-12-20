@@ -69,7 +69,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'DMC': '/logos/dmc.svg',
   'do88': '/logos/do88.png',
   'Dominator Exhaust': '/logos/dominator-exhaust.svg',
-  'Domino': '/logos/domino.svg',
+  'Domino': '/logos/domino.png',
   'Dorch Engineering': '/logos/dorch-engineering.png',
   'Drenth Gearboxes': '/logos/drenth-gearboxes.svg',
   'Driveshaftshop': '/logos/driveshaftshop.png',
