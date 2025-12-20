@@ -18,7 +18,6 @@ const Footer = () => {
     company: [
       { name: t('home'), href: `/${locale}` },
       { name: t('about'), href: `/${locale}/about` },
-      { name: t('brands'), href: `/${locale}/brands` },
       { name: t('contact'), href: `/${locale}/contact` },
     ],
     services: [
@@ -143,6 +142,18 @@ const Footer = () => {
                   +380 (44) 278 12 34
                 </a>
                 <p className="text-xs text-white/40">{t('workingHours')}</p>
+              </div>
+              
+              {/* Map Embed */}
+              <div className="mt-4 h-32 w-full overflow-hidden rounded-lg border border-white/10 bg-white/5 grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+                <iframe 
+                  width="100%" 
+                  height="100%" 
+                  title="OneCompany Location"
+                  src="https://maps.google.com/maps?q=21B%20Baseina%20St%2C%20Kyiv%2C%20Ukraine&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                  style={{ border: 0 }}
+                  loading="lazy"
+                />
               </div>
             </div>
           </div>

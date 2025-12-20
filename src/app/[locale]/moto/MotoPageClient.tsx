@@ -16,6 +16,7 @@ import {
   getLocalizedSubcategory,
 } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
+import { shouldInvertBrand } from '@/lib/invertBrands';
 import { categoryData } from '@/lib/categoryData';
 
 import { BrandModal } from '@/components/ui/BrandModal';
@@ -545,7 +546,7 @@ export default function MotoPage() {
 
                 <div className="flex-1 flex items-center justify-center py-4">
                   <div className="relative w-full max-w-[160px] h-16 sm:h-20">
-                    <Image src={getBrandLogo('Akrapovic')} alt="Akrapovic" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+                    <Image src={getBrandLogo('Akrapovic')} alt="Akrapovic" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${shouldInvertBrand('Akrapovic') ? 'filter brightness-0 invert' : ''}`} unoptimized />
                   </div>
                 </div>
                 <div className="flex items-end justify-between">
@@ -735,7 +736,7 @@ export default function MotoPage() {
                             src={getBrandLogo(brand.name)} 
                             alt={brand.name} 
                             fill 
-                            className="object-contain opacity-70 hover:opacity-100 transition-opacity" 
+                            className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`} 
                             unoptimized 
                           />
                         </div>
@@ -759,7 +760,7 @@ export default function MotoPage() {
                             src={getBrandLogo(brand.name)} 
                             alt={brand.name} 
                             fill 
-                            className="object-contain opacity-70 hover:opacity-100 transition-opacity" 
+                            className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`} 
                             unoptimized 
                           />
                         </div>
@@ -1006,7 +1007,7 @@ export default function MotoPage() {
                       src={getBrandLogo(brand.name)}
                       alt={brand.name}
                       fill
-                      className="object-contain object-center transition-all duration-500"
+                      className={`object-contain object-center transition-all duration-500 ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                       sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                       unoptimized
                     />

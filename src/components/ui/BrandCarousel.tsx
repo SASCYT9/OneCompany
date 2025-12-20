@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { shouldInvertBrand } from "@/lib/invertBrands";
 
 interface Brand {
   name: string;
@@ -79,7 +80,7 @@ export default function BrandCarousel({
                 alt={brand.name}
                 width={140}
                 height={70}
-                className="object-contain opacity-80 group-hover/card:opacity-100 transition-opacity duration-300 relative z-10"
+                className={`object-contain opacity-80 group-hover/card:opacity-100 transition-opacity duration-300 relative z-10 ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
               />
             </motion.div>
           ))}

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getBrandLogo } from '@/lib/brandLogos';
+import { shouldInvertBrand } from '@/lib/invertBrands';
 import { getBrandMetadata, LocalBrand, countryNames, subcategoryNames, getLocalizedCountry } from '@/lib/brands';
 import { CategoryData } from '@/lib/categoryData';
 import { BreadcrumbSchema, CollectionPageSchema } from '@/components/seo/StructuredData';
@@ -143,7 +144,7 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
                           src={logo}
                           alt={brand.name}
                           fill
-                          className="object-contain transition-all duration-500 group-hover:scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                          className={`object-contain transition-all duration-500 group-hover:scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           unoptimized
                         />

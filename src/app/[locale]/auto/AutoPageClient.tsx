@@ -17,7 +17,7 @@ import {
   getLocalizedSubcategory,
 } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { isDarkLogo } from '@/lib/darkLogos';
+import { shouldInvertBrand } from '@/lib/invertBrands';
 import { categoryData } from '@/lib/categoryData';
 import type { CategoryData } from '@/lib/categoryData';
 
@@ -214,7 +214,7 @@ export default function AutomotivePage() {
   const selectedBrandSubcategory = selectedBrand ? getBrandSubcategory(selectedBrand) : null;
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans relative">
+    <div className="min-h-dvh bg-black text-white font-sans relative">
       <div className="fixed inset-0 z-0 bg-black">
         <video
           autoPlay
@@ -317,7 +317,7 @@ export default function AutomotivePage() {
                       src={getBrandLogo('Akrapovic')}
                       alt="Akrapovic"
                       fill
-                      className="object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_80px_rgba(255,255,255,0.2)]"
+                      className={`object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_80px_rgba(255,255,255,0.2)] ${shouldInvertBrand('Akrapovic') ? 'filter brightness-0 invert' : ''}`}
                       unoptimized
                     />
                   </div>
@@ -361,7 +361,7 @@ export default function AutomotivePage() {
                       src={getBrandLogo('Brabus')}
                       alt="Brabus"
                       fill
-                      className="object-contain brightness-0 invert drop-shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all duration-700 group-hover:scale-110"
+                      className={`object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all duration-700 group-hover:scale-110 ${shouldInvertBrand('Brabus') ? 'filter brightness-0 invert' : ''}`}
                       unoptimized
                     />
                   </div>
@@ -404,7 +404,7 @@ export default function AutomotivePage() {
                       src={getBrandLogo('Mansory')}
                       alt="Mansory"
                       fill
-                      className="object-contain brightness-0 invert opacity-95 drop-shadow-[0_0_25px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110"
+                      className="object-contain opacity-95 drop-shadow-[0_0_25px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110"
                       unoptimized
                     />
                   </div>
@@ -589,7 +589,7 @@ export default function AutomotivePage() {
                       src={getBrandLogo('ABT')}
                       alt="ABT"
                       fill
-                      className="object-contain opacity-95 transition-all duration-700 group-hover:scale-110"
+                      className={`object-contain opacity-95 transition-all duration-700 group-hover:scale-110 ${shouldInvertBrand('ABT') ? 'filter brightness-0 invert' : ''}`}
                       unoptimized
                     />
                   </div>
@@ -663,7 +663,7 @@ export default function AutomotivePage() {
                             src={getBrandLogo(brand.name)} 
                             alt={brand.name} 
                             fill 
-                            className="object-contain opacity-70 hover:opacity-100 transition-opacity" 
+                            className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                             unoptimized 
                           />
                         </div>
@@ -687,7 +687,7 @@ export default function AutomotivePage() {
                             src={getBrandLogo(brand.name)} 
                             alt={brand.name} 
                             fill 
-                            className="object-contain opacity-70 hover:opacity-100 transition-opacity" 
+                            className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                             unoptimized 
                           />
                         </div>
@@ -912,7 +912,6 @@ export default function AutomotivePage() {
               const subcategory = getBrandSubcategory(brand);
               const collections = getBrandCollections(brand.name);
               const logoSrc = getBrandLogo(brand.name);
-              const isDark = isDarkLogo(logoSrc);
 
               return (
                 <motion.button
@@ -936,7 +935,7 @@ export default function AutomotivePage() {
                         src={logoSrc}
                         alt={brand.name}
                         fill
-                        className="object-contain object-center"
+                        className={`object-contain object-center ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                         sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                         unoptimized
                       />

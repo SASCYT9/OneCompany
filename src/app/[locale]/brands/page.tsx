@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useLocale } from 'next-intl';
 import Image from 'next/image';
 import { BRAND_LOGO_MAP } from '@/lib/brandLogos';
+import { shouldInvertBrand } from '@/lib/invertBrands';
 import { 
   getBrandMetadata, 
   countryNames, 
@@ -107,7 +108,7 @@ export default function BrandsPage() {
                     src={logo}
                     alt={name}
                     fill
-                    className="object-contain"
+                    className={`object-contain ${shouldInvertBrand(name) ? 'filter brightness-0 invert' : ''}`}
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
                   />
                 </div>

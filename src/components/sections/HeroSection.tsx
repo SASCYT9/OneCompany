@@ -29,7 +29,7 @@ export function HeroSection({ videoSrc, title, subtitle }: HeroSectionProps) {
   }, []);
 
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
+    <section className="relative h-dvh w-full flex items-center justify-center overflow-hidden">
       <video
         className="absolute top-0 left-0 w-full h-full object-cover z-0"
         src={videoSrc}

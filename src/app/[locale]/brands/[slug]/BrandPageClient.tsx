@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { getBrandLogo } from '@/lib/brandLogos';
+import { shouldInvertBrand } from '@/lib/invertBrands';
 import { getBrandMetadata, getLocalizedCountry, getLocalizedSubcategory, LocalBrand } from '@/lib/brands';
 import { BrandStory } from '@/lib/brandStories';
 
@@ -51,7 +52,7 @@ export default function BrandPageClient({ brand, story, locale }: Props) {
               src={getBrandLogo(brand.name)}
               alt={brand.name}
               fill
-              className="object-contain p-6"
+              className={`object-contain p-6 ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
               unoptimized
               priority
             />

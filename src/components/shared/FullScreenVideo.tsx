@@ -49,7 +49,7 @@ export function FullScreenVideo({ src, enabled = true, overlayOpacity = 'from-bl
       video.removeEventListener('error', handleError);
       clearTimeout(timeout);
     };
-  }, []);
+  }, [isLoaded]);
 
   if (hasError || !enabled) {
     console.log('Video error, falling back to gradient background');

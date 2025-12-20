@@ -5,7 +5,7 @@ export default async function FullScreenVideo() {
   const heroVideo = `/videos/${videoConfig.heroVideo}`;
 
   return (
-    <div className="fixed inset-0 -z-30 h-screen w-screen">
+    <div className="fixed inset-0 -z-30 h-dvh w-screen">
       <video
         autoPlay
         loop

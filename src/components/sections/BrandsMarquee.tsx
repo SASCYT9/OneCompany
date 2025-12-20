@@ -3,8 +3,8 @@
 import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { gsap } from 'gsap';
-import Link from 'next/link';
 import { getBrandLogo } from '@/lib/brandLogos';
+import { shouldInvertBrand } from '@/lib/invertBrands';
 
 // Select top brands from automotive and moto categories
 const topBrands = [
@@ -77,7 +77,7 @@ export default function BrandsMarquee() {
                 alt={brand.name}
                 width={160}
                 height={80}
-                className="object-contain"
+                className={`object-contain ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                 unoptimized
               />
             </div>
@@ -86,7 +86,7 @@ export default function BrandsMarquee() {
       </div>
 
       {/* CTA below marquee */}
-      <div className="text-center mt-16">
+      {/* <div className="text-center mt-16">
         <Link
           href="brands"
           className="inline-flex items-center gap-2 px-6 py-3 border border-white/20 rounded-full text-sm text-white/80 hover:text-white hover:border-white/40 transition-all group"
@@ -96,7 +96,7 @@ export default function BrandsMarquee() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </Link>
-      </div>
+      </div> */}
     </section>
   );
 }

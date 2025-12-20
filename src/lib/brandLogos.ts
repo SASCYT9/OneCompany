@@ -3,6 +3,7 @@
 // Total logos: 243
 
 export const BRAND_LOGO_MAP: Record<string, string> = {
+  '034 Motorsport': '/logos/034-motorsport.png',
   '1016 Industries': '/logos/1016-industries.webp',
   '1221 wheels': '/logos/1221-wheels.png',
   '3D Design': '/logos/3d-design.png',

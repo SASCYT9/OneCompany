@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { X, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BrandItem } from '../sections/BrandLogosGrid';
+import { shouldInvertBrand } from '@/lib/invertBrands';
 
 interface BrandModalProps {
   brand: BrandItem | null;
@@ -70,7 +71,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                       src={brand.logoSrc}
                       alt={brand.name}
                       fill
-                      className="object-contain drop-shadow-2xl"
+                      className={`object-contain drop-shadow-2xl ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                       unoptimized
                     />
                   </div>

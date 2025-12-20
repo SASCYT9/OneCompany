@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import { useState, useMemo } from 'react';
 import { BrandModal } from '../ui/BrandModal';
+import { shouldInvertBrand } from '@/lib/invertBrands';
 
 export interface BrandItem {
   name: string;
@@ -91,7 +92,7 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
                             src={brand.logoSrc}
                             alt={brand.name}
                             fill
-                            className="object-contain opacity-80 group-hover:opacity-100 transition-opacity"
+                            className={`object-contain opacity-80 group-hover:opacity-100 transition-opacity ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
                             unoptimized
                             priority={false}

@@ -301,11 +301,11 @@ const LandingPage = () => {
           </AnimatedSection>
 
           {/* View All Button */}
-          <div className="text-center mt-20">
+          {/* <div className="text-center mt-20">
             <AnimatedButton href="/brands" variant="outline" size="lg">
               View All Brands
             </AnimatedButton>
-          </div>
+          </div> */}
         </div>
       </section>
 
