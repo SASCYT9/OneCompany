@@ -700,11 +700,8 @@ export default function MotoPage() {
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
                   <div className="text-center lg:text-left">
                     <div className="flex items-baseline gap-3 justify-center lg:justify-start">
-                      <span className="text-5xl sm:text-6xl lg:text-7xl font-extralight text-white">
-                        +40
-                      </span>
-                      <span className="text-lg sm:text-xl text-white/60 font-light">
-                        {locale === 'ua' ? 'брендів' : 'brands'}
+                      <span className="text-4xl sm:text-5xl lg:text-6xl font-extralight text-white">
+                        {locale === 'ua' ? 'Всі бренди' : 'All brands'}
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-white/50">
@@ -725,8 +722,12 @@ export default function MotoPage() {
                   {/* First row - scrolling left */}
                   <div className="flex gap-6 mb-4 animate-scroll-left">
                     {[...allMotoBrands.slice(0, 20), ...allMotoBrands.slice(0, 20)].map((brand, idx) => (
-                      <div 
+                      <button 
                         key={`row1-${brand.name}-${idx}`} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedBrand(brand);
+                        }}
                         className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300"
                       >
                         <div className="relative w-full h-full">
@@ -738,15 +739,19 @@ export default function MotoPage() {
                             unoptimized 
                           />
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                   
                   {/* Second row - scrolling right */}
                   <div className="flex gap-6 animate-scroll-right">
                     {[...allMotoBrands.slice(20, 40), ...allMotoBrands.slice(20, 40)].map((brand, idx) => (
-                      <div 
+                      <button 
                         key={`row2-${brand.name}-${idx}`} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedBrand(brand);
+                        }}
                         className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300"
                       >
                         <div className="relative w-full h-full">
@@ -758,7 +763,7 @@ export default function MotoPage() {
                             unoptimized 
                           />
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
