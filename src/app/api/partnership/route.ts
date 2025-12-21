@@ -47,10 +47,14 @@ async function sendTelegram(message: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   // Use AUTO chat ID as default for partnerships or maybe a general one if available.
   // Assuming AUTO is the main channel for now.
-  const chatId = process.env.TELEGRAM_AUTO_CHAT_ID;
+  const chatId = process.env.TELEGRAM_AUTO_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
   
   if (!token || !chatId) {
-    console.error('Telegram environment variables are not set!');
+    console.error('Telegram env is missing for partnership notification', {
+      hasToken: !!token,
+      hasChatId: !!chatId,
+      requiredChatEnv: ['TELEGRAM_AUTO_CHAT_ID', 'TELEGRAM_CHAT_ID'],
+    });
     return { ok: false, error: 'Missing bot env' };
   }
 

@@ -67,12 +67,18 @@ function rateLimit(ip: string): boolean {
 
 async function sendTelegram(message: string, type: ContactType) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = type === 'auto' 
-    ? process.env.TELEGRAM_AUTO_CHAT_ID 
-    : process.env.TELEGRAM_MOTO_CHAT_ID;
+  const chatId = type === 'auto'
+    ? (process.env.TELEGRAM_AUTO_CHAT_ID || process.env.TELEGRAM_CHAT_ID)
+    : (process.env.TELEGRAM_MOTO_CHAT_ID || process.env.TELEGRAM_CHAT_ID);
   
   if (!token || !chatId) {
-    console.error('Telegram environment variables are not set!');
+    console.error('Telegram env is missing for contact notification', {
+      hasToken: !!token,
+      hasChatId: !!chatId,
+      requiredChatEnv: type === 'auto'
+        ? ['TELEGRAM_AUTO_CHAT_ID', 'TELEGRAM_CHAT_ID']
+        : ['TELEGRAM_MOTO_CHAT_ID', 'TELEGRAM_CHAT_ID'],
+    });
     return { ok: false, error: 'Missing bot env' };
   }
 
