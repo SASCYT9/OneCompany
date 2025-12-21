@@ -4,8 +4,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Secret for initial setup (use ADMIN_API_SECRET from env)
-const SETUP_SECRET = process.env.ADMIN_API_SECRET || process.env.TELEGRAM_BOT_TOKEN?.slice(-20);
+// Secret for initial setup
+const SETUP_SECRET = process.env.ADMIN_API_SECRET;
 
 // GET - List admins or add first admin
 export async function GET(request: NextRequest) {
@@ -14,8 +14,14 @@ export async function GET(request: NextRequest) {
   const action = searchParams.get('action');
   const telegramId = searchParams.get('id');
   const name = searchParams.get('name');
-  
-  if (secret !== SETUP_SECRET) {
+
+  if (!SETUP_SECRET) {
+    return NextResponse.json({ error: 'ADMIN_API_SECRET not configured' }, { status: 500 });
+  }
+
+  const authHeader = request.headers.get('authorization');
+  const bearer = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+  if (secret !== SETUP_SECRET && bearer !== SETUP_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   

@@ -9,7 +9,12 @@ const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
 
 export async function POST(request: NextRequest) {
   try {
-    // Validate secret token if set
+    // Validate secret token (required in production)
+    if (process.env.NODE_ENV === 'production' && !WEBHOOK_SECRET) {
+      console.error('TELEGRAM_WEBHOOK_SECRET is not configured');
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
+    }
+
     if (WEBHOOK_SECRET) {
       const secretHeader = request.headers.get('x-telegram-bot-api-secret-token');
       if (secretHeader !== WEBHOOK_SECRET) {
@@ -37,9 +42,13 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get('action');
   const secret = searchParams.get('secret');
+
+  const adminSecret = process.env.ADMIN_API_SECRET;
+  const authHeader = request.headers.get('authorization');
+  const bearer = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
   
   // Require secret for webhook setup
-  if (secret !== process.env.ADMIN_API_SECRET) {
+  if (!adminSecret || (secret !== adminSecret && bearer !== adminSecret)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   

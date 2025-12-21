@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
 
 const prisma = new PrismaClient();
 
@@ -288,8 +289,24 @@ function setUserLanguage(userId: number, lang: 'uk' | 'en') {
  */
 export async function POST(req: NextRequest) {
   try {
+    // Reject spoofed updates: Telegram will include this header when webhook was set with secret_token
+    if (process.env.NODE_ENV === 'production' && !TELEGRAM_WEBHOOK_SECRET) {
+      console.error('TELEGRAM_WEBHOOK_SECRET is not configured');
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
+    }
+
+    if (TELEGRAM_WEBHOOK_SECRET) {
+      const secretHeader = req.headers.get('x-telegram-bot-api-secret-token');
+      if (secretHeader !== TELEGRAM_WEBHOOK_SECRET) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+
     const update: TelegramUpdate = await req.json();
-    console.log('Received Telegram Webhook:', JSON.stringify(update, null, 2));
+    // Avoid logging full updates in production (can contain personal data and enables log-spam)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Received Telegram Webhook update');
+    }
 
     // Обробка callback queries (натискання кнопок)
     if (update.callback_query) {
@@ -771,6 +788,7 @@ export async function GET() {
     webhook: 'ready',
     bot_configured: !!TELEGRAM_BOT_TOKEN,
     chat_configured: !!TELEGRAM_CHAT_ID,
+    webhook_secret_configured: !!TELEGRAM_WEBHOOK_SECRET,
     timestamp: new Date().toISOString()
   });
 }

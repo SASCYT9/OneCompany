@@ -3,7 +3,12 @@
  * Запускайте: node scripts/telegram-bot-polling.js
  */
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8449589510:AAHFS3DVvVd--pCqsFPUIEji1IeJ8MOVJc4';
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+if (!TELEGRAM_BOT_TOKEN) {
+  console.error('❌ TELEGRAM_BOT_TOKEN is required. Set it in your environment (do not hardcode it).');
+  process.exit(1);
+}
+
 const API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 const WEBHOOK_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001';
 
@@ -29,7 +34,6 @@ async function processUpdate(update) {
 // Long polling
 async function startPolling() {
   console.log('🤖 Starting Telegram Bot Polling...');
-  console.log('📱 Bot Token:', TELEGRAM_BOT_TOKEN.substring(0, 20) + '...');
   console.log('🔗 Webhook URL:', WEBHOOK_URL);
   console.log('');
   

@@ -82,11 +82,13 @@ npx prisma migrate dev --name add_telegram_models
 ### 3. Налаштування Webhook
 
 ```bash
-# Встановити webhook (замініть YOUR_SECRET)
-curl "https://onecompany.global/api/telegram/webhook-grammy?action=set&secret=YOUR_ADMIN_API_SECRET"
+# Встановити webhook (передавайте секрет через Authorization, а не через URL)
+curl -H "Authorization: Bearer YOUR_ADMIN_API_SECRET" \
+  "https://onecompany.global/api/telegram/webhook-grammy?action=set"
 
 # Перевірити статус
-curl "https://onecompany.global/api/telegram/webhook-grammy?action=info&secret=YOUR_ADMIN_API_SECRET"
+curl -H "Authorization: Bearer YOUR_ADMIN_API_SECRET" \
+  "https://onecompany.global/api/telegram/webhook-grammy?action=info"
 ```
 
 ### 4. Додати адміністраторів
@@ -96,7 +98,8 @@ curl "https://onecompany.global/api/telegram/webhook-grammy?action=info&secret=Y
 # Дізнатись свій Telegram ID - напишіть боту @userinfobot
 # Потім відкрийте URL:
 
-https://onecompany.global/api/telegram/admins?action=add&id=YOUR_TELEGRAM_ID&name=Your%20Name&secret=YOUR_SECRET
+curl -H "Authorization: Bearer YOUR_ADMIN_API_SECRET" \
+  "https://onecompany.global/api/telegram/admins?action=add&id=YOUR_TELEGRAM_ID&name=Your%20Name"
 ```
 
 **Спосіб 2: Команда в боті**

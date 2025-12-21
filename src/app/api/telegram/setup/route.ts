@@ -1,13 +1,31 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
+const ADMIN_API_SECRET = process.env.ADMIN_API_SECRET;
+
+function verifySetupAccess(req: NextRequest): boolean {
+  if (!ADMIN_API_SECRET) return false;
+
+  const authHeader = req.headers.get('authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.slice(7) === ADMIN_API_SECRET;
+  }
+
+  const url = new URL(req.url);
+  return url.searchParams.get('secret') === ADMIN_API_SECRET;
+}
 
 /**
  * Налаштовує веб-хук для Telegram бота
  * Викликайте цей endpoint після деплою: GET /api/telegram/setup
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    if (!verifySetupAccess(req)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     if (!TELEGRAM_BOT_TOKEN) {
       return NextResponse.json(
         { error: 'TELEGRAM_BOT_TOKEN not configured in environment variables' },
@@ -38,8 +56,9 @@ export async function GET() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         url: webhookUrl,
-        allowed_updates: ['message'],
+        allowed_updates: ['message', 'callback_query'],
         drop_pending_updates: true,
+        ...(TELEGRAM_WEBHOOK_SECRET ? { secret_token: TELEGRAM_WEBHOOK_SECRET } : {}),
       }),
     });
 
@@ -84,8 +103,12 @@ export async function GET() {
  * Видаляє веб-хук (корисно для тестування)
  * DELETE /api/telegram/setup
  */
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
   try {
+    if (!verifySetupAccess(req)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     if (!TELEGRAM_BOT_TOKEN) {
       return NextResponse.json(
         { error: 'TELEGRAM_BOT_TOKEN not configured' },
