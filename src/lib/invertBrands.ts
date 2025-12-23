@@ -29,6 +29,9 @@ const INVERT_BRANDS_NORMALIZED = new Set(
     'RYFT',
     'VF Engineering',
     'WheelForce',
+    '1221 wheels',
+    'AC Schnitzer',
+    'Avantgarde Wheels',
   ].map(normalizeBrandName)
 );
 
@@ -55,6 +58,10 @@ export const shouldInvertBrand = (brandName: string | undefined | null): boolean
 const SMART_INVERT_BRANDS_NORMALIZED = new Set(
   [
     'Akrapovic',
+    '3D Design',
+    'BE bearings',
+    'Marchesini',
+    'SparkExhaust',
   ].map(normalizeBrandName)
 );
 

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { X, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BrandItem } from '../sections/BrandLogosGrid';
-import { shouldInvertBrand } from '@/lib/invertBrands';
+import { shouldInvertBrand, shouldSmartInvertBrand } from '@/lib/invertBrands';
 
 interface BrandModalProps {
   brand: BrandItem | null;
@@ -54,36 +54,36 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
 
             {/* Left Column: Logo & Visuals */}
             <div className="relative w-full md:w-2/5 bg-gradient-to-br from-[#1a1a1a] via-[#151515] to-[#0a0a0a] p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/5">
-               {/* Background Pattern */}
-               <div className="absolute inset-0 opacity-[0.15]" 
-                    style={{ 
-                      backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)', 
-                      backgroundSize: '24px 24px' 
-                    }} 
-               />
-               
-               {/* Logo Container */}
-               <div className="relative w-full aspect-video max-w-[240px] flex items-center justify-center z-10">
-                  {/* Subtle glow behind logo */}
-                  <div className="absolute inset-0 bg-white/5 blur-[60px] rounded-full scale-110 opacity-40" />
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={brand.logoSrc}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain drop-shadow-2xl ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
-                      unoptimized
-                    />
-                  </div>
-               </div>
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-[0.15]"
+                style={{
+                  backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)',
+                  backgroundSize: '24px 24px'
+                }}
+              />
+
+              {/* Logo Container */}
+              <div className="relative w-full aspect-video max-w-[240px] flex items-center justify-center z-10">
+                {/* Subtle glow behind logo */}
+                <div className="absolute inset-0 bg-white/5 blur-[60px] rounded-full scale-110 opacity-40" />
+                <div className="relative w-full h-full">
+                  <Image
+                    src={brand.logoSrc}
+                    alt={brand.name}
+                    fill
+                    className={`object-contain drop-shadow-2xl ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
+                    unoptimized
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Right Column: Content */}
             <div className="relative w-full md:w-3/5 p-8 md:p-10 flex flex-col">
-              
+
               {/* Headline */}
               {brand.headline && (
-                <motion.h3 
+                <motion.h3
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
@@ -94,7 +94,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
               )}
 
               {/* Description */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
@@ -107,7 +107,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
 
               {/* Highlights List */}
               {brand.highlights && brand.highlights.length > 0 && (
-                <motion.ul 
+                <motion.ul
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
@@ -135,9 +135,9 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                     <ArrowUpRight size={16} className="text-white/40 group-hover:text-white transition-colors" />
                   </a>
                 ) : (
-                   <button disabled className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-white/5 bg-white/[0.02] rounded-xl text-white/20 text-sm font-medium cursor-not-allowed uppercase tracking-wider">
+                  <button disabled className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-white/5 bg-white/[0.02] rounded-xl text-white/20 text-sm font-medium cursor-not-allowed uppercase tracking-wider">
                     <span>Офіційний сайт</span>
-                   </button>
+                  </button>
                 )}
 
                 <button

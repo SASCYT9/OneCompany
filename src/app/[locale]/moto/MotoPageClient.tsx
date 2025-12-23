@@ -16,13 +16,13 @@ import {
   getLocalizedSubcategory,
 } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { shouldInvertBrand } from '@/lib/invertBrands';
+import { shouldInvertBrand, shouldSmartInvertBrand } from '@/lib/invertBrands';
 import { categoryData } from '@/lib/categoryData';
 
 import { BrandModal } from '@/components/ui/BrandModal';
 import { getBrandStoryForBrand, BrandStory } from '@/lib/brandStories';
 
-type LocalizedCopy = { en: string; ua: string; [key: string]: string };
+type LocalizedCopy = { en: string; ua: string;[key: string]: string };
 
 type MotoModuleCard = {
   key: string;
@@ -58,7 +58,7 @@ const TOP_MOTO_BRANDS = [
 /* eslint-disable @typescript-eslint/no-unused-vars */
 const LEGENDARY_MOTO_BRANDS = [
   'Akrapovic',
-  'SC-Project', 
+  'SC-Project',
   'Termignoni',
   'Brembo',
   'Ohlins',
@@ -353,8 +353,8 @@ export default function MotoPage() {
   const selectedBrandSubcategory = selectedBrand ? getBrandSubcategory(selectedBrand) : null;
   const selectedBrandPrograms = selectedBrand
     ? motoModuleCards.filter((card) =>
-        card.chips.some((chip) => chip.toLowerCase() === selectedBrand.name.trim().toLowerCase())
-      )
+      card.chips.some((chip) => chip.toLowerCase() === selectedBrand.name.trim().toLowerCase())
+    )
     : [];
 
   return (
@@ -372,662 +372,660 @@ export default function MotoPage() {
         <div className="absolute inset-0 bg-black/70" />
       </div>
       <div className="relative z-10">
-      <section className="relative isolate overflow-hidden rounded-b-[40px] border-b border-white/10">
-        <div className="absolute inset-0">
-          
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_55%)] sm:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
-        </div>
-        <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6 px-4 pt-32 pb-16 sm:gap-8 sm:px-6 sm:pt-40 sm:pb-20 md:gap-10 md:pt-48 md:pb-28">
-          <div className="text-[9px] uppercase tracking-[0.4em] text-white/60 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">
-            {locale === 'ua' ? 'Преміум програми · мото' : 'Premium programs · moto'}
+        <section className="relative isolate overflow-hidden rounded-b-[40px] border-b border-white/10">
+          <div className="absolute inset-0">
+
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_55%)] sm:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
           </div>
-          <div className="max-w-4xl space-y-4 sm:space-y-5 md:space-y-6">
-            <h1 className={`font-light leading-tight ${typography.heroTitle}`}>
-              {t('title')}
-              <span className="text-white/50"> · </span>
-              <span className="text-white/70">{t('subtitle')}</span>
-            </h1>
-            <p className={`text-white/70 ${typography.heroSubtitle}`}>
-              {locale === 'ua'
-                ? 'Створюємо мотоцикли з характером з 2007 року.'
-                : 'Creating motorcycles with character since 2007.'}
-            </p>
+          <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6 px-4 pt-32 pb-16 sm:gap-8 sm:px-6 sm:pt-40 sm:pb-20 md:gap-10 md:pt-48 md:pb-28">
+            <div className="text-[9px] uppercase tracking-[0.4em] text-white/60 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">
+              {locale === 'ua' ? 'Преміум програми · мото' : 'Premium programs · moto'}
+            </div>
+            <div className="max-w-4xl space-y-4 sm:space-y-5 md:space-y-6">
+              <h1 className={`font-light leading-tight ${typography.heroTitle}`}>
+                {t('title')}
+                <span className="text-white/50"> · </span>
+                <span className="text-white/70">{t('subtitle')}</span>
+              </h1>
+              <p className={`text-white/70 ${typography.heroSubtitle}`}>
+                {locale === 'ua'
+                  ? 'Створюємо мотоцикли з характером з 2007 року.'
+                  : 'Creating motorcycles with character since 2007.'}
+              </p>
+            </div>
+
           </div>
-
-        </div>
-      </section>
+        </section>
 
 
 
-      {/* LEGENDARY MOTO BRANDS SHOWCASE */}
-      <section className="relative py-24 sm:py-32 md:py-40 overflow-hidden">
-        {/* Video Background */}
-        <div className="absolute inset-0">
-          
-        </div>
-        {/* Epic Background Overlays - CLEANED UP */}
-        
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="mb-16 sm:mb-20 md:mb-28 text-center">
-            <motion.h2 
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1, duration: 0.8 }}
-              className="text-4xl font-extralight tracking-tight text-white sm:text-5xl md:text-6xl"
-            >
-              <span className="bg-gradient-to-b from-white via-white to-zinc-400 bg-clip-text text-transparent">
-                {locale === 'ua' ? 'Легендарні бренди' : 'Legendary Brands'}
-              </span>
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              className="mt-4 text-lg sm:text-xl text-zinc-500 max-w-xl mx-auto"
-            >
-              {locale === 'ua' ? 'Бренди, що формують індустрію мото' : 'Brands that shape the moto industry'}
-            </motion.p>
+        {/* LEGENDARY MOTO BRANDS SHOWCASE */}
+        <section className="relative py-24 sm:py-32 md:py-40 overflow-hidden">
+          {/* Video Background */}
+          <div className="absolute inset-0">
+
           </div>
-          
-          {/* Legendary Grid - Equal Width Masonry */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 auto-rows-max">
-            
-            {/* SC-PROJECT - Hero Card (Replaces Akrapovic as Hero) */}
-            <motion.button
-              onClick={() => handleBrandClick('SC-Project')}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="group relative lg:row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
-            >
-              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-1000">
-                <div className="absolute -inset-4 bg-gradient-to-r from-white/10 via-white/5 to-transparent rounded-[3rem] blur-3xl" />
-              </div>
-              <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-6 sm:p-8 lg:p-12 flex flex-col">
+          {/* Epic Background Overlays - CLEANED UP */}
 
-                <div className="flex-1 flex items-center justify-center py-6 sm:py-10">
-                  <div className="relative w-full max-w-[420px] h-28 sm:h-36 lg:h-44">
-                    <Image src={getBrandLogo('SC-Project')} alt="SC-Project" fill className="object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_80px_rgba(255,255,255,0.2)]" unoptimized />
+          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            {/* Header */}
+            <div className="mb-16 sm:mb-20 md:mb-28 text-center">
+              <motion.h2
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1, duration: 0.8 }}
+                className="text-4xl font-extralight tracking-tight text-white sm:text-5xl md:text-6xl"
+              >
+                <span className="bg-gradient-to-b from-white via-white to-zinc-400 bg-clip-text text-transparent">
+                  {locale === 'ua' ? 'Легендарні бренди' : 'Legendary Brands'}
+                </span>
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+                className="mt-4 text-lg sm:text-xl text-zinc-500 max-w-xl mx-auto"
+              >
+                {locale === 'ua' ? 'Бренди, що формують індустрію мото' : 'Brands that shape the moto industry'}
+              </motion.p>
+            </div>
+
+            {/* Legendary Grid - Equal Width Masonry */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 auto-rows-max">
+
+              {/* SC-PROJECT - Hero Card (Replaces Akrapovic as Hero) */}
+              <motion.button
+                onClick={() => handleBrandClick('SC-Project')}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+                className="group relative lg:row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              >
+                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-1000">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-white/10 via-white/5 to-transparent rounded-[3rem] blur-3xl" />
+                </div>
+                <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-6 sm:p-8 lg:p-12 flex flex-col">
+
+                  <div className="flex-1 flex items-center justify-center py-6 sm:py-10">
+                    <div className="relative w-full max-w-[420px] h-28 sm:h-36 lg:h-44">
+                      <Image src={getBrandLogo('SC-Project')} alt="SC-Project" fill className="object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_80px_rgba(255,255,255,0.2)]" unoptimized />
+                    </div>
+                  </div>
+                  <div className="flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-2xl sm:text-3xl lg:text-4xl font-light text-white tracking-tight">SC-Project</p>
+                      <p className="text-sm sm:text-base text-white/60 mt-2">{locale === 'ua' ? 'Вихлопні системи чемпіонів' : 'Exhaust systems of champions'}</p>
+                    </div>
+                    <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
+                      <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-end justify-between gap-4">
-                  <div>
-                    <p className="text-2xl sm:text-3xl lg:text-4xl font-light text-white tracking-tight">SC-Project</p>
-                    <p className="text-sm sm:text-base text-white/60 mt-2">{locale === 'ua' ? 'Вихлопні системи чемпіонів' : 'Exhaust systems of champions'}</p>
+              </motion.button>
+
+              {/* TERMIGNONI - Tall Card */}
+              <motion.button
+                onClick={() => handleBrandClick('Termignoni')}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.1 }}
+                className="group relative lg:row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              >
+                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
+                  <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
+                </div>
+                <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-5 sm:p-6 lg:p-8 flex flex-col">
+
+                  <div className="flex-1 flex items-center justify-center py-8">
+                    <div className="relative w-full max-w-[200px] h-16 sm:h-20 lg:h-24">
+                      <Image src={getBrandLogo('Termignoni')} alt="Termignoni" fill className="object-contain opacity-95 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110" unoptimized />
+                    </div>
                   </div>
-                  <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
-                    <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <div>
+                    <p className="text-xl sm:text-2xl font-light text-white">Termignoni</p>
+                    <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійська пристрасть' : 'Italian passion'}</p>
+                  </div>
+                  <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:bg-white/20 group-hover:border-white/40">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                     </svg>
                   </div>
                 </div>
-              </div>
-            </motion.button>
+              </motion.button>
 
-            {/* TERMIGNONI - Tall Card */}
-            <motion.button
-              onClick={() => handleBrandClick('Termignoni')}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="group relative lg:row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
-            >
-              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
-                <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
-              </div>
-              <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-5 sm:p-6 lg:p-8 flex flex-col">
+              {/* BREMBO - Wide Card */}
+              <motion.button
+                onClick={() => handleBrandClick('Brembo')}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.15 }}
+                className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+              >
+                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
+                  <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
+                </div>
+                <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[200px]">
 
-                <div className="flex-1 flex items-center justify-center py-8">
-                  <div className="relative w-full max-w-[200px] h-16 sm:h-20 lg:h-24">
-                    <Image src={getBrandLogo('Termignoni')} alt="Termignoni" fill className="object-contain opacity-95 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110" unoptimized />
+                  <div className="flex-1 flex items-center justify-center py-4">
+                    <div className="relative w-full max-w-[220px] h-12 sm:h-16">
+                      <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110" unoptimized />
+                    </div>
                   </div>
+                  <p className="text-lg sm:text-xl font-light text-white">Brembo</p>
                 </div>
-                <div>
-                  <p className="text-xl sm:text-2xl font-light text-white">Termignoni</p>
-                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійська пристрасть' : 'Italian passion'}</p>
-                </div>
-                <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:bg-white/20 group-hover:border-white/40">
+                <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
                   <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                   </svg>
                 </div>
-              </div>
-            </motion.button>
+              </motion.button>
 
-            {/* BREMBO - Wide Card */}
-            <motion.button
-              onClick={() => handleBrandClick('Brembo')}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.15 }}
-              className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
-            >
-              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
-                <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
-              </div>
-              <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[200px]">
+              {/* AKRAPOVIC - Small Card (Moved from Hero) */}
+              <motion.button
+                onClick={() => handleBrandClick('Akrapovic')}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.2 }}
+                className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              >
+                <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[180px]">
 
-                <div className="flex-1 flex items-center justify-center py-4">
-                  <div className="relative w-full max-w-[220px] h-12 sm:h-16">
-                    <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110" unoptimized />
+                  <div className="flex-1 flex items-center justify-center py-4">
+                    <div className="relative w-full max-w-[160px] h-16 sm:h-20">
+                      <Image src={getBrandLogo('Akrapovic')} alt="Akrapovic" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${shouldSmartInvertBrand('Akrapovic') ? 'filter invert hue-rotate-180' : shouldInvertBrand('Akrapovic') ? 'filter brightness-0 invert' : ''}`} unoptimized />
+                    </div>
+                  </div>
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <p className="text-base sm:text-lg font-medium text-white">Akrapovic</p>
+                      <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Титанові системи' : 'Titanium systems'}</p>
+                    </div>
                   </div>
                 </div>
-                <p className="text-lg sm:text-xl font-light text-white">Brembo</p>
+              </motion.button>
+
+              {/* OHLINS */}
+              <motion.button
+                onClick={() => handleBrandClick('Ohlins')}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.25 }}
+                className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              >
+                <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
+
+                  <div className="flex-1 flex items-center justify-center py-3">
+                    <div className="relative w-full max-w-[140px] h-10 sm:h-12">
+                      <Image src={getBrandLogo('Ohlins')} alt="Ohlins" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                    </div>
+                  </div>
+                  <p className="text-sm sm:text-base font-medium text-white">Ohlins</p>
+                  <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Золотий стандарт' : 'The Gold Standard'}</p>
+                </div>
+              </motion.button>
+
+              {/* MARCHESINI */}
+              <motion.button
+                onClick={() => handleBrandClick('Marchesini')}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.3 }}
+                className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              >
+                <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
+
+                  <div className="flex-1 flex items-center justify-center py-3">
+                    <div className="relative w-full max-w-[110px] h-10 sm:h-12">
+                      <Image src={getBrandLogo('Marchesini')} alt="Marchesini" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${shouldSmartInvertBrand('Marchesini') ? 'filter invert hue-rotate-180' : shouldInvertBrand('Marchesini') ? 'filter brightness-0 invert' : ''}`} unoptimized />
+                    </div>
+                  </div>
+                  <p className="text-sm sm:text-base font-medium text-white">Marchesini</p>
+                  <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Легендарні диски' : 'Legendary wheels'}</p>
+                </div>
+              </motion.button>
+
+              {/* OZ RACING */}
+              <motion.button
+                onClick={() => handleBrandClick('OZ Racing')}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.35 }}
+                className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
+              >
+                <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
+
+                  <div className="flex-1 flex items-center justify-center py-3">
+                    <div className="relative w-full max-w-[100px] h-10 sm:h-12">
+                      <Image src={getBrandLogo('OZ Racing')} alt="OZ Racing" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                    </div>
+                  </div>
+                  <p className="text-sm sm:text-base font-medium text-white">OZ Racing</p>
+                  <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Технології перемог' : 'Winning technology'}</p>
+                </div>
+              </motion.button>
+
+              {/* ARROW & SPARK EXHAUST - Split Row */}
+              <div className="sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
+                {/* ARROW */}
+                <motion.button
+                  onClick={() => handleBrandClick('Arrow')}
+                  initial={{ opacity: 0, y: 60 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.7, delay: 0.4 }}
+                  className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+                >
+                  <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🇮🇹</span>
+                      <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/60">Italy</span>
+                    </div>
+                    <div className="flex-1 flex items-center justify-center py-4">
+                      <div className="relative w-full max-w-[140px] h-12 sm:h-14">
+                        <Image src={getBrandLogo('Arrow')} alt="Arrow" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+                      </div>
+                    </div>
+                    <p className="text-lg sm:text-xl font-light text-white">Arrow</p>
+                    <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійський звук' : 'Italian sound'}</p>
+                  </div>
+                </motion.button>
+
+                {/* SPARK EXHAUST */}
+                <motion.button
+                  onClick={() => handleBrandClick('SparkExhaust')}
+                  initial={{ opacity: 0, y: 60 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.7, delay: 0.45 }}
+                  className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+                >
+                  <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🇮🇹</span>
+                      <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/60">Italy</span>
+                    </div>
+                    <div className="flex-1 flex items-center justify-center py-4">
+                      <div className="relative w-full max-w-[120px] h-12 sm:h-14">
+                        <Image src={getBrandLogo('SparkExhaust')} alt="SparkExhaust" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${shouldSmartInvertBrand('SparkExhaust') ? 'filter invert hue-rotate-180' : shouldInvertBrand('SparkExhaust') ? 'filter brightness-0 invert' : ''}`} unoptimized />
+                      </div>
+                    </div>
+                    <p className="text-lg sm:text-xl font-light text-white">Spark</p>
+                    <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійська пристрасть' : 'Italian passion'}</p>
+                  </div>
+                </motion.button>
               </div>
-              <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
-                <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+
+              {/* +40 BRANDS CTA */}
+              <motion.div
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                className="group relative sm:col-span-2 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
+                onClick={() => {
+                  const catalogSection = document.getElementById('brand-catalog');
+                  catalogSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                {/* Background */}
+                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+
+                <div className="relative p-6 sm:p-8 lg:p-10">
+                  <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
+                    <div className="text-center lg:text-left">
+                      <div className="flex items-baseline gap-3 justify-center lg:justify-start">
+                        <span className="text-4xl sm:text-5xl lg:text-6xl font-extralight text-white">
+                          {locale === 'ua' ? 'Всі бренди' : 'All brands'}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm text-white/50">
+                        {locale === 'ua' ? 'Повний каталог преміум мотозапчастин та екіпірування' : 'Complete catalog of premium moto parts & gear'}
+                      </p>
+                    </div>
+
+                    {/* CTA Button */}
+                    <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.15)]">
+                      <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Infinite Scrolling Carousel */}
+                  <div className="relative overflow-hidden">
+                    {/* First row - scrolling left */}
+                    <div className="flex gap-6 mb-4 animate-scroll-left">
+                      {[...allMotoBrands.slice(0, 20), ...allMotoBrands.slice(0, 20)].map((brand, idx) => (
+                        <button
+                          key={`row1-${brand.name}-${idx}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedBrand(brand);
+                          }}
+                          className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                        >
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={getBrandLogo(brand.name)}
+                              alt={brand.name}
+                              fill
+                              className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
+                              unoptimized
+                            />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Second row - scrolling right */}
+                    <div className="flex gap-6 animate-scroll-right">
+                      {[...allMotoBrands.slice(20, 40), ...allMotoBrands.slice(20, 40)].map((brand, idx) => (
+                        <button
+                          key={`row2-${brand.name}-${idx}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedBrand(brand);
+                          }}
+                          className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                        >
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={getBrandLogo(brand.name)}
+                              alt={brand.name}
+                              fill
+                              className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
+                              unoptimized
+                            />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* Product Categories Section */}
+        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+          <div className="relative mb-8 overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm sm:mb-10 sm:p-12 md:mb-12 md:p-16">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-50" />
+            <div className="relative z-10">
+              <p className="text-[10px] uppercase tracking-[0.4em] text-white/70 sm:text-[11px] sm:tracking-[0.5em] md:text-[12px] md:tracking-[0.6em] font-medium">{t('productCategories')}</p>
+              <h2 className={`mt-3 font-light text-white text-balance sm:mt-4 ${typography.sectionHeading}`}>
+                {locale === 'ua' ? 'Мото ' : 'Engineering Modules'}
+              </h2>
+              <button
+                onClick={() => setIsModulesOpen(!isModulesOpen)}
+                className="mt-8 inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-black shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-all hover:bg-white/90 hover:scale-105 hover:shadow-[0_0_35px_rgba(255,255,255,0.4)] active:scale-95"
+              >
+                <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
+                <motion.div
+                  animate={{ rotate: isModulesOpen ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="text-black"
+                  >
+                    <path
+                      d="M1 3L5 7L9 3"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </motion.div>
+              </button>
+            </div>
+          </div>
+          <AnimatePresence>
+            {isModulesOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr pb-4">
+                  {categoryData.filter(cat => cat.segment === 'moto').map((cat) => (
+                    <Link
+                      key={cat.slug}
+                      href={`/${locale}/moto/categories/${cat.slug}`}
+                      className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/10 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:border-white/40 hover:translate-y-[-4px] sm:rounded-3xl h-full backdrop-blur-3xl"
+                    >
+                      {/* Multi-layer box shadows for depth */}
+                      <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] sm:rounded-3xl" />
+
+                      {/* Bottom glow on hover */}
+                      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+                      <div className="relative p-6 sm:p-7 md:p-8 flex flex-col flex-1">
+                        {/* Title & Description */}
+                        <div className="min-h-[120px] sm:min-h-[140px]">
+                          <h3 className="text-xl font-normal text-white text-balance sm:text-2xl tracking-wide">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
+                          <p className="mt-3 text-[13px] leading-relaxed text-white/80 text-pretty sm:text-[15px] font-light">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
+                          <p className="mt-2 text-[11px] text-white/50 text-pretty sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
+                        </div>
+
+                        {/* Brand tags with relief */}
+                        <div className="mt-5 min-h-[80px] flex flex-wrap content-start gap-2 text-[10px] uppercase tracking-wider sm:text-[11px]">
+                          {cat.brands.slice(0, 4).map((name) => (
+                            <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10">
+                              {name}
+                            </span>
+                          ))}
+                          {cat.brands.length > 4 && (
+                            <span className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/50">
+                              +{cat.brands.length - 4} {tPage('more')}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Open button - clear affordance */}
+                        <div className="mt-auto pt-6 flex items-center justify-between">
+                          <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3 group-hover:text-white">
+                            {tPage('open')}
+                            <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                          <span className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{cat.brands.length} брендів</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
+
+        <BrandModal
+          brand={selectedBrand ? {
+            name: selectedBrand.name,
+            logoSrc: getBrandLogo(selectedBrand.name),
+            description: selectedBrandStory?.description[locale],
+            headline: selectedBrandStory?.headline?.[locale],
+            highlights: selectedBrandStory?.highlights?.map(h => h[locale]),
+            website: selectedBrand.website
+          } : null}
+          isOpen={!!selectedBrand}
+          onClose={() => setSelectedBrand(null)}
+        />
+
+        <section id="moto-brand-catalog" className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+          <div className="mb-8 text-center sm:mb-10 md:mb-12">
+            <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
+            <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>{locale === 'ua' ? 'Атлас брендів' : 'Brand Atlas'}</h2>
+            <p className="mt-4 text-base text-white/60 sm:text-lg">
+              {locale === 'ua' ? `${allMotoBrands.length} брендів у портфелі` : `${allMotoBrands.length} brands in portfolio`}
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-6">
+            <div className="relative w-full max-w-3xl">
+              <input
+                type="text"
+                placeholder={t('searchPlaceholder')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full rounded-2xl border border-white/15 bg-white px-6 py-3 text-base text-black placeholder-black/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:p-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
+              />
+              <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-            </motion.button>
-
-            {/* AKRAPOVIC - Small Card (Moved from Hero) */}
-            <motion.button
-              onClick={() => handleBrandClick('Akrapovic')}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
-            >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[180px]">
-
-                <div className="flex-1 flex items-center justify-center py-4">
-                  <div className="relative w-full max-w-[160px] h-16 sm:h-20">
-                    <Image src={getBrandLogo('Akrapovic')} alt="Akrapovic" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${shouldInvertBrand('Akrapovic') ? 'filter brightness-0 invert' : ''}`} unoptimized />
-                  </div>
-                </div>
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className="text-base sm:text-lg font-medium text-white">Akrapovic</p>
-                    <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Титанові системи' : 'Titanium systems'}</p>
-                  </div>
-                </div>
-              </div>
-            </motion.button>
-
-            {/* OHLINS */}
-            <motion.button
-              onClick={() => handleBrandClick('Ohlins')}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.25 }}
-              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
-            >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-
-                <div className="flex-1 flex items-center justify-center py-3">
-                  <div className="relative w-full max-w-[140px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('Ohlins')} alt="Ohlins" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
-                  </div>
-                </div>
-                <p className="text-sm sm:text-base font-medium text-white">Ohlins</p>
-                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Золотий стандарт' : 'The Gold Standard'}</p>
-              </div>
-            </motion.button>
-
-            {/* MARCHESINI */}
-            <motion.button
-              onClick={() => handleBrandClick('Marchesini')}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.3 }}
-              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
-            >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-
-                <div className="flex-1 flex items-center justify-center py-3">
-                  <div className="relative w-full max-w-[110px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('Marchesini')} alt="Marchesini" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
-                  </div>
-                </div>
-                <p className="text-sm sm:text-base font-medium text-white">Marchesini</p>
-                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Легендарні диски' : 'Legendary wheels'}</p>
-              </div>
-            </motion.button>
-
-            {/* OZ RACING */}
-            <motion.button
-              onClick={() => handleBrandClick('OZ Racing')}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.35 }}
-              className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
-            >
-              <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative h-full p-4 sm:p-5 flex flex-col min-h-[160px]">
-
-                <div className="flex-1 flex items-center justify-center py-3">
-                  <div className="relative w-full max-w-[100px] h-10 sm:h-12">
-                    <Image src={getBrandLogo('OZ Racing')} alt="OZ Racing" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
-                  </div>
-                </div>
-                <p className="text-sm sm:text-base font-medium text-white">OZ Racing</p>
-                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Технології перемог' : 'Winning technology'}</p>
-              </div>
-            </motion.button>
-
-            {/* ARROW & SPARK EXHAUST - Split Row */}
-            <div className="sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
-              {/* ARROW */}
-              <motion.button
-                onClick={() => handleBrandClick('Arrow')}
-                initial={{ opacity: 0, y: 60 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: 0.4 }}
-                className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
-              >
-                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🇮🇹</span>
-                    <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/60">Italy</span>
-                  </div>
-                  <div className="flex-1 flex items-center justify-center py-4">
-                    <div className="relative w-full max-w-[140px] h-12 sm:h-14">
-                      <Image src={getBrandLogo('Arrow')} alt="Arrow" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
-                    </div>
-                  </div>
-                  <p className="text-lg sm:text-xl font-light text-white">Arrow</p>
-                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійський звук' : 'Italian sound'}</p>
-                </div>
-              </motion.button>
-
-              {/* SPARK EXHAUST */}
-              <motion.button
-                onClick={() => handleBrandClick('SparkExhaust')}
-                initial={{ opacity: 0, y: 60 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: 0.45 }}
-                className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
-              >
-                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🇮🇹</span>
-                    <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/60">Italy</span>
-                  </div>
-                  <div className="flex-1 flex items-center justify-center py-4">
-                    <div className="relative w-full max-w-[120px] h-12 sm:h-14">
-                      <Image src={getBrandLogo('SparkExhaust')} alt="SparkExhaust" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
-                    </div>
-                  </div>
-                  <p className="text-lg sm:text-xl font-light text-white">Spark</p>
-                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійська пристрасть' : 'Italian passion'}</p>
-                </div>
-              </motion.button>
             </div>
-            
-            {/* +40 BRANDS CTA */}
-            <motion.div
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="group relative sm:col-span-2 lg:col-span-3 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
-              onClick={() => {
-                const catalogSection = document.getElementById('brand-catalog');
-                catalogSection?.scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
-              {/* Background */}
-              <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
-              
-              <div className="relative p-6 sm:p-8 lg:p-10">
-                <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
-                  <div className="text-center lg:text-left">
-                    <div className="flex items-baseline gap-3 justify-center lg:justify-start">
-                      <span className="text-4xl sm:text-5xl lg:text-6xl font-extralight text-white">
-                        {locale === 'ua' ? 'Всі бренди' : 'All brands'}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-sm text-white/50">
-                      {locale === 'ua' ? 'Повний каталог преміум мотозапчастин та екіпірування' : 'Complete catalog of premium moto parts & gear'}
-                    </p>
-                  </div>
-                  
-                  {/* CTA Button */}
-                  <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.15)]">
-                    <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
-                    </svg>
-                  </div>
-                </div>
-                
-                {/* Infinite Scrolling Carousel */}
-                <div className="relative overflow-hidden">
-                  {/* First row - scrolling left */}
-                  <div className="flex gap-6 mb-4 animate-scroll-left">
-                    {[...allMotoBrands.slice(0, 20), ...allMotoBrands.slice(0, 20)].map((brand, idx) => (
-                      <button 
-                        key={`row1-${brand.name}-${idx}`} 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedBrand(brand);
-                        }}
-                        className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-                      >
-                        <div className="relative w-full h-full">
-                          <Image 
-                            src={getBrandLogo(brand.name)} 
-                            alt={brand.name} 
-                            fill 
-                            className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`} 
-                            unoptimized 
-                          />
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                  
-                  {/* Second row - scrolling right */}
-                  <div className="flex gap-6 animate-scroll-right">
-                    {[...allMotoBrands.slice(20, 40), ...allMotoBrands.slice(20, 40)].map((brand, idx) => (
-                      <button 
-                        key={`row2-${brand.name}-${idx}`} 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedBrand(brand);
-                        }}
-                        className="flex-shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-                      >
-                        <div className="relative w-full h-full">
-                          <Image 
-                            src={getBrandLogo(brand.name)} 
-                            alt={brand.name} 
-                            fill 
-                            className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`} 
-                            unoptimized 
-                          />
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
 
-          </div>
-        </div>
-      </section>
+            {/* Alphabet Filter */}
+            <div className="flex flex-wrap justify-center gap-2 px-4">
+              <button
+                onClick={() => setActiveLetter(null)}
+                className={`h-8 w-8 rounded-full text-xs font-medium transition-all ${activeLetter === null
+                    ? 'bg-white text-black'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                  }`}
+              >
+                ALL
+              </button>
+              {alphabet.map((letter) => (
+                <button
+                  key={letter}
+                  onClick={() => setActiveLetter(activeLetter === letter ? null : letter)}
+                  className={`h-8 w-8 rounded-full text-xs font-medium transition-all ${activeLetter === letter
+                      ? 'bg-white text-black'
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                >
+                  {letter}
+                </button>
+              ))}
+            </div>
 
-      {/* Product Categories Section */}
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
-        <div className="relative mb-8 overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm sm:mb-10 sm:p-12 md:mb-12 md:p-16">
-          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-50" />
-          <div className="relative z-10">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-white/70 sm:text-[11px] sm:tracking-[0.5em] md:text-[12px] md:tracking-[0.6em] font-medium">{t('productCategories')}</p>
-            <h2 className={`mt-3 font-light text-white text-balance sm:mt-4 ${typography.sectionHeading}`}>
-              {locale === 'ua' ? 'Мото ' : 'Engineering Modules'}
-            </h2>
             <button
-              onClick={() => setIsModulesOpen(!isModulesOpen)}
-              className="mt-8 inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-black shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-all hover:bg-white/90 hover:scale-105 hover:shadow-[0_0_35px_rgba(255,255,255,0.4)] active:scale-95"
+              onClick={() => setIsBrandsOpen(!isBrandsOpen)}
+              className="inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-black shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-all hover:bg-white/90 hover:scale-105 hover:shadow-[0_0_35px_rgba(255,255,255,0.4)] active:scale-95"
             >
-              <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
+              <span>{isBrandsOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
               <motion.div
-                animate={{ rotate: isModulesOpen ? 180 : 0 }}
+                animate={{ rotate: isBrandsOpen ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <svg 
-                  width="12" 
-                  height="12" 
-                  viewBox="0 0 10 10" 
-                  fill="none" 
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 10 10"
+                  fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                   className="text-black"
                 >
-                  <path 
-                    d="M1 3L5 7L9 3" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
+                  <path
+                    d="M1 3L5 7L9 3"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
               </motion.div>
             </button>
           </div>
-        </div>
-        <AnimatePresence>
-          {isModulesOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="overflow-hidden"
-            >
-              <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr pb-4">
-          {categoryData.filter(cat => cat.segment === 'moto').map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/${locale}/moto/categories/${cat.slug}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/10 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:border-white/40 hover:translate-y-[-4px] sm:rounded-3xl h-full backdrop-blur-3xl"
-            >
-              {/* Multi-layer box shadows for depth */}
-              <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] sm:rounded-3xl" />
-              
-              {/* Bottom glow on hover */}
-              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              
-              <div className="relative p-6 sm:p-7 md:p-8 flex flex-col flex-1">
-                {/* Title & Description */}
-                <div className="min-h-[120px] sm:min-h-[140px]">
-                  <h3 className="text-xl font-normal text-white text-balance sm:text-2xl tracking-wide">{locale === 'ua' ? cat.title.ua : cat.title.en}</h3>
-                  <p className="mt-3 text-[13px] leading-relaxed text-white/80 text-pretty sm:text-[15px] font-light">{locale === 'ua' ? cat.description.ua : cat.description.en}</p>
-                  <p className="mt-2 text-[11px] text-white/50 text-pretty sm:text-xs">{locale === 'ua' ? cat.spotlight.ua : cat.spotlight.en}</p>
-                </div>
-                
-                {/* Brand tags with relief */}
-                <div className="mt-5 min-h-[80px] flex flex-wrap content-start gap-2 text-[10px] uppercase tracking-wider sm:text-[11px]">
-                  {cat.brands.slice(0, 4).map((name) => (
-                    <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10">
-                      {name}
-                    </span>
-                  ))}
-                  {cat.brands.length > 4 && (
-                    <span className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/50">
-                      +{cat.brands.length - 4} {tPage('more')}
-                    </span>
+
+          <AnimatePresence>
+            {isBrandsOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:mt-12 lg:grid-cols-3 xl:grid-cols-4 pb-4">
+                  {filteredBrands.length > 0 ? (
+                    filteredBrands.map((brand) => {
+                      const origin = getBrandOrigin(brand);
+                      const subcategory = getBrandSubcategory(brand);
+                      return (
+                        <motion.button
+                          key={brand.name}
+                          onClick={() => setSelectedBrand(brand)}
+                          whileHover={{ y: -6 }}
+                          className="group relative flex flex-col items-center text-center overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-4 transition backdrop-blur-3xl shadow-sm hover:bg-white/20 hover:border-white/30 hover:shadow-md sm:rounded-3xl sm:p-5 md:p-6"
+                        >
+                          <div
+                            className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                            style={{
+                              background: 'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 60%)',
+                            }}
+                          />
+                          <div className="relative w-full flex items-center justify-center text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.3em]">
+                            <div className="flex items-center gap-2">
+                              <span>{origin}</span>
+                            </div>
+                          </div>
+                          <div className="relative mt-4 h-20 w-full sm:mt-6 sm:h-24">
+                            <Image
+                              src={getBrandLogo(brand.name)}
+                              alt={brand.name}
+                              fill
+                              className={`object-contain object-center transition-all duration-500 ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
+                              sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
+                              unoptimized
+                            />
+                          </div>
+                          <div className="mt-4 text-lg font-light leading-tight text-white sm:mt-6 sm:text-xl w-full px-1 break-words">{brand.name}</div>
+                        </motion.button>
+                      );
+                    })
+                  ) : (
+                    <div className="col-span-full rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-xl text-white/70">
+                      {t('noBrands')}
+                    </div>
                   )}
                 </div>
-                
-                {/* Open button - clear affordance */}
-                <div className="mt-auto pt-6 flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 group-hover:gap-3 group-hover:text-white">
-                    {tPage('open')}
-                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  <span className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{cat.brands.length} брендів</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </section>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
 
-      <BrandModal 
-        brand={selectedBrand ? {
-          name: selectedBrand.name,
-          logoSrc: getBrandLogo(selectedBrand.name),
-          description: selectedBrandStory?.description[locale],
-          headline: selectedBrandStory?.headline?.[locale],
-          highlights: selectedBrandStory?.highlights?.map(h => h[locale]),
-          website: selectedBrand.website
-        } : null}
-        isOpen={!!selectedBrand}
-        onClose={() => setSelectedBrand(null)}
-      />
-
-      <section id="moto-brand-catalog" className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
-        <div className="mb-8 text-center sm:mb-10 md:mb-12">
-          <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
-          <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>{locale === 'ua' ? 'Атлас брендів' : 'Brand Atlas'}</h2>
-          <p className="mt-4 text-base text-white/60 sm:text-lg">
-            {locale === 'ua' ? `${allMotoBrands.length} брендів у портфелі` : `${allMotoBrands.length} brands in portfolio`}
-          </p>
-        </div>
-
-        <div className="flex flex-col items-center gap-6">
-          <div className="relative w-full max-w-3xl">
-            <input
-              type="text"
-              placeholder={t('searchPlaceholder')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-2xl border border-white/15 bg-white px-6 py-3 text-base text-black placeholder-black/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:p-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
-            />
-            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </div>
-
-          {/* Alphabet Filter */}
-          <div className="flex flex-wrap justify-center gap-2 px-4">
-            <button
-              onClick={() => setActiveLetter(null)}
-              className={`h-8 w-8 rounded-full text-xs font-medium transition-all ${
-                activeLetter === null
-                  ? 'bg-white text-black'
-                  : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
-            >
-              ALL
-            </button>
-            {alphabet.map((letter) => (
-              <button
-                key={letter}
-                onClick={() => setActiveLetter(activeLetter === letter ? null : letter)}
-                className={`h-8 w-8 rounded-full text-xs font-medium transition-all ${
-                  activeLetter === letter
-                    ? 'bg-white text-black'
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                {letter}
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={() => setIsBrandsOpen(!isBrandsOpen)}
-            className="inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-black shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-all hover:bg-white/90 hover:scale-105 hover:shadow-[0_0_35px_rgba(255,255,255,0.4)] active:scale-95"
-          >
-            <span>{isBrandsOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
-            <motion.div
-              animate={{ rotate: isBrandsOpen ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <svg 
-                width="12" 
-                height="12" 
-                viewBox="0 0 10 10" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-black"
-              >
-                <path 
-                  d="M1 3L5 7L9 3" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </motion.div>
-          </button>
-        </div>
-
-        <AnimatePresence>
-          {isBrandsOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="overflow-hidden"
-            >
-              <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:mt-12 lg:grid-cols-3 xl:grid-cols-4 pb-4">
-          {filteredBrands.length > 0 ? (
-            filteredBrands.map((brand) => {
-              const origin = getBrandOrigin(brand);
-              const subcategory = getBrandSubcategory(brand);
-              return (
-                <motion.button
-                  key={brand.name}
-                  onClick={() => setSelectedBrand(brand)}
-                  whileHover={{ y: -6 }}
-                  className="group relative flex flex-col items-center text-center overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-4 transition backdrop-blur-3xl shadow-sm hover:bg-white/20 hover:border-white/30 hover:shadow-md sm:rounded-3xl sm:p-5 md:p-6"
-                >
-                  <div
-                    className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                    style={{
-                      background: 'radial-gradient(circle at top left, rgba(255,255,255,0.1), transparent 60%)',
-                    }}
-                  />
-                  <div className="relative w-full flex items-center justify-center text-[10px] uppercase tracking-[0.25em] text-white/50 sm:text-xs sm:tracking-[0.3em]">
-                    <div className="flex items-center gap-2">
-                      <span>{origin}</span>
-                    </div>
-                  </div>
-                  <div className="relative mt-4 h-20 w-full sm:mt-6 sm:h-24">
-                    <Image
-                      src={getBrandLogo(brand.name)}
-                      alt={brand.name}
-                      fill
-                      className={`object-contain object-center transition-all duration-500 ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
-                      sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
-                      unoptimized
-                    />
-                  </div>
-                  <div className="mt-4 text-lg font-light leading-tight text-white sm:mt-6 sm:text-xl w-full px-1 break-words">{brand.name}</div>
-                </motion.button>
-              );
-            })
-          ) : (
-            <div className="col-span-full rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-xl text-white/70">
-              {t('noBrands')}
-            </div>
-          )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </section>
-
-      <div className="pb-10" />
+        <div className="pb-10" />
       </div>
     </div>
   );

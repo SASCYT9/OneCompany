@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import { useState, useMemo } from 'react';
 import { BrandModal } from '../ui/BrandModal';
-import { shouldInvertBrand } from '@/lib/invertBrands';
+import { shouldInvertBrand, shouldSmartInvertBrand } from '@/lib/invertBrands';
 
 export interface BrandItem {
   name: string;
@@ -92,7 +92,7 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
                             src={brand.logoSrc}
                             alt={brand.name}
                             fill
-                            className={`object-contain opacity-80 group-hover:opacity-100 transition-opacity ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
+                            className={`object-contain opacity-80 group-hover:opacity-100 transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
                             unoptimized
                             priority={false}
@@ -102,7 +102,7 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
 
                       {/* Removed duplicated brand name as per design request */}
                       {/* <span className="relative z-10 mt-3 text-xs text-white/70 truncate w-full font-medium">{brand.name}</span> */}
-                      
+
                       {brand.country && (
                         <div className="relative z-10 w-full flex justify-center mt-4 pt-2 border-t border-white/5">
                           <span className="text-[9px] text-white/30 uppercase tracking-widest font-sans">{brand.country}</span>
@@ -134,10 +134,10 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
         </aside>
       </div>
 
-      <BrandModal 
-        brand={selectedBrand} 
-        isOpen={!!selectedBrand} 
-        onClose={() => setSelectedBrand(null)} 
+      <BrandModal
+        brand={selectedBrand}
+        isOpen={!!selectedBrand}
+        onClose={() => setSelectedBrand(null)}
       />
     </section>
   );
