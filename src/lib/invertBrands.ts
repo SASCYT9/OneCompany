@@ -15,7 +15,7 @@ const INVERT_BRANDS_NORMALIZED = new Set(
     'AC Schnitzer',
     'ADRO',
     'Airlift',
-    'Akrapovic',
+    // 'Akrapovic', // Moved to SMART_INVERT
     'AMS',
     'ANRKY',
     'AVANTGARDE',
@@ -50,4 +50,19 @@ export const shouldInvertBrand = (brandName: string | undefined | null): boolean
   const mapped = INVERT_BRAND_ALIASES[normalized.replace(/\s+/g, '')] ?? INVERT_BRAND_ALIASES[normalized] ?? normalized;
 
   return INVERT_BRANDS_NORMALIZED.has(mapped);
+};
+
+const SMART_INVERT_BRANDS_NORMALIZED = new Set(
+  [
+    'Akrapovic',
+  ].map(normalizeBrandName)
+);
+
+export const shouldSmartInvertBrand = (brandName: string | undefined | null): boolean => {
+  if (!brandName) return false;
+
+  const normalized = normalizeBrandName(brandName);
+  const mapped = INVERT_BRAND_ALIASES[normalized.replace(/\s+/g, '')] ?? INVERT_BRAND_ALIASES[normalized] ?? normalized;
+
+  return SMART_INVERT_BRANDS_NORMALIZED.has(mapped);
 };

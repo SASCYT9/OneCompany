@@ -17,7 +17,7 @@ import {
   getLocalizedSubcategory,
 } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { shouldInvertBrand } from '@/lib/invertBrands';
+import { shouldInvertBrand, shouldSmartInvertBrand } from '@/lib/invertBrands';
 import { categoryData } from '@/lib/categoryData';
 import type { CategoryData } from '@/lib/categoryData';
 
@@ -317,7 +317,7 @@ export default function AutomotivePage() {
                         src={getBrandLogo('Akrapovic')}
                         alt="Akrapovic"
                         fill
-                        className={`object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_80px_rgba(255,255,255,0.2)] ${shouldInvertBrand('Akrapovic') ? 'filter brightness-0 invert' : ''}`}
+                        className={`object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_80px_rgba(255,255,255,0.2)] ${shouldSmartInvertBrand('Akrapovic') ? 'filter invert hue-rotate-180' : shouldInvertBrand('Akrapovic') ? 'filter brightness-0 invert' : ''}`}
                         unoptimized
                       />
                     </div>
@@ -663,7 +663,7 @@ export default function AutomotivePage() {
                               src={getBrandLogo(brand.name)}
                               alt={brand.name}
                               fill
-                              className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
+                              className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                               unoptimized
                             />
                           </div>
@@ -687,7 +687,7 @@ export default function AutomotivePage() {
                               src={getBrandLogo(brand.name)}
                               alt={brand.name}
                               fill
-                              className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
+                              className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                               unoptimized
                             />
                           </div>
