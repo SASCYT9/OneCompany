@@ -166,6 +166,7 @@ export default function TelegramAdminPage() {
       const res = await fetch('/api/messages', {
         headers: {
           'Authorization': `Bearer ${tg?.initData || 'dev'}`,
+          'X-Telegram-Init-Data': tg?.initData || 'dev',
         },
       });
       
@@ -212,6 +213,7 @@ export default function TelegramAdminPage() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${tg?.initData || 'dev'}`,
+          'X-Telegram-Init-Data': tg?.initData || 'dev',
         },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -247,6 +249,7 @@ export default function TelegramAdminPage() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${tg?.initData || 'dev'}`,
+          'X-Telegram-Init-Data': tg?.initData || 'dev',
         },
         body: JSON.stringify({ 
           content: replyText,

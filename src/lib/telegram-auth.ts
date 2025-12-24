@@ -63,12 +63,20 @@ export function isAuthenticated(request: Request): boolean {
     return true;
   }
 
+  let initData = '';
   const authHeader = request.headers.get('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const customHeader = request.headers.get('X-Telegram-Init-Data');
+
+  if (customHeader) {
+    initData = customHeader;
+  } else if (authHeader && authHeader.startsWith('Bearer ')) {
+    initData = authHeader.substring(7);
+  }
+
+  if (!initData) {
     return false;
   }
 
-  const initData = authHeader.substring(7);
   if (initData === 'dev' && process.env.NODE_ENV === 'development') {
     return true;
   }
