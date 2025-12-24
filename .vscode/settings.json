@@ -1,0 +1,17 @@
+{
+    "terminal.integrated.shellIntegration.enabled": true,
+    "terminal.integrated.automationShell.windows": "powershell.exe",
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "args": []
+        },
+        "Command Prompt": {
+            "path": "C:\\Windows\\System32\\cmd.exe",
+            "args": []
+        }
+    },
+    "security.workspace.trust.enabled": true,
+    "security.workspace.trust.untrustedFiles": "open"
+}

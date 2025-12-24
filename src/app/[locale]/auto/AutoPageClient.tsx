@@ -265,7 +265,7 @@ export default function AutomotivePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1, duration: 0.8 }}
-                className="text-4xl font-extralight tracking-tight text-white sm:text-5xl md:text-6xl"
+                className={`font-extralight tracking-tight text-white text-balance ${typography.sectionHeading}`}
               >
                 <span className="bg-gradient-to-b from-white via-white to-zinc-400 bg-clip-text text-transparent">
                   {locale === 'ua' ? 'Легендарні бренди' : 'Legendary Brands'}
@@ -623,7 +623,7 @@ export default function AutomotivePage() {
                   <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
                     <div className="text-center lg:text-left">
                       <div className="flex items-baseline gap-3 justify-center lg:justify-start">
-                        <span className="text-4xl sm:text-5xl lg:text-6xl font-extralight text-white">
+                        <span className={`font-extralight text-white ${typography.sectionHeading}`}>
                           {locale === 'ua' ? 'Всі бренди' : 'All brands'}
                         </span>
                       </div>

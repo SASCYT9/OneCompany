@@ -239,7 +239,7 @@ export default function ChoicePage() {
         <PanelBackdrop active={hover === 'auto'} x={pos.x} y={pos.y} accent="from-orange-400/30 via-rose-400/25 to-amber-300/20" />
         <div className="relative z-10 text-center select-none">
           <p className="text-[10px] tracking-[0.35em] uppercase text-white/40 mb-3">{t.choice.tagline}</p>
-          <h2 className="text-5xl md:text-6xl font-light tracking-tight">{t.choice.automotive}</h2>
+          <h2 className="text-4xl md:text-5xl font-light tracking-tight">{t.choice.automotive}</h2>
           <p className="mt-3 text-xs tracking-[0.25em] uppercase text-white/50">{t.choice.automotiveSubtitle}</p>
         </div>
         <CornerArrow active={hover === 'auto'} />
@@ -283,7 +283,7 @@ export default function ChoicePage() {
         <PanelBackdrop active={hover === 'moto'} x={pos.x} y={pos.y} accent="from-cyan-400/30 via-sky-400/25 to-indigo-300/20" />
         <div className="relative z-10 text-center select-none">
           <p className="text-[10px] tracking-[0.35em] uppercase text-white/40 mb-3">{t.choice.tagline}</p>
-          <h2 className="text-5xl md:text-6xl font-light tracking-tight">{t.choice.motorcycles}</h2>
+          <h2 className="text-4xl md:text-5xl font-light tracking-tight">{t.choice.motorcycles}</h2>
           <p className="mt-3 text-xs tracking-[0.25em] uppercase text-white/50">{t.choice.motorcyclesSubtitle}</p>
         </div>
         <CornerArrow active={hover === 'moto'} />
@@ -302,7 +302,7 @@ export default function ChoicePage() {
 
       {/* All Brands Section */}
       <section className="md:col-span-2 w-full pb-10 z-10 relative">
-        <h2 className="text-3xl md:text-4xl font-semibold text-center mb-10">{t.choice.featuredBrands}</h2>
+        <h2 className="text-2xl md:text-3xl font-semibold text-center mb-10">{t.choice.featuredBrands}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8 px-4">
           {allBrands.slice(0, 8).map((brand) => (
             <BrandExpandableCard 

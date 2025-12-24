@@ -68,8 +68,8 @@ export const getTypography = (locale: Locale): TypographyConfig => {
             ? 'text-sm sm:text-base'
             : 'text-base sm:text-lg',
         sectionHeading: isUa
-            ? 'text-lg sm:text-xl'
-            : 'text-xl sm:text-2xl',
+            ? 'text-2xl sm:text-3xl md:text-4xl'
+            : 'text-3xl sm:text-4xl md:text-5xl',
 
         // Body text
         body: isUa

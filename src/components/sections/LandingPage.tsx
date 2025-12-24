@@ -110,7 +110,7 @@ const LandingPage = () => {
         {/* Content */}
         <div className="relative z-10 h-full flex items-center justify-center">
           <div className="max-w-7xl mx-auto px-6 text-center">
-            <h1 className="fade-in text-5xl md:text-7xl lg:text-9xl text-white font-light tracking-tight mb-16 leading-tight">
+            <h1 className="fade-in text-4xl md:text-6xl lg:text-7xl text-white font-light tracking-tight mb-16 leading-tight">
               {t('premiumPerformance')}
             </h1>
             
@@ -160,7 +160,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto">
           <AnimatedSection delay={0.2}>
             <div className="text-center mb-24">
-              <h2 className="text-5xl md:text-7xl font-extralight text-zinc-900 dark:text-white mb-12 tracking-tight leading-tight">
+              <h2 className="text-4xl md:text-6xl font-extralight text-zinc-900 dark:text-white mb-12 tracking-tight leading-tight">
                 {t('welcomeHeading')}<br />
                 <span className="font-light">{t('premiumBrands')}</span>
               </h2>
@@ -201,7 +201,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto">
           <AnimatedSection delay={0.2}>
             <div className="text-center mb-24">
-              <h2 className="text-5xl md:text-7xl font-extralight text-zinc-900 dark:text-white mb-8 tracking-tight">
+              <h2 className="text-4xl md:text-6xl font-extralight text-zinc-900 dark:text-white mb-8 tracking-tight">
                 What We <span className="font-light">Offer</span>
               </h2>
               <div className="w-32 h-px bg-zinc-300 dark:bg-white/20 mx-auto" />
@@ -266,7 +266,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto">
           <AnimatedSection delay={0.2}>
             <div className="text-center mb-24">
-              <h2 className="text-5xl md:text-7xl font-extralight text-zinc-900 dark:text-white mb-8 tracking-tight">
+              <h2 className="text-4xl md:text-6xl font-extralight text-zinc-900 dark:text-white mb-8 tracking-tight">
                 Premium <span className="font-light">Brands</span>
               </h2>
               <div className="w-32 h-px bg-zinc-300 dark:bg-white/20 mx-auto mb-10" />
@@ -313,7 +313,7 @@ const LandingPage = () => {
       <section className="bg-zinc-50 dark:bg-zinc-950 py-32 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-24">
-            <h2 className="text-5xl md:text-7xl font-extralight text-zinc-900 dark:text-white mb-8 tracking-tight">
+            <h2 className="text-4xl md:text-6xl font-extralight text-zinc-900 dark:text-white mb-8 tracking-tight">
               Product <span className="font-light">Categories</span>
             </h2>
             <div className="w-32 h-px bg-zinc-300 dark:bg-white/20 mx-auto" />
@@ -349,7 +349,7 @@ const LandingPage = () => {
       {/* Contact CTA Section */}
       <section className="bg-white dark:bg-black py-40 px-6">
         <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-5xl md:text-7xl font-extralight text-zinc-900 dark:text-white mb-12 tracking-tight leading-tight">
+          <h2 className="text-4xl md:text-6xl font-extralight text-zinc-900 dark:text-white mb-12 tracking-tight leading-tight">
             Ready to <span className="font-light">Upgrade</span>?
           </h2>
           <div className="w-32 h-px bg-zinc-300 dark:bg-white/20 mx-auto mb-16" />
