@@ -97,6 +97,8 @@ export default function TelegramAdminPage() {
   
   // Verify admin status
   useEffect(() => {
+  // Verify admin status
+  useEffect(() => {
     async function verifyAdmin() {
       if (!tg?.initData) {
         // Allow access in dev mode without Telegram
