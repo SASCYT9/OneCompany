@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Script from 'next/script';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 
 // Types
 interface Message {
@@ -589,7 +589,7 @@ export default function TelegramAdminPage() {
         </div>
         
         {/* Messages list */}
-        <div className="px-4 pt-4">
+        <div className="px-4 pt-4 pb-32">
           {filteredMessages.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-4xl mb-4">📭</div>
@@ -600,43 +600,76 @@ export default function TelegramAdminPage() {
               {filteredMessages.map((message, index) => (
                 <motion.div
                   key={message.id}
+                  layout
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -100 }}
                   transition={{ delay: index * 0.05 }}
-                  onClick={() => {
-                    setSelectedMessage(message);
-                    setViewMode('detail');
-                    tg?.HapticFeedback?.impactOccurred('light');
-                  }}
-                  className="p-4 rounded-xl mb-3 cursor-pointer active:scale-[0.98] transition-transform"
-                  style={{ backgroundColor: secondaryBg }}
+                  className="mb-3 relative group"
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${statusColors[message.status]}`} />
-                      <span className="font-medium" style={{ color: textColor }}>
-                        {message.userName}
-                      </span>
-                      <span>{categoryEmoji[message.category]}</span>
+                  {/* Swipe Actions Background */}
+                  <div className="absolute inset-0 rounded-xl overflow-hidden flex">
+                    <div className="w-1/2 bg-yellow-500 flex items-center justify-start pl-4">
+                      <span className="text-white font-bold text-sm">⏳ В роботу</span>
                     </div>
-                    <span className="text-xs" style={{ color: hintColor }}>
-                      {new Date(message.createdAt).toLocaleDateString('uk-UA')}
-                    </span>
+                    <div className="w-1/2 bg-gray-500 flex items-center justify-end pr-4">
+                      <span className="text-white font-bold text-sm">📁 Архів</span>
+                    </div>
                   </div>
-                  
-                  <p
-                    className="text-sm line-clamp-2"
-                    style={{ color: hintColor }}
+
+                  {/* Card Content */}
+                  <motion.div
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.2}
+                    onDragEnd={(e, { offset, velocity }) => {
+                      const swipe = offset.x;
+                      if (swipe > 100) {
+                        updateStatus(message.id, 'IN_PROGRESS');
+                      } else if (swipe < -100) {
+                        updateStatus(message.id, 'ARCHIVED');
+                      }
+                    }}
+                    onClick={() => {
+                      setSelectedMessage(message);
+                      setViewMode('detail');
+                      tg?.HapticFeedback?.impactOccurred('light');
+                    }}
+                    className="relative z-10 p-4 rounded-xl cursor-pointer active:scale-[0.98] transition-transform shadow-sm"
+                    style={{ backgroundColor: secondaryBg }}
+                    whileDrag={{ scale: 1.02, cursor: 'grabbing' }}
                   >
-                    {message.messageText}
-                  </p>
-                  
-                  {message.replies && message.replies.length > 0 && (
-                    <span className="inline-block mt-2 text-xs px-2 py-1 rounded-full" style={{ backgroundColor: bgColor, color: buttonColor }}>
-                      💬 {message.replies.length} відповідей
-                    </span>
-                  )}
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${statusColors[message.status]}`} />
+                        <span className="font-medium" style={{ color: textColor }}>
+                          {message.userName}
+                        </span>
+                        <span>{categoryEmoji[message.category]}</span>
+                      </div>
+                      <span className="text-xs" style={{ color: hintColor }}>
+                        {new Date(message.createdAt).toLocaleDateString('uk-UA')}
+                      </span>
+                    </div>
+                    
+                    <p
+                      className="text-sm line-clamp-2"
+                      style={{ color: hintColor }}
+                    >
+                      {message.messageText}
+                    </p>
+                    
+                    {message.replies && message.replies.length > 0 && (
+                      <span className="inline-block mt-2 text-xs px-2 py-1 rounded-full" style={{ backgroundColor: bgColor, color: buttonColor }}>
+                        💬 {message.replies.length} відповідей
+                      </span>
+                    )}
+                    
+                    {/* Swipe Hint (visible on long press or hover) */}
+                    <div className="absolute bottom-1 right-1/2 translate-x-1/2 opacity-0 group-active:opacity-50 transition-opacity text-[10px]" style={{ color: hintColor }}>
+                      ← Архів | В роботу →
+                    </div>
+                  </motion.div>
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -644,23 +677,33 @@ export default function TelegramAdminPage() {
         </div>
         
         {/* Stats bar */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 border-t border-white/10" style={{ backgroundColor: bgColor }}>
-          <div className="flex justify-around text-center">
-            <div>
-              <div className="font-bold" style={{ color: textColor }}>{messages.length}</div>
-              <div className="text-xs" style={{ color: hintColor }}>Всього</div>
+        <div 
+          className="fixed bottom-0 left-0 right-0 border-t border-white/10 backdrop-blur-md" 
+          style={{ 
+            backgroundColor: `${bgColor}E6`, // 90% opacity
+            paddingBottom: 'env(safe-area-inset-bottom)',
+            paddingTop: '1rem',
+            paddingLeft: '1rem',
+            paddingRight: '1rem',
+            height: 'calc(80px + env(safe-area-inset-bottom))'
+          }}
+        >
+          <div className="flex justify-around text-center h-full items-start">
+            <div onClick={() => setFilterStatus('ALL')} className="active:scale-90 transition-transform">
+              <div className="font-bold text-lg" style={{ color: textColor }}>{messages.length}</div>
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: hintColor }}>Всього</div>
             </div>
-            <div>
-              <div className="font-bold text-blue-500">{messages.filter(m => m.status === 'NEW').length}</div>
-              <div className="text-xs" style={{ color: hintColor }}>Нових</div>
+            <div onClick={() => setFilterStatus('NEW')} className="active:scale-90 transition-transform">
+              <div className="font-bold text-lg text-blue-500">{messages.filter(m => m.status === 'NEW').length}</div>
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: hintColor }}>Нових</div>
             </div>
-            <div>
-              <div className="font-bold text-yellow-500">{messages.filter(m => m.status === 'IN_PROGRESS').length}</div>
-              <div className="text-xs" style={{ color: hintColor }}>В роботі</div>
+            <div onClick={() => setFilterStatus('IN_PROGRESS')} className="active:scale-90 transition-transform">
+              <div className="font-bold text-lg text-yellow-500">{messages.filter(m => m.status === 'IN_PROGRESS').length}</div>
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: hintColor }}>В роботі</div>
             </div>
-            <div>
-              <div className="font-bold text-green-500">{messages.filter(m => m.status === 'COMPLETED').length}</div>
-              <div className="text-xs" style={{ color: hintColor }}>Готово</div>
+            <div onClick={() => setFilterStatus('COMPLETED')} className="active:scale-90 transition-transform">
+              <div className="font-bold text-lg text-green-500">{messages.filter(m => m.status === 'COMPLETED').length}</div>
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: hintColor }}>Готово</div>
             </div>
           </div>
         </div>
