@@ -46,7 +46,9 @@ export default function NewMessagesPage() {
       const response = await fetch('/api/messages');
       if (response.ok) {
         const data = await response.json();
-        setMessages(data);
+        // Handle both array (legacy) and object (new) formats
+        const msgs = Array.isArray(data) ? data : (data.messages || []);
+        setMessages(msgs);
       }
     } catch (error) {
       console.error('Failed to load messages:', error);
