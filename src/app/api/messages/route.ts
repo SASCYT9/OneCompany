@@ -4,14 +4,16 @@ import { ReplyEmail } from '@/components/emails/ReplyEmail';
 import { Resend } from 'resend';
 import React from 'react';
 import { PrismaClient, Status } from '@prisma/client';
+import { isAuthenticated } from '@/lib/telegram-auth';
 
 const prisma = new PrismaClient();
 // Initialize Resend with a fallback key to prevent build-time errors if env var is missing.
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
 
-async function handleGet(req: NextRequest) {
-  // No authentication check - handled by admin layout
-  // This allows the messages page to load data after layout authentication
+export async function GET(req: NextRequest) {
+  if (!isAuthenticated(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   const { searchParams } = new URL(req.url);
   if (searchParams.get('stats')) {
@@ -25,11 +27,13 @@ async function handleGet(req: NextRequest) {
     include: { replies: true },
     orderBy: { createdAt: 'desc' },
   });
-  return NextResponse.json(messages);
+  return NextResponse.json({ messages });
 }
 
-async function handlePost(req: NextRequest) {
-  // No authentication check - handled by admin layout
+export async function POST(req: NextRequest) {
+  if (!isAuthenticated(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   
   const body = await req.json();
   const { action, messageId } = body;
@@ -106,8 +110,10 @@ async function handlePost(req: NextRequest) {
   }
 }
 
-async function handleDelete(req: NextRequest) {
-  // No authentication check - handled by admin layout
+export async function DELETE(req: NextRequest) {
+  if (!isAuthenticated(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
@@ -123,8 +129,6 @@ async function handleDelete(req: NextRequest) {
     return NextResponse.json({ error: 'Message not found' }, { status: 404 });
   }
 }
-
-export { handleGet as GET, handlePost as POST, handleDelete as DELETE };
 
 export const runtime = 'nodejs';
 

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { notifyUserReply } from '@/lib/bot/notifications';
+import { isAuthenticated } from '@/lib/telegram-auth';
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,10 @@ interface RouteParams {
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const { id } = await params;
     const { content, sendToTelegram } = await request.json();
