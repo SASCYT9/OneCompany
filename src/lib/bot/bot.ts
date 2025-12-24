@@ -27,20 +27,9 @@ export function getBot(token?: string): Bot<BotContext> {
   }
   
   // For serverless, we need to provide botInfo statically to avoid init() call
-  // This is the bot info for @OneCompanyUA_bot
-  bot = new Bot<BotContext>(botToken, {
-    botInfo: {
-      id: 8449589510,
-      is_bot: true,
-      first_name: 'OneCompany',
-      username: 'OneCompanyUA_bot',
-      can_join_groups: true,
-      can_read_all_group_messages: false,
-      supports_inline_queries: false,
-      can_connect_to_business: false,
-      has_main_web_app: false,
-    },
-  });
+  // If you change the bot, you should update this info or remove it (which will cause a getMe call on startup)
+  // Currently configured for @OneCompBot (ID needs to be updated if known to optimize)
+  bot = new Bot<BotContext>(botToken);
   
   // Auto-retry on rate limits
   bot.api.config.use(autoRetry({
