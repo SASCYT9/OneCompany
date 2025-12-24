@@ -6,6 +6,7 @@ import { Resend } from 'resend';
 import * as fs from 'fs';
 import * as path from 'path';
 import { PrismaClient } from '@prisma/client';
+import { notifyAdminsNewMessage } from '@/lib/bot/notifications';
 
 // Basic rate limiting (memory). For production replace with Redis or durable store.
 const WINDOW_MS = 60_000; // 1 minute
@@ -237,6 +238,19 @@ export async function POST(req: NextRequest) {
     });
 
     console.log('✅ Message saved to database:', savedMessage.id);
+
+    // Notify admins via Bot
+    try {
+      await notifyAdminsNewMessage(savedMessage.id, {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        message: formData.wishes,
+        category: type === 'auto' ? 'auto' : 'moto',
+      });
+    } catch (err) {
+      console.error('Failed to notify admins via bot:', err);
+    }
 
     // Send to Telegram (don't block user if this fails)
     try {
