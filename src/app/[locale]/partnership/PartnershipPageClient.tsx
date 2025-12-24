@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader, Building2, Globe, User, Mail, Phone, FileText, Send } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { getTypography, resolveLocale } from "@/lib/typography";
 
 type PartnershipType = "sto" | "dealer" | "detailing" | "tuning" | "other";
 type FormState = "idle" | "loading" | "success" | "error";
 
 export default function PartnershipPageClient() {
   const t = useTranslations("partnershipPage");
+  const locale = useLocale();
+  const typography = getTypography(resolveLocale(locale));
   const [formData, setFormData] = useState({
     companyName: "",
     website: "",
@@ -74,10 +77,10 @@ export default function PartnershipPageClient() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-3xl md:text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+            <h1 className={`font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 ${typography.h1}`}>
               {t("title")}
             </h1>
-            <p className="text-base text-white/60 mb-12 leading-relaxed">
+            <p className={`text-white/60 mb-12 leading-relaxed ${typography.body}`}>
               {t("description")}
             </p>
 
@@ -87,8 +90,8 @@ export default function PartnershipPageClient() {
                   <Building2 className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">{t("benefits.official.title")}</h3>
-                  <p className="text-sm text-white/50">{t("benefits.official.description")}</p>
+                  <h3 className={`font-semibold mb-2 ${typography.h3}`}>{t("benefits.official.title")}</h3>
+                  <p className={`text-white/50 ${typography.bodySmall}`}>{t("benefits.official.description")}</p>
                 </div>
               </div>
 
@@ -97,8 +100,8 @@ export default function PartnershipPageClient() {
                   <Globe className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">{t("benefits.logistics.title")}</h3>
-                  <p className="text-sm text-white/50">{t("benefits.logistics.description")}</p>
+                  <h3 className={`font-semibold mb-2 ${typography.h3}`}>{t("benefits.logistics.title")}</h3>
+                  <p className={`text-white/50 ${typography.bodySmall}`}>{t("benefits.logistics.description")}</p>
                 </div>
               </div>
 
@@ -107,14 +110,14 @@ export default function PartnershipPageClient() {
                   <User className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">{t("benefits.support.title")}</h3>
-                  <p className="text-sm text-white/50">{t("benefits.support.description")}</p>
+                  <h3 className={`font-semibold mb-2 ${typography.h3}`}>{t("benefits.support.title")}</h3>
+                  <p className={`text-white/50 ${typography.bodySmall}`}>{t("benefits.support.description")}</p>
                 </div>
               </div>
             </div>
 
             <div className="mt-12 flex flex-col gap-4">
-              <a 
+              <a
                 href="https://t.me/OneCompanyAutoBot"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -126,7 +129,7 @@ export default function PartnershipPageClient() {
                 <span className="font-medium tracking-wide">Telegram</span>
               </a>
 
-              <a 
+              <a
                 href="mailto:info@onecompany.global"
                 className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] text-white group w-fit"
               >
@@ -136,7 +139,7 @@ export default function PartnershipPageClient() {
                 <span className="font-medium tracking-wide">info@onecompany.global</span>
               </a>
 
-              <a 
+              <a
                 href="#"
                 className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] text-white group w-fit"
               >
@@ -157,7 +160,7 @@ export default function PartnershipPageClient() {
           >
             {/* Progress Bar */}
             <div className="absolute top-0 left-0 w-full h-1 bg-white/5 rounded-t-3xl overflow-hidden">
-              <motion.div 
+              <motion.div
                 className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
                 initial={{ width: 0 }}
                 animate={{ width: `${completion}%` }}
@@ -168,7 +171,7 @@ export default function PartnershipPageClient() {
             <form onSubmit={handleSubmit} className="space-y-6 mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm text-white/60 flex items-center gap-2">
+                  <label className={`text-white/60 flex items-center gap-2 ${typography.bodySmall}`}>
                     <Building2 className="w-4 h-4" /> {t("form.companyName")}
                   </label>
                   <input
@@ -180,7 +183,7 @@ export default function PartnershipPageClient() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm text-white/60 flex items-center gap-2">
+                  <label className={`text-white/60 flex items-center gap-2 ${typography.bodySmall}`}>
                     <Globe className="w-4 h-4" /> {t("form.website")}
                   </label>
                   <input
@@ -194,7 +197,7 @@ export default function PartnershipPageClient() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm text-white/60 flex items-center gap-2">
+                  <label className={`text-white/60 flex items-center gap-2 ${typography.bodySmall}`}>
                     <User className="w-4 h-4" /> {t("form.contactPerson")}
                   </label>
                   <input
@@ -206,7 +209,7 @@ export default function PartnershipPageClient() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm text-white/60 flex items-center gap-2">
+                  <label className={`text-white/60 flex items-center gap-2 ${typography.bodySmall}`}>
                     <Mail className="w-4 h-4" /> {t("form.email")}
                   </label>
                   <input
@@ -233,18 +236,17 @@ export default function PartnershipPageClient() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm text-white/60">{t("form.type")}</label>
+                <label className={`text-white/60 ${typography.bodySmall}`}>{t("form.type")}</label>
                 <div className="flex flex-wrap gap-2">
                   {(["sto", "dealer", "detailing", "tuning", "other"] as const).map((type) => (
                     <button
                       key={type}
                       type="button"
                       onClick={() => setFormData({ ...formData, type })}
-                      className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all duration-300 ${
-                        formData.type === type
+                      className={`px-4 py-2.5 rounded-full font-medium border transition-all duration-300 ${typography.bodySmall} ${formData.type === type
                           ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]"
                           : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/20 hover:text-white"
-                      }`}
+                        }`}
                     >
                       {t(`types.${type}`)}
                     </button>
@@ -268,11 +270,10 @@ export default function PartnershipPageClient() {
               <button
                 type="submit"
                 disabled={status === "loading" || completion < 100}
-                className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
-                  status === "loading" || completion < 100
+                className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${status === "loading" || completion < 100
                     ? "bg-white/10 text-white/40 cursor-not-allowed"
                     : "bg-white text-black hover:bg-white/90"
-                }`}
+                  }`}
               >
                 {status === "loading" ? (
                   <Loader className="w-5 h-5 animate-spin" />

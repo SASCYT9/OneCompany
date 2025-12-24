@@ -15,7 +15,7 @@ const INVERT_BRANDS_NORMALIZED = new Set(
     'AC Schnitzer',
     'ADRO',
     'Airlift',
-    // 'Akrapovic', // Moved to SMART_INVERT
+    'Akrapovic',
     'AMS',
     'ANRKY',
     'AVANTGARDE',
@@ -57,7 +57,6 @@ export const shouldInvertBrand = (brandName: string | undefined | null): boolean
 
 const SMART_INVERT_BRANDS_NORMALIZED = new Set(
   [
-    'Akrapovic',
     '3D Design',
     'BE bearings',
     'Marchesini',

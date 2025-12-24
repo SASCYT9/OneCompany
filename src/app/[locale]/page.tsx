@@ -4,6 +4,7 @@ import Script from "next/script";
 import clsx from "clsx";
 import { getTranslations } from "next-intl/server";
 import { StickyScroll } from "@/components/StickyScroll";
+import { getTypography, resolveLocale } from "@/lib/typography";
 
 export { generateMetadata } from './metadata';
 
@@ -26,6 +27,7 @@ export default async function LocalizedHomePage({
 }: LocalizedHomePageProps) {
   const { locale } = await params;
   const t = await getTranslations("home");
+  const typography = getTypography(resolveLocale(locale));
 
   const experiences: ExperienceSplit[] = [
     {
@@ -61,8 +63,8 @@ export default async function LocalizedHomePage({
       id: 'brands',
       eyebrow: locale === 'ua' ? 'Світові бренди' : 'Global brands',
       title: locale === 'ua' ? '200+ брендів' : '200+ brands',
-      description: locale === 'ua' 
-        ? 'Ми працюємо виключно з провідними світовими виробниками авто та мото тюнінгу.' 
+      description: locale === 'ua'
+        ? 'Ми працюємо виключно з провідними світовими виробниками авто та мото тюнінгу.'
         : 'We work exclusively with leading global manufacturers of auto and moto tuning.',
       meta: locale === 'ua' ? 'Гарантія якості та автентичності' : 'Quality & authenticity guarantee',
     },
@@ -135,69 +137,69 @@ export default async function LocalizedHomePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <main className="text-white">
-      <section className="relative flex min-h-[70vh] flex-col justify-center pt-8">
-        <div className="px-4 pt-24 text-center text-[8px] uppercase tracking-[0.4em] text-white/55 sm:px-6 md:pt-36 sm:text-[10px] sm:tracking-[0.5em]">
-          <p>{heroBadgeCopy}</p>
-        </div>
+        <section className="relative flex min-h-[70vh] flex-col justify-center pt-8">
+          <div className={`px-4 pt-24 text-center uppercase tracking-[0.4em] text-white/55 sm:px-6 md:pt-36 sm:tracking-[0.5em] ${typography.heroBadge}`}>
+            <p>{heroBadgeCopy}</p>
+          </div>
 
-        <div className="relative isolate flex flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:gap-4 sm:px-6 sm:pb-6 sm:pt-6 md:flex-row md:gap-4 md:px-8 max-w-[1400px] mx-auto w-full">
-          
-          <div className="relative flex flex-1 flex-col gap-4 md:flex-row md:gap-4">
-            {experiences.map((experience, index) => (
-              <Link
-                key={experience.label}
-                href={experience.href}
-                className={clsx(
-                  "group relative flex flex-1 min-h-[280px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-white sm:min-h-[320px] sm:gap-6 sm:p-5",
-                  "border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]",
-                  "rounded-2xl",
-                  index === 0 ? "md:mr-2" : "md:ml-2"
-                )}
-              >
-                {/* Background Image - raw photo */}
-                <Image
-                  src={experience.bgImage}
-                  alt={experience.label}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-all duration-700 grayscale"
-                  priority
-                  quality={90}
-                />
-                {/* Subtle gradient for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                
-                <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
-                  <div>
-                    <span className="inline-block font-display rounded-full border border-white/50 bg-white/10 backdrop-blur-md px-6 py-2.5 text-xs tracking-[0.3em] text-white shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_40px_rgba(255,255,255,0.7)] sm:px-8 sm:py-3 sm:text-sm sm:tracking-[0.35em]">
-                      {experience.label}
+          <div className="relative isolate flex flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:gap-4 sm:px-6 sm:pb-6 sm:pt-6 md:flex-row md:gap-4 md:px-8 max-w-[1400px] mx-auto w-full">
+
+            <div className="relative flex flex-1 flex-col gap-4 md:flex-row md:gap-4">
+              {experiences.map((experience, index) => (
+                <Link
+                  key={experience.label}
+                  href={experience.href}
+                  className={clsx(
+                    "group relative flex flex-1 min-h-[280px] flex-col justify-between gap-4 overflow-hidden p-4 text-left text-white sm:min-h-[320px] sm:gap-6 sm:p-5",
+                    "border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]",
+                    "rounded-2xl",
+                    index === 0 ? "md:mr-2" : "md:ml-2"
+                  )}
+                >
+                  {/* Background Image - raw photo */}
+                  <Image
+                    src={experience.bgImage}
+                    alt={experience.label}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-all duration-700 grayscale"
+                    priority
+                    quality={90}
+                  />
+                  {/* Subtle gradient for text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+                  <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
+                    <div>
+                      <span className={`inline-block font-display rounded-full border border-white/50 bg-white/10 backdrop-blur-md px-6 py-2.5 tracking-[0.3em] text-white shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_40px_rgba(255,255,255,0.7)] sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}>
+                        {experience.label}
+                      </span>
+                    </div>
+                    <p className={`leading-relaxed text-white/80 text-pretty tracking-wide max-w-xs mx-auto ${typography.bodySmall}`}>
+                      {experience.description}
+                    </p>
+                  </div>
+                  <div className="relative flex w-full items-end justify-between gap-2 pt-2 sm:gap-4 sm:pt-3">
+                    <div className="flex flex-wrap gap-2 text-white/80 sm:gap-4">
+                      {experience.stats.map((stat) => (
+                        <div key={stat.note}>
+                          <p className={`font-display tracking-tight text-white ${typography.statValue}`}>{stat.value}</p>
+                          <p className={`uppercase tracking-[0.2em] text-white/55 sm:tracking-[0.3em] ${typography.statLabel}`}>{stat.note}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/5 backdrop-blur-sm text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] sm:h-12 sm:w-12">
+                      →
                     </span>
                   </div>
-                  <p className="text-xs leading-relaxed text-white/80 text-pretty sm:text-sm tracking-wide max-w-xs mx-auto">
-                    {experience.description}
-                  </p>
-                </div>
-                <div className="relative flex w-full items-end justify-between gap-2 pt-2 sm:gap-4 sm:pt-3">
-                  <div className="flex flex-wrap gap-2 text-white/80 sm:gap-4">
-                    {experience.stats.map((stat) => (
-                      <div key={stat.note}>
-                        <p className="text-lg font-display tracking-tight text-white sm:text-xl">{stat.value}</p>
-                        <p className="text-[8px] uppercase tracking-[0.2em] text-white/55 sm:text-[9px] sm:tracking-[0.3em]">{stat.note}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/5 backdrop-blur-sm text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] sm:h-12 sm:w-12">
-                    →
-                  </span>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
-      
-      <StickyScroll items={carouselItems} />
+        </section>
 
-      {/* Hidden for now - duplicates hero cards functionality
+        <StickyScroll items={carouselItems} />
+
+        {/* Hidden for now - duplicates hero cards functionality
       <section id="expert-programs" className="relative overflow-hidden py-20 text-white">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-transparent" aria-hidden />
         <div className="relative mx-auto max-w-4xl px-6 text-center">
@@ -234,35 +236,35 @@ export default async function LocalizedHomePage({
       </section>
       */}
 
-      <section className="relative overflow-hidden px-6 py-20 text-white">
-        <div className="relative mx-auto max-w-6xl">
-          <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
-            <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-white/50">{t('b2bPrograms')}</p>
-              <h3 className="mt-3 text-2xl sm:text-4xl text-balance">{t('partnerWithLeading')}</h3>
-              <p className="mt-3 text-sm text-white/60 text-pretty">{t('partnerTypes')}</p>
-            </div>
-            <Link
-              href={`/${locale}/contact`}
-              className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-white/30 bg-white/10 backdrop-blur-xl px-6 py-3 text-xs uppercase tracking-[0.35em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)]"
-            >
-              {t('arrangeConsult')} ↗
-            </Link>
-          </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
-            {b2bServices.map((service) => (
-              <div
-                key={service.title}
-                className="rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-6 hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300"
-              >
-                <p className="text-sm uppercase tracking-[0.3em] text-white/50">{heroBadgeCopy}</p>
-                <h4 className="mt-4 text-2xl text-white">{service.title}</h4>
-                <p className="mt-3 text-sm text-white/70">{service.copy}</p>
+        <section className="relative overflow-hidden px-6 py-20 text-white">
+          <div className="relative mx-auto max-w-6xl">
+            <div className="flex flex-col gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
+              <div>
+                <p className={`uppercase tracking-[0.4em] text-white/50 ${typography.badge}`}>{t('b2bPrograms')}</p>
+                <h3 className={`mt-3 text-balance ${typography.h2}`}>{t('partnerWithLeading')}</h3>
+                <p className={`mt-3 text-white/60 text-pretty ${typography.body}`}>{t('partnerTypes')}</p>
               </div>
-            ))}
+              <Link
+                href={`/${locale}/contact`}
+                className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-white/30 bg-white/10 backdrop-blur-xl px-6 py-3 text-xs uppercase tracking-[0.35em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)]"
+              >
+                {t('arrangeConsult')} ↗
+              </Link>
+            </div>
+            <div className="mt-12 grid gap-6 md:grid-cols-2">
+              {b2bServices.map((service) => (
+                <div
+                  key={service.title}
+                  className="rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-6 hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300"
+                >
+                  <p className={`uppercase tracking-[0.3em] text-white/50 ${typography.badge}`}>{heroBadgeCopy}</p>
+                  <h4 className={`mt-4 text-white ${typography.h3}`}>{service.title}</h4>
+                  <p className={`mt-3 text-white/70 ${typography.body}`}>{service.copy}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
 
       </main>

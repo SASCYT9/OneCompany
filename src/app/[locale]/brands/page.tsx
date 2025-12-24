@@ -5,25 +5,27 @@ import { useLocale } from 'next-intl';
 import Image from 'next/image';
 import { BRAND_LOGO_MAP } from '@/lib/brandLogos';
 import { shouldInvertBrand } from '@/lib/invertBrands';
-import { 
-  getBrandMetadata, 
-  countryNames, 
-  subcategoryNames, 
-  allAutomotiveBrands, 
+import {
+  getBrandMetadata,
+  countryNames,
+  subcategoryNames,
+  allAutomotiveBrands,
   allMotoBrands,
 } from '@/lib/brands';
 import { getBrandStoryForBrand } from '@/lib/brandStories';
 import { BrandModal } from '@/components/ui/BrandModal';
 import { BrandItem } from '@/components/sections/BrandLogosGrid';
+import { getTypography, resolveLocale } from '@/lib/typography';
 
 export default function BrandsPage() {
   const locale = useLocale();
+  const typography = getTypography(resolveLocale(locale));
   const [search, setSearch] = useState('');
   const [selectedBrand, setSelectedBrand] = useState<BrandItem | null>(null);
 
   const brands = Object.entries(BRAND_LOGO_MAP).sort((a, b) => a[0].localeCompare(b[0]));
-  
-  const filteredBrands = brands.filter(([name]) => 
+
+  const filteredBrands = brands.filter(([name]) =>
     name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -36,15 +38,15 @@ export default function BrandsPage() {
     const allBrands = [...allAutomotiveBrands, ...allMotoBrands];
     const brandData = allBrands.find(b => b.name === name);
 
-      const context = brandData?.category === 'moto' ? 'Moto' : brandData?.category === 'auto' ? 'Auto' : undefined;
-      const story = getBrandStoryForBrand(
-        {
-          name,
-          description: brandData?.description,
-          descriptionUA: brandData?.descriptionUA,
-        },
-        context
-      );
+    const context = brandData?.category === 'moto' ? 'Moto' : brandData?.category === 'auto' ? 'Auto' : undefined;
+    const story = getBrandStoryForBrand(
+      {
+        name,
+        description: brandData?.description,
+        descriptionUA: brandData?.descriptionUA,
+      },
+      context
+    );
 
     const description = story.description[lang];
     const headline = story.headline[lang];
@@ -71,13 +73,13 @@ export default function BrandsPage() {
 
       <main className="relative container mx-auto px-6 py-24">
         <header className="text-center mb-16">
-          <p className="text-[10px] tracking-[0.35em] uppercase text-white/30 font-light mb-4">
+          <p className={`tracking-[0.35em] uppercase text-white/30 font-light mb-4 ${typography.badge}`}>
             {locale === 'ua' ? 'Партнери' : 'Partners'}
           </p>
           <h1 className="text-5xl md:text-6xl font-light tracking-tight mb-8 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/70 text-balance">
             {locale === 'ua' ? 'Всі бренди' : 'All Brands'}
           </h1>
-          
+
           <div className="max-w-md mx-auto relative">
             <input
               type="text"
@@ -91,7 +93,7 @@ export default function BrandsPage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
           {filteredBrands.map(([name, logo]) => (
-            <div 
+            <div
               key={name}
               onClick={() => handleBrandClick(name, logo)}
               className="group relative aspect-[3/2] flex items-center justify-center p-6 bg-white/[0.02] border border-white/10 rounded-2xl hover:bg-white/[0.05] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all duration-500 backdrop-blur-sm overflow-hidden cursor-pointer"
@@ -116,7 +118,7 @@ export default function BrandsPage() {
 
               {/* Brand name tooltip */}
               <div className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="text-[10px] uppercase tracking-wider text-white/50 font-light truncate px-2">{name}</span>
+                <span className={`uppercase tracking-wider text-white/50 font-light truncate px-2 ${typography.badge}`}>{name}</span>
               </div>
             </div>
           ))}
@@ -129,10 +131,10 @@ export default function BrandsPage() {
         )}
       </main>
 
-      <BrandModal 
-        brand={selectedBrand} 
-        isOpen={!!selectedBrand} 
-        onClose={() => setSelectedBrand(null)} 
+      <BrandModal
+        brand={selectedBrand}
+        isOpen={!!selectedBrand}
+        onClose={() => setSelectedBrand(null)}
       />
     </div>
   );

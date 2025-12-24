@@ -4,13 +4,16 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader, Mail, Phone, MapPin } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { getTypography, resolveLocale } from "@/lib/typography";
 
 type FormType = "auto" | "moto";
 type FormState = "idle" | "loading" | "success" | "error";
 
 export default function ContactPage() {
   const t = useTranslations("contactPage");
+  const locale = useLocale();
+  const typography = getTypography(resolveLocale(locale));
   const [type, setType] = useState<FormType>("auto");
   const [formData, setFormData] = useState({
     model: "",
@@ -39,12 +42,12 @@ export default function ContactPage() {
     // Allow user to type + manually at the start
     const hasPlus = value.startsWith('+');
     const digits = value.replace(/\D/g, '');
-    
+
     if (!digits) return hasPlus ? '+' : '';
-    
+
     // If user typed +, preserve it; otherwise add it
     const prefix = hasPlus || value.length === 0 ? '+' : '+';
-    
+
     if (digits.length <= 3) return `${prefix}${digits}`;
     if (digits.length <= 5) return `${prefix}${digits.slice(0, 3)} ${digits.slice(3)}`;
     if (digits.length <= 8) return `${prefix}${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5)}`;
@@ -139,7 +142,7 @@ export default function ContactPage() {
               <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-10 md:space-y-12">
                 {/* Progress bar */}
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[9px] sm:text-[10px] tracking-[0.15em] uppercase text-white/40 font-light">
+                  <div className={`flex items-center justify-between tracking-[0.15em] uppercase text-white/40 font-light ${typography.badge}`}>
                     <span>{completion}%</span>
                     <span className="truncate">{status === "loading" ? t("form.submitting") : t("form.progressLabel")}</span>
                   </div>
@@ -153,7 +156,7 @@ export default function ContactPage() {
 
                 {/* Type selector */}
                 <div className="flex gap-2">
-                  {(["auto","moto"] as FormType[]).map(option => (
+                  {(["auto", "moto"] as FormType[]).map(option => (
                     <button
                       key={option}
                       type="button"
@@ -164,7 +167,7 @@ export default function ContactPage() {
                           ? "bg-white text-black shadow-lg"
                           : "bg-white/5 text-white/50 hover:bg-white/8 hover:text-white/70")
                       }
-                      aria-pressed={type===option}
+                      aria-pressed={type === option}
                     >
                       <span className="relative z-10">{option === "auto" ? t("form.typeAuto") : t("form.typeMoto")}</span>
                     </button>
@@ -174,7 +177,7 @@ export default function ContactPage() {
                 <div className="space-y-6 sm:space-y-8">
                   <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2">
                     <div>
-                      <label htmlFor="model" className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                      <label htmlFor="model" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
                         {modelLabel}
                       </label>
                       <input
@@ -189,7 +192,7 @@ export default function ContactPage() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="vin" className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                      <label htmlFor="vin" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
                         {t("form.vinLabel")} <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
                       </label>
                       <input
@@ -206,7 +209,7 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="wishes" className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                    <label htmlFor="wishes" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
                       {t("form.wishesLabel")}
                     </label>
                     <textarea
@@ -223,7 +226,7 @@ export default function ContactPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                     <div>
-                      <label htmlFor="budget" className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                      <label htmlFor="budget" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
                         {t("form.budgetLabel")} <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
                       </label>
                       <input
@@ -237,7 +240,7 @@ export default function ContactPage() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="email" className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                      <label htmlFor="email" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
                         {t("form.emailLabel")}
                       </label>
                       <input
@@ -255,7 +258,7 @@ export default function ContactPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                     <div>
-                      <label htmlFor="phone" className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                      <label htmlFor="phone" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
                         {t("form.phoneLabel")}
                       </label>
                       <input
@@ -272,17 +275,17 @@ export default function ContactPage() {
                       <p className="mt-1 text-[8px] text-white/30 tracking-wide">{t("form.phoneHint")}</p>
                     </div>
                     <div>
-                      <label className="mb-2 block text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] text-white/40">
+                      <label className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
                         {t("form.contactMethodLabel")}
                       </label>
                       <div className="flex gap-2 pt-1">
-                        {(["telegram","whatsapp"] as const).map(method => (
+                        {(["telegram", "whatsapp"] as const).map(method => (
                           <button
                             key={method}
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, contactMethod: method }))}
                             className={`flex-1 relative rounded-full border px-3 py-2.5 sm:py-3 text-[10px] sm:text-xs font-light tracking-[0.1em] transition-all duration-300 ${formData.contactMethod === method ? 'border-white bg-white text-black' : 'border-white/15 text-white/50 hover:border-white/30 hover:text-white/70'}`}
-                            aria-pressed={formData.contactMethod===method}
+                            aria-pressed={formData.contactMethod === method}
                           >
                             <span className="relative z-10">
                               {t(`form.${method}`)}
@@ -313,11 +316,10 @@ export default function ContactPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className={`p-4 flex items-center justify-center gap-3 rounded-xl border ${
-                        status === "success"
+                      className={`p-4 flex items-center justify-center gap-3 rounded-xl border ${status === "success"
                           ? "border-green-300/40 bg-green-500/10 text-green-200"
                           : "border-red-300/40 bg-red-500/10 text-red-200"
-                      }`}
+                        }`}
                     >
                       {status === "success" ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
                       <span className="text-sm font-light">{message}</span>
@@ -339,7 +341,7 @@ export default function ContactPage() {
                     <Mail className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="mb-2 text-xs font-light uppercase tracking-widest text-white/50">{t("info.emailLabel")}</h3>
+                    <h3 className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}>{t("info.emailLabel")}</h3>
                     <a href="mailto:info@onecompany.global" className="text-lg font-light text-white transition-colors hover:text-white/80">
                       info@onecompany.global
                     </a>
@@ -351,7 +353,7 @@ export default function ContactPage() {
                     <Phone className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="mb-2 text-xs font-light uppercase tracking-widest text-white/50">{t("info.phoneLabel")}</h3>
+                    <h3 className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}>{t("info.phoneLabel")}</h3>
                     <a href="tel:+380123456789" className="text-lg font-light text-white transition-colors hover:text-white/80">
                       +380 12 345 67 89
                     </a>
@@ -363,12 +365,12 @@ export default function ContactPage() {
                     <MapPin className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="mb-2 text-xs font-light uppercase tracking-widest text-white/50">{t("info.locationLabel")}</h3>
+                    <h3 className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}>{t("info.locationLabel")}</h3>
                     <p className="text-lg font-light text-white">{t("info.locationValue")}</p>
                   </div>
                 </div>
               </div>
-              
+
               <p className="mt-12 text-center text-sm font-light leading-relaxed text-white/50 max-w-2xl mx-auto">
                 {t("info.description")}
               </p>

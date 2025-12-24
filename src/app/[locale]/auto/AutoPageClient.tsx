@@ -23,6 +23,7 @@ import type { CategoryData } from '@/lib/categoryData';
 
 import { BrandModal } from '@/components/ui/BrandModal';
 import { getBrandStoryForBrand, BrandStory } from '@/lib/brandStories';
+import { getTypography, resolveLocale } from '@/lib/typography';
 
 const TOP_AUTOMOTIVE_BRANDS = [
   'Akrapovic',
@@ -58,7 +59,7 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     country: 'Slovenia',
     tag: 'Performance Exhaust',
     accentColor: 'red',
-    description: { en: 'Titanium exhaust systems', ua: 'Титанові вихлопні системи' },
+    description: { en: 'Exhaust systems', ua: 'Вихлопні системи' },
   },
   'Brabus': {
     flag: 'рџ‡©рџ‡Є',
@@ -73,7 +74,7 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     tag: 'Luxury',
     tagColor: 'amber',
     accentColor: 'amber',
-    description: { en: 'Premium body kits', ua: 'Преміум обвіси' },
+    description: { en: 'Premium tuning', ua: 'Преміум тюнінг' },
     invertLogo: true,
   },
   'HRE wheels': {
@@ -81,7 +82,7 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     country: 'USA',
     tag: 'Forged Wheels',
     accentColor: 'sky',
-    description: { en: 'Premium forged wheels', ua: 'Ковані диски преміум' },
+    description: { en: 'Premium forged wheels', ua: 'Преміум ковані диски' },
   },
   'Urban Automotive': {
     flag: 'рџ‡¬рџ‡§',
@@ -127,13 +128,7 @@ export default function AutomotivePage() {
   const locale = (params.locale === 'en' ? 'en' : 'ua') as 'en' | 'ua';
   const t = useTranslations('auto');
   const tPage = useTranslations('autoPage');
-  const isUa = locale === 'ua';
-  const typography = {
-    heroTitle: isUa ? 'text-xl sm:text-2xl lg:text-3xl' : 'text-2xl sm:text-3xl lg:text-4xl',
-    heroSubtitle: isUa ? 'text-xs sm:text-sm' : 'text-sm sm:text-base',
-    statValue: isUa ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl',
-    sectionHeading: isUa ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl',
-  } as const;
+  const typography = getTypography(resolveLocale(locale));
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<LocalBrand | null>(null);
@@ -326,7 +321,7 @@ export default function AutomotivePage() {
                   <div className="flex items-end justify-between gap-4">
                     <div>
                       <p className="text-2xl sm:text-3xl lg:text-4xl font-light text-white tracking-tight">Akrapovic</p>
-                      <p className="text-sm sm:text-base text-white/60 mt-2">{locale === 'ua' ? 'Титанові вихлопні системи' : 'Titanium exhaust systems'}</p>
+                      <p className="text-sm sm:text-base text-white/60 mt-2">{locale === 'ua' ? 'Вихлопні системи' : 'Exhaust systems'}</p>
                     </div>
                     <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
                       <svg className="h-6 w-6 sm:h-7 sm:w-7 text-white transition-transform duration-500 group-hover:-rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -442,7 +437,7 @@ export default function AutomotivePage() {
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-base sm:text-lg font-medium text-white">HRE Wheels</p>
-                      <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Ковані диски преміум' : 'Premium forged wheels'}</p>
+                      <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Преміум ковані диски' : 'Premium forged wheels'}</p>
                     </div>
                   </div>
                 </div>

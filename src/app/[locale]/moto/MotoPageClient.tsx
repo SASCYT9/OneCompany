@@ -21,6 +21,7 @@ import { categoryData } from '@/lib/categoryData';
 
 import { BrandModal } from '@/components/ui/BrandModal';
 import { getBrandStoryForBrand, BrandStory } from '@/lib/brandStories';
+import { getTypography, resolveLocale } from '@/lib/typography';
 
 type LocalizedCopy = { en: string; ua: string;[key: string]: string };
 
@@ -83,7 +84,7 @@ const LEGENDARY_MOTO_CONFIG: Record<string, {
     country: 'Slovenia',
     flag: '????',
     category: { en: 'Performance Exhaust', ua: 'Вихлопні системи' },
-    tagline: { en: 'Titanium exhaust mastery', ua: 'Титанові вихлопні системи' },
+    tagline: { en: 'Exhaust systems', ua: 'Вихлопні системи' },
     gradient: 'from-red-500/40 via-orange-500/20 to-transparent',
     glowColor: 'rgba(255,100,50,0.4)',
   },
@@ -285,13 +286,7 @@ export default function MotoPage() {
   const locale = (params.locale === 'en' ? 'en' : 'ua') as 'en' | 'ua';
   const t = useTranslations('moto');
   const tPage = useTranslations('autoPage');
-  const isUa = locale === 'ua';
-  const typography = {
-    heroTitle: isUa ? 'text-xl sm:text-2xl lg:text-3xl' : 'text-2xl sm:text-3xl lg:text-4xl',
-    heroSubtitle: isUa ? 'text-xs sm:text-sm' : 'text-sm sm:text-base',
-    statValue: isUa ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl',
-    sectionHeading: isUa ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl',
-  } as const;
+  const typography = getTypography(resolveLocale(locale));
 
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
@@ -552,7 +547,7 @@ export default function MotoPage() {
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-base sm:text-lg font-medium text-white">Akrapovic</p>
-                      <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Титанові системи' : 'Titanium systems'}</p>
+                      <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Вихлопні системи' : 'Exhaust systems'}</p>
                     </div>
                   </div>
                 </div>
@@ -919,8 +914,8 @@ export default function MotoPage() {
               <button
                 onClick={() => setActiveLetter(null)}
                 className={`h-8 w-8 rounded-full text-xs font-medium transition-all ${activeLetter === null
-                    ? 'bg-white text-black'
-                    : 'bg-white/10 text-white hover:bg-white/20'
+                  ? 'bg-white text-black'
+                  : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
               >
                 ALL
@@ -930,8 +925,8 @@ export default function MotoPage() {
                   key={letter}
                   onClick={() => setActiveLetter(activeLetter === letter ? null : letter)}
                   className={`h-8 w-8 rounded-full text-xs font-medium transition-all ${activeLetter === letter
-                      ? 'bg-white text-black'
-                      : 'bg-white/10 text-white hover:bg-white/20'
+                    ? 'bg-white text-black'
+                    : 'bg-white/10 text-white hover:bg-white/20'
                     }`}
                 >
                   {letter}
