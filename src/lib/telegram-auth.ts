@@ -68,7 +68,7 @@ export function isAuthenticated(request: Request): boolean {
     return false;
   }
 
-  const initData = authHeader.split(' ')[1];
+  const initData = authHeader.substring(7);
   if (initData === 'dev' && process.env.NODE_ENV === 'development') {
     return true;
   }
