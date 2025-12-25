@@ -2,7 +2,7 @@ import crypto from 'crypto';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 
-export function verifyInitData(initData: string): { isValid: boolean; userId?: number; userData?: any } {
+export function verifyInitData(initData: string): { isValid: boolean; userId?: number; userData?: unknown } {
   if (!TELEGRAM_BOT_TOKEN) {
     console.error('TELEGRAM_BOT_TOKEN is not set');
     return { isValid: false };
