@@ -5,13 +5,17 @@ import { Resend } from 'resend';
 import React from 'react';
 import { PrismaClient, Status } from '@prisma/client';
 import { isAuthenticated } from '@/lib/telegram-auth';
+import { isAdminRequestAuthenticated } from '@/lib/adminAuth';
 
 const prisma = new PrismaClient();
 // Initialize Resend with a fallback key to prevent build-time errors if env var is missing.
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
 
 export async function GET(req: NextRequest) {
-  if (!isAuthenticated(req)) {
+  const isTelegramAuth = isAuthenticated(req);
+  const isAdminAuth = isAdminRequestAuthenticated(req.cookies);
+
+  if (!isTelegramAuth && !isAdminAuth) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -31,7 +35,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!isAuthenticated(req)) {
+  const isTelegramAuth = isAuthenticated(req);
+  const isAdminAuth = isAdminRequestAuthenticated(req.cookies);
+
+  if (!isTelegramAuth && !isAdminAuth) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   
