@@ -60,7 +60,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'Cobb tuning': '/logos/cobb-tuning.png',
   'Cobra Sport': '/logos/cobra-sport.png',
   'Cordona': '/logos/cordona.png',
-  'CSF': '/logos/csf.svg',
+  'CSF': '/logos/csf.png',
   'CT Carbon': '/logos/ct-carbon-white.webp',
   'Dahler': '/logos/dahler.svg',
   'DarwinPro': '/logos/darwinpro.svg',
