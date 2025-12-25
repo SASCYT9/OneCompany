@@ -42,12 +42,12 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-4xl overflow-hidden rounded-[24px] bg-[#0A0A0A] shadow-2xl border border-white/10 flex flex-col md:flex-row min-h-[500px]"
+            className="relative w-full max-w-4xl max-h-[85vh] overflow-y-auto rounded-[24px] bg-[#0A0A0A] shadow-2xl border border-white/10 flex flex-col md:flex-row min-h-[400px] md:min-h-[500px]"
           >
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-white/40 hover:text-white transition-colors z-20 rounded-full hover:bg-white/10"
+              className="absolute top-4 right-4 p-2 text-white/40 hover:text-white transition-colors z-50 rounded-full bg-black/20 hover:bg-white/10 backdrop-blur-sm"
             >
               <X size={24} />
             </button>
