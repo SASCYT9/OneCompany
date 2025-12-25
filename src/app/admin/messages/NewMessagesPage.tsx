@@ -35,6 +35,7 @@ export default function NewMessagesPage() {
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'NEW' | 'READ' | 'REPLIED' | 'ARCHIVED'>('all');
+  const [apiError, setApiError] = useState<string>('');
 
   useEffect(() => {
     loadMessages();
@@ -44,7 +45,13 @@ export default function NewMessagesPage() {
   const loadMessages = async () => {
     try {
       const response = await fetch('/api/messages');
+      if (response.status === 401) {
+        setApiError('Unauthorized. Please logout and login again.');
+        setMessages([]);
+        return;
+      }
       if (response.ok) {
+        setApiError('');
         const data = await response.json();
         // Handle both array (legacy) and object (new) formats
         const msgs = Array.isArray(data) ? data : (data.messages || []);
@@ -58,7 +65,13 @@ export default function NewMessagesPage() {
   const loadStats = async () => {
     try {
       const response = await fetch('/api/messages?stats=true');
+      if (response.status === 401) {
+        setApiError('Unauthorized. Please logout and login again.');
+        setStats({ total: 0, new: 0, read: 0, replied: 0 });
+        return;
+      }
       if (response.ok) {
+        setApiError('');
         const data = await response.json();
         setStats(data);
       }
@@ -194,6 +207,12 @@ export default function NewMessagesPage() {
           </div>
         </div>
       </div>
+
+      {apiError ? (
+        <div className="flex-none border-b border-white/10 bg-black px-4 py-2 text-xs text-red-300">
+          {apiError}
+        </div>
+      ) : null}
 
       {/* Main Layout */}
       <div className="flex-1 flex overflow-hidden relative bg-black">

@@ -118,7 +118,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!isAuthenticated(req)) {
+  const isTelegramAuth = isAuthenticated(req);
+  const isAdminAuth = isAdminRequestAuthenticated(req.cookies);
+
+  if (!isTelegramAuth && !isAdminAuth) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   
