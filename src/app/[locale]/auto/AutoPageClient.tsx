@@ -93,11 +93,10 @@ const LEGENDARY_BRAND_CONFIG: Record<string, {
     invertLogo: true,
   },
   'Eventuri': {
-    flag: 'рџ‡¬рџ‡§',
+    flag: '🇬🇧',
     country: 'UK',
     accentColor: 'cyan',
     description: { en: 'Intake systems', ua: 'Впускні системи' },
-    invertLogo: true,
   },
   'KW Suspension': {
     flag: 'рџ‡©рџ‡Є',
