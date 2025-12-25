@@ -6,5 +6,5 @@
     "moduleResolution": "node",
     "outDir": "./scripts/dist"
   },
-  "include": ["./scripts/fetch-brand-logos.ts", "./src/lib/brands.ts"]
+  "include": ["./scripts/**/*.ts"]
 }

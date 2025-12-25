@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { gsap } from 'gsap';
 import { getBrandLogo } from '@/lib/brandLogos';
-import { shouldInvertBrand } from '@/lib/invertBrands';
+import { shouldInvertBrandOrLogo } from '@/lib/invertBrands';
 
 // Select top brands from automotive and moto categories
 const topBrands = [
@@ -77,7 +77,7 @@ export default function BrandsMarquee() {
                 alt={brand.name}
                 width={160}
                 height={80}
-                className={`object-contain ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
+                className={`object-contain ${shouldInvertBrandOrLogo(brand.name, brand.logo) ? 'filter brightness-0 invert' : ''}`}
                 unoptimized
               />
             </div>

@@ -732,7 +732,7 @@ export default function MotoPage() {
                               src={getBrandLogo(brand.name)}
                               alt={brand.name}
                               fill
-                              className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
+                              className={`object-contain ${shouldSmartInvertBrand(brand.name) || shouldInvertBrand(brand.name) ? 'opacity-95 hover:opacity-100' : 'opacity-70 hover:opacity-100'} transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                               unoptimized
                             />
                           </div>
@@ -756,7 +756,7 @@ export default function MotoPage() {
                               src={getBrandLogo(brand.name)}
                               alt={brand.name}
                               fill
-                              className={`object-contain opacity-70 hover:opacity-100 transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
+                              className={`object-contain ${shouldSmartInvertBrand(brand.name) || shouldInvertBrand(brand.name) ? 'opacity-95 hover:opacity-100' : 'opacity-70 hover:opacity-100'} transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                               unoptimized
                             />
                           </div>

@@ -8,6 +8,9 @@ export const normalizeBrandName = (value: string): string => {
     .replace(/\s+/g, ' ');
 };
 
+import { isDarkLogo } from '@/lib/darkLogos';
+import { isSolidLogo } from '@/lib/solidLogos';
+
 const INVERT_BRANDS_NORMALIZED = new Set(
   [
     'ABT',
@@ -15,17 +18,11 @@ const INVERT_BRANDS_NORMALIZED = new Set(
     'AC Schnitzer',
     'ADRO',
     'Airlift',
-    'Akrapovic',
-    'AMS',
-    'ANRKY',
     'AVANTGARDE',
-    'BRIXTON',
     'CAPRISTO',
-    'DUKE',
     'KOTOUC',
     'Libery Walk',
     'Liberty Walk',
-    'OneCompany FORGED',
     'RYFT',
     'VF Engineering',
     'WheelForce',
@@ -53,6 +50,23 @@ export const shouldInvertBrand = (brandName: string | undefined | null): boolean
   const mapped = INVERT_BRAND_ALIASES[normalized.replace(/\s+/g, '')] ?? INVERT_BRAND_ALIASES[normalized] ?? normalized;
 
   return INVERT_BRANDS_NORMALIZED.has(mapped);
+};
+
+export const shouldInvertBrandOrLogo = (
+  brandName: string | undefined | null,
+  logoPath?: string | null
+): boolean => {
+  if (!brandName) return false;
+
+  // Manual brand list always wins
+  if (shouldInvertBrand(brandName)) return true;
+
+  // Auto-invert: only for dark logos that are NOT solid-background
+  if (logoPath && isDarkLogo(logoPath) && !isSolidLogo(logoPath)) {
+    return true;
+  }
+
+  return false;
 };
 
 const SMART_INVERT_BRANDS_NORMALIZED = new Set(
