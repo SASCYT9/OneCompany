@@ -319,7 +319,7 @@ export default function AutomotivePage() {
 
                   <div className="flex items-end justify-between gap-4">
                     <div>
-                      <p className="text-2xl sm:text-3xl lg:text-4xl font-light text-white tracking-tight">Akrapovic</p>
+                      <p className="text-lg sm:text-xl font-light text-white tracking-tight">Akrapovic</p>
                       <p className="text-sm sm:text-base text-white/60 mt-2">{locale === 'ua' ? 'Вихлопні системи' : 'Exhaust systems'}</p>
                     </div>
                     <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
@@ -362,7 +362,7 @@ export default function AutomotivePage() {
                   </div>
 
                   <div>
-                    <p className="text-xl sm:text-2xl font-light text-white">BRABUS</p>
+                    <p className="text-lg sm:text-xl font-light text-white tracking-tight">BRABUS</p>
                     <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Преміум тюнінг' : 'Premium tuning'}</p>
                   </div>
 
@@ -404,7 +404,7 @@ export default function AutomotivePage() {
                     </div>
                   </div>
 
-                  <p className="text-lg sm:text-xl font-light text-white">Mansory</p>
+                  <p className="text-lg sm:text-xl font-light text-white tracking-tight">Mansory</p>
                   <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Преміум тюнінг' : 'Premium tuning'}</p>
                 </div>
 
@@ -436,7 +436,7 @@ export default function AutomotivePage() {
                   </div>
                   <div className="flex items-end justify-between">
                     <div>
-                      <p className="text-base sm:text-lg font-medium text-white">HRE Wheels</p>
+                      <p className="text-lg sm:text-xl font-light text-white tracking-tight">HRE Wheels</p>
                       <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Преміум ковані диски' : 'Premium forged wheels'}</p>
                     </div>
                   </div>
@@ -462,7 +462,7 @@ export default function AutomotivePage() {
                       <Image src={getBrandLogo('Urban Automotive')} alt="Urban Automotive" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
-                  <p className="text-base sm:text-lg font-medium text-white">Urban Automotive</p>
+                  <p className="text-lg sm:text-xl font-light text-white tracking-tight">Urban Automotive</p>
                   <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Преміум обвіси' : 'Premium body kits'}</p>
                 </div>
               </motion.button>
@@ -486,7 +486,7 @@ export default function AutomotivePage() {
                       <Image src={getBrandLogo('Eventuri')} alt="Eventuri" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
-                  <p className="text-base sm:text-lg font-medium text-white">Eventuri</p>
+                  <p className="text-lg sm:text-xl font-light text-white tracking-tight">Eventuri</p>
                   <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Впускні системи' : 'Intake systems'}</p>
                 </div>
               </motion.button>
@@ -510,7 +510,7 @@ export default function AutomotivePage() {
                       <Image src={getBrandLogo('KW Suspension')} alt="KW" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
-                  <p className="text-base sm:text-lg font-medium text-white">KW Suspensions</p>
+                  <p className="text-lg sm:text-xl font-light text-white tracking-tight">KW Suspensions</p>
                   <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Підвіска' : 'Suspension'}</p>
                 </div>
               </motion.button>
@@ -548,7 +548,7 @@ export default function AutomotivePage() {
 
                     <div className="flex items-end justify-between">
                       <div>
-                        <p className="text-lg sm:text-xl font-light text-white">Novitec</p>
+                        <p className="text-lg sm:text-xl font-light text-white tracking-tight">Novitec</p>
                         <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Суперкар тюнінг' : 'Supercar tuning'}</p>
                       </div>
                       <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
@@ -592,7 +592,7 @@ export default function AutomotivePage() {
 
                     <div className="flex items-end justify-between">
                       <div>
-                        <p className="text-lg sm:text-xl font-light text-white">ABT Sportsline</p>
+                        <p className="text-lg sm:text-xl font-light text-white tracking-tight">ABT Sportsline</p>
                         <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Audi та VW тюнінг' : 'Audi & VW tuning'}</p>
                       </div>
                       <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">

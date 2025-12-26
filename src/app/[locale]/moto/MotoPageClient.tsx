@@ -453,7 +453,7 @@ export default function MotoPage() {
                   </div>
                   <div className="flex items-end justify-between gap-4">
                     <div>
-                      <p className="text-2xl sm:text-3xl lg:text-4xl font-light text-white tracking-tight">SC-Project</p>
+                      <p className="text-lg sm:text-xl font-light text-white tracking-tight">SC-Project</p>
                       <p className="text-sm sm:text-base text-white/60 mt-2">{locale === 'ua' ? 'Вихлопні системи чемпіонів' : 'Exhaust systems of champions'}</p>
                     </div>
                     <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
@@ -486,7 +486,7 @@ export default function MotoPage() {
                     </div>
                   </div>
                   <div>
-                    <p className="text-xl sm:text-2xl font-light text-white">Termignoni</p>
+                    <p className="text-lg sm:text-xl font-light text-white tracking-tight">Termignoni</p>
                     <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійська пристрасть' : 'Italian passion'}</p>
                   </div>
                   <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:bg-white/20 group-hover:border-white/40">
@@ -517,7 +517,7 @@ export default function MotoPage() {
                       <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
-                  <p className="text-lg sm:text-xl font-light text-white">Brembo</p>
+                  <p className="text-lg sm:text-xl font-light text-white tracking-tight">Brembo</p>
                   <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Гальмівні системи' : 'Braking systems'}</p>
                 </div>
                 <div className="absolute bottom-5 right-5 sm:bottom-6 sm:right-6 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur transition-all duration-500 group-hover:scale-110 group-hover:border-white/40 group-hover:bg-white/20">
@@ -547,7 +547,7 @@ export default function MotoPage() {
                   </div>
                   <div className="flex items-end justify-between">
                     <div>
-                      <p className="text-base sm:text-lg font-medium text-white">Akrapovic</p>
+                      <p className="text-lg sm:text-xl font-light text-white tracking-tight">Akrapovic</p>
                       <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Вихлопні системи' : 'Exhaust systems'}</p>
                     </div>
                   </div>
@@ -572,7 +572,7 @@ export default function MotoPage() {
                       <Image src={getBrandLogo('Ohlins')} alt="Ohlins" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
-                  <p className="text-sm sm:text-base font-medium text-white">Ohlins</p>
+                  <p className="text-lg sm:text-xl font-light text-white tracking-tight">Ohlins</p>
                   <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Золотий стандарт' : 'The Gold Standard'}</p>
                 </div>
               </motion.button>
@@ -595,7 +595,7 @@ export default function MotoPage() {
                       <Image src={getBrandLogo('Marchesini')} alt="Marchesini" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${shouldSmartInvertBrand('Marchesini') ? 'filter invert hue-rotate-180' : shouldInvertBrand('Marchesini') ? 'filter brightness-0 invert' : ''}`} unoptimized />
                     </div>
                   </div>
-                  <p className="text-sm sm:text-base font-medium text-white">Marchesini</p>
+                  <p className="text-lg sm:text-xl font-light text-white tracking-tight">Marchesini</p>
                   <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Легендарні диски' : 'Legendary wheels'}</p>
                 </div>
               </motion.button>
@@ -618,7 +618,7 @@ export default function MotoPage() {
                       <Image src={getBrandLogo('OZ Racing')} alt="OZ Racing" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
-                  <p className="text-sm sm:text-base font-medium text-white">OZ Racing</p>
+                  <p className="text-lg sm:text-xl font-light text-white tracking-tight">OZ Racing</p>
                   <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Технології перемог' : 'Winning technology'}</p>
                 </div>
               </motion.button>
@@ -646,7 +646,7 @@ export default function MotoPage() {
                         <Image src={getBrandLogo('Arrow')} alt="Arrow" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                       </div>
                     </div>
-                    <p className="text-lg sm:text-xl font-light text-white">Arrow</p>
+                    <p className="text-lg sm:text-xl font-light text-white tracking-tight">Arrow</p>
                     <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійський звук' : 'Italian sound'}</p>
                   </div>
                 </motion.button>
@@ -672,7 +672,7 @@ export default function MotoPage() {
                         <Image src={getBrandLogo('SparkExhaust')} alt="SparkExhaust" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${shouldSmartInvertBrand('SparkExhaust') ? 'filter invert hue-rotate-180' : shouldInvertBrand('SparkExhaust') ? 'filter brightness-0 invert' : ''}`} unoptimized />
                       </div>
                     </div>
-                    <p className="text-lg sm:text-xl font-light text-white">Spark</p>
+                    <p className="text-lg sm:text-xl font-light text-white tracking-tight">Spark</p>
                     <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійська пристрасть' : 'Italian passion'}</p>
                   </div>
                 </motion.button>
