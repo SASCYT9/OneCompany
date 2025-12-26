@@ -302,7 +302,7 @@ export default function AutomotivePage() {
                 </div>
 
                 {/* Content */}
-                <div className="relative h-full min-h-[280px] sm:min-h-[320px] p-6 sm:p-8 lg:p-12 flex flex-col">
+                <div className="relative h-full min-h-[280px] sm:min-h-[320px] p-6 sm:p-8 flex flex-col">
 
 
                   <div className="flex-1 flex items-center justify-center py-6 sm:py-10">
@@ -341,7 +341,7 @@ export default function AutomotivePage() {
                   <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
                 </div>
 
-                <div className="relative h-full min-h-[280px] sm:min-h-[320px] p-5 sm:p-6 lg:p-8 flex flex-col">
+                <div className="relative h-full min-h-[280px] sm:min-h-[320px] p-6 sm:p-8 flex flex-col">
 
 
                   <div className="flex-1 flex items-center justify-center py-8">
@@ -378,7 +378,7 @@ export default function AutomotivePage() {
                   <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
                 </div>
 
-                <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[200px]">
+                <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[200px]">
 
 
                   <div className="flex-1 flex items-center justify-center py-4">
@@ -410,7 +410,7 @@ export default function AutomotivePage() {
                 <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[180px]">
+                <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
 
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[220px] h-20 sm:h-28">
@@ -438,7 +438,7 @@ export default function AutomotivePage() {
                 <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[220px]">
+                <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[220px]">
 
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[160px] h-12 sm:h-16">
@@ -462,7 +462,7 @@ export default function AutomotivePage() {
                 <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[220px]">
+                <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[220px]">
 
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[180px] h-16 sm:h-24">
@@ -486,7 +486,7 @@ export default function AutomotivePage() {
                 <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                <div className="relative h-full p-5 sm:p-6 flex flex-col min-h-[220px]">
+                <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[220px]">
 
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[180px] h-24 sm:h-32">
@@ -514,7 +514,7 @@ export default function AutomotivePage() {
                     <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
                   </div>
 
-                  <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
+                  <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
 
 
                     <div className="flex-1 flex items-center justify-center py-4">
@@ -553,7 +553,7 @@ export default function AutomotivePage() {
                     <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
                   </div>
 
-                  <div className="relative h-full p-5 sm:p-6 lg:p-8 flex flex-col min-h-[180px]">
+                  <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
 
 
                     <div className="flex-1 flex items-center justify-center py-4">
