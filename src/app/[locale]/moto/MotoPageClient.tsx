@@ -454,7 +454,7 @@ export default function MotoPage() {
                   <div className="flex items-end justify-between gap-4">
                     <div>
                       <p className="text-lg sm:text-xl font-light text-white tracking-tight">SC-Project</p>
-                      <p className="text-sm sm:text-base text-white/60 mt-2">{locale === 'ua' ? 'Вихлопні системи чемпіонів' : 'Exhaust systems of champions'}</p>
+                      <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Вихлопні системи чемпіонів' : 'Exhaust systems of champions'}</p>
                     </div>
 
                   </div>
@@ -536,7 +536,7 @@ export default function MotoPage() {
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-lg sm:text-xl font-light text-white tracking-tight">Akrapovic</p>
-                      <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Вихлопні системи' : 'Exhaust systems'}</p>
+                      <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Вихлопні системи' : 'Exhaust systems'}</p>
                     </div>
                   </div>
                 </div>
@@ -561,7 +561,7 @@ export default function MotoPage() {
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Ohlins</p>
-                  <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Золотий стандарт' : 'The Gold Standard'}</p>
+                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Золотий стандарт' : 'The Gold Standard'}</p>
                 </div>
               </motion.button>
 
@@ -584,7 +584,7 @@ export default function MotoPage() {
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Marchesini</p>
-                  <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Легендарні диски' : 'Legendary wheels'}</p>
+                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Легендарні диски' : 'Legendary wheels'}</p>
                 </div>
               </motion.button>
 
@@ -607,7 +607,7 @@ export default function MotoPage() {
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">OZ Racing</p>
-                  <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Технології перемог' : 'Winning technology'}</p>
+                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Технології перемог' : 'Winning technology'}</p>
                 </div>
               </motion.button>
 

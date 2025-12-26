@@ -320,7 +320,7 @@ export default function AutomotivePage() {
                   <div className="flex items-end justify-between gap-4">
                     <div>
                       <p className="text-lg sm:text-xl font-light text-white tracking-tight">Akrapovic</p>
-                      <p className="text-sm sm:text-base text-white/60 mt-2">{locale === 'ua' ? 'Вихлопні системи' : 'Exhaust systems'}</p>
+                      <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Вихлопні системи' : 'Exhaust systems'}</p>
                     </div>
                   </div>
                 </div>
@@ -420,7 +420,7 @@ export default function AutomotivePage() {
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-lg sm:text-xl font-light text-white tracking-tight">HRE Wheels</p>
-                      <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Преміум ковані диски' : 'Premium forged wheels'}</p>
+                      <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Преміум ковані диски' : 'Premium forged wheels'}</p>
                     </div>
                   </div>
                 </div>
@@ -446,7 +446,7 @@ export default function AutomotivePage() {
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Urban Automotive</p>
-                  <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Преміум обвіси' : 'Premium body kits'}</p>
+                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Преміум обвіси' : 'Premium body kits'}</p>
                 </div>
               </motion.button>
 
@@ -470,7 +470,7 @@ export default function AutomotivePage() {
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Eventuri</p>
-                  <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Впускні системи' : 'Intake systems'}</p>
+                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Впускні системи' : 'Intake systems'}</p>
                 </div>
               </motion.button>
 
@@ -494,7 +494,7 @@ export default function AutomotivePage() {
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">KW Suspensions</p>
-                  <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">{locale === 'ua' ? 'Підвіска' : 'Suspension'}</p>
+                  <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Підвіска' : 'Suspension'}</p>
                 </div>
               </motion.button>
               {/* NOVITEC & ABT - Split Row */}
