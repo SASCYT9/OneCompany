@@ -88,7 +88,7 @@ const AboutPage: React.FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-6 text-sm uppercase tracking-[0.4em] text-white/60"
+            className="mb-6 text-xs md:text-sm uppercase tracking-[0.4em] text-white/60"
           >
             {t('hero.eyebrow')}
           </motion.p>
@@ -96,7 +96,7 @@ const AboutPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-4xl font-extralight leading-tight text-white sm:text-6xl md:text-7xl text-balance"
+            className="text-3xl sm:text-4xl font-extralight leading-tight text-white md:text-7xl text-balance"
           >
             {t('hero.title')}
           </motion.h1>
@@ -104,7 +104,7 @@ const AboutPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-8 max-w-3xl text-lg font-light text-white/70 md:text-xl text-pretty"
+            className="mt-8 max-w-3xl text-base md:text-lg font-light text-white/70 lg:text-xl text-pretty"
           >
             {t('hero.subtitle')}
           </motion.p>
@@ -116,7 +116,7 @@ const AboutPage: React.FC = () => {
           >
             <Link
               href={`/${locale}/contact`}
-              className="inline-flex items-center justify-center rounded-full border border-white bg-white px-8 py-3 text-sm font-semibold uppercase tracking-wide text-black transition hover:bg-transparent hover:text-white"
+              className="inline-flex items-center justify-center rounded-full border border-white bg-white px-8 py-3 text-xs md:text-sm font-semibold uppercase tracking-wide text-black transition hover:bg-transparent hover:text-white"
             >
               {t('hero.primaryCta')}
             </Link>
@@ -127,14 +127,14 @@ const AboutPage: React.FC = () => {
       {/* Stats */}
       <section className="relative px-6 py-16 md:px-10">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500 lg:p-12">
-          <h2 className="text-3xl font-light text-white">{t('stats.title')}</h2>
+          <h2 className="text-2xl md:text-3xl font-light text-white">{t('stats.title')}</h2>
           <div className="grid w-full grid-cols-2 gap-8 md:grid-cols-4">
             {stats.map((stat) => (
               <div key={stat.label} className="flex flex-col">
-                <span className="text-4xl font-extralight text-white sm:text-5xl">
+                <span className="text-3xl md:text-4xl font-extralight text-white sm:text-5xl">
                   {stat.value}
                 </span>
-                <span className="mt-4 text-xs uppercase tracking-[0.2em] text-white/60 text-pretty">
+                <span className="mt-4 text-[10px] md:text-xs uppercase tracking-[0.2em] text-white/60 text-pretty">
                   {stat.label}
                 </span>
               </div>
@@ -153,19 +153,19 @@ const AboutPage: React.FC = () => {
             transition={{ duration: 0.7 }}
             className="space-y-6"
           >
-            <p className="text-sm uppercase tracking-[0.35em] text-white/60">
+            <p className="text-xs md:text-sm uppercase tracking-[0.35em] text-white/60">
               {t('narrative.title')}
             </p>
-            <p className="text-lg font-light text-white/70">
+            <p className="text-base md:text-lg font-light text-white/70">
               {t('narrative.paragraph1')}
             </p>
-            <p className="text-lg font-light text-white/70">
+            <p className="text-base md:text-lg font-light text-white/70">
               {t('narrative.paragraph2')}
             </p>
-            <p className="text-lg font-light text-white/70">
+            <p className="text-base md:text-lg font-light text-white/70">
               {t('narrative.paragraph3')}
             </p>
-            <p className="pt-6 text-sm uppercase tracking-[0.4em] text-white/60">
+            <p className="pt-6 text-xs md:text-sm uppercase tracking-[0.4em] text-white/60">
               {t('narrative.signature')}
             </p>
           </motion.div>
@@ -183,8 +183,8 @@ const AboutPage: React.FC = () => {
                     {pillar.icon}
                   </div>
                   <div>
-                    <p className="text-lg font-light text-white">{pillar.title}</p>
-                    <p className="mt-2 text-sm text-white/60">
+                    <p className="text-base md:text-lg font-light text-white">{pillar.title}</p>
+                    <p className="mt-2 text-xs md:text-sm text-white/60">
                       {pillar.description}
                     </p>
                   </div>
@@ -198,7 +198,7 @@ const AboutPage: React.FC = () => {
       {/* Timeline */}
       <section className="px-6 py-24 md:px-10">
         <div className="mx-auto max-w-5xl">
-          <h3 className="text-sm uppercase tracking-[0.35em] text-white/60">
+          <h3 className="text-xs md:text-sm uppercase tracking-[0.35em] text-white/60">
             {t('timeline.title')}
           </h3>
           <div className="mt-12 space-y-10 border-l border-white/15 pl-10">
@@ -212,11 +212,11 @@ const AboutPage: React.FC = () => {
                 className="relative"
               >
                 <div className="absolute -left-[29px] top-2 h-3 w-3 rounded-full bg-white border border-black" />
-                <p className="text-sm uppercase tracking-[0.25em] text-white/60">
+                <p className="text-xs md:text-sm uppercase tracking-[0.25em] text-white/60">
                   {event.year}
                 </p>
-                <p className="mt-3 text-2xl font-light text-white">{event.title}</p>
-                <p className="mt-2 text-base text-white/70">{event.description}</p>
+                <p className="mt-3 text-xl md:text-2xl font-light text-white">{event.title}</p>
+                <p className="mt-2 text-sm md:text-base text-white/70">{event.description}</p>
               </motion.div>
             ))}
           </div>

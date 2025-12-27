@@ -26,7 +26,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
   return (
     <AnimatePresence>
       {isOpen && brand && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -42,7 +42,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-4xl max-h-[85vh] overflow-y-auto rounded-[24px] bg-[#0A0A0A] shadow-2xl border border-white/10 flex flex-col md:flex-row min-h-[400px] md:min-h-[500px]"
+            className="relative w-full max-w-4xl max-h-[70vh] md:max-h-[85vh] overflow-y-auto rounded-[24px] bg-[#0A0A0A] shadow-2xl border border-white/10 flex flex-col md:flex-row min-h-[400px] md:min-h-[500px]"
           >
             {/* Close Button */}
             <button

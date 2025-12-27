@@ -8,11 +8,13 @@ import { motion } from "framer-motion";
 import { Instagram, Facebook } from "lucide-react";
 import gsap from "gsap";
 import { Logo } from "@/components/ui/Logo";
+import { getTypography, resolveLocale } from "@/lib/typography";
 
 const Footer = () => {
   const params = useParams();
   const locale = (params?.locale as string) || "en";
   const t = useTranslations("footer");
+  const typography = getTypography(resolveLocale(locale));
 
   const footerLinks = {
     company: [
@@ -82,7 +84,7 @@ const Footer = () => {
             <Link href={`/${locale}`} className="block" aria-label="OneCompany Home">
               <Logo tone="light" className="w-40 mx-auto lg:mx-0" />
             </Link>
-            <p className="text-sm leading-relaxed text-white/50 max-w-xs mx-auto lg:mx-0">
+            <p className={`leading-relaxed text-white/50 max-w-xs mx-auto lg:mx-0 ${typography.body}`}>
               {t('description')}
             </p>
             <div className="flex gap-4 pt-2 justify-center lg:justify-start">
@@ -108,7 +110,7 @@ const Footer = () => {
             <ul className="space-y-4">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
-                  <Link className="text-xs text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4" href={link.href}>
+                  <Link className={`text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4 ${typography.body}`} href={link.href}>
                     {link.name}
                   </Link>
                 </li>
@@ -121,7 +123,7 @@ const Footer = () => {
             <ul className="space-y-4">
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
-                  <Link className="text-xs text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4" href={link.href}>
+                  <Link className={`text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4 ${typography.body}`} href={link.href}>
                     {link.name}
                   </Link>
                 </li>
@@ -131,7 +133,7 @@ const Footer = () => {
 
           <div className="lg:col-span-3 space-y-6">
             <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">{t('headquarters')}</h3>
-            <div className="space-y-4 text-xs text-white/70">
+            <div className={`space-y-4 text-white/70 ${typography.body}`}>
               <p className="leading-relaxed">
                 {t('addressLine1')}<br />
                 {t('addressLine2')}<br />
@@ -141,7 +143,7 @@ const Footer = () => {
                 <a href="tel:+380442781234" className="block transition-colors hover:text-white">
                   +380 (44) 278 12 34
                 </a>
-                <p className="text-xs text-white/40">{t('workingHours')}</p>
+                <p className="text-white/40">{t('workingHours')}</p>
               </div>
               
               {/* Map Embed */}
@@ -160,7 +162,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 sm:mt-20 flex flex-col items-center justify-between gap-6 border-t border-white/5 pt-8 text-xs text-white/40 sm:flex-row">
+        <div className={`mt-12 sm:mt-20 flex flex-col items-center justify-between gap-6 border-t border-white/5 pt-8 text-white/40 sm:flex-row ${typography.bodySmall}`}>
           <p className="text-center sm:text-left">© {new Date().getFullYear()} OneCompany. {t('engineeredIn')}.</p>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
             <Link href={`/${locale}/privacy`} className="transition-colors hover:text-white">
