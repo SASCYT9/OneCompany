@@ -240,7 +240,7 @@ export default function AutomotivePage() {
               <p className={`text-white/70 text-pretty ${typography.heroSubtitle}`}>
                 {locale === 'ua'
                   ? 'Створюємо автомобілі з характером з 2007 року.'
-                  : 'We build characterful cars with titanium, carbon and electronic suites curated since 2007.'}
+                  : 'Creating cars with character since 2007.'}
               </p>
             </div>
 
