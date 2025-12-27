@@ -52,52 +52,52 @@ export const getTypography = (locale: Locale): TypographyConfig => {
         heroSubtitle: isUa
             ? 'text-xs sm:text-sm'
             : 'text-sm sm:text-base',
-        heroBadge: 'text-[8px] sm:text-[10px] md:text-[11px]',
+        heroBadge: 'text-[8px] min-[410px]:text-[10px] sm:text-[10px] md:text-[11px]',
 
         // Headings
         h1: isUa
-            ? 'text-xl sm:text-2xl lg:text-3xl'
-            : 'text-2xl sm:text-3xl lg:text-4xl',
+            ? 'text-xl min-[410px]:text-2xl sm:text-2xl lg:text-3xl'
+            : 'text-2xl min-[410px]:text-3xl sm:text-3xl lg:text-4xl',
         h2: isUa
-            ? 'text-lg sm:text-xl'
-            : 'text-xl sm:text-2xl',
+            ? 'text-lg min-[410px]:text-xl sm:text-xl'
+            : 'text-xl min-[410px]:text-2xl sm:text-2xl',
         h3: isUa
-            ? 'text-base sm:text-lg'
-            : 'text-lg sm:text-xl',
+            ? 'text-base min-[410px]:text-lg sm:text-lg'
+            : 'text-lg min-[410px]:text-xl sm:text-xl',
         h4: isUa
-            ? 'text-sm sm:text-base'
-            : 'text-base sm:text-lg',
+            ? 'text-sm min-[410px]:text-base sm:text-base'
+            : 'text-base min-[410px]:text-lg sm:text-lg',
         sectionHeading: isUa
-            ? 'text-2xl sm:text-3xl md:text-4xl'
-            : 'text-3xl sm:text-4xl md:text-5xl',
+            ? 'text-2xl min-[410px]:text-3xl sm:text-3xl md:text-4xl'
+            : 'text-3xl min-[410px]:text-4xl sm:text-4xl md:text-5xl',
 
         // Body text
         body: isUa
-            ? 'text-xs sm:text-sm'
-            : 'text-sm sm:text-base',
+            ? 'text-xs min-[410px]:text-sm sm:text-sm'
+            : 'text-sm min-[410px]:text-base sm:text-base',
         bodySmall: isUa
-            ? 'text-[10px] sm:text-xs'
-            : 'text-xs sm:text-sm',
-        bodyTiny: 'text-[9px] sm:text-[10px]',
+            ? 'text-[11px] min-[410px]:text-[13px] sm:text-[13px]'
+            : 'text-[13px] min-[410px]:text-[15px] sm:text-[15px]',
+        bodyTiny: 'text-[9px] min-[410px]:text-[10px] sm:text-[10px]',
 
         // Stats & numbers
         statValue: isUa
-            ? 'text-lg sm:text-xl'
-            : 'text-xl sm:text-2xl',
-        statLabel: 'text-[8px] sm:text-[9px]',
+            ? 'text-lg min-[410px]:text-xl sm:text-xl'
+            : 'text-xl min-[410px]:text-2xl sm:text-2xl',
+        statLabel: 'text-[8px] min-[410px]:text-[9px] sm:text-[9px]',
 
         // Badges & labels
-        badge: 'text-[8px] sm:text-[10px]',
+        badge: 'text-[8px] min-[410px]:text-[10px] sm:text-[10px]',
         label: isUa
-            ? 'text-[10px] sm:text-xs'
-            : 'text-xs sm:text-sm',
-        labelSmall: 'text-[8px] sm:text-[9px]',
+            ? 'text-[10px] min-[410px]:text-xs sm:text-xs'
+            : 'text-xs min-[410px]:text-sm sm:text-sm',
+        labelSmall: 'text-[8px] min-[410px]:text-[9px] sm:text-[9px]',
 
         // Buttons
         buttonText: isUa
-            ? 'text-xs sm:text-sm'
-            : 'text-sm sm:text-base',
-        buttonTextSmall: 'text-[10px] sm:text-xs',
+            ? 'text-xs min-[410px]:text-sm sm:text-sm'
+            : 'text-sm min-[410px]:text-base sm:text-base',
+        buttonTextSmall: 'text-[10px] min-[410px]:text-xs sm:text-xs',
     };
 };
 
