@@ -202,6 +202,7 @@ export const SOLID_LOGOS: string[] = [
   "samsonas-motorsport.png",
   "sandtler.png",
   "sc-project.png",
+  "sc-project.svg",
   "schrick.png",
   "seibon.png",
   "shelby.png",
