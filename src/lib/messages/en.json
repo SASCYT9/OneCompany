@@ -134,7 +134,7 @@
     "title": "Auto",
     "heading": "High-Performance Parts",
     "subtitle": "160+ premium brands for your car",
-    "featuredBrands": "Top 10 Popular Brands",
+    "featuredBrands": "Popular Brands",
     "allBrands": "All Brands A-Z",
     "searchPlaceholder": "Search brands...",
     "all": "ALL",
@@ -256,7 +256,7 @@
   },
   "landing": {
     "automotive": "AUTO",
-    "motorcycles": "MOTO",
+    "motorcycles": "MOTORCYCLES",
     "learnMore": "Learn More",
     "premiumPerformance": "200 Premium Tuning Brands",
     "welcomeHeading": "Welcome to the world of",
@@ -401,7 +401,7 @@
       "title": "Bring your next build to life",
       "subtitle": "Send us your chassis, wishlist, and timeline—we will curate the program and coordinate importer logistics.",
       "primaryCta": "Request importer support",
-      "secondaryCta": "View brand roster"
+      "secondaryCta": "View brands"
     }
   },
   "admin": {
