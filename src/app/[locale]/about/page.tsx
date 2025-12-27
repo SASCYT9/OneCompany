@@ -81,7 +81,7 @@ const AboutPage: React.FC = () => {
       <div className="pointer-events-none absolute inset-y-0 right-[-200px] w-[480px] bg-[radial-gradient(circle,_rgba(255,255,255,0.05)_0%,_transparent_70%)] blur-3xl" />
 
       {/* Hero */}
-      <section className="relative flex min-h-[90vh] flex-col justify-center px-6 py-24 md:px-10">
+      <section className="relative flex min-h-[60vh] md:min-h-[90vh] flex-col justify-center px-6 py-12 md:py-24 md:px-10">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 to-transparent" />
         <div className="relative z-10 mx-auto w-full max-w-6xl">
           <motion.p
@@ -125,7 +125,7 @@ const AboutPage: React.FC = () => {
       </section>
 
       {/* Stats */}
-      <section className="relative px-6 py-16 md:px-10">
+      <section className="relative px-6 py-8 md:py-16 md:px-10">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500 lg:p-12">
           <h2 className="text-2xl md:text-3xl font-light text-white">{t('stats.title')}</h2>
           <div className="grid w-full grid-cols-2 gap-8 md:grid-cols-4">
@@ -153,19 +153,19 @@ const AboutPage: React.FC = () => {
             transition={{ duration: 0.7 }}
             className="space-y-6"
           >
-            <p className="text-xs md:text-sm uppercase tracking-[0.35em] text-white/60">
+            <p className="text-[10px] md:text-sm uppercase tracking-[0.35em] text-white/60">
               {t('narrative.title')}
             </p>
-            <p className="text-base md:text-lg font-light text-white/70">
+            <p className="text-sm md:text-lg font-light text-white/70">
               {t('narrative.paragraph1')}
             </p>
-            <p className="text-base md:text-lg font-light text-white/70">
+            <p className="text-sm md:text-lg font-light text-white/70">
               {t('narrative.paragraph2')}
             </p>
-            <p className="text-base md:text-lg font-light text-white/70">
+            <p className="text-sm md:text-lg font-light text-white/70">
               {t('narrative.paragraph3')}
             </p>
-            <p className="pt-6 text-xs md:text-sm uppercase tracking-[0.4em] text-white/60">
+            <p className="pt-6 text-[10px] md:text-sm uppercase tracking-[0.4em] text-white/60">
               {t('narrative.signature')}
             </p>
           </motion.div>
