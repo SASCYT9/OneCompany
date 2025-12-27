@@ -303,10 +303,8 @@ export default function AutomotivePage() {
 
                 {/* Content */}
                 <div className="relative h-full min-h-[280px] sm:min-h-[320px] p-6 sm:p-8 flex flex-col">
-
-
                   <div className="flex-1 flex items-center justify-center py-6 sm:py-10">
-                    <div className="relative w-full max-w-[420px] h-24 sm:h-32 lg:h-40">
+                    <div className="relative w-full max-w-[240px] h-20 sm:h-24 lg:h-28">
                       <Image
                         src={getBrandLogo('Akrapovic')}
                         alt="Akrapovic"
@@ -342,10 +340,8 @@ export default function AutomotivePage() {
                 </div>
 
                 <div className="relative h-full min-h-[280px] sm:min-h-[320px] p-6 sm:p-8 flex flex-col">
-
-
                   <div className="flex-1 flex items-center justify-center py-8">
-                    <div className="relative w-full max-w-[200px] h-14 sm:h-18 lg:h-22">
+                    <div className="relative w-full max-w-[220px] h-16 sm:h-20 lg:h-24">
                       <Image
                         src={getBrandLogo('Brabus')}
                         alt="Brabus"
@@ -379,10 +375,8 @@ export default function AutomotivePage() {
                 </div>
 
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[200px]">
-
-
                   <div className="flex-1 flex items-center justify-center py-4">
-                    <div className="relative w-full max-w-[220px] h-12 sm:h-16">
+                    <div className="relative w-full max-w-[220px] h-14 sm:h-18">
                       <Image
                         src={getBrandLogo('Mansory')}
                         alt="Mansory"
@@ -411,9 +405,8 @@ export default function AutomotivePage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
-
                   <div className="flex-1 flex items-center justify-center py-4">
-                    <div className="relative w-full max-w-[220px] h-20 sm:h-28">
+                    <div className="relative w-full max-w-[160px] h-16 sm:h-20">
                       <Image src={getBrandLogo('HRE wheels')} alt="HRE" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
@@ -439,9 +432,8 @@ export default function AutomotivePage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[220px]">
-
                   <div className="flex-1 flex items-center justify-center py-4">
-                    <div className="relative w-full max-w-[160px] h-12 sm:h-16">
+                    <div className="relative w-full max-w-[180px] h-14 sm:h-18">
                       <Image src={getBrandLogo('Urban Automotive')} alt="Urban Automotive" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
@@ -463,9 +455,8 @@ export default function AutomotivePage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[220px]">
-
                   <div className="flex-1 flex items-center justify-center py-4">
-                    <div className="relative w-full max-w-[180px] h-16 sm:h-24">
+                    <div className="relative w-full max-w-[200px] h-16 sm:h-20">
                       <Image src={getBrandLogo('Eventuri')} alt="Eventuri" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
@@ -487,9 +478,8 @@ export default function AutomotivePage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[220px]">
-
                   <div className="flex-1 flex items-center justify-center py-4">
-                    <div className="relative w-full max-w-[180px] h-24 sm:h-32">
+                    <div className="relative w-full max-w-[160px] h-20 sm:h-24">
                       <Image src={getBrandLogo('KW Suspension')} alt="KW" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
@@ -515,10 +505,8 @@ export default function AutomotivePage() {
                   </div>
 
                   <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
-
-
                     <div className="flex-1 flex items-center justify-center py-4">
-                      <div className="relative w-full max-w-[180px] h-14 sm:h-16">
+                      <div className="relative w-full max-w-[200px] h-16 sm:h-20">
                         <Image
                           src={getBrandLogo('Novitec')}
                           alt="Novitec"
@@ -554,10 +542,8 @@ export default function AutomotivePage() {
                   </div>
 
                   <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
-
-
                     <div className="flex-1 flex items-center justify-center py-4">
-                      <div className="relative w-full max-w-[140px] h-14 sm:h-16">
+                      <div className="relative w-full max-w-[160px] h-16 sm:h-20">
                         <Image
                           src={getBrandLogo('ABT')}
                           alt="ABT"

@@ -88,7 +88,7 @@ const AboutPage: React.FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-6 text-xs md:text-sm uppercase tracking-[0.4em] text-white/60"
+            className="mb-6 text-[10px] md:text-xs uppercase tracking-[0.4em] text-white/60"
           >
             {t('hero.eyebrow')}
           </motion.p>
@@ -96,7 +96,7 @@ const AboutPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-3xl sm:text-4xl font-extralight leading-tight text-white md:text-7xl text-balance"
+            className="text-3xl sm:text-4xl font-extralight leading-tight text-white md:text-5xl lg:text-6xl text-balance"
           >
             {t('hero.title')}
           </motion.h1>
@@ -104,7 +104,7 @@ const AboutPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-8 max-w-3xl text-base md:text-lg font-light text-white/70 lg:text-xl text-pretty"
+            className="mt-8 max-w-3xl text-sm md:text-base font-light text-white/70 lg:text-lg text-pretty"
           >
             {t('hero.subtitle')}
           </motion.p>
@@ -116,7 +116,7 @@ const AboutPage: React.FC = () => {
           >
             <Link
               href={`/${locale}/contact`}
-              className="inline-flex items-center justify-center rounded-full border border-white bg-white px-8 py-3 text-xs md:text-sm font-semibold uppercase tracking-wide text-black transition hover:bg-transparent hover:text-white"
+              className="inline-flex items-center justify-center rounded-full border border-white bg-white px-8 py-3 text-[10px] md:text-xs font-semibold uppercase tracking-wide text-black transition hover:bg-transparent hover:text-white"
             >
               {t('hero.primaryCta')}
             </Link>
@@ -126,11 +126,11 @@ const AboutPage: React.FC = () => {
 
       {/* Stats */}
       <section className="relative px-6 py-8 md:py-16 md:px-10">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500 lg:p-12">
-          <h2 className="text-2xl md:text-3xl font-light text-white">{t('stats.title')}</h2>
-          <div className="grid w-full grid-cols-2 gap-8 md:grid-cols-4">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500 lg:p-12">
+          <h2 className="text-2xl md:text-3xl font-light text-white text-center">{t('stats.title')}</h2>
+          <div className="grid w-full grid-cols-2 gap-8 md:grid-cols-3">
             {stats.map((stat) => (
-              <div key={stat.label} className="flex flex-col">
+              <div key={stat.label} className="flex flex-col items-center text-center md:items-start md:text-left">
                 <span className="text-3xl md:text-4xl font-extralight text-white sm:text-5xl">
                   {stat.value}
                 </span>

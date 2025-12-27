@@ -445,9 +445,8 @@ export default function MotoPage() {
                   <div className="absolute -inset-4 bg-gradient-to-r from-white/10 via-white/5 to-transparent rounded-[3rem] blur-3xl" />
                 </div>
                 <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-6 sm:p-8 flex flex-col">
-
                   <div className="flex-1 flex items-center justify-center py-6 sm:py-10">
-                    <div className="relative w-full max-w-[420px] h-28 sm:h-36 lg:h-44">
+                    <div className="relative w-full max-w-[240px] h-20 sm:h-24 lg:h-28">
                       <Image src={getBrandLogo('SC-Project')} alt="SC-Project" fill className="object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_80px_rgba(255,255,255,0.2)]" unoptimized />
                     </div>
                   </div>
@@ -475,9 +474,8 @@ export default function MotoPage() {
                   <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
                 </div>
                 <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-6 sm:p-8 flex flex-col">
-
                   <div className="flex-1 flex items-center justify-center py-8">
-                    <div className="relative w-full max-w-[200px] h-16 sm:h-20 lg:h-24">
+                    <div className="relative w-full max-w-[220px] h-16 sm:h-20 lg:h-24">
                       <Image src={getBrandLogo('Termignoni')} alt="Termignoni" fill className="object-contain opacity-95 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
@@ -503,9 +501,8 @@ export default function MotoPage() {
                   <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
                 </div>
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[200px]">
-
                   <div className="flex-1 flex items-center justify-center py-4">
-                    <div className="relative w-full max-w-[220px] h-12 sm:h-16">
+                    <div className="relative w-full max-w-[200px] h-14 sm:h-18">
                       <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
@@ -527,9 +524,8 @@ export default function MotoPage() {
                 <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
-
                   <div className="flex-1 flex items-center justify-center py-4">
-                    <div className="relative w-full max-w-[160px] h-16 sm:h-20">
+                    <div className="relative w-full max-w-[200px] h-16 sm:h-20">
                       <Image src={getBrandLogo('Akrapovic')} alt="Akrapovic" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${shouldSmartInvertBrand('Akrapovic') ? 'filter invert hue-rotate-180' : shouldInvertBrand('Akrapovic') ? 'filter brightness-0 invert' : ''}`} unoptimized />
                     </div>
                   </div>
@@ -554,9 +550,8 @@ export default function MotoPage() {
                 <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[160px]">
-
                   <div className="flex-1 flex items-center justify-center py-3">
-                    <div className="relative w-full max-w-[140px] h-10 sm:h-12">
+                    <div className="relative w-full max-w-[160px] h-14 sm:h-16">
                       <Image src={getBrandLogo('Ohlins')} alt="Ohlins" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
@@ -577,9 +572,8 @@ export default function MotoPage() {
                 <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[160px]">
-
                   <div className="flex-1 flex items-center justify-center py-3">
-                    <div className="relative w-full max-w-[110px] h-10 sm:h-12">
+                    <div className="relative w-full max-w-[200px] h-14 sm:h-16">
                       <Image src={getBrandLogo('Marchesini')} alt="Marchesini" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${shouldSmartInvertBrand('Marchesini') ? 'filter invert hue-rotate-180' : shouldInvertBrand('Marchesini') ? 'filter brightness-0 invert' : ''}`} unoptimized />
                     </div>
                   </div>
@@ -600,9 +594,8 @@ export default function MotoPage() {
                 <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[160px]">
-
                   <div className="flex-1 flex items-center justify-center py-3">
-                    <div className="relative w-full max-w-[100px] h-10 sm:h-12">
+                    <div className="relative w-full max-w-[160px] h-16 sm:h-20">
                       <Image src={getBrandLogo('OZ Racing')} alt="OZ Racing" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
@@ -625,12 +618,8 @@ export default function MotoPage() {
                   <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
                   <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">🇮🇹</span>
-                      <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/60">Italy</span>
-                    </div>
                     <div className="flex-1 flex items-center justify-center py-4">
-                      <div className="relative w-full max-w-[140px] h-12 sm:h-14">
+                      <div className="relative w-full max-w-[200px] h-16 sm:h-20">
                         <Image src={getBrandLogo('Arrow')} alt="Arrow" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                       </div>
                     </div>
@@ -651,12 +640,8 @@ export default function MotoPage() {
                   <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
                   <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">🇮🇹</span>
-                      <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/60">Italy</span>
-                    </div>
                     <div className="flex-1 flex items-center justify-center py-4">
-                      <div className="relative w-full max-w-[120px] h-12 sm:h-14">
+                      <div className="relative w-full max-w-[180px] h-16 sm:h-20">
                         <Image src={getBrandLogo('SparkExhaust')} alt="SparkExhaust" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${shouldSmartInvertBrand('SparkExhaust') ? 'filter invert hue-rotate-180' : shouldInvertBrand('SparkExhaust') ? 'filter brightness-0 invert' : ''}`} unoptimized />
                       </div>
                     </div>
