@@ -153,19 +153,19 @@ const AboutPage: React.FC = () => {
             transition={{ duration: 0.7 }}
             className="space-y-6"
           >
-            <p className="text-[10px] md:text-sm uppercase tracking-[0.35em] text-white/60">
+            <p className="text-[11px] md:text-sm uppercase tracking-[0.35em] text-white/60">
               {t('narrative.title')}
             </p>
-            <p className="text-sm md:text-lg font-light text-white/70">
+            <p className="text-[15px] md:text-lg font-light text-white/70">
               {t('narrative.paragraph1')}
             </p>
-            <p className="text-sm md:text-lg font-light text-white/70">
+            <p className="text-[15px] md:text-lg font-light text-white/70">
               {t('narrative.paragraph2')}
             </p>
-            <p className="text-sm md:text-lg font-light text-white/70">
+            <p className="text-[15px] md:text-lg font-light text-white/70">
               {t('narrative.paragraph3')}
             </p>
-            <p className="pt-6 text-[10px] md:text-sm uppercase tracking-[0.4em] text-white/60">
+            <p className="pt-6 text-[11px] md:text-sm uppercase tracking-[0.4em] text-white/60">
               {t('narrative.signature')}
             </p>
           </motion.div>
