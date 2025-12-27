@@ -66,7 +66,7 @@ export default async function LocalizedHomePage({
       description: locale === 'ua'
         ? 'Ми працюємо виключно з провідними світовими виробниками авто та мото тюнінгу.'
         : 'We work exclusively with leading global manufacturers of auto and moto tuning.',
-      meta: locale === 'ua' ? 'Гарантія якості та автентичності' : 'Quality & authenticity guarantee',
+      meta: locale === 'ua' ? 'Гарантія якості та автентичності' : 'Quality and authenticity guarantee',
     },
     {
       id: 'sourcing',
@@ -74,8 +74,8 @@ export default async function LocalizedHomePage({
       title: locale === 'ua' ? 'Індивідуальний підбір' : 'Bespoke selection',
       description: locale === 'ua'
         ? 'Аналізуємо проєкт, перевіряємо сумісність та надаємо рекомендації.'
-        : 'We audit build sheets, plan compatibility and secure allocations before money moves.',
-      meta: locale === 'ua' ? 'Перевірка VIN та підтвердження сумісності' : 'VIN verification & spec sheets',
+        : 'We analyze the project, check compatibility and provide recommendations.',
+      meta: locale === 'ua' ? 'Перевірка VIN та підтвердження сумісності' : 'VIN check and compatibility confirmation',
     },
     {
       id: 'logistics',
@@ -83,8 +83,8 @@ export default async function LocalizedHomePage({
       title: locale === 'ua' ? 'Глобальна доставка' : 'Global delivery',
       description: locale === 'ua'
         ? 'Доставляємо клієнтам по всьому світу. Оптимальні та гнучкі умови.'
-        : 'Air freight, EU road convoys and customs supervision to Kyiv, Warsaw, Dubai and beyond.',
-      meta: locale === 'ua' ? 'One Company Global · Надійність та безпека' : 'One Company Global · Reliability & safety',
+        : 'We deliver to clients worldwide. Optimal and flexible conditions.',
+      meta: locale === 'ua' ? 'One Company Global · Надійність та безпека' : 'One Company Global · Reliability and safety',
     },
     {
       id: 'experience',
@@ -92,7 +92,7 @@ export default async function LocalizedHomePage({
       title: locale === 'ua' ? '18 років досвіду' : '18 years experience',
       description: locale === 'ua'
         ? 'Формуємо культуру преміум тюнінгу та забезпечує безкомпромісну підтримку.'
-        : 'Shaping premium tuning culture and providing uncompromising support.',
+        : 'We shape the culture of premium tuning and provide uncompromising support.',
       meta: locale === 'ua' ? 'Офіційні програми з 2007 року' : 'Official programs since 2007',
     },
     {
