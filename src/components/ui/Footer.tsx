@@ -24,7 +24,7 @@ export function Footer() {
             {/* Social Links */}
             <div className="flex gap-4 mt-6">
               <a 
-                href="https://instagram.com" 
+                href="https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-white/40 hover:text-white transition-colors"

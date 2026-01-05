@@ -45,7 +45,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
     ],
     sameAs: [
       "https://t.me/onecompany_ua",
-      "https://www.instagram.com/onecompany.global/",
+      "https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr",
     ],
     knowsAbout: [
       "Automotive tuning",
