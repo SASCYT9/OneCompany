@@ -15,7 +15,7 @@ export const authOptions: NextAuthOptions = {
         const adminPassword = (process.env.ADMIN_PASSWORD || 'admin123').trim();
 
         if (credentials?.username === adminUsername && credentials?.password === adminPassword) {
-          return { id: "1", name: "Admin", email: "admin@onecompany.com" };
+          return { id: "1", name: "Admin", email: "admin@onecompany.global" };
         } else {
           return null;
         }

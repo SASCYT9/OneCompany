@@ -29,7 +29,7 @@ const Footer = () => {
   };
 
   const socials = [
-    { icon: Instagram, href: "https://instagram.com/onecompany", label: "Instagram" },
+    { icon: Instagram, href: "https://instagram.com/onecompany.global", label: "Instagram" },
     { icon: Facebook, href: "https://facebook.com/onecompany", label: "Facebook" },
     { 
       icon: (props: React.SVGProps<SVGSVGElement>) => (
@@ -140,8 +140,8 @@ const Footer = () => {
                 {t('addressLine3')}
               </p>
               <div className="space-y-2">
-                <a href="tel:+380442781234" className="block transition-colors hover:text-white">
-                  +380 (44) 278 12 34
+                <a href="tel:+380660771700" className="block transition-colors hover:text-white">
+                  +380 66 077 17 00
                 </a>
                 <p className="text-white/40">{t('workingHours')}</p>
               </div>

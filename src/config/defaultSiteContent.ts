@@ -89,9 +89,9 @@ export const defaultSiteContent: SiteContent = {
     budgets: ['€3k–€7k · street aero & sound', '€8k–€15k · підвіска та гальма', '€15k+ · трекові та rally raid комплекти'],
     channels: [
       { id: 'email', label: 'B2B wholesale email', value: 'info@onecompany.global', note: 'Відповідь до 12 годин', type: 'email' },
-      { id: 'phone', label: 'Support phone', value: '+380 12 345 67 89', note: '10:00–21:00 GMT+2', type: 'phone' },
+      { id: 'phone', label: 'Support phone', value: '+380 66 077 17 00', note: '10:00–21:00 GMT+2', type: 'phone' },
       { id: 'telegram', label: 'Telegram', value: '@onecompany_wholesale', note: 'B2B запити', type: 'telegram' },
-      { id: 'whatsapp', label: 'WhatsApp', value: '+380 12 345 67 89', note: 'Глобальні клієнти', type: 'whatsapp' },
+      { id: 'whatsapp', label: 'WhatsApp', value: '+380 66 077 17 00', note: 'Глобальні клієнти', type: 'whatsapp' },
     ],
     successStories: [
       {
@@ -121,8 +121,8 @@ export const defaultSiteContent: SiteContent = {
     ],
     messengerHandles: {
       telegram: 'https://t.me/onecompany_wholesale',
-      whatsapp: 'https://wa.me/380123456789',
-      phone: '+380123456789',
+      whatsapp: 'https://wa.me/380660771700',
+      phone: '+380660771700',
     },
   },
 };

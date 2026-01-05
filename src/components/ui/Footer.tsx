@@ -83,8 +83,8 @@ export function Footer() {
             <div className="space-y-3 text-sm text-white/60 font-light">
               <p>{t.footer.premiumAutoParts}</p>
               <p>{t.footer.worldwideShipping}</p>
-              <a href="tel:+380000000000" className="block hover:text-white transition-colors">
-                +38 (000) 000-00-00
+              <a href="tel:+380660771700" className="block hover:text-white transition-colors">
+                +380 66 077 17 00
               </a>
               <Link href="/contact" className="block hover:text-white transition-colors">
                 {t.footer.contactUs} →
@@ -100,8 +100,8 @@ export function Footer() {
             <div className="space-y-3 text-sm text-white/60 font-light">
               <p>{t.footer.premiumMotoParts}</p>
               <p>{t.footer.worldwideShipping}</p>
-              <a href="tel:+380000000001" className="block hover:text-white transition-colors">
-                +38 (000) 000-00-01
+              <a href="tel:+380660771700" className="block hover:text-white transition-colors">
+                +380 66 077 17 00
               </a>
               <Link href="/contact" className="block hover:text-white transition-colors">
                 {t.footer.contactUs} →

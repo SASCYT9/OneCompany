@@ -38,7 +38,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
     contactPoint: [
       {
         "@type": "ContactPoint",
-        telephone: "+380-XX-XXX-XXXX",
+        telephone: "+380 66 077 17 00",
         contactType: "customer service",
         availableLanguage: ["Ukrainian", "English"],
       },
@@ -180,7 +180,7 @@ export function LocalBusinessSchema({ locale = "ua" }: LocalBusinessSchemaProps)
     name: "onecompany",
     image: "https://onecompany.global/branding/one-company-logo.svg",
     url: "https://onecompany.global",
-    telephone: "+380-XX-XXX-XXXX",
+    telephone: "+380 66 077 17 00",
     priceRange: "$$$",
     address: {
       "@type": "PostalAddress",

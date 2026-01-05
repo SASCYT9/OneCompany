@@ -354,8 +354,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}>{t("info.phoneLabel")}</h3>
-                    <a href="tel:+380123456789" className="text-lg font-light text-white transition-colors hover:text-white/80">
-                      +380 12 345 67 89
+                    <a href="tel:+380660771700" className="text-lg font-light text-white transition-colors hover:text-white/80">
+                      +380 66 077 17 00
                     </a>
                   </div>
                 </div>

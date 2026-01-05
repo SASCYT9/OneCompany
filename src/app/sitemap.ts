@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { absoluteUrl, buildLocalizedPath, siteConfig } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, siteConfig, buildAlternateLinks } from "@/lib/seo";
 import { allAutomotiveBrands, allMotoBrands, getBrandSlug } from "@/lib/brands";
 import { categoryData } from "@/lib/categoryData";
 
@@ -11,6 +11,16 @@ const staticPages = [
   { slug: "/brands", priority: 0.8, changeFrequency: "weekly" as const },
   { slug: "/about", priority: 0.7, changeFrequency: "monthly" as const },
   { slug: "/contact", priority: 0.8, changeFrequency: "monthly" as const },
+  { slug: "/partnership", priority: 0.7, changeFrequency: "monthly" as const },
+  { slug: "/eventuri", priority: 0.7, changeFrequency: "weekly" as const },
+  { slug: "/fi", priority: 0.7, changeFrequency: "weekly" as const },
+  { slug: "/kw", priority: 0.7, changeFrequency: "weekly" as const },
+  { slug: "/choice", priority: 0.6, changeFrequency: "monthly" as const },
+  { slug: "/configurator", priority: 0.6, changeFrequency: "monthly" as const },
+  { slug: "/physics", priority: 0.5, changeFrequency: "monthly" as const },
+  { slug: "/privacy", priority: 0.3, changeFrequency: "yearly" as const },
+  { slug: "/terms", priority: 0.3, changeFrequency: "yearly" as const },
+  { slug: "/cookies", priority: 0.3, changeFrequency: "yearly" as const },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -25,6 +35,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
         lastModified,
         changeFrequency: page.changeFrequency,
         priority: page.priority,
+        alternates: {
+          languages: buildAlternateLinks(page.slug),
+        },
       } satisfies MetadataRoute.Sitemap[number];
     })
   );
@@ -34,12 +47,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const brandEntries = siteConfig.locales.flatMap((locale) =>
     allBrands.map((brand) => {
       const slug = getBrandSlug(brand);
-      const path = buildLocalizedPath(locale, `/brands/${slug}`);
+      const pageSlug = `/brands/${slug}`;
+      const path = buildLocalizedPath(locale, pageSlug);
       return {
         url: absoluteUrl(path),
         lastModified,
         changeFrequency: "weekly" as const,
         priority: 0.6,
+        alternates: {
+          languages: buildAlternateLinks(pageSlug),
+        },
       } satisfies MetadataRoute.Sitemap[number];
     })
   );
@@ -47,12 +64,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Category pages
   const categoryEntries = siteConfig.locales.flatMap((locale) =>
     categoryData.map((category) => {
-      const path = buildLocalizedPath(locale, `/${category.segment}/categories/${category.slug}`);
+      const pageSlug = `/${category.segment}/categories/${category.slug}`;
+      const path = buildLocalizedPath(locale, pageSlug);
       return {
         url: absoluteUrl(path),
         lastModified,
         changeFrequency: "weekly" as const,
         priority: 0.7,
+        alternates: {
+          languages: buildAlternateLinks(pageSlug),
+        },
       } satisfies MetadataRoute.Sitemap[number];
     })
   );
