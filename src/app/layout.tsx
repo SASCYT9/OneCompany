@@ -92,11 +92,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
       { url: "/branding/one-company-logo.svg", type: "image/svg+xml" },
     ],
-    shortcut: "/favicon.ico",
-    apple: "/branding/one-company-logo.svg",
+    shortcut: "/icon.png",
+    apple: "/apple-icon.png",
   },
   manifest: "/manifest.json",
   category: "automotive",

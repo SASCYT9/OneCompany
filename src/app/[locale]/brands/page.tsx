@@ -16,12 +16,19 @@ import { getBrandStoryForBrand } from '@/lib/brandStories';
 import { BrandModal } from '@/components/ui/BrandModal';
 import { BrandItem } from '@/components/sections/BrandLogosGrid';
 import { getTypography, resolveLocale } from '@/lib/typography';
+import { BreadcrumbSchema } from '@/components/seo/StructuredData';
 
 export default function BrandsPage() {
   const locale = useLocale();
   const typography = getTypography(resolveLocale(locale));
   const [search, setSearch] = useState('');
   const [selectedBrand, setSelectedBrand] = useState<BrandItem | null>(null);
+
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
+  const breadcrumbs = [
+    { name: locale === 'ua' ? 'Головна' : 'Home', url: `${baseUrl}/${locale}` },
+    { name: locale === 'ua' ? 'Бренди' : 'Brands', url: `${baseUrl}/${locale}/brands` },
+  ];
 
   const brands = Object.entries(BRAND_LOGO_MAP).sort((a, b) => a[0].localeCompare(b[0]));
 
@@ -67,6 +74,7 @@ export default function BrandsPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <BreadcrumbSchema items={breadcrumbs} />
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[radial-gradient(circle,_rgba(255,255,255,0.05)_0%,_transparent_70%)] rounded-full blur-3xl" />
       </div>
