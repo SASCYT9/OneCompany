@@ -37,7 +37,7 @@ export const ReplyEmail = ({
       <Container style={container}>
         <Section style={logoContainer}>
           <Img
-            src={`${baseUrl}/branding/one-company-logo.png`}
+            src={`${baseUrl}/branding/email-logo.png`}
             width="120"
             height="120"
             alt="OneCompany"
