@@ -9,7 +9,7 @@ import {
   Preview,
   Section,
   Text,
-  Tailwind,
+  Link,
 } from '@react-email/components';
 import * as React from 'react';
 
@@ -33,45 +33,151 @@ export const ReplyEmail = ({
   <Html>
     <Head />
     <Preview>Re: Your inquiry to OneCompany</Preview>
-    <Tailwind>
-      <Body className="bg-[#050505] my-auto mx-auto font-sans text-white">
-        <Container className="border border-solid border-white/10 rounded-2xl my-[40px] mx-auto p-[32px] w-[600px] bg-[#0c0c12] shadow-2xl">
-          <Section className="text-center mb-8">
-            <Img
-              src={`${baseUrl}/branding/one-company-logo.png`}
-              width="160"
-              alt="OneCompany"
-              className="my-0 mx-auto"
-            />
-          </Section>
-          <Heading className="text-white text-[24px] font-semibold text-center p-0 mb-6 tracking-tight">
-            Re: Your inquiry
-          </Heading>
-          <Text className="text-gray-300 text-[15px] leading-[26px] mb-4">
+    <Body style={main}>
+      <Container style={container}>
+        <Section style={logoContainer}>
+          <Img
+            src={`${baseUrl}/branding/one-company-logo.png`}
+            width="120"
+            height="120"
+            alt="OneCompany"
+            style={logo}
+          />
+        </Section>
+        
+        <Section style={contentContainer}>
+          <Heading style={heading}>Re: Your inquiry</Heading>
+          
+          <Text style={paragraph}>
             Hello {userName},
           </Text>
-          <Text className="text-gray-300 text-[15px] leading-[26px] mb-6">
+          <Text style={paragraph}>
             Thank you for contacting us. Here is our reply regarding your message:
           </Text>
-          <Section className="bg-white/5 rounded-lg p-6 mb-8 border border-white/5">
-            <Text className="text-white text-[15px] leading-[26px] whitespace-pre-wrap m-0">{replyText}</Text>
+          
+          <Section style={replyBox}>
+            <Text style={replyTextContent}>{replyText}</Text>
           </Section>
-          <Hr className="border border-solid border-white/10 my-6 w-full" />
-          <Text className="text-gray-500 text-[12px] uppercase tracking-widest font-semibold mb-2">
-            Original Message
+          
+          <Hr style={hr} />
+          
+          <Text style={label}>Original Message</Text>
+          <Text style={originalMessageText}>
+            "{originalMessage}"
           </Text>
-          <Text className="text-gray-400 text-[13px] leading-[24px] italic border-l-2 border-solid border-white/20 pl-4">
-            &ldquo;{originalMessage}&rdquo;
+        </Section>
+
+        <Section style={footer}>
+          <Text style={footerText}>
+            © {new Date().getFullYear()} OneCompany. All rights reserved.
           </Text>
-          <Section className="text-center mt-8">
-             <Text className="text-gray-600 text-[12px]">
-                © 2025 OneCompany. All rights reserved.
-             </Text>
-          </Section>
-        </Container>
-      </Body>
-    </Tailwind>
+          <Text style={footerText}>
+            <Link href="https://onecompany.global" style={footerLink}>onecompany.global</Link>
+          </Text>
+        </Section>
+      </Container>
+    </Body>
   </Html>
 );
 
 export default ReplyEmail;
+
+const main = {
+  backgroundColor: '#000000',
+  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  color: '#ffffff',
+};
+
+const container = {
+  margin: '0 auto',
+  padding: '40px 20px',
+  maxWidth: '600px',
+};
+
+const logoContainer = {
+  textAlign: 'center' as const,
+  marginBottom: '32px',
+};
+
+const logo = {
+  margin: '0 auto',
+  display: 'block',
+};
+
+const contentContainer = {
+  backgroundColor: '#111111',
+  borderRadius: '12px',
+  border: '1px solid #333333',
+  padding: '40px',
+};
+
+const heading = {
+  fontSize: '24px',
+  fontWeight: '600',
+  textAlign: 'center' as const,
+  color: '#ffffff',
+  margin: '0 0 24px',
+  letterSpacing: '-0.02em',
+};
+
+const paragraph = {
+  fontSize: '16px',
+  lineHeight: '26px',
+  color: '#cccccc',
+  marginBottom: '16px',
+};
+
+const replyBox = {
+  backgroundColor: '#1a1a1a',
+  borderRadius: '8px',
+  padding: '24px',
+  marginBottom: '32px',
+  borderLeft: '4px solid #ffffff',
+};
+
+const replyTextContent = {
+  fontSize: '16px',
+  lineHeight: '26px',
+  color: '#ffffff',
+  margin: '0',
+  whiteSpace: 'pre-wrap' as const,
+};
+
+const hr = {
+  borderColor: '#333333',
+  margin: '32px 0',
+};
+
+const label = {
+  color: '#888888',
+  fontSize: '12px',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.1em',
+  marginBottom: '12px',
+  fontWeight: '600',
+};
+
+const originalMessageText = {
+  fontSize: '14px',
+  lineHeight: '24px',
+  color: '#888888',
+  fontStyle: 'italic',
+  margin: '0',
+};
+
+const footer = {
+  textAlign: 'center' as const,
+  marginTop: '32px',
+};
+
+const footerText = {
+  fontSize: '12px',
+  color: '#666666',
+  margin: '8px 0',
+};
+
+const footerLink = {
+  color: '#888888',
+  textDecoration: 'none',
+};
+
