@@ -58,6 +58,13 @@ export const ReplyEmail = ({
           <Section style={replyBox}>
             <Text style={boxLabel}>OUR RESPONSE</Text>
             <Text style={replyTextContent}>{replyText}</Text>
+            <Text style={signature}>
+              Best regards,<br />
+              OneCompany Team
+            </Text>
+            <Link href="https://onecompany.global" style={signatureLink}>
+              onecompany.global
+            </Link>
           </Section>
           
           <Hr style={hr} />
@@ -204,6 +211,20 @@ const footerText = {
 };
 
 const footerLink = {
-  color: '#666666',
+  color: '#888888',
   textDecoration: 'none',
+};
+
+const signature = {
+  fontSize: '16px',
+  lineHeight: '26px',
+  color: '#ffffff',
+  marginTop: '24px',
+  marginBottom: '4px',
+};
+
+const signatureLink = {
+  color: '#3b82f6',
+  textDecoration: 'none',
+  fontSize: '16px',
 };
