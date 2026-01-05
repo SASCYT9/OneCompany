@@ -37,9 +37,9 @@ export const ReplyEmail = ({
       <Container style={container}>
         <Section style={logoContainer}>
           <Img
-            src={`${baseUrl}/branding/email-logo.png`}
-            width="120"
-            height="120"
+            src={`${baseUrl}/branding/email-logo.svg`}
+            width="150"
+            height="55"
             alt="OneCompany"
             style={logo}
           />
@@ -49,22 +49,25 @@ export const ReplyEmail = ({
           <Heading style={heading}>Re: Your inquiry</Heading>
           
           <Text style={paragraph}>
-            Hello {userName},
+            Hello <span style={highlight}>{userName}</span>,
           </Text>
           <Text style={paragraph}>
             Thank you for contacting us. Here is our reply regarding your message:
           </Text>
           
           <Section style={replyBox}>
+            <Text style={boxLabel}>OUR RESPONSE</Text>
             <Text style={replyTextContent}>{replyText}</Text>
           </Section>
           
           <Hr style={hr} />
           
-          <Text style={label}>Original Message</Text>
-          <Text style={originalMessageText}>
-            "{originalMessage}"
-          </Text>
+          <Section style={originalBox}>
+            <Text style={boxLabelSecondary}>ORIGINAL MESSAGE</Text>
+            <Text style={originalMessageText}>
+              {originalMessage}
+            </Text>
+          </Section>
         </Section>
 
         <Section style={footer}>
@@ -96,17 +99,18 @@ const container = {
 
 const logoContainer = {
   textAlign: 'center' as const,
-  marginBottom: '32px',
+  marginBottom: '40px',
 };
 
 const logo = {
   margin: '0 auto',
   display: 'block',
+  maxWidth: '100%',
 };
 
 const contentContainer = {
   backgroundColor: '#111111',
-  borderRadius: '12px',
+  borderRadius: '16px',
   border: '1px solid #333333',
   padding: '40px',
 };
@@ -116,7 +120,7 @@ const heading = {
   fontWeight: '600',
   textAlign: 'center' as const,
   color: '#ffffff',
-  margin: '0 0 24px',
+  margin: '0 0 32px',
   letterSpacing: '-0.02em',
 };
 
@@ -127,57 +131,79 @@ const paragraph = {
   marginBottom: '16px',
 };
 
+const highlight = {
+  color: '#ffffff',
+  fontWeight: '500',
+};
+
 const replyBox = {
   backgroundColor: '#1a1a1a',
-  borderRadius: '8px',
-  padding: '24px',
+  borderRadius: '12px',
+  padding: '32px',
   marginBottom: '32px',
-  borderLeft: '4px solid #ffffff',
+  border: '1px solid #333333',
+  marginTop: '24px',
+};
+
+const boxLabel = {
+  color: '#ffffff',
+  fontSize: '11px',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.1em',
+  marginBottom: '16px',
+  fontWeight: '700',
+  opacity: 0.5,
 };
 
 const replyTextContent = {
   fontSize: '16px',
-  lineHeight: '26px',
+  lineHeight: '28px',
   color: '#ffffff',
   margin: '0',
   whiteSpace: 'pre-wrap' as const,
 };
 
 const hr = {
-  borderColor: '#333333',
+  borderColor: '#222222',
   margin: '32px 0',
 };
 
-const label = {
-  color: '#888888',
-  fontSize: '12px',
+const originalBox = {
+  backgroundColor: '#0a0a0a',
+  borderRadius: '12px',
+  padding: '24px',
+  border: '1px solid #222222',
+};
+
+const boxLabelSecondary = {
+  color: '#666666',
+  fontSize: '11px',
   textTransform: 'uppercase' as const,
   letterSpacing: '0.1em',
   marginBottom: '12px',
-  fontWeight: '600',
+  fontWeight: '700',
 };
 
 const originalMessageText = {
   fontSize: '14px',
   lineHeight: '24px',
   color: '#888888',
-  fontStyle: 'italic',
   margin: '0',
+  whiteSpace: 'pre-wrap' as const,
 };
 
 const footer = {
   textAlign: 'center' as const,
-  marginTop: '32px',
+  marginTop: '40px',
 };
 
 const footerText = {
   fontSize: '12px',
-  color: '#666666',
+  color: '#444444',
   margin: '8px 0',
 };
 
 const footerLink = {
-  color: '#888888',
+  color: '#666666',
   textDecoration: 'none',
 };
-
