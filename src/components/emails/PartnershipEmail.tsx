@@ -50,7 +50,7 @@ export const PartnershipEmail = ({
       <Container style={container}>
         <Section style={logoContainer}>
           <Img
-            src={logoSrc || `${baseUrl}/branding/email-logo.svg`}
+            src={logoSrc || `${baseUrl}/branding/email-logo.png`}
             width="150"
             height="55"
             alt="OneCompany"
