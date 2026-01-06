@@ -69,7 +69,7 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="relative z-50 font-display border-t border-white/5 bg-black text-white overflow-hidden">
+    <footer className="relative z-20 font-display border-t border-white/5 bg-black text-white overflow-hidden">
       {/* Ambient Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[500px] bg-white/[0.02] blur-[120px] rounded-full" />
