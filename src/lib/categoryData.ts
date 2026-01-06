@@ -57,6 +57,7 @@ export const categoryData: CategoryData[] = [
       'SPL Parts',
       'Airlift Performance',
       'Ohlins',
+      'Verus Engineering',
     ],
   },
   {
@@ -149,6 +150,7 @@ export const categoryData: CategoryData[] = [
       'Renegade Design',
       'Liberty Walk',
       'Keyvany',
+      'Verus Engineering',
     ],
   },
   {
@@ -214,6 +216,7 @@ export const categoryData: CategoryData[] = [
       'Wagner Tuning',
       'do88',
       'Bell Intercoolers',
+      'Verus Engineering',
     ],
   },
   {
