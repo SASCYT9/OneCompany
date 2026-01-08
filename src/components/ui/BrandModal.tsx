@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Image from 'next/image';
 import { X, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from '@/navigation';
 import { BrandItem } from '../sections/BrandLogosGrid';
 import { shouldInvertBrandOrLogo, shouldSmartInvertBrand } from '@/lib/invertBrands';
 
@@ -140,12 +141,13 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                   </button>
                 )}
 
-                <button
+                <Link
+                  href={`/contact?inquiry=${encodeURIComponent(brand.name)}`}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-white hover:bg-[#f0f0f0] rounded-xl text-black text-sm font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] uppercase tracking-wider group"
                 >
                   <span>Замовити</span>
                   <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                </button>
+                </Link>
               </div>
 
             </div>

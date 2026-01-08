@@ -16,6 +16,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ContactPageContent, ContactChannel } from "@/types/site-content";
 import { trackEvent } from "@/lib/analytics";
@@ -92,8 +93,19 @@ function normalizeChannelUrl(channel: ContactChannel) {
 export default function ContactPageClient({ locale, pageUrl, heroPoster, contactContent }: ContactPageClientProps) {
   const t = useTranslations("contactPage");
   const isUA = locale === "ua";
+  const searchParams = useSearchParams();
+  const inquiry = searchParams.get('inquiry');
+
   const [type, setType] = useState<FormType>("auto");
-  const [formData, setFormData] = useState<FormState>(blankForm);
+  const [formData, setFormData] = useState<FormState>(() => {
+    if (inquiry) {
+      const text = isUA 
+        ? `Доброго дня, мене цікавить продукція бренду ${inquiry}.` 
+        : `Hello, I am interested in ${inquiry} brand products.`;
+      return { ...blankForm, wishes: text };
+    }
+    return blankForm;
+  });
   const [selectedChannelId, setSelectedChannelId] = useState<string>(contactContent.channels[0]?.id ?? "email");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
