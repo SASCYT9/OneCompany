@@ -83,6 +83,7 @@ export function FullScreenVideo({ src, mobileSrc, enabled = true, overlayOpacity
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${poster})` }} />
       )}
       <video
+        key={src} // Force remount when source changes
         ref={videoRef}
         autoPlay
         loop
@@ -91,9 +92,19 @@ export function FullScreenVideo({ src, mobileSrc, enabled = true, overlayOpacity
         preload={preload}
         className="w-full h-full object-cover"
         poster={poster}
+        onLoadedData={() => {
+           console.log('Hero video loaded:', src);
+           setIsLoaded(true);
+        }}
       >
-         {mobileSrc && <source src={mobileSrc} type="video/mp4" media="(max-width: 768px)" />}
-         {src && <source src={src} type="video/mp4" />}
+         {mobileSrc ? (
+            <>
+               <source src={mobileSrc} type="video/mp4" media="(max-width: 768px)" />
+               <source src={src} type="video/mp4" />
+            </>
+         ) : (
+            <source src={src} type="video/mp4" />
+         )}
       </video>
       <div className={`absolute inset-0 bg-gradient-to-b ${overlayOpacity} pointer-events-none`} />
     </div>
