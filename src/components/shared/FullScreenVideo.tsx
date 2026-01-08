@@ -90,21 +90,11 @@ export function FullScreenVideo({ src, mobileSrc, enabled = true, overlayOpacity
         playsInline
         preload={preload}
         className="w-full h-full object-cover"
-        style={{ opacity: isLoaded ? 1 : 0 }}
-        aria-hidden={!isLoaded}
         poster={poster}
       >
          {mobileSrc && <source src={mobileSrc} type="video/mp4" media="(max-width: 768px)" />}
          {src && <source src={src} type="video/mp4" />}
       </video>
-      {enabled && !isLoaded && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-          <svg className="w-12 h-12 text-white opacity-70 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.25" />
-            <path d="M22 12a10 10 0 10-10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeOpacity="0.9" />
-          </svg>
-        </div>
-      )}
       <div className={`absolute inset-0 bg-gradient-to-b ${overlayOpacity} pointer-events-none`} />
     </div>
   );
