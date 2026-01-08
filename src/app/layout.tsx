@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     canonical: siteUrl,
     languages: {
       'en': `${siteUrl}/en`,
-      'ua': `${siteUrl}/ua`,
+      'uk': `${siteUrl}/ua`,
       'x-default': `${siteUrl}/ua`,
     },
   },
