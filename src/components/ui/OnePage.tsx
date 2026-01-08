@@ -112,7 +112,7 @@ export const OnePage = () => {
   const sections: SectionConfig[] = [
     {
       id: 'hero',
-      video: '/videos/rollsbg-v3.mp4',
+      video: '/videos/main-hero.mp4',
       title: 'OneCompany',
       subtitle: 'Преміум автомобільні компоненти',
       description: 'Ексклюзивний дистриб\'ютор найкращих світових брендів в Україні',

@@ -71,7 +71,7 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
           playsInline
           className="h-full w-full object-cover opacity-40"
         >
-          <source src={category.segment === 'auto' ? '/videos/rollsbg-v3.mp4' : '/videos/MotoBG-web.mp4'} type="video/mp4" />
+          <source src={category.segment === 'auto' ? '/videos/main-hero.mp4' : '/videos/MotoBG-web.mp4'} type="video/mp4" />
         </video>
         {/* Overlay */}
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
