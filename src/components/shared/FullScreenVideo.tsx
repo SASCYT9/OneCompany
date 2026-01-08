@@ -16,17 +16,39 @@ export function FullScreenVideo({ src, mobileSrc, enabled = true, overlayOpacity
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  const loadedRef = useRef(false);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
+    // If video isn't enabled, don't try to load/play it.
+    if (!enabled || !src) {
+      setIsLoaded(true);
+      return;
+    }
+
     // Reset state when source changes
     setIsLoaded(false);
     setHasError(false);
+    loadedRef.current = false;
+
+    const tryPlay = () => {
+      // Ensure muted autoplay in strict browsers
+      video.muted = true;
+      const p = video.play();
+      if (p !== undefined) {
+        p.catch(() => {
+          // No-op: some browsers will still block; leaving first frame is acceptable.
+        });
+      }
+    };
 
     const handleLoadedData = () => {
+      loadedRef.current = true;
       setIsLoaded(true);
       video.playbackRate = 0.8;
+      tryPlay();
     };
 
 
@@ -54,21 +76,14 @@ export function FullScreenVideo({ src, mobileSrc, enabled = true, overlayOpacity
 
     video.addEventListener('loadeddata', handleLoadedData);
     video.addEventListener('error', handleError);
-    
-    // Force play on mount to ensure it starts
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.log('Auto-play was prevented:', error);
-        // Try to mute and play again if it failed
-        video.muted = true;
-        video.play().catch(e => console.log('Retry play failed:', e));
-      });
-    }
+
+    // Kick playback once sources are attached.
+    // `play()` can be ignored by some browsers, but it often fixes the “first frame only” issue.
+    queueMicrotask(tryPlay);
 
     // Fallback: if video doesn't report loaded within 4 seconds, show it anyway (poster will be visible)
     const timeout = setTimeout(() => {
-      if (!isLoaded) {
+      if (!loadedRef.current) {
         console.warn('Video load timeout, forcing display');
         setIsLoaded(true);
       }
@@ -79,7 +94,7 @@ export function FullScreenVideo({ src, mobileSrc, enabled = true, overlayOpacity
       video.removeEventListener('error', handleError);
       clearTimeout(timeout);
     };
-  }, [isLoaded]);
+  }, [src, enabled]);
 
   if (hasError || !enabled) {
     console.log('Video error, falling back to gradient background');
@@ -103,10 +118,6 @@ export function FullScreenVideo({ src, mobileSrc, enabled = true, overlayOpacity
         preload={preload}
         className="w-full h-full object-cover"
         poster={poster}
-        onLoadedData={() => {
-           console.log('Hero video loaded:', src);
-           setIsLoaded(true);
-        }}
       >
          {mobileSrc ? (
             <>
