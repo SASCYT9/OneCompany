@@ -54,6 +54,17 @@ export function FullScreenVideo({ src, mobileSrc, enabled = true, overlayOpacity
 
     video.addEventListener('loadeddata', handleLoadedData);
     video.addEventListener('error', handleError);
+    
+    // Force play on mount to ensure it starts
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(error => {
+        console.log('Auto-play was prevented:', error);
+        // Try to mute and play again if it failed
+        video.muted = true;
+        video.play().catch(e => console.log('Retry play failed:', e));
+      });
+    }
 
     // Fallback: if video doesn't report loaded within 4 seconds, show it anyway (poster will be visible)
     const timeout = setTimeout(() => {
