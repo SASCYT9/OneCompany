@@ -51,6 +51,14 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
+  alternates: {
+    canonical: siteUrl,
+    languages: {
+      'en': `${siteUrl}/en`,
+      'ua': `${siteUrl}/ua`,
+      'x-default': `${siteUrl}/ua`,
+    },
+  },
   openGraph: {
     title: "premium tuning parts · 200+ brands · one company",
     description: "Провідний B2B дистриб'ютор та експертна підтримка преміум тюнінгу",

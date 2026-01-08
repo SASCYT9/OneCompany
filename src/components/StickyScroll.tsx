@@ -71,7 +71,7 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
                 className={clsx(
                   "flex flex-col justify-center items-center text-center transition-all duration-500",
                   // Mobile: Card Style
-                  "min-h-[50vh] mb-8 sm:mb-16 p-4 sm:p-8 rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-md relative overflow-hidden",
+                  "min-h-[50vh] mb-8 sm:mb-16 p-4 sm:p-8 rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-sm relative overflow-hidden",
                   // Desktop: Clean Text Style
                   "lg:min-h-[60vh] lg:mb-0 lg:p-0 lg:rounded-none lg:border-none lg:bg-transparent lg:backdrop-blur-none lg:overflow-visible",
                   // Active State
@@ -92,7 +92,7 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
 
                 <div className="flex items-center justify-center gap-4 mb-4 sm:mb-6 relative z-10">
                   <div className={clsx(
-                    "p-4 rounded-2xl border backdrop-blur-md transition-all duration-500",
+                    "p-4 rounded-2xl border backdrop-blur-sm transition-all duration-500",
                     activeCard === index
                       ? "bg-white/10 border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)]"
                       : "bg-white/5 border-white/10"
@@ -109,7 +109,7 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
                   {item.description}
                 </p>
                 <div className="mt-6 pt-6 sm:mt-10 sm:pt-10 border-t border-white/10 w-full max-w-xs mx-auto relative z-10">
-                  <span className="text-xs sm:text-sm lg:text-[10.5px] text-white/40 uppercase tracking-widest">{item.meta}</span>
+                  <span className="text-xs sm:text-sm lg:text-[10.5px] text-white/60 uppercase tracking-widest">{item.meta}</span>
                 </div>
               </div>
             );

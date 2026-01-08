@@ -360,7 +360,7 @@ export default function MotoPage() {
           loop
           muted
           playsInline
-          className="h-full w-full object-cover opacity-30"
+          className="h-full w-full object-cover opacity-30 will-change-transform"
         >
           <source src="/videos/MotoBG-web.mp4" type="video/mp4" />
         </video>
@@ -440,14 +440,14 @@ export default function MotoPage() {
                 transition={{ duration: 0.8 }}
                 className="group relative lg:row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
               >
-                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-md" />
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-1000">
                   <div className="absolute -inset-4 bg-gradient-to-r from-white/10 via-white/5 to-transparent rounded-[3rem] blur-3xl" />
                 </div>
                 <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-6 sm:p-8 flex flex-col">
                   <div className="flex-1 flex items-center justify-center py-6 sm:py-10">
                     <div className="relative w-full max-w-[240px] h-20 sm:h-24 lg:h-28">
-                      <Image src={getBrandLogo('SC-Project')} alt="SC-Project" fill className="object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_80px_rgba(255,255,255,0.2)]" unoptimized />
+                      <Image src={getBrandLogo('SC-Project')} alt="SC-Project" fill className="object-contain transition-all duration-700 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <div className="flex items-end justify-between gap-4">
@@ -469,14 +469,14 @@ export default function MotoPage() {
                 transition={{ duration: 0.8, delay: 0.1 }}
                 className="group relative lg:row-span-2 cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
               >
-                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-md" />
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
                   <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
                 </div>
                 <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-6 sm:p-8 flex flex-col">
                   <div className="flex-1 flex items-center justify-center py-8">
                     <div className="relative w-full max-w-[220px] h-16 sm:h-20 lg:h-24">
-                      <Image src={getBrandLogo('Termignoni')} alt="Termignoni" fill className="object-contain opacity-95 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110" unoptimized />
+                      <Image src={getBrandLogo('Termignoni')} alt="Termignoni" fill className="object-contain opacity-95 transition-all duration-700 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <div>
@@ -496,14 +496,14 @@ export default function MotoPage() {
                 transition={{ duration: 0.8, delay: 0.15 }}
                 className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
               >
-                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-md" />
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
                   <div className="absolute -inset-2 bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] blur-2xl" />
                 </div>
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[200px]">
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[200px] h-14 sm:h-18">
-                      <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110" unoptimized />
+                      <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain transition-all duration-700 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Brembo</p>
@@ -521,7 +521,7 @@ export default function MotoPage() {
                 transition={{ duration: 0.7, delay: 0.2 }}
                 className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
               >
-                <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-md" />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
                   <div className="flex-1 flex items-center justify-center py-4">
@@ -547,7 +547,7 @@ export default function MotoPage() {
                 transition={{ duration: 0.7, delay: 0.25 }}
                 className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
               >
-                <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-md" />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[160px]">
                   <div className="flex-1 flex items-center justify-center py-3">
@@ -569,7 +569,7 @@ export default function MotoPage() {
                 transition={{ duration: 0.7, delay: 0.3 }}
                 className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
               >
-                <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-md" />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[160px]">
                   <div className="flex-1 flex items-center justify-center py-3">
@@ -591,7 +591,7 @@ export default function MotoPage() {
                 transition={{ duration: 0.7, delay: 0.35 }}
                 className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] text-left"
               >
-                <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-md" />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[160px]">
                   <div className="flex-1 flex items-center justify-center py-3">
@@ -615,7 +615,7 @@ export default function MotoPage() {
                   transition={{ duration: 0.7, delay: 0.4 }}
                   className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
                 >
-                  <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                  <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-md" />
                   <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
                     <div className="flex-1 flex items-center justify-center py-4">
@@ -637,7 +637,7 @@ export default function MotoPage() {
                   transition={{ duration: 0.7, delay: 0.45 }}
                   className="group relative cursor-pointer overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] text-left"
                 >
-                  <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                  <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-md" />
                   <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
                     <div className="flex-1 flex items-center justify-center py-4">
@@ -664,7 +664,7 @@ export default function MotoPage() {
                 }}
               >
                 {/* Background */}
-                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-3xl" />
+                <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-md" />
 
                 <div className="relative p-6 sm:p-8 lg:p-10">
                   <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
@@ -796,7 +796,7 @@ export default function MotoPage() {
                     <Link
                       key={cat.slug}
                       href={`/${locale}/moto/categories/${cat.slug}`}
-                      className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/10 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:border-white/40 hover:translate-y-[-4px] sm:rounded-3xl h-full backdrop-blur-3xl"
+                      className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/10 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:border-white/40 hover:translate-y-[-4px] sm:rounded-3xl h-full backdrop-blur-md"
                     >
                       {/* Multi-layer box shadows for depth */}
                       <div className="absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] sm:rounded-3xl" />

@@ -85,9 +85,9 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
                         <div className="w-[80%] h-[60%] bg-[radial-gradient(circle,_rgba(255,255,255,0.20)_0%,_rgba(255,255,255,0.05)_50%,_transparent_70%)] group-hover:bg-[radial-gradient(circle,_rgba(255,255,255,0.25)_0%,_rgba(255,255,255,0.10)_50%,_transparent_70%)] transition-all duration-500 rounded-full" />
                       </div>
 
-                      {/* Logo with unified sizing and drop shadow */}
+                      {/* Logo with unified sizing */}
                       <div className="relative w-full z-10" style={{ paddingTop: '56%' }}>
-                        <div className="absolute inset-0 p-2" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))' }}>
+                        <div className="absolute inset-0 p-2">
                           <Image
                             src={brand.logoSrc}
                             alt={brand.name}
