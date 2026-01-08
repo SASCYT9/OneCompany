@@ -76,7 +76,7 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
                 className={clsx(
                   "flex flex-col justify-center items-center text-center transition-all duration-500 will-change-transform",
                   // Mobile: Card Style
-                  "min-h-[50vh] mb-8 sm:mb-16 p-4 sm:p-8 rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-sm relative overflow-hidden",
+                  "min-h-[50vh] mb-8 sm:mb-16 p-4 sm:p-8 relative overflow-hidden",
                   // Desktop: Clean Text Style (removed blur transition to fix lag)
                   "lg:min-h-[60vh] lg:mb-0 lg:p-0 lg:rounded-none lg:border-none lg:bg-transparent lg:backdrop-blur-none lg:overflow-visible",
                   // Active State
@@ -97,10 +97,13 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
 
                 <div className="flex items-center justify-center gap-4 mb-4 sm:mb-6 relative z-10">
                   <div className={clsx(
-                    "p-4 rounded-2xl border backdrop-blur-sm transition-all duration-500",
+                    "transition-all duration-500 p-4 rounded-2xl",
+                    // Mobile: No border/bg/blur for icon box
+                    // Desktop: Keep original styles
+                    "lg:border lg:backdrop-blur-sm",
                     activeCard === index
-                      ? "bg-white/10 border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)]"
-                      : "bg-white/5 border-white/10"
+                      ? "lg:bg-white/10 lg:border-white/20 lg:shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+                      : "lg:bg-white/5 lg:border-white/10"
                   )}>
                     <Icon className="w-8 h-8 text-white/90" strokeWidth={1.5} />
                   </div>
