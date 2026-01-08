@@ -55,7 +55,11 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
       },
       0
     );
-    setActiveCard(closestBreakpointIndex);
+    
+    // Optimization: Only update state if index actually changed
+    if (closestBreakpointIndex !== activeCard) {
+      setActiveCard(closestBreakpointIndex);
+    }
   });
 
   return (
@@ -65,19 +69,20 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
         <div className="w-full max-w-4xl relative z-10">
           {items.map((item, index) => {
             const Icon = ICONS[item.id] || BadgeCheck;
+            const isActive = activeCard === index;
             return (
               <div
                 key={item.id}
                 className={clsx(
-                  "flex flex-col justify-center items-center text-center transition-all duration-500",
+                  "flex flex-col justify-center items-center text-center transition-all duration-500 will-change-transform",
                   // Mobile: Card Style
                   "min-h-[50vh] mb-8 sm:mb-16 p-4 sm:p-8 rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-sm relative overflow-hidden",
-                  // Desktop: Clean Text Style
+                  // Desktop: Clean Text Style (removed blur transition to fix lag)
                   "lg:min-h-[60vh] lg:mb-0 lg:p-0 lg:rounded-none lg:border-none lg:bg-transparent lg:backdrop-blur-none lg:overflow-visible",
                   // Active State
-                  activeCard === index
-                    ? "opacity-100 translate-y-0 scale-100 blur-0"
-                    : "opacity-30 blur-[2px] scale-95 translate-y-4"
+                  isActive
+                    ? "opacity-100 translate-y-0 scale-100"
+                    : "opacity-30 scale-95 translate-y-4"
                 )}
               >
                 {/* Mobile Watermark */}

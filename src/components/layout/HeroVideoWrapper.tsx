@@ -69,14 +69,40 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
     return src;
   };
 
+  // Optimize mobile loading
+  useEffect(() => {
+    // If mobile, checking connection or simply defaulting to lighter behavior
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+    if (isMobile && !mobileSrc) {
+       // If no specific mobile video, potentially don't auto-load the heavy desktop one immediately
+       // But current logic is "shouldLoad" = true.
+    }
+  }, [mobileSrc]);
+
   const selected = chooseVariant();
+  
+  // Decide preload strategy: 'none' for mobile to save bandwidth effectively if it's the large file
+  // or if data saver is on.
+  const getPreload = () => {
+     if (typeof window !== 'undefined') {
+        if (window.innerWidth <= 768) return 'none';
+        const nav = navigator as NavigatorWithConnection;
+        if (nav.connection?.saveData) return 'none';
+     }
+     return 'auto';
+  };
 
   return (
     <>
       <div ref={(el) => { ref.current = el; }} className="fixed inset-0 z-0 w-full h-full pointer-events-none">
         {/* Base background to prevent white flash and serve as backdrop */}
         <div className="absolute inset-0 bg-black" />
-        <FullScreenVideo src={shouldLoad ? selected : undefined} poster={poster} preload={shouldLoad ? 'auto' : 'none'} enabled={enabled && shouldLoad} />
+        <FullScreenVideo 
+           src={shouldLoad ? selected : undefined} 
+           poster={poster} 
+           preload={getPreload()} 
+           enabled={enabled && shouldLoad} 
+        />
         <div className="absolute inset-0 bg-black/60 pointer-events-none" />
       </div>
       {!serverEnabled && (

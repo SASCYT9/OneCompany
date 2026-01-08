@@ -25,7 +25,20 @@ export function FullScreenVideo({ src, enabled = true, overlayOpacity = 'from-bl
     };
 
     const handleError = (e: Event) => {
-      console.error('Video failed to load:', e);
+      // Provide cleaner logging for video failures
+      const videoEl = e.target as HTMLVideoElement;
+      if (videoEl && videoEl.error) {
+        // Code 4 = MEDIA_ERR_SRC_NOT_SUPPORTED (often 404)
+        // Code 3 = MEDIA_ERR_DECODE
+        // Code 2 = MEDIA_ERR_NETWORK
+        // Code 1 = MEDIA_ERR_ABORTED
+        if (videoEl.error.code === 1) {
+           return; // Ignore aborted requests (navigation)
+        }
+        console.warn(`Video failed to load (code ${videoEl.error.code}):`, videoEl.currentSrc || 'No src');
+      } else {
+         console.warn('Video failed to load (unknown error)');
+      }
       setHasError(true);
     };
 
