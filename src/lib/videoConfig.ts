@@ -10,7 +10,7 @@ export type VideoConfig = {
 };
 
 const configPath = path.join(process.cwd(), 'public', 'config', 'video-config.json');
-const defaultConfig: VideoConfig = { heroVideo: 'rollsbg-v3.mp4', videos: [], heroEnabled: true, heroVideoMobile: 'rollsbg-v3.mp4', heroPoster: 'hero-background.jpg' };
+const defaultConfig: VideoConfig = { heroVideo: 'rollsbg-v5.mp4', videos: [], heroEnabled: true, heroVideoMobile: 'hero-mobile.mp4', heroPoster: 'hero-poster.jpg' };
 
 async function ensureVideoConfigFile() {
   try {
