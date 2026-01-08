@@ -217,7 +217,7 @@ export default function AutomotivePage() {
           playsInline
           className="h-full w-full object-cover opacity-30"
         >
-          <source src="/videos/main-hero.mp4" type="video/mp4" />
+          <source src="/videos/hero-fixed.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-black/70" />
       </div>
