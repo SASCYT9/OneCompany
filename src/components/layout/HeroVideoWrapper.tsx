@@ -56,36 +56,11 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
   // Removed IntersectionObserver logic as hero video should load immediately
 
   const enabled = serverEnabled && !disabled;
-  // Select mobile variant if mobileSrc present and either small viewport or saveData
-  const chooseVariant = () => {
-    if (mobileSrc) {
-      const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-      const nav = navigator as NavigatorWithConnection;
-      const saveData = nav.connection?.saveData;
-      if (isMobile || saveData) {
-        return mobileSrc;
-      }
-    }
-    return src;
-  };
-
-  // Optimize mobile loading
-  useEffect(() => {
-    // If mobile, checking connection or simply defaulting to lighter behavior
-    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-    if (isMobile && !mobileSrc) {
-       // If no specific mobile video, potentially don't auto-load the heavy desktop one immediately
-       // But current logic is "shouldLoad" = true.
-    }
-  }, [mobileSrc]);
-
-  const selected = chooseVariant();
   
-  // Decide preload strategy: 'none' for mobile to save bandwidth effectively if it's the large file
-  // or if data saver is on.
+  // Choose standard preload. If data saver, browers respect preload="none" usually, 
+  // or we can force it if we detect it client-side.
   const getPreload = () => {
      if (typeof window !== 'undefined') {
-        if (window.innerWidth <= 768) return 'none';
         const nav = navigator as NavigatorWithConnection;
         if (nav.connection?.saveData) return 'none';
      }
@@ -98,7 +73,8 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
         {/* Base background to prevent white flash and serve as backdrop */}
         <div className="absolute inset-0 bg-black" />
         <FullScreenVideo 
-           src={shouldLoad ? selected : undefined} 
+           src={src}
+           mobileSrc={mobileSrc}
            poster={poster} 
            preload={getPreload()} 
            enabled={enabled && shouldLoad} 

@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 
 type FullScreenVideoProps = {
   src?: string;
+  mobileSrc?: string;
   enabled?: boolean;
-  overlayOpacity?: string; // e.g., 'from-black/20 via-black/12 to-black/36'
+  overlayOpacity?: string;
   poster?: string;
   preload?: 'none' | 'metadata' | 'auto';
 };
 
-export function FullScreenVideo({ src, enabled = true, overlayOpacity = 'from-black/20 via-black/12 to-black/36', poster, preload = 'none' }: FullScreenVideoProps) {
+export function FullScreenVideo({ src, mobileSrc, enabled = true, overlayOpacity = 'from-black/20 via-black/12 to-black/36', poster, preload = 'none' }: FullScreenVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -19,10 +20,15 @@ export function FullScreenVideo({ src, enabled = true, overlayOpacity = 'from-bl
     const video = videoRef.current;
     if (!video) return;
 
+    // Reset state when source changes
+    setIsLoaded(false);
+    setHasError(false);
+
     const handleLoadedData = () => {
       setIsLoaded(true);
       video.playbackRate = 0.8;
     };
+
 
     const handleError = (e: Event) => {
       // Provide cleaner logging for video failures
@@ -78,7 +84,6 @@ export function FullScreenVideo({ src, enabled = true, overlayOpacity = 'from-bl
       )}
       <video
         ref={videoRef}
-        {...(src ? { src } : {})}
         autoPlay
         loop
         muted
@@ -86,10 +91,12 @@ export function FullScreenVideo({ src, enabled = true, overlayOpacity = 'from-bl
         preload={preload}
         className="w-full h-full object-cover"
         style={{ opacity: isLoaded ? 1 : 0 }}
-        // allow user toggle to reduce/remove overlay and increase opacity if needed
         aria-hidden={!isLoaded}
         poster={poster}
-      />
+      >
+         {mobileSrc && <source src={mobileSrc} type="video/mp4" media="(max-width: 768px)" />}
+         {src && <source src={src} type="video/mp4" />}
+      </video>
       {enabled && !isLoaded && (
         <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
           <svg className="w-12 h-12 text-white opacity-70 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
