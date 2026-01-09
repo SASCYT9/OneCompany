@@ -37,7 +37,9 @@ export function buildLocalizedPath(locale: SupportedLocale, slug = ""): string {
 
 export function buildAlternateLinks(slug = ""): Record<string, string> {
   return siteConfig.locales.reduce<Record<string, string>>((acc, locale) => {
-    acc[locale] = absoluteUrl(buildLocalizedPath(locale, slug));
+    // Use proper ISO language code 'uk' for Ukrainian instead of 'ua'
+    const hreflangCode = locale === 'ua' ? 'uk' : locale;
+    acc[hreflangCode] = absoluteUrl(buildLocalizedPath(locale, slug));
     return acc;
   }, {});
 }

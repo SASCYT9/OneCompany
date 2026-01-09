@@ -106,7 +106,7 @@ const Footer = () => {
 
           {/* Links Columns */}
           <div className="lg:col-span-2 lg:col-start-6 space-y-6">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">{t('company')}</h3>
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{t('company')}</h3>
             <ul className="space-y-4">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
@@ -119,7 +119,7 @@ const Footer = () => {
           </div>
 
           <div className="lg:col-span-2 space-y-6">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">{t('disciplines')}</h3>
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{t('disciplines')}</h3>
             <ul className="space-y-4">
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
@@ -132,7 +132,7 @@ const Footer = () => {
           </div>
 
           <div className="lg:col-span-3 space-y-6">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">{t('headquarters')}</h3>
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{t('headquarters')}</h3>
             <div className={`space-y-4 text-white/70 ${typography.body}`}>
               <p className="leading-relaxed">
                 {t('addressLine1')}<br />
@@ -143,7 +143,7 @@ const Footer = () => {
                 <a href="tel:+380660771700" className="block transition-colors hover:text-white">
                   +380 66 077 17 00
                 </a>
-                <p className="text-white/40">{t('workingHours')}</p>
+                <p className="text-white/60">{t('workingHours')}</p>
               </div>
               
               {/* Map Embed */}
@@ -162,7 +162,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className={`mt-12 sm:mt-20 flex flex-col items-center justify-between gap-6 border-t border-white/5 pt-8 text-white/40 sm:flex-row ${typography.bodySmall}`}>
+        <div className={`mt-12 sm:mt-20 flex flex-col items-center justify-between gap-6 border-t border-white/5 pt-8 text-white/60 sm:flex-row ${typography.bodySmall}`}>
           <p className="text-center sm:text-left">© {new Date().getFullYear()} OneCompany. {t('engineeredIn')}.</p>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
             <Link href={`/${locale}/privacy`} className="transition-colors hover:text-white">

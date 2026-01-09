@@ -53,6 +53,7 @@ export function HeroVideoWrapper({ src, poster, serverEnabled = true }: { src: s
             poster={poster}
           >
             <source src={src} type="video/mp4" />
+            <track kind="captions" />
           </video>
         )}
         
