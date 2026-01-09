@@ -90,7 +90,7 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
                         <div className="absolute inset-0 p-2">
                           <Image
                             src={brand.logoSrc}
-                            alt={brand.name}
+                            alt={`${brand.name} Україна - купити ${brand.name} тюнінг Київ, офіційний дилер`}
                             fill
                             className={`object-contain ${shouldSmartInvertBrand(brand.name) || shouldInvertBrandOrLogo(brand.name, brand.logoSrc) ? 'opacity-95 group-hover:opacity-100' : 'opacity-80 group-hover:opacity-100'} transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrandOrLogo(brand.name, brand.logoSrc) ? 'filter brightness-0 invert' : ''}`}
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"

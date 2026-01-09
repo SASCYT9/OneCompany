@@ -159,7 +159,9 @@ export default async function LocalizedHomePage({
                   {/* Background Image - raw photo */}
                   <Image
                     src={experience.bgImage}
-                    alt={experience.label}
+                    alt={experience.label === 'AUTO' || experience.label === 'АВТО' 
+                      ? 'Преміум авто тюнінг Київ - Akrapovic, Brabus, Mansory, HRE wheels Україна' 
+                      : 'Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ'}
                     fill
                     className="object-cover group-hover:scale-105 transition-all duration-700 grayscale"
                     sizes="(max-width: 768px) 100vw, 50vw"

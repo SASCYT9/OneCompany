@@ -30,7 +30,7 @@ export function Logo({
     <span className={clsx('inline-flex items-center', className)}>
       <Image
         src={LOGO_SOURCE}
-        alt="ONE COMPANY wordmark"
+        alt="OneCompany - преміум тюнінг авто мото Київ Україна, офіційний дилер Akrapovic Brabus Mansory"
         width={width}
         height={height}
         priority={priority}

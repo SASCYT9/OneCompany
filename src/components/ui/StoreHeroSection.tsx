@@ -46,7 +46,7 @@ export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) 
             <div className="flex justify-center mb-3 md:mb-4">
               <Image
                 src="/logos/kw.svg"
-                alt="KW Suspension"
+                alt="KW Suspension Україна - спортивна підвіска тюнінг Київ, купити KW OneCompany"
                 width={0}
                 height={0}
                 sizes="100vw"
@@ -129,7 +129,7 @@ export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) 
             <div className="flex justify-center mb-3 md:mb-4">
               <Image
                 src="/logos/fi.svg"
-                alt="Fi Exhaust"
+                alt="Fi Exhaust Україна - вихлопні системи Valvetronic тюнінг Київ, купити Fi Exhaust OneCompany"
                 width={0}
                 height={0}
                 sizes="100vw"
@@ -215,7 +215,7 @@ export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) 
             <div className="flex justify-center mb-3 md:mb-4">
               <Image
                 src="/logos/eventuri.svg"
-                alt="Eventuri"
+                alt="Eventuri Україна - карбонові впускні системи тюнінг Київ, купити Eventuri OneCompany"
                 width={0}
                 height={0}
                 sizes="100vw"

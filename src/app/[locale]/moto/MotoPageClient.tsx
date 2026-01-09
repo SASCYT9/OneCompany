@@ -447,7 +447,7 @@ export default function MotoPage() {
                 <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-6 sm:p-8 flex flex-col">
                   <div className="flex-1 flex items-center justify-center py-6 sm:py-10">
                     <div className="relative w-full max-w-[240px] h-20 sm:h-24 lg:h-28">
-                      <Image src={getBrandLogo('SC-Project')} alt="SC-Project" fill className="object-contain transition-all duration-700 group-hover:scale-110" unoptimized />
+                      <Image src={getBrandLogo('SC-Project')} alt="SC-Project Україна - вихлопні системи мото тюнінг Київ, купити SC-Project OneCompany" fill className="object-contain transition-all duration-700 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <div className="flex items-end justify-between gap-4">
@@ -476,7 +476,7 @@ export default function MotoPage() {
                 <div className="relative h-full min-h-[320px] sm:min-h-[380px] p-6 sm:p-8 flex flex-col">
                   <div className="flex-1 flex items-center justify-center py-8">
                     <div className="relative w-full max-w-[220px] h-16 sm:h-20 lg:h-24">
-                      <Image src={getBrandLogo('Termignoni')} alt="Termignoni" fill className="object-contain opacity-95 transition-all duration-700 group-hover:scale-110" unoptimized />
+                      <Image src={getBrandLogo('Termignoni')} alt="Termignoni Україна - вихлопні системи мото тюнінг Київ, купити Termignoni OneCompany" fill className="object-contain opacity-95 transition-all duration-700 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <div>
@@ -503,7 +503,7 @@ export default function MotoPage() {
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[200px]">
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[200px] h-14 sm:h-18">
-                      <Image src={getBrandLogo('Brembo')} alt="Brembo" fill className="object-contain transition-all duration-700 group-hover:scale-110" unoptimized />
+                      <Image src={getBrandLogo('Brembo')} alt="Brembo Україна - гальмівні системи мото тюнінг Київ, купити Brembo OneCompany" fill className="object-contain transition-all duration-700 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Brembo</p>
@@ -526,7 +526,7 @@ export default function MotoPage() {
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[200px] h-16 sm:h-20">
-                      <Image src={getBrandLogo('Akrapovic')} alt="Akrapovic" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${shouldSmartInvertBrand('Akrapovic') ? 'filter invert hue-rotate-180' : shouldInvertBrand('Akrapovic') ? 'filter brightness-0 invert' : ''}`} unoptimized />
+                      <Image src={getBrandLogo('Akrapovic')} alt="Akrapovic Україна - вихлопні системи мото тюнінг Київ, купити Akrapovic OneCompany" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${shouldSmartInvertBrand('Akrapovic') ? 'filter invert hue-rotate-180' : shouldInvertBrand('Akrapovic') ? 'filter brightness-0 invert' : ''}`} unoptimized />
                     </div>
                   </div>
                   <div className="flex items-end justify-between">
@@ -552,7 +552,7 @@ export default function MotoPage() {
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[160px]">
                   <div className="flex-1 flex items-center justify-center py-3">
                     <div className="relative w-full max-w-[160px] h-14 sm:h-16">
-                      <Image src={getBrandLogo('Ohlins')} alt="Ohlins" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                      <Image src={getBrandLogo('Ohlins')} alt="Ohlins Україна - підвіска мото тюнінг Київ, купити Ohlins OneCompany" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Ohlins</p>
@@ -574,7 +574,7 @@ export default function MotoPage() {
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[160px]">
                   <div className="flex-1 flex items-center justify-center py-3">
                     <div className="relative w-full max-w-[200px] h-14 sm:h-16">
-                      <Image src={getBrandLogo('Marchesini')} alt="Marchesini" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${shouldSmartInvertBrand('Marchesini') ? 'filter invert hue-rotate-180' : shouldInvertBrand('Marchesini') ? 'filter brightness-0 invert' : ''}`} unoptimized />
+                      <Image src={getBrandLogo('Marchesini')} alt="Marchesini Україна - ковані диски мото тюнінг Київ, купити Marchesini OneCompany" fill className={`object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${shouldSmartInvertBrand('Marchesini') ? 'filter invert hue-rotate-180' : shouldInvertBrand('Marchesini') ? 'filter brightness-0 invert' : ''}`} unoptimized />
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Marchesini</p>
@@ -596,7 +596,7 @@ export default function MotoPage() {
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[160px]">
                   <div className="flex-1 flex items-center justify-center py-3">
                     <div className="relative w-full max-w-[160px] h-16 sm:h-20">
-                      <Image src={getBrandLogo('OZ Racing')} alt="OZ Racing" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                      <Image src={getBrandLogo('OZ Racing')} alt="OZ Racing Україна - ковані диски мото тюнінг Київ, купити OZ Racing OneCompany" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">OZ Racing</p>
@@ -620,7 +620,7 @@ export default function MotoPage() {
                   <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
                     <div className="flex-1 flex items-center justify-center py-4">
                       <div className="relative w-full max-w-[200px] h-16 sm:h-20">
-                        <Image src={getBrandLogo('Arrow')} alt="Arrow" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+                        <Image src={getBrandLogo('Arrow')} alt="Arrow Україна - вихлопні системи мото тюнінг Київ, купити Arrow OneCompany" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                       </div>
                     </div>
                     <p className="text-lg sm:text-xl font-light text-white tracking-tight">Arrow</p>
@@ -642,7 +642,7 @@ export default function MotoPage() {
                   <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
                     <div className="flex-1 flex items-center justify-center py-4">
                       <div className="relative w-full max-w-[180px] h-16 sm:h-20">
-                        <Image src={getBrandLogo('SparkExhaust')} alt="SparkExhaust" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${shouldSmartInvertBrand('SparkExhaust') ? 'filter invert hue-rotate-180' : shouldInvertBrand('SparkExhaust') ? 'filter brightness-0 invert' : ''}`} unoptimized />
+                        <Image src={getBrandLogo('SparkExhaust')} alt="Spark Exhaust Україна - вихлопні системи мото тюнінг Київ, купити Spark OneCompany" fill className={`object-contain transition-all duration-500 group-hover:scale-110 ${shouldSmartInvertBrand('SparkExhaust') ? 'filter invert hue-rotate-180' : shouldInvertBrand('SparkExhaust') ? 'filter brightness-0 invert' : ''}`} unoptimized />
                       </div>
                     </div>
                     <p className="text-lg sm:text-xl font-light text-white tracking-tight">Spark</p>
@@ -703,7 +703,7 @@ export default function MotoPage() {
                           <div className="relative w-full h-full">
                             <Image
                               src={getBrandLogo(brand.name)}
-                              alt={brand.name}
+                              alt={`${brand.name} Україна - мото тюнінг Київ, купити ${brand.name} OneCompany`}
                               fill
                               className={`object-contain ${shouldSmartInvertBrand(brand.name) || shouldInvertBrand(brand.name) ? 'opacity-95 hover:opacity-100' : 'opacity-70 hover:opacity-100'} transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                               unoptimized
@@ -727,7 +727,7 @@ export default function MotoPage() {
                           <div className="relative w-full h-full">
                             <Image
                               src={getBrandLogo(brand.name)}
-                              alt={brand.name}
+                              alt={`${brand.name} Україна - мото тюнінг Київ, купити ${brand.name} OneCompany`}
                               fill
                               className={`object-contain ${shouldSmartInvertBrand(brand.name) || shouldInvertBrand(brand.name) ? 'opacity-95 hover:opacity-100' : 'opacity-70 hover:opacity-100'} transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                               unoptimized
@@ -972,7 +972,7 @@ export default function MotoPage() {
                           <div className="relative mt-4 h-20 w-full sm:mt-6 sm:h-24">
                             <Image
                               src={getBrandLogo(brand.name)}
-                              alt={brand.name}
+                              alt={`${brand.name} Україна - мото тюнінг Київ, купити ${brand.name} OneCompany`}
                               fill
                               className={`object-contain object-center transition-all duration-500 ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                               sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"

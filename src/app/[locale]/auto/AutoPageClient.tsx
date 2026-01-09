@@ -307,7 +307,7 @@ export default function AutomotivePage() {
                     <div className="relative w-full max-w-[240px] h-20 sm:h-24 lg:h-28">
                       <Image
                         src={getBrandLogo('Akrapovic')}
-                        alt="Akrapovic"
+                        alt="Akrapovic Україна - вихлопні системи тюнінг Київ, купити Akrapovic OneCompany"
                         fill
                         className={`object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_80px_rgba(255,255,255,0.2)] ${shouldSmartInvertBrand('Akrapovic') ? 'filter invert hue-rotate-180' : shouldInvertBrand('Akrapovic') ? 'filter brightness-0 invert' : ''}`}
                         unoptimized
@@ -344,7 +344,7 @@ export default function AutomotivePage() {
                     <div className="relative w-full max-w-[220px] h-16 sm:h-20 lg:h-24">
                       <Image
                         src={getBrandLogo('Brabus')}
-                        alt="Brabus"
+                        alt="Brabus Україна - преміум тюнінг Mercedes Київ, купити Brabus OneCompany"
                         fill
                         className={`object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all duration-700 group-hover:scale-110 ${shouldInvertBrand('Brabus') ? 'filter brightness-0 invert' : ''}`}
                         unoptimized
@@ -379,7 +379,7 @@ export default function AutomotivePage() {
                     <div className="relative w-full max-w-[220px] h-14 sm:h-18">
                       <Image
                         src={getBrandLogo('Mansory')}
-                        alt="Mansory"
+                        alt="Mansory Україна - преміум тюнінг суперкарів Київ, купити Mansory OneCompany"
                         fill
                         className="object-contain opacity-95 drop-shadow-[0_0_25px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110"
                         unoptimized
@@ -407,7 +407,7 @@ export default function AutomotivePage() {
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[180px]">
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[160px] h-16 sm:h-20">
-                      <Image src={getBrandLogo('HRE wheels')} alt="HRE" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+                      <Image src={getBrandLogo('HRE wheels')} alt="HRE Wheels Україна - ковані диски тюнінг Київ, купити HRE OneCompany" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <div className="flex items-end justify-between">
@@ -434,7 +434,7 @@ export default function AutomotivePage() {
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[220px]">
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[180px] h-14 sm:h-18">
-                      <Image src={getBrandLogo('Urban Automotive')} alt="Urban Automotive" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                      <Image src={getBrandLogo('Urban Automotive')} alt="Urban Automotive Україна - карбонові обвіси тюнінг Київ, купити Urban OneCompany" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Urban Automotive</p>
@@ -457,7 +457,7 @@ export default function AutomotivePage() {
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[220px]">
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[200px] h-16 sm:h-20">
-                      <Image src={getBrandLogo('Eventuri')} alt="Eventuri" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
+                      <Image src={getBrandLogo('Eventuri')} alt="Eventuri Україна - впускні системи карбон тюнінг Київ, купити Eventuri OneCompany" fill className="object-contain transition-all duration-500 group-hover:opacity-100 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Eventuri</p>
@@ -480,7 +480,7 @@ export default function AutomotivePage() {
                 <div className="relative h-full p-6 sm:p-8 flex flex-col min-h-[220px]">
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[160px] h-20 sm:h-24">
-                      <Image src={getBrandLogo('KW Suspension')} alt="KW" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
+                      <Image src={getBrandLogo('KW Suspension')} alt="KW Suspension Україна - спортивна підвіска тюнінг Київ, купити KW OneCompany" fill className="object-contain transition-all duration-500 group-hover:scale-110" unoptimized />
                     </div>
                   </div>
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">KW Suspensions</p>
@@ -509,7 +509,7 @@ export default function AutomotivePage() {
                       <div className="relative w-full max-w-[200px] h-16 sm:h-20">
                         <Image
                           src={getBrandLogo('Novitec')}
-                          alt="Novitec"
+                          alt="Novitec Україна - тюнінг Ferrari Lamborghini Київ, купити Novitec OneCompany"
                           fill
                           className="object-contain opacity-95 transition-all duration-700 group-hover:scale-110"
                           unoptimized
@@ -546,7 +546,7 @@ export default function AutomotivePage() {
                       <div className="relative w-full max-w-[160px] h-16 sm:h-20">
                         <Image
                           src={getBrandLogo('ABT')}
-                          alt="ABT"
+                          alt="ABT Sportsline Україна - тюнінг Audi VW Київ, купити ABT OneCompany"
                           fill
                           className={`object-contain opacity-95 transition-all duration-700 group-hover:scale-110 ${shouldInvertBrand('ABT') ? 'filter brightness-0 invert' : ''}`}
                           unoptimized
@@ -615,7 +615,7 @@ export default function AutomotivePage() {
                           <div className="relative w-full h-full">
                             <Image
                               src={getBrandLogo(brand.name)}
-                              alt={brand.name}
+                              alt={`${brand.name} Україна - авто тюнінг Київ, купити ${brand.name} OneCompany`}
                               fill
                               className={`object-contain ${shouldSmartInvertBrand(brand.name) || shouldInvertBrand(brand.name) ? 'opacity-95 hover:opacity-100' : 'opacity-70 hover:opacity-100'} transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                               unoptimized
@@ -639,7 +639,7 @@ export default function AutomotivePage() {
                           <div className="relative w-full h-full">
                             <Image
                               src={getBrandLogo(brand.name)}
-                              alt={brand.name}
+                              alt={`${brand.name} Україна - авто тюнінг Київ, купити ${brand.name} OneCompany`}
                               fill
                               className={`object-contain ${shouldSmartInvertBrand(brand.name) || shouldInvertBrand(brand.name) ? 'opacity-95 hover:opacity-100' : 'opacity-70 hover:opacity-100'} transition-opacity ${shouldSmartInvertBrand(brand.name) ? 'filter invert hue-rotate-180' : shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                               unoptimized
@@ -885,9 +885,8 @@ export default function AutomotivePage() {
                             <div className="relative w-full h-full">
                               <Image
                                 src={logoSrc}
-                                alt={brand.name}
+                                alt={`${brand.name} Україна - авто тюнінг Київ, купити ${brand.name} OneCompany`}
                                 fill
-                                className={`object-contain object-center ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
                                 sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                                 unoptimized
                               />
