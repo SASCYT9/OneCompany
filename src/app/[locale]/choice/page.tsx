@@ -165,6 +165,9 @@ export default function ChoicePage() {
       onMouseMove={(e) => setPos({ x: e.clientX, y: e.clientY })}
       style={{ background: 'radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,0.06), transparent 60%), linear-gradient(180deg, #0b0b0d, #0d0d10)' }}
     >
+      {/* SEO H1 - visually hidden but accessible */}
+      <h1 className="sr-only">OneCompany — Оберіть напрям тюнінгу: Авто чи Мото</h1>
+
       {/* Floating Particles Background */}
       <div ref={particlesRef} className="absolute inset-0 pointer-events-none z-0">
         {floatingParticles.map((particle, i) => (
