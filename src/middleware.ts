@@ -4,6 +4,12 @@ import {routing} from './i18n/routing';
  
 const intlMiddleware = createMiddleware(routing);
 
+// Map internal locale codes to ISO language codes for hreflang
+const localeToHreflang: Record<string, string> = {
+  'ua': 'uk',
+  'en': 'en'
+};
+
 export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -12,7 +18,16 @@ export default function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  return intlMiddleware(req);
+  const response = intlMiddleware(req);
+  
+  // Fix hreflang in Link headers - replace 'ua' with 'uk'
+  const linkHeader = response.headers.get('Link');
+  if (linkHeader) {
+    const fixedLinkHeader = linkHeader.replace(/hreflang="ua"/g, 'hreflang="uk"');
+    response.headers.set('Link', fixedLinkHeader);
+  }
+  
+  return response;
 }
  
 export const config = {
