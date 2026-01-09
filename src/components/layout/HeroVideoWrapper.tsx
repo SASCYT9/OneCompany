@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 
 const STORAGE_KEY = 'heroVideoDisabled';
 
 export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true }: { src: string, mobileSrc?: string, poster?: string, serverEnabled?: boolean }) {
   const [disabled, setDisabled] = useState(false);
-  const [isMobile, setIsMobile] = useState<boolean | null>(null); // null = not yet determined
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const t = useTranslations('admin');
 
   useEffect(() => {
@@ -43,10 +44,36 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
     };
   }, []);
 
+  // Force play video when it's ready (mobile autoplay fix)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const tryPlay = async () => {
+      try {
+        // Ensure video is muted (required for autoplay on mobile)
+        video.muted = true;
+        await video.play();
+      } catch {
+        // Autoplay blocked - that's okay, poster will show
+      }
+    };
+
+    // Try to play when video can start
+    video.addEventListener('canplay', tryPlay);
+    // Also try immediately in case it's already loaded
+    if (video.readyState >= 3) {
+      tryPlay();
+    }
+
+    return () => {
+      video.removeEventListener('canplay', tryPlay);
+    };
+  }, [isMobile]); // Re-run when device type changes
+
   const enabled = serverEnabled && !disabled;
-  // Wait for client-side detection before choosing video source
   const isReady = isMobile !== null;
-  // Use mobile-optimized video (720p, 7MB) for phones, full HD for desktop
+  // Use mobile-optimized video (480p, 4MB) for phones, full HD for desktop
   const videoSrc = isMobile && mobileSrc ? mobileSrc : src;
 
   return (
@@ -66,12 +93,13 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
         {/* Video - wait for device detection to pick correct source */}
         {enabled && isReady && (
           <video
+            ref={videoRef}
             key={videoSrc}
             autoPlay
             loop
             muted
             playsInline
-            preload="metadata"
+            preload="auto"
             className="h-full w-full object-cover opacity-30"
             poster={poster}
           >
