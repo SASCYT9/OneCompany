@@ -93,7 +93,7 @@ export function HomeCarousel({ items }: { items: CarouselItem[] }) {
             <div
               key={item.id}
               className={clsx(
-                "relative flex h-[280px] w-[280px] flex-shrink-0 flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-3xl transition-all duration-500 hover:border-white/20 hover:bg-white/[0.04] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:h-[320px] sm:w-[320px] sm:p-8 snap-start"
+                "relative flex h-[280px] w-[280px] flex-shrink-0 flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-6 transition-all duration-300 hover:border-white/20 hover:bg-white/[0.04] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] sm:h-[320px] sm:w-[320px] sm:p-8 snap-start"
               )}
             >
               <div>

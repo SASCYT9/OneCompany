@@ -174,7 +174,7 @@ export default async function LocalizedHomePage({
 
                   <div className="relative flex flex-col items-center justify-center space-y-3 text-center flex-1">
                     <div>
-                      <span className={`inline-block font-display rounded-full border border-white/50 bg-white/10 backdrop-blur-md px-6 py-2.5 tracking-[0.3em] text-white shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_40px_rgba(255,255,255,0.7)] sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}>
+                      <span className={`inline-block font-display rounded-full border border-white/50 bg-white/10 px-6 py-2.5 tracking-[0.3em] text-white shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_40px_rgba(255,255,255,0.7)] sm:px-8 sm:py-3 sm:tracking-[0.35em] ${typography.label}`}>
                         {experience.label}
                       </span>
                     </div>
@@ -191,7 +191,7 @@ export default async function LocalizedHomePage({
                         </div>
                       ))}
                     </div>
-                    <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/5 backdrop-blur-sm text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] sm:h-12 sm:w-12">
+                    <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/5 text-sm text-white transition-all duration-500 group-hover:scale-110 group-hover:border-white group-hover:bg-white group-hover:text-black group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] sm:h-12 sm:w-12">
                       →
                     </span>
                   </div>
@@ -250,7 +250,7 @@ export default async function LocalizedHomePage({
               </div>
               <Link
                 href={`/${locale}/contact`}
-                className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-white/30 bg-white/10 backdrop-blur-xl px-6 py-3 text-xs uppercase tracking-[0.35em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)]"
+                className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-xs uppercase tracking-[0.35em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)]"
               >
                 {t('arrangeConsult')} ↗
               </Link>
@@ -259,7 +259,7 @@ export default async function LocalizedHomePage({
               {b2bServices.map((service) => (
                 <div
                   key={service.title}
-                  className="rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-6 hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300"
+                  className="rounded-3xl border border-white/10 bg-white/[0.02] shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-6 hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300"
                 >
                   <p className={`uppercase tracking-[0.3em] text-white/50 ${typography.badge}`}>{heroBadgeCopy}</p>
                   <h4 className={`mt-4 text-white ${typography.h3}`}>{service.title}</h4>
