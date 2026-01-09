@@ -81,7 +81,7 @@ const AboutPage: React.FC = () => {
       <div className="pointer-events-none absolute inset-y-0 right-[-200px] w-[480px] bg-[radial-gradient(circle,_rgba(255,255,255,0.05)_0%,_transparent_70%)] blur-3xl" />
 
       {/* Hero */}
-      <section className="relative flex min-h-[60vh] md:min-h-[90vh] flex-col justify-center px-6 py-12 md:py-24 md:px-10">
+      <section className="relative flex min-h-[60vh] md:min-h-[90vh] flex-col justify-center px-6 pt-24 pb-12 md:py-24 md:px-10">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 to-transparent" />
         <div className="relative z-10 mx-auto w-full max-w-6xl">
           <motion.p
