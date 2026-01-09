@@ -1,7 +1,7 @@
 {
   "heroVideo": "rollsbg-v3.mp4",
   "heroEnabled": true,
-  "heroVideoMobile": "",
+  "heroVideoMobile": "rollsbg-mobile.mp4",
   "heroPoster": "hero-poster.jpg",
   "videos": []
 }

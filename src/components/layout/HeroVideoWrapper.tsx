@@ -5,11 +5,18 @@ import { useTranslations } from 'next-intl';
 
 const STORAGE_KEY = 'heroVideoDisabled';
 
-export function HeroVideoWrapper({ src, poster, serverEnabled = true }: { src: string, mobileSrc?: string, poster?: string, serverEnabled?: boolean }) {
+export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true }: { src: string, mobileSrc?: string, poster?: string, serverEnabled?: boolean }) {
   const [disabled, setDisabled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const t = useTranslations('admin');
 
   useEffect(() => {
+    // Check if mobile device (width < 768px)
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    
     try {
       const value = localStorage.getItem(STORAGE_KEY);
       setDisabled(value === 'true');
@@ -28,13 +35,17 @@ export function HeroVideoWrapper({ src, poster, serverEnabled = true }: { src: s
 
     window.addEventListener('heroVideoToggle', onToggle);
     window.addEventListener('storage', onToggle);
+    window.addEventListener('resize', checkMobile);
     return () => {
       window.removeEventListener('heroVideoToggle', onToggle);
       window.removeEventListener('storage', onToggle);
+      window.removeEventListener('resize', checkMobile);
     };
   }, []);
 
   const enabled = serverEnabled && !disabled;
+  // Use mobile-optimized video (720p, 7MB) for phones, full HD for desktop
+  const videoSrc = isMobile && mobileSrc ? mobileSrc : src;
 
   return (
     <>
@@ -50,9 +61,10 @@ export function HeroVideoWrapper({ src, poster, serverEnabled = true }: { src: s
           />
         )}
         
-        {/* Video */}
+        {/* Video - mobile gets optimized 720p version */}
         {enabled && (
           <video
+            key={videoSrc}
             autoPlay
             loop
             muted
@@ -61,7 +73,7 @@ export function HeroVideoWrapper({ src, poster, serverEnabled = true }: { src: s
             className="h-full w-full object-cover opacity-30"
             poster={poster}
           >
-            <source src={src} type="video/mp4" />
+            <source src={videoSrc} type="video/mp4" />
             <track kind="captions" />
           </video>
         )}
