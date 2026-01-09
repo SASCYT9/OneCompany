@@ -7,16 +7,9 @@ const STORAGE_KEY = 'heroVideoDisabled';
 
 export function HeroVideoWrapper({ src, poster, serverEnabled = true }: { src: string, mobileSrc?: string, poster?: string, serverEnabled?: boolean }) {
   const [disabled, setDisabled] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const t = useTranslations('admin');
 
   useEffect(() => {
-    // Check if mobile device (width < 768px)
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    
     try {
       const value = localStorage.getItem(STORAGE_KEY);
       setDisabled(value === 'true');
@@ -35,17 +28,13 @@ export function HeroVideoWrapper({ src, poster, serverEnabled = true }: { src: s
 
     window.addEventListener('heroVideoToggle', onToggle);
     window.addEventListener('storage', onToggle);
-    window.addEventListener('resize', checkMobile);
     return () => {
       window.removeEventListener('heroVideoToggle', onToggle);
       window.removeEventListener('storage', onToggle);
-      window.removeEventListener('resize', checkMobile);
     };
   }, []);
 
   const enabled = serverEnabled && !disabled;
-  // Don't load heavy video on mobile - show poster only for better Speed Index
-  const showVideo = enabled && !isMobile;
 
   return (
     <>
@@ -53,7 +42,7 @@ export function HeroVideoWrapper({ src, poster, serverEnabled = true }: { src: s
         {/* Base background */}
         <div className="absolute inset-0 bg-black" />
         
-        {/* Poster image for mobile / video fallback */}
+        {/* Poster image as fallback */}
         {poster && (
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
@@ -61,13 +50,14 @@ export function HeroVideoWrapper({ src, poster, serverEnabled = true }: { src: s
           />
         )}
         
-        {/* Video - only on desktop for performance */}
-        {showVideo && (
+        {/* Video */}
+        {enabled && (
           <video
             autoPlay
             loop
             muted
             playsInline
+            preload="metadata"
             className="h-full w-full object-cover opacity-30"
             poster={poster}
           >
