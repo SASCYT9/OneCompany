@@ -97,22 +97,15 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
                 key={item.id}
                 className={clsx(
                   "flex flex-col justify-center items-center text-center",
-                  // OPTIMIZED: Only transition opacity and transform (GPU accelerated)
-                  "transition-[opacity,transform] duration-300 ease-out",
-                  // Mobile: Card Style
+                  // Mobile: Card Style with simple fade
                   "min-h-[50vh] mb-8 sm:mb-16 p-4 sm:p-8 relative overflow-hidden",
-                  // Desktop: Clean Text Style - NO backdrop-blur (causes 4K lag)
+                  // Desktop: NO transitions at all - instant switch for 4K performance
                   "lg:min-h-[60vh] lg:mb-0 lg:p-0 lg:rounded-none lg:border-none lg:bg-transparent lg:overflow-visible",
-                  // Active State - simplified transforms
+                  // Simple opacity switch - NO transitions on desktop
                   isActive
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-20 translate-y-2"
+                    ? "opacity-100"
+                    : "opacity-15 lg:opacity-10"
                 )}
-                style={{
-                  // GPU acceleration hint
-                  willChange: isActive ? 'auto' : 'opacity, transform',
-                  transform: isActive ? 'translateY(0) translateZ(0)' : 'translateY(8px) translateZ(0)',
-                }}
               >
                 {/* Mobile Watermark */}
                 <div className="absolute -bottom-10 -right-10 w-40 h-40 opacity-[0.05] pointer-events-none rotate-[-15deg] lg:hidden">
@@ -126,8 +119,7 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
 
                 <div className="flex items-center justify-center gap-4 mb-4 sm:mb-6 relative z-10">
                   <div className={clsx(
-                    "p-4 rounded-2xl transition-opacity duration-300",
-                    // REMOVED backdrop-blur - major performance killer on 4K
+                    "p-4 rounded-2xl",
                     "lg:border",
                     activeCard === index
                       ? "lg:bg-white/10 lg:border-white/20"
