@@ -215,7 +215,7 @@ export default async function LocalizedHomePage({
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
             <Link
               href={`/${locale}/auto`}
-              className="group rounded-2xl border border-white/10 bg-white/[0.02] px-6 py-8 text-white backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300"
+              className="group rounded-2xl border border-white/10 bg-black/80 px-6 py-8 text-white shadow-lg hover:bg-black/70 hover:border-white/20 transition-colors duration-200"
             >
               <h4 className="text-2xl font-light uppercase tracking-[0.2em]">{t('autoCatalog')}</h4>
               <p className="mt-3 text-sm text-white/70">{t('autoCatalogBrands')}</p>
@@ -226,7 +226,7 @@ export default async function LocalizedHomePage({
             </Link>
             <Link
               href={`/${locale}/moto`}
-              className="group rounded-2xl border border-white/10 bg-white/[0.02] px-6 py-8 text-white backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300"
+              className="group rounded-2xl border border-white/10 bg-black/80 px-6 py-8 text-white shadow-lg hover:bg-black/70 hover:border-white/20 transition-colors duration-200"
             >
               <h4 className="text-2xl font-light uppercase tracking-[0.2em]">{t('motoCatalog')}</h4>
               <p className="mt-3 text-sm text-white/70">{t('motoCatalogBrands')}</p>
@@ -250,7 +250,7 @@ export default async function LocalizedHomePage({
               </div>
               <Link
                 href={`/${locale}/contact`}
-                className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-xs uppercase tracking-[0.35em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)]"
+                className="mx-auto md:mx-0 w-fit inline-flex font-display items-center gap-3 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-xs uppercase tracking-[0.35em] text-white transition-colors duration-200 hover:border-white hover:bg-white hover:text-black"
               >
                 {t('arrangeConsult')} ↗
               </Link>
@@ -259,7 +259,7 @@ export default async function LocalizedHomePage({
               {b2bServices.map((service) => (
                 <div
                   key={service.title}
-                  className="rounded-3xl border border-white/10 bg-white/[0.02] shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-6 hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300"
+                  className="rounded-3xl border border-white/10 bg-black/60 shadow-lg p-6 hover:bg-black/50 hover:border-white/20 transition-colors duration-200"
                 >
                   <p className={`uppercase tracking-[0.3em] text-white/50 ${typography.badge}`}>{heroBadgeCopy}</p>
                   <h4 className={`mt-4 text-white ${typography.h3}`}>{service.title}</h4>

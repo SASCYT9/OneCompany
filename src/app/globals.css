@@ -71,6 +71,67 @@
     }
   }
 
+  /* ===== 4K / 8K HIGH RESOLUTION OPTIMIZATIONS ===== */
+  /* Disable expensive blur effects on 4K+ displays (2560px+) */
+  @media (min-width: 2560px) {
+    .backdrop-blur-sm,
+    .backdrop-blur,
+    .backdrop-blur-md,
+    .backdrop-blur-lg,
+    .backdrop-blur-xl,
+    .backdrop-blur-2xl,
+    .backdrop-blur-3xl {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    
+    /* Replace blur with solid semi-transparent backgrounds */
+    .backdrop-blur-3xl {
+      background-color: rgba(0, 0, 0, 0.85) !important;
+    }
+    
+    .backdrop-blur-xl,
+    .backdrop-blur-2xl {
+      background-color: rgba(0, 0, 0, 0.8) !important;
+    }
+    
+    .backdrop-blur-md,
+    .backdrop-blur-lg {
+      background-color: rgba(0, 0, 0, 0.75) !important;
+    }
+    
+    /* Disable blur-* utility classes on large elements */
+    .blur-xl,
+    .blur-2xl,
+    .blur-3xl,
+    [class*="blur-["] {
+      filter: none !important;
+    }
+    
+    /* Simplify transitions - avoid transition-all */
+    * {
+      transition-property: opacity, transform, color, background-color, border-color !important;
+    }
+    
+    /* Reduce shadow complexity */
+    [class*="shadow-[0_20px"],
+    [class*="shadow-[0_30px"] {
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+  }
+
+  /* Even more aggressive for 8K displays (5120px+) */
+  @media (min-width: 5120px) {
+    * {
+      transition-duration: 0.15s !important;
+    }
+    
+    .animate-scroll-left,
+    .animate-scroll-right {
+      animation: none !important;
+    }
+  }
+
   ::selection {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
