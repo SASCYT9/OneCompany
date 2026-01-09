@@ -71,128 +71,30 @@
     }
   }
 
-  /* ===== 4K / 8K HIGH RESOLUTION OPTIMIZATIONS ===== */
-  /* Disable expensive blur effects on 4K+ displays (2560px+) */
+  /* ===== OPTIMIZED ANIMATIONS FOR ALL DEVICES ===== */
+  /* Use only GPU-accelerated properties: transform, opacity */
+  
+  /* Force GPU layer for animated elements */
+  .animate-scroll-left,
+  .animate-scroll-right,
+  [class*="transition"],
+  [class*="animate-"] {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* Optimize backdrop-blur - use smaller blur radius on large screens */
   @media (min-width: 2560px) {
-    .backdrop-blur-sm,
-    .backdrop-blur,
-    .backdrop-blur-md,
-    .backdrop-blur-lg,
-    .backdrop-blur-xl,
-    .backdrop-blur-2xl,
     .backdrop-blur-3xl {
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
+      backdrop-filter: blur(24px) !important; /* was 64px */
     }
-    
-    /* Replace blur with solid semi-transparent backgrounds */
-    .backdrop-blur-3xl {
-      background-color: rgba(0, 0, 0, 0.85) !important;
-    }
-    
-    .backdrop-blur-xl,
     .backdrop-blur-2xl {
-      background-color: rgba(0, 0, 0, 0.8) !important;
+      backdrop-filter: blur(16px) !important; /* was 40px */
     }
-    
-    .backdrop-blur-md,
-    .backdrop-blur-lg {
-      background-color: rgba(0, 0, 0, 0.75) !important;
+    .backdrop-blur-xl {
+      backdrop-filter: blur(12px) !important; /* was 24px */
     }
-    
-    /* Disable blur-* utility classes on large elements */
-    .blur-xl,
-    .blur-2xl,
-    .blur-3xl,
-    [class*="blur-["] {
-      filter: none !important;
-    }
-    
-    /* Simplify transitions - avoid transition-all */
-    * {
-      transition-property: opacity, transform, color, background-color, border-color !important;
-    }
-    
-    /* Reduce shadow complexity */
-    [class*="shadow-[0_20px"],
-    [class*="shadow-[0_30px"] {
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3) !important;
-    }
-  }
-
-  /* Even more aggressive for 8K displays (5120px+) */
-  @media (min-width: 5120px) {
-    * {
-      transition-duration: 0.15s !important;
-    }
-    
-    .animate-scroll-left,
-    .animate-scroll-right {
-      animation: none !important;
-    }
-  }
-
-  /* ===== CPU-ONLY MODE (NO GPU / SOFTWARE RENDERING) ===== */
-  /* Applied via GpuDetector.tsx when GPU is disabled */
-  html.no-gpu,
-  html.no-gpu *,
-  html.slow-gpu,
-  html.slow-gpu * {
-    /* Kill ALL blur effects */
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    filter: none !important;
-    
-    /* Kill ALL animations */
-    animation: none !important;
-    animation-duration: 0ms !important;
-    
-    /* Kill ALL transitions */
-    transition: none !important;
-    transition-duration: 0ms !important;
-    
-    /* Kill transforms that trigger compositing */
-    transform: none !important;
-    
-    /* Disable GPU hints */
-    will-change: auto !important;
-    
-    /* No 3D transforms */
-    perspective: none !important;
-    transform-style: flat !important;
-  }
-  
-  /* Replace transparent backgrounds with solid colors for no-GPU */
-  html.no-gpu .backdrop-blur-3xl,
-  html.no-gpu .backdrop-blur-xl,
-  html.no-gpu .backdrop-blur-md,
-  html.slow-gpu .backdrop-blur-3xl,
-  html.slow-gpu .backdrop-blur-xl,
-  html.slow-gpu .backdrop-blur-md {
-    background-color: rgba(0, 0, 0, 0.95) !important;
-  }
-  
-  html.no-gpu [class*="bg-white/"],
-  html.slow-gpu [class*="bg-white/"] {
-    background-color: rgba(20, 20, 20, 0.98) !important;
-  }
-  
-  html.no-gpu [class*="bg-black/"],
-  html.slow-gpu [class*="bg-black/"] {
-    background-color: rgba(0, 0, 0, 0.98) !important;
-  }
-  
-  /* Hide decorative blur elements */
-  html.no-gpu [class*="blur-"],
-  html.slow-gpu [class*="blur-"] {
-    opacity: 0 !important;
-    visibility: hidden !important;
-  }
-  
-  /* Disable hover effects on no-GPU */
-  html.no-gpu *:hover,
-  html.slow-gpu *:hover {
-    transform: none !important;
   }
 
   ::selection {
