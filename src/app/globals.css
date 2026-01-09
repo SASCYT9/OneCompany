@@ -49,8 +49,26 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    /* Auto instead of smooth - smooth scroll can cause frame drops on high-Hz monitors */
+    scroll-behavior: auto;
     background-color: black; /* Fallback */
+  }
+
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Optimize for high refresh rate displays */
+  @media (update: fast) {
+    * {
+      /* Ensure animations run at display's native refresh rate */
+      animation-timing-function: linear;
+    }
   }
 
   ::selection {

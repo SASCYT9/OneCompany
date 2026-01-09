@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { useScroll, useMotionValueEvent } from 'framer-motion';
 import Image from 'next/image';
 import clsx from 'clsx';
@@ -36,6 +36,9 @@ const ICONS: Record<string, LucideIcon> = {
 export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
   const [activeCard, setActiveCard] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
+  const lastValueRef = useRef<number>(0);
+  
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end end"],
@@ -43,25 +46,41 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
 
   const cardLength = items.length;
 
-  // Memoized callback to prevent unnecessary re-renders
+  // Cleanup RAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
+
+  // RAF-throttled update for smooth 120Hz/144Hz/160Hz/240Hz support
   const updateActiveCard = useCallback((latest: number) => {
-    const cardsBreakpoints = items.map((_, index) => index / cardLength);
-    const closestBreakpointIndex = cardsBreakpoints.reduce(
-      (acc, breakpoint, index) => {
-        const distance = Math.abs(latest - breakpoint);
-        if (distance < Math.abs(latest - cardsBreakpoints[acc])) {
-          return index;
-        }
-        return acc;
-      },
-      0
-    );
+    lastValueRef.current = latest;
     
-    // Only update state if index actually changed
-    if (closestBreakpointIndex !== activeCard) {
-      setActiveCard(closestBreakpointIndex);
+    // Only schedule RAF if not already pending
+    if (rafRef.current === null) {
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        
+        const cardsBreakpoints = items.map((_, index) => index / cardLength);
+        const closestBreakpointIndex = cardsBreakpoints.reduce(
+          (acc, breakpoint, index) => {
+            const distance = Math.abs(lastValueRef.current - breakpoint);
+            if (distance < Math.abs(lastValueRef.current - cardsBreakpoints[acc])) {
+              return index;
+            }
+            return acc;
+          },
+          0
+        );
+        
+        // Only update state if index actually changed
+        setActiveCard(prev => prev !== closestBreakpointIndex ? closestBreakpointIndex : prev);
+      });
     }
-  }, [items, cardLength, activeCard]);
+  }, [items, cardLength]);
 
   useMotionValueEvent(scrollYProgress, "change", updateActiveCard);
 
