@@ -100,10 +100,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
       { url: "/icon.png", type: "image/png", sizes: "512x512" },
-      { url: "/branding/one-company-logo.svg", type: "image/svg+xml" },
     ],
-    shortcut: "/icon.png",
+    shortcut: "/favicon.ico",
     apple: "/apple-icon.png",
   },
   manifest: "/manifest.json",
