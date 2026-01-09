@@ -7,7 +7,7 @@ const STORAGE_KEY = 'heroVideoDisabled';
 
 export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true }: { src: string, mobileSrc?: string, poster?: string, serverEnabled?: boolean }) {
   const [disabled, setDisabled] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null); // null = not yet determined
   const t = useTranslations('admin');
 
   useEffect(() => {
@@ -44,6 +44,8 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
   }, []);
 
   const enabled = serverEnabled && !disabled;
+  // Wait for client-side detection before choosing video source
+  const isReady = isMobile !== null;
   // Use mobile-optimized video (720p, 7MB) for phones, full HD for desktop
   const videoSrc = isMobile && mobileSrc ? mobileSrc : src;
 
@@ -53,7 +55,7 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
         {/* Base background */}
         <div className="absolute inset-0 bg-black" />
         
-        {/* Poster image as fallback */}
+        {/* Poster image - always visible as fallback */}
         {poster && (
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
@@ -61,8 +63,8 @@ export function HeroVideoWrapper({ src, mobileSrc, poster, serverEnabled = true 
           />
         )}
         
-        {/* Video - mobile gets optimized 720p version */}
-        {enabled && (
+        {/* Video - wait for device detection to pick correct source */}
+        {enabled && isReady && (
           <video
             key={videoSrc}
             autoPlay
