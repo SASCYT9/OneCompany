@@ -132,6 +132,69 @@
     }
   }
 
+  /* ===== CPU-ONLY MODE (NO GPU / SOFTWARE RENDERING) ===== */
+  /* Applied via GpuDetector.tsx when GPU is disabled */
+  html.no-gpu,
+  html.no-gpu *,
+  html.slow-gpu,
+  html.slow-gpu * {
+    /* Kill ALL blur effects */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    
+    /* Kill ALL animations */
+    animation: none !important;
+    animation-duration: 0ms !important;
+    
+    /* Kill ALL transitions */
+    transition: none !important;
+    transition-duration: 0ms !important;
+    
+    /* Kill transforms that trigger compositing */
+    transform: none !important;
+    
+    /* Disable GPU hints */
+    will-change: auto !important;
+    
+    /* No 3D transforms */
+    perspective: none !important;
+    transform-style: flat !important;
+  }
+  
+  /* Replace transparent backgrounds with solid colors for no-GPU */
+  html.no-gpu .backdrop-blur-3xl,
+  html.no-gpu .backdrop-blur-xl,
+  html.no-gpu .backdrop-blur-md,
+  html.slow-gpu .backdrop-blur-3xl,
+  html.slow-gpu .backdrop-blur-xl,
+  html.slow-gpu .backdrop-blur-md {
+    background-color: rgba(0, 0, 0, 0.95) !important;
+  }
+  
+  html.no-gpu [class*="bg-white/"],
+  html.slow-gpu [class*="bg-white/"] {
+    background-color: rgba(20, 20, 20, 0.98) !important;
+  }
+  
+  html.no-gpu [class*="bg-black/"],
+  html.slow-gpu [class*="bg-black/"] {
+    background-color: rgba(0, 0, 0, 0.98) !important;
+  }
+  
+  /* Hide decorative blur elements */
+  html.no-gpu [class*="blur-"],
+  html.slow-gpu [class*="blur-"] {
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+  
+  /* Disable hover effects on no-GPU */
+  html.no-gpu *:hover,
+  html.slow-gpu *:hover {
+    transform: none !important;
+  }
+
   ::selection {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));

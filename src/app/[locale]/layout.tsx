@@ -10,6 +10,7 @@ import HeroVideoWrapper from '@/components/layout/HeroVideoWrapper';
 import LocaleLangSetter from '@/components/LocaleLangSetter';
 import { readVideoConfig } from '@/lib/videoConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { GpuDetector } from '@/components/GpuDetector';
 
 import { ScrollToTop } from '@/components/ScrollToTop';
 
@@ -34,6 +35,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
+      <GpuDetector />
       <LocaleLangSetter locale={locale} />
         {videoConfig.heroPoster && (
           <link rel="preload" href={`/images/${videoConfig.heroPoster}`} as="image" />
