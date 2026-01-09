@@ -164,7 +164,8 @@ export default async function LocalizedHomePage({
                     className="object-cover group-hover:scale-105 transition-all duration-700 grayscale"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
-                    quality={90}
+                    fetchPriority="high"
+                    quality={75}
                   />
                   {/* Subtle gradient for text readability */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
