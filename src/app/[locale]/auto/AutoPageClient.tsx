@@ -724,16 +724,32 @@ export default function AutomotivePage() {
 
                         {/* Brand tags with relief */}
                         <div className="mt-5 min-h-[80px] flex flex-wrap content-start gap-2 text-[10px] uppercase tracking-wider sm:text-[11px]">
-                          {cat.brands.slice(0, 6).map((name) => (
-                            <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10">
-                              {name}
-                            </span>
-                          ))}
-                          {cat.brands.length > 6 && (
-                            <span className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/50">
-                              +{cat.brands.length - 6}
-                            </span>
-                          )}
+                          {(() => {
+                            // Sort brands: High Priority first (from LEGENDARY_BRAND_CONFIG and TOP_AUTOMOTIVE_BRANDS keys)
+                            const prioritySet = new Set([...Object.keys(LEGENDARY_BRAND_CONFIG), ...TOP_AUTOMOTIVE_BRANDS]);
+                            const sortedBrands = [...cat.brands].sort((a, b) => {
+                                const aIn = prioritySet.has(a);
+                                const bIn = prioritySet.has(b);
+                                if (aIn && !bIn) return -1;
+                                if (!aIn && bIn) return 1;
+                                return a.localeCompare(b);
+                            });
+
+                            return (
+                              <>
+                                {sortedBrands.slice(0, 8).map((name) => (
+                                  <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10">
+                                    {name}
+                                  </span>
+                                ))}
+                                {sortedBrands.length > 8 && (
+                                  <span className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/50">
+                                    +{sortedBrands.length - 8}
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
 
                         {/* Open button - clear affordance */}
