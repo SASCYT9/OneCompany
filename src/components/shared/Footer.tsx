@@ -147,7 +147,7 @@ const Footer = () => {
               </div>
               
               {/* Map Embed */}
-              <div className="mt-4 h-32 w-full overflow-hidden rounded-lg border border-white/10 bg-white/5 grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+              <div className="h-32 w-full overflow-hidden rounded-md border border-white/10 bg-white/5 grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
                 <iframe 
                   width="100%" 
                   height="100%" 

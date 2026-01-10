@@ -30,8 +30,8 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
           <section>
             <p className="text-lg leading-relaxed">
               {l === "ua" 
-                ? "OneCompany («ми», «нас» або «наш») зобов'язується захищати вашу конфіденційність. Ця Політика конфіденційності пояснює, як ми збираємо, використовуємо, розкриваємо та захищаємо вашу інформацію, коли ви відвідуєте наш веб-сайт, користуєтесь нашими послугами B2B дистрибуції або взаємодієте з нами."
-                : "OneCompany (\"we\", \"us\", or \"our\") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, use our B2B distribution services, or interact with us."}
+                ? "One Company («ми», «нас» або «наш») зобов'язується захищати вашу конфіденційність. Ця Політика конфіденційності пояснює, як ми збираємо, використовуємо, розкриваємо та захищаємо вашу інформацію, коли ви відвідуєте наш веб-сайт, користуєтесь нашими послугами B2B дистрибуції або взаємодієте з нами."
+                : "One Company (\"we\", \"us\", or \"our\") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, use our B2B distribution services, or interact with us."}
             </p>
           </section>
 
@@ -114,7 +114,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
                 : "If you have questions or comments about this Privacy Policy, please contact us at:"}
             </p>
             <div className="mt-4 not-prose border-l-2 border-white/20 pl-4">
-              <p className="text-white font-medium">OneCompany</p>
+              <p className="text-white font-medium">One Company</p>
               <p>{l === "ua" ? "вул. Басейна, 21Б" : "21B Baseina St"}</p>
               <p>{l === "ua" ? "Київ, 01004, Україна" : "Kyiv, 01004, Ukraine"}</p>
               <p className="mt-2">Email: info@onecompany.global</p>

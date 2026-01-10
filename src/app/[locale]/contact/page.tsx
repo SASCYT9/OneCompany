@@ -278,47 +278,18 @@ export default function ContactPage() {
                       <p className="mt-1 text-[8px] text-white/30 tracking-wide">{t("form.phoneHint")}</p>
                     </div>
                     <div>
-                      <label className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
-                        {t("form.contactMethodLabel")}
+                      <label htmlFor="telegramUsername" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
+                        {t("form.telegramUsernameLabel")} <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
                       </label>
-                      <div className="flex gap-2 pt-1">
-                        {(["telegram", "whatsapp"] as const).map(method => (
-                          <button
-                            key={method}
-                            type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, contactMethod: method }))}
-                            className={`flex-1 relative rounded-full border px-3 py-2.5 sm:py-3 text-[10px] sm:text-xs font-light tracking-[0.1em] transition-all duration-300 ${formData.contactMethod === method ? 'border-white bg-white text-black' : 'border-white/15 text-white/50 hover:border-white/30 hover:text-white/70'}`}
-                            aria-pressed={formData.contactMethod === method}
-                          >
-                            <span className="relative z-10">
-                              {t(`form.${method}`)}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                      <AnimatePresence>
-                        {formData.contactMethod === "telegram" && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="mt-4 overflow-hidden"
-                          >
-                            <label htmlFor="telegramUsername" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
-                              {t("form.telegramUsernameLabel")} <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
-                            </label>
-                            <input
-                              type="text"
-                              id="telegramUsername"
-                              name="telegramUsername"
-                              value={formData.telegramUsername}
-                              onChange={handleChange}
-                              className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
-                              placeholder={t("form.telegramUsernamePlaceholder")}
-                            />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      <input
+                        type="text"
+                        id="telegramUsername"
+                        name="telegramUsername"
+                        value={formData.telegramUsername}
+                        onChange={handleChange}
+                        className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                        placeholder={t("form.telegramUsernamePlaceholder")}
+                      />
                     </div>
                   </div>
                 </div>
