@@ -140,6 +140,38 @@ export const categoryData: CategoryData[] = [
     ],
   },
   {
+    slug: 'intake',
+    segment: 'auto',
+    title: { en: 'Air Intake Systems', ua: 'Впускні системи' },
+    description: {
+      en: 'Carbon fiber intakes, cold air systems, and performance filters for maximum airflow.',
+      ua: 'Карбонові впуски, системи холодного повітря та спортивні фільтри для максимального потоку.',
+    },
+    spotlight: {
+      en: 'Improved throttle response and power.',
+      ua: 'Покращена реакція на газ та потужність.',
+    },
+    brands: [
+      // TOP 8 first
+      'Eventuri',
+      'ARMA Speed',
+      'Gruppe-M',
+      'MST Performance',
+      'BMC filters',
+      'APR',
+      'Dinan',
+      'Integrated Engineering',
+      // Rest alphabetically
+      '034 Motorsport',
+      'aFe Power',
+      'K&N',
+      'Mountune',
+      'Renntech',
+      'Verus Engineering',
+      'Weistec Engineering',
+    ],
+  },
+  {
     slug: 'performance',
     segment: 'auto',
     title: { en: 'Engine, Turbo & Fuel', ua: 'Двигун, Турбо та Паливо' },
