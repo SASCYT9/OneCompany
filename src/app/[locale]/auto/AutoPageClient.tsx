@@ -901,15 +901,14 @@ export default function AutomotivePage() {
                               <span>{origin}</span>
                             </div>
                           </div>
-                          <div className="relative mt-4 h-20 w-full sm:mt-6 sm:h-24">
-                            <div className="relative w-full h-full">
+                          <div className="relative mt-4 h-24 w-full sm:mt-6 sm:h-32">
+                            <div className="relative w-full h-full px-2" style={{ transform: 'translateZ(0)' }}>
                               <Image
                                 src={logoSrc}
                                 alt={`${brand.name} Україна - авто тюнінг Київ, купити ${brand.name} OneCompany`}
                                 fill
-                                className={`object-contain transition-all duration-300 group-hover:scale-110 drop-shadow-lg ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
-                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                                unoptimized
+                                className={`object-contain transition-all duration-300 group-hover:scale-105 drop-shadow-md ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
+                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                                 quality={100}
                               />
                             </div>
