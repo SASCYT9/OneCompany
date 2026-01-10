@@ -22,15 +22,17 @@ export default function ContactPage() {
     budget: "",
     email: "",
     phone: "",
+    telegramUsername: "",
     contactMethod: "telegram" as "telegram" | "whatsapp",
   });
   const [status, setStatus] = useState<FormState>("idle");
   const [message, setMessage] = useState("");
 
   // Progress (percentage of required fields filled)
+  // telegramUsername is optional, so it's not in requiredKeys unless we want to force it
   const requiredKeys: (keyof typeof formData)[] = ["model", "wishes", "email", "phone"];
   const completion = Math.round(
-    (requiredKeys.filter(k => formData[k].trim().length > 0).length / requiredKeys.length) * 100
+    (requiredKeys.filter(k => (formData[k] as string).trim().length > 0).length / requiredKeys.length) * 100
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -62,7 +64,7 @@ export default function ContactPage() {
 
   const handleTypeChange = (newType: FormType) => {
     setType(newType);
-    setFormData({ model: "", vin: "", wishes: "", budget: "", email: "", phone: "", contactMethod: "telegram" });
+    setFormData({ model: "", vin: "", wishes: "", budget: "", email: "", phone: "", telegramUsername: "", contactMethod: "telegram" });
     setStatus("idle");
     setMessage("");
   };
@@ -80,6 +82,7 @@ export default function ContactPage() {
       budget: formData.budget,
       email: formData.email,
       phone: formData.phone,
+      telegramUsername: formData.telegramUsername,
       contactMethod: formData.contactMethod,
     };
 
@@ -95,7 +98,7 @@ export default function ContactPage() {
       if (response.ok) {
         setStatus("success");
         setMessage(t("form.success"));
-        setFormData({ model: "", vin: "", wishes: "", budget: "", email: "", phone: "", contactMethod: "telegram" });
+        setFormData({ model: "", vin: "", wishes: "", budget: "", email: "", phone: "", telegramUsername: "", contactMethod: "telegram" });
       } else {
         setStatus("error");
         setMessage(result?.error || t("form.error"));
@@ -293,6 +296,29 @@ export default function ContactPage() {
                           </button>
                         ))}
                       </div>
+                      <AnimatePresence>
+                        {formData.contactMethod === "telegram" && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-4 overflow-hidden"
+                          >
+                            <label htmlFor="telegramUsername" className={`mb-2 block font-light uppercase tracking-[0.15em] text-white/40 ${typography.badge}`}>
+                              {t("form.telegramUsernameLabel")} <span className="text-white/30 text-[8px]">{t("form.optional")}</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="telegramUsername"
+                              name="telegramUsername"
+                              value={formData.telegramUsername}
+                              onChange={handleChange}
+                              className="w-full px-0 py-3 sm:py-4 bg-transparent border-b border-white/20 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white focus:border-b-2 transition-all font-light"
+                              placeholder={t("form.telegramUsernamePlaceholder")}
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
                 </div>
