@@ -473,6 +473,7 @@ export const categoryData: CategoryData[] = [
       'SC-Project',
       'Sebimoto',
       'Stompgrip',
+      'Termignoni',
     ],
   },
   {
@@ -495,6 +496,7 @@ export const categoryData: CategoryData[] = [
       'Bonamici',
       'Brembo',
       'CNC Racing',
+      'Ohlins',
       'Capit',
       'Domino',
       'ECUStudio',
@@ -536,6 +538,7 @@ export const categoryData: CategoryData[] = [
       'HM Quickshifter',
       'ECUStudio',
       'FlashTune',
+      'Ohlins',
     ],
   },
 ];
