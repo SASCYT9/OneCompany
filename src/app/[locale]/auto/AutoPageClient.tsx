@@ -907,8 +907,10 @@ export default function AutomotivePage() {
                                 src={logoSrc}
                                 alt={`${brand.name} Україна - авто тюнінг Київ, купити ${brand.name} OneCompany`}
                                 fill
-                                sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
+                                className={`object-contain transition-all duration-300 group-hover:scale-110 drop-shadow-lg ${shouldInvertBrand(brand.name) ? 'filter brightness-0 invert' : ''}`}
+                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                                 unoptimized
+                                quality={100}
                               />
                             </div>
                           </div>
