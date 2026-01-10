@@ -1,4 +1,4 @@
-export type CategorySlug = 'exhaust' | 'suspension' | 'wheels' | 'brakes' | 'intake' | 'interior' | 'performance' | 'exterior' | 'cooling' | 'drivetrain' | 'electronics' | 'oem' | 'moto-exhaust' | 'moto-suspension' | 'moto-wheels' | 'moto-carbon' | 'moto-controls' | 'moto-electronics';
+export type CategorySlug = 'exhaust' | 'suspension' | 'wheels' | 'brakes' | 'intake' | 'interior' | 'performance' | 'exterior' | 'cooling' | 'drivetrain' | 'electronics' | 'oem' | 'racing' | 'moto-exhaust' | 'moto-suspension' | 'moto-wheels' | 'moto-carbon' | 'moto-controls' | 'moto-electronics';
 
 export type Localized = { ua: string; en: string };
 
@@ -103,6 +103,14 @@ export const CATEGORY_META: CategoryMeta[] = [
     intro: {
       ua: 'Оригінальні запчастини для автомобілів люкс-класу. Автентична якість та сумісність від виробника.',
       en: 'Genuine original equipment manufacturer parts for luxury vehicles. Authentic quality and fitment from the manufacturer.'
+    }
+  },
+  {
+    slug: 'racing',
+    title: { ua: 'Гонки та Автоспорт', en: 'Racing & Motorsport' },
+    intro: {
+      ua: 'Професійне гоночне обладнання: секвентальні КПП, телеметрія, сухі картери та гоночні компоненти для серйозних змагань.',
+      en: 'Professional racing equipment: sequential gearboxes, data acquisition, dry sump systems, and race-spec components for serious competition.'
     }
   }
 ];
