@@ -24,6 +24,7 @@ interface ContactEmailProps {
   budget?: string;
   phone?: string;
   contactMethod?: 'telegram' | 'whatsapp';
+  telegramUsername?: string;
   messageId?: string;
   logoSrc?: string;
 }
@@ -44,6 +45,7 @@ export const ContactEmail = ({
   budget,
   phone,
   contactMethod,
+  telegramUsername,
   messageId,
   logoSrc,
 }: ContactEmailProps) => (
@@ -94,6 +96,15 @@ export const ContactEmail = ({
               <Section style={infoRow}>
                 <Text style={label}>Preferred Contact</Text>
                 <Text style={value}>{contactMethod.toUpperCase()}</Text>
+              </Section>
+            )}
+
+            {telegramUsername && (
+              <Section style={infoRow}>
+                <Text style={label}>Telegram User</Text>
+                <Link href={`https://t.me/${telegramUsername.replace('@', '')}`} style={link}>
+                  {telegramUsername}
+                </Link>
               </Section>
             )}
 

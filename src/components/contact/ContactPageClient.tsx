@@ -45,6 +45,7 @@ type FormState = {
   email: string;
   phone: string;
   contactMethod: "telegram" | "whatsapp";
+  telegramUsername: string;
 };
 
 const blankForm: FormState = {
@@ -55,6 +56,7 @@ const blankForm: FormState = {
   email: "",
   phone: "",
   contactMethod: "telegram",
+  telegramUsername: "",
 };
 
 const progressKeys: Array<keyof FormState> = ["model", "wishes", "email", "phone"];
@@ -462,6 +464,20 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
                       </button>
                     </div>
                   </div>
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-[0.4em] text-white/40">
+                    Telegram Username <span className="text-white/30">{t("optionalSuffix")}</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="telegramUsername"
+                    name="telegramUsername"
+                    value={formData.telegramUsername}
+                    onChange={handleChange}
+                    placeholder="@username"
+                    className="mt-3 w-full border-b border-white/20 bg-transparent pb-2 text-base font-light outline-none transition focus:border-white"
+                  />
                 </div>
                 <div>
                   <label className="text-xs uppercase tracking-[0.4em] text-white/40">{t("wishesLabel")}</label>
