@@ -9,7 +9,7 @@ import { OrganizationSchema, WebSiteSchema, LocalBusinessSchema } from "@/compon
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import MicrosoftClarity from "@/components/analytics/MicrosoftClarity";
 import MetaPixel from "@/components/analytics/MetaPixel";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 // Root layout should be lean; navigation is rendered inside locale layout to access translations
 
 const defaultSiteUrl = "https://onecompany.global";
