@@ -198,6 +198,7 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
       email: formData.email,
       phone: formData.phone,
       contactMethod: formData.contactMethod,
+      telegramUsername: formData.telegramUsername,
       preferredChannel: selectedChannel?.id,
     };
 
