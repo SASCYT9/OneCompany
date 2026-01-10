@@ -557,7 +557,7 @@ export default function AutomotivePage() {
                     <div className="flex items-end justify-between">
                       <div>
                         <p className="text-lg sm:text-xl font-light text-white tracking-tight">ABT Sportsline</p>
-                        <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Audi та VW тюнінг' : 'Audi & VW tuning'}</p>
+                        <p className="text-xs sm:text-sm text-white/60 mt-1">VAG</p>
                       </div>
                     </div>
                   </div>
@@ -660,7 +660,6 @@ export default function AutomotivePage() {
           <div className="relative mb-8 overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm sm:mb-10 sm:p-12 md:mb-12 md:p-16">
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-50" />
             <div className="relative z-10">
-              <p className="text-[10px] uppercase tracking-[0.4em] text-white/70 sm:text-[11px] sm:tracking-[0.5em] md:text-[12px] md:tracking-[0.6em] font-medium">{t('productCategories')}</p>
               <h2 className={`mt-3 font-light text-white text-balance sm:mt-4 ${typography.sectionHeading}`}>
                 {locale === 'ua' ? 'Категорії Брендів' : 'Brand Categories'}
               </h2>
