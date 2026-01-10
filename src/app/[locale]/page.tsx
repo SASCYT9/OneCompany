@@ -88,7 +88,7 @@ export default async function LocalizedHomePage({
       title: locale === 'ua' ? '18 років досвіду' : '18 years experience',
       description: locale === 'ua'
         ? 'Формуємо культуру преміум тюнінгу та забезпечує безкомпромісну підтримку.'
-        : 'We shape the culture of premium tuning and provide uncompromising support.',
+        : 'We create the culture of premium tuning and provide uncompromising support.',
       meta: locale === 'ua' ? 'Офіційні програми з 2007 року' : 'Official programs since 2007',
     },
     {
@@ -96,7 +96,7 @@ export default async function LocalizedHomePage({
       title: locale === 'ua' ? 'Автентичність' : 'Authenticity',
       description: locale === 'ua'
         ? 'Тільки оригінальна продукція з повною документацією та гарантією від виробника.'
-        : 'Only original products with full documentation and manufacturer warranty.',
+        : 'Only genuine products with full documentation and manufacturer warranty.',
       meta: locale === 'ua' ? 'Без посередників' : 'No intermediaries',
     },
   ];
