@@ -17,7 +17,6 @@ import {
 
 type StickyScrollItem = {
   id: string;
-  eyebrow: string;
   title: string;
   description: string;
   meta: string;
@@ -132,7 +131,6 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
                   </div>
                 </div>
 
-                <span className="text-xs lg:text-[9px] font-mono text-white/50 mb-3 sm:mb-6 block uppercase tracking-[0.2em] relative z-10">{item.eyebrow}</span>
                 <h3 className="text-xl sm:text-4xl md:text-5xl lg:text-[45px] font-semibold text-white mb-4 sm:mb-8 leading-tight relative z-10 tracking-tight text-balance">
                   {item.title}
                 </h3>

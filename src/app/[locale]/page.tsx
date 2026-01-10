@@ -61,16 +61,14 @@ export default async function LocalizedHomePage({
   const carouselItems = [
     {
       id: 'brands',
-      eyebrow: locale === 'ua' ? 'Світові бренди' : 'Global brands',
       title: locale === 'ua' ? '200+ брендів' : '200+ brands',
       description: locale === 'ua'
         ? 'Ми працюємо виключно з провідними світовими виробниками авто та мото тюнінгу.'
-        : 'We work exclusively with leading global manufacturers of auto and moto tuning.',
+        : 'We work exclusively with leading manufacturers of auto and moto tuning.',
       meta: locale === 'ua' ? 'Гарантія якості та автентичності' : 'Quality and authenticity guarantee',
     },
     {
       id: 'sourcing',
-      eyebrow: locale === 'ua' ? 'Експертне постачання' : 'Expert sourcing',
       title: locale === 'ua' ? 'Індивідуальний підбір' : 'Bespoke selection',
       description: locale === 'ua'
         ? 'Аналізуємо проєкт, перевіряємо сумісність та надаємо рекомендації.'
@@ -79,7 +77,6 @@ export default async function LocalizedHomePage({
     },
     {
       id: 'logistics',
-      eyebrow: locale === 'ua' ? 'Логістика' : 'Logistics',
       title: locale === 'ua' ? 'Глобальна доставка' : 'Global delivery',
       description: locale === 'ua'
         ? 'Доставляємо клієнтам по всьому світу. Оптимальні та гнучкі умови.'
@@ -88,7 +85,6 @@ export default async function LocalizedHomePage({
     },
     {
       id: 'experience',
-      eyebrow: locale === 'ua' ? 'Наш досвід' : 'Our experience',
       title: locale === 'ua' ? '18 років досвіду' : '18 years experience',
       description: locale === 'ua'
         ? 'Формуємо культуру преміум тюнінгу та забезпечує безкомпромісну підтримку.'
@@ -97,7 +93,6 @@ export default async function LocalizedHomePage({
     },
     {
       id: 'authenticity',
-      eyebrow: locale === 'ua' ? 'Гарантія' : 'Warranty',
       title: locale === 'ua' ? 'Автентичність' : 'Authenticity',
       description: locale === 'ua'
         ? 'Тільки оригінальна продукція з повною документацією та гарантією від виробника.'

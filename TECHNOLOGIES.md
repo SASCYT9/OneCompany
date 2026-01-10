@@ -580,7 +580,7 @@ headers: [
 - Вбудована оптимізація зображень
 - API Routes без окремого backend
 - Vercel = zero-config deploy
-
+We work exclusively with leading manufacturers of auto and moto tuning.
 ### Чому Tailwind?
 - Швидка розробка
 - Маленький CSS bundle (purge)
