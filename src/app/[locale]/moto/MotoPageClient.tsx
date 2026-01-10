@@ -424,7 +424,7 @@ export default function MotoPage() {
                 transition={{ delay: 0.2, duration: 0.8 }}
                 className="mt-4 text-lg sm:text-xl text-zinc-500 max-w-xl mx-auto"
               >
-                {locale === 'ua' ? 'Бренди, що формують індустрію мото' : 'Brands that shape the moto industry'}
+                {locale === 'ua' ? 'Бренди, що формують індустрію мото' : 'Brands that define the moto industry'}
               </motion.p>
             </div>
 
@@ -751,7 +751,7 @@ export default function MotoPage() {
             <div className="relative z-10">
               <p className="text-[10px] uppercase tracking-[0.4em] text-white/70 sm:text-[11px] sm:tracking-[0.5em] md:text-[12px] md:tracking-[0.6em] font-medium">{t('productCategories')}</p>
               <h2 className={`mt-3 font-light text-white text-balance sm:mt-4 ${typography.sectionHeading}`}>
-                {locale === 'ua' ? 'Мото ' : 'Engineering Modules'}
+                {locale === 'ua' ? 'Категорії Брендів' : 'Brand Categories'}
               </h2>
               <button
                 onClick={() => setIsModulesOpen(!isModulesOpen)}

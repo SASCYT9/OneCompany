@@ -277,7 +277,7 @@ export default function AutomotivePage() {
                 transition={{ delay: 0.2, duration: 0.8 }}
                 className="mt-4 text-lg sm:text-xl text-zinc-500 max-w-xl mx-auto"
               >
-                {locale === 'ua' ? 'Бренди, що формують індустрію' : 'Brands that shape the industry'}
+                {locale === 'ua' ? 'Бренди, що формують індустрію' : 'Brands that define the industry'}
               </motion.p>
             </div>
 
@@ -662,7 +662,7 @@ export default function AutomotivePage() {
             <div className="relative z-10">
               <p className="text-[10px] uppercase tracking-[0.4em] text-white/70 sm:text-[11px] sm:tracking-[0.5em] md:text-[12px] md:tracking-[0.6em] font-medium">{t('productCategories')}</p>
               <h2 className={`mt-3 font-light text-white text-balance sm:mt-4 ${typography.sectionHeading}`}>
-                {locale === 'ua' ? 'Модулі, які складають авто' : 'Modules we compose cars from'}
+                {locale === 'ua' ? 'Категорії Брендів' : 'Brand Categories'}
               </h2>
               <button
                 onClick={() => setIsModulesOpen(!isModulesOpen)}
@@ -725,7 +725,7 @@ export default function AutomotivePage() {
 
                         {/* Brand tags with relief */}
                         <div className="mt-5 min-h-[80px] grid grid-cols-2 gap-2 text-[10px] uppercase tracking-wider content-start sm:text-[11px]">
-                          {cat.brands.map((name) => (
+                          {cat.brands.slice(0, 8).map((name) => (
                             <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10">
                               {name}
                             </span>
@@ -740,7 +740,7 @@ export default function AutomotivePage() {
                               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                             </svg>
                           </div>
-                          <span className="text-xs text-white/40 group-hover:text-white/60 transition-colors">{cat.brands.length} брендів</span>
+                          {/* Brand count removed as per request */}
                         </div>
                       </div>
                     </Link>

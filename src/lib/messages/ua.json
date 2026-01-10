@@ -11,6 +11,10 @@
     "toggleHeroVideoEnable": "Увімкнути відео",
     "toggleHeroVideoDisable": "Вимкнути відео"
   },
+  "brands": {
+    "officialSite": "Офіційний сайт",
+    "order": "Замовити"
+  },
   "footer": {
     "b2bWholesale": "B2B дистриб'ютор",
     "brandsFor": "200+ брендів для СТО, детейлінг-студій та тюнінг-ательє",

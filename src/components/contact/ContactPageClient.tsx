@@ -242,16 +242,15 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
   const modelPlaceholder = type === "auto" ? t("modelAutoPlaceholder") : t("modelMotoPlaceholder");
   const heroTitleClass = clsx(
     "mt-6 font-extralight tracking-tight text-white leading-[1.05]",
-    isUA ? "text-4xl md:text-6xl lg:text-7xl" : "text-5xl md:text-7xl lg:text-8xl"
+    "text-5xl md:text-7xl lg:text-8xl"
   );
   const sectionTitleClass = clsx(
     "font-light text-white leading-tight",
-    isUA ? "text-[2rem] md:text-[2.75rem]" : "text-[2.5rem] md:text-[3rem]",
-    isUA && "tracking-[0.08em]"
+    "text-[2.5rem] md:text-[3rem]"
   );
   const leadParagraphClass = clsx(
     "text-white/70",
-    isUA ? "text-base md:text-lg" : "text-lg md:text-xl"
+    "text-lg md:text-xl"
   );
 
   return (
@@ -284,7 +283,7 @@ export default function ContactPageClient({ locale, pageUrl, heroPoster, contact
             <div>
               <p className="uppercase text-[11px] tracking-[0.45em] text-white/40">{contactContent.heroBadge}</p>
               <h2 className={clsx("mt-4", sectionTitleClass)}>{t("infoTitle")}</h2>
-              <p className={clsx("mt-6 leading-relaxed text-white/70", isUA ? "text-sm" : "text-base")}>{contactContent.infoBody}</p>
+              <p className={clsx("mt-6 leading-relaxed text-white/70", "text-base")}>{contactContent.infoBody}</p>
             </div>
 
             <div className="space-y-4">

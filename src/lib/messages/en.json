@@ -11,6 +11,10 @@
     "toggleHeroVideoEnable": "Enable Video",
     "toggleHeroVideoDisable": "Disable Video"
   },
+  "brands": {
+    "officialSite": "Official Site",
+    "order": "Order"
+  },
   "footer": {
     "b2bWholesale": "B2B Wholesale Distributor",
     "brandsFor": "200+ brands for service stations, detailing & tuning shops",

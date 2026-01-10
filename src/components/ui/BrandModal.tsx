@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { X, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from '@/navigation';
@@ -15,6 +16,7 @@ interface BrandModalProps {
 }
 
 export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
+  const t = useTranslations('brands');
   // Close on escape key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -132,12 +134,12 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                     rel="noopener noreferrer"
                     className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/20 rounded-xl text-white text-sm font-medium transition-all uppercase tracking-wider group backdrop-blur-sm"
                   >
-                    <span>Офіційний сайт</span>
+                    <span>{t('officialSite')}</span>
                     <ArrowUpRight size={16} className="text-white/40 group-hover:text-white transition-colors" />
                   </a>
                 ) : (
                   <button disabled className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-white/5 bg-white/[0.02] rounded-xl text-white/20 text-sm font-medium cursor-not-allowed uppercase tracking-wider">
-                    <span>Офіційний сайт</span>
+                    <span>{t('officialSite')}</span>
                   </button>
                 )}
 
@@ -145,7 +147,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                   href={`/contact?inquiry=${encodeURIComponent(brand.name)}`}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-white hover:bg-[#f0f0f0] rounded-xl text-black text-sm font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] uppercase tracking-wider group"
                 >
-                  <span>Замовити</span>
+                  <span>{t('order')}</span>
                   <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
