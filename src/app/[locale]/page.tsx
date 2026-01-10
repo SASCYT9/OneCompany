@@ -140,8 +140,8 @@ export default async function LocalizedHomePage({
           {/* SEO H1 - visually hidden but accessible */}
           <h1 className="sr-only">
             {locale === 'ua' 
-              ? 'OneCompany — Преміум Тюнінг Авто та Мото. Офіційний дистриб\'ютор Akrapovic, Brabus, Mansory, HRE, KW, Ohlins в Україні.'
-              : 'OneCompany — Premium Auto & Moto Tuning. Official distributor of Akrapovic, Brabus, Mansory, HRE, KW, Ohlins.'}
+              ? 'One Company — Преміум Тюнінг Авто та Мото. Офіційний дистриб\'ютор Akrapovic, Brabus, Mansory, HRE, KW, Ohlins в Україні.'
+              : 'One Company — Premium Auto & Moto Tuning. Official distributor of Akrapovic, Brabus, Mansory, HRE, KW, Ohlins.'}
           </h1>
 
           <div className="relative isolate flex flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:gap-4 sm:px-6 sm:pb-6 sm:pt-6 md:flex-row md:gap-4 md:px-8 max-w-[1400px] mx-auto w-full">

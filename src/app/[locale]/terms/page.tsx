@@ -30,8 +30,8 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
           <section>
             <p className="text-lg leading-relaxed">
               {l === "ua"
-                ? "Ласкаво просимо до OneCompany. Ці Умови надання послуг («Умови») регулюють використання вами нашого веб-сайту та послуг B2B дистрибуції. Отримуючи доступ до нашого Сайту або використовуючи його, ви погоджуєтесь дотримуватися цих Умов."
-                : "Welcome to OneCompany. These Terms of Service (\"Terms\") govern your use of our website and B2B distribution services. By accessing or using our Site, you agree to be bound by these Terms."}
+                ? "Ласкаво просимо до One Company. Ці Умови надання послуг («Умови») регулюють використання вами нашого веб-сайту та послуг B2B дистрибуції. Отримуючи доступ до нашого Сайту або використовуючи його, ви погоджуєтесь дотримуватися цих Умов."
+                : "Welcome to One Company. These Terms of Service (\"Terms\") govern your use of our website and B2B distribution services. By accessing or using our Site, you agree to be bound by these Terms."}
             </p>
           </section>
 
@@ -41,8 +41,8 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
             </h2>
             <p>
               {l === "ua"
-                ? "OneCompany є B2B дистриб'ютором та імпортером автомобільних та мотоциклетних запчастин преміум-класу. Ми надаємо послуги постачання, логістики та технічної підтримки для СТО, тюнінг-ательє та магазинів."
-                : "OneCompany is a B2B distributor and importer of premium automotive and motorcycle performance parts. We provide sourcing, logistics, and technical support services for workshops, tuning studios, and retailers."}
+                ? "One Company є B2B дистриб'ютором та імпортером автомобільних та мотоциклетних запчастин преміум-класу. Ми надаємо послуги постачання, логістики та технічної підтримки для СТО, тюнінг-ательє та магазинів."
+                : "One Company is a B2B distributor and importer of premium automotive and motorcycle performance parts. We provide sourcing, logistics, and technical support services for workshops, tuning studios, and retailers."}
             </p>
           </section>
 
@@ -91,8 +91,8 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
             </h2>
             <p>
               {l === "ua"
-                ? "Весь контент на цьому Сайті, включаючи текст, графіку, логотипи та зображення, є власністю OneCompany або наших партнерів-брендів і захищений законами про авторське право."
-                : "All content on this Site, including text, graphics, logos, and images, is the property of OneCompany or our brand partners and is protected by copyright laws."}
+                ? "Весь контент на цьому Сайті, включаючи текст, графіку, логотипи та зображення, є власністю One Company або наших партнерів-брендів і захищений законами про авторське право."
+                : "All content on this Site, including text, graphics, logos, and images, is the property of One Company or our brand partners and is protected by copyright laws."}
             </p>
           </section>
 
@@ -102,8 +102,8 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
             </h2>
             <p>
               {l === "ua"
-                ? "OneCompany не несе відповідальності за будь-які непрямі, випадкові або побічні збитки, що виникають у зв'язку з використанням наших послуг або товарів, включаючи втрату прибутку або даних."
-                : "OneCompany shall not be liable for any indirect, incidental, or consequential damages arising out of or in connection with the use of our services or products, including loss of profits or data."}
+                ? "One Company не несе відповідальності за будь-які непрямі, випадкові або побічні збитки, що виникають у зв'язку з використанням наших послуг або товарів, включаючи втрату прибутку або даних."
+                : "One Company shall not be liable for any indirect, incidental, or consequential damages arising out of or in connection with the use of our services or products, including loss of profits or data."}
             </p>
           </section>
 
@@ -123,7 +123,7 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
               {l === "ua" ? "8. Контакти" : "8. Contact Us"}
             </h2>
             <div className="mt-4 not-prose border-l-2 border-white/20 pl-4">
-              <p className="text-white font-medium">OneCompany</p>
+              <p className="text-white font-medium">One Company</p>
               <p>{l === "ua" ? "вул. Басейна, 21Б" : "21B Baseina St"}</p>
               <p>{l === "ua" ? "Київ, 01004, Україна" : "Kyiv, 01004, Ukraine"}</p>
               <p className="mt-2">Email: info@onecompany.global</p>
