@@ -80,6 +80,30 @@ export const CATEGORY_META: CategoryMeta[] = [
       ua: 'Інтеркулери, пайпінг, охолодження та апгрейди, що підвищують ефективність двигуна. Компоненти з запасом міцності для серйозних проектів.',
       en: 'Intercoolers, piping, cooling and upgrades that raise engine efficiency. Headroom-built components for serious builds.'
     }
+  },
+  {
+    slug: 'drivetrain',
+    title: { ua: 'Трансмісія', en: 'Drivetrain' },
+    intro: {
+      ua: 'Спортивні коробки передач, зчеплення, карданні вали та диференціали. Надійна передача потужності на колеса.',
+      en: 'Performance gearboxes, clutches, driveshafts and differentials. Reliable power delivery to the wheels.'
+    }
+  },
+  {
+    slug: 'electronics',
+    title: { ua: 'Тюнінг та електроніка', en: 'Tuning & Electronics' },
+    intro: {
+      ua: 'Комплексний тюнінг, перепрошивка ECU та електронні апгрейди. Інтеграція софту та заліза для максимальної продуктивності.',
+      en: 'Comprehensive tuning, ECU remapping and electronic upgrades. Software and hardware integration for maximum performance.'
+    }
+  },
+  {
+    slug: 'oem',
+    title: { ua: 'OEM Частини', en: 'OEM Parts' },
+    intro: {
+      ua: 'Оригінальні запчастини для автомобілів люкс-класу. Автентична якість та сумісність від виробника.',
+      en: 'Genuine original equipment manufacturer parts for luxury vehicles. Authentic quality and fitment from the manufacturer.'
+    }
   }
 ];
 
