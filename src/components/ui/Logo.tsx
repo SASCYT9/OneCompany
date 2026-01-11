@@ -12,7 +12,8 @@ type LogoProps = {
   size?: LogoSize;
 };
 
-const LOGO_SOURCE = '/branding/one-company-logo.svg';
+const LOGO_DARK = '/branding/logo-dark.svg';
+const LOGO_LIGHT = '/branding/logo-light.svg';
 const LOGO_DIMENSIONS: Record<LogoSize, { width: number; height: number }> = {
   default: { width: 212, height: 78 },
   compact: { width: 168, height: 62 },
@@ -26,16 +27,17 @@ export function Logo({
   size = 'default',
 }: LogoProps) {
   const { width, height } = LOGO_DIMENSIONS[size];
+  const logoSrc = tone === 'light' ? LOGO_LIGHT : LOGO_DARK;
+
   const image = (
     <span className={clsx('inline-flex items-center', className)}>
       <Image
-        src={LOGO_SOURCE}
+        src={logoSrc}
         alt="OneCompany - преміум тюнінг авто мото Київ Україна, офіційний дилер Akrapovic Brabus Mansory"
         width={width}
         height={height}
         priority={priority}
         className="h-auto w-full"
-        style={tone === 'light' ? { filter: 'brightness(0) invert(1)' } : undefined}
       />
     </span>
   );
