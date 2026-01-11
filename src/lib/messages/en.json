@@ -98,7 +98,7 @@
     "conciergeMessage": "Share your contact and we will return with lead times, install slots and warranty coverage.",
     "expertSupport": "Expert Support",
     "expertMessage": "Share your contact and we will return with lead times, install slots and warranty coverage.",
-    "requestProgram": "Request program",
+    "requestProgram": "Get in touch",
     "more": "more",
     "open": "Open",
     "iconsThatDictate": "Icons that dictate the sound"
@@ -178,7 +178,7 @@
       "wishes": "Your wishes",
       "budget": "Budget (optional)",
       "email": "Email",
-      "submit": "Send Inquiry"
+      "submit": "Get in touch"
     }
   },
   "moto": {
@@ -241,7 +241,7 @@
       "wishes": "Your wishes",
       "budget": "Budget (optional)",
       "email": "Email",
-      "submit": "Send Inquiry"
+      "submit": "Get in touch"
     }
   },
 
@@ -304,14 +304,14 @@
     "readyToUpgrade": "Ready to",
     "upgrade": "Upgrade",
     "upgradeDesc": "Contact our specialists for personalized recommendations and expert advice on premium performance parts",
-    "getInTouch": "Get In Touch"
+    "getInTouch": "Get in touch"
   },
   "aboutPage": {
     "hero": {
       "eyebrow": "Importer since 2007",
       "title": "We create flagship projects.",
       "subtitle": "ONE COMPANY brings together 200+ premium brands and uses its experience to provide the best solution.",
-      "primaryCta": "Speak with a specialist",
+      "primaryCta": "Get in touch",
       "secondaryCta": "Browse categories"
     },
     "stats": {
@@ -404,7 +404,7 @@
     "cta": {
       "title": "Bring your next build to life",
       "subtitle": "Send us your chassis, wishlist, and timeline—we will curate the program and coordinate importer logistics.",
-      "primaryCta": "Request importer support",
+      "primaryCta": "Get in touch",
       "secondaryCta": "View brands"
     }
   },
@@ -456,7 +456,7 @@
         "telegram": "Telegram",
         "whatsapp": "WhatsApp",
         "progressLabel": "Progress",
-        "submit": "Send inquiry",
+        "submit": "Get in touch",
         "submitting": "Sending...",
         "success": "Thank you! Your request has been sent.",
         "error": "Something went wrong. Please try again.",
@@ -474,7 +474,7 @@
     "budget": "Estimated budget",
     "email": "Email",
     "fieldRequired": "This field is required",
-    "submit": "Send",
+    "submit": "Get in touch",
     "submitting": "Sending..."
   },
   "partnershipPage": {
