@@ -255,9 +255,9 @@ export const categoryData: CategoryData[] = [
       'Brembo',
       'Airlift Performance',
       'BC Racing',
-      'Stoptech',
+      'STOPFLEX',
       'Girodisc',
-      'MCA Suspension',
+      'Alcon',
       'Nitron Suspension',
       // Rest alphabetically
       'Hardrace',
@@ -265,7 +265,8 @@ export const categoryData: CategoryData[] = [
       'RS-R',
       'SPL Parts',
       'STOPART ceramic',
-      'STOPFLEX',
+      'Stoptech',
+      'MCA Suspension',
     ],
   },
   {

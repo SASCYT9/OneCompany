@@ -54,6 +54,9 @@ const BRAND_DISPLAY_NAMES: Record<string, string> = {
   'FI Exhaust': 'FI EXHAUST',
   'Urban Automotive': 'URBAN',
   'Velos Wheels': 'VELOS',
+  'Airlift Performance': 'AIRLIFT',
+  'Nitron Suspension': 'NITRON',
+  'Alcon': 'ALCON',
 };
 
 const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto');
