@@ -47,6 +47,8 @@ const BRAND_DISPLAY_NAMES: Record<string, string> = {
   'Burger Motorsport': 'BURGER',
   'DTE Systems': 'DTE',
   'BootMod3': 'BM3',
+  'Drenth Gearboxes': 'DRENTH',
+  'Modena Engineering': 'MODENA',
 };
 
 const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto');
