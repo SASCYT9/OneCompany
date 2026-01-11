@@ -4,7 +4,7 @@ export const defaultSiteContent: SiteContent = {
   hero: {
     badge: 'onecompany · B2B wholesale importer',
     title: 'Premium performance importer',
-    subtitle: 'B2B wholesale for service stations, detailing studios & tuning shops. Expert programs for VIP clients.',
+    subtitle: 'B2B wholesale for workshops, detailing studios & tuning shops. Expert programs for VIP clients.',
     ctaAutoLabel: 'Automotive',
     ctaMotoLabel: 'Motorcycles',
     scrollLabel: 'Scroll',

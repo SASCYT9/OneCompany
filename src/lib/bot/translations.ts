@@ -99,7 +99,7 @@ We are a leading supplier of premium automotive and motorcycle parts.
 
 🏎️ <b>Auto:</b> Intake systems, exhausts, cooling
 🏍️ <b>Moto:</b> Helmets, protection, accessories
-🤝 <b>Partnership:</b> Service stations, dealers, tuning
+🤝 <b>Partnership:</b> Workshops, dealers, tuning
 
 Choose an action from the menu below:`,
     selectLanguage: '🌐 Select language:',

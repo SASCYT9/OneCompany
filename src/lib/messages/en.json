@@ -17,7 +17,7 @@
   },
   "footer": {
     "b2bWholesale": "B2B Wholesale Distributor",
-    "brandsFor": "200+ brands for service stations, detailing & tuning shops",
+    "brandsFor": "200+ brands for workshops, detailing & tuning shops",
     "conciergeB2C": "+ expert support for private clients (B2C)",
     "servicesSince": "services worldwide since 2007",
     "premiumParts": "200+ brands of premium tuning parts",
@@ -48,12 +48,12 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Use",
     "cookies": "Cookies Policy",
-    "description": "Leading tuning importer since 2007. We work with service stations, tuning studios, detailing studios, and shops in many countries worldwide."
+    "description": "Leading tuning importer since 2007. We work with workshops, tuning studios, detailing studios, and shops in many countries worldwide."
   },
   "home": {
     "badge": "premium tuning parts · 200+ brands · one\u00A0company",
     "globalPresence": "B2B distributor since 2007",
-    "brandPromise": "200+ brands · Service stations, detailing, tuning shops",
+    "brandPromise": "200+ brands · Workshops, detailing, tuning shops",
     "atelierAddress": "21B BASEINA ST · KYIV IMPORTER",
     "conciergeService": "ONE COMPANY B2B SUPPORT",
     "automotive": "AUTO",
@@ -86,7 +86,7 @@
     "partnerTypes": "Auto/moto dealers · Workshops · Detailing studios · Tuning shops",
     "arrangeConsult": "Get in touch",
     "wholesaleTitle": "Wholesale supplies",
-    "wholesaleDescription": "Maximum discounts and best conditions for partners: service stations, detailing studios and tuning shops.",
+    "wholesaleDescription": "Maximum discounts and best conditions for partners: workshops, detailing studios and tuning shops.",
     "logisticsTitle": "Global Delivery",
     "logisticsDescription": "Worldwide delivery. Optimal and flexible conditions."
   },

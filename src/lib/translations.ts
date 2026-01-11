@@ -280,7 +280,7 @@ export const translations = {
     // Footer
     footer: {
       b2bWholesale: "B2B Wholesale Importer",
-      brandsFor: "200+ brands for service stations, detailing & tuning shops",
+      brandsFor: "200+ brands for workshops, detailing & tuning shops",
       conciergeB2C: "+ expert support for retail clients (B2C)",
       servicesSince: "services worldwide since 2007",
       premiumParts: "200+ brands of premium tuning parts",
@@ -307,7 +307,7 @@ export const translations = {
       privacy: "Privacy Policy",
       terms: "Terms of Use",
       cookies: "Cookies Policy",
-      description: "B2B wholesale importer since 2007. Serving service stations, detailing studios, and tuning shops across 30+ countries with volume pricing, technical support, and white-label logistics."
+      description: "B2B wholesale importer since 2007. Serving workshops, detailing studios, and tuning shops across 30+ countries with volume pricing, technical support, and white-label logistics."
     },
   },
 };
