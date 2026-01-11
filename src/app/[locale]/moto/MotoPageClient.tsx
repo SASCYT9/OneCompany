@@ -812,7 +812,7 @@ export default function MotoPage() {
                 transition={{ duration: 0.4, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr pb-4">
+                <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3 auto-rows-fr pb-4 pt-2">
                   {categoryData.filter(cat => cat.segment === 'moto').map((cat) => (
                     <Link
                       key={cat.slug}

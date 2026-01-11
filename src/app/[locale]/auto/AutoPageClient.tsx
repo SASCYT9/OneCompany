@@ -911,7 +911,7 @@ export default function AutomotivePage() {
                 transition={{ duration: 0.4, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:mt-12 xl:grid-cols-4 pb-4">
+                <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:mt-12 xl:grid-cols-4 pb-4 pt-2">
                   {filteredBrands.length > 0 ? (
                     filteredBrands.map((brand) => {
                       const origin = getBrandOrigin(brand);
