@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
-import { X, ChevronRight, ArrowUpRight } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
+import { X, ChevronRight, ArrowUpRight, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from '@/navigation';
 import { BrandItem } from '../sections/BrandLogosGrid';
@@ -17,6 +17,8 @@ interface BrandModalProps {
 
 export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
   const t = useTranslations('brands');
+  const locale = useLocale();
+
   // Close on escape key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -134,8 +136,15 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                     rel="noopener noreferrer"
                     className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/20 rounded-xl text-white text-sm font-medium transition-all uppercase tracking-wider group backdrop-blur-sm"
                   >
-                    <span>{t('officialSite')}</span>
-                    <ArrowUpRight size={16} className="text-white/40 group-hover:text-white transition-colors" />
+                    <span>
+                      {['Eventuri', 'KW Suspension', 'FI Exhaust', 'Urban Automotive'].includes(brand.name)
+                        ? (locale === 'ua' ? 'Наш магазин' : 'Our Shop')
+                        : t('officialSite')}
+                    </span>
+                    {['Eventuri', 'KW Suspension', 'FI Exhaust', 'Urban Automotive'].includes(brand.name)
+                      ? <ShoppingBag size={16} className="text-white/40 group-hover:text-white transition-colors" />
+                      : <ArrowUpRight size={16} className="text-white/40 group-hover:text-white transition-colors" />
+                    }
                   </a>
                 ) : (
                   <button disabled className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-white/5 bg-white/[0.02] rounded-xl text-white/20 text-sm font-medium cursor-not-allowed uppercase tracking-wider">
