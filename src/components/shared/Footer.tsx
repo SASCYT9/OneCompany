@@ -106,7 +106,7 @@ const Footer = () => {
 
           {/* Links Columns */}
           <div className="lg:col-span-2 lg:col-start-6 space-y-6">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{t('company')}</h3>
+            <h3 className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-white/70`}>{t('company')}</h3>
             <ul className="space-y-4">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
@@ -119,7 +119,7 @@ const Footer = () => {
           </div>
 
           <div className="lg:col-span-2 space-y-6">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{t('disciplines')}</h3>
+            <h3 className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-white/70`}>{t('disciplines')}</h3>
             <ul className="space-y-4">
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
@@ -132,7 +132,7 @@ const Footer = () => {
           </div>
 
           <div className="lg:col-span-3 space-y-6">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{t('headquarters')}</h3>
+            <h3 className={`${typography.footerHead} font-semibold uppercase tracking-[0.2em] text-white/70`}>{t('headquarters')}</h3>
             <div className={`space-y-4 text-white/70 ${typography.body}`}>
               <p className="leading-relaxed">
                 {t('addressLine1')}<br />

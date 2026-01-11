@@ -35,6 +35,9 @@ export interface TypographyConfig {
     // Buttons
     buttonText: string;
     buttonTextSmall: string;
+
+    // Footer
+    footerHead: string;
 }
 
 /**
@@ -73,6 +76,9 @@ export const getTypography = (locale: Locale): TypographyConfig => {
         // Buttons
         buttonText: 'text-sm min-[410px]:text-base sm:text-base',
         buttonTextSmall: 'text-[10px] min-[410px]:text-xs sm:text-xs',
+        
+        // Footer
+        footerHead: 'text-[10px]',
     };
 
     if (locale === 'ua') {
@@ -80,6 +86,10 @@ export const getTypography = (locale: Locale): TypographyConfig => {
             ...baseConfig,
             // Adjust label size for UA to match optical size of EN
             label: 'text-xs min-[410px]:text-sm sm:text-[15px]',
+            // Bump body size for UA visually
+            body: 'text-sm min-[410px]:text-[17px] sm:text-[17px]',
+            // Bump footer headers for UA
+            footerHead: 'text-[11px]',
         };
     }
 
