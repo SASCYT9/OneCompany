@@ -33,7 +33,7 @@ export const categoryData: CategoryData[] = [
       'ADV.1 wheels',
       'AL13 wheels',
       'ANRKY wheels',
-      'Avantgarde Wheels',
+      'Velos Wheels',
       'Brixton wheels',
       'MV Forged',
       // Rest alphabetically
@@ -44,7 +44,7 @@ export const categoryData: CategoryData[] = [
       'Raliw Forged',
       'Strasse wheels',
       'TireRack',
-      'Velos Wheels',
+      'Avantgarde Wheels',
       'Vorsteiner',
       'WheelForce',
     ],

@@ -53,6 +53,7 @@ const BRAND_DISPLAY_NAMES: Record<string, string> = {
   'Kline Innovation': 'KLINE',
   'FI Exhaust': 'FI EXHAUST',
   'Urban Automotive': 'URBAN',
+  'Velos Wheels': 'VELOS',
 };
 
 const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto');
