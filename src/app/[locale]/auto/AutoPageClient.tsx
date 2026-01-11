@@ -43,6 +43,10 @@ const BRAND_DISPLAY_NAMES: Record<string, string> = {
   'Mickey Thompson': 'M/T TIRES',
   'Samsonas Motorsport': 'SAMSONAS',
   'Xshift': 'XSHIFT',
+  'Weistec Engineering': 'WEISTEC',
+  'Burger Motorsport': 'BURGER',
+  'DTE Systems': 'DTE',
+  'BootMod3': 'BM3',
 };
 
 const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto');

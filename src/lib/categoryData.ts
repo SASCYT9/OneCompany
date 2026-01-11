@@ -304,7 +304,7 @@ export const categoryData: CategoryData[] = [
   {
     slug: 'electronics',
     segment: 'auto',
-    title: { en: 'Tuning & Electronics', ua: 'Тюнінг та Електроніка' },
+    title: { en: 'Chip Tuning & Power', ua: 'Чіп тюнінг та Підвищення потужності' },
     description: {
       en: 'ECU tuning, chip tuning, and comprehensive performance tuning specialists.',
       ua: 'ECU тюнінг, чіп-тюнінг та комплексні спеціалісти з продуктивності.',
@@ -317,10 +317,14 @@ export const categoryData: CategoryData[] = [
       // TOP 8 first
       'Brabus',
       'ABT',
-      'AC Schnitzer',
+      'DTE Systems',
       'Renntech',
       'Weistec Engineering',
       'Cobb tuning',
+      'Burger Motorsport',
+      'BootMod3',
+      // Rest alphabetically
+      'AC Schnitzer',
       'Manhart',
       'Dinan',
       // Rest alphabetically
