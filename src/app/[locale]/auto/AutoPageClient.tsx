@@ -37,9 +37,13 @@ const TOP_AUTOMOTIVE_BRANDS = [
   'ABT',
 ];
 
-
-
-
+const BRAND_DISPLAY_NAMES: Record<string, string> = {
+  'Verus Engineering': 'VERUS',
+  'Bell Intercoolers': 'BELL',
+  'Mickey Thompson': 'M/T TIRES',
+  'Samsonas Motorsport': 'SAMSONAS',
+  'Xshift': 'XSHIFT',
+};
 
 const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto');
 
@@ -732,7 +736,7 @@ export default function AutomotivePage() {
                               <>
                                 {displayBrands.map((name) => (
                                   <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10 truncate">
-                                    {name}
+                                    {BRAND_DISPLAY_NAMES[name] || name}
                                   </span>
                                 ))}
                                 {cat.brands.length > 8 && (
@@ -768,7 +772,7 @@ export default function AutomotivePage() {
 
         <section id="brand-catalog" className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
           <div className="mb-8 text-center sm:mb-10 md:mb-12">
-            <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Atlas'}</p>
+            <p className="text-[9px] uppercase tracking-[0.4em] text-white/50 sm:text-[10px] sm:tracking-[0.5em] md:text-[11px] md:tracking-[0.6em]">{locale === 'ua' ? 'Каталог' : 'Catalog'}</p>
             <h2 className={`mt-2 font-light text-white text-balance sm:mt-3 ${typography.sectionHeading}`}>{t('allBrands')}</h2>
           </div>
 

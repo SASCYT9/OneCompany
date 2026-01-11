@@ -1,0 +1,27 @@
+{
+  "name": "onecompany",
+  "short_name": "onecompany",
+  "description": "Premium auto & moto tuning importer Ukraine. Official B2B programs since 2007.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/branding/one-company-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["business", "shopping", "automotive"],
+  "lang": "uk",
+  "dir": "ltr",
+  "prefer_related_applications": false
+}
