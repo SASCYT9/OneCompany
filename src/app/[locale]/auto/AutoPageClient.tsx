@@ -49,6 +49,9 @@ const BRAND_DISPLAY_NAMES: Record<string, string> = {
   'BootMod3': 'BM3',
   'Drenth Gearboxes': 'DRENTH',
   'Modena Engineering': 'MODENA',
+  'iPE exhaust': 'IPE',
+  'Kline Innovation': 'KLINE',
+  'FI Exhaust': 'FI EXHAUST',
 };
 
 const automotiveCategories = categoryData.filter((cat) => cat.segment === 'auto');
