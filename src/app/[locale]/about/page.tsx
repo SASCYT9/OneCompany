@@ -81,7 +81,7 @@ const AboutPage: React.FC = () => {
       <div className="pointer-events-none absolute inset-y-0 right-[-200px] w-[480px] bg-[radial-gradient(circle,_rgba(255,255,255,0.05)_0%,_transparent_70%)] blur-3xl" />
 
       {/* Hero */}
-      <section className="relative flex min-h-[60vh] md:min-h-[90vh] flex-col justify-center px-6 pt-24 pb-12 md:py-24 md:px-10">
+      <section className="relative flex min-h-[50vh] md:min-h-[65vh] flex-col justify-center px-6 pt-24 pb-12 md:pt-32 md:pb-16 md:px-10">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 to-transparent" />
         <div className="relative z-10 mx-auto w-full max-w-6xl">
           <motion.p
@@ -112,7 +112,7 @@ const AboutPage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.35 }}
-            className="mt-12 flex flex-wrap gap-4"
+            className="mt-8 flex flex-wrap gap-4"
           >
             <Link
               href={`/${locale}/contact`}
@@ -125,7 +125,7 @@ const AboutPage: React.FC = () => {
       </section>
 
       {/* Stats */}
-      <section className="relative px-6 py-8 md:py-16 md:px-10">
+      <section className="relative px-6 py-6 md:py-8 md:px-10">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500 lg:p-12">
           <h2 className="text-2xl md:text-3xl font-light text-white text-center">{t('stats.title')}</h2>
           <div className="grid w-full grid-cols-2 gap-8 md:grid-cols-3">
