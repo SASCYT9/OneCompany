@@ -5,8 +5,8 @@ export const runtime = 'edge'
 
 // Image metadata
 export const size = {
-  width: 32,
-  height: 32,
+  width: 512,
+  height: 512,
 }
 export const contentType = 'image/png'
 
@@ -17,7 +17,7 @@ export default function Icon() {
       // ImageResponse JSX element
       <div
         style={{
-          fontSize: 24,
+          fontSize: 384,
           background: 'black',
           width: '100%',
           height: '100%',
@@ -29,7 +29,7 @@ export default function Icon() {
         }}
       >
         <svg
-          width="32"
+          width="512"
           viewBox="0 0 422.44 154.58"
           fill="white"
           xmlns="http://www.w3.org/2000/svg"
