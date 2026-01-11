@@ -947,7 +947,7 @@ export default function AutomotivePage() {
                               />
                             </div>
                           </div>
-                          <div className="mt-4 text-lg font-light leading-tight text-white sm:mt-6 sm:text-xl w-full px-1 break-words">{brand.name}</div>
+                          <div className="mt-4 text-lg font-light leading-tight text-white sm:mt-6 sm:text-xl w-full px-1 break-words">{BRAND_DISPLAY_NAMES[brand.name] || brand.name}</div>
                         </motion.button>
                       );
                     })

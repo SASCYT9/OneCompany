@@ -967,7 +967,7 @@ export default function MotoPage() {
                 transition={{ duration: 0.4, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:mt-12 lg:grid-cols-3 xl:grid-cols-4 pb-4">
+                <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:mt-12 lg:grid-cols-3 xl:grid-cols-4 pb-4 pt-2">
                   {filteredBrands.length > 0 ? (
                     filteredBrands.map((brand) => {
                       const origin = getBrandOrigin(brand);
@@ -1000,7 +1000,7 @@ export default function MotoPage() {
                               unoptimized
                             />
                           </div>
-                          <div className="mt-4 text-lg font-light leading-tight text-white sm:mt-6 sm:text-xl w-full px-1 break-words">{brand.name}</div>
+                          <div className="mt-4 text-lg font-light leading-tight text-white sm:mt-6 sm:text-xl w-full px-1 break-words">{BRAND_DISPLAY_NAMES[brand.name] || brand.name}</div>
                         </motion.button>
                       );
                     })

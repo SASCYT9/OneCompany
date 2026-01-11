@@ -42,8 +42,8 @@ export interface TypographyConfig {
  * Ukrainian locale uses smaller fonts for better readability
  */
 export const getTypography = (locale: Locale): TypographyConfig => {
-    // Standardizing typography across locales (using English sizes for both)
-    return {
+    // Standard configuration (English)
+    const baseConfig: TypographyConfig = {
         // Hero sections
         heroTitle: 'text-2xl sm:text-3xl lg:text-4xl',
         heroSubtitle: 'text-sm sm:text-base',
@@ -74,6 +74,16 @@ export const getTypography = (locale: Locale): TypographyConfig => {
         buttonText: 'text-sm min-[410px]:text-base sm:text-base',
         buttonTextSmall: 'text-[10px] min-[410px]:text-xs sm:text-xs',
     };
+
+    if (locale === 'ua') {
+        return {
+            ...baseConfig,
+            // Adjust label size for UA to match optical size of EN
+            label: 'text-xs min-[410px]:text-sm sm:text-[15px]',
+        };
+    }
+
+    return baseConfig;
 };
 
 /**
