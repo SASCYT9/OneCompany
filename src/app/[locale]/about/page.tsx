@@ -59,6 +59,11 @@ const AboutPage: React.FC = () => {
       description: t('timeline.events.2008.description'),
     },
     {
+      year: '2012',
+      title: t('timeline.events.2012.title'),
+      description: t('timeline.events.2012.description'),
+    },
+    {
       year: '2016',
       title: t('timeline.events.2016.title'),
       description: t('timeline.events.2016.description'),
