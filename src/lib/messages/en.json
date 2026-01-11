@@ -387,6 +387,10 @@
           "title": "USA Fulfillment Center",
           "description": "Centralized warehouse and logistics hub for consolidating shipments from the USA."
         },
+        "2012": {
+          "title": "Consulting & Selection",
+          "description": "Expert support: from the idea and selection of components to the complete organization of the project."
+        },
         "2016": {
           "title": "Europe Fulfillment Center",
           "description": "Warehouse in Poland to cover the European manufacturers and further dispatch."
@@ -396,8 +400,8 @@
           "description": "Business partners worldwide and direct door-to-door delivery."
         },
         "2023": {
-          "title": "Consulting & Selection",
-          "description": "Expert support: from concept and component selection to full project organization."
+          "title": "Expansion",
+          "description": "The war in Ukraine has forced us to reorganize and expand to even more business partners worldwide."
         }
       }
     },
