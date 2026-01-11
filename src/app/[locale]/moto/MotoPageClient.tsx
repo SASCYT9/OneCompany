@@ -23,6 +23,28 @@ import { BrandModal } from '@/components/ui/BrandModal';
 import { getBrandStoryForBrand, BrandStory } from '@/lib/brandStories';
 import { getTypography, resolveLocale } from '@/lib/typography';
 
+const BRAND_DISPLAY_NAMES: Record<string, string> = {
+  'SparkExhaust': 'SPARK',
+  'Austin Racing': 'AUSTIN',
+  'ZARD Exhaust': 'ZARD',
+  'Vandemon': 'VANDEMON',
+  'GPR Stabilizer': 'GPR',
+  'Samco Sport': 'SAMCO',
+  'Thermal Technology': 'THERMAL TECH',
+  'Ilmberger Carbon': 'ILMBERGER',
+  'Fullsix Carbon': 'FULLSIX',
+  'New Rage Cycles': 'NEW RAGE',
+  'Gilles Tooling': 'GILLES',
+  'ARP Racingparts': 'ARP',
+  'AIM Tech': 'AIM',
+  'Alpha Racing': 'ALPHA',
+  'Sprint Filter': 'SPRINT',
+  'HM Quickshifter': 'HM',
+  'TOCE Exhaust': 'TOCE',
+  'Dominator Exhaust': 'DOMINATOR',
+  'Ermal Technology': 'ERMAL',
+};
+
 type LocalizedCopy = { en: string; ua: string;[key: string]: string };
 
 type MotoModuleCard = {
@@ -815,7 +837,7 @@ export default function MotoPage() {
                         <div className="mt-5 min-h-[80px] grid grid-cols-2 gap-2 text-[10px] uppercase tracking-wider sm:text-[11px]">
                           {cat.brands.slice(0, 8).map((name) => (
                             <span key={name} className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-center font-medium text-white/90 transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10 truncate">
-                              {name}
+                              {BRAND_DISPLAY_NAMES[name] || name}
                             </span>
                           ))}
                           {cat.brands.length > 8 && (
