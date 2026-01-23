@@ -275,28 +275,6 @@ export default async function LocalizedHomePage({
           </div>
         </section>
 
-        {/* SEO Content Section - visible text for search engines */}
-        <section className="relative px-6 py-16 border-t border-white/10">
-          <div className="relative mx-auto max-w-4xl text-center">
-            <h2 className="text-2xl font-light text-white/90 mb-6">
-              {locale === 'ua' 
-                ? 'Тюнінг авто та мото Київ — One Company Global' 
-                : 'Auto & Moto Tuning Ukraine — One Company Global'}
-            </h2>
-            <p className="text-sm text-white/50 leading-relaxed mb-4">
-              {locale === 'ua'
-                ? 'One Company Global — офіційний дистриб\'ютор преміум тюнінгу в Україні. Ми пропонуємо тюнінг авто Київ та тюнінг мото Україна від найкращих світових брендів: Akrapovic, Brabus, Mansory, HRE Wheels, KW Suspension, Ohlins, Brembo. Вихлопні системи, диски, підвіска, карбонові деталі, чіп-тюнінг. Доставка по всій Україні: Київ, Харків, Одеса, Дніпро, Львів.'
-                : 'One Company Global — official premium tuning distributor in Ukraine. We offer auto tuning Kyiv and moto tuning Ukraine from the world\'s best brands: Akrapovic, Brabus, Mansory, HRE Wheels, KW Suspension, Ohlins, Brembo. Exhaust systems, wheels, suspension, carbon fiber parts, ECU tuning. Delivery across Ukraine: Kyiv, Kharkiv, Odesa, Dnipro, Lviv.'}
-            </p>
-            <p className="text-xs text-white/30">
-              {locale === 'ua'
-                ? 'Тюнінг Київ • Тюнінг Україна • Авто тюнінг • Мото тюнінг • Преміум запчастини • Офіційний імпортер'
-                : 'Tuning Kyiv • Tuning Ukraine • Auto tuning • Moto tuning • Premium parts • Official importer'}
-            </p>
-          </div>
-        </section>
-
-
       </main>
       
       {/* FAQ Schema for SEO */}
