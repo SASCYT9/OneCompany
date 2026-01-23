@@ -22,7 +22,7 @@ function detectLocale(req: NextRequest): 'ua' | 'en' {
   }
 
   // 2. Check Vercel's geolocation header (works on Vercel deployment)
-  const country = req.headers.get('x-vercel-ip-country') || req.geo?.country;
+  const country = req.headers.get('x-vercel-ip-country');
   if (country && ukrainianCountries.includes(country)) {
     return 'ua';
   }
