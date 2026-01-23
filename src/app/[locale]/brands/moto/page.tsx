@@ -71,7 +71,7 @@ export default async function MotoBrandsPage({ params }: MotoBrandsPageProps) {
                 key={brand.name}
                 name={brand.name}
                 image={brand.logoSrc}
-                href={`/${locale}/brands/${brand.slug}`}
+                href={`/${locale}/moto`}
                 category={brand.country || "Motorcycle"}
               />
             ))}

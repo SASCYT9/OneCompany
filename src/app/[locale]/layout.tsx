@@ -10,6 +10,7 @@ import HeroVideoWrapper from '@/components/layout/HeroVideoWrapper';
 import LocaleLangSetter from '@/components/LocaleLangSetter';
 import { readVideoConfig } from '@/lib/videoConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import CookieBanner from '@/components/ui/CookieBanner';
 
 import { ScrollToTop } from '@/components/ScrollToTop';
 
@@ -52,6 +53,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           </main>
           <ScrollToTop />
           <Footer />
+          <CookieBanner locale={locale} />
         </div>
       </AuthProvider>
     </NextIntlClientProvider>

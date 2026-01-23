@@ -313,7 +313,6 @@ export default function ChoicePage() {
               name={brand.name}
               logo={brand.logo}
               categoryLabel={brand.category}
-              href={`/brands/${brand.name.toLowerCase().replace(/\s+/g, '-')}`}
             />
           ))}
         </div>

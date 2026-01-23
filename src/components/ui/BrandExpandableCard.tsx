@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
@@ -9,10 +8,9 @@ type Props = {
   name: string;
   logo: string;
   categoryLabel: string;
-  href: string;
 };
 
-export function BrandExpandableCard({ name, logo, categoryLabel, href }: Props) {
+export function BrandExpandableCard({ name, logo, categoryLabel }: Props) {
   const [open, setOpen] = useState(false);
   const [imgSrc, setImgSrc] = useState(logo);
   const [modalImgSrc, setModalImgSrc] = useState(logo);
@@ -111,15 +109,8 @@ export function BrandExpandableCard({ name, logo, categoryLabel, href }: Props) 
                 </p>
 
                 <div className="mt-8 flex items-center gap-3">
-                  <Link
-                    href={href}
-                    className="cta-primary text-xs tracking-wider uppercase font-medium"
-                    onClick={() => setOpen(false)}
-                  >
-                    View products
-                  </Link>
                   <button
-                    className="cta-outline text-xs tracking-wider uppercase font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    className="cta-primary text-xs tracking-wider uppercase font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                     onClick={() => setOpen(false)}
                   >
                     Close

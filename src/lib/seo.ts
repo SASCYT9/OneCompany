@@ -36,12 +36,23 @@ export function buildLocalizedPath(locale: SupportedLocale, slug = ""): string {
 }
 
 export function buildAlternateLinks(slug = ""): Record<string, string> {
-  return siteConfig.locales.reduce<Record<string, string>>((acc, locale) => {
+  const links: Record<string, string> = {};
+  
+  // Add all locales
+  siteConfig.locales.forEach(locale => {
     // Use proper ISO language code 'uk' for Ukrainian instead of 'ua'
     const hreflangCode = locale === 'ua' ? 'uk' : locale;
-    acc[hreflangCode] = absoluteUrl(buildLocalizedPath(locale, slug));
-    return acc;
-  }, {});
+    links[hreflangCode] = absoluteUrl(buildLocalizedPath(locale, slug));
+  });
+  
+  // Add Russian hreflang pointing to Ukrainian page (for Russian-speaking users)
+  // This helps Google show our site for Russian queries
+  links['ru'] = absoluteUrl(buildLocalizedPath('ua', slug));
+  
+  // Add x-default pointing to Ukrainian version
+  links['x-default'] = absoluteUrl(buildLocalizedPath('ua', slug));
+  
+  return links;
 }
 
 export function buildPageMetadata(

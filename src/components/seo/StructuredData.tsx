@@ -10,7 +10,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
     "@type": "Organization",
     "@id": "https://onecompany.global/#organization",
     name: "onecompany",
-    alternateName: "One Company Global",
+    alternateName: ["One Company Global", "One Company", "OneCompany UA", "ВанКомпані"],
     url: "https://onecompany.global",
     logo: {
       "@type": "ImageObject",
@@ -40,7 +40,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
         "@type": "ContactPoint",
         telephone: "+380 66 077 17 00",
         contactType: "customer service",
-        availableLanguage: ["Ukrainian", "English"],
+        availableLanguage: ["Ukrainian", "English", "Russian"],
       },
     ],
     sameAs: [
@@ -49,17 +49,42 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
     ],
     knowsAbout: [
       "Automotive tuning",
-      "Motorcycle tuning",
+      "Motorcycle tuning", 
       "Premium exhaust systems",
       "Performance wheels",
       "Suspension systems",
       "Carbon fiber parts",
       "Brake systems",
+      "Akrapovic exhaust",
+      "Brabus tuning",
+      "Mansory body kits",
+      "HRE wheels",
+      "KW suspension",
+      "Ohlins suspension",
+      "Brembo brakes",
+      "тюнінг авто",
+      "тюнінг мото",
+      "тюнинг для мотоцикла",
+      "мототюнинг",
     ],
-    areaServed: {
-      "@type": "Country",
-      name: "Ukraine",
-    },
+    areaServed: [
+      {
+        "@type": "Country",
+        name: "Ukraine",
+      },
+      {
+        "@type": "Country", 
+        name: "United States",
+      },
+      {
+        "@type": "Country",
+        name: "Germany",
+      },
+      {
+        "@type": "Country",
+        name: "United Arab Emirates",
+      },
+    ],
   };
 
   return (
@@ -78,11 +103,12 @@ export function WebSiteSchema() {
     "@id": "https://onecompany.global/#website",
     url: "https://onecompany.global",
     name: "onecompany",
+    alternateName: ["One Company", "OneCompany", "ВанКомпані"],
     description: "Premium auto & moto tuning importer Ukraine",
     publisher: {
       "@id": "https://onecompany.global/#organization",
     },
-    inLanguage: ["uk-UA", "en-US"],
+    inLanguage: ["uk-UA", "en-US", "ru-RU"],
     potentialAction: {
       "@type": "SearchAction",
       target: {

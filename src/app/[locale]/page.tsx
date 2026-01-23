@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { getTranslations } from "next-intl/server";
 import { StickyScroll } from "@/components/StickyScroll";
 import { getTypography, resolveLocale } from "@/lib/typography";
+import FAQSchema, { defaultFAQs } from "@/components/seo/FAQSchema";
 
 export { generateMetadata } from './metadata';
 
@@ -27,7 +28,9 @@ export default async function LocalizedHomePage({
 }: LocalizedHomePageProps) {
   const { locale } = await params;
   const t = await getTranslations("home");
-  const typography = getTypography(resolveLocale(locale));
+  const resolvedLocale = resolveLocale(locale);
+  const typography = getTypography(resolvedLocale);
+  const faqs = defaultFAQs[resolvedLocale as keyof typeof defaultFAQs] || defaultFAQs.ua;
 
   const experiences: ExperienceSplit[] = [
     {
@@ -274,6 +277,9 @@ export default async function LocalizedHomePage({
 
 
       </main>
+      
+      {/* FAQ Schema for SEO */}
+      <FAQSchema faqs={faqs} />
     </>
   );
 }
