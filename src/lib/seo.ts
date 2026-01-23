@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const siteConfig = {
-  name: "onecompany",
+  name: "One Company Global",
   description:
-    "Premium automotive and motorcycle performance programs with expert logistics, homologation, and importer support.",
+    "Тюнінг авто та мото Київ, Україна. Premium automotive and motorcycle tuning with expert logistics and importer support.",
   url: "https://onecompany.global",
   defaultLocale: "ua" as const,
   locales: ["ua", "en"] as const,

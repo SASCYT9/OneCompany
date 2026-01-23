@@ -9,14 +9,14 @@ import {
 
 const homeMetaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   en: {
-    title: "OneCompany — Premium Auto & Moto Tuning | Akrapovic, Brabus, Mansory | USA Worldwide Shipping",
+    title: "One Company Global — Premium Auto & Moto Tuning Ukraine | Akrapovic, Brabus, Mansory | Kyiv",
     description:
-      "Official distributor of 200+ premium tuning brands: Akrapovic, Brabus, Mansory, HRE Wheels, KW, Ohlins. Exhaust systems, suspension, wheels, carbon fiber. Free worldwide shipping. USA, Europe, Middle East.",
+      "Official distributor of 200+ premium tuning brands in Ukraine: Akrapovic, Brabus, Mansory, HRE Wheels, KW, Ohlins. Auto tuning Kyiv. Exhaust systems, suspension, wheels, carbon fiber. Worldwide shipping.",
   },
   ua: {
-    title: "OneCompany — Преміум Тюнінг Авто та Мото | Akrapovic, Brabus, Mansory | Київ, Україна",
+    title: "One Company Global — Тюнінг Авто та Мото Київ | Akrapovic, Brabus, Mansory | Україна",
     description:
-      "Офіційний дистриб'ютор 200+ преміум брендів тюнінгу: Akrapovic, Brabus, Mansory, HRE, KW, Ohlins. Вихлопні системи, підвіска, диски, карбон. Авто та мото тюнінг Київ. Доставка по Україні.",
+      "Тюнінг Київ — офіційний дистриб'ютор 200+ преміум брендів: Akrapovic, Brabus, Mansory, HRE, KW, Ohlins. Тюнінг авто Україна. Вихлопні системи, підвіска, диски, карбон. Доставка по Україні.",
   },
 };
 
