@@ -12,6 +12,7 @@ const localeToHreflang: Record<string, string> = {
 
 // Countries that should see Ukrainian version
 const ukrainianCountries = ['UA']; // Ukraine
+const blockedCountries = ['RU']; // Russia (Blocked)
 
 // Detect preferred locale based on geo and browser settings
 function detectLocale(req: NextRequest): 'ua' | 'en' {
@@ -46,6 +47,12 @@ function detectLocale(req: NextRequest): 'ua' | 'en' {
 }
 
 export default function middleware(req: NextRequest) {
+  // 1. Block access from specific countries (Russia)
+  const country = req.headers.get('x-vercel-ip-country');
+  if (country && blockedCountries.includes(country)) {
+    return new NextResponse('Access Denied', { status: 403 });
+  }
+
   const { pathname } = req.nextUrl;
 
   // Skip middleware for non-localized routes (admin, APIs, Telegram WebApp)
