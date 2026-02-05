@@ -236,7 +236,6 @@ export const metadata: Metadata = {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
     // yandex: "your-yandex-verification-code",
   },
-  manifest: "/manifest.json",
   category: "automotive",
 };
 
