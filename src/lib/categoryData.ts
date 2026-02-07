@@ -98,6 +98,7 @@ export const categoryData: CategoryData[] = [
       'Seibon Carbon',
       'Sterckenn',
       'Stillen',
+      'TECHART',
       'Verus Engineering',
       'WALD',
       'Zacoe',

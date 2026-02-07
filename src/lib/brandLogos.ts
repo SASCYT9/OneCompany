@@ -217,6 +217,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'Stoptech': '/logos/stoptech.png',
   'Strasse wheels': '/logos/strasse-wheels.png',
   'Supersprint': '/logos/supersprint.png',
+  'TECHART': '/logos/techart.svg',
   'Termignoni': '/logos/termignoni.png',
   'Thermal Technology': '/logos/thermal-technology.png',
   'TireRack': '/logos/tirerack.jpg',
