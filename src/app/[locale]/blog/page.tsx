@@ -12,11 +12,11 @@ interface Props {
 const metaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   ua: {
     title: "Блог · OneCompany",
-    description: "Проєкти, поставки та backstage так само, як в Instagram.",
+    description: "Проєкти, поставки та backstage від One Company — преміальний тюнінг для авто та мото.",
   },
   en: {
     title: "Blog · OneCompany",
-    description: "Projects, deliveries, and backstage moments — Instagram-style.",
+    description: "Projects, deliveries, and backstage from One Company — premium auto & moto tuning.",
   },
 };
 
