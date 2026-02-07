@@ -43,6 +43,13 @@ const INVERT_BRAND_ALIASES: Record<string, string> = {
   'ac schnitzer': 'ac schnitzer',
 };
 
+const NO_INVERT_BRANDS_NORMALIZED = new Set(
+  [
+    'GTHaus',
+    'Hardrace',
+  ].map(normalizeBrandName)
+);
+
 export const shouldInvertBrand = (brandName: string | undefined | null): boolean => {
   if (!brandName) return false;
 
@@ -57,6 +64,10 @@ export const shouldInvertBrandOrLogo = (
   logoPath?: string | null
 ): boolean => {
   if (!brandName) return false;
+
+  const normalized = normalizeBrandName(brandName);
+  const mapped = INVERT_BRAND_ALIASES[normalized.replace(/\s+/g, '')] ?? INVERT_BRAND_ALIASES[normalized] ?? normalized;
+  if (NO_INVERT_BRANDS_NORMALIZED.has(mapped)) return false;
 
   // Manual brand list always wins
   if (shouldInvertBrand(brandName)) return true;

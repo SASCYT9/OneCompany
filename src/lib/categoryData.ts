@@ -91,6 +91,7 @@ export const categoryData: CategoryData[] = [
       'Lumma',
       'Manhart',
       "Matt's carbon",
+      'Paktechz Design',
       'Onyx Concept',
       'RKP',
       'RW Carbon',
