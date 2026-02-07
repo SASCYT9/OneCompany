@@ -13,6 +13,7 @@ import { Menu, X } from "lucide-react";
 const navItems = [
   { key: "automotive", href: "/auto" },
   { key: "moto", href: "/moto" },
+  { key: "blog", href: "/blog" },
   { key: "about", href: "/about" },
   { key: "contact", href: "/contact" },
 ];
@@ -37,7 +38,7 @@ export function Header() {
           <Logo className="w-20 sm:w-28 md:w-32" priority tone="light" size="compact" />
           <span className="absolute -bottom-1 left-0 h-px w-8 bg-gradient-to-r from-white to-transparent sm:-bottom-2 sm:w-10" />
         </Link>
-        <nav className="ml-6 hidden flex-1 items-center gap-4 md:ml-10 md:gap-6 lg:flex">
+        <nav className="ml-6 hidden flex-1 items-center gap-3 md:ml-8 md:gap-5 lg:flex">
           {navItems.map((item) => {
             const target = `/${locale}${item.href}`;
             const isActive = pathname === target || pathname?.startsWith(`${target}/`);
@@ -46,7 +47,7 @@ export function Header() {
                 key={item.key}
                 href={target}
                 className={cn(
-                  "relative font-display text-xs uppercase tracking-[0.2em] text-white/60 transition-colors md:text-sm md:tracking-[0.25em]",
+                  "relative whitespace-nowrap font-display text-xs uppercase tracking-[0.15em] text-white/60 transition-colors md:text-[13px] md:tracking-[0.2em]",
                   isActive && "text-white"
                 )}
               >

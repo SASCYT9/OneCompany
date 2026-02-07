@@ -89,6 +89,7 @@
     "eslint": "^9",
     "eslint-config-next": "^16.0.7",
     "image-size": "^2.0.2",
+    "playwright": "^1.58.2",
     "postcss": "^8.4.41",
     "prisma": "^6.19.0",
     "sharp": "^0.34.5",

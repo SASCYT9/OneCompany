@@ -3,6 +3,7 @@
     "automotive": "Авто",
     "moto": "Мото",
     "stores": "Магазини",
+    "blog": "Блог",
     "about": "Про нас",
     "categories": "Категорії",
     "selectStore": "Обрати магазин",
@@ -10,6 +11,15 @@
     "bookAtelier": "Стати партнером",
     "toggleHeroVideoEnable": "Увімкнути відео",
     "toggleHeroVideoDisable": "Вимкнути відео"
+  },
+  "blog": {
+    "title": "Блог",
+    "subtitle": "Контент як в Instagram: нові проєкти, поставки та backstage.",
+    "follow": "Підписатися в Instagram",
+    "back": "Повернутися до блогу",
+    "readMore": "Деталі",
+    "latest": "Останні публікації",
+    "empty": "Поки що немає публікацій."
   },
   "brands": {
     "officialSite": "Офіційний сайт",

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { absoluteUrl, buildLocalizedPath, siteConfig, buildAlternateLinks } from "@/lib/seo";
 import { categoryData } from "@/lib/categoryData";
+import { readSiteContent } from "@/lib/siteContentServer";
 
 // Static pages with their priorities - ONLY pages that actually exist!
 const staticPages = [
@@ -22,6 +23,7 @@ const staticPages = [
   { slug: "/contact", priority: 0.8, changeFrequency: "monthly" as const },
   { slug: "/partnership", priority: 0.7, changeFrequency: "monthly" as const },
   { slug: "/choice", priority: 0.6, changeFrequency: "monthly" as const },
+  { slug: "/blog", priority: 0.7, changeFrequency: "weekly" as const },
   
   // Legal pages
   { slug: "/privacy", priority: 0.3, changeFrequency: "yearly" as const },
@@ -29,7 +31,7 @@ const staticPages = [
   { slug: "/cookies", priority: 0.3, changeFrequency: "yearly" as const },
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = new Date();
 
   // Static pages
@@ -65,5 +67,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })
   );
 
-  return [...staticEntries, ...categoryEntries];
+  const content = await readSiteContent();
+  const blogEntries = siteConfig.locales.flatMap((locale) =>
+    content.blog.posts
+      .filter((post) => post.status === "published")
+      .map((post) => {
+        const pageSlug = `/blog/${post.slug}`;
+        const path = buildLocalizedPath(locale, pageSlug);
+        return {
+          url: absoluteUrl(path),
+          lastModified,
+          changeFrequency: "weekly" as const,
+          priority: 0.6,
+          alternates: {
+            languages: buildAlternateLinks(pageSlug),
+          },
+        } satisfies MetadataRoute.Sitemap[number];
+      })
+  );
+
+  return [...staticEntries, ...categoryEntries, ...blogEntries];
 }

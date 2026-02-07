@@ -49,6 +49,37 @@ export type ContactSuccessStory = {
   metricLabel: string;
 };
 
+export type LocalizedString = {
+  ua: string;
+  en: string;
+};
+
+export type BlogMedia = {
+  id: string;
+  type: 'image' | 'video';
+  src: string;
+  alt?: string;
+};
+
+export type BlogPost = {
+  id: string;
+  slug: string;
+  title: LocalizedString;
+  caption: LocalizedString;
+  date: string;
+  location?: LocalizedString;
+  tags?: string[];
+  pinned?: boolean;
+  status: 'draft' | 'published';
+  media: BlogMedia[];
+};
+
+export type BlogContent = {
+  instagramUrl: string;
+  instagramHandle: string;
+  posts: BlogPost[];
+};
+
 export type ContactPageContent = {
   heroBadge: string;
   infoBody: string;
@@ -77,4 +108,5 @@ export type SiteContent = {
   productCategories: ProductCategory[];
   contactCta: ContactCta;
   contactPage: ContactPageContent;
+  blog: BlogContent;
 };

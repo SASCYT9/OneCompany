@@ -22,6 +22,25 @@ export async function readSiteContent(): Promise<SiteContent> {
   try {
     const data = await fs.readFile(contentPath, 'utf-8');
     const parsed = JSON.parse(data) as SiteContent;
+    const normalizeLocalized = (value: unknown, fallback: { ua: string; en: string }) => {
+      if (!value) {
+        return fallback;
+      }
+      if (typeof value === 'string') {
+        return { ua: value, en: value };
+      }
+      return {
+        ...fallback,
+        ...(value as { ua?: string; en?: string }),
+      };
+    };
+
+    const normalizePost = (post: SiteContent['blog']['posts'][number]) => ({
+      ...post,
+      title: normalizeLocalized(post.title, { ua: '', en: '' }),
+      caption: normalizeLocalized(post.caption, { ua: '', en: '' }),
+      location: post.location ? normalizeLocalized(post.location, { ua: '', en: '' }) : undefined,
+    });
     return {
       ...defaultSiteContent,
       ...parsed,
@@ -42,6 +61,11 @@ export async function readSiteContent(): Promise<SiteContent> {
       brandSections: {
         automotive: parsed.brandSections?.automotive ?? defaultSiteContent.brandSections.automotive,
         moto: parsed.brandSections?.moto ?? defaultSiteContent.brandSections.moto,
+      },
+      blog: {
+        ...defaultSiteContent.blog,
+        ...parsed.blog,
+        posts: (parsed.blog?.posts ?? defaultSiteContent.blog.posts).map(normalizePost),
       },
     };
   } catch {
