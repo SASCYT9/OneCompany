@@ -130,15 +130,11 @@ export default async function BlogPage({ params }: Props) {
 
               {/* Content */}
               <div className="relative flex flex-col justify-center gap-5 p-6 sm:p-8 md:w-1/2 lg:w-[45%] md:p-10 lg:p-14">
-                <div className="flex items-center gap-3 text-xs uppercase tracking-[0.4em] text-white/40">
-                  <span>{formatDate(featured.date, l)}</span>
-                  {featured.location && (
-                    <>
-                      <span className="h-1 w-1 rounded-full bg-white/30" />
-                      <span>{getLocalized(featured.location, l)}</span>
-                    </>
-                  )}
-                </div>
+                {featured.location && (
+                  <div className="flex items-center gap-3 text-xs uppercase tracking-[0.4em] text-white/40">
+                    <span>{getLocalized(featured.location, l)}</span>
+                  </div>
+                )}
 
                 <h2 className="font-display text-2xl font-light leading-tight tracking-tight sm:text-3xl lg:text-4xl">
                   {getLocalized(featured.title, l)}
@@ -217,15 +213,11 @@ export default async function BlogPage({ params }: Props) {
 
                   {/* Card body */}
                   <div className="flex flex-1 flex-col gap-3 p-5">
-                    <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.35em] text-white/35">
-                      <span>{formatDate(post.date, l)}</span>
-                      {post.location && (
-                        <>
-                          <span className="h-0.5 w-0.5 rounded-full bg-white/25" />
-                          <span>{getLocalized(post.location, l)}</span>
-                        </>
-                      )}
-                    </div>
+                    {post.location && (
+                      <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.35em] text-white/35">
+                        <span>{getLocalized(post.location, l)}</span>
+                      </div>
+                    )}
 
                     <h3 className="font-display text-lg font-light leading-snug tracking-tight text-white">
                       {getLocalized(post.title, l)}

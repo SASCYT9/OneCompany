@@ -1150,4 +1150,16 @@ export const curatedBrandStories: Record<string, BrandStory> = {
       { en: 'High-pressure testing', ua: 'Тестування високим тиском' },
     ],
   },
+  TECHART: {
+    headline: { en: 'TECHART · Design & Presence', ua: 'TECHART · Дизайн та характер' },
+    description: {
+      en: 'German Porsche tuning house delivering signature body kits, interiors, and performance upgrades with OEM-level integration.',
+      ua: 'Німецьке тюнінг-ательє Porsche, фірмові бодікіти, інтер’єри та апгрейди продуктивності з інтеграцією рівня OEM.',
+    },
+    highlights: [
+      { en: 'Unrivaled style and design', ua: 'Неперевершений стиль та дизайн' },
+      { en: 'Impeccable quality', ua: 'Бездоганна якість' },
+      { en: 'Unique carbon body kits, forged wheels and more', ua: 'Унікальні карбонові обвіси, ковані диски і не тільки' },
+    ],
+  },
 };

@@ -123,15 +123,11 @@ export default async function BlogPostPage({ params }: Props) {
           <div className="w-full lg:w-[45%] xl:w-[42%]">
             <article>
               {/* Meta */}
-              <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.4em] text-white/30">
-                <time dateTime={post.date}>{formatDate(post.date, l)}</time>
-                {post.location && (
-                  <>
-                    <span className="h-1 w-1 rounded-full bg-white/20" />
-                    <span>{getLocalized(post.location, l)}</span>
-                  </>
-                )}
-              </div>
+              {post.location && (
+                <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.4em] text-white/30">
+                  <span>{getLocalized(post.location, l)}</span>
+                </div>
+              )}
 
               {/* Title */}
               <h1 className="mt-5 font-display text-2xl font-light leading-tight tracking-tight sm:text-3xl lg:text-4xl">
