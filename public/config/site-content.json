@@ -328,8 +328,8 @@
           "en": "ADRO · BMW G8X Carbon Aero Kit"
         },
         "caption": {
-          "ua": "ADRO - це бренд, що змінив правила гри для нового покоління G8X. Їхній карбоновий обвіс - не просто тюнінг, а повна корекція візуальної ідентичності «емок».\nКомплект включає:\n—Prepreg Front Lip. Передня губа, яка візуально робить морду агресивнішою.\n—Prepreg Side Skirts. Бокові пороги, що додають силуету стрімкості.\n—Swan Neck Wing. Легендарне антикрило типу «лебедина шия».\n—Prepreg Rear Diffuser. Дифузор, що ідеально завершує задню частину авто.\nМи беремо на себе всі питання логістики та митного оформлення. Ви отримуєте офіційний продукт ADRO з гарантією оригінальності.\nБажаєте змінити вигляд своєї BMW G8X? Залиште заявку на сайті! 🏁",
-          "en": "ADRO is a brand that changed the game for the new G8X generation. Their carbon aero kit is not just tuning — it's a complete visual identity overhaul for the M cars.\nThe kit includes:\n—Prepreg Front Lip. A front lip that makes the nose visually more aggressive.\n—Prepreg Side Skirts. Side skirts that add a sense of speed to the silhouette.\n—Swan Neck Wing. The legendary swan-neck rear wing.\n—Prepreg Rear Diffuser. A diffuser that perfectly finishes the rear end.\nWe handle all logistics and customs clearance. You receive an official ADRO product with an authenticity guarantee.\nWant to transform your BMW G8X? Leave a request on our website. 🏁"
+          "ua": "ADRO - це бренд, що змінив правила гри для нового покоління G8X. Їхній карбоновий обвіс - не просто тюнінг, а повна корекція візуальної ідентичності «емок».\nКомплект включає:\n—Prepreg carbon Front Lip. Передня губа, яка візуально робить морду агресивнішою.\n—Prepreg carbon Side Skirts. Бокові пороги, що додають силуету стрімкості.\n—Swan Neck Wing. Легендарне антикрило типу «лебедина шия».\n—Prepreg carbon Rear Diffuser. Дифузор, що ідеально завершує задню частину авто.\nМи беремо на себе всі питання логістики та митного оформлення. Ви отримуєте офіційний продукт ADRO з гарантією оригінальності.\nБажаєте змінити вигляд своєї BMW G8X? Залиште заявку на сайті! 🏁",
+          "en": "ADRO is a brand that changed the game for the new G8X generation. Their carbon aero kit is not just tuning — it's a complete visual identity overhaul for the M cars.\nThe kit includes:\n—Prepreg carbon Front Lip. A front lip that makes the nose visually more aggressive.\n—Prepreg carbon Side Skirts. Side skirts that add a sense of speed to the silhouette.\n—Swan Neck Wing. The legendary swan-neck rear wing.\n—Prepreg carbon Rear Diffuser. A diffuser that perfectly finishes the rear end.\nWe handle all logistics and customs clearance. You receive an official ADRO product with an authenticity guarantee.\nWant to transform your BMW G8X? Leave a request on our website. 🏁"
         },
         "date": "2026-01-21T12:00:00.000Z",
         "location": {
@@ -371,34 +371,6 @@
             "type": "image",
             "src": "/images/blog/DTu98JODL1s-1.jpg",
             "alt": "Akrapovič titanium exhaust system"
-          }
-        ]
-      },
-      {
-        "id": "ig-2026-01-19-onecompany",
-        "slug": "onecompany-premium-import",
-        "title": {
-          "ua": "One Company · Професійний імпорт преміального тюнінгу",
-          "en": "One Company · Premium Tuning Import"
-        },
-        "caption": {
-          "ua": "One Company. Професійний імпорт преміального тюнінгу.\nМи працюємо з 2007 року. Наша задача-забезпечити доступ до найкращих інженерних рішень світу без ризиків, підробок та логістичних проблем.\nАвтентичність: Тільки оригінальні деталі з офіційною гарантією від виробника. Жодних компромісів із якістю.\nМасштаб: Прямий доступ до 200+ найкращих брендів Європи, США та Азії в одному вікні.\nГарантія: Тільки автентичні деталі з заводською гарантією. Жодних компромісів із якістю.\nМи повністю закриваємо питання підбору та доставки. Ви отримуєте прогнозований результат незалежно від складності запиту.\nПотрібен прайс або консультація? Залиште заявку на сайті. 📨",
-          "en": "One Company. Professional import of premium tuning.\nWe have been working since 2007. Our goal is to provide access to the best engineering solutions worldwide without risks, counterfeits, or logistics issues.\nAuthenticity: Only original parts with official manufacturer warranty. No compromises on quality.\nScale: Direct access to 200+ top brands from Europe, the USA, and Asia in one window.\nWarranty: Only authentic parts with factory warranty. No compromises on quality.\nWe fully cover selection and delivery. You get a predictable result regardless of the request complexity.\nNeed a price list or consultation? Contact us via our website. 📨"
-        },
-        "date": "2026-01-19T11:10:24.000Z",
-        "location": {
-          "ua": "Україна",
-          "en": "Ukraine"
-        },
-        "tags": ["onecompany", "tuningglobal", "onecompanyglobal", "тюнінг"],
-        "pinned": true,
-        "status": "published",
-        "media": [
-          {
-            "id": "media-ig-2026-01-19",
-            "type": "image",
-            "src": "/images/blog/DTsKmdmjFgF-1.jpg",
-            "alt": "One Company premium tuning import"
           }
         ]
       }
