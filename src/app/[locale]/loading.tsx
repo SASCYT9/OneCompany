@@ -13,10 +13,10 @@ export default function Loading() {
             <div className="w-3 h-3 rounded-full bg-white animate-pulse" />
           </div>
         </div>
-        
+
         {/* Text */}
         <p className="text-zinc-500 text-sm animate-pulse">
-          Завантаження...
+          Loading...
         </p>
       </div>
     </div>

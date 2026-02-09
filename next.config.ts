@@ -6,11 +6,11 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const nextConfig: NextConfig = {
   // Для Docker standalone output
   output: 'standalone',
-  
+
   // Оптимізація для продакшену
   compress: true,
   poweredByHeader: false, // Security: remove X-Powered-By header
-  
+
   // Images configuration - optimized for SEO & performance
   images: {
     dangerouslyAllowSVG: true,
@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days cache
   },
-  
+
   // HTTP Headers for SEO & Security
   async headers() {
     return [
@@ -77,60 +77,13 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  
+
   // Experimental features
   experimental: {
     optimizeCss: false,
   },
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/ua',
-        permanent: true
-      },
-      {
-        source: '/categories',
-        destination: '/ua/categories',
-        permanent: true
-      },
-      {
-        source: '/categories/:slug*',
-        destination: '/ua/categories/:slug*',
-        permanent: true
-      },
-      {
-        source: '/about',
-        destination: '/ua/about',
-        permanent: true
-      },
-      {
-        source: '/auto',
-        destination: '/ua/auto',
-        permanent: true
-      },
-      {
-        source: '/moto',
-        destination: '/ua/moto',
-        permanent: true
-      },
-      {
-        source: '/brands',
-        destination: '/ua/brands',
-        permanent: true
-      },
-      {
-        source: '/contact',
-        destination: '/ua/contact',
-        permanent: true
-      },
-      {
-        source: '/choice',
-        destination: '/ua/choice',
-        permanent: true
-      }
-    ];
-  }
+  // redirects removed to allow middleware to handle routing dynamically
+
 };
 
 export default withNextIntl(nextConfig);
