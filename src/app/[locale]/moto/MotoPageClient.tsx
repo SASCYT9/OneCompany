@@ -894,7 +894,7 @@ export default function MotoPage() {
                 type="text"
                 placeholder={t('searchPlaceholder')}
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => { setSearchTerm(e.target.value); if (e.target.value.trim()) setIsBrandsOpen(true); }}
                 className="w-full rounded-2xl border border-white/15 bg-white px-6 py-3 text-base text-black placeholder-black/40 shadow-[0_0_40px_rgba(255,255,255,0.07)] focus:outline-none focus:ring-2 focus:ring-white/40 sm:rounded-3xl sm:p-8 sm:py-3.5 sm:text-lg md:px-10 md:py-4"
               />
               <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/40 sm:right-6 md:right-8">
@@ -907,7 +907,7 @@ export default function MotoPage() {
             {/* Alphabet Filter */}
             <div className="flex flex-wrap justify-center gap-2 px-4">
               <button
-                onClick={() => setActiveLetter(null)}
+                onClick={() => { setActiveLetter(null); setIsBrandsOpen(true); }}
                 className={`h-8 w-8 rounded-full text-xs font-medium transition-all ${activeLetter === null
                   ? 'bg-white text-black'
                   : 'bg-white/10 text-white hover:bg-white/20'
@@ -918,7 +918,7 @@ export default function MotoPage() {
               {alphabet.map((letter) => (
                 <button
                   key={letter}
-                  onClick={() => setActiveLetter(activeLetter === letter ? null : letter)}
+                  onClick={() => { setActiveLetter(activeLetter === letter ? null : letter); setIsBrandsOpen(true); }}
                   className={`h-8 w-8 rounded-full text-xs font-medium transition-all ${activeLetter === letter
                     ? 'bg-white text-black'
                     : 'bg-white/10 text-white hover:bg-white/20'
