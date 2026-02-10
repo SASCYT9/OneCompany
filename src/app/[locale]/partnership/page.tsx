@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Script from "next/script";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import PartnershipPageClient from "./PartnershipPageClient";
+import { BreadcrumbSchema } from '@/components/seo/StructuredData';
 
 interface Props {
   params: Promise<{
@@ -30,7 +31,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PartnershipPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  
+
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
+  const breadcrumbs = [
+    { name: resolvedLocale === 'ua' ? 'Головна' : 'Home', url: `${baseUrl}/${resolvedLocale}` },
+    { name: resolvedLocale === 'ua' ? 'Партнерство' : 'Partnership', url: `${baseUrl}/${resolvedLocale}/partnership` },
+  ];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ContactPage",
@@ -43,6 +50,7 @@ export default async function PartnershipPage({ params }: Props) {
 
   return (
     <>
+      <BreadcrumbSchema items={breadcrumbs} />
       <Script
         id="partnership-schema"
         type="application/ld+json"

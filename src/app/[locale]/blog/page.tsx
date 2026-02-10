@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/navigation";
 import { readSiteContent } from "@/lib/siteContentServer";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
+import { BreadcrumbSchema } from '@/components/seo/StructuredData';
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -56,8 +57,15 @@ export default async function BlogPage({ params }: Props) {
   /* First post is featured (hero card), rest are grid */
   const [featured, ...rest] = posts;
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
+  const breadcrumbs = [
+    { name: l === 'ua' ? 'Головна' : 'Home', url: `${baseUrl}/${l}` },
+    { name: l === 'ua' ? 'Блог' : 'Blog', url: `${baseUrl}/${l}/blog` },
+  ];
+
   return (
     <main id="main-content" className="relative min-h-screen bg-black pt-28 pb-24 text-white">
+      <BreadcrumbSchema items={breadcrumbs} />
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         <div className="absolute -left-40 -top-20 h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle,_rgba(255,179,71,0.12),_transparent_65%)] blur-[100px]" />

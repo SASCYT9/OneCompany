@@ -1,7 +1,20 @@
 import { ReactNode } from 'react';
+import { BreadcrumbSchema } from '@/components/seo/StructuredData';
 
 export { generateMetadata } from './metadata';
 
-export default function Layout({ children }: { children: ReactNode }) {
-  return children;
+export default async function Layout({ children, params }: { children: ReactNode; params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
+  const breadcrumbs = [
+    { name: locale === 'ua' ? 'Головна' : 'Home', url: `${baseUrl}/${locale}` },
+    { name: locale === 'ua' ? 'Про нас' : 'About Us', url: `${baseUrl}/${locale}/about` },
+  ];
+
+  return (
+    <>
+      <BreadcrumbSchema items={breadcrumbs} />
+      {children}
+    </>
+  );
 }

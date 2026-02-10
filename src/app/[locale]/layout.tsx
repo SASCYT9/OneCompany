@@ -14,6 +14,10 @@ import CookieBanner from '@/components/ui/CookieBanner';
 
 import { ScrollToTop } from '@/components/ScrollToTop';
 
+export function generateStaticParams() {
+  return [{ locale: 'en' }, { locale: 'ua' }];
+}
+
 type Props = {
   children: ReactNode;
   params: Promise<{ locale: string }>;

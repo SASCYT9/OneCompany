@@ -16,7 +16,7 @@ import { getBrandStoryForBrand } from '@/lib/brandStories';
 import { BrandModal } from '@/components/ui/BrandModal';
 import { BrandItem } from '@/components/sections/BrandLogosGrid';
 import { getTypography, resolveLocale } from '@/lib/typography';
-import { BreadcrumbSchema } from '@/components/seo/StructuredData';
+import { BreadcrumbSchema, CollectionPageSchema } from '@/components/seo/StructuredData';
 
 export default function BrandsPage() {
   const locale = useLocale();
@@ -75,6 +75,11 @@ export default function BrandsPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       <BreadcrumbSchema items={breadcrumbs} />
+      <CollectionPageSchema
+        name={locale === 'ua' ? 'Всі бренди' : 'All Brands'}
+        description={locale === 'ua' ? 'Каталог 200+ преміум брендів авто та мото тюнінгу.' : 'Catalog of 200+ premium auto and moto tuning brands.'}
+        url={`${baseUrl}/${locale}/brands`}
+      />
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[radial-gradient(circle,_rgba(255,255,255,0.05)_0%,_transparent_70%)] rounded-full blur-3xl" />
       </div>

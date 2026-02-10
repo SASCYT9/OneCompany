@@ -2,6 +2,7 @@
 import Script from "next/script";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import MotoPageClient from "./MotoPageClient";
+import { BreadcrumbSchema } from '@/components/seo/StructuredData';
 
 interface Props {
   params: Promise<{
@@ -31,6 +32,12 @@ export default async function MotoPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
+  const breadcrumbs = [
+    { name: resolvedLocale === 'ua' ? 'Головна' : 'Home', url: `${baseUrl}/${resolvedLocale}` },
+    { name: resolvedLocale === 'ua' ? 'Мото Тюнінг' : 'Moto Tuning', url: `${baseUrl}/${resolvedLocale}/moto` },
+  ];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -48,6 +55,7 @@ export default async function MotoPage({ params }: Props) {
 
   return (
     <>
+      <BreadcrumbSchema items={breadcrumbs} />
       <Script
         id="moto-page-schema"
         type="application/ld+json"

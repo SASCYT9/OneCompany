@@ -54,6 +54,7 @@ export default async function AutoPage({ params }: Props) {
 
   return (
     <>
+      <BreadcrumbSchema items={breadcrumbs} />
       <Script
         id="auto-page-schema"
         type="application/ld+json"

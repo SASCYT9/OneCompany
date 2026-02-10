@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader, Mail, Phone, MapPin } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { getTypography, resolveLocale } from "@/lib/typography";
+import { trackFormSubmission } from "@/lib/analytics";
 
 type FormType = "auto" | "moto";
 type FormState = "idle" | "loading" | "success" | "error";
@@ -98,6 +99,7 @@ export default function ContactPage() {
       if (response.ok) {
         setStatus("success");
         setMessage(t("form.success"));
+        trackFormSubmission('contact', { form_type: type });
         setFormData({ model: "", vin: "", wishes: "", budget: "", email: "", phone: "", telegramUsername: "", contactMethod: "telegram" });
       } else {
         setStatus("error");

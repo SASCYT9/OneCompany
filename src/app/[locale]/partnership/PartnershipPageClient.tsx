@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader, Building2, Globe, User, Mail, Phone, FileText, Send } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { getTypography, resolveLocale } from "@/lib/typography";
+import { trackFormSubmission } from "@/lib/analytics";
 
 type PartnershipType = "sto" | "dealer" | "detailing" | "tuning" | "other";
 type FormState = "idle" | "loading" | "success" | "error";
@@ -46,6 +47,7 @@ export default function PartnershipPageClient() {
 
       setStatus("success");
       setMessage(t("successMessage"));
+      trackFormSubmission('partnership', { partner_type: formData.type });
       setFormData({
         companyName: "",
         website: "",

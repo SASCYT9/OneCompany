@@ -1,7 +1,13 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 
 // Global 404 page for routes without locale
 // This renders within the root layout, so no html/body tags needed
+
+export const metadata: Metadata = {
+  title: '404 — Page Not Found',
+  robots: { index: false, follow: true },
+};
 
 export default function NotFound() {
   return (

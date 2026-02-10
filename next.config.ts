@@ -75,12 +75,42 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // Cache images
+        source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Cache videos
+        source: '/videos/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=2592000',
+          },
+        ],
+      },
+      {
+        // Cache 3D models
+        source: '/models/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
     ];
   },
 
   // Experimental features
   experimental: {
-    optimizeCss: false,
+    optimizeCss: true,
   },
   // redirects removed to allow middleware to handle routing dynamically
 

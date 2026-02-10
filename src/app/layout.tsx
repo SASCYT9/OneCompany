@@ -192,7 +192,7 @@ export const metadata: Metadata = {
     languages: {
       'en': `${siteUrl}/en`,
       'uk': `${siteUrl}/ua`,
-      'x-default': `${siteUrl}/en`,
+      'x-default': `${siteUrl}/ua`,
     },
   },
   openGraph: {
