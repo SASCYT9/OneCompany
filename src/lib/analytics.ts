@@ -66,3 +66,18 @@ export function trackCTAClick(label: string, destination?: string) {
     ...(destination && { cta_destination: destination }),
   });
 }
+
+/** Fire when a phone number link is clicked. */
+export function trackPhoneClick(phoneNumber: string) {
+  trackEvent('click_phone', { phone_number: phoneNumber });
+}
+
+/** Fire when an email link is clicked. */
+export function trackEmailClick(email: string) {
+  trackEvent('click_email', { email_address: email });
+}
+
+/** Fire when a Telegram link is clicked. */
+export function trackTelegramClick(link: string) {
+  trackEvent('click_telegram', { telegram_link: link });
+}

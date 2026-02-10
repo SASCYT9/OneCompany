@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader, Mail, Phone, MapPin } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { getTypography, resolveLocale } from "@/lib/typography";
-import { trackFormSubmission } from "@/lib/analytics";
+import { trackFormSubmission, trackCTAClick } from "@/lib/analytics";
 
 type FormType = "auto" | "moto";
 type FormState = "idle" | "loading" | "success" | "error";
@@ -341,7 +341,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}>{t("info.emailLabel")}</h3>
-                    <a href="mailto:info@onecompany.global" className="text-lg font-light text-white transition-colors hover:text-white/80">
+                    <a href="mailto:info@onecompany.global" onClick={() => trackCTAClick('click_email', 'mailto:info@onecompany.global')} className="text-lg font-light text-white transition-colors hover:text-white/80">
                       info@onecompany.global
                     </a>
                   </div>
@@ -353,7 +353,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className={`mb-2 font-light uppercase tracking-widest text-white/50 ${typography.label}`}>{t("info.phoneLabel")}</h3>
-                    <a href="tel:+380660771700" className="text-lg font-light text-white transition-colors hover:text-white/80">
+                    <a href="tel:+380660771700" onClick={() => trackCTAClick('click_phone', 'tel:+380660771700')} className="text-lg font-light text-white transition-colors hover:text-white/80">
                       +380 66 077 17 00
                     </a>
                   </div>

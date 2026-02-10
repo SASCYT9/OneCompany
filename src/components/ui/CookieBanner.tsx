@@ -4,6 +4,12 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { X, Cookie, Shield } from 'lucide-react';
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 const translations = {
   en: {
     title: 'We use cookies',
@@ -43,6 +49,21 @@ export default function CookieBanner({ locale = 'ua' }: CookieBannerProps) {
         setTimeout(() => setIsAnimating(true), 50);
       }, 1500);
       return () => clearTimeout(timer);
+    } else {
+      // Restore previous consent for GA4 Consent Mode v2
+      try {
+        const parsed = JSON.parse(consent);
+        if (parsed.analytics && typeof window.gtag === 'function') {
+          window.gtag('consent', 'update', {
+            'analytics_storage': 'granted',
+            'ad_storage': parsed.marketing ? 'granted' : 'denied',
+            'ad_user_data': parsed.marketing ? 'granted' : 'denied',
+            'ad_personalization': parsed.marketing ? 'granted' : 'denied',
+          });
+        }
+      } catch {
+        // Invalid consent data, ignore
+      }
     }
   }, []);
 
@@ -54,6 +75,25 @@ export default function CookieBanner({ locale = 'ua' }: CookieBannerProps) {
       timestamp: new Date().toISOString(),
     };
     localStorage.setItem('cookie-consent', JSON.stringify(consent));
+
+    // Update GA4 Consent Mode v2
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      if (type === 'all') {
+        window.gtag('consent', 'update', {
+          'analytics_storage': 'granted',
+          'ad_storage': 'granted',
+          'ad_user_data': 'granted',
+          'ad_personalization': 'granted',
+        });
+      } else {
+        window.gtag('consent', 'update', {
+          'analytics_storage': 'denied',
+          'ad_storage': 'denied',
+          'ad_user_data': 'denied',
+          'ad_personalization': 'denied',
+        });
+      }
+    }
     
     // Animate out
     setIsAnimating(false);

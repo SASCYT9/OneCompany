@@ -9,7 +9,14 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/api", "/telegram-app"],
+        disallow: [
+          "/admin",
+          "/api",
+          "/telegram-app",
+          "/about",       // non-locale fallback page
+          "/categories",  // non-locale fallback page
+          "/categories/*", // non-locale category pages
+        ],
       },
     ],
     sitemap: sitemapUrl,

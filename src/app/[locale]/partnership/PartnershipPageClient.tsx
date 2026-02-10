@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader, Building2, Globe, User, Mail, Phone, FileText, Send } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { getTypography, resolveLocale } from "@/lib/typography";
-import { trackFormSubmission } from "@/lib/analytics";
+import { trackFormSubmission, trackCTAClick } from "@/lib/analytics";
 
 type PartnershipType = "sto" | "dealer" | "detailing" | "tuning" | "other";
 type FormState = "idle" | "loading" | "success" | "error";
@@ -123,6 +123,7 @@ export default function PartnershipPageClient() {
                 href="https://t.me/OneCompanyAutoBot"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackCTAClick('click_telegram', 'https://t.me/OneCompanyAutoBot')}
                 className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] text-white group w-fit"
               >
                 <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">
@@ -133,6 +134,7 @@ export default function PartnershipPageClient() {
 
               <a
                 href="mailto:info@onecompany.global"
+                onClick={() => trackCTAClick('click_email', 'mailto:info@onecompany.global')}
                 className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] text-white group w-fit"
               >
                 <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">

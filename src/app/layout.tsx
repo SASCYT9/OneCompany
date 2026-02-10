@@ -295,7 +295,7 @@ export default async function RootLayout({
         {/* Schema.org Structured Data */}
         <OrganizationSchema />
         <WebSiteSchema />
-        <LocalBusinessSchema />
+        <LocalBusinessSchema locale={htmlLang === 'uk' ? 'ua' : 'en'} />
         
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
