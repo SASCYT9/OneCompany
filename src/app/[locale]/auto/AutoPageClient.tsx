@@ -400,9 +400,9 @@ export default function AutomotivePage() {
                 </div>
               </motion.button>
 
-              {/* MANSORY - Wide Card */}
+              {/* TECHART - Wide Card */}
               <motion.button
-                onClick={() => handleBrandClick('Mansory')}
+                onClick={() => handleBrandClick('TECHART')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -419,8 +419,8 @@ export default function AutomotivePage() {
                   <div className="flex-1 flex items-center justify-center py-4">
                     <div className="relative w-full max-w-[220px] h-14 sm:h-18">
                       <Image
-                        src={getBrandLogo('Mansory')}
-                        alt="Mansory Україна - преміум тюнінг суперкарів Київ, купити Mansory OneCompany"
+                        src={getBrandLogo('TECHART')}
+                        alt="TechArt Україна - преміум тюнінг Porsche Київ, купити TechArt OneCompany"
                         fill
                         className="object-contain opacity-95 drop-shadow-[0_0_25px_rgba(255,255,255,0.1)] transition-all duration-700 group-hover:scale-110"
                         unoptimized
@@ -428,7 +428,7 @@ export default function AutomotivePage() {
                     </div>
                   </div>
 
-                  <p className="text-lg sm:text-xl font-light text-white tracking-tight">Mansory</p>
+                  <p className="text-lg sm:text-xl font-light text-white tracking-tight">TechArt</p>
                   <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Преміум тюнінг' : 'Premium tuning'}</p>
                 </div>
               </motion.button>
