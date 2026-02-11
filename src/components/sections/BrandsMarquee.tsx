@@ -10,7 +10,7 @@ import { shouldInvertBrandOrLogo } from '@/lib/invertBrands';
 const topBrands = [
   // Top automotive brands
   'Akrapovic', 'KW Suspension', 'Brembo', 'Eventuri', 'Fi Exhaust',
-  'Brabus', 'Novitec', 'Mansory', 'ABT', 'AC Schnitzer',
+  'Brabus', 'Novitec', 'TechArt', 'ABT', 'AC Schnitzer',
   'HRE wheels', 'Vorsteiner', 'Capristo', 'Liberty Walk', 'Manhart',
   'APR', 'Cobb tuning', 'ESS Tuning', 'Weistec Engineering', 'RENNtech',
   // Top moto brands

@@ -14,7 +14,7 @@ import AnimatedCard from '@/components/ui/AnimatedCard';
 const topAutomotiveBrands = [
   { name: 'Eventuri', logo: '/logos/eventuri.png' },
   { name: 'KW Suspension', logo: '/logos/kw-suspensions-seeklogo-v3.svg' },
-  { name: 'Mansory', logo: '/logos/mansory.png' },
+  { name: 'TechArt', logo: '/logos/techart.svg' },
   { name: 'Urban Automotive', logo: '/logos/urban-automotive.png' },
   { name: 'HRE Wheels', logo: '/logos/hre-wheels.png' },
   { name: 'Brembo', logo: '/logos/brembo.png' },
