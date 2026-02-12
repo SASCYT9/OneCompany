@@ -237,6 +237,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'Urban Automotive': '/logos/urban-automotive.svg',
   'ValterMoto': '/logos/valtermoto.png',
   'Vandemon': '/logos/vandemon.png',
+  'VPX TrackWheels': '/logos/vpx-trackwheels.png',
   'Vargas Turbo': '/logos/vargas-turbo-white.png',
   'Velos Wheels': '/logos/velos-wheels-white.svg',
   'Verus Engineering': '/logos/verus-engineering-white.png',
