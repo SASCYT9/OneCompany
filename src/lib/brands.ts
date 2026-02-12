@@ -608,6 +608,7 @@ export const brandMetadata: Record<string, BrandMetadata> = {
   'Onyx Concept': { country: 'UK', subcategory: 'Engine' },
   'Power Division': { country: 'Poland', subcategory: 'Engine' },
   'ProTrack Wheels': { country: 'Germany', subcategory: 'Wheels' },
+  'VPX TrackWheels': { country: 'Germany', subcategory: 'Wheels' },
   'Pulsar turbo': { country: 'China', subcategory: 'Engine' },
   'Paktechz Design': { country: 'China', subcategory: 'Exterior' },
   'RaceChip': { country: 'Germany', subcategory: 'Electronics' },
