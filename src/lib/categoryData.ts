@@ -132,6 +132,7 @@ export const categoryData: CategoryData[] = [
       'Borla',
       'Cobra Sport',
       'Fabspeed',
+      'G-Sport by GESi',
       'GTHaus',
       'Kooks Headers',
       'Milltek',

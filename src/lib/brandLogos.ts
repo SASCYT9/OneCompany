@@ -100,6 +100,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'Girodisc': '/logos/girodisc.webp',
   'GPR Stabilizer': '/logos/gpr-stabilizer.png',
   'Gruppe-M': '/logos/gruppe-m-white.png',
+  'G-Sport by GESi': '/logos/gsport-by-gesi.png',
   'GTHaus': '/logos/gthaus-white.png',
   'Hamann': '/logos/hamann.png',
   'Hardrace': '/logos/hardrace.png',
