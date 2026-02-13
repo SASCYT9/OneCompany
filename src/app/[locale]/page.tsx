@@ -125,8 +125,8 @@ export default async function LocalizedHomePage({
           {/* SEO H1 - visually hidden but accessible */}
           <h1 className="sr-only">
             {locale === 'ua' 
-              ? 'One Company Global — Тюнінг Авто та Мото Київ, Україна. Офіційний дистриб\'ютор Akrapovic, Brabus, Mansory, HRE, KW, Ohlins. Преміум тюнінг Київ.'
-              : 'One Company Global — Premium Auto & Moto Tuning Ukraine. Official distributor of Akrapovic, Brabus, Mansory, HRE, KW, Ohlins in Kyiv.'}
+              ? 'One Company Global — Тюнінг Авто та Мото Київ, Україна. Офіційний дистриб\'ютор Akrapovic, Brabus, Eventuri, HRE, KW, Ohlins. Преміум тюнінг Київ.'
+              : 'One Company Global — Premium Auto & Moto Tuning Ukraine. Official distributor of Akrapovic, Brabus, Eventuri, HRE, KW, Ohlins in Kyiv.'}
           </h1>
 
           <div className="relative isolate flex flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:gap-4 sm:px-6 sm:pb-6 sm:pt-6 md:flex-row md:gap-4 md:px-8 max-w-[1400px] mx-auto w-full">
@@ -147,7 +147,7 @@ export default async function LocalizedHomePage({
                   <Image
                     src={experience.bgImage}
                     alt={experience.label === 'AUTO' || experience.label === 'АВТО' 
-                      ? 'Преміум авто тюнінг Київ - Akrapovic, Brabus, Mansory, HRE wheels Україна' 
+                      ? 'Преміум авто тюнінг Київ - Akrapovic, Brabus, Eventuri, HRE wheels Україна' 
                       : 'Мото тюнінг Україна - Akrapovic, Ohlins, Termignoni, SC-Project Київ'}
                     fill
                     className="object-cover group-hover:scale-105 transition-all duration-700 grayscale"
