@@ -289,7 +289,6 @@ export const categoryData: CategoryData[] = [
       // TOP 8 first
       'Samsonas Motorsport',
       'Drenth Gearboxes',
-      'Driveshaftshop',
       'JXB Performance',
       'Kotouc',
       'Modena Engineering',
