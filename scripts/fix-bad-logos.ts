@@ -220,7 +220,6 @@ const MANUAL_OVERRIDES: Record<string, { query: string, domain?: string }> = {
   'Strange': { query: 'Strange Engineering logo', domain: 'strangeengineering.net' },
   'Currie': { query: 'Currie Enterprises logo', domain: 'currieenterprises.com' },
   'Mark Williams': { query: 'Mark Williams Enterprises logo', domain: 'markwilliams.com' },
-  'Driveshaft Shop': { query: 'The Driveshaft Shop logo', domain: 'driveshaftshop.com' },
   'PST': { query: 'PST Driveshafts logo', domain: 'pstds.com' },
   'ACP': { query: 'ACP Composites logo', domain: 'acpcomposites.com' },
   'Crawford Composites': { query: 'Crawford Composites logo', domain: 'crawfordcomposites.com' },

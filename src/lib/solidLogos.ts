@@ -85,8 +85,6 @@ export const SOLID_LOGOS: string[] = [
   "dmc.webp",
   "do88.png",
   "driftworks.png",
-  "driveshaftshop.png",
-  "driveshaftshop.webp",
   "dte-systems.png",
   "duke-dynamics.png",
   "eibach.png",

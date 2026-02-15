@@ -77,7 +77,6 @@ const BRAND_DISPLAY_NAMES: Record<string, string> = {
   'DarwinPro': 'DARWINPRO',
   'Brixton wheels': 'BRIXTON',
   'MV Forged': 'MV FORGED',
-  'Driveshaftshop': 'DSS',
   'Vorsteiner': 'VORSTEINER',
   'Extreme tyres': 'EXTREME',
 };

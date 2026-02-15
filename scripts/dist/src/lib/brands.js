@@ -28,7 +28,6 @@ export const brandsUsa = [
     { name: 'DarwinPro' },
     { name: 'Deatschwerks' },
     { name: 'Dorch Engineering' },
-    { name: 'Driveshaftshop' },
     { name: 'Duke Dynamics' },
     { name: 'Eterna Motorworks' },
     { name: 'Fabspeed' },

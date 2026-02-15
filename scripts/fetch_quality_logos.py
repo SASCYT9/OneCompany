@@ -79,7 +79,6 @@ BRAND_DOMAINS: Dict[str, str] = {
     "DarwinPro": "darwinpro.com",
     "Deatschwerks": "deatschwerks.com",
     "Dorch Engineering": "dorchengineering.com",
-    "Driveshaftshop": "driveshaftshop.com",
     "Duke Dynamics": "dukedynamics.com",
     "Eterna Motorworks": "eternamotorworks.com",
     "Fabspeed": "fabspeed.com",

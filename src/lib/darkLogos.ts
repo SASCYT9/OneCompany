@@ -192,7 +192,6 @@ export const DARK_LOGOS = [
   "ecustudio.svg",
   "ebc.svg",
   "ds-automobiles.svg",
-  "driveshaft-shop.svg",
   "dorch-engineering.png",
   "donkervoort.svg",
   "do88.svg",

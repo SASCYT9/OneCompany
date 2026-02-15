@@ -38,7 +38,6 @@ const AUTO_BRANDS = [
   { name: 'DarwinPro', domain: 'darwinproaero.com' },
   { name: 'Deatschwerks', domain: 'deatschwerks.com' },
   { name: 'Dorch Engineering', domain: 'dorchengineering.com' },
-  { name: 'Driveshaftshop', domain: 'driveshaftshop.com' },
   { name: 'Duke Dynamics', domain: 'dukedynamics.com' },
   { name: 'Eterna Motorworks', domain: 'eternamotorworks.com' },
   { name: 'Fabspeed', domain: 'fabspeed.com' },

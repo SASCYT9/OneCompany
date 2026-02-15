@@ -74,7 +74,6 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'Domino': '/logos/domino.png',
   'Dorch Engineering': '/logos/dorch-engineering.png',
   'Drenth Gearboxes': '/logos/drenth-gearboxes.svg',
-  'Driveshaftshop': '/logos/driveshaftshop.png',
   'DTE Systems': '/logos/dte-systems.svg',
   'Duke Dynamics': '/logos/duke-dynamics-white.webp',
   'ECUStudio': '/logos/ecustudio.jpg',

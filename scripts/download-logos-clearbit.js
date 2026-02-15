@@ -38,7 +38,6 @@ const AUTO_BRANDS = {
   'CSF': 'csfrace.com',
   'DarwinPro': 'darwinpro.com',
   'Deatschwerks': 'deatschwerks.com',
-  'Driveshaftshop': 'driveshaftshop.com',
   'Duke Dynamics': 'dukedynamics.com',
   'Fabspeed': 'fabspeed.com',
   'Fall-Line Motorsports': 'falllinemotorsports.com',
