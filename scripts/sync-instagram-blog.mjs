@@ -11,6 +11,12 @@ const BLOG_VIDEO_DIR = path.resolve("public/videos/blog");
 const CONTENT_PATH = path.resolve("public/config/site-content.json");
 const REPORT_PATH = path.resolve("scripts/ig-latest-sync.json");
 const MAX_POSTS = Number.parseInt(process.env.IG_MAX_POSTS || "16", 10);
+const EXCLUDED_SHORTCODES = new Set(
+  (process.env.IG_EXCLUDE_SHORTCODES || "DTSKMDMJFGF")
+    .split(",")
+    .map((value) => value.trim().toUpperCase())
+    .filter(Boolean)
+);
 
 function requestJson(url, headers = {}) {
   return new Promise((resolve, reject) => {
@@ -152,14 +158,48 @@ function makeTitleFromCaption(caption, fallback) {
   return trimWithEllipsis(compact, 92);
 }
 
+const SLUG_STOP_WORDS = new Set([
+  "a",
+  "an",
+  "the",
+  "and",
+  "or",
+  "to",
+  "for",
+  "of",
+  "in",
+  "on",
+  "with",
+  "at",
+  "is",
+  "are",
+  "you",
+  "your",
+  "this",
+  "that",
+]);
+
 function slugify(value, shortcode) {
-  const base = value
+  const tokens = value
     .toLowerCase()
     .replace(/&/g, " and ")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 64);
-  return base ? `${base}-${shortcode.toLowerCase()}` : `instagram-${shortcode.toLowerCase()}`;
+    .replace(/[^a-z0-9\s]+/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter((token) => !SLUG_STOP_WORDS.has(token));
+
+  const picked = [];
+  let totalLength = 0;
+  for (const token of tokens) {
+    if (picked.length >= 8) break;
+    const nextLength = totalLength + token.length + (picked.length ? 1 : 0);
+    if (nextLength > 52) break;
+    picked.push(token);
+    totalLength = nextLength;
+  }
+
+  const base = picked.join("-") || "instagram-post";
+  return `${base}-${shortcode.toLowerCase()}`;
 }
 
 function extractHashtags(text) {
@@ -202,6 +242,15 @@ function fileExtensionFromUrl(url, fallback) {
 
 function mediaFileSuffix(index) {
   return index === null ? "" : `-${index + 1}`;
+}
+
+function isGenericBrandTitle(value) {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[^a-zа-яіїєґ0-9\s]+/giu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return normalized === "one company" || normalized === "onecompany";
 }
 
 async function buildMediaForNode(node, shortcode, enTitle) {
@@ -323,6 +372,9 @@ async function main() {
       postsByShortcode.set(shortcode, post);
     }
   }
+  for (const excluded of EXCLUDED_SHORTCODES) {
+    postsByShortcode.delete(excluded);
+  }
 
   const imported = [];
 
@@ -333,6 +385,9 @@ async function main() {
 
       const shortcode = String(node.shortcode || "").toUpperCase();
       if (!shortcode) {
+        continue;
+      }
+      if (EXCLUDED_SHORTCODES.has(shortcode)) {
         continue;
       }
 
@@ -346,6 +401,9 @@ async function main() {
       const uaTitle = makeTitleFromCaption(uaCaption, `Instagram post ${shortcode}`);
       const enTitleSource = makeTitleFromCaption(enCaption, `Instagram post ${shortcode}`);
       const enTitle = collapseWhitespace(enTitleSource);
+      if (isGenericBrandTitle(uaTitle) && isGenericBrandTitle(enTitle)) {
+        continue;
+      }
       const existing = postsByShortcode.get(shortcode);
       const slug = existing?.slug || slugify(enTitle, shortcode);
 
