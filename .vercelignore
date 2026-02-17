@@ -9,7 +9,8 @@ public/videos/*
 !public/videos/hero-smoke.mp4
 !public/videos/rollsbg-v3.mp4
 !public/videos/MotoBG-web.mp4
-!public/videos/blog/*
+!public/videos/blog
+!public/videos/blog/**
 public/models
 public/images/eventuri
 public/images/fi
