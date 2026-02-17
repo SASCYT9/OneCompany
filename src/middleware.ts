@@ -64,6 +64,21 @@ export default function middleware(req: NextRequest) {
   }
 
   const { pathname } = req.nextUrl;
+  const removedBlogSlug = 'one-company-dtskmdmjfgf';
+
+  // Hard redirect for removed blog entry.
+  const removedLocalizedMatch = pathname.match(/^\/(ua|en)\/blog\/one-company-dtskmdmjfgf\/?$/);
+  if (removedLocalizedMatch) {
+    const locale = removedLocalizedMatch[1];
+    const url = req.nextUrl.clone();
+    url.pathname = `/${locale}/blog`;
+    return NextResponse.redirect(url, 308);
+  }
+  if (pathname === `/blog/${removedBlogSlug}` || pathname === `/blog/${removedBlogSlug}/`) {
+    const url = req.nextUrl.clone();
+    url.pathname = '/ua/blog';
+    return NextResponse.redirect(url, 308);
+  }
 
   // Skip middleware for non-localized routes (admin, APIs, Telegram WebApp)
   if (pathname.startsWith('/admin') || pathname.startsWith('/api') || pathname.startsWith('/telegram-app')) {
