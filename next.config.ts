@@ -108,6 +108,26 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  async redirects() {
+    return [
+      {
+        source: '/ua/blog/one-company-dtskmdmjfgf',
+        destination: '/ua/blog',
+        permanent: true,
+      },
+      {
+        source: '/en/blog/one-company-dtskmdmjfgf',
+        destination: '/en/blog',
+        permanent: true,
+      },
+      {
+        source: '/blog/one-company-dtskmdmjfgf',
+        destination: '/ua/blog',
+        permanent: true,
+      },
+    ];
+  },
+
   // Experimental features
   experimental: {
     optimizeCss: true,
