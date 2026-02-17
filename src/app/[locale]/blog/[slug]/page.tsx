@@ -22,12 +22,33 @@ const getLocalized = (value: { ua: string; en: string }, locale: SupportedLocale
   return value[locale] || value.ua || value.en;
 };
 
-const toExcerpt = (value: string, fallback: string, max = 170) => {
-  const firstLine = value
+const normalizeSnippet = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const toExcerpt = (value: string, fallback: string, max = 170, avoid?: string) => {
+  const lines = value
     .split("\n")
     .map((line) => line.trim())
     .find(Boolean);
-  const normalized = (firstLine || fallback).replace(/\s+/g, " ").trim();
+
+  const allLines = value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const avoidNorm = avoid ? normalizeSnippet(avoid) : "";
+
+  const candidate =
+    allLines.find((line) => {
+      if (!avoidNorm) return true;
+      const lineNorm = normalizeSnippet(line);
+      return lineNorm && lineNorm !== avoidNorm && !lineNorm.startsWith(avoidNorm);
+    }) ?? lines ?? fallback;
+
+  const normalized = (candidate || fallback).replace(/\s+/g, " ").trim();
   if (normalized.length <= max) {
     return normalized;
   }
@@ -54,7 +75,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const localizedCaption = getLocalized(post.caption, l);
   return buildPageMetadata(l, `blog/${post.slug}`, {
     title: localizedTitle,
-    description: toExcerpt(localizedCaption, localizedTitle),
+    description: toExcerpt(localizedCaption, localizedTitle, 170, localizedTitle),
     image: cover,
     type: "article",
   });
@@ -83,7 +104,7 @@ export default async function BlogPostPage({ params }: Props) {
   const hasMultipleMedia = mediaItems.length > 1;
   const localizedTitle = getLocalized(post.title, l);
   const postUrl = absoluteUrl(buildLocalizedPath(l, `/blog/${post.slug}`));
-  const articleDescription = toExcerpt(captionText, localizedTitle);
+  const articleDescription = toExcerpt(captionText, localizedTitle, 170, localizedTitle);
   const coverPath =
     mediaItems.find((item) => item.type === "image")?.src ??
     mediaItems.find((item) => item.type === "video" && item.poster)?.poster;

@@ -37,6 +37,37 @@ const getLocalized = (value: { ua: string; en: string }, locale: SupportedLocale
   return value[locale] || value.ua || value.en;
 };
 
+const normalizeSnippet = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const getPreviewText = (caption: string, title: string, max = 180) => {
+  const lines = caption
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (!lines.length) {
+    return title;
+  }
+
+  const titleNorm = normalizeSnippet(title);
+  const candidate =
+    lines.find((line) => {
+      const lineNorm = normalizeSnippet(line);
+      return lineNorm && lineNorm !== titleNorm && !lineNorm.startsWith(titleNorm);
+    }) ?? lines[1] ?? lines[0];
+
+  const normalized = candidate.replace(/\s+/g, " ").trim();
+  if (normalized.length <= max) {
+    return normalized;
+  }
+  return `${normalized.slice(0, max - 1).trimEnd()}…`;
+};
+
 export default async function BlogPage({ params }: Props) {
   const { locale } = await params;
   const l = resolveLocale(locale);
@@ -152,7 +183,11 @@ export default async function BlogPage({ params }: Props) {
                 </h2>
 
                 <p className="line-clamp-4 text-sm leading-relaxed text-white/55 sm:text-base">
-                  {getLocalized(featured.caption, l).split("\n")[0]}
+                  {getPreviewText(
+                    getLocalized(featured.caption, l),
+                    getLocalized(featured.title, l),
+                    220
+                  )}
                 </p>
 
                 {featured.tags?.length ? (
@@ -243,7 +278,11 @@ export default async function BlogPage({ params }: Props) {
                     </h3>
 
                     <p className="line-clamp-2 text-sm leading-relaxed text-white/45">
-                      {getLocalized(post.caption, l).split("\n")[0]}
+                      {getPreviewText(
+                        getLocalized(post.caption, l),
+                        getLocalized(post.title, l),
+                        130
+                      )}
                     </p>
 
                     <div className="mt-auto pt-3">
