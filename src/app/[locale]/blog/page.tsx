@@ -118,15 +118,22 @@ export default async function BlogPage({ params }: Props) {
                   ) : (
                     <video
                       src={featured.media[0].src}
+                      poster={featured.media[0].poster}
                       muted
                       loop
                       autoPlay
                       playsInline
+                      preload="metadata"
                       className="h-full w-full object-cover"
                     />
                   )
                 ) : (
                   <div className="h-full w-full bg-gradient-to-br from-white/5 via-black to-black" />
+                )}
+                {featured.media[0]?.type === "video" && (
+                  <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-white/80 backdrop-blur-md">
+                    Reel
+                  </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/80 hidden md:block" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent md:hidden" />
@@ -203,14 +210,22 @@ export default async function BlogPage({ params }: Props) {
                       ) : (
                         <video
                           src={media.src}
+                          poster={media.poster}
                           muted
                           loop
+                          autoPlay
                           playsInline
+                          preload="metadata"
                           className="h-full w-full object-cover"
                         />
                       )
                     ) : (
                       <div className="h-full w-full bg-gradient-to-br from-white/5 via-black to-black" />
+                    )}
+                    {media?.type === "video" && (
+                      <div className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/60 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-white/75 backdrop-blur-md">
+                        Reel
+                      </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   </div>

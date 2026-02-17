@@ -7,9 +7,10 @@ import https from "node:https";
 const PROFILE = "onecompany.global";
 const PROFILE_URL = `https://www.instagram.com/api/v1/users/web_profile_info/?username=${PROFILE}`;
 const BLOG_IMAGE_DIR = path.resolve("public/images/blog");
+const BLOG_VIDEO_DIR = path.resolve("public/videos/blog");
 const CONTENT_PATH = path.resolve("public/config/site-content.json");
 const REPORT_PATH = path.resolve("scripts/ig-latest-sync.json");
-const MAX_POSTS = Number.parseInt(process.env.IG_MAX_POSTS || "8", 10);
+const MAX_POSTS = Number.parseInt(process.env.IG_MAX_POSTS || "16", 10);
 
 function requestJson(url, headers = {}) {
   return new Promise((resolve, reject) => {
@@ -57,7 +58,7 @@ function downloadFile(url, destPath) {
           return;
         }
         if (res.statusCode !== 200) {
-          reject(new Error(`Image download failed ${res.statusCode}: ${url}`));
+          reject(new Error(`Download failed ${res.statusCode}: ${url}`));
           return;
         }
         const chunks = [];
@@ -98,30 +99,57 @@ function collapseWhitespace(value) {
   return value.replace(/\s+/g, " ").trim();
 }
 
+function trimWithEllipsis(value, max = 72) {
+  const normalized = collapseWhitespace(value);
+  if (normalized.length <= max) {
+    return normalized;
+  }
+  const shortened = normalized.slice(0, max);
+  const safeCut = shortened.includes(" ")
+    ? shortened.slice(0, shortened.lastIndexOf(" "))
+    : shortened;
+  return `${safeCut.trimEnd()}…`;
+}
+
+function stripCaptionNoise(value) {
+  const withoutLinks = value.replace(/https?:\/\/\S+/gi, " ");
+  const withoutTags = withoutLinks.replace(/#([\p{L}\p{N}_]+)/gu, " ");
+  const withoutLeadingJunk = withoutTags.replace(/^[^0-9A-Za-zА-Яа-яІіЇїЄєҐґ]+/u, "");
+  return collapseWhitespace(withoutLeadingJunk)
+    .replace(/[:\-–—•|]+$/u, "")
+    .trim();
+}
+
+function pickTitleSeed(caption, fallback) {
+  const lines = caption
+    .split("\n")
+    .map((line) => stripCaptionNoise(line))
+    .filter(Boolean);
+
+  const textLines = lines.filter((line) => /[A-Za-zА-Яа-яІіЇїЄєҐґ]/u.test(line));
+  if (textLines.length === 0) {
+    return fallback;
+  }
+
+  const first = textLines[0];
+  if ((first.length < 28 || /[:\-–—]$/u.test(first)) && textLines[1]) {
+    return `${first.replace(/[:\-–—]+$/u, "").trim()} ${textLines[1]}`.trim();
+  }
+
+  return first;
+}
+
 function isLikelyUkrainian(text) {
   const normalized = text.toLowerCase();
   return /[іїєґ]/.test(normalized) || /[а-я]/.test(normalized);
 }
 
 function makeTitleFromCaption(caption, fallback) {
-  const line = caption
-    .split("\n")
-    .map((part) => collapseWhitespace(part))
-    .find(Boolean);
-  const source = line || fallback;
-  const sentence = source.split(/[.!?]/)[0] || source;
-  const compact = collapseWhitespace(sentence).replace(/^[-–—•\s]+/, "");
-  if (!compact) {
-    return fallback;
-  }
-  if (compact.length <= 58) {
-    return compact;
-  }
-  const shortened = compact.slice(0, 58);
-  const safeCut = shortened.includes(" ")
-    ? shortened.slice(0, shortened.lastIndexOf(" "))
-    : shortened;
-  return `${safeCut.trimEnd()}…`;
+  const seed = pickTitleSeed(caption, fallback);
+  const firstSentence = seed.split(/[.!?](?:\s|$)/u)[0] || seed;
+  const compact = collapseWhitespace(firstSentence);
+  if (!compact) return fallback;
+  return trimWithEllipsis(compact, 92);
 }
 
 function slugify(value, shortcode) {
@@ -141,19 +169,127 @@ function extractHashtags(text) {
 }
 
 function extractShortcodeFromPost(post) {
-  const src = post?.media?.[0]?.src || "";
-  const filename = src.split("/").pop();
-  if (!filename) {
-    const match = String(post.id || "").match(/^ig-([a-z0-9_-]{6,})$/i);
-    return match ? match[1].toUpperCase() : null;
+  const fromId = String(post?.id || "").match(/^ig-([a-z0-9_-]{6,})$/i);
+  if (fromId) {
+    return fromId[1].toUpperCase();
   }
-  const basename = filename.replace(/\.(jpg|jpeg|png|webp)$/i, "");
-  const normalized = basename.replace(/-\d+$/, "");
-  return normalized ? normalized.toUpperCase() : null;
+
+  const candidates = Array.isArray(post?.media)
+    ? post.media.flatMap((media) => [media?.src, media?.poster]).filter(Boolean)
+    : [];
+  for (const candidate of candidates) {
+    const filename = String(candidate).split("?")[0].split("/").pop() || "";
+    const basename = filename.replace(/\.(jpg|jpeg|png|webp|mp4|webm|mov)$/i, "");
+    const normalized = basename.replace(/-\d+$/, "");
+    if (/^[a-z0-9_-]{6,}$/i.test(normalized)) {
+      return normalized.toUpperCase();
+    }
+  }
+
+  return null;
+}
+
+function fileExtensionFromUrl(url, fallback) {
+  try {
+    const ext = path.extname(new URL(url).pathname).toLowerCase();
+    if (!ext) return fallback;
+    if (/^\.[a-z0-9]{2,5}$/.test(ext)) return ext;
+    return fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function mediaFileSuffix(index) {
+  return index === null ? "" : `-${index + 1}`;
+}
+
+async function buildMediaForNode(node, shortcode, enTitle) {
+  const media = [];
+
+  const createImageMedia = async (displayUrl, index = null) => {
+    if (!displayUrl) return null;
+    const suffix = mediaFileSuffix(index);
+    const imageFilename = `${shortcode}${suffix}.jpg`;
+    const imagePath = path.join(BLOG_IMAGE_DIR, imageFilename);
+    await downloadFile(displayUrl, imagePath);
+    return {
+      id: `media-ig-${shortcode.toLowerCase()}${suffix || ""}`,
+      type: "image",
+      src: `/images/blog/${imageFilename}`,
+      alt: enTitle,
+    };
+  };
+
+  const createVideoMedia = async (videoUrl, displayUrl, index = null) => {
+    if (!videoUrl) return null;
+    const suffix = mediaFileSuffix(index);
+    const videoExt = fileExtensionFromUrl(videoUrl, ".mp4");
+    const videoFilename = `${shortcode}${suffix}${videoExt}`;
+    const videoPath = path.join(BLOG_VIDEO_DIR, videoFilename);
+    await downloadFile(videoUrl, videoPath);
+
+    let posterSrc;
+    if (displayUrl) {
+      try {
+        const posterFilename = `${shortcode}${suffix}.jpg`;
+        const posterPath = path.join(BLOG_IMAGE_DIR, posterFilename);
+        await downloadFile(displayUrl, posterPath);
+        posterSrc = `/images/blog/${posterFilename}`;
+      } catch {
+        posterSrc = undefined;
+      }
+    }
+
+    return {
+      id: `media-ig-${shortcode.toLowerCase()}${suffix || ""}`,
+      type: "video",
+      src: `/videos/blog/${videoFilename}`,
+      poster: posterSrc,
+      alt: enTitle,
+    };
+  };
+
+  const sidecar = node?.edge_sidecar_to_children?.edges || [];
+  if (Array.isArray(sidecar) && sidecar.length > 0) {
+    for (let i = 0; i < sidecar.length; i += 1) {
+      const child = sidecar[i]?.node;
+      if (!child) continue;
+      if (child.is_video && child.video_url) {
+        try {
+          const item = await createVideoMedia(child.video_url, child.display_url, i);
+          if (item) media.push(item);
+        } catch {
+          const fallbackItem = await createImageMedia(child.display_url, i);
+          if (fallbackItem) media.push(fallbackItem);
+        }
+        continue;
+      }
+      const item = await createImageMedia(child.display_url, i);
+      if (item) media.push(item);
+    }
+    return media;
+  }
+
+  if (node?.is_video && node?.video_url) {
+    try {
+      const videoItem = await createVideoMedia(node.video_url, node.display_url, null);
+      if (videoItem) media.push(videoItem);
+    } catch {
+      const fallbackItem = await createImageMedia(node?.display_url, null);
+      if (fallbackItem) media.push(fallbackItem);
+    }
+    return media;
+  }
+
+  const imageItem = await createImageMedia(node?.display_url, null);
+  if (imageItem) media.push(imageItem);
+  return media;
 }
 
 async function main() {
   await fs.mkdir(BLOG_IMAGE_DIR, { recursive: true });
+  await fs.mkdir(BLOG_VIDEO_DIR, { recursive: true });
 
   const response = await requestJson(PROFILE_URL, {
     "x-ig-app-id": "936619743392459",
@@ -191,67 +327,66 @@ async function main() {
   const imported = [];
 
   for (const edge of sortedEdges) {
-    const node = edge?.node;
-    if (!node) continue;
+    try {
+      const node = edge?.node;
+      if (!node) continue;
 
-    const shortcode = String(node.shortcode || "").toUpperCase();
-    if (!shortcode) {
-      continue;
-    }
+      const shortcode = String(node.shortcode || "").toUpperCase();
+      if (!shortcode) {
+        continue;
+      }
 
-    const rawCaption = node?.edge_media_to_caption?.edges?.[0]?.node?.text || "";
-    const uaCaptionCandidate = cleanCaption(rawCaption);
-    const uaCaption = isLikelyUkrainian(uaCaptionCandidate)
-      ? uaCaptionCandidate
-      : await translateText(uaCaptionCandidate, "uk");
-    const enCaption = await translateText(uaCaptionCandidate, "en");
+      const rawCaption = node?.edge_media_to_caption?.edges?.[0]?.node?.text || "";
+      const uaCaptionCandidate = cleanCaption(rawCaption);
+      const uaCaption = isLikelyUkrainian(uaCaptionCandidate)
+        ? uaCaptionCandidate
+        : await translateText(uaCaptionCandidate, "uk");
+      const enCaption = await translateText(uaCaptionCandidate, "en");
 
-    const uaTitle = makeTitleFromCaption(uaCaption, `Instagram post ${shortcode}`);
-    const enTitleSource = makeTitleFromCaption(enCaption, `Instagram post ${shortcode}`);
-    const enTitle = collapseWhitespace(enTitleSource);
-    const slug = slugify(enTitle, shortcode);
+      const uaTitle = makeTitleFromCaption(uaCaption, `Instagram post ${shortcode}`);
+      const enTitleSource = makeTitleFromCaption(enCaption, `Instagram post ${shortcode}`);
+      const enTitle = collapseWhitespace(enTitleSource);
+      const existing = postsByShortcode.get(shortcode);
+      const slug = existing?.slug || slugify(enTitle, shortcode);
 
-    const imagePath = path.join(BLOG_IMAGE_DIR, `${shortcode}.jpg`);
-    await downloadFile(node.display_url, imagePath);
+      const media = await buildMediaForNode(node, shortcode, enTitle);
+      if (!media.length) {
+        continue;
+      }
 
-    const post = {
-      id: `ig-${shortcode.toLowerCase()}`,
-      slug,
-      title: {
-        ua: uaTitle,
-        en: enTitle,
-      },
-      caption: {
-        ua: uaCaption,
-        en: enCaption,
-      },
-      date: new Date((node.taken_at_timestamp || 0) * 1000).toISOString(),
-      location: {
-        ua: "Україна",
-        en: "Ukraine",
-      },
-      tags: extractHashtags(uaCaptionCandidate),
-      status: "published",
-      media: [
-        {
-          id: `media-ig-${shortcode.toLowerCase()}`,
-          type: "image",
-          src: `/images/blog/${shortcode}.jpg`,
-          alt: enTitle,
+      const post = {
+        id: `ig-${shortcode.toLowerCase()}`,
+        slug,
+        title: {
+          ua: uaTitle,
+          en: enTitle,
         },
-      ],
-    };
+        caption: {
+          ua: uaCaption,
+          en: enCaption,
+        },
+        date: new Date((node.taken_at_timestamp || 0) * 1000).toISOString(),
+        location: {
+          ua: "Україна",
+          en: "Ukraine",
+        },
+        tags: extractHashtags(uaCaptionCandidate),
+        status: "published",
+        media,
+      };
 
-    const existing = postsByShortcode.get(shortcode);
-    postsByShortcode.set(shortcode, post);
+      postsByShortcode.set(shortcode, post);
 
-    imported.push({
-      shortcode,
-      action: existing ? "updated" : "added",
-      slug,
-      date: post.date,
-      image: `/images/blog/${shortcode}.jpg`,
-    });
+      imported.push({
+        shortcode,
+        action: existing ? "updated" : "added",
+        slug,
+        date: post.date,
+        media: media.map((item) => item.type),
+      });
+    } catch (error) {
+      console.warn(`Skipped post due to sync error: ${error.message}`);
+    }
   }
 
   const withoutShortcodePosts = dedupedExisting.filter((post) => !extractShortcodeFromPost(post));

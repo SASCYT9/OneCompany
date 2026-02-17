@@ -47,13 +47,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
   }
 
-  const cover = post.media.find((item) => item.type === "image");
+  const cover =
+    post.media.find((item) => item.type === "image")?.src ??
+    post.media.find((item) => item.type === "video" && item.poster)?.poster;
   const localizedTitle = getLocalized(post.title, l);
   const localizedCaption = getLocalized(post.caption, l);
   return buildPageMetadata(l, `blog/${post.slug}`, {
     title: localizedTitle,
     description: toExcerpt(localizedCaption, localizedTitle),
-    image: cover?.src,
+    image: cover,
     type: "article",
   });
 }
@@ -77,13 +79,16 @@ export default async function BlogPostPage({ params }: Props) {
   const hasHashtagLine = lastPara.startsWith("#");
   const bodyParagraphs = hasHashtagLine ? captionParagraphs.slice(0, -1) : captionParagraphs;
 
-  const images = post.media.filter((m) => m.type === "image");
-  const hasMultipleImages = images.length > 1;
+  const mediaItems = post.media;
+  const hasMultipleMedia = mediaItems.length > 1;
   const localizedTitle = getLocalized(post.title, l);
   const postUrl = absoluteUrl(buildLocalizedPath(l, `/blog/${post.slug}`));
   const articleDescription = toExcerpt(captionText, localizedTitle);
-  const coverImage = images[0]?.src
-    ? (images[0].src.startsWith("http") ? images[0].src : absoluteUrl(images[0].src))
+  const coverPath =
+    mediaItems.find((item) => item.type === "image")?.src ??
+    mediaItems.find((item) => item.type === "video" && item.poster)?.poster;
+  const coverImage = coverPath
+    ? (coverPath.startsWith("http") ? coverPath : absoluteUrl(coverPath))
     : undefined;
   const breadcrumbs = [
     { name: l === "ua" ? "Головна" : "Home", url: absoluteUrl(buildLocalizedPath(l)) },
@@ -126,27 +131,43 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* ── LEFT: Image carousel ── */}
           <div className="w-full lg:w-[55%] xl:w-[58%]">
-            {images.length > 0 && (
+            {mediaItems.length > 0 && (
               <div className="lg:sticky lg:top-28">
-                {hasMultipleImages ? (
+                {hasMultipleMedia ? (
                   <BlogCarousel
-                    images={images.map((img) => ({
-                      src: img.src,
-                      alt: img.alt ?? localizedTitle,
+                    media={mediaItems.map((item) => ({
+                      type: item.type,
+                      src: item.src,
+                      poster: item.poster,
+                      alt: item.alt ?? localizedTitle,
                     }))}
                   />
                 ) : (
                   <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] sm:aspect-[3/4] lg:rounded-3xl">
-                    <Image
-                      src={images[0].src}
-                      alt={images[0].alt ?? localizedTitle}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 55vw"
-                      className="object-cover"
-                      priority
-                      unoptimized={images[0].src.startsWith("http")}
-                      loader={images[0].src.startsWith("http") ? ({ src }) => src : undefined}
-                    />
+                    {mediaItems[0].type === "image" ? (
+                      <Image
+                        src={mediaItems[0].src}
+                        alt={mediaItems[0].alt ?? localizedTitle}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 55vw"
+                        className="object-cover"
+                        priority
+                        unoptimized={mediaItems[0].src.startsWith("http")}
+                        loader={mediaItems[0].src.startsWith("http") ? ({ src }) => src : undefined}
+                      />
+                    ) : (
+                      <video
+                        src={mediaItems[0].src}
+                        poster={mediaItems[0].poster}
+                        controls
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        preload="metadata"
+                        className="h-full w-full object-cover"
+                      />
+                    )}
                   </div>
                 )}
               </div>

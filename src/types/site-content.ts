@@ -58,6 +58,7 @@ export type BlogMedia = {
   id: string;
   type: 'image' | 'video';
   src: string;
+  poster?: string;
   alt?: string;
 };
 
