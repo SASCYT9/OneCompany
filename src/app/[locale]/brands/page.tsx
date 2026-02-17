@@ -17,6 +17,7 @@ import { BrandModal } from '@/components/ui/BrandModal';
 import { BrandItem } from '@/components/sections/BrandLogosGrid';
 import { getTypography, resolveLocale } from '@/lib/typography';
 import { BreadcrumbSchema, CollectionPageSchema } from '@/components/seo/StructuredData';
+import { absoluteUrl, buildLocalizedPath } from '@/lib/seo';
 
 export default function BrandsPage() {
   const locale = useLocale();
@@ -24,10 +25,10 @@ export default function BrandsPage() {
   const [search, setSearch] = useState('');
   const [selectedBrand, setSelectedBrand] = useState<BrandItem | null>(null);
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
+  const resolvedLocale = locale === 'ua' ? 'ua' : 'en';
   const breadcrumbs = [
-    { name: locale === 'ua' ? 'Головна' : 'Home', url: `${baseUrl}/${locale}` },
-    { name: locale === 'ua' ? 'Бренди' : 'Brands', url: `${baseUrl}/${locale}/brands` },
+    { name: locale === 'ua' ? 'Головна' : 'Home', url: absoluteUrl(buildLocalizedPath(resolvedLocale)) },
+    { name: locale === 'ua' ? 'Бренди' : 'Brands', url: absoluteUrl(buildLocalizedPath(resolvedLocale, '/brands')) },
   ];
 
   const brands = Object.entries(BRAND_LOGO_MAP).sort((a, b) => a[0].localeCompare(b[0]));
@@ -78,7 +79,7 @@ export default function BrandsPage() {
       <CollectionPageSchema
         name={locale === 'ua' ? 'Всі бренди' : 'All Brands'}
         description={locale === 'ua' ? 'Каталог 200+ преміум брендів авто та мото тюнінгу.' : 'Catalog of 200+ premium auto and moto tuning brands.'}
-        url={`${baseUrl}/${locale}/brands`}
+        url={absoluteUrl(buildLocalizedPath(resolvedLocale, '/brands'))}
       />
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[radial-gradient(circle,_rgba(255,255,255,0.05)_0%,_transparent_70%)] rounded-full blur-3xl" />

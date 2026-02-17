@@ -4,24 +4,34 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/navigation";
 import { readSiteContent } from "@/lib/siteContentServer";
-import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
+import {
+  absoluteUrl,
+  buildLocalizedPath,
+  buildPageMetadata,
+  resolveLocale,
+  type SupportedLocale,
+} from "@/lib/seo";
 import { BlogCarousel } from "./BlogCarousel";
+import { ArticleSchema, BreadcrumbSchema } from "@/components/seo/StructuredData";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
 }
 
-const formatDate = (value: string, locale: SupportedLocale) => {
-  const formatter = new Intl.DateTimeFormat(locale === "ua" ? "uk-UA" : "en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  return formatter.format(new Date(value));
-};
-
 const getLocalized = (value: { ua: string; en: string }, locale: SupportedLocale) => {
   return value[locale] || value.ua || value.en;
+};
+
+const toExcerpt = (value: string, fallback: string, max = 170) => {
+  const firstLine = value
+    .split("\n")
+    .map((line) => line.trim())
+    .find(Boolean);
+  const normalized = (firstLine || fallback).replace(/\s+/g, " ").trim();
+  if (normalized.length <= max) {
+    return normalized;
+  }
+  return `${normalized.slice(0, max - 1).trimEnd()}…`;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -38,9 +48,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const cover = post.media.find((item) => item.type === "image");
+  const localizedTitle = getLocalized(post.title, l);
+  const localizedCaption = getLocalized(post.caption, l);
   return buildPageMetadata(l, `blog/${post.slug}`, {
-    title: getLocalized(post.title, l),
-    description: getLocalized(post.caption, l),
+    title: localizedTitle,
+    description: toExcerpt(localizedCaption, localizedTitle),
     image: cover?.src,
     type: "article",
   });
@@ -67,9 +79,31 @@ export default async function BlogPostPage({ params }: Props) {
 
   const images = post.media.filter((m) => m.type === "image");
   const hasMultipleImages = images.length > 1;
+  const localizedTitle = getLocalized(post.title, l);
+  const postUrl = absoluteUrl(buildLocalizedPath(l, `/blog/${post.slug}`));
+  const articleDescription = toExcerpt(captionText, localizedTitle);
+  const coverImage = images[0]?.src
+    ? (images[0].src.startsWith("http") ? images[0].src : absoluteUrl(images[0].src))
+    : undefined;
+  const breadcrumbs = [
+    { name: l === "ua" ? "Головна" : "Home", url: absoluteUrl(buildLocalizedPath(l)) },
+    { name: l === "ua" ? "Блог" : "Blog", url: absoluteUrl(buildLocalizedPath(l, "/blog")) },
+    { name: localizedTitle, url: postUrl },
+  ];
 
   return (
     <main id="main-content" className="relative min-h-screen bg-black text-white">
+      <BreadcrumbSchema items={breadcrumbs} />
+      <ArticleSchema
+        id="blog-post-article-schema"
+        headline={localizedTitle}
+        description={articleDescription}
+        url={postUrl}
+        image={coverImage}
+        datePublished={post.date}
+        dateModified={post.date}
+        locale={l}
+      />
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         <div className="absolute -left-40 top-0 h-[600px] w-[600px] rounded-full bg-[radial-gradient(circle,_rgba(255,179,71,0.06),_transparent_65%)] blur-[120px]" />
@@ -98,14 +132,14 @@ export default async function BlogPostPage({ params }: Props) {
                   <BlogCarousel
                     images={images.map((img) => ({
                       src: img.src,
-                      alt: img.alt ?? getLocalized(post.title, l),
+                      alt: img.alt ?? localizedTitle,
                     }))}
                   />
                 ) : (
                   <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] sm:aspect-[3/4] lg:rounded-3xl">
                     <Image
                       src={images[0].src}
-                      alt={images[0].alt ?? getLocalized(post.title, l)}
+                      alt={images[0].alt ?? localizedTitle}
                       fill
                       sizes="(max-width: 1024px) 100vw, 55vw"
                       className="object-cover"
@@ -131,7 +165,7 @@ export default async function BlogPostPage({ params }: Props) {
 
               {/* Title */}
               <h1 className="mt-5 font-display text-2xl font-light leading-tight tracking-tight sm:text-3xl lg:text-4xl">
-                {getLocalized(post.title, l)}
+                {localizedTitle}
               </h1>
 
               {/* Divider */}

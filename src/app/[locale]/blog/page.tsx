@@ -3,7 +3,13 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/navigation";
 import { readSiteContent } from "@/lib/siteContentServer";
-import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
+import {
+  absoluteUrl,
+  buildLocalizedPath,
+  buildPageMetadata,
+  resolveLocale,
+  type SupportedLocale,
+} from "@/lib/seo";
 import { BreadcrumbSchema } from '@/components/seo/StructuredData';
 
 interface Props {
@@ -27,15 +33,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return buildPageMetadata(l, "blog", metaCopy[l]);
 }
 
-const formatDate = (value: string, locale: SupportedLocale) => {
-  const formatter = new Intl.DateTimeFormat(locale === "ua" ? "uk-UA" : "en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  return formatter.format(new Date(value));
-};
-
 const getLocalized = (value: { ua: string; en: string }, locale: SupportedLocale) => {
   return value[locale] || value.ua || value.en;
 };
@@ -57,10 +54,9 @@ export default async function BlogPage({ params }: Props) {
   /* First post is featured (hero card), rest are grid */
   const [featured, ...rest] = posts;
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
   const breadcrumbs = [
-    { name: l === 'ua' ? 'Головна' : 'Home', url: `${baseUrl}/${l}` },
-    { name: l === 'ua' ? 'Блог' : 'Blog', url: `${baseUrl}/${l}/blog` },
+    { name: l === 'ua' ? 'Головна' : 'Home', url: absoluteUrl(buildLocalizedPath(l)) },
+    { name: l === 'ua' ? 'Блог' : 'Blog', url: absoluteUrl(buildLocalizedPath(l, "/blog")) },
   ];
 
   return (

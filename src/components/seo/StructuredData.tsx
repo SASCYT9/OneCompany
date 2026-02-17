@@ -312,3 +312,60 @@ export function CollectionPageSchema({ name, description, url }: CollectionPageS
   );
 }
 
+interface ArticleSchemaProps {
+  id: string;
+  headline: string;
+  description: string;
+  url: string;
+  image?: string;
+  datePublished: string;
+  dateModified?: string;
+  locale?: "ua" | "en";
+}
+
+export function ArticleSchema({
+  id,
+  headline,
+  description,
+  url,
+  image,
+  datePublished,
+  dateModified,
+  locale = "ua",
+}: ArticleSchemaProps) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline,
+    description,
+    url,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url,
+    },
+    image: image ? [image] : undefined,
+    datePublished,
+    dateModified: dateModified ?? datePublished,
+    inLanguage: locale === "ua" ? "uk-UA" : "en-US",
+    author: {
+      "@type": "Organization",
+      name: "One Company Global",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "One Company Global",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://onecompany.global/branding/one-company-logo.svg",
+      },
+    },
+  };
+
+  return (
+    <Script
+      id={id}
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}

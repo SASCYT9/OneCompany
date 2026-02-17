@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getBrandsByCategory, brandMetadata, countryNames, subcategoryNames } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
@@ -6,9 +7,18 @@ import BrandLogosGrid from '@/components/sections/BrandLogosGrid';
 import CategoryCard from '@/components/ui/CategoryCard';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { resolveLocale } from "@/lib/seo";
+import { buildBrandsSegmentMetadata } from "../segmentMetadata";
 
 interface PageProps {
   params: Promise<{ locale: string }>
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  return buildBrandsSegmentMetadata(resolveLocale(locale), "usa");
 }
 
 export default async function BrandsCategoryUSAPage({ params }: PageProps) {

@@ -1,13 +1,23 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { allMotoBrands, getBrandSlug, brandMetadata, countryNames, subcategoryNames } from '@/lib/brands';
 import { getBrandLogo } from '@/lib/brandLogos';
 import ProductCard from '@/components/products/ProductCard';
 import Link from 'next/link';
+import { resolveLocale } from "@/lib/seo";
+import { buildBrandsSegmentMetadata } from "../segmentMetadata";
 
 interface MotoBrandsPageProps {
   params: Promise<{
     locale: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: MotoBrandsPageProps): Promise<Metadata> {
+  const { locale } = await params;
+  return buildBrandsSegmentMetadata(resolveLocale(locale), "moto");
 }
 
 export default async function MotoBrandsPage({ params }: MotoBrandsPageProps) {

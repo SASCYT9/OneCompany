@@ -5,7 +5,17 @@ import { useTranslations } from 'next-intl';
 
 const STORAGE_KEY = 'heroVideoDisabled';
 
-export function HeroVideoWrapper({ src, poster, serverEnabled = true }: { src: string, mobileSrc?: string, poster?: string, serverEnabled?: boolean }) {
+export function HeroVideoWrapper({
+  src,
+  mobileSrc,
+  poster,
+  serverEnabled = true,
+}: {
+  src: string;
+  mobileSrc?: string;
+  poster?: string;
+  serverEnabled?: boolean;
+}) {
   const [disabled, setDisabled] = useState(false);
   const t = useTranslations('admin');
 
@@ -57,9 +67,13 @@ export function HeroVideoWrapper({ src, poster, serverEnabled = true }: { src: s
             loop
             muted
             playsInline
+            preload="metadata"
             className="h-full w-full object-cover opacity-30"
             poster={poster}
           >
+            {mobileSrc && (
+              <source src={mobileSrc} media="(max-width: 768px)" type="video/mp4" />
+            )}
             <source src={src} type="video/mp4" />
             <track kind="captions" />
           </video>

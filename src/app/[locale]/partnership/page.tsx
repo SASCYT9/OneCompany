@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Script from "next/script";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import PartnershipPageClient from "./PartnershipPageClient";
 import { BreadcrumbSchema } from '@/components/seo/StructuredData';
 
@@ -32,10 +32,9 @@ export default async function PartnershipPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
   const breadcrumbs = [
-    { name: resolvedLocale === 'ua' ? 'Головна' : 'Home', url: `${baseUrl}/${resolvedLocale}` },
-    { name: resolvedLocale === 'ua' ? 'Партнерство' : 'Partnership', url: `${baseUrl}/${resolvedLocale}/partnership` },
+    { name: resolvedLocale === 'ua' ? 'Головна' : 'Home', url: absoluteUrl(buildLocalizedPath(resolvedLocale)) },
+    { name: resolvedLocale === 'ua' ? 'Партнерство' : 'Partnership', url: absoluteUrl(buildLocalizedPath(resolvedLocale, '/partnership')) },
   ];
 
   const jsonLd = {
@@ -45,7 +44,7 @@ export default async function PartnershipPage({ params }: Props) {
     "description": resolvedLocale === "ua" 
       ? "Станьте офіційним партнером OneCompany." 
       : "Become an official OneCompany partner.",
-    "url": `https://onecompany.global/${resolvedLocale}/partnership`
+    "url": absoluteUrl(buildLocalizedPath(resolvedLocale, '/partnership'))
   };
 
   return (

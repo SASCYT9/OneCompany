@@ -1,4 +1,11 @@
 import type { Metadata } from 'next';
+import {
+  absoluteUrl,
+  buildAlternateLinks,
+  buildLocalizedPath,
+  resolveLocale,
+  type SupportedLocale,
+} from '@/lib/seo';
 import type { CategorySlug, Localized } from './categoryMeta';
 
 export interface CategoryData {
@@ -626,24 +633,27 @@ export function getCategoryMetadata(slug: string, locale: string): Metadata {
   const category = categoryData.find(c => c.slug === slug);
   if (!category) return {};
 
-  const lang = locale === 'ua' ? 'ua' : 'en';
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
-  const url = `${baseUrl}/${locale}/${category.segment}/categories/${slug}`;
+  const resolvedLocale = resolveLocale(locale);
+  const lang: SupportedLocale = resolvedLocale;
+  const pageSlug = `/${category.segment}/categories/${slug}`;
+  const url = absoluteUrl(buildLocalizedPath(resolvedLocale, pageSlug));
+  const localizedTitle = category.title[lang];
+  const title =
+    lang === 'ua'
+      ? `${localizedTitle} · Категорія тюнінгу OneCompany`
+      : `${localizedTitle} · OneCompany Tuning Category`;
   
   return {
-    title: category.title[lang],
+    title,
     description: category.description[lang],
     alternates: {
       canonical: url,
-      languages: {
-        'en': `${baseUrl}/en/${category.segment}/categories/${slug}`,
-        'uk-UA': `${baseUrl}/ua/${category.segment}/categories/${slug}`,
-      }
+      languages: buildAlternateLinks(pageSlug),
     },
     openGraph: {
-      title: category.title[lang],
+      title,
       description: category.description[lang],
-      url: url,
-    }
+      url,
+    },
   };
 }

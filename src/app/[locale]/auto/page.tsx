@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Script from "next/script";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import AutoPageClient from "./AutoPageClient";
 import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 
@@ -31,10 +31,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function AutoPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
   const breadcrumbs = [
-    { name: resolvedLocale === 'ua' ? 'Головна' : 'Home', url: `${baseUrl}/${resolvedLocale}` },
-    { name: resolvedLocale === 'ua' ? 'Авто Тюнінг' : 'Auto Tuning', url: `${baseUrl}/${resolvedLocale}/auto` },
+    { name: resolvedLocale === 'ua' ? 'Головна' : 'Home', url: absoluteUrl(buildLocalizedPath(resolvedLocale)) },
+    { name: resolvedLocale === 'ua' ? 'Авто Тюнінг' : 'Auto Tuning', url: absoluteUrl(buildLocalizedPath(resolvedLocale, '/auto')) },
   ];
 
   const jsonLd = {
@@ -44,7 +43,7 @@ export default async function AutoPage({ params }: Props) {
     "description": resolvedLocale === "ua" 
       ? "Каталог преміум тюнінгу для автомобілів." 
       : "Catalog of premium tuning for cars.",
-    "url": `https://onecompany.global/${resolvedLocale}/auto`,
+    "url": absoluteUrl(buildLocalizedPath(resolvedLocale, '/auto')),
     "isPartOf": {
       "@type": "WebSite",
       "name": "OneCompany",

@@ -12,6 +12,7 @@ import { BreadcrumbSchema, CollectionPageSchema } from '@/components/seo/Structu
 import { getBrandStoryForBrand } from '@/lib/brandStories';
 import { BrandModal } from '@/components/ui/BrandModal';
 import { BrandItem } from '@/components/sections/BrandLogosGrid';
+import { absoluteUrl, buildLocalizedPath } from '@/lib/seo';
 
 interface Props {
   category: CategoryData;
@@ -46,11 +47,17 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
     });
   };
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
+  const resolvedLocale = locale === 'ua' ? 'ua' : 'en';
   const breadcrumbs = [
-    { name: locale === 'ua' ? 'Головна' : 'Home', url: `${baseUrl}/${locale}` },
-    { name: category.segment === 'moto' ? (locale === 'ua' ? 'Мото' : 'Moto') : (locale === 'ua' ? 'Авто' : 'Auto'), url: `${baseUrl}/${locale}/${category.segment}` },
-    { name: category.title[lang], url: `${baseUrl}/${locale}/${category.segment}/categories/${category.slug}` },
+    { name: locale === 'ua' ? 'Головна' : 'Home', url: absoluteUrl(buildLocalizedPath(resolvedLocale)) },
+    {
+      name: category.segment === 'moto' ? (locale === 'ua' ? 'Мото' : 'Moto') : (locale === 'ua' ? 'Авто' : 'Auto'),
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, `/${category.segment}`)),
+    },
+    {
+      name: category.title[lang],
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, `/${category.segment}/categories/${category.slug}`)),
+    },
   ];
 
   return (
@@ -59,7 +66,7 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
        <CollectionPageSchema 
          name={category.title[lang]} 
          description={category.description[lang]} 
-         url={`${baseUrl}/${locale}/${category.segment}/categories/${category.slug}`} 
+         url={absoluteUrl(buildLocalizedPath(resolvedLocale, `/${category.segment}/categories/${category.slug}`))} 
        />
 
        {/* Video Background */}

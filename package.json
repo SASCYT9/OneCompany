@@ -19,7 +19,8 @@
     "download-logos-advanced": "tsx scripts/download-logos-advanced.ts",
     "download-missing-logos": "tsx scripts/download-missing-logos.ts",
     "check-missing-logos": "tsx scripts/check-missing-logos.ts",
-    "upgrade-all-small-logos": "tsx scripts/upgrade-all-small-logos.ts"
+    "upgrade-all-small-logos": "tsx scripts/upgrade-all-small-logos.ts",
+    "sync:instagram-blog": "node scripts/sync-instagram-blog.mjs"
   },
   "dependencies": {
     "@grammyjs/auto-retry": "^2.0.2",

@@ -18,6 +18,14 @@ const localeToOg: Record<SupportedLocale, string> = {
 
 const defaultOgImage = "/branding/og-image.png";
 
+function normalizeMetaText(value: string, limit: number): string {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= limit) {
+    return normalized;
+  }
+  return `${normalized.slice(0, limit - 1).trimEnd()}…`;
+}
+
 export function resolveLocale(locale?: string): SupportedLocale {
   return siteConfig.locales.includes(locale as SupportedLocale)
     ? (locale as SupportedLocale)
@@ -37,21 +45,14 @@ export function buildLocalizedPath(locale: SupportedLocale, slug = ""): string {
 
 export function buildAlternateLinks(slug = ""): Record<string, string> {
   const links: Record<string, string> = {};
-  
-  // Add all locales
-  siteConfig.locales.forEach(locale => {
-    // Use proper ISO language code 'uk' for Ukrainian instead of 'ua'
-    const hreflangCode = locale === 'ua' ? 'uk' : locale;
+
+  siteConfig.locales.forEach((locale) => {
+    const hreflangCode = locale === "ua" ? "uk" : locale;
     links[hreflangCode] = absoluteUrl(buildLocalizedPath(locale, slug));
   });
-  
-  // Add Russian hreflang pointing to Ukrainian page (for Russian-speaking users)
-  // This helps Google show our site for Russian queries
-  links['ru'] = absoluteUrl(buildLocalizedPath('ua', slug));
-  
-  // Add x-default pointing to Ukrainian version
-  links['x-default'] = absoluteUrl(buildLocalizedPath('ua', slug));
-  
+
+  links["x-default"] = absoluteUrl(buildLocalizedPath(siteConfig.defaultLocale, slug));
+
   return links;
 }
 
@@ -62,18 +63,22 @@ export function buildPageMetadata(
 ): Metadata {
   const path = buildLocalizedPath(locale, slug);
   const url = absoluteUrl(path);
-  const ogImage = meta.image ?? absoluteUrl(defaultOgImage);
+  const ogImage = meta.image
+    ? (meta.image.startsWith("http") ? meta.image : absoluteUrl(meta.image))
+    : absoluteUrl(defaultOgImage);
+  const description = normalizeMetaText(meta.description, 180);
+  const title = normalizeMetaText(meta.title, 120);
 
   return {
-    title: meta.title,
-    description: meta.description,
+    title,
+    description,
     alternates: {
       canonical: url,
       languages: buildAlternateLinks(slug),
     },
     openGraph: {
-      title: meta.title,
-      description: meta.description,
+      title,
+      description,
       url,
       siteName: siteConfig.name,
       locale: localeToOg[locale],
@@ -83,14 +88,14 @@ export function buildPageMetadata(
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: meta.title,
+          alt: title,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: meta.title,
-      description: meta.description,
+      title,
+      description,
       images: [ogImage],
     },
   };
