@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useLocale } from 'next-intl';
 import Image from 'next/image';
+import Link from 'next/link';
 import { BRAND_LOGO_MAP } from '@/lib/brandLogos';
 import { shouldInvertBrand } from '@/lib/invertBrands';
 import {
@@ -32,6 +33,7 @@ export default function BrandsPage() {
   ];
 
   const brands = Object.entries(BRAND_LOGO_MAP).sort((a, b) => a[0].localeCompare(b[0]));
+  const motoBrandSet = new Set(allMotoBrands.map((brand) => brand.name));
 
   const filteredBrands = brands.filter(([name]) =>
     name.toLowerCase().includes(search.toLowerCase())
@@ -134,6 +136,18 @@ export default function BrandsPage() {
               <div className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <span className={`uppercase tracking-wider text-white/50 font-light truncate px-2 ${typography.badge}`}>{name}</span>
               </div>
+              <Link
+                href={`/${locale}/${motoBrandSet.has(name) ? 'moto' : 'auto'}`}
+                className="sr-only"
+                aria-label={
+                  locale === 'ua'
+                    ? `Перейти до ${motoBrandSet.has(name) ? 'мото' : 'авто'} каталогу бренду ${name}`
+                    : `Open ${motoBrandSet.has(name) ? 'moto' : 'auto'} catalog for ${name}`
+                }
+                tabIndex={-1}
+              >
+                {name}
+              </Link>
             </div>
           ))}
         </div>

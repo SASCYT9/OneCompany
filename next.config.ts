@@ -27,6 +27,56 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Keep admin tooling out of search results
+        source: '/admin',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow, noarchive',
+          },
+        ],
+      },
+      {
+        // Keep admin tooling out of search results
+        source: '/admin/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow, noarchive',
+          },
+        ],
+      },
+      {
+        // Telegram mini app is not intended for organic indexing
+        source: '/telegram-app',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow, noarchive',
+          },
+        ],
+      },
+      {
+        // Telegram mini app is not intended for organic indexing
+        source: '/telegram-app/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow, noarchive',
+          },
+        ],
+      },
+      {
+        // APIs must not be indexed
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow, noarchive',
+          },
+        ],
+      },
+      {
         source: '/:path*',
         headers: [
           {

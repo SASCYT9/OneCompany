@@ -99,7 +99,11 @@ export default async function BrandsCategoryOEMPage({ params }: PageProps) {
         </Link>
       </div>
 
-      <BrandLogosGrid items={items} />
+      <BrandLogosGrid
+        items={items}
+        internalHref={`/${locale}/auto`}
+        linkContext={resolvedLocale === "ua" ? "каталозі авто тюнінгу" : "auto tuning catalog"}
+      />
 
       <p className="mt-6 text-xs text-white/40">{t('brandsPage.logoDisclaimer')}</p>
     </div>

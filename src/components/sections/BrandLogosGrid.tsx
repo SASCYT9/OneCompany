@@ -1,6 +1,7 @@
 "use client";
 import Image from 'next/image';
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { BrandModal } from '../ui/BrandModal';
 import { shouldInvertBrandOrLogo, shouldSmartInvertBrand } from '@/lib/invertBrands';
 
@@ -18,9 +19,16 @@ export interface BrandItem {
 interface BrandLogosGridProps {
   title?: string;
   items: BrandItem[];
+  internalHref?: string;
+  linkContext?: string;
 }
 
-export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
+export default function BrandLogosGrid({
+  title,
+  items,
+  internalHref = '/ua/auto',
+  linkContext = 'auto tuning catalog',
+}: BrandLogosGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrand, setSelectedBrand] = useState<BrandItem | null>(null);
 
@@ -108,6 +116,14 @@ export default function BrandLogosGrid({ title, items }: BrandLogosGridProps) {
                           <span className="text-[9px] text-white/30 uppercase tracking-widest font-sans">{brand.country}</span>
                         </div>
                       )}
+                      <Link
+                        href={internalHref}
+                        className="sr-only"
+                        aria-label={`Browse ${brand.name} in ${linkContext}`}
+                        tabIndex={-1}
+                      >
+                        {brand.name}
+                      </Link>
                     </li>
                   ))}
                 </ul>
