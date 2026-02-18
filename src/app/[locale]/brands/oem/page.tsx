@@ -7,8 +7,9 @@ import BrandLogosGrid from '@/components/sections/BrandLogosGrid';
 import CategoryCard from '@/components/ui/CategoryCard';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, resolveLocale } from "@/lib/seo";
 import { buildBrandsSegmentMetadata } from "../segmentMetadata";
+import { BreadcrumbSchema, CollectionPageSchema } from "@/components/seo/StructuredData";
 
 interface PageProps {
   params: Promise<{ locale: string }>
@@ -58,9 +59,21 @@ export default async function BrandsCategoryOEMPage({ params }: PageProps) {
     { name: t('categories.oem'), href: `/${locale}/brands/oem` },
     { name: t('categories.racing'), href: `/${locale}/brands/racing` },
   ];
+  const resolvedLocale = resolveLocale(locale);
+  const breadcrumbs = [
+    { name: resolvedLocale === "ua" ? "Головна" : "Home", url: absoluteUrl(buildLocalizedPath(resolvedLocale)) },
+    { name: resolvedLocale === "ua" ? "Бренди" : "Brands", url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands")) },
+    { name: resolvedLocale === "ua" ? "OEM бренди" : "OEM brands", url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands/oem")) },
+  ];
 
   return (
     <div className="px-6 md:px-10 py-20 md:py-28">
+      <BreadcrumbSchema items={breadcrumbs} />
+      <CollectionPageSchema
+        name={resolvedLocale === "ua" ? "OEM бренди" : "OEM brands"}
+        description={resolvedLocale === "ua" ? "Каталог OEM брендів тюнінгу." : "Catalog of OEM tuning brands."}
+        url={absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands/oem"))}
+      />
       <h1 className="text-4xl md:text-5xl font-bold mb-10 tracking-tight">{t('brandsPage.title')}</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
@@ -72,12 +85,14 @@ export default async function BrandsCategoryOEMPage({ params }: PageProps) {
       <div className="flex space-x-8 mb-10 border-b border-white/20">
         <Link
           href={`/${locale}/brands`}
+          aria-label={resolvedLocale === "ua" ? "Перейти до брендів авто тюнінгу" : "Go to auto tuning brands"}
           className={`text-lg font-semibold pb-3 border-b-2 border-blue-500`}
         >
           {t('auto.title')}
         </Link>
         <Link
           href={`/${locale}/brands/moto`}
+          aria-label={resolvedLocale === "ua" ? "Перейти до брендів мото тюнінгу" : "Go to moto tuning brands"}
           className={`text-lg font-semibold pb-3 border-b-2 border-transparent text-white/60 hover:text-white`}
         >
           {t('moto.title')}

@@ -4,8 +4,9 @@ import { allMotoBrands, getBrandSlug, brandMetadata, countryNames, subcategoryNa
 import { getBrandLogo } from '@/lib/brandLogos';
 import ProductCard from '@/components/products/ProductCard';
 import Link from 'next/link';
-import { resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, resolveLocale } from "@/lib/seo";
 import { buildBrandsSegmentMetadata } from "../segmentMetadata";
+import { BreadcrumbSchema, CollectionPageSchema } from "@/components/seo/StructuredData";
 
 interface MotoBrandsPageProps {
   params: Promise<{
@@ -36,9 +37,21 @@ export default async function MotoBrandsPage({ params }: MotoBrandsPageProps) {
       subcategory: meta ? subcategoryNames[meta.subcategory][lang] : undefined,
     };
   });
+  const resolvedLocale = resolveLocale(locale);
+  const breadcrumbs = [
+    { name: resolvedLocale === "ua" ? "Головна" : "Home", url: absoluteUrl(buildLocalizedPath(resolvedLocale)) },
+    { name: resolvedLocale === "ua" ? "Бренди" : "Brands", url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands")) },
+    { name: resolvedLocale === "ua" ? "Мото бренди" : "Moto brands", url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands/moto")) },
+  ];
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
+      <BreadcrumbSchema items={breadcrumbs} />
+      <CollectionPageSchema
+        name={resolvedLocale === "ua" ? "Мото бренди" : "Moto brands"}
+        description={resolvedLocale === "ua" ? "Каталог мото брендів для тюнінгу." : "Catalog of motorcycle tuning brands."}
+        url={absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands/moto"))}
+      />
       {/* Hero Section */}
       <div className="px-6 md:px-10 py-32 md:py-40">
         <div className="max-w-7xl mx-auto text-center">
@@ -58,12 +71,14 @@ export default async function MotoBrandsPage({ params }: MotoBrandsPageProps) {
           <div className="flex justify-center space-x-16 py-6">
             <Link 
               href={`/${locale}/brands`} 
+              aria-label={resolvedLocale === "ua" ? "Перейти до брендів авто тюнінгу" : "Go to auto tuning brands"}
               className="text-base font-light pb-2 text-zinc-400 dark:text-white/40 hover:text-zinc-900 dark:hover:text-white transition-colors uppercase tracking-widest"
             >
               {t('auto.title')}
             </Link>
             <Link 
               href={`/${locale}/brands/moto`} 
+              aria-label={resolvedLocale === "ua" ? "Поточний розділ мото брендів" : "Current moto brands section"}
               className="text-base font-light pb-2 border-b-2 border-zinc-900 dark:border-white text-zinc-900 dark:text-white uppercase tracking-widest"
             >
               {t('moto.title')}
