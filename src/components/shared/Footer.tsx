@@ -94,9 +94,9 @@ const Footer = () => {
                   href={href}
                   target="_blank"
                   rel="noreferrer"
+                  aria-label={`Open OneCompany ${label} profile`}
                   whileHover={{ y: -3 }}
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors hover:border-white/30 hover:bg-white/10 hover:text-white"
-                  aria-label={label}
                 >
                   <Icon className="h-4 w-4" />
                 </motion.a>
@@ -110,7 +110,11 @@ const Footer = () => {
             <ul className="space-y-4">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
-                  <Link className={`text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4 ${typography.body}`} href={link.href}>
+                  <Link
+                    className={`text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4 ${typography.body}`}
+                    href={link.href}
+                    aria-label={`Navigate to ${link.name} page`}
+                  >
                     {link.name}
                   </Link>
                 </li>
@@ -123,7 +127,11 @@ const Footer = () => {
             <ul className="space-y-4">
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
-                  <Link className={`text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4 ${typography.body}`} href={link.href}>
+                  <Link
+                    className={`text-white/70 transition-colors hover:text-white hover:underline decoration-white/30 underline-offset-4 ${typography.body}`}
+                    href={link.href}
+                    aria-label={`Navigate to ${link.name} tuning section`}
+                  >
                     {link.name}
                   </Link>
                 </li>

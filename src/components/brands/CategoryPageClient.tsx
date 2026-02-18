@@ -88,6 +88,7 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
        <div className="px-6 md:px-10 mb-20 text-center relative z-10">
           <Link 
             href={`/${locale}/${category.segment}`}
+            aria-label={category.segment === 'moto' ? 'Go to moto tuning section' : 'Go to auto tuning section'}
             className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors mb-8 uppercase tracking-widest font-light"
           >
             ← {category.segment === 'moto' ? (locale === 'ua' ? 'Назад до Мото' : 'Back to Moto') : (locale === 'ua' ? 'Назад до Авто' : 'Back to Auto')}

@@ -14,13 +14,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const title = resolvedLocale === "ua" 
-    ? "Авто Тюнінг · OneCompany" 
-    : "Auto Tuning · OneCompany";
+  const title = resolvedLocale === "ua"
+    ? "Авто тюнінг та сервісні рішення | OneCompany"
+    : "Auto Tuning & Performance Parts | OneCompany";
     
   const description = resolvedLocale === "ua"
-    ? "Преміум тюнінг для авто. Офіційний імпорт Akrapovic, Brabus, HRE, KW. Гарантія, встановлення, логістика."
-    : "Premium auto tuning. Official import of Akrapovic, Brabus, HRE, KW. Warranty, installation, logistics.";
+    ? "Тюнінг авто в Україні: вихлопні системи, підвіска, гальма, OEM деталі та електрика. Комерційний підбір, гарантія, офіційні поставки."
+    : "Auto tuning in Ukraine: exhaust systems, suspension, brakes, OEM parts and electronics. Commercial sourcing, warranty, official supply.";
 
   return buildPageMetadata(resolvedLocale, "/auto", {
     title,

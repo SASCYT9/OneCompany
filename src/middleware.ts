@@ -4,15 +4,23 @@ import { routing } from './i18n/routing';
 
 const intlMiddleware = createMiddleware(routing);
 
-// Map internal locale codes to ISO language codes for hreflang
-const localeToHreflang: Record<string, string> = {
-  'ua': 'uk',
-  'en': 'en'
-};
-
 // Countries that should see Ukrainian version
 const ukrainianCountries = ['UA']; // Ukraine
 const blockedCountries = ['RU']; // Russia (Blocked)
+const localeAgnosticPublicPrefixes = [
+  '/auto',
+  '/moto',
+  '/brands',
+  '/blog',
+  '/contact',
+  '/about',
+  '/partnership',
+  '/choice',
+  '/privacy',
+  '/terms',
+  '/cookies',
+  '/categories',
+];
 
 // Detect preferred locale based on geo and browser settings
 function detectLocale(req: NextRequest, isMigrated: boolean = false): 'ua' | 'en' {
@@ -64,7 +72,15 @@ export default function middleware(req: NextRequest) {
   }
 
   const { pathname } = req.nextUrl;
+  const normalizedPathname =
+    pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
   const removedBlogSlug = 'one-company-dtskmdmjfgf';
+
+  if (normalizedPathname !== pathname) {
+    const url = req.nextUrl.clone();
+    url.pathname = normalizedPathname;
+    return NextResponse.redirect(url, 308);
+  }
 
   // Hard redirect for removed blog entry.
   const removedLocalizedMatch = pathname.match(/^\/(ua|en)\/blog\/one-company-dtskmdmjfgf\/?$/);
@@ -85,7 +101,6 @@ export default function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check if user is visiting root without locale
   // Check if user is visiting root without locale
   const pathnameHasLocale = /^\/(ua|en)(\/|$)/.test(pathname);
 
@@ -110,6 +125,19 @@ export default function middleware(req: NextRequest) {
       path: '/',
     });
     return response;
+  }
+
+  if (!pathnameHasLocale) {
+    const shouldLocalizePath = localeAgnosticPublicPrefixes.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    );
+
+    if (shouldLocalizePath) {
+      const detectedLocale = detectLocale(req, isMigrated);
+      const url = req.nextUrl.clone();
+      url.pathname = `/${detectedLocale}${pathname}`;
+      return NextResponse.redirect(url, 308);
+    }
   }
 
   const response = intlMiddleware(req);

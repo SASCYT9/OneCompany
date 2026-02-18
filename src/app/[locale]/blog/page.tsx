@@ -18,12 +18,12 @@ interface Props {
 
 const metaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   ua: {
-    title: "Блог · OneCompany",
-    description: "Проєкти, поставки та backstage від One Company — преміальний тюнінг для авто та мото.",
+    title: "Блог тюнінгу авто та мото | Кейси OneCompany",
+    description: "Кейси та поставки з авто і мото тюнінгу: вихлоп, OEM, підвіска, електроніка. Реальні проєкти OneCompany та консультація під замовлення.",
   },
   en: {
-    title: "Blog · OneCompany",
-    description: "Projects, deliveries, and backstage from One Company — premium auto & moto tuning.",
+    title: "Auto & Moto Tuning Blog | OneCompany Cases",
+    description: "Auto and moto tuning cases: exhaust, OEM, suspension, electronics and delivery insights. Real projects with official sourcing support.",
   },
 };
 
@@ -113,6 +113,7 @@ export default async function BlogPage({ params }: Props) {
             href={blog.instagramUrl}
             target="_blank"
             rel="noreferrer"
+            aria-label={l === "ua" ? "Відкрити Instagram OneCompany" : "Open OneCompany Instagram"}
             className="group inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-xs uppercase tracking-[0.3em] text-white backdrop-blur transition-all duration-300 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_0_30px_rgba(255,255,255,0.15)]"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -129,6 +130,7 @@ export default async function BlogPage({ params }: Props) {
         <section className="relative mx-auto mt-12 max-w-6xl px-4 sm:px-6">
           <Link
             href={`/blog/${featured.slug}`}
+            aria-label={`${l === "ua" ? "Відкрити кейс" : "Open case"}: ${getLocalized(featured.title, l)}`}
             className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
           >
             <div className="flex flex-col md:flex-row">
@@ -227,6 +229,7 @@ export default async function BlogPage({ params }: Props) {
                 <Link
                   key={post.id}
                   href={`/blog/${post.slug}`}
+                  aria-label={`${l === "ua" ? "Відкрити кейс" : "Open case"}: ${getLocalized(post.title, l)}`}
                   className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-all duration-500 hover:border-white/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
                 >
                   {/* Thumbnail */}

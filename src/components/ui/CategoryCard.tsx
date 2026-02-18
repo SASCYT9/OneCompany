@@ -10,7 +10,11 @@ interface CategoryCardProps {
 
 export default function CategoryCard({ title, href, imageUrl }: CategoryCardProps) {
   return (
-    <Link href={href} className="group block rounded-lg overflow-hidden relative aspect-w-16 aspect-h-9">
+    <Link
+      href={href}
+      aria-label={`Open ${title} tuning brands category`}
+      className="group block rounded-lg overflow-hidden relative aspect-w-16 aspect-h-9"
+    >
       {imageUrl && (
         <Image
           src={imageUrl}

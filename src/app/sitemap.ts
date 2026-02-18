@@ -32,7 +32,7 @@ const staticPages = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const lastModified = new Date();
+  const buildLastModified = new Date();
 
   // Static pages
   const staticEntries = siteConfig.locales.flatMap((locale) =>
@@ -40,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const path = buildLocalizedPath(locale, page.slug);
       return {
         url: absoluteUrl(path),
-        lastModified,
+        lastModified: buildLastModified,
         changeFrequency: page.changeFrequency,
         priority: page.priority,
         alternates: {
@@ -57,7 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const path = buildLocalizedPath(locale, pageSlug);
       return {
         url: absoluteUrl(path),
-        lastModified,
+        lastModified: buildLastModified,
         changeFrequency: "weekly" as const,
         priority: 0.7,
         alternates: {
@@ -76,7 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const path = buildLocalizedPath(locale, pageSlug);
         return {
           url: absoluteUrl(path),
-          lastModified,
+          lastModified: new Date(post.date),
           changeFrequency: "weekly" as const,
           priority: 0.6,
           alternates: {

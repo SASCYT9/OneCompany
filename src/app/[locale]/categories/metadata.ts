@@ -3,14 +3,14 @@ import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/se
 
 const categoriesMetaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   en: {
-    title: "Categories · Auto & Moto Tuning Parts | OneCompany",
+    title: "Auto & Moto Tuning Categories | OneCompany",
     description:
-      "Browse all tuning categories: exhaust systems, suspension, wheels, brakes, carbon fiber, electronics. Premium brands: Akrapovic, KW, HRE, Brembo. Official distributor.",
+      "Explore all auto and moto tuning categories: exhaust, suspension, wheels, brakes, electronics, carbon and OEM parts with official sourcing support.",
   },
   ua: {
-    title: "Категорії · Авто та Мото Тюнінг | OneCompany",
+    title: "Категорії авто та мото тюнінгу | OneCompany",
     description:
-      "Переглядайте всі категорії тюнінгу: вихлопні системи, підвіска, диски, гальма, карбон, електроніка. Преміум бренди: Akrapovic, KW, HRE, Brembo. Офіційний дистриб'ютор.",
+      "Усі категорії авто та мото тюнінгу: вихлоп, підвіска, диски, гальма, електроніка, карбон та OEM деталі з офіційним постачанням.",
   },
 };
 

@@ -3,14 +3,14 @@ import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/se
 
 const brandsMetaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   en: {
-    title: "200+ Premium Tuning Brands · Auto & Moto Partners | onecompany",
+    title: "Auto & Moto Tuning Brands (OEM, Racing) | OneCompany",
     description:
-      "Complete catalog of 200+ premium auto and motorcycle tuning brands. Official importer programs for Akrapovic, Brabus, HRE, KW, Brembo and more. Global logistics & expert support.",
+      "Catalog of tuning brands for auto and moto: OEM parts, racing solutions, exhaust, suspension, electronics and premium fitment support.",
   },
   ua: {
-    title: "200+ Преміум Брендів Тюнінгу · Авто та Мото Партнери | onecompany",
+    title: "Бренди авто та мото тюнінгу (OEM, Racing) | OneCompany",
     description:
-      "Повний каталог 200+ преміум брендів авто та мото тюнінгу. Офіційні імпортерські програми Akrapovic, Brabus, HRE, KW, Brembo та інших. Глобальна логістика та експертна підтримка.",
+      "Каталог брендів для авто та мото тюнінгу: OEM деталі, racing рішення, вихлоп, підвіска, електрика та експертний підбір під проєкт.",
   },
 };
 

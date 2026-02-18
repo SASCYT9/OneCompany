@@ -9,62 +9,62 @@ const segmentMeta: Record<
 > = {
   moto: {
     ua: {
-      title: "Мото бренди тюнінгу · OneCompany",
+      title: "Мото бренди для тюнінгу та сервісу | OneCompany",
       description:
-        "Каталог мото брендів тюнінгу: вихлоп, гальма, підвіска, карбон та електроніка для преміальних мотоциклів.",
+        "Мото бренди для тюнінгу: вихлоп, гальма, підвіска, ECU, карбон і електроніка. Комерційні поставки та підбір під проєкт.",
     },
     en: {
-      title: "Moto Tuning Brands · OneCompany",
+      title: "Moto Performance Brands | OneCompany",
       description:
-        "Catalog of premium motorcycle tuning brands: exhaust, brakes, suspension, carbon parts and electronics.",
+        "Motorcycle performance brands: exhaust, brakes, suspension, ECU, carbon parts and electronics with official sourcing support.",
     },
   },
   usa: {
     ua: {
-      title: "Бренди США · OneCompany",
+      title: "Бренди США для авто тюнінгу | OneCompany",
       description:
-        "Американські бренди преміум тюнінгу для авто: вихлоп, підвіска, гальма, диски та аеродинаміка.",
+        "Американські бренди для авто тюнінгу: вихлоп, підвіска, гальма, диски, OEM та racing рішення з офіційним постачанням.",
     },
     en: {
-      title: "USA Brands · OneCompany",
+      title: "USA Performance Brands | OneCompany",
       description:
-        "Premium US tuning brands for performance cars: exhaust, suspension, brakes, wheels and aero kits.",
+        "US performance brands for tuning builds: exhaust, suspension, brakes, wheels, OEM and racing-oriented components.",
     },
   },
   europe: {
     ua: {
-      title: "Європейські бренди · OneCompany",
+      title: "Європейські бренди тюнінгу | OneCompany",
       description:
-        "Європейські бренди тюнінгу для авто: офіційний імпорт, логістика та експертний підбір рішень.",
+        "Європейські бренди тюнінгу для авто і мото: OEM та performance рішення, офіційний імпорт і професійний підбір.",
     },
     en: {
-      title: "European Brands · OneCompany",
+      title: "European Tuning Brands | OneCompany",
       description:
-        "European performance tuning brands with official importer support, global logistics and expert sourcing.",
+        "European tuning brands for auto and moto projects with official importer support and reliable logistics.",
     },
   },
   oem: {
     ua: {
-      title: "OEM бренди · OneCompany",
+      title: "OEM бренди для авто та мото | OneCompany",
       description:
-        "OEM та factory-grade бренди для тюнінгу: сумісність, надійність і якість для щоденного та трекового авто.",
+        "OEM бренди для авто та мото тюнінгу: заводська сумісність, надійність і сервісний підбір для щоденних та трекових проєктів.",
     },
     en: {
-      title: "OEM Brands · OneCompany",
+      title: "OEM Tuning Brands | OneCompany",
       description:
-        "OEM and factory-grade tuning brands focused on fitment quality, reliability and motorsport-ready solutions.",
+        "OEM and factory-grade tuning brands focused on fitment quality, reliability and service-ready installation.",
     },
   },
   racing: {
     ua: {
-      title: "Racing бренди · OneCompany",
+      title: "Racing бренди для треку | OneCompany",
       description:
-        "Гоночні бренди для треку та автоспорту: підвіска, гальма, аеро, карбон і компоненти продуктивності.",
+        "Racing бренди для треку: підвіска, гальма, аеро, карбон, електроніка і продуктивні рішення для motorsport-проєктів.",
     },
     en: {
-      title: "Racing Brands · OneCompany",
+      title: "Racing Parts Brands | OneCompany",
       description:
-        "Racing-focused brands for track and motorsport builds: suspension, brakes, aero, carbon and performance parts.",
+        "Racing-focused brands for track builds: suspension, brakes, aero, carbon and motorsport performance parts.",
     },
   },
 };

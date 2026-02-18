@@ -3,14 +3,14 @@ import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/se
 
 const homeMetaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   en: {
-    title: "One Company Global — Premium Auto & Moto Tuning Ukraine | Akrapovic, Brabus, Eventuri | Kyiv",
+    title: "Auto & Moto Tuning in Kyiv | OneCompany",
     description:
-      "Official distributor of 200+ premium tuning brands in Ukraine: Akrapovic, Brabus, Eventuri, HRE Wheels, KW, Ohlins. Auto tuning Kyiv. Exhaust systems, suspension, wheels, carbon fiber. Worldwide shipping.",
+      "Official importer of premium auto and motorcycle tuning parts: exhaust, suspension, OEM, electronics, carbon. Expert sourcing and delivery.",
   },
   ua: {
-    title: "One Company Global — Тюнінг Авто та Мото Київ | Akrapovic, Brabus, Eventuri | Україна",
+    title: "Тюнінг авто та мото в Києві | OneCompany",
     description:
-      "Тюнінг Київ — офіційний дистриб'ютор 200+ преміум брендів: Akrapovic, Brabus, Eventuri, HRE, KW, Ohlins. Тюнінг авто Україна. Вихлопні системи, підвіска, диски, карбон. Доставка по Україні.",
+      "Офіційний імпортер преміум тюнінгу авто та мото: вихлоп, підвіска, OEM, електрика, карбон. Підбір, гарантія, доставка по Україні.",
   },
 };
 

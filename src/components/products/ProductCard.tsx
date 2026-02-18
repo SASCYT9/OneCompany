@@ -13,7 +13,10 @@ interface ProductCardProps {
 
 export default function ProductCard({ name, image, href, category, className }: ProductCardProps) {
   return (
-    <Link href={href}>
+    <Link
+      href={href}
+      aria-label={`Open ${name} performance brand page for auto and moto tuning`}
+    >
       <div
         className={`group relative overflow-hidden bg-white dark:bg-zinc-900/30 border border-zinc-100 dark:border-white/5 transition-colors duration-300 ${className || ''}`}
       >

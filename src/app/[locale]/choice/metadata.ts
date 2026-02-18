@@ -3,14 +3,14 @@ import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/se
 
 const choiceMetaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   en: {
-    title: "Choose Your Direction · Auto or Moto Tuning | OneCompany",
+    title: "Choose Auto or Moto Tuning Direction | OneCompany",
     description:
-      "Select your tuning path: automotive performance parts or motorcycle upgrades. 200+ premium brands. Akrapovic, Brabus, Ohlins, Brembo. Official distributor worldwide.",
+      "Choose your direction: auto tuning or moto tuning. Performance parts, OEM solutions, and commercial support from official import channels.",
   },
   ua: {
-    title: "Оберіть напрям · Авто чи Мото Тюнінг | OneCompany",
+    title: "Оберіть напрям: авто чи мото тюнінг | OneCompany",
     description:
-      "Оберіть свій напрям тюнінгу: автомобільні запчастини або мотоапгрейди. 200+ преміум брендів. Akrapovic, Brabus, Ohlins, Brembo. Офіційний дистриб'ютор.",
+      "Оберіть свій напрям: авто тюнінг або мото тюнінг. Performance деталі, OEM рішення та комерційна підтримка через офіційний імпорт.",
   },
 };
 

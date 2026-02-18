@@ -66,8 +66,8 @@ export function buildPageMetadata(
   const ogImage = meta.image
     ? (meta.image.startsWith("http") ? meta.image : absoluteUrl(meta.image))
     : absoluteUrl(defaultOgImage);
-  const description = normalizeMetaText(meta.description, 180);
-  const title = normalizeMetaText(meta.title, 120);
+  const description = normalizeMetaText(meta.description, 165);
+  const title = normalizeMetaText(meta.title, 68);
 
   return {
     title,

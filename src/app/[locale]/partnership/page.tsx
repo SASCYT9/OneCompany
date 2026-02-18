@@ -15,12 +15,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedLocale = resolveLocale(locale);
 
   const title = resolvedLocale === "ua" 
-    ? "Партнерство · OneCompany" 
-    : "Partnership · OneCompany";
+    ? "Партнерство з OneCompany | Оптові умови тюнінгу" 
+    : "Partnership with OneCompany | Wholesale Tuning Programs";
     
   const description = resolvedLocale === "ua"
-    ? "Станьте офіційним партнером OneCompany. Спеціальні умови для СТО, дилерів та тюнінг-ательє. Глобальна логістика та технічна підтримка."
-    : "Become an official OneCompany partner. Special conditions for workshops, dealers and tuning studios. Global logistics and technical support.";
+    ? "Партнерські програми OneCompany для СТО, дилерів і тюнінг-ательє: OEM постачання, логістика, технічна підтримка і комерційні умови."
+    : "Partnership programs for workshops, dealers and tuning studios: OEM supply, logistics, technical support and commercial conditions.";
 
   return buildPageMetadata(resolvedLocale, "/partnership", {
     title,

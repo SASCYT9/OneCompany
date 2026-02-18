@@ -638,21 +638,32 @@ export function getCategoryMetadata(slug: string, locale: string): Metadata {
   const pageSlug = `/${category.segment}/categories/${slug}`;
   const url = absoluteUrl(buildLocalizedPath(resolvedLocale, pageSlug));
   const localizedTitle = category.title[lang];
+  const segmentLabel = category.segment === 'moto'
+    ? (lang === 'ua' ? 'мото' : 'Moto')
+    : (lang === 'ua' ? 'авто' : 'Auto');
   const title =
     lang === 'ua'
-      ? `${localizedTitle} · Категорія тюнінгу OneCompany`
-      : `${localizedTitle} · OneCompany Tuning Category`;
+      ? `${localizedTitle} для ${segmentLabel} | Тюнінг та OEM рішення | OneCompany`
+      : `${localizedTitle} for ${segmentLabel} | Performance & OEM Solutions | OneCompany`;
+  const compactBase =
+    category.description[lang].length > 88
+      ? `${category.description[lang].slice(0, 88).trimEnd()}…`
+      : category.description[lang];
+  const description =
+    lang === 'ua'
+      ? `${compactBase} Тюнінг, OEM, вихлоп, підвіска та електрика. Підбір і офіційне постачання OneCompany.`
+      : `${compactBase} Performance tuning, OEM parts, exhaust, suspension and electronics with official OneCompany sourcing.`;
   
   return {
     title,
-    description: category.description[lang],
+    description,
     alternates: {
       canonical: url,
       languages: buildAlternateLinks(pageSlug),
     },
     openGraph: {
       title,
-      description: category.description[lang],
+      description,
       url,
     },
   };

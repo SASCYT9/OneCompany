@@ -12,7 +12,7 @@ import {
   type SupportedLocale,
 } from "@/lib/seo";
 import { BlogCarousel } from "./BlogCarousel";
-import { ArticleSchema, BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { ArticleSchema, BreadcrumbSchema, ProductSchema } from "@/components/seo/StructuredData";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -28,6 +28,31 @@ const normalizeSnippet = (value: string) =>
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
+
+const slugQueryVariant: Record<string, { ua: string; en: string }> = {
+  "darwinpro-bmw8-widetrack": { ua: "карбоновий боді-кит BMW", en: "BMW carbon body kit" },
+  "3d-design-bmw-exhaust-tips": { ua: "насадки вихлопу BMW", en: "BMW exhaust tips" },
+  "urban-range-rover-widetrack": { ua: "тюнінг Range Rover", en: "Range Rover tuning" },
+  "brabus-performance": { ua: "Brabus тюнінг", en: "Brabus tuning" },
+  "ct-carbon-rsq8": { ua: "Audi RSQ8 карбон", en: "Audi RSQ8 carbon kit" },
+  "ipe-exhaust-valvetronic": { ua: "valvetronic вихлоп", en: "valvetronic exhaust" },
+  "eventuri-intake": { ua: "впуск Eventuri", en: "Eventuri intake" },
+  "adro-bmw-g8x-carbon": { ua: "карбоновий тюнінг BMW G8X", en: "BMW G8X carbon tuning" },
+  "akrapovic-titanium": { ua: "титановий вихлоп Akrapovic", en: "Akrapovic titanium exhaust" },
+  "onecompany-premium-import": { ua: "преміум імпорт тюнінгу", en: "premium tuning import" },
+};
+
+const productSignals = [
+  "akrapovic",
+  "eventuri",
+  "ipe",
+  "ct carbon",
+  "darwinpro",
+  "brabus",
+  "adro",
+  "3d design",
+  "urban",
+];
 
 const toExcerpt = (value: string, fallback: string, max = 170, avoid?: string) => {
   const lines = value
@@ -55,6 +80,17 @@ const toExcerpt = (value: string, fallback: string, max = 170, avoid?: string) =
   return `${normalized.slice(0, max - 1).trimEnd()}…`;
 };
 
+const buildCommercialSnippet = (
+  locale: SupportedLocale,
+  caption: string,
+  title: string
+) => {
+  const base = toExcerpt(caption, title, 138, title);
+  return locale === "ua"
+    ? `${base} Офіційні поставки та підбір під замовлення від OneCompany.`
+    : `${base} Official supply and tailored sourcing by OneCompany.`;
+};
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const l = resolveLocale(locale);
@@ -73,9 +109,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     post.media.find((item) => item.type === "video" && item.poster)?.poster;
   const localizedTitle = getLocalized(post.title, l);
   const localizedCaption = getLocalized(post.caption, l);
+  const queryVariant =
+    slugQueryVariant[post.slug]?.[l] ??
+    (l === "ua" ? "кейс тюнінгу авто та мото" : "auto and moto tuning case");
+
   return buildPageMetadata(l, `blog/${post.slug}`, {
-    title: localizedTitle,
-    description: toExcerpt(localizedCaption, localizedTitle, 170, localizedTitle),
+    title: `${localizedTitle} | ${queryVariant} | OneCompany`,
+    description: buildCommercialSnippet(l, localizedCaption, localizedTitle),
     image: cover,
     type: "article",
   });
@@ -116,6 +156,11 @@ export default async function BlogPostPage({ params }: Props) {
     { name: l === "ua" ? "Блог" : "Blog", url: absoluteUrl(buildLocalizedPath(l, "/blog")) },
     { name: localizedTitle, url: postUrl },
   ];
+  const lowerSignal = `${localizedTitle} ${articleDescription}`.toLowerCase();
+  const shouldRenderProductSchema = productSignals.some((signal) =>
+    lowerSignal.includes(signal)
+  );
+  const productImage = coverImage ?? absoluteUrl("/branding/og-image.png");
 
   return (
     <main id="main-content" className="relative min-h-screen bg-black text-white">
@@ -130,6 +175,16 @@ export default async function BlogPostPage({ params }: Props) {
         dateModified={post.date}
         locale={l}
       />
+      {shouldRenderProductSchema && (
+        <ProductSchema
+          name={localizedTitle}
+          description={articleDescription}
+          image={productImage}
+          brand="OneCompany"
+          category={l === "ua" ? "Авто та мото тюнінг" : "Auto and moto tuning"}
+          url={postUrl}
+        />
+      )}
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         <div className="absolute -left-40 top-0 h-[600px] w-[600px] rounded-full bg-[radial-gradient(circle,_rgba(255,179,71,0.06),_transparent_65%)] blur-[120px]" />
@@ -140,6 +195,7 @@ export default async function BlogPostPage({ params }: Props) {
       <div className="relative z-10 mx-auto max-w-6xl px-4 pt-28 sm:px-6">
         <Link
           href="/blog"
+          aria-label={l === "ua" ? "Повернутися до блогу OneCompany" : "Back to OneCompany blog"}
           className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[11px] uppercase tracking-[0.35em] text-white/50 backdrop-blur-md transition-all hover:border-white/30 hover:text-white/80"
         >
           ← {t("back")}
@@ -255,6 +311,7 @@ export default async function BlogPostPage({ params }: Props) {
                   href={content.blog.instagramUrl}
                   target="_blank"
                   rel="noreferrer"
+                  aria-label={l === "ua" ? "Відкрити Instagram OneCompany" : "Open OneCompany Instagram"}
                   className="group mt-4 inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-[11px] uppercase tracking-[0.25em] text-white/70 transition-all duration-300 hover:border-white hover:bg-white hover:text-black"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">

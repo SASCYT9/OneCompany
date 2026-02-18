@@ -12,13 +12,16 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           "/admin",
           "/api",
+          "/api/*",
           "/telegram-app",
+          "/telegram-app/*",
           "/about",       // non-locale fallback page
           "/categories",  // non-locale fallback page
           "/categories/*", // non-locale category pages
         ],
       },
     ],
+    host: absoluteUrl(),
     sitemap: sitemapUrl,
   };
 }

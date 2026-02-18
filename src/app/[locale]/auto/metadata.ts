@@ -3,14 +3,14 @@ import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/se
 
 const autoMetaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   en: {
-    title: "Auto Tuning · 160+ Premium Brands · Akrapovic, Brabus, HRE | onecompany",
+    title: "Auto Tuning & Performance Parts | OneCompany",
     description:
-      "Official importer of premium auto tuning: Akrapovic exhausts, Brabus, Mansory, HRE wheels, KW suspension, Eventuri intakes. Expert sourcing, global logistics & warranty since 2007.",
+      "Auto tuning in Ukraine: exhaust systems, suspension, brakes, OEM parts and electronics. Commercial sourcing, warranty, official supply.",
   },
   ua: {
-    title: "Авто Тюнінг · 160+ Преміум Брендів · Akrapovic, Brabus, HRE | onecompany",
+    title: "Авто тюнінг та сервісні рішення | OneCompany",
     description:
-      "Офіційний імпортер преміум авто тюнінгу: вихлопні системи Akrapovic, Brabus, Mansory, диски HRE, підвіска KW, впуск Eventuri. Експертний підбір, глобальна логістика та гарантія з 2007.",
+      "Тюнінг авто в Україні: вихлопні системи, підвіска, гальма, OEM деталі та електрика. Комерційний підбір, гарантія, офіційні поставки.",
   },
 };
 

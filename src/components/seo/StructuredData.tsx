@@ -10,7 +10,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
     "@type": "Organization",
     "@id": "https://onecompany.global/#organization",
     name: "One Company Global",
-    alternateName: ["OneCompany", "One Company", "OneCompany UA", "ВанКомпані", "Тюнінг Київ", "Тюнінг Україна"],
+    alternateName: ["OneCompany", "One Company", "OneCompany UA"],
     url: "https://onecompany.global",
     logo: {
       "@type": "ImageObject",
@@ -40,12 +40,13 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
         "@type": "ContactPoint",
         telephone: "+380 66 077 17 00",
         contactType: "customer service",
-        availableLanguage: ["Ukrainian", "English", "Russian"],
+        availableLanguage: ["Ukrainian", "English"],
       },
     ],
     sameAs: [
-      "https://t.me/onecompany_ua",
-      "https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr",
+      "https://www.instagram.com/onecompany.global",
+      "https://facebook.com/onecompany",
+      "https://t.me/OneCompanyAutoBot",
     ],
     knowsAbout: [
       "Automotive tuning",
@@ -64,8 +65,12 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
       "Brembo brakes",
       "тюнінг авто",
       "тюнінг мото",
-      "тюнинг для мотоцикла",
-      "мототюнинг",
+      "OEM parts",
+      "Auto repair services",
+      "Motorcycle parts supply",
+      "мото тюнинг",
+      "автосервіс",
+      "електрик для машини",
     ],
     areaServed: [
       {
@@ -103,20 +108,12 @@ export function WebSiteSchema() {
     "@id": "https://onecompany.global/#website",
     url: "https://onecompany.global",
     name: "One Company Global",
-    alternateName: ["OneCompany", "One Company", "ВанКомпані", "Тюнінг Київ", "Тюнінг Україна"],
+    alternateName: ["OneCompany", "One Company"],
     description: "Тюнінг авто та мото Київ, Україна. Premium auto & moto tuning importer.",
     publisher: {
       "@id": "https://onecompany.global/#organization",
     },
-    inLanguage: ["uk-UA", "en-US", "ru-RU"],
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: "https://onecompany.global/ua/brands?search={search_term_string}",
-      },
-      "query-input": "required name=search_term_string",
-    },
+    inLanguage: ["uk-UA", "en-US"],
   };
 
   return (
@@ -199,14 +196,10 @@ interface LocalBusinessSchemaProps {
 }
 
 export function LocalBusinessSchema({ locale = "ua" }: LocalBusinessSchemaProps) {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "@id": "https://onecompany.global/#localbusiness",
-    name: "One Company Global — Тюнінг Авто та Мото Київ",
-    alternateName: ["OneCompany", "One Company", "Тюнінг Київ", "Тюнінг Україна"],
-    image: "https://onecompany.global/branding/one-company-logo.svg",
+  const commonBusinessFields = {
+    name: "One Company Global",
     url: "https://onecompany.global",
+    image: "https://onecompany.global/branding/one-company-logo.svg",
     telephone: "+380 66 077 17 00",
     priceRange: "$$$",
     address: {
@@ -222,14 +215,7 @@ export function LocalBusinessSchema({ locale = "ua" }: LocalBusinessSchemaProps)
       latitude: "50.4415",
       longitude: "30.5267",
     },
-    areaServed: [
-      { "@type": "City", name: "Kyiv" },
-      { "@type": "City", name: "Kharkiv" },
-      { "@type": "City", name: "Odesa" },
-      { "@type": "City", name: "Dnipro" },
-      { "@type": "City", name: "Lviv" },
-      { "@type": "Country", name: "Ukraine" },
-    ],
+    areaServed: [{ "@type": "Country", name: "Ukraine" }],
     openingHoursSpecification: [
       {
         "@type": "OpeningHoursSpecification",
@@ -238,9 +224,40 @@ export function LocalBusinessSchema({ locale = "ua" }: LocalBusinessSchemaProps)
         closes: "18:00",
       },
     ],
-    description: locale === "ua"
-      ? "Тюнінг Київ — офіційний імпортер преміум авто та мото тюнінгу в Україні. Akrapovic, Brabus, Mansory, HRE, KW, Ohlins."
-      : "Auto tuning Kyiv — official premium auto & moto tuning importer in Ukraine. Akrapovic, Brabus, Mansory, HRE, KW, Ohlins.",
+    description:
+      locale === "ua"
+        ? "Тюнінг авто та мото в Києві: OEM і performance деталі, офіційні поставки, логістика та технічна підтримка."
+        : "Auto and moto tuning in Kyiv: OEM and performance parts, official supply, logistics and technical support.",
+  };
+
+  const schema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "LocalBusiness",
+        "@id": "https://onecompany.global/#localbusiness",
+        ...commonBusinessFields,
+      },
+      {
+        "@type": "AutoRepair",
+        "@id": "https://onecompany.global/#autorepair",
+        ...commonBusinessFields,
+        serviceType: [
+          "Performance upgrades",
+          "OEM fitment support",
+          "Exhaust and suspension consultation",
+        ],
+      },
+      {
+        "@type": "MotorcycleDealer",
+        "@id": "https://onecompany.global/#motorcycledealer",
+        ...commonBusinessFields,
+        makesOffer: {
+          "@type": "OfferCatalog",
+          name: "Motorcycle tuning parts",
+        },
+      },
+    ],
   };
 
   return (
