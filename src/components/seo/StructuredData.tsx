@@ -1,5 +1,13 @@
 import Script from "next/script";
 
+function toSchemaId(value: string): string {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return normalized || "item";
+}
+
 interface OrganizationSchemaProps {
   locale?: "en" | "ua";
 }
@@ -172,19 +180,11 @@ export function ProductSchema({ name, description, image, brand, category, url }
     },
     category,
     url,
-    offers: {
-      "@type": "Offer",
-      availability: "https://schema.org/InStock",
-      priceCurrency: "UAH",
-      seller: {
-        "@id": "https://onecompany.global/#organization",
-      },
-    },
   };
 
   return (
     <Script
-      id={`product-schema-${name.toLowerCase().replace(/\s+/g, '-')}`}
+      id={`product-schema-${toSchemaId(name)}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
     />
@@ -295,7 +295,7 @@ export function BrandSchema({ name, description, url, logo, country }: BrandSche
 
   return (
     <Script
-      id={`brand-schema-${name.toLowerCase().replace(/\s+/g, '-')}`}
+      id={`brand-schema-${toSchemaId(name)}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
     />
@@ -322,7 +322,7 @@ export function CollectionPageSchema({ name, description, url }: CollectionPageS
 
   return (
     <Script
-      id={`collection-schema-${name.toLowerCase().replace(/\s+/g, '-')}`}
+      id={`collection-schema-${toSchemaId(name)}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
     />

@@ -74,25 +74,26 @@ export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const normalizedPathname =
     pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+  const currentPath = normalizedPathname;
   const removedBlogSlug = 'one-company-dtskmdmjfgf';
 
-  if (normalizedPathname !== pathname) {
-    const url = req.nextUrl.clone();
-    url.pathname = normalizedPathname;
-    return NextResponse.redirect(url, 308);
-  }
-
   // Hard redirect for removed blog entry.
-  const removedLocalizedMatch = pathname.match(/^\/(ua|en)\/blog\/one-company-dtskmdmjfgf\/?$/);
+  const removedLocalizedMatch = currentPath.match(/^\/(ua|en)\/blog\/one-company-dtskmdmjfgf$/);
   if (removedLocalizedMatch) {
     const locale = removedLocalizedMatch[1];
     const url = req.nextUrl.clone();
     url.pathname = `/${locale}/blog`;
     return NextResponse.redirect(url, 308);
   }
-  if (pathname === `/blog/${removedBlogSlug}` || pathname === `/blog/${removedBlogSlug}/`) {
+  if (currentPath === `/blog/${removedBlogSlug}`) {
     const url = req.nextUrl.clone();
     url.pathname = '/ua/blog';
+    return NextResponse.redirect(url, 308);
+  }
+
+  if (normalizedPathname !== pathname) {
+    const url = req.nextUrl.clone();
+    url.pathname = normalizedPathname;
     return NextResponse.redirect(url, 308);
   }
 
@@ -102,12 +103,12 @@ export default function middleware(req: NextRequest) {
   }
 
   // Check if user is visiting root without locale
-  const pathnameHasLocale = /^\/(ua|en)(\/|$)/.test(pathname);
+  const pathnameHasLocale = /^\/(ua|en)(\/|$)/.test(currentPath);
 
   // Migration: Check if we have validated this user's locale with the new strict logic
   const isMigrated = req.cookies.get('LOCALE_MIGRATED')?.value === '1';
 
-  if (!pathnameHasLocale && pathname === '/') {
+  if (!pathnameHasLocale && currentPath === '/') {
     // Detect and redirect to appropriate locale
     const detectedLocale = detectLocale(req, isMigrated);
     const url = req.nextUrl.clone();
@@ -129,13 +130,13 @@ export default function middleware(req: NextRequest) {
 
   if (!pathnameHasLocale) {
     const shouldLocalizePath = localeAgnosticPublicPrefixes.some(
-      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+      (prefix) => currentPath === prefix || currentPath.startsWith(`${prefix}/`)
     );
 
     if (shouldLocalizePath) {
       const detectedLocale = detectLocale(req, isMigrated);
       const url = req.nextUrl.clone();
-      url.pathname = `/${detectedLocale}${pathname}`;
+      url.pathname = `/${detectedLocale}${currentPath}`;
       return NextResponse.redirect(url, 308);
     }
   }

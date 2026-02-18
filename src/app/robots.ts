@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, siteConfig } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   const sitemapUrl = absoluteUrl("/sitemap.xml");
@@ -15,13 +15,10 @@ export default function robots(): MetadataRoute.Robots {
           "/api/*",
           "/telegram-app",
           "/telegram-app/*",
-          "/about",       // non-locale fallback page
-          "/categories",  // non-locale fallback page
-          "/categories/*", // non-locale category pages
         ],
       },
     ],
-    host: absoluteUrl(),
+    host: siteConfig.url,
     sitemap: sitemapUrl,
   };
 }

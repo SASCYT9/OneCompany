@@ -24,10 +24,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: {
-    default: "OneCompany — Premium Auto & Moto Tuning | Akrapovic, Brabus, Mansory | Worldwide Shipping",
-    template: "%s | OneCompany - Premium Tuning",
-  },
+  title: "OneCompany — Premium Auto & Moto Tuning | Akrapovic, Brabus, Mansory | Worldwide Shipping",
   description: "Official distributor 200+ premium tuning brands: Akrapovic, Brabus, Mansory, HRE, KW, Ohlins. Exhaust systems, suspension, wheels, carbon fiber. Worldwide shipping USA, Europe, Ukraine.",
   keywords: [
     "OneCompany",
