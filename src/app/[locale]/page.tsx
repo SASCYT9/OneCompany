@@ -112,6 +112,24 @@ export default async function LocalizedHomePage({
     },
   ];
 
+  const structureLinks = [
+    `/${locale}`,
+    `/${locale}/auto`,
+    `/${locale}/moto`,
+    `/${locale}/brands`,
+    `/${locale}/brands/moto`,
+    `/${locale}/brands/europe`,
+    `/${locale}/brands/usa`,
+    `/${locale}/brands/oem`,
+    `/${locale}/brands/racing`,
+    `/${locale}/blog`,
+    `/${locale}/categories`,
+    `/${locale}/choice`,
+    `/${locale}/contact`,
+    `/${locale}/about`,
+    `/${locale}/partnership`,
+  ];
+
   return (
     <>
       <main className="text-white">
@@ -254,6 +272,18 @@ export default async function LocalizedHomePage({
             </div>
           </div>
         </section>
+
+        <nav className="sr-only" aria-label={locale === 'ua' ? 'Структурна навігація сайту' : 'Site structural navigation'}>
+          <ul>
+            {structureLinks.map((href) => (
+              <li key={href}>
+                <Link href={href} aria-label={locale === 'ua' ? `Перейти до ${href}` : `Open ${href}`}>
+                  {href}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
       </main>
       

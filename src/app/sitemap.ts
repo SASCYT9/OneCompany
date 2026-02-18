@@ -2,49 +2,44 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl, buildLocalizedPath, siteConfig, buildAlternateLinks } from "@/lib/seo";
 import { categoryData } from "@/lib/categoryData";
 import { readSiteContent } from "@/lib/siteContentServer";
+import { localizedStaticSlugs } from "@/lib/seoIndexPolicy";
 
-// Static pages with their priorities - ONLY pages that actually exist!
-const staticPages = [
-  // Main pages
-  { slug: "", priority: 1.0, changeFrequency: "daily" as const },
-  { slug: "/auto", priority: 0.9, changeFrequency: "daily" as const },
-  { slug: "/moto", priority: 0.9, changeFrequency: "daily" as const },
-  
-  // Brands pages
-  { slug: "/brands", priority: 0.8, changeFrequency: "weekly" as const },
-  { slug: "/brands/moto", priority: 0.8, changeFrequency: "weekly" as const },
-  { slug: "/brands/europe", priority: 0.7, changeFrequency: "weekly" as const },
-  { slug: "/brands/usa", priority: 0.7, changeFrequency: "weekly" as const },
-  { slug: "/brands/oem", priority: 0.7, changeFrequency: "weekly" as const },
-  { slug: "/brands/racing", priority: 0.7, changeFrequency: "weekly" as const },
-  
-  // Info pages
-  { slug: "/about", priority: 0.7, changeFrequency: "monthly" as const },
-  { slug: "/contact", priority: 0.8, changeFrequency: "monthly" as const },
-  { slug: "/partnership", priority: 0.7, changeFrequency: "monthly" as const },
-  { slug: "/choice", priority: 0.6, changeFrequency: "monthly" as const },
-  { slug: "/blog", priority: 0.7, changeFrequency: "weekly" as const },
-  
-  // Legal pages
-  { slug: "/privacy", priority: 0.3, changeFrequency: "yearly" as const },
-  { slug: "/terms", priority: 0.3, changeFrequency: "yearly" as const },
-  { slug: "/cookies", priority: 0.3, changeFrequency: "yearly" as const },
-];
+const staticPageConfig: Record<string, { priority: number; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] }> = {
+  "": { priority: 1.0, changeFrequency: "daily" },
+  "/auto": { priority: 0.9, changeFrequency: "daily" },
+  "/moto": { priority: 0.9, changeFrequency: "daily" },
+  "/brands": { priority: 0.8, changeFrequency: "weekly" },
+  "/brands/moto": { priority: 0.8, changeFrequency: "weekly" },
+  "/brands/europe": { priority: 0.7, changeFrequency: "weekly" },
+  "/brands/usa": { priority: 0.7, changeFrequency: "weekly" },
+  "/brands/oem": { priority: 0.7, changeFrequency: "weekly" },
+  "/brands/racing": { priority: 0.7, changeFrequency: "weekly" },
+  "/about": { priority: 0.7, changeFrequency: "monthly" },
+  "/contact": { priority: 0.8, changeFrequency: "monthly" },
+  "/partnership": { priority: 0.7, changeFrequency: "monthly" },
+  "/choice": { priority: 0.6, changeFrequency: "monthly" },
+  "/blog": { priority: 0.7, changeFrequency: "weekly" },
+  "/privacy": { priority: 0.3, changeFrequency: "yearly" },
+  "/terms": { priority: 0.3, changeFrequency: "yearly" },
+  "/cookies": { priority: 0.3, changeFrequency: "yearly" },
+  "/categories": { priority: 0.5, changeFrequency: "monthly" },
+};
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const buildLastModified = new Date();
 
   // Static pages
   const staticEntries = siteConfig.locales.flatMap((locale) =>
-    staticPages.map((page) => {
-      const path = buildLocalizedPath(locale, page.slug);
+    localizedStaticSlugs.map((slug) => {
+      const pageConfig = staticPageConfig[slug] ?? { priority: 0.5, changeFrequency: "monthly" as const };
+      const path = buildLocalizedPath(locale, slug);
       return {
         url: absoluteUrl(path),
         lastModified: buildLastModified,
-        changeFrequency: page.changeFrequency,
-        priority: page.priority,
+        changeFrequency: pageConfig.changeFrequency,
+        priority: pageConfig.priority,
         alternates: {
-          languages: buildAlternateLinks(page.slug),
+          languages: buildAlternateLinks(slug),
         },
       } satisfies MetadataRoute.Sitemap[number];
     })

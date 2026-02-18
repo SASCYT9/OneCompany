@@ -20,6 +20,7 @@ wp-content/themes/onecompany-theme/node_modules/
 
 # production
 /build
+/reports
 
 # misc
 .DS_Store

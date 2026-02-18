@@ -1,26 +1,19 @@
 import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { routing } from './i18n/routing';
+import {
+  hasLocalePrefix,
+  isLocaleAgnosticPublicPath,
+  isNoindexPath,
+  normalizePathname,
+  resolveRemovedBlogRedirectPath,
+} from '@/lib/seoIndexPolicy';
 
 const intlMiddleware = createMiddleware(routing);
 
 // Countries that should see Ukrainian version
 const ukrainianCountries = ['UA']; // Ukraine
 const blockedCountries = ['RU']; // Russia (Blocked)
-const localeAgnosticPublicPrefixes = [
-  '/auto',
-  '/moto',
-  '/brands',
-  '/blog',
-  '/contact',
-  '/about',
-  '/partnership',
-  '/choice',
-  '/privacy',
-  '/terms',
-  '/cookies',
-  '/categories',
-];
 
 // Detect preferred locale based on geo and browser settings
 function detectLocale(req: NextRequest, isMigrated: boolean = false): 'ua' | 'en' {
@@ -72,22 +65,13 @@ export default function middleware(req: NextRequest) {
   }
 
   const { pathname } = req.nextUrl;
-  const normalizedPathname =
-    pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+  const normalizedPathname = normalizePathname(pathname);
   const currentPath = normalizedPathname;
-  const removedBlogSlug = 'one-company-dtskmdmjfgf';
 
-  // Hard redirect for removed blog entry.
-  const removedLocalizedMatch = currentPath.match(/^\/(ua|en)\/blog\/one-company-dtskmdmjfgf$/);
-  if (removedLocalizedMatch) {
-    const locale = removedLocalizedMatch[1];
+  const removedBlogRedirectPath = resolveRemovedBlogRedirectPath(currentPath);
+  if (removedBlogRedirectPath) {
     const url = req.nextUrl.clone();
-    url.pathname = `/${locale}/blog`;
-    return NextResponse.redirect(url, 308);
-  }
-  if (currentPath === `/blog/${removedBlogSlug}`) {
-    const url = req.nextUrl.clone();
-    url.pathname = '/ua/blog';
+    url.pathname = removedBlogRedirectPath;
     return NextResponse.redirect(url, 308);
   }
 
@@ -98,12 +82,12 @@ export default function middleware(req: NextRequest) {
   }
 
   // Skip middleware for non-localized routes (admin, APIs, Telegram WebApp)
-  if (pathname.startsWith('/admin') || pathname.startsWith('/api') || pathname.startsWith('/telegram-app')) {
+  if (isNoindexPath(currentPath)) {
     return NextResponse.next();
   }
 
   // Check if user is visiting root without locale
-  const pathnameHasLocale = /^\/(ua|en)(\/|$)/.test(currentPath);
+  const pathnameHasLocale = hasLocalePrefix(currentPath);
 
   // Migration: Check if we have validated this user's locale with the new strict logic
   const isMigrated = req.cookies.get('LOCALE_MIGRATED')?.value === '1';
@@ -129,9 +113,7 @@ export default function middleware(req: NextRequest) {
   }
 
   if (!pathnameHasLocale) {
-    const shouldLocalizePath = localeAgnosticPublicPrefixes.some(
-      (prefix) => currentPath === prefix || currentPath.startsWith(`${prefix}/`)
-    );
+    const shouldLocalizePath = isLocaleAgnosticPublicPath(currentPath);
 
     if (shouldLocalizePath) {
       const detectedLocale = detectLocale(req, isMigrated);

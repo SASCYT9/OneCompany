@@ -1,8 +1,10 @@
 ﻿import { Metadata } from "next";
 import Script from "next/script";
+import Link from "next/link";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import MotoPageClient from "./MotoPageClient";
 import { BreadcrumbSchema } from '@/components/seo/StructuredData';
+import { categoryData } from "@/lib/categoryData";
 
 interface Props {
   params: Promise<{
@@ -31,6 +33,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function MotoPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
+  const motoCategoryLinks = categoryData
+    .filter((category) => category.segment === "moto")
+    .map((category) => `/${resolvedLocale}/moto/categories/${category.slug}`);
+
+  const relatedHubLinks = [
+    `/${resolvedLocale}/brands/moto`,
+    `/${resolvedLocale}/brands`,
+    `/${resolvedLocale}/blog`,
+  ];
 
   const breadcrumbs = [
     { name: resolvedLocale === 'ua' ? 'Головна' : 'Home', url: absoluteUrl(buildLocalizedPath(resolvedLocale)) },
@@ -61,6 +72,27 @@ export default async function MotoPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <MotoPageClient />
+      <nav
+        className="sr-only"
+        aria-label={resolvedLocale === "ua" ? "Навігація мото категорій" : "Moto category navigation"}
+      >
+        <ul>
+          {[...motoCategoryLinks, ...relatedHubLinks].map((href) => (
+            <li key={href}>
+              <Link
+                href={href}
+                aria-label={
+                  resolvedLocale === "ua"
+                    ? `Перейти до ${href}`
+                    : `Open ${href}`
+                }
+              >
+                {href}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </>
   );
 }
