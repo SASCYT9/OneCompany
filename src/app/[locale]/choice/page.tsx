@@ -19,7 +19,7 @@ const allBrands = [
   { name: 'Sparco', logo: '/logos/sparco.png', category: 'Seats', popular: true },
   { name: 'Recaro', logo: '/logos/recaro.png', category: 'Seats', popular: true },
   { name: 'H&R', logo: '/logos/hr.png', category: 'Suspension', popular: true },
-  { name: 'KW', logo: '/logos/kw.svg', category: 'Suspension', popular: true },
+  { name: 'KW', logo: '/logos/kw-official.png', category: 'Suspension', popular: true },
   { name: 'Bilstein', logo: '/logos/bilstein.png', category: 'Suspension', popular: true },
   { name: 'Eibach', logo: '/logos/eibach.png', category: 'Suspension', popular: true },
   { name: 'Fox', logo: '/logos/fox.png', category: 'Suspension', popular: true },

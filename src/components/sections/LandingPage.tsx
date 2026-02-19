@@ -13,7 +13,7 @@ import AnimatedCard from '@/components/ui/AnimatedCard';
 // Top automotive brands with logos
 const topAutomotiveBrands = [
   { name: 'Eventuri', logo: '/logos/eventuri.png' },
-  { name: 'KW Suspension', logo: '/logos/kw.svg' },
+  { name: 'KW Suspension', logo: '/logos/kw-official.png' },
   { name: 'TechArt', logo: '/logos/techart.svg' },
   { name: 'Urban Automotive', logo: '/logos/urban-automotive.png' },
   { name: 'HRE Wheels', logo: '/logos/hre-wheels.png' },

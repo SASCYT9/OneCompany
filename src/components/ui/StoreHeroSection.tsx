@@ -45,7 +45,7 @@ export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) 
           <div className={`text-center mb-4 md:mb-8 transition-all duration-1000 delay-200 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
             <div className="flex justify-center mb-3 md:mb-4">
               <Image
-                src="/logos/kw.svg"
+                src="/logos/kw-official.png"
                 alt="KW Suspension Україна - спортивна підвіска тюнінг Київ, купити KW OneCompany"
                 width={0}
                 height={0}

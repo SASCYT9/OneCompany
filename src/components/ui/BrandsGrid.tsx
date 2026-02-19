@@ -16,7 +16,7 @@ const brands: Brand[] = [
   {
     id: "kw",
     name: "KW Suspension",
-    logo: "/logos/kw.svg",
+    logo: "/logos/kw-official.png",
     url: "https://kwsuspension.shop/",
     blurb: "Німецька точність керованості від вулиці до треку.",
   },

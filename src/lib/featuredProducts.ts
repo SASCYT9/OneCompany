@@ -45,7 +45,7 @@ export const featuredProducts: FeaturedProductItem[] = [
     id: 'kw-v3-coilovers',
     name: 'Variant 3 Adjustable Coilovers',
     brand: 'KW Suspension',
-    brandLogo: '/logos/kw.svg',
+    brandLogo: '/logos/kw-official.png',
     category: 'Suspension',
     categorySlug: 'suspension',
     description: 'Independently adjustable rebound & compression damping for ultimate chassis balance.',

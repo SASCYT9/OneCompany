@@ -125,7 +125,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'KLM Race': '/logos/klm-race.jpg',
   'Kooks Headers': '/logos/kooks-headers.png',
   'Kotouc': '/logos/kotouc.svg',
-  'KW Suspension': '/logos/kw.svg',
+  'KW Suspension': '/logos/kw-official.png',
   'Lamborghini': '/logos/lamborghini.svg',
   'Lamspeed': '/logos/lamspeed.png',
   'Larte Design': '/logos/larte-design.svg',
