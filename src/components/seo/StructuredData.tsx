@@ -53,7 +53,6 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
     ],
     sameAs: [
       "https://www.instagram.com/onecompany.global",
-      "https://www.facebook.com/groups/onecompany.global",
       "https://t.me/OneCompanyAutoBot",
     ],
     knowsAbout: [

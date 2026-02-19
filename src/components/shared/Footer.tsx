@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { Instagram, Facebook } from "lucide-react";
+import { Instagram } from "lucide-react";
 import gsap from "gsap";
 import { Logo } from "@/components/ui/Logo";
 import { getTypography, resolveLocale } from "@/lib/typography";
@@ -30,7 +30,6 @@ const Footer = () => {
 
   const socials = [
     { icon: Instagram, href: "https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr", label: "Instagram" },
-    { icon: Facebook, href: "https://www.facebook.com/groups/onecompany.global", label: "Facebook" },
     { 
       icon: (props: React.SVGProps<SVGSVGElement>) => (
         <svg
