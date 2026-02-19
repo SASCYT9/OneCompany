@@ -30,7 +30,7 @@ const Footer = () => {
 
   const socials = [
     { icon: Instagram, href: "https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr", label: "Instagram" },
-    { icon: Facebook, href: "https://facebook.com/onecompany", label: "Facebook" },
+    { icon: Facebook, href: "https://www.facebook.com/groups/onecompany.global", label: "Facebook" },
     { 
       icon: (props: React.SVGProps<SVGSVGElement>) => (
         <svg

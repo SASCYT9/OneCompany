@@ -17,6 +17,7 @@ export function HeroVideoWrapper({
   serverEnabled?: boolean;
 }) {
   const [disabled, setDisabled] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const t = useTranslations('admin');
 
   useEffect(() => {
@@ -44,6 +45,10 @@ export function HeroVideoWrapper({
     };
   }, []);
 
+  useEffect(() => {
+    setVideoReady(false);
+  }, [src, mobileSrc, serverEnabled, disabled]);
+
   const enabled = serverEnabled && !disabled;
 
   return (
@@ -55,7 +60,7 @@ export function HeroVideoWrapper({
         {/* Poster image as fallback */}
         {poster && (
           <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
+            className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${videoReady ? 'opacity-20' : 'opacity-35'}`}
             style={{ backgroundImage: `url(${poster})` }}
           />
         )}
@@ -68,8 +73,9 @@ export function HeroVideoWrapper({
             muted
             playsInline
             preload="metadata"
-            className="h-full w-full object-cover opacity-30"
+            className={`h-full w-full object-cover transition-opacity duration-700 ${videoReady ? 'opacity-30' : 'opacity-0'}`}
             poster={poster}
+            onCanPlay={() => setVideoReady(true)}
           >
             {mobileSrc && (
               <source src={mobileSrc} media="(max-width: 768px)" type="video/mp4" />
