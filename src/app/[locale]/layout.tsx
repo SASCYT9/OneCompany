@@ -11,6 +11,7 @@ import LocaleLangSetter from '@/components/LocaleLangSetter';
 import { readVideoConfig } from '@/lib/videoConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import CookieBanner from '@/components/ui/CookieBanner';
+import AutoBreadcrumbs from '@/components/seo/AutoBreadcrumbs';
 
 import { ScrollToTop } from '@/components/ScrollToTop';
 
@@ -25,13 +26,13 @@ type Props = {
 
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;
-  
+
   // Validate locale
   const locales = ['en', 'ua'];
   if (!locales.includes(locale)) {
     notFound();
   }
-  
+
   // Get messages for this locale
   const messages = await getMessages();
   const videoConfig = await readVideoConfig();
@@ -39,7 +40,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
-      <LocaleLangSetter locale={locale} />
+        <LocaleLangSetter locale={locale} />
         {videoConfig.heroPoster && (
           <link rel="preload" href={`/images/${videoConfig.heroPoster}`} as="image" />
         )}
@@ -55,6 +56,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <main id="main-content" className="flex-grow relative z-10">
             {children}
           </main>
+          <AutoBreadcrumbs />
           <ScrollToTop />
           <Footer />
           <CookieBanner locale={locale} />
