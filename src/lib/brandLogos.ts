@@ -172,7 +172,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'Pulsar turbo': '/logos/pulsar-turbo.png',
   'Pure Drivetrain Solutions': '/logos/pure-drivetrain-solutions.webp',
   'Pure Turbos': '/logos/pure-turbos.png',
-  'QuickSilver Exhausts': '/logos/quicksilver-exhausts.webp',
+  'QuickSilver Exhausts': '/logos/quicksilver-exhausts.png',
   'R&G Racing': '/logos/randg-racing.png',
   'R44 Performance': '/logos/r44-performance.png',
   'RaceChip': '/logos/racechip.png',
