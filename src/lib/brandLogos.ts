@@ -172,6 +172,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'Pulsar turbo': '/logos/pulsar-turbo.png',
   'Pure Drivetrain Solutions': '/logos/pure-drivetrain-solutions.webp',
   'Pure Turbos': '/logos/pure-turbos.png',
+  'QuickSilver Exhausts': '/logos/quicksilver-exhausts.webp',
   'R&G Racing': '/logos/randg-racing.png',
   'R44 Performance': '/logos/r44-performance.png',
   'RaceChip': '/logos/racechip.png',
@@ -262,7 +263,7 @@ export function getBrandLogo(brandName: string): string {
   if (BRAND_LOGO_MAP[brandName]) {
     return BRAND_LOGO_MAP[brandName];
   }
-  
+
   // Try case-insensitive match
   const lowerName = brandName.toLowerCase();
   for (const [key, value] of Object.entries(BRAND_LOGO_MAP)) {
@@ -270,7 +271,7 @@ export function getBrandLogo(brandName: string): string {
       return value;
     }
   }
-  
+
   // Return placeholder
   return '/images/logo-placeholder.svg';
 }

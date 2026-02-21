@@ -143,6 +143,7 @@ export const categoryData: CategoryData[] = [
       'GTHaus',
       'Kooks Headers',
       'Milltek',
+      'QuickSilver Exhausts',
       'Remus',
       'RYFT',
       'Supersprint',
@@ -653,7 +654,7 @@ export function getCategoryMetadata(slug: string, locale: string): Metadata {
     lang === 'ua'
       ? `${compactBase} Тюнінг, OEM, вихлоп, підвіска та електрика. Підбір і офіційне постачання OneCompany.`
       : `${compactBase} Performance tuning, OEM parts, exhaust, suspension and electronics with official OneCompany sourcing.`;
-  
+
   return {
     title,
     description,

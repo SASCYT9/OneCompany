@@ -2,13 +2,13 @@
 
 export type BrandCategory = 'usa' | 'europe' | 'oem' | 'racing' | 'moto' | 'auto';
 
-export type CountryOfOrigin = 
-  | 'USA' 
-  | 'Japan' 
-  | 'Germany' 
-  | 'Italy' 
-  | 'UK' 
-  | 'Australia' 
+export type CountryOfOrigin =
+  | 'USA'
+  | 'Japan'
+  | 'Germany'
+  | 'Italy'
+  | 'UK'
+  | 'Australia'
   | 'Netherlands'
   | 'Czech Republic'
   | 'Spain'
@@ -33,7 +33,7 @@ export type CountryOfOrigin =
   | 'Ukraine'
   | 'Latvia';
 
-export type ProductSubcategory = 
+export type ProductSubcategory =
   | 'Engine'
   | 'Exterior'
   | 'Suspension'
@@ -143,13 +143,13 @@ export function getBrandWithCategory(slug: string): (LocalBrand & { category: Br
       return { ...brand, category };
     }
   }
-  
+
   // Check moto
   const motoBrand = brandsMoto.find(b => getBrandSlug(b) === slug);
   if (motoBrand) {
     return { ...motoBrand, category: 'moto' };
   }
-  
+
   return undefined;
 }
 
@@ -178,7 +178,7 @@ export const brandsUsa: LocalBrand[] = [
   { name: 'Cobb tuning', description: 'The industry standard in Accessport tuning, providing comprehensive ECU calibrations and monitoring for Subaru, Ford, and Nissan platforms.', descriptionUA: 'Галузевий стандарт тюнінгу Accessport, що забезпечує комплексні калібрування ECU та моніторинг для платформ Subaru, Ford та Nissan.', website: 'https://www.cobbtuning.com' },
   { name: 'CSF', description: 'Race-proven cooling solutions featuring high-performance radiators, intercoolers, and heat exchangers for demanding motorsport applications.', descriptionUA: 'Перевірені на гонках рішення охолодження з високопродуктивними радіаторами, інтеркулерами та теплообмінниками для вимогливого автоспорту.', website: 'https://csfrace.com' },
   { name: 'DarwinPro', description: 'Premium carbon fiber aerodynamic components and body kits, bringing exotic styling to luxury and performance vehicles worldwide.', descriptionUA: 'Преміальні карбонові аеродинамічні компоненти та бодікіти, що привносять екзотичний стиль розкішним та спортивним автомобілям.', website: 'https://www.darwinproaero.com' },
-  { name: 'Deatschwerks', description: 'Precision fuel system components engineered for high-horsepower builds, from injectors to complete fuel delivery solutions.', descriptionUA: 'Прецизійні компоненти паливної системи для потужних збірок, від форсунок до комплексних рішень подачі палива.', website: 'https://www.deatschwerks.com' },  { name: 'Dinan', description: 'Premier BMW performance tuner in North America, engineering comprehensive hardware and software solutions backed by a factory-matching warranty.', descriptionUA: 'Провідний тюнер BMW у Північній Америці, що розробляє комплексні апаратні та програмні рішення з гарантією, що відповідає заводській.', website: 'https://www.dinancars.com' },  { name: 'Dorch Engineering', description: 'Advanced fuel system engineering for turbocharged BMW platforms, delivering reliable fuel delivery for extreme power applications.', descriptionUA: 'Передова інженерія паливних систем для турбованих BMW, що забезпечує надійну подачу палива для екстремальних застосувань.', website: 'https://dorchengineering.com' },
+  { name: 'Deatschwerks', description: 'Precision fuel system components engineered for high-horsepower builds, from injectors to complete fuel delivery solutions.', descriptionUA: 'Прецизійні компоненти паливної системи для потужних збірок, від форсунок до комплексних рішень подачі палива.', website: 'https://www.deatschwerks.com' }, { name: 'Dinan', description: 'Premier BMW performance tuner in North America, engineering comprehensive hardware and software solutions backed by a factory-matching warranty.', descriptionUA: 'Провідний тюнер BMW у Північній Америці, що розробляє комплексні апаратні та програмні рішення з гарантією, що відповідає заводській.', website: 'https://www.dinancars.com' }, { name: 'Dorch Engineering', description: 'Advanced fuel system engineering for turbocharged BMW platforms, delivering reliable fuel delivery for extreme power applications.', descriptionUA: 'Передова інженерія паливних систем для турбованих BMW, що забезпечує надійну подачу палива для екстремальних застосувань.', website: 'https://dorchengineering.com' },
   { name: 'Duke Dynamics', description: 'Aggressive wide-body kits and aerodynamic components that transform supercars into track-focused weapons with motorsport DNA.', descriptionUA: 'Агресивні розширювачі кузова та аеродинамічні компоненти, що перетворюють суперкари на трекові снаряди з гоночним ДНК.', website: 'https://dukedynamics.com' },
   { name: 'Eterna Motorworks', description: 'Bespoke carbon fiber bodywork and aerodynamic components for exotic vehicles, handcrafted with meticulous attention to detail.', descriptionUA: 'Ексклюзивні карбонові кузовні панелі та аеродинамічні компоненти для екзотичних автомобілів, виготовлені вручну з увагою до деталей.', website: 'https://www.eternamotorworks.com' },
   { name: 'Fabspeed', description: 'Premium exhaust systems and performance tuning for exotic European vehicles, unleashing the true potential of Porsche, Ferrari, and Lamborghini.', descriptionUA: 'Преміальні вихлопні системи та тюнінг для екзотичних європейських авто, що розкривають справжній потенціал Porsche, Ferrari та Lamborghini.', website: 'https://www.fabspeed.com' },
@@ -295,6 +295,7 @@ export const brandsEurope: LocalBrand[] = [
   { name: 'Power Division', description: 'Polish VAG tuning specialists delivering high-quality performance upgrades and comprehensive tuning solutions for enthusiast builds.', descriptionUA: 'Польські спеціалісти з тюнінгу VAG, високоякісні апгрейди та комплексні рішення тюнінгу для ентузіастів.', website: 'https://power-division.pl' },
   { name: 'ProTrack Wheels', description: 'German wheel manufacturer producing lightweight flow-formed and forged wheels optimized for track performance and aggressive styling.', descriptionUA: 'Німецький виробник дисків, легкі литі та ковані диски, оптимізовані для трекової продуктивності та агресивного стайлінгу.', website: 'https://protrackwheels.de' },
   { name: 'Pulsar turbo', description: 'Chinese turbocharger manufacturer producing high-performance upgrade units with modern aerodynamics and reliable construction.', descriptionUA: 'Китайський виробник турбін, високопродуктивні апгрейди з сучасною аеродинамікою та надійною конструкцією.', website: 'https://pulsarturbo.com' },
+  { name: 'QuickSilver Exhausts', description: 'Precision sports exhaust systems for luxury, classic, and performance cars, based in the UK.', descriptionUA: 'Преміальні спортивні вихлопні системи для розкішних, класичних та продуктивних автомобілів з Великої Британії.', website: 'https://quicksilverexhausts.store/' },
   { name: 'RaceChip', description: 'German performance electronics brand delivering plug-and-play tuning modules that increase power and torque with OEM-level integration.', descriptionUA: 'Німецький бренд електроніки продуктивності, plug-and-play модулі тюнінгу з приростом потужності та моменту з інтеграцією рівня OEM.', website: 'https://www.racechip.eu/' },
   { name: 'R44 Performance', description: 'British BMW specialists delivering quality performance parts and tuning solutions for the enthusiast community.', descriptionUA: 'Британські спеціалісти BMW, якісні деталі продуктивності та рішення тюнінгу для спільноти ентузіастів.', website: 'https://r44performance.com' },
   { name: 'Raliw Forged', description: 'Romanian forged wheel craftsmanship creating custom designs with premium materials and exceptional attention to detail.', descriptionUA: 'Румунська майстерність кованих дисків, кастомні дизайни з преміальних матеріалів та виняткова увага до деталей.', website: 'https://raliwforged.com' },
@@ -609,6 +610,7 @@ export const brandMetadata: Record<string, BrandMetadata> = {
   'VPX TrackWheels': { country: 'Germany', subcategory: 'Wheels' },
   'Pulsar turbo': { country: 'China', subcategory: 'Engine' },
   'Paktechz Design': { country: 'China', subcategory: 'Exterior' },
+  'QuickSilver Exhausts': { country: 'UK', subcategory: 'Exhaust' },
   'RaceChip': { country: 'Germany', subcategory: 'Electronics' },
   'R44 Performance': { country: 'UK', subcategory: 'Engine' },
   'Raliw Forged': { country: 'Romania', subcategory: 'Wheels' },
