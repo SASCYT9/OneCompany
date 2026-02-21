@@ -6,6 +6,12 @@ import { Resend } from 'resend';
 import * as fs from 'fs';
 import * as path from 'path';
 import { PrismaClient } from '@prisma/client';
+import {
+  buildTelegramActionButtons,
+  getConfiguredContactTopicDestination,
+  normalizeTelegramChatId,
+  sendTelegramToDestinations,
+} from '@/lib/telegramNotifications';
 
 // Basic rate limiting (memory).
 const WINDOW_MS = 60_000; // 1 minute
@@ -20,12 +26,6 @@ type PartnershipRequestBody = {
   email: string;
   phone: string;
   message?: string;
-};
-
-type TelegramPayload = {
-  chat_id: string;
-  text: string;
-  parse_mode: 'HTML';
 };
 
 const prisma = new PrismaClient();
@@ -43,44 +43,34 @@ function rateLimit(ip: string): boolean {
   return true;
 }
 
-async function sendTelegram(message: string) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  // Use AUTO chat ID as default for partnerships or maybe a general one if available.
-  // Assuming AUTO is the main channel for now.
-  const chatId = process.env.TELEGRAM_AUTO_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
-  
-  if (!token || !chatId) {
-    console.error('Telegram env is missing for partnership notification', {
-      hasToken: !!token,
-      hasChatId: !!chatId,
-      requiredChatEnv: ['TELEGRAM_AUTO_CHAT_ID', 'TELEGRAM_CHAT_ID'],
-    });
-    return { ok: false, error: 'Missing bot env' };
+async function sendTelegram(message: string, formData: PartnershipRequestBody) {
+  const primaryChatId = normalizeTelegramChatId(process.env.TELEGRAM_AUTO_CHAT_ID || process.env.TELEGRAM_CHAT_ID);
+  const destinations: Array<{ chatId: string; messageThreadId?: number }> = [];
+
+  if (primaryChatId) {
+    destinations.push({ chatId: primaryChatId });
   }
 
-  const payload: TelegramPayload = {
-    chat_id: chatId,
-    text: message,
-    parse_mode: 'HTML',
-  };
-
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      console.error('Telegram API Error:', data);
-      return { ok: false, error: data.description || 'Telegram API error' };
-    }
-    return { ok: true };
-  } catch (e: unknown) {
-    console.error('Telegram Request Failed:', e);
-    const errorMessage = e instanceof Error ? e.message : 'Telegram request failed';
-    return { ok: false, error: errorMessage };
+  const topicDestination = getConfiguredContactTopicDestination();
+  if (topicDestination) {
+    destinations.push(topicDestination);
   }
+
+  const replyMarkup = buildTelegramActionButtons({
+    email: formData.email,
+    emailSubject: `OneCompany Partnership: ${formData.companyName}`,
+    phone: formData.phone,
+    includeTelegramButton: false,
+    includeWhatsAppButton: true,
+  });
+
+  return sendTelegramToDestinations({
+    message,
+    destinations,
+    replyMarkup,
+    context: 'partnership notification',
+    requiredChatEnv: ['TELEGRAM_AUTO_CHAT_ID', 'TELEGRAM_CHAT_ID'],
+  });
 }
 
 async function sendEmail(
@@ -188,9 +178,13 @@ export async function POST(req: NextRequest) {
 
     // Send to Telegram
     try {
-      const tgResult = await sendTelegram(message);
+      const tgResult = await sendTelegram(message, formData);
       if (tgResult.ok) {
-        console.log('✅ Telegram notification sent successfully');
+        if (tgResult.error) {
+          console.warn('⚠️ Telegram notification partially failed:', tgResult.error);
+        } else {
+          console.log('✅ Telegram notification sent successfully');
+        }
       } else {
         console.warn('⚠️ Telegram notification failed:', tgResult.error);
       }

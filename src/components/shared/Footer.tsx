@@ -30,7 +30,7 @@ const Footer = () => {
 
   const socials = [
     { icon: Instagram, href: "https://www.instagram.com/onecompany.global?igsh=N3JrZDEzaDJmdXho&utm_source=qr", label: "Instagram" },
-    { 
+    {
       icon: (props: React.SVGProps<SVGSVGElement>) => (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -45,8 +45,8 @@ const Footer = () => {
           <path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4" />
         </svg>
       ),
-      href: "https://t.me/OneCompanyAutoBot", 
-      label: "Telegram Bot" 
+      href: "https://t.me/onecompany_global",
+      label: "Telegram"
     },
   ];
 
@@ -76,7 +76,7 @@ const Footer = () => {
       </div>
 
       <div ref={scopeRef} className="relative mx-auto max-w-7xl px-6 pt-12 pb-8 sm:px-8 sm:pt-20 sm:pb-12 lg:px-12">
-        
+
         <div className="grid gap-8 sm:gap-12 lg:grid-cols-12 lg:gap-8 border-t border-white/10 pt-12 sm:pt-16 text-center lg:text-left">
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-6">
@@ -152,14 +152,14 @@ const Footer = () => {
                 </a>
                 <p className="text-white/60">{t('workingHours')}</p>
               </div>
-              
+
               {/* Map Embed */}
               <div className="h-32 w-full overflow-hidden rounded-sm border border-white/10 bg-white/5 grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
-                <iframe 
-                  width="100%" 
-                  height="100%" 
+                <iframe
+                  width="100%"
+                  height="100%"
                   title="OneCompany Location"
-                  src="https://maps.google.com/maps?q=21B%20Baseina%20St%2C%20Kyiv%2C%20Ukraine&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                  src="https://maps.google.com/maps?q=21B%20Baseina%20St%2C%20Kyiv%2C%20Ukraine&t=&z=15&ie=UTF8&iwloc=&output=embed"
                   style={{ border: 0 }}
                   loading="lazy"
                 />

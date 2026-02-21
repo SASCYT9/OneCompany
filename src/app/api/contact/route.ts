@@ -7,6 +7,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { notifyAdminsNewMessage } from '@/lib/bot/notifications';
+import {
+  buildTelegramActionButtons,
+  getConfiguredContactTopicDestination,
+  normalizeTelegramChatId,
+  sendTelegramToDestinations,
+} from '@/lib/telegramNotifications';
 
 // Basic rate limiting (memory). For production replace with Redis or durable store.
 const WINDOW_MS = 60_000; // 1 minute
@@ -45,12 +51,6 @@ type ContactFormData = {
 type AutoFormData = ContactFormData & { carModel: string };
 type MotoFormData = ContactFormData & { motoModel: string };
 
-type TelegramPayload = {
-  chat_id: string;
-  text: string;
-  parse_mode: 'HTML';
-};
-
 const prisma = new PrismaClient();
 // Initialize Resend with a fallback key to prevent build-time errors if env var is missing.
 // The actual sending logic checks for the presence of the key.
@@ -68,46 +68,38 @@ function rateLimit(ip: string): boolean {
   return true;
 }
 
-async function sendTelegram(message: string, type: ContactType) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = type === 'auto'
+async function sendTelegram(message: string, type: ContactType, formData: ContactFormData) {
+  const primaryChatId = normalizeTelegramChatId(type === 'auto'
     ? (process.env.TELEGRAM_AUTO_CHAT_ID || process.env.TELEGRAM_CHAT_ID)
-    : (process.env.TELEGRAM_MOTO_CHAT_ID || process.env.TELEGRAM_CHAT_ID);
-  
-  if (!token || !chatId) {
-    console.error('Telegram env is missing for contact notification', {
-      hasToken: !!token,
-      hasChatId: !!chatId,
-      requiredChatEnv: type === 'auto'
-        ? ['TELEGRAM_AUTO_CHAT_ID', 'TELEGRAM_CHAT_ID']
-        : ['TELEGRAM_MOTO_CHAT_ID', 'TELEGRAM_CHAT_ID'],
-    });
-    return { ok: false, error: 'Missing bot env' };
+    : (process.env.TELEGRAM_MOTO_CHAT_ID || process.env.TELEGRAM_CHAT_ID));
+  const destinations: Array<{ chatId: string; messageThreadId?: number }> = [];
+  if (primaryChatId) {
+    destinations.push({ chatId: primaryChatId });
   }
 
-  const payload: TelegramPayload = {
-    chat_id: chatId,
-    text: message,
-    parse_mode: 'HTML',
-  };
-
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      console.error('Telegram API Error:', data);
-      return { ok: false, error: data.description || 'Telegram API error' };
-    }
-    return { ok: true };
-  } catch (e: unknown) {
-    console.error('Telegram Request Failed:', e);
-    const errorMessage = e instanceof Error ? e.message : 'Telegram request failed';
-    return { ok: false, error: errorMessage };
+  const topicDestination = getConfiguredContactTopicDestination();
+  if (topicDestination) {
+    destinations.push(topicDestination);
   }
+
+  const replyMarkup = buildTelegramActionButtons({
+    email: formData.email,
+    emailSubject: `OneCompany ${type === 'auto' ? 'Auto' : 'Moto'} Inquiry`,
+    telegramUsername: formData.telegramUsername,
+    phone: formData.phone,
+    includeTelegramButton: true,
+    includeWhatsAppButton: true,
+  });
+
+  return sendTelegramToDestinations({
+    message,
+    destinations,
+    replyMarkup,
+    context: 'contact notification',
+    requiredChatEnv: type === 'auto'
+      ? ['TELEGRAM_AUTO_CHAT_ID', 'TELEGRAM_CHAT_ID']
+      : ['TELEGRAM_MOTO_CHAT_ID', 'TELEGRAM_CHAT_ID'],
+  });
 }
 
 async function sendEmail(
@@ -260,10 +252,14 @@ export async function POST(req: NextRequest) {
 
     // Send to Telegram (don't block user if this fails)
     try {
-      const tgResult = await sendTelegram(message, type);
+      const tgResult = await sendTelegram(message, type, formData);
       
       if (tgResult.ok) {
-        console.log('✅ Telegram notification sent successfully');
+        if (tgResult.error) {
+          console.warn('⚠️ Telegram notification partially failed:', tgResult.error);
+        } else {
+          console.log('✅ Telegram notification sent successfully');
+        }
       } else {
         console.warn('⚠️ Telegram notification failed:', tgResult.error);
       }

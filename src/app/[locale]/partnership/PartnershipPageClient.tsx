@@ -120,10 +120,10 @@ export default function PartnershipPageClient() {
 
             <div className="mt-12 flex flex-col gap-4">
               <a
-                href="https://t.me/OneCompanyAutoBot"
+                href="https://t.me/onecompany_global"
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => trackCTAClick('click_telegram', 'https://t.me/OneCompanyAutoBot')}
+                onClick={() => trackCTAClick('click_telegram', 'https://t.me/onecompany_global')}
                 className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] text-white group w-fit"
               >
                 <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">
@@ -248,8 +248,8 @@ export default function PartnershipPageClient() {
                       type="button"
                       onClick={() => setFormData({ ...formData, type })}
                       className={`px-4 py-2.5 rounded-full font-medium border transition-all duration-300 ${typography.bodySmall} ${formData.type === type
-                          ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-                          : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/20 hover:text-white"
+                        ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                        : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/20 hover:text-white"
                         }`}
                     >
                       {t(`types.${type}`)}
@@ -275,8 +275,8 @@ export default function PartnershipPageClient() {
                 type="submit"
                 disabled={status === "loading" || completion < 100}
                 className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${status === "loading" || completion < 100
-                    ? "bg-white/10 text-white/40 cursor-not-allowed"
-                    : "bg-white text-black hover:bg-white/90"
+                  ? "bg-white/10 text-white/40 cursor-not-allowed"
+                  : "bg-white text-black hover:bg-white/90"
                   }`}
               >
                 {status === "loading" ? (

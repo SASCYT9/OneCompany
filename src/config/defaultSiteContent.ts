@@ -89,7 +89,7 @@ export const defaultSiteContent: SiteContent = {
     channels: [
       { id: 'email', label: 'B2B wholesale email', value: 'info@onecompany.global', note: 'Відповідь до 12 годин', type: 'email' },
       { id: 'phone', label: 'Support phone', value: '+380 66 077 17 00', note: '10:00–21:00 GMT+2', type: 'phone' },
-      { id: 'telegram', label: 'Telegram', value: '@onecompany_wholesale', note: 'B2B запити', type: 'telegram' },
+      { id: 'telegram', label: 'Telegram', value: '@onecompany_global', note: 'B2B запити', type: 'telegram' },
       { id: 'whatsapp', label: 'WhatsApp', value: '+380 66 077 17 00', note: 'Глобальні клієнти', type: 'whatsapp' },
     ],
     successStories: [
@@ -119,7 +119,7 @@ export const defaultSiteContent: SiteContent = {
       },
     ],
     messengerHandles: {
-      telegram: 'https://t.me/onecompany_wholesale',
+      telegram: 'https://t.me/onecompany_global',
       whatsapp: 'https://wa.me/380660771700',
       phone: '+380660771700',
     },

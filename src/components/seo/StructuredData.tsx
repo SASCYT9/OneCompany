@@ -27,7 +27,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
       height: "512",
     },
     image: "https://onecompany.global/branding/one-company-logo.svg",
-    description: locale === "ua" 
+    description: locale === "ua"
       ? "Офіційний B2B дистриб'ютор 200+ преміум брендів авто та мото тюнінгу в Україні. Akrapovic, Brabus, HRE, KW, Brembo. Експертний підбір, глобальна логістика, гарантійна підтримка з 2007."
       : "Official B2B importer of 200+ premium auto & moto tuning brands in Ukraine. Expert sourcing, global logistics, warranty support since 2007.",
     foundingDate: "2007",
@@ -53,11 +53,11 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
     ],
     sameAs: [
       "https://www.instagram.com/onecompany.global",
-      "https://t.me/OneCompanyAutoBot",
+      "https://t.me/onecompany_global",
     ],
     knowsAbout: [
       "Automotive tuning",
-      "Motorcycle tuning", 
+      "Motorcycle tuning",
       "Premium exhaust systems",
       "Performance wheels",
       "Suspension systems",
@@ -85,7 +85,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
         name: "Ukraine",
       },
       {
-        "@type": "Country", 
+        "@type": "Country",
         name: "United States",
       },
       {
