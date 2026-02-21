@@ -74,7 +74,12 @@ export default async function BrandsCategoryOEMPage({ params }: PageProps) {
         description={resolvedLocale === "ua" ? "Каталог OEM брендів тюнінгу." : "Catalog of OEM tuning brands."}
         url={absoluteUrl(buildLocalizedPath(resolvedLocale, "/brands/oem"))}
       />
-      <h1 className="text-4xl md:text-5xl font-bold mb-10 tracking-tight">{t('brandsPage.title')}</h1>
+      <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">{t('brandsPage.title')}</h1>
+      <p className="max-w-3xl text-white/70 text-lg mb-10 leading-relaxed">
+        {resolvedLocale === "ua"
+          ? "Близько 100+ оригінальних OEM брендів, які забезпечують заводську якість, надійність та ідеальну сумісність для вашого авто або мото. Офіційний підбір, експертна консультація та швидка логістика оригінальних комплектуючих."
+          : "Over 100+ original OEM brands providing factory-grade quality, reliability, and perfect fitment for your vehicle. Official sourcing, expert consultation, and fast logistics of genuine components."}
+      </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
         {categories.map(cat => (
