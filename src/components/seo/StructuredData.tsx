@@ -328,6 +328,35 @@ export function CollectionPageSchema({ name, description, url }: CollectionPageS
   );
 }
 
+interface FAQSchemaProps {
+  faqItems: { question: string; answer: string }[];
+}
+
+export function FAQSchema({ faqItems }: FAQSchemaProps) {
+  if (!faqItems || faqItems.length === 0) return null;
+
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map(item => ({
+      "@type": "Question",
+      "name": item.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.answer
+      }
+    }))
+  };
+
+  return (
+    <Script
+      id="faq-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 interface ArticleSchemaProps {
   id: string;
   headline: string;
