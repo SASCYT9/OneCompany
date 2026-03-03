@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     "Brembo",
     "тюнінг Київ",
     "тюнінг авто Україна",
-    "доставка по Україні",
+    "доставка по Україні та світу",
     "тюнінг мото Україна",
   ],
   authors: [{ name: "OneCompany", url: siteUrl }],
@@ -142,15 +142,15 @@ export default async function RootLayout({
   const htmlLang = activeLocale === "ua" ? "uk" : "en";
 
   return (
-  <html 
-    lang={htmlLang}
-    suppressHydrationWarning
-    className={cn(
-      fontSans.variable,
-      fontDisplay.variable,
-      fontMono.variable
-    )}
-  >
+    <html
+      lang={htmlLang}
+      suppressHydrationWarning
+      className={cn(
+        fontSans.variable,
+        fontDisplay.variable,
+        fontMono.variable
+      )}
+    >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -166,11 +166,11 @@ export default async function RootLayout({
         <OrganizationSchema />
         <WebSiteSchema />
         <LocalBusinessSchema locale={htmlLang === 'uk' ? 'ua' : 'en'} />
-        
+
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         )}
-        
+
         {process.env.NEXT_PUBLIC_CLARITY_ID && (
           <MicrosoftClarity id={process.env.NEXT_PUBLIC_CLARITY_ID} />
         )}
