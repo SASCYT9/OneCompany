@@ -125,7 +125,7 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
             <div className="mt-4 not-prose border-l-2 border-white/20 pl-4">
               <p className="text-white font-medium">One Company</p>
               <p>{l === "ua" ? "вул. Басейна, 21Б" : "21B Baseina St"}</p>
-              <p>{l === "ua" ? "Київ, 01004, Україна" : "Kyiv, 01004, Ukraine"}</p>
+              <p>{l === "ua" ? "Київ, 01024, Україна" : "Kyiv, 01024, Ukraine"}</p>
               <p className="mt-2">Email: info@onecompany.global</p>
             </div>
           </section>
