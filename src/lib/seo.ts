@@ -100,3 +100,24 @@ export function buildPageMetadata(
     },
   };
 }
+
+export function buildNoIndexPageMetadata(
+  locale: SupportedLocale,
+  slug: string,
+  meta: { title: string; description: string; image?: string; type?: "website" | "article" | "profile" }
+): Metadata {
+  return {
+    ...buildPageMetadata(locale, slug, meta),
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: {
+        index: false,
+        follow: false,
+        'max-image-preview': 'none',
+        'max-snippet': 0,
+        'max-video-preview': 0,
+      },
+    },
+  };
+}

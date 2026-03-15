@@ -1,0 +1,312 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "section-urban-cinematic-hero",
+      "settings": {
+        "eyebrow": "Urban Range",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title": "Audi RSQ8",
+        "title_uk": "Audi RSQ8",
+        "subtitle": "We’ve re-tooled and re-tuned the Urban Aero Kit for the 2024 Audi RSQ8 facelift - featuring our signature high quality carbon fibre in all the right places achieving a subtle yet agressive ‘OEM plus’ Urban look.",
+        "subtitle_uk": "Ми переробили та вдосконалили Urban Aero Kit для Audi RSQ8 2024 фейсліфт — з нашим фірмовим високоякісним карбоном у всіх потрібних місцях для досягнення витонченого, але агресивного вигляду OEM plus.",
+        "button_label": "Enquire",
+        "button_label_uk": "Замовити",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "external_video_embed_url": "https://player.vimeo.com/video/1121210098?h=5b5123bb3e&autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1&app_id=58479",
+        "external_poster_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-front-1920.webp",
+        "enable_loader": false,
+        "show_scroll_button": true,
+        "scroll_target": "[id$='__overview']",
+        "overlay_opacity": 25,
+        "mobile_height": 90,
+        "desktop_height": 100,
+        "accent_color": "#ffffff",
+        "loader_background": "#000000"
+      }
+    },
+    "overview": {
+      "type": "section-urban-model-overview",
+      "blocks": {
+        "hl_1": {
+          "type": "highlight",
+          "settings": {
+            "text": "Rear Styling",
+            "text_uk": "Стайлінг задньої частини"
+          }
+        },
+        "hl_2": {
+          "type": "highlight",
+          "settings": {
+            "text": "Front Styling",
+            "text_uk": "Стайлінг передньої частини"
+          }
+        },
+        "hl_3": {
+          "type": "highlight",
+          "settings": {
+            "text": "Sill Extensions Spoiler",
+            "text_uk": "Розширювачі порогів зі спойлером"
+          }
+        }
+      },
+      "block_order": [
+        "hl_1",
+        "hl_2",
+        "hl_3"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title": "Audi RSQ8",
+        "title_uk": "Audi RSQ8",
+        "badge": "2024+",
+        "badge_uk": "2024+",
+        "subtitle": "Redefined by Urban",
+        "subtitle_uk": "Переосмислено Urban",
+        "description": "We’re bringing the Urban look to the facelift Audi RSQ8 with our extending and enhacing aero kit. For performance edition owners the aero kit is synchronised with the OEM styling by matching the weave direction on our premium handmade carbon fibre. This car is big, almost as big as a Cullinan and looks incredible fitted with the pictured 24\" UC-9 cast alloy wheels.",
+        "description_uk": "Ми представляємо вигляд Urban для фейсліфт Audi RSQ8 з нашим розширеним аеро-китом. Для власників Performance Edition аеро-кит синхронізований з OEM-стилем завдяки збігу напрямку плетіння на нашому преміальному карбоні ручної роботи.",
+        "button_label": "Enquire Now",
+        "button_label_uk": "Замовити зараз",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-uc9-gtc.webp",
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "copy_color": "#cfcfcf"
+      }
+    },
+    "gallery": {
+      "type": "section-urban-gallery-carousel",
+      "blocks": {
+        "slide_1": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-1-2560.webp",
+            "caption": "Audi RSQ8 - Image 1"
+          }
+        },
+        "slide_2": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-2-2560.webp",
+            "caption": "Audi RSQ8 - Image 2"
+          }
+        },
+        "slide_3": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-3-2560.webp",
+            "caption": "Audi RSQ8 - Image 3"
+          }
+        },
+        "slide_4": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-4-2560.webp",
+            "caption": "Audi RSQ8 - Image 4"
+          }
+        },
+        "slide_5": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-5-2560.webp",
+            "caption": "Audi RSQ8 - Image 5"
+          }
+        }
+      },
+      "block_order": [
+        "slide_1",
+        "slide_2",
+        "slide_3",
+        "slide_4",
+        "slide_5"
+      ],
+      "settings": {
+        "label": "Gallery",
+        "label_uk": "Галерея",
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b"
+      }
+    },
+    "banner": {
+      "type": "section-urban-banner-stack",
+      "blocks": {
+        "banner_1": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-front-1920.webp",
+            "eyebrow": "Redefined by Urban",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title": "Audi RSQ8",
+            "title_uk": "Audi RSQ8",
+            "subtitle": "Widetrack",
+            "subtitle_uk": "Widetrack",
+            "button_label": "Build Yours",
+            "button_label_uk": "Створити свій",
+            "button_link": "/collections/audi-rsq8-facelift"
+          }
+        },
+        "banner_spin": {
+          "type": "banner",
+          "settings": {
+            "media_type": "video",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-front-1920.webp",
+            "eyebrow": "360° View",
+            "eyebrow_uk": "Огляд 360°",
+            "title": "Urban RSQ8 2024+",
+            "title_uk": "Urban RSQ8 2024+",
+            "subtitle": "Complete Kit Overview",
+            "subtitle_uk": "Повний огляд комплекту",
+            "button_label": "Enquire",
+            "button_label_uk": "Замовити",
+            "button_link": "/pages/contact"
+          }
+        }
+      },
+      "block_order": [
+        "banner_1",
+        "banner_spin"
+      ],
+      "settings": {
+        "overlay_opacity": 20,
+        "mobile_height": 70,
+        "desktop_height": 90,
+        "border_color": "#1c1c1c"
+      }
+    },
+    "main": {
+      "type": "main-collection-product-grid",
+      "settings": {
+        "products_per_page": 16,
+        "columns_desktop": 4,
+        "columns_mobile": "2",
+        "color_scheme": "scheme-1",
+        "image_ratio": "adapt",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "enable_filtering": true,
+        "filter_type": "horizontal",
+        "enable_sorting": true,
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "video_pointer": {
+      "type": "section-urban-video-pointer",
+      "settings": {
+        "video_url": "https://player.vimeo.com/video/756711577?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
+        "caption_eyebrow": "Urban Automotive",
+        "caption_eyebrow_uk": "Urban Automotive",
+        "caption_title": "Audi RSQ8 Facelift",
+        "caption_title_uk": "Audi RSQ8 Facelift",
+        "full_width": true,
+        "max_width": 1900,
+        "overlay_top": 10,
+        "overlay_bottom": 15,
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "background_color": "#000000"
+      }
+    },
+    "blueprint_kit": {
+      "type": "section-urban-blueprint-kit",
+      "blocks": {
+        "kit_1": {
+          "type": "view",
+          "settings": {
+            "position_label": "Front",
+            "title_en": "Front Aero Package",
+            "title_uk": "Передній аеро пакет",
+            "parts_en": "Carbon fibre front splitter|Front bumper lower lip|Front air intake trims|Carbon canard set",
+            "parts_uk": "Карбоновий передній спліттер|Нижня губа переднього бампера|Накладки повітрозабірників|Карбонові канарди",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/front.jpg"
+          }
+        },
+        "kit_2": {
+          "type": "view",
+          "settings": {
+            "position_label": "Left",
+            "title_en": "Side Package",
+            "title_uk": "Бічний пакет",
+            "parts_en": "Carbon fibre side skirt extensions|Carbon mirror caps|Side body styling|Wheel arch trims",
+            "parts_uk": "Карбонові бічні пороги|Карбонові накладки дзеркал|Бічний стайлінг кузова|Накладки арок коліс",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/left.jpg"
+          }
+        },
+        "kit_3": {
+          "type": "view",
+          "settings": {
+            "position_label": "Right",
+            "title_en": "Wheel Package",
+            "title_uk": "Пакет коліс",
+            "parts_en": "23\" forged alloy wheels|Performance tyres|Wheel spacer kit|Branded centre caps",
+            "parts_uk": "23\" ковані легкосплавні диски|Спортивні шини|Набір проставок коліс|Фірмові центральні ковпаки",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/right.jpg"
+          }
+        },
+        "kit_4": {
+          "type": "view",
+          "settings": {
+            "position_label": "Back",
+            "title_en": "Rear Aero Package",
+            "title_uk": "Задній аеро пакет",
+            "parts_en": "Lower rear lip spoiler|Carbon fibre rear diffuser|Exhaust surrounds|Rear spoiler extension",
+            "parts_uk": "Нижній задній спойлер|Карбоновий задній дифузор|Обрамлення вихлопу|Розширення заднього спойлера",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/back.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "kit_1",
+        "kit_2",
+        "kit_3",
+        "kit_4"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "heading": "The Urban Kit",
+        "heading_uk": "Комплект Urban",
+        "subheading": "Audi RSQ8 Facelift",
+        "subheading_uk": "Audi RSQ8 Facelift",
+        "cta_label": "Enquire Now",
+        "cta_label_uk": "Замовити зараз",
+        "cta_link": "/pages/contact",
+        "cta_new_tab": false,
+        "padding_top": 52,
+        "padding_bottom": 52,
+        "background_color": "#f5f5f3",
+        "card_background": "#ffffff",
+        "text_color": "#111111",
+        "muted_color": "#666666",
+        "separator_color": "#e0e0e0"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "overview",
+    "gallery",
+    "video_pointer",
+    "banner",
+    "blueprint_kit",
+    "main"
+  ]
+}

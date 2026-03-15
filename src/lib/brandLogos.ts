@@ -258,6 +258,10 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'ZARD Exhaust': '/logos/zard-exhaust.svg'
 };
 
+const BRAND_LOGO_ALIASES: Record<string, string> = {
+  'rolls-royce': 'Rolls Royce',
+};
+
 export function getBrandLogo(brandName: string): string {
   // Try exact match first
   if (BRAND_LOGO_MAP[brandName]) {
@@ -270,6 +274,11 @@ export function getBrandLogo(brandName: string): string {
     if (key.toLowerCase() === lowerName) {
       return value;
     }
+  }
+
+  const aliasedBrand = BRAND_LOGO_ALIASES[lowerName];
+  if (aliasedBrand && BRAND_LOGO_MAP[aliasedBrand]) {
+    return BRAND_LOGO_MAP[aliasedBrand];
   }
 
   // Return placeholder

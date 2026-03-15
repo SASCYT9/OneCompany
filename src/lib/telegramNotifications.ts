@@ -118,6 +118,68 @@ export function getConfiguredContactTopicDestination(): TelegramDestination | nu
   };
 }
 
+/** Notify admin about new shop order. Uses TELEGRAM_SHOP_ORDERS_CHAT_ID or TELEGRAM_CHAT_ID. */
+export async function notifyAdminNewShopOrder(params: {
+  orderNumber: string;
+  customerName: string;
+  email: string;
+  currency: string;
+  total: number;
+  itemCount: number;
+}): Promise<{ ok: boolean; error?: string }> {
+  const chatId =
+    normalizeTelegramChatId(process.env.TELEGRAM_SHOP_ORDERS_CHAT_ID) ||
+    normalizeTelegramChatId(process.env.TELEGRAM_CHAT_ID);
+  if (!chatId) return { ok: false, error: 'No Telegram chat configured for shop orders' };
+
+  const message = [
+    '<b>🛒 New shop order</b>',
+    `Order: <code>${escapeHtml(params.orderNumber)}</code>`,
+    `Customer: ${escapeHtml(params.customerName)}`,
+    `Email: ${escapeHtml(params.email)}`,
+    `Total: ${params.currency} ${params.total.toFixed(0)} (${params.itemCount} item${params.itemCount !== 1 ? 's' : ''})`,
+  ].join('\n');
+
+  return sendTelegramToDestinations({
+    message,
+    destinations: [{ chatId }],
+    context: 'shop order notification',
+    requiredChatEnv: ['TELEGRAM_SHOP_ORDERS_CHAT_ID', 'TELEGRAM_CHAT_ID'],
+  });
+}
+
+export async function notifyAdminShopB2BRequest(params: {
+  customerName: string;
+  email: string;
+  companyName?: string | null;
+}) {
+  const chatId =
+    normalizeTelegramChatId(process.env.TELEGRAM_SHOP_ORDERS_CHAT_ID) ||
+    normalizeTelegramChatId(process.env.TELEGRAM_CHAT_ID);
+  if (!chatId) return { ok: false, error: 'No Telegram chat configured for shop notifications' };
+
+  const message = [
+    '<b>🏢 New B2B approval request</b>',
+    `Customer: ${escapeHtml(params.customerName)}`,
+    `Email: ${escapeHtml(params.email)}`,
+    `Company: ${escapeHtml(params.companyName || '—')}`,
+  ].join('\n');
+
+  return sendTelegramToDestinations({
+    message,
+    destinations: [{ chatId }],
+    context: 'shop b2b notification',
+    requiredChatEnv: ['TELEGRAM_SHOP_ORDERS_CHAT_ID', 'TELEGRAM_CHAT_ID'],
+  });
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 export async function sendTelegramToDestinations({
   message,
   destinations,

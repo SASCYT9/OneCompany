@@ -3,9 +3,15 @@ import { absoluteUrl, buildLocalizedPath, siteConfig, buildAlternateLinks } from
 import { categoryData } from "@/lib/categoryData";
 import { readSiteContent } from "@/lib/siteContentServer";
 import { localizedStaticSlugs } from "@/lib/seoIndexPolicy";
+import { getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getUrbanCollectionHandleForProduct } from "@/lib/urbanCollectionMatcher";
+import { URBAN_COLLECTION_CARDS } from "@/app/[locale]/shop/data/urbanCollectionsList";
 
 const staticPageConfig: Record<string, { priority: number; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] }> = {
   "": { priority: 1.0, changeFrequency: "daily" },
+  "/shop": { priority: 0.85, changeFrequency: "daily" },
+  "/shop/urban": { priority: 0.82, changeFrequency: "weekly" },
+  "/shop/urban/collections": { priority: 0.8, changeFrequency: "weekly" },
   "/auto": { priority: 0.9, changeFrequency: "daily" },
   "/moto": { priority: 0.9, changeFrequency: "daily" },
   "/brands": { priority: 0.8, changeFrequency: "weekly" },
@@ -81,5 +87,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
   );
 
-  return [...staticEntries, ...categoryEntries, ...blogEntries];
+  const shopProducts = await getShopProductsServer();
+  const urbanCollectionEntries = siteConfig.locales.flatMap((locale) =>
+    URBAN_COLLECTION_CARDS.map((collection) => {
+      const pageSlug = `/shop/urban/collections/${collection.collectionHandle}`;
+      const path = buildLocalizedPath(locale, pageSlug);
+      return {
+        url: absoluteUrl(path),
+        lastModified: buildLastModified,
+        changeFrequency: "weekly" as const,
+        priority: 0.76,
+        alternates: {
+          languages: buildAlternateLinks(pageSlug),
+        },
+      } satisfies MetadataRoute.Sitemap[number];
+    })
+  );
+  const shopProductEntries = siteConfig.locales.flatMap((locale) =>
+    shopProducts.map((product) => {
+      const pageSlug = getUrbanCollectionHandleForProduct(product)
+        ? `/shop/urban/products/${product.slug}`
+        : `/shop/${product.slug}`;
+      const path = buildLocalizedPath(locale, pageSlug);
+      return {
+        url: absoluteUrl(path),
+        lastModified: buildLastModified,
+        changeFrequency: "weekly" as const,
+        priority: 0.75,
+        alternates: {
+          languages: buildAlternateLinks(pageSlug),
+        },
+      } satisfies MetadataRoute.Sitemap[number];
+    })
+  );
+
+  return [...staticEntries, ...categoryEntries, ...urbanCollectionEntries, ...shopProductEntries, ...blogEntries];
 }

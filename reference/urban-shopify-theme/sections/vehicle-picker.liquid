@@ -1,0 +1,681 @@
+{% comment %}
+  SECTION: Vehicle Picker (Urban-style)
+  File: sections/vehicle-picker.liquid
+
+  What it does:
+  - Renders a premium, dark “vehicle selector” section (inspired by urbanautomotive.shop).
+  - Cards link to collections by handle.
+  - Optional filters: Brand (make), Model, Search.
+
+  IMPORTANT SETUP (recommended):
+  1) Create collections where the collection handle equals your vehicle_key.
+     Example: audi-rsq8-facelift -> /collections/audi-rsq8-facelift
+  2) Add a Collection image (car photo) — this will be used as the card cover.
+  3) In Theme Editor, add this section to a page and paste Vehicles JSON.
+
+  Vehicles JSON format:
+  [
+    {"handle":"audi-rsq8-facelift","label":"AUDI RSQ8 (Facelift)","make":"Audi","model":"RSQ8"},
+    {"handle":"l663-defender-110","label":"Defender 110 (L663)","make":"Land Rover","model":"Defender"}
+  ]
+
+  Notes:
+  - If a collection is not found by handle, it still links to /collections/<handle>.
+  - This section is self-contained (CSS+JS inline) to copy-paste safely.
+{% endcomment %}
+
+{%- assign vehicles_raw = section.settings.vehicles_json | strip -%}
+{%- if vehicles_raw != blank -%}
+  {%- assign vehicles = vehicles_raw | parse_json -%}
+{%- else -%}
+  {%- assign vehicles = nil -%}
+{%- endif -%}
+
+<section class="vp vp--{{ section.settings.style }}" data-section-id="{{ section.id }}">
+  <div class="vp__wrap">
+    <header class="vp__header">
+      {%- if section.settings.kicker != blank -%}
+        <div class="vp__kicker">{{ section.settings.kicker }}</div>
+      {%- endif -%}
+
+      {%- if section.settings.heading != blank -%}
+        <h2 class="vp__heading">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.subheading != blank -%}
+        <div class="vp__subheading rte">{{ section.settings.subheading }}</div>
+      {%- endif -%}
+    </header>
+
+    {%- if vehicles == nil or vehicles.size == 0 -%}
+      <div class="vp__empty">
+        <p><strong>No vehicles configured.</strong></p>
+        <p>Open section settings and paste a JSON array into <code>Vehicles JSON</code>.</p>
+      </div>
+    {%- else -%}
+      {%- assign makes_raw = '' -%}
+      {%- for v in vehicles -%}
+        {%- if v.make != blank -%}
+          {%- assign token = '||' | append: v.make | append: '||' -%}
+          {%- unless makes_raw contains token -%}
+            {%- assign makes_raw = makes_raw | append: token -%}
+          {%- endunless -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- assign make_list = makes_raw | remove_first: '||' | remove_last: '||' | split: '||' | sort -%}
+
+      <div class="vp__panel">
+        <div class="vp__controls" data-controls>
+          {%- if section.settings.show_make_filter and make_list.size > 0 -%}
+            <div class="vp__control">
+              <label class="vp__label" for="vp-make-{{ section.id }}">{{ section.settings.make_label }}</label>
+              <select id="vp-make-{{ section.id }}" class="vp__select" data-make>
+                <option value="">{{ section.settings.all_label }}</option>
+                {%- for m in make_list -%}
+                  {%- if m != blank -%}
+                    <option value="{{ m | escape }}">{{ m }}</option>
+                  {%- endif -%}
+                {%- endfor -%}
+              </select>
+            </div>
+          {%- endif -%}
+
+          {%- if section.settings.show_model_filter -%}
+            <div class="vp__control">
+              <label class="vp__label" for="vp-model-{{ section.id }}">{{ section.settings.model_label }}</label>
+              <select id="vp-model-{{ section.id }}" class="vp__select" data-model>
+                <option value="">{{ section.settings.all_label }}</option>
+              </select>
+            </div>
+          {%- endif -%}
+
+          {%- if section.settings.show_search -%}
+            <div class="vp__control vp__control--grow">
+              <label class="vp__label" for="vp-search-{{ section.id }}">{{ section.settings.search_label }}</label>
+              <input id="vp-search-{{ section.id }}" class="vp__input" type="search" placeholder="{{ section.settings.search_placeholder }}" autocomplete="off" data-search />
+            </div>
+          {%- endif -%}
+
+          <button class="vp__btn" type="button" data-apply>
+            <span class="vp__btnText">{{ section.settings.button_label }}</span>
+            <span class="vp__btnIcon" aria-hidden="true">→</span>
+          </button>
+        </div>
+
+        {%- if section.settings.helper_text != blank -%}
+          <div class="vp__helper">{{ section.settings.helper_text }}</div>
+        {%- endif -%}
+      </div>
+
+      <div class="vp__grid" style="--vp-cols: {{ section.settings.columns_desktop }}" data-grid>
+        {%- for v in vehicles -%}
+          {%- assign handle = v.handle | default: '' -%}
+          {%- assign label = v.label | default: handle -%}
+          {%- assign make = v.make | default: '' -%}
+          {%- assign model = v.model | default: '' -%}
+
+          {%- if handle == blank -%}{%- continue -%}{%- endif -%}
+
+          {%- assign col = collections[handle] -%}
+          {%- assign url = '' -%}
+          {%- assign title = label -%}
+          {%- assign img = nil -%}
+          {%- assign count = nil -%}
+
+          {%- if col != blank -%}
+            {%- assign url = col.url -%}
+            {%- if col.title != blank -%}{%- assign title = col.title -%}{%- endif -%}
+            {%- assign img = col.image -%}
+            {%- assign count = col.all_products_count -%}
+          {%- else -%}
+            {%- assign url = '/collections/' | append: handle -%}
+          {%- endif -%}
+
+          <a
+            class="vp__card"
+            href="{{ url }}"
+            data-vp-label="{{ label | downcase | escape }}"
+            data-vp-make="{{ make | downcase | escape }}"
+            data-vp-model="{{ model | downcase | escape }}"
+          >
+            <div class="vp__media" aria-hidden="true">
+              {%- if img != blank -%}
+                {{ img | image_url: width: 1200 | image_tag: loading: 'lazy', class: 'vp__img', alt: title }}
+              {%- else -%}
+                <div class="vp__placeholder">Add a collection image</div>
+              {%- endif -%}
+              <div class="vp__overlay" aria-hidden="true"></div>
+            </div>
+
+            <div class="vp__meta">
+              <div class="vp__title">{{ title }}</div>
+              <div class="vp__line">
+                {%- if make != blank -%}<span class="vp__pill">{{ make }}</span>{%- endif -%}
+                {%- if model != blank -%}<span class="vp__pill">{{ model }}</span>{%- endif -%}
+                {%- if section.settings.show_counts and count != blank -%}<span class="vp__pill">{{ count }} {{ section.settings.products_label }}</span>{%- endif -%}
+              </div>
+            </div>
+          </a>
+        {%- endfor -%}
+      </div>
+
+      <div class="vp__noresults" hidden data-noresults>
+        <p>{{ section.settings.no_results_text }}</p>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  .vp {
+    --vp-fg: #f5f5f5;
+    --vp-muted: rgba(245,245,245,.72);
+    --vp-border: rgba(255,255,255,.10);
+    --vp-card: rgba(255,255,255,.04);
+    --vp-accent: #ffffff;
+    --vp-accent-ink: #0b0b0b;
+    --vp-radius: 18px;
+    --vp-shadow: 0 18px 42px rgba(0,0,0,.35);
+    --vp-shadowHover: 0 26px 64px rgba(0,0,0,.55);
+
+    background:
+      radial-gradient(1200px 520px at 20% 10%, rgba(255,255,255,.10), transparent 55%),
+      radial-gradient(900px 420px at 80% 30%, rgba(255,255,255,.06), transparent 60%),
+      linear-gradient(180deg, #050505 0%, #0b0b0b 55%, #070707 100%);
+    color: var(--vp-fg);
+    padding: 64px 0;
+  }
+
+  .vp--light {
+    --vp-fg: #0b0b0b;
+    --vp-muted: rgba(0,0,0,.65);
+    --vp-border: rgba(0,0,0,.12);
+    --vp-card: rgba(0,0,0,.03);
+    --vp-accent: #0b0b0b;
+    --vp-accent-ink: #ffffff;
+
+    background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%);
+    color: var(--vp-fg);
+  }
+
+  .vp__wrap { max-width: 1240px; margin: 0 auto; padding: 0 18px; }
+  .vp__header { margin-bottom: 18px; }
+
+  .vp__kicker {
+    font-size: 12px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    opacity: .78;
+    margin-bottom: 10px;
+  }
+
+  .vp__heading {
+    margin: 0;
+    font-size: clamp(28px, 3.2vw, 46px);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    line-height: 1.05;
+  }
+
+  .vp__subheading { margin-top: 10px; color: var(--vp-muted); max-width: 70ch; }
+
+  .vp__panel {
+    border: 1px solid var(--vp-border);
+    background: rgba(255,255,255,.04);
+    border-radius: calc(var(--vp-radius) + 2px);
+    padding: 14px;
+    box-shadow: var(--vp-shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    margin: 20px 0 26px;
+  }
+
+  .vp__controls {
+    display: grid;
+    grid-template-columns: 1.05fr 1.05fr 1.6fr auto;
+    gap: 12px;
+    align-items: end;
+  }
+
+  .vp__control { display: grid; gap: 7px; }
+  .vp__control--grow { min-width: 0; }
+
+  .vp__label {
+    font-size: 11px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--vp-muted);
+  }
+
+  .vp__input, .vp__select {
+    width: 100%;
+    padding: 12px 12px;
+    border: 1px solid var(--vp-border);
+    border-radius: 14px;
+    background: rgba(0,0,0,.22);
+    color: var(--vp-fg);
+    outline: none;
+  }
+
+  .vp--light .vp__input, .vp--light .vp__select {
+    background: rgba(255,255,255,.7);
+  }
+
+  .vp__input::placeholder { color: rgba(245,245,245,.55); }
+  .vp--light .vp__input::placeholder { color: rgba(0,0,0,.45); }
+
+  .vp__input:focus, .vp__select:focus {
+    border-color: rgba(255,255,255,.40);
+    box-shadow: 0 0 0 3px rgba(255,255,255,.12);
+  }
+
+  .vp--light .vp__input:focus, .vp--light .vp__select:focus {
+    border-color: rgba(0,0,0,.40);
+    box-shadow: 0 0 0 3px rgba(0,0,0,.10);
+  }
+
+  .vp__btn {
+    height: 46px;
+    padding: 0 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.2);
+    background: var(--vp-accent);
+    color: var(--vp-accent-ink);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+    box-shadow: 0 16px 32px rgba(0,0,0,.25);
+    white-space: nowrap;
+  }
+
+  .vp__btn:hover { transform: translateY(-1px); box-shadow: 0 20px 44px rgba(0,0,0,.35); }
+  .vp__btn:active { transform: translateY(0); opacity: .95; }
+
+  .vp__btnIcon { font-size: 18px; line-height: 1; transform: translateY(-1px); }
+
+  .vp__helper { margin-top: 10px; font-size: 12px; color: var(--vp-muted); }
+
+  .vp__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--vp-cols, 4), minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .vp__card {
+    position: relative;
+    display: block;
+    text-decoration: none;
+    border-radius: var(--vp-radius);
+    overflow: hidden;
+    border: 1px solid var(--vp-border);
+    background: var(--vp-card);
+    transform: translateZ(0);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+
+  .vp__card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--vp-shadowHover);
+    border-color: rgba(255,255,255,.22);
+  }
+
+  .vp__media { aspect-ratio: 16 / 11; background: rgba(255,255,255,.06); position: relative; }
+  .vp__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .vp__overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.00) 40%, rgba(0,0,0,.72) 100%),
+      radial-gradient(700px 260px at 20% 10%, rgba(255,255,255,.08), transparent 60%);
+    opacity: 1;
+  }
+
+  .vp--light .vp__overlay {
+    background: linear-gradient(180deg, rgba(255,255,255,.0) 35%, rgba(0,0,0,.55) 100%);
+  }
+
+  .vp__placeholder {
+    width: 100%; height: 100%;
+    display: grid; place-items: center;
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    opacity: .8;
+  }
+
+  .vp__meta {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .vp__title {
+    font-weight: 850;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    line-height: 1.15;
+  }
+
+  .vp__line { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .vp__pill {
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 7px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18);
+    background: rgba(0,0,0,.22);
+    color: rgba(255,255,255,.88);
+  }
+
+  .vp--light .vp__pill {
+    border-color: rgba(0,0,0,.16);
+    background: rgba(255,255,255,.68);
+    color: rgba(0,0,0,.80);
+  }
+
+  .vp__noresults {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px dashed var(--vp-border);
+    color: var(--vp-muted);
+  }
+
+  .vp__empty {
+    padding: 18px;
+    border: 1px dashed var(--vp-border);
+    border-radius: 14px;
+  }
+
+  @media (max-width: 990px) {
+    .vp { padding: 46px 0; }
+    .vp__controls { grid-template-columns: 1fr 1fr; }
+    .vp__btn { grid-column: 1 / -1; width: 100%; justify-content: center; }
+    .vp__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 520px) {
+    .vp__controls { grid-template-columns: 1fr; }
+    .vp__grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  (function() {
+    var root = document.querySelector('.vp[data-section-id="{{ section.id }}"]');
+    if (!root) return;
+
+    var makeEl = root.querySelector('[data-make]');
+    var modelEl = root.querySelector('[data-model]');
+    var searchEl = root.querySelector('[data-search]');
+    var applyBtn = root.querySelector('[data-apply]');
+    var cards = Array.prototype.slice.call(root.querySelectorAll('.vp__card'));
+    var nores = root.querySelector('[data-noresults]');
+    var grid = root.querySelector('[data-grid]');
+
+    function norm(s) { return (s || '').toString().trim().toLowerCase(); }
+
+    function unique(arr) {
+      var map = Object.create(null);
+      var out = [];
+      arr.forEach(function(x) {
+        var k = String(x || '').trim();
+        if (!k) return;
+        var key = k.toLowerCase();
+        if (map[key]) return;
+        map[key] = true;
+        out.push(k);
+      });
+      return out.sort(function(a, b) { return a.localeCompare(b); });
+    }
+
+    function titleize(s) {
+      var str = String(s || '').trim();
+      if (!str) return '';
+      return str.split(' ').map(function(part) {
+        if (!part) return part;
+        return part.charAt(0).toUpperCase() + part.slice(1);
+      }).join(' ');
+    }
+
+    function getCardData(card) {
+      return {
+        make: norm(card.getAttribute('data-vp-make')),
+        model: norm(card.getAttribute('data-vp-model')),
+        label: norm(card.getAttribute('data-vp-label')),
+        href: card.getAttribute('href')
+      };
+    }
+
+    function rebuildModelOptions() {
+      if (!modelEl) return;
+
+      var selectedMake = makeEl ? norm(makeEl.value) : '';
+      var models = cards
+        .map(getCardData)
+        .filter(function(d) {
+          if (!d.model) return false;
+          if (!selectedMake) return true;
+          return d.make === selectedMake;
+        })
+        .map(function(d) { return d.model; });
+
+      var modelsNice = unique(models).map(titleize);
+
+      var keep = modelEl.value;
+      modelEl.innerHTML = '';
+
+      var optAll = document.createElement('option');
+      optAll.value = '';
+      optAll.textContent = '{{ section.settings.all_label | escape }}';
+      modelEl.appendChild(optAll);
+
+      modelsNice.forEach(function(display) {
+        var opt = document.createElement('option');
+        opt.value = display;
+        opt.textContent = display;
+        modelEl.appendChild(opt);
+      });
+
+      if (keep) {
+        var found = Array.prototype.slice.call(modelEl.options).some(function(o) { return norm(o.value) === norm(keep); });
+        modelEl.value = found ? keep : '';
+      }
+    }
+
+    function applyFilters(scroll) {
+      var q = searchEl ? norm(searchEl.value) : '';
+      var m = makeEl ? norm(makeEl.value) : '';
+      var mo = modelEl ? norm(modelEl.value) : '';
+
+      var visible = 0;
+      var firstVisibleHref = null;
+
+      cards.forEach(function(card) {
+        var d = getCardData(card);
+        var ok = true;
+
+        if (q && d.label.indexOf(q) === -1) ok = false;
+        if (m && d.make !== m) ok = false;
+        if (mo && d.model !== mo) ok = false;
+
+        card.style.display = ok ? '' : 'none';
+        if (ok) {
+          visible++;
+          if (!firstVisibleHref) firstVisibleHref = d.href;
+        }
+      });
+
+      if (nores) nores.hidden = visible !== 0;
+
+      if (scroll && grid) {
+        grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      if (scroll && visible === 1 && firstVisibleHref && {{ section.settings.auto_navigate_single | json }}) {
+        window.location.href = firstVisibleHref;
+      }
+    }
+
+    if (makeEl) makeEl.addEventListener('change', function() {
+      rebuildModelOptions();
+      applyFilters(false);
+    });
+
+    if (modelEl) modelEl.addEventListener('change', function() { applyFilters(false); });
+    if (searchEl) searchEl.addEventListener('input', function() { applyFilters(false); });
+    if (applyBtn) applyBtn.addEventListener('click', function() { applyFilters(true); });
+
+    rebuildModelOptions();
+    applyFilters(false);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Vehicle picker",
+  "settings": [
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "default": "dark",
+      "options": [
+        {"value": "dark", "label": "Dark (Urban)"},
+        {"value": "light", "label": "Light"}
+      ]
+    },
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker",
+      "default": "Premium automotive"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Знайди своє авто"
+    },
+    {
+      "type": "richtext",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "<p>Виберіть марку та модель для підбору запчастин.</p>"
+    },
+    {
+      "type": "textarea",
+      "id": "vehicles_json",
+      "label": "Vehicles JSON",
+      "info": "Paste an array like: [{\"handle\":\"audi-rsq8-facelift\",\"label\":\"AUDI RSQ8 (Facelift)\",\"make\":\"Audi\",\"model\":\"RSQ8\"}]"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Columns on desktop",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "show_make_filter",
+      "label": "Show brand filter",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_model_filter",
+      "label": "Show model filter",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show search",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_counts",
+      "label": "Show product counts",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "auto_navigate_single",
+      "label": "If exactly one match, auto-open the collection on Search",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "make_label",
+      "label": "Brand label",
+      "default": "Марка"
+    },
+    {
+      "type": "text",
+      "id": "model_label",
+      "label": "Model label",
+      "default": "Модель"
+    },
+    {
+      "type": "text",
+      "id": "search_label",
+      "label": "Search label",
+      "default": "Пошук"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search placeholder",
+      "default": "Наприклад: RSQ8, Defender…"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Пошук"
+    },
+    {
+      "type": "text",
+      "id": "all_label",
+      "label": "All option label",
+      "default": "Усі"
+    },
+    {
+      "type": "text",
+      "id": "products_label",
+      "label": "Products label (for counts)",
+      "default": "товарів"
+    },
+    {
+      "type": "text",
+      "id": "no_results_text",
+      "label": "No results text",
+      "default": "Немає авто, що відповідають фільтрам."
+    },
+    {
+      "type": "text",
+      "id": "helper_text",
+      "label": "Helper text",
+      "default": "Порада: якщо залишився 1 результат — кнопка відкриє колекцію автоматично."
+    }
+  ],
+  "presets": [
+    { "name": "Vehicle picker (Urban-style)" }
+  ]
+}
+{% endschema %}

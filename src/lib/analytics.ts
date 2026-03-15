@@ -81,3 +81,47 @@ export function trackEmailClick(email: string) {
 export function trackTelegramClick(link: string) {
   trackEvent('click_telegram', { telegram_link: link });
 }
+
+/** Shop: product page view (e.g. for conversion funnel). */
+export function trackViewProduct(slug: string, name: string, price?: number, currency?: string) {
+  trackEvent('shop_view_product', {
+    product_slug: slug,
+    product_name: name,
+    ...(price != null && { product_price: price }),
+    ...(currency && { product_currency: currency }),
+  });
+}
+
+/** Shop: item added to cart. */
+export function trackAddToCart(slug: string, quantity: number, name?: string) {
+  trackEvent('shop_add_to_cart', {
+    product_slug: slug,
+    quantity,
+    ...(name && { product_name: name }),
+  });
+}
+
+/** Shop: cart viewed. */
+export function trackViewCart(itemCount?: number, total?: number) {
+  trackEvent('shop_view_cart', {
+    ...(itemCount != null && { item_count: itemCount }),
+    ...(total != null && { total }),
+  });
+}
+
+/** Shop: checkout started. */
+export function trackBeginCheckout(itemCount?: number, total?: number) {
+  trackEvent('shop_begin_checkout', {
+    ...(itemCount != null && { item_count: itemCount }),
+    ...(total != null && { total }),
+  });
+}
+
+/** Shop: order placed (confirmation page). */
+export function trackOrderPlaced(orderNumber: string, total?: number, currency?: string) {
+  trackEvent('shop_order_placed', {
+    order_number: orderNumber,
+    ...(total != null && { total }),
+    ...(currency && { currency }),
+  });
+}

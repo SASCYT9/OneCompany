@@ -1,0 +1,436 @@
+/* Back to stores link (on Urban page) */
+.urban-back-to-stores {
+  position: relative;
+  z-index: 10;
+  padding: clamp(92px, 11vw, 132px) clamp(24px, 4vw, 48px) clamp(16px, 2vw, 24px);
+}
+
+.urban-back-to-stores__link {
+  font-size: clamp(11px, 1.1vw, 13px);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.7);
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+.urban-back-to-stores__link:hover {
+  color: var(--urban-c-white);
+}
+
+/* Urban Shop — design tokens and base layout (from reference theme) */
+.urban-shop-page {
+  --urban-ff-display: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --urban-ff-body: 'Sora', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --urban-c-black: #0a0a0a;
+  --urban-c-dark: #111;
+  --urban-c-grey-1: #141414;
+  --urban-c-grey-2: #1e1e1e;
+  --urban-c-grey-5: #999;
+  --urban-c-white: #f5f5f3;
+  --urban-c-accent: #f5f5f3;
+  --urban-r-md: 14px;
+  --urban-r-lg: 24px;
+  --urban-ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --urban-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --urban-gap: clamp(60px, 10vw, 120px);
+
+  font-family: var(--urban-ff-body);
+  background: var(--urban-c-black);
+  color: var(--urban-c-white);
+  min-height: 100vh;
+}
+
+/* Hero */
+.urban-hero {
+  position: relative;
+  width: 100%;
+  min-height: 85vh;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.urban-hero__media {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.urban-hero__media img,
+.urban-hero__media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.urban-hero__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 10, 0.3) 0%,
+    rgba(10, 10, 10, 0.15) 40%,
+    rgba(10, 10, 10, 0.7) 75%,
+    rgba(10, 10, 10, 0.92) 100%
+  );
+}
+
+.urban-hero__content {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  padding: clamp(40px, 8vw, 100px) clamp(24px, 4vw, 48px) clamp(60px, 10vw, 120px);
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.urban-hero__eyebrow {
+  font-size: clamp(10px, 1.1vw, 12px);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.5);
+  margin-bottom: 20px;
+}
+
+.urban-hero__title {
+  font-family: var(--urban-ff-display);
+  font-size: clamp(32px, 5vw, 64px);
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px;
+}
+
+.urban-hero__subtitle {
+  font-size: clamp(14px, 1.3vw, 16px);
+  line-height: 1.7;
+  color: rgba(245, 245, 243, 0.8);
+  max-width: 520px;
+  margin: 0 auto 32px;
+}
+
+.urban-hero__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+}
+
+.urban-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--urban-ff-body);
+  font-size: clamp(10px, 1vw, 12px);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 16px 36px;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.35s var(--urban-ease-expo);
+}
+
+.urban-btn--primary {
+  background: var(--urban-c-white);
+  color: var(--urban-c-black);
+  border: 1px solid var(--urban-c-white);
+}
+
+.urban-btn--primary:hover {
+  background: transparent;
+  color: var(--urban-c-white);
+  border-color: rgba(245, 245, 243, 0.5);
+}
+
+.urban-btn--secondary {
+  background: transparent;
+  color: var(--urban-c-white);
+  border: 1px solid rgba(245, 245, 243, 0.25);
+}
+
+.urban-btn--secondary:hover {
+  border-color: var(--urban-c-white);
+  color: var(--urban-c-white);
+}
+
+/* Section header */
+.urban-section-header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 4vw, 48px) clamp(32px, 5vw, 56px);
+}
+
+.urban-section-header__rule {
+  width: 1px;
+  height: 48px;
+  margin: 0 auto clamp(20px, 3vw, 32px);
+  background: linear-gradient(180deg, transparent, rgba(245, 245, 243, 0.25));
+}
+
+.urban-section-header__label {
+  font-size: clamp(10px, 1.1vw, 12px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: rgba(245, 245, 243, 0.45);
+  margin-bottom: 12px;
+}
+
+.urban-section-header__title {
+  font-family: var(--urban-ff-display);
+  font-size: clamp(26px, 3.5vw, 44px);
+  font-weight: 300;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+}
+
+.urban-section-header__desc {
+  font-size: clamp(13px, 1.2vw, 15px);
+  line-height: 1.65;
+  color: var(--urban-c-grey-5);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Fleet cards grid */
+.urban-fleet {
+  padding: var(--urban-gap) 0;
+}
+
+.urban-fleet__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(14px, 2vw, 24px);
+  padding: 0 clamp(16px, 3vw, 48px);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+@media (min-width: 600px) {
+  .urban-fleet__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 960px) {
+  .urban-fleet__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.urban-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  border-radius: var(--urban-r-md);
+  overflow: hidden;
+  transition: transform 0.4s var(--urban-ease-spring);
+}
+
+.urban-card:hover {
+  transform: translateY(-6px);
+}
+
+.urban-card__inner {
+  position: relative;
+  border-radius: var(--urban-r-md);
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+}
+
+.urban-card__media {
+  position: absolute;
+  inset: 0;
+}
+
+.urban-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--urban-ease-expo);
+}
+
+.urban-card:hover .urban-card__media img {
+  transform: scale(1.06);
+}
+
+.urban-card__gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(10, 10, 10, 0.6) 70%,
+    rgba(10, 10, 10, 0.92) 100%
+  );
+  z-index: 1;
+}
+
+.urban-card__content {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: clamp(20px, 2.5vw, 28px);
+}
+
+.urban-card__badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.85);
+  padding: 6px 12px;
+  border: 1px solid rgba(245, 245, 243, 0.25);
+  border-radius: 2px;
+  margin-bottom: 12px;
+  width: fit-content;
+  backdrop-filter: blur(8px);
+  background: rgba(10, 10, 10, 0.4);
+}
+
+.urban-card__title {
+  font-family: var(--urban-ff-display);
+  font-size: clamp(22px, 2.8vw, 32px);
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+
+.urban-card__subtitle {
+  font-size: clamp(12px, 1.1vw, 14px);
+  line-height: 1.5;
+  color: rgba(245, 245, 243, 0.75);
+  margin: 0 0 10px;
+}
+
+.urban-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.urban-card__tag {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.5);
+}
+
+.urban-card__arrow {
+  position: absolute;
+  bottom: clamp(20px, 2.5vw, 28px);
+  right: clamp(20px, 2.5vw, 28px);
+  z-index: 3;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(245, 245, 243, 0.3);
+  border-radius: 50%;
+  transition: all 0.3s var(--urban-ease-expo);
+}
+
+.urban-card__arrow svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.urban-card:hover .urban-card__arrow {
+  background: var(--urban-c-white);
+  color: var(--urban-c-black);
+  border-color: var(--urban-c-white);
+}
+
+/* Catalog section anchor */
+.urban-catalog-section {
+  padding-top: var(--urban-gap);
+}
+
+/* Catalog when inside Urban shop — dark theme overrides */
+.shop-catalog--urban .rounded-full.border,
+.shop-catalog--urban .rounded-2xl.border,
+.shop-catalog--urban section.rounded-2xl {
+  border-color: rgba(245, 245, 243, 0.12);
+  background: rgba(20, 20, 20, 0.8);
+}
+
+.shop-catalog--urban button.rounded-full.border,
+.shop-catalog--urban button.rounded-2xl.border {
+  color: var(--urban-c-white);
+}
+
+.shop-catalog--urban button:not([class*="border-black/80"]):hover {
+  border-color: rgba(245, 245, 243, 0.3);
+}
+
+.shop-catalog--urban .border-black\/80,
+.shop-catalog--urban button.border-black\/80 {
+  border-color: rgba(245, 245, 243, 0.5);
+  background: rgba(245, 245, 243, 0.08);
+}
+
+.shop-catalog--urban .text-\[11px\],
+.shop-catalog--urban .text-xs,
+.shop-catalog--urban p {
+  color: rgba(245, 245, 243, 0.85);
+}
+
+.shop-catalog--urban .text-black\/45,
+.shop-catalog--urban .text-black\/60,
+.shop-catalog--urban .text-black\/65,
+.shop-catalog--urban .text-black\/70 {
+  color: rgba(245, 245, 243, 0.55);
+}
+
+.shop-catalog--urban .bg-white,
+.shop-catalog--urban .bg-\[\#fbfaf8\],
+.shop-catalog--urban .bg-\[\#f8f6f2\] {
+  background: rgba(30, 30, 30, 0.9);
+}
+
+.shop-catalog--urban input,
+.shop-catalog--urban select {
+  background: rgba(30, 30, 30, 0.9);
+  color: var(--urban-c-white);
+  border-color: rgba(245, 245, 243, 0.15);
+}
+
+.shop-catalog--urban input::placeholder {
+  color: rgba(245, 245, 243, 0.4);
+}
+
+.shop-catalog--urban a.rounded-\[30px\],
+.shop-catalog--urban a.overflow-hidden.rounded-\[30px\] {
+  background: rgba(30, 30, 30, 0.95);
+  border-color: rgba(245, 245, 243, 0.1);
+}
+
+.shop-catalog--urban a.rounded-\[30px\]:hover {
+  border-color: rgba(245, 245, 243, 0.25);
+}
+
+.shop-catalog--urban .text-\[\#161410\],
+.shop-catalog--urban .text-\[\#171511\] {
+  color: var(--urban-c-white);
+}

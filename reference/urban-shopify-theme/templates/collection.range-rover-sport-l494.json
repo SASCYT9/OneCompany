@@ -1,0 +1,455 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "section-urban-cinematic-hero",
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "Range Rover SVR",
+        "subtitle": "The incredible performance SUV, completed remastered in-house in the UK at Urban. The combination of unprecedented aesthetics coupled with dynamic sporting ability, the exhilarating Range Rover SVR, comprehensively remodelled.",
+        "button_label": "Enquire",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "enable_loader": false,
+        "show_scroll_button": true,
+        "scroll_target": "[id$='__overview']",
+        "overlay_opacity": 25,
+        "mobile_height": 90,
+        "desktop_height": 100,
+        "accent_color": "#ffffff",
+        "loader_background": "#000000",
+        "external_poster_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/rangeRoverSVR/hero-1-1920.jpg",
+        "external_video_embed_url": "https://player.vimeo.com/video/666799007?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "Range Rover SVR",
+        "subtitle_uk": "Неймовірний спортивний SUV, повністю переосмислений у Великій Британії в Urban. Поєднання неперевершеної естетики з динамічною спортивністю — захопливий Range Rover SVR, всебічно переобладнаний.",
+        "button_label_uk": "Замовити"
+      }
+    },
+    "overview": {
+      "type": "section-urban-model-overview",
+      "blocks": {
+        "hl_1": {
+          "type": "highlight",
+          "settings": {
+            "text": "Corris GreyUV-3",
+            "text_uk": "Corris Grey UV-3"
+          }
+        },
+        "hl_2": {
+          "type": "highlight",
+          "settings": {
+            "text": "Madagascar OrangeUV-1",
+            "text_uk": "Madagascar Orange UV-1"
+          }
+        },
+        "hl_3": {
+          "type": "highlight",
+          "settings": {
+            "text": "Wet Satin BlackUV-1",
+            "text_uk": "Wet Satin Black UV-1"
+          }
+        },
+        "hl_4": {
+          "type": "highlight",
+          "settings": {
+            "text": "Miami BlueUC-1",
+            "text_uk": "Miami Blue UC-1"
+          }
+        },
+        "hl_5": {
+          "type": "highlight",
+          "settings": {
+            "text": "Inozotek Supergloss Midnight PurpleUV-1",
+            "text_uk": "Inozotek Supergloss Midnight Purple UV-1"
+          }
+        },
+        "hl_6": {
+          "type": "highlight",
+          "settings": {
+            "text": "Fuji WhiteUC-1",
+            "text_uk": "Fuji White UC-1"
+          }
+        },
+        "hl_7": {
+          "type": "highlight",
+          "settings": {
+            "text": "Yulong WhiteUV-1",
+            "text_uk": "Yulong White UV-1"
+          }
+        },
+        "hl_8": {
+          "type": "highlight",
+          "settings": {
+            "text": "CF Seat Backs",
+            "text_uk": "Карбонові спинки сидінь"
+          }
+        }
+      },
+      "block_order": [
+        "hl_1",
+        "hl_2",
+        "hl_3",
+        "hl_4",
+        "hl_5",
+        "hl_6",
+        "hl_7",
+        "hl_8"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "Range Rover SVR",
+        "badge": "UV-3",
+        "subtitle": "Range Rover SVR",
+        "description": "The incredible performance SUV, completed remastered in-house in the UK at Urban. The combination of unprecedented aesthetics coupled with dynamic sporting ability, the exhilarating Range Rover SVR, comprehensively remodelled.",
+        "button_label": "Enquire Now",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "copy_color": "#cfcfcf",
+        "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rangeRoverSVR/banner-1-1920.jpg",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "Range Rover SVR",
+        "badge_uk": "UV-3",
+        "subtitle_uk": "Range Rover SVR",
+        "description_uk": "Неймовірний спортивний SUV, повністю переосмислений в Urban. Поєднання неперевершеної естетики з динамічною спортивністю — захопливий Range Rover SVR.",
+        "button_label_uk": "Замовити зараз"
+      }
+    },
+    "gallery": {
+      "type": "section-urban-gallery-carousel",
+      "blocks": {
+        "slide_1": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-1-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 1"
+          }
+        },
+        "slide_2": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-2-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 2"
+          }
+        },
+        "slide_3": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-3-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 3"
+          }
+        },
+        "slide_4": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-4-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 4"
+          }
+        },
+        "slide_5": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-5-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 5"
+          }
+        },
+        "slide_6": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-6-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 6"
+          }
+        },
+        "slide_7": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-7-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 7"
+          }
+        },
+        "slide_8": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-8-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 8"
+          }
+        },
+        "slide_9": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-9-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 9"
+          }
+        },
+        "slide_10": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-10-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 10"
+          }
+        },
+        "slide_11": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-11-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 11"
+          }
+        },
+        "slide_12": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-12-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 12"
+          }
+        },
+        "slide_13": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-13-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 13"
+          }
+        },
+        "slide_14": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-14-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 14"
+          }
+        },
+        "slide_15": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-15-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 15"
+          }
+        },
+        "slide_16": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-16-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 16"
+          }
+        },
+        "slide_17": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-17-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 17"
+          }
+        },
+        "slide_18": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-18-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 18"
+          }
+        },
+        "slide_19": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-19-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 19"
+          }
+        },
+        "slide_20": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-20-1920.jpg",
+            "caption": "Urban Range Rover SVR - Image 20"
+          }
+        }
+      },
+      "block_order": [
+        "slide_1",
+        "slide_2",
+        "slide_3",
+        "slide_4",
+        "slide_5",
+        "slide_6",
+        "slide_7",
+        "slide_8",
+        "slide_9",
+        "slide_10",
+        "slide_11",
+        "slide_12",
+        "slide_13",
+        "slide_14",
+        "slide_15",
+        "slide_16",
+        "slide_17",
+        "slide_18",
+        "slide_19",
+        "slide_20"
+      ],
+      "settings": {
+        "label": "Gallery",
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "label_uk": "Галерея"
+      }
+    },
+    "banner": {
+      "type": "section-urban-banner-stack",
+      "blocks": {
+        "banner_1": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rangeRoverSVR/banner-1-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "Range Rover SVR",
+            "subtitle": "Widetrack",
+            "button_label": "Build Yours",
+            "button_link": "/collections/range-rover-sport-l494",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "Range Rover SVR",
+            "subtitle_uk": "Widetrack",
+            "button_label_uk": "Створити свій"
+          }
+        }
+      },
+      "block_order": [
+        "banner_1"
+      ],
+      "settings": {
+        "overlay_opacity": 20,
+        "mobile_height": 70,
+        "desktop_height": 90,
+        "border_color": "#1c1c1c"
+      }
+    },
+    "main": {
+      "type": "main-collection-product-grid",
+      "settings": {
+        "products_per_page": 16,
+        "columns_desktop": 4,
+        "color_scheme": "scheme-1",
+        "image_ratio": "adapt",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "enable_filtering": true,
+        "filter_type": "horizontal",
+        "enable_sorting": true,
+        "columns_mobile": "2",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "video_pointer": {
+      "type": "section-urban-video-pointer",
+      "settings": {
+        "video_url": "https://player.vimeo.com/video/636099257?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
+        "caption_eyebrow": "Urban Automotive",
+        "caption_title": "Range Rover Sport L494",
+        "full_width": true,
+        "max_width": 1900,
+        "overlay_top": 10,
+        "overlay_bottom": 15,
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "background_color": "#000000",
+        "caption_eyebrow_uk": "Urban Automotive",
+        "caption_title_uk": "Range Rover Sport L494"
+      }
+    },
+    "blueprint_kit": {
+      "type": "section-urban-blueprint-kit",
+      "blocks": {
+        "kit_1": {
+          "type": "view",
+          "settings": {
+            "position_label": "Front",
+            "title_en": "Front Package",
+            "title_uk": "Передній пакет",
+            "parts_en": "Carbon fibre front splitter|Autograph front grille|Front bumper apron|Bonnet vents",
+            "parts_uk": "Карбоновий передній спліттер|Решітка Autograph|Передній фартук бампера|Вентиляційні отвори капота",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/front.jpg"
+          }
+        },
+        "kit_2": {
+          "type": "view",
+          "settings": {
+            "position_label": "Left",
+            "title_en": "Side Package",
+            "title_uk": "Бічний пакет",
+            "parts_en": "Carbon side vent overlays|Side steps|Carbon mirror caps|Door handle covers",
+            "parts_uk": "Карбонові бічні вентиляції|Бічні підніжки|Карбонові накладки дзеркал|Накладки ручок дверей",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/left.jpg"
+          }
+        },
+        "kit_3": {
+          "type": "view",
+          "settings": {
+            "position_label": "Right",
+            "title_en": "Wheel Package",
+            "title_uk": "Пакет коліс",
+            "parts_en": "23\" forged alloy wheels|Performance tyres|Wheel spacer kit|Branded centre caps",
+            "parts_uk": "23\" ковані легкосплавні диски|Спортивні шини|Набір проставок коліс|Фірмові центральні ковпаки",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/right.jpg"
+          }
+        },
+        "kit_4": {
+          "type": "view",
+          "settings": {
+            "position_label": "Back",
+            "title_en": "Rear Package",
+            "title_uk": "Задній пакет",
+            "parts_en": "Carbon fibre rear diffuser|Rear spoiler|Carbon exhaust tips|Rear bumper lower section",
+            "parts_uk": "Карбоновий задній дифузор|Задній спойлер|Карбонові насадки вихлопу|Нижня частина заднього бампера",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/back.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "kit_1",
+        "kit_2",
+        "kit_3",
+        "kit_4"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "heading": "The Urban Kit",
+        "subheading": "Range Rover Sport L494",
+        "cta_label": "Enquire Now",
+        "cta_link": "/pages/contact",
+        "cta_new_tab": false,
+        "padding_top": 52,
+        "padding_bottom": 52,
+        "background_color": "#f5f5f3",
+        "card_background": "#ffffff",
+        "text_color": "#111111",
+        "muted_color": "#666666",
+        "separator_color": "#e0e0e0",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "heading_uk": "Комплект Urban",
+        "subheading_uk": "Range Rover Sport L494",
+        "cta_label_uk": "Замовити зараз"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "overview",
+    "gallery",
+    "video_pointer",
+    "banner",
+    "blueprint_kit",
+    "main"
+  ]
+}

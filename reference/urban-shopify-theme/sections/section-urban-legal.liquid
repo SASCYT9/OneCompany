@@ -1,0 +1,253 @@
+{%- comment -%}
+  Urban Automotive Legal Page Section
+  Bilingual (UK / EN) legal page with Urban brand styling.
+  Content is passed via section settings (title, body).
+{%- endcomment -%}
+
+{%- liquid
+  assign is_uk = false
+  if request.locale.iso_code contains 'uk'
+    assign is_uk = true
+  endif
+-%}
+
+<section class="urban-legal" id="UrbanLegal-{{ section.id }}">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+    .urban-legal {
+      --ul-bg: #0a0a0a;
+      --ul-text: #d4d4d4;
+      --ul-heading: #ffffff;
+      --ul-accent: #888;
+      --ul-border: rgba(255,255,255,0.08);
+      --ul-link: #e0e0e0;
+      background: var(--ul-bg);
+      color: var(--ul-text);
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: clamp(60px, 8vw, 120px) 0 clamp(40px, 6vw, 80px);
+      min-height: 60vh;
+    }
+
+    .urban-legal__container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 clamp(20px, 4vw, 40px);
+    }
+
+    .urban-legal__eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ul-accent);
+      margin-bottom: 16px;
+    }
+
+    .urban-legal__title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 700;
+      color: var(--ul-heading);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin: 0 0 12px;
+    }
+
+    .urban-legal__updated {
+      font-size: 12px;
+      color: var(--ul-accent);
+      letter-spacing: 0.04em;
+      margin-bottom: 40px;
+    }
+
+    .urban-legal__divider {
+      width: 48px;
+      height: 1px;
+      background: rgba(255,255,255,0.15);
+      margin-bottom: 40px;
+    }
+
+    .urban-legal__body {
+      font-size: 14px;
+      line-height: 1.85;
+      color: var(--ul-text);
+    }
+
+    .urban-legal__body h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ul-heading);
+      letter-spacing: -0.01em;
+      margin: 48px 0 16px;
+    }
+
+    .urban-legal__body h2:first-child {
+      margin-top: 0;
+    }
+
+    .urban-legal__body h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ul-heading);
+      margin: 32px 0 12px;
+    }
+
+    .urban-legal__body p {
+      margin: 0 0 16px;
+    }
+
+    .urban-legal__body ul,
+    .urban-legal__body ol {
+      margin: 0 0 16px;
+      padding-left: 24px;
+    }
+
+    .urban-legal__body li {
+      margin-bottom: 8px;
+    }
+
+    .urban-legal__body a {
+      color: var(--ul-link);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: color 0.2s;
+    }
+
+    .urban-legal__body a:hover {
+      color: #fff;
+    }
+
+    .urban-legal__body strong {
+      color: var(--ul-heading);
+      font-weight: 600;
+    }
+
+    .urban-legal__body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 13px;
+    }
+
+    .urban-legal__body th,
+    .urban-legal__body td {
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--ul-border);
+    }
+
+    .urban-legal__body th {
+      color: var(--ul-heading);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .urban-legal__contact-block {
+      margin-top: 48px;
+      padding: 24px;
+      border: 1px solid var(--ul-border);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .urban-legal__contact-block p {
+      margin: 0 0 6px;
+    }
+
+    @media (max-width: 749px) {
+      .urban-legal__body {
+        font-size: 13px;
+        line-height: 1.75;
+      }
+      .urban-legal__body h2 {
+        font-size: 18px;
+        margin-top: 36px;
+      }
+      .urban-legal__eyebrow {
+        letter-spacing: 0.15em;
+      }
+    }
+
+    .urban-legal__body,
+    .urban-legal__title {
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .urban-legal__body table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  </style>
+
+  <div class="urban-legal__container">
+    <div class="urban-legal__eyebrow">
+      {% if is_uk %}{{ section.settings.eyebrow_uk | default: 'Юридична інформація' }}{% else %}{{ section.settings.eyebrow_en | default: 'Legal' }}{% endif %}
+    </div>
+    <h1 class="urban-legal__title">
+      {% if is_uk %}{{ section.settings.title_uk }}{% else %}{{ section.settings.title_en }}{% endif %}
+    </h1>
+    <div class="urban-legal__updated">
+      {% if is_uk %}Останнє оновлення: {{ 'now' | date: '%d.%m.%Y' }}{% else %}Last updated: {{ 'now' | date: '%B %d, %Y' }}{% endif %}
+    </div>
+    <div class="urban-legal__divider"></div>
+    <div class="urban-legal__body">
+      {% if is_uk %}
+        {{ section.settings.body_uk }}
+      {% else %}
+        {{ section.settings.body_en }}
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Urban Legal Page",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow_uk",
+      "label": "Eyebrow (UK)",
+      "default": "Юридична інформація"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow_en",
+      "label": "Eyebrow (EN)",
+      "default": "Legal"
+    },
+    {
+      "type": "text",
+      "id": "title_uk",
+      "label": "Title (UK)",
+      "default": "Заголовок"
+    },
+    {
+      "type": "text",
+      "id": "title_en",
+      "label": "Title (EN)",
+      "default": "Title"
+    },
+    {
+      "type": "html",
+      "id": "body_uk",
+      "label": "Body (UK)"
+    },
+    {
+      "type": "html",
+      "id": "body_en",
+      "label": "Body (EN)"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Urban Legal Page"
+    }
+  ]
+}
+{% endschema %}

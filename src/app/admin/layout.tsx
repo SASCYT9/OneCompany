@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, LogOut, MessageSquare, Settings, ImagePlus } from 'lucide-react';
+import { Lock, LogOut, MessageSquare, Settings, ImagePlus, ShoppingBag, Package } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -142,6 +142,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <TabLink href="/admin/blog" currentPath={pathname}>
               <ImagePlus className="w-4 h-4" />
               <span>Blog</span>
+            </TabLink>
+            <TabLink href="/admin/shop" currentPath={pathname}>
+              <ShoppingBag className="w-4 h-4" />
+              <span>Shop</span>
+            </TabLink>
+            <TabLink href="/admin/shop/orders" currentPath={pathname}>
+              <Package className="w-4 h-4" />
+              <span>Orders</span>
             </TabLink>
             <TabLink href="/admin/settings" currentPath={pathname}>
               <Settings className="w-4 h-4" />

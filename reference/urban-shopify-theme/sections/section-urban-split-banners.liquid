@@ -1,0 +1,571 @@
+{%- assign is_uk = false -%}
+{%- if request.locale.iso_code == 'uk' -%}{%- assign is_uk = true -%}{%- endif -%}
+
+{% liquid
+  assign split_id = 'UrbanSplit-' | append: section.id
+%}
+
+<section id="{{ split_id }}" class="urban-split">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Oswald:wght@400;500;600&display=swap');
+
+    #{{ split_id }} {
+      --split-gap: {{ section.settings.gap }}px;
+      --split-overlay-alpha: {{ section.settings.overlay_opacity | times: 0.01 }};
+      --split-border-color: {{ section.settings.border_color }};
+      background: #000;
+      color: #fff;
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+
+    #{{ split_id }} .urban-split__grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--split-gap);
+    }
+
+    @media (min-width: 990px) {
+      #{{ split_id }} .urban-split__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    #{{ split_id }} .urban-split__item {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--split-border-color);
+      background: #090909;
+      aspect-ratio: {{ section.settings.mobile_ratio }};
+      isolation: isolate;
+    }
+
+    @media (min-width: 990px) {
+      #{{ split_id }} .urban-split__item {
+        aspect-ratio: {{ section.settings.desktop_ratio }};
+      }
+    }
+
+    #{{ split_id }} .urban-split__media,
+    #{{ split_id }} .urban-split__media::after {
+      position: absolute;
+      inset: 0;
+    }
+
+    #{{ split_id }} .urban-split__media::after {
+      content: '';
+      background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0.62) 76%, rgba(0, 0, 0, 0.9) 100%),
+        rgba(0, 0, 0, var(--split-overlay-alpha));
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    #{{ split_id }} .urban-split__image,
+    #{{ split_id }} .urban-split__video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scale(1.24);
+      transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+    }
+
+    #{{ split_id }} .urban-split__veil {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      z-index: 4;
+      transform: translate3d(0, 0, 0);
+      transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #{{ split_id }} .urban-split__item.animate .urban-split__veil {
+      transform: translate3d(0, -104%, 0);
+    }
+
+    #{{ split_id }} .urban-split__item.animate .urban-split__image,
+    #{{ split_id }} .urban-split__item.animate .urban-split__video {
+      transform: scale(1);
+    }
+
+    #{{ split_id }} .urban-split__content {
+      position: relative;
+      z-index: 5;
+      height: 100%;
+      display: flex;
+      align-items: flex-end;
+      padding: clamp(14px, 2.6vw, 34px);
+    }
+
+    #{{ split_id }} .urban-split__caption {
+      transform: translate3d(0, 36px, 0);
+      opacity: 0;
+      transition: transform 0.8s ease, opacity 0.8s ease;
+      transition-delay: 0.15s;
+    }
+
+    #{{ split_id }} .urban-split__item.animate .urban-split__caption {
+      transform: translate3d(0, 0, 0);
+      opacity: 1;
+    }
+
+    #{{ split_id }} .urban-split__title {
+      margin: 0;
+      font-family: 'Oswald', 'Montserrat', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      line-height: 0.95;
+      font-size: clamp(26px, 4.5vw, 58px);
+      font-weight: 500;
+      text-wrap: balance;
+    }
+
+    #{{ split_id }} .urban-split__subtitle {
+      margin: 10px 0 0;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: clamp(11px, 1vw, 14px);
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    #{{ split_id }} .urban-split__button {
+      margin-top: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      border: 1px solid #fff;
+      background: #fff;
+      color: #111;
+      text-decoration: none;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      font-weight: 700;
+      transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
+    }
+
+    #{{ split_id }} .urban-split__button:hover {
+      background: transparent;
+      color: #fff;
+      transform: translateY(-2px);
+    }
+
+    #{{ split_id }} .urban-split__placeholder {
+      width: 100%;
+      height: 100%;
+      opacity: 0.35;
+    }
+
+    /* ── Mobile text adaptation ── */
+    @media (max-width: 749px) {
+      #{{ split_id }} .urban-split__subtitle { letter-spacing: 0.1em; font-size: 9px; }
+      #{{ split_id }} .urban-split__button { letter-spacing: 0.12em; font-size: 10px; }
+    }
+
+    #{{ split_id }} .urban-split__title {
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #{{ split_id }} .urban-split__caption,
+      #{{ split_id }} .urban-split__veil,
+      #{{ split_id }} .urban-split__image,
+      #{{ split_id }} .urban-split__video {
+        transition: none;
+      }
+    }
+  </style>
+
+  <div class="urban-split__grid">
+    {% if section.blocks.size > 0 %}
+      {% for block in section.blocks %}
+        {% liquid
+          assign use_video = false
+          if block.settings.media_type == 'video'
+            assign use_video = true
+          endif
+
+          assign external_image_url = block.settings.external_image_url | strip
+          assign resolved_external_image_url = ''
+          if external_image_url != blank
+            if external_image_url contains '://'
+              assign resolved_external_image_url = external_image_url
+            else
+              assign resolved_external_image_url = external_image_url | file_url
+            endif
+          endif
+
+          assign external_video_url = block.settings.external_video_url | strip
+          assign resolved_external_video_url = ''
+          if external_video_url != blank
+            if external_video_url contains '://'
+              assign resolved_external_video_url = external_video_url
+            else
+              assign resolved_external_video_url = external_video_url | file_url
+            endif
+          endif
+        %}
+        <article
+          class="urban-split__item{% if forloop.index <= 2 %} animate{% endif %}"
+          data-urban-split-slide
+          {{ block.shopify_attributes }}
+        >
+          <div class="urban-split__media">
+            {% if use_video %}
+              {% if block.settings.video != blank %}
+                <video
+                  class="urban-split__video"
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  preload="metadata"
+                  {% if block.settings.image != blank %}
+                    poster="{{ block.settings.image | image_url: width: 2200 }}"
+                  {% endif %}
+                >
+                  {% for source in block.settings.video.sources %}
+                    <source src="{{ source.url }}" type="{{ source.mime_type }}">
+                  {% endfor %}
+                </video>
+              {% elsif resolved_external_video_url != blank %}
+                <video
+                  class="urban-split__video"
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  preload="metadata"
+                  {% if block.settings.image != blank %}
+                    poster="{{ block.settings.image | image_url: width: 2200 }}"
+                  {% endif %}
+                >
+                  <source src="{{ resolved_external_video_url }}" type="video/mp4">
+                </video>
+              {% elsif block.settings.image != blank %}
+                <img
+                  class="urban-split__image"
+                  src="{{ block.settings.image | image_url: width: 2400 }}"
+                  alt="{{ block.settings.image.alt | default: block.settings.title | escape }}"
+                  width="{{ block.settings.image.width }}"
+                  height="{{ block.settings.image.height }}"
+                  loading="lazy"
+                >
+              {% elsif resolved_external_image_url != blank %}
+                <img
+                  class="urban-split__image"
+                  src="{{ resolved_external_image_url }}"
+                  alt="{{ block.settings.title | escape }}"
+                  loading="lazy"
+                >
+              {% else %}
+                {{ 'collection-apparel-2' | placeholder_svg_tag: 'urban-split__placeholder' }}
+              {% endif %}
+            {% else %}
+              {% if block.settings.image != blank %}
+                <img
+                  class="urban-split__image"
+                  src="{{ block.settings.image | image_url: width: 2400 }}"
+                  alt="{{ block.settings.image.alt | default: block.settings.title | escape }}"
+                  width="{{ block.settings.image.width }}"
+                  height="{{ block.settings.image.height }}"
+                  loading="lazy"
+                >
+              {% elsif resolved_external_image_url != blank %}
+                <img
+                  class="urban-split__image"
+                  src="{{ resolved_external_image_url }}"
+                  alt="{{ block.settings.title | escape }}"
+                  loading="lazy"
+                >
+              {% else %}
+                {{ 'collection-apparel-2' | placeholder_svg_tag: 'urban-split__placeholder' }}
+              {% endif %}
+            {% endif %}
+          </div>
+
+          <div class="urban-split__veil" aria-hidden="true"></div>
+
+          <div class="urban-split__content">
+            <div class="urban-split__caption">
+              {% if block.settings.title != blank %}
+                <h3 class="urban-split__title">{% if is_uk and block.settings.title_uk != blank %}{{ block.settings.title_uk }}{% else %}{{ block.settings.title }}{% endif %}</h3>
+              {% endif %}
+
+              {% if block.settings.subtitle != blank %}
+                <p class="urban-split__subtitle">{% if is_uk and block.settings.subtitle_uk != blank %}{{ block.settings.subtitle_uk }}{% else %}{{ block.settings.subtitle }}{% endif %}</p>
+              {% endif %}
+
+              {% if block.settings.button_label != blank and block.settings.button_link != blank %}
+                <a
+                  href="{{ block.settings.button_link }}"
+                  class="urban-split__button"
+                  {% if block.settings.button_new_tab %}
+                    target="_blank" rel="noopener noreferrer"
+                  {% endif %}
+                >
+                  {% if is_uk and block.settings.button_label_uk != blank %}{{ block.settings.button_label_uk }}{% else %}{{ block.settings.button_label }}{% endif %}
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    {% else %}
+      <article class="urban-split__item animate">
+        <div class="urban-split__media">
+          {{ 'collection-apparel-2' | placeholder_svg_tag: 'urban-split__placeholder' }}
+        </div>
+        <div class="urban-split__veil" aria-hidden="true"></div>
+        <div class="urban-split__content">
+          <div class="urban-split__caption">
+            <h3 class="urban-split__title">Add split banner blocks</h3>
+            <p class="urban-split__subtitle">Configure this section in the theme editor.</p>
+          </div>
+        </div>
+      </article>
+    {% endif %}
+  </div>
+
+  <script>
+    (() => {
+      const root = document.getElementById('{{ split_id }}');
+      if (!root || root.dataset.initialized === 'true') return;
+      root.dataset.initialized = 'true';
+
+      const items = root.querySelectorAll('[data-urban-split-slide]');
+      if (!items.length) return;
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduceMotion || !('IntersectionObserver' in window)) {
+        items.forEach((el) => el.classList.add('animate'));
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('animate');
+          obs.unobserve(entry.target);
+        });
+      }, {
+        threshold: 0.2,
+        rootMargin: '0px 0px -8% 0px'
+      });
+
+      items.forEach((item, index) => {
+        if (index <= 1) return;
+        observer.observe(item);
+      });
+    })();
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "Urban Split Banners",
+  "tag": "section",
+  "class": "section section-urban-split-banners",
+  "settings": [
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Grid gap",
+      "min": 0,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 20
+    },
+    {
+      "type": "select",
+      "id": "mobile_ratio",
+      "label": "Mobile image ratio",
+      "default": "4 / 5",
+      "options": [
+        {
+          "value": "1 / 1",
+          "label": "1:1"
+        },
+        {
+          "value": "4 / 5",
+          "label": "4:5"
+        },
+        {
+          "value": "3 / 4",
+          "label": "3:4"
+        },
+        {
+          "value": "16 / 9",
+          "label": "16:9"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "desktop_ratio",
+      "label": "Desktop image ratio",
+      "default": "1 / 1",
+      "options": [
+        {
+          "value": "1 / 1",
+          "label": "1:1"
+        },
+        {
+          "value": "4 / 5",
+          "label": "4:5"
+        },
+        {
+          "value": "3 / 2",
+          "label": "3:2"
+        },
+        {
+          "value": "16 / 9",
+          "label": "16:9"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Card border color",
+      "default": "#1b1b1b"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "split_banner",
+      "name": "Split banner",
+      "settings": [
+        {
+          "type": "select",
+          "id": "media_type",
+          "label": "Media type",
+          "default": "image",
+          "options": [
+            {
+              "value": "image",
+              "label": "Image"
+            },
+            {
+              "value": "video",
+              "label": "Video"
+            }
+          ]
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image (uploaded)"
+        },
+        {
+          "type": "text",
+          "id": "external_image_url",
+          "label": "External image URL"
+        },
+        {
+          "type": "video",
+          "id": "video",
+          "label": "Video (uploaded)"
+        },
+        {
+          "type": "text",
+          "id": "external_video_url",
+          "label": "External video URL (mp4)"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Urban Lifestyle"
+        },
+        {
+          "type": "text",
+          "id": "title_uk",
+          "label": "Title (UK)"
+        },
+        {
+          "type": "text",
+          "id": "subtitle",
+          "label": "Subtitle",
+          "default": "Limited collection"
+        },
+        {
+          "type": "text",
+          "id": "subtitle_uk",
+          "label": "Subtitle (UK)"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "Button label",
+          "default": "View More"
+        },
+        {
+          "type": "text",
+          "id": "button_label_uk",
+          "label": "Button label (UK)"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "Button link"
+        },
+        {
+          "type": "checkbox",
+          "id": "button_new_tab",
+          "label": "Open in new tab",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Urban Split Banners",
+      "blocks": [
+        {
+          "type": "split_banner"
+        },
+        {
+          "type": "split_banner"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

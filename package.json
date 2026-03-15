@@ -9,6 +9,11 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "test:shop:unit": "tsx --test tests/shop/unit/**/*.test.ts",
+    "test:shop:integration": "tsx --test tests/shop/integration/**/*.test.ts",
+    "test:shop:e2e": "tsx --test tests/shop/e2e/**/*.test.ts",
+    "test:shop": "npm run test:shop:unit && npm run test:shop:integration && npm run test:shop:e2e",
     "predeploy-check": "node scripts/predeploy-check.js",
     "deploy:prod": "npm run predeploy-check && vercel --prod",
     "bot": "node scripts/telegram-bot-polling.js",
@@ -98,7 +103,7 @@
     "tailwindcss": "^3.4.14",
     "ts-node": "^10.9.2",
     "tsx": "^4.15.7",
-    "typescript": "^5"
+    "typescript": "5.9.3"
   },
   "browserslist": [
     "Chrome >= 90",

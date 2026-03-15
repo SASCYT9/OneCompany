@@ -10,7 +10,11 @@ import gsap from "gsap";
 import { Logo } from "@/components/ui/Logo";
 import { getTypography, resolveLocale } from "@/lib/typography";
 
-const Footer = () => {
+type FooterProps = {
+  currentYear: number;
+};
+
+const Footer = ({ currentYear }: FooterProps) => {
   const params = useParams();
   const locale = (params?.locale as string) || "en";
   const t = useTranslations("footer");
@@ -170,7 +174,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className={`mt-12 sm:mt-20 flex flex-col items-center justify-between gap-6 border-t border-white/5 pt-8 text-white/60 sm:flex-row ${typography.body}`}>
-          <p className="text-center sm:text-left">© {new Date().getFullYear()} One Company. {t('engineeredIn')}.</p>
+          <p className="text-center sm:text-left">© {currentYear} One Company. {t('engineeredIn')}.</p>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
             <Link href={`/${locale}/privacy`} className="transition-colors hover:text-white">
               {t('privacy')}

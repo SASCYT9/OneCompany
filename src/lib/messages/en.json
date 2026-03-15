@@ -2,7 +2,11 @@
   "nav": {
     "automotive": "Auto",
     "moto": "Moto",
+    "shop": "Shop",
     "stores": "Stores",
+    "collections": "Collections",
+    "allStores": "All stores",
+    "cart": "Cart",
     "blog": "Blog",
     "about": "About",
     "categories": "Categories",

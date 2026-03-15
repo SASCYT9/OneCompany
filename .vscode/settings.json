@@ -1,25 +1,28 @@
 {
-    // --- TERMINAL CORE ---
-    "terminal.integrated.defaultProfile.windows": "Command Prompt",
+    // ---------- TERMINAL CORE ----------
+    "terminal.integrated.defaultProfile.windows": "PowerShell 7",
     "terminal.integrated.profiles.windows": {
-        "Command Prompt": {
-            "path": "C:\\Windows\\System32\\cmd.exe",
-            "args": []
-        },
         "PowerShell 7": {
             "path": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
             "args": []
+        },
+        "Command Prompt": {
+            "path": "C:\\Windows\\System32\\cmd.exe",
+            "args": []
         }
     },
-    "terminal.integrated.automationShell.windows": "C:\\Windows\\System32\\cmd.exe",
-    // --- DISABLE THINGS THAT BREAK AGENTS ---
+    "terminal.integrated.automationShell.windows": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+    // ---------- AGENT STABILITY ----------
     "terminal.integrated.enablePersistentSessions": false,
     "terminal.integrated.shellIntegration.enabled": false,
     "terminal.integrated.inheritEnv": true,
-    // --- STABILITY ---
     "terminal.integrated.gpuAcceleration": "off",
     "terminal.integrated.windowsEnableConpty": false,
-    // --- SECURITY ---
+    // ---------- UTF-8 FIX ----------
+    "terminal.integrated.env.windows": {
+        "LANG": "en_US.UTF-8"
+    },
+    // ---------- SECURITY ----------
     "security.workspace.trust.enabled": true,
     "security.workspace.trust.untrustedFiles": "open"
 }

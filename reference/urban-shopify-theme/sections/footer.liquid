@@ -1,0 +1,430 @@
+{% comment %}theme-check-disable UndefinedObject{% endcomment %}
+{% comment %} ═══════════════════════════════════════════════════════════
+   URBAN AUTOMOTIVE — Footer v2
+   Matches home-signature B&W design language
+   Fonts: Cormorant Garamond (display) + Sora (body)
+   ═══════════════════════════════════════════════════════════ {% endcomment %}
+
+{%- style -%}
+
+/* ── Reset & base ── */
+.uf {
+  --ff-display: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --ff-body: 'Sora', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --c-black: #0a0a0a;
+  --c-dark: #111;
+  --c-grey-1: #141414;
+  --c-grey-2: #1e1e1e;
+  --c-grey-3: #2a2a2a;
+  --c-white: #f5f5f3;
+  --ease-expo: cubic-bezier(.16,1,.3,1);
+  background: var(--c-black) !important;
+  color: var(--c-white);
+  font-family: var(--ff-body);
+  position: relative;
+  overflow: hidden;
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.uf *, .uf *::before, .uf *::after { box-sizing: border-box; }
+
+/* ── Decorative top border ── */
+.uf__border-top {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(245,245,243,.12) 30%, rgba(245,245,243,.12) 70%, transparent);
+}
+
+/* ── Top accent strip ── */
+.uf__accent {
+  padding: clamp(50px,6vw,80px) 0 0;
+  text-align: center;
+}
+.uf__accent-rule {
+  width: 1px; height: 50px; margin: 0 auto 24px;
+  background: linear-gradient(180deg, transparent, rgba(245,245,243,.2));
+}
+.uf__accent-text {
+  font-family: var(--ff-body);
+  font-size: clamp(9px,1vw,11px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .3em;
+  color: rgba(245,245,243,.35);
+}
+
+/* ── Main grid ── */
+.uf__inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(48px,6vw,80px) clamp(20px,4vw,60px) 0;
+}
+.uf__grid {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: clamp(30px,4vw,64px);
+}
+
+.uf__nav a, .uf__col-title, .uf__brand-desc, .uf__address {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ── Brand column ── */
+.uf__brand { display: flex; flex-direction: column; gap: 28px; }
+.uf__logo { display: block; width: min(320px, 100%); max-width: 320px; transition: opacity .3s ease; }
+.uf__logo:hover { opacity: .7; }
+.uf__brandmark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  gap: 10px;
+}
+.uf__logo img {
+  height: auto; display: block;
+}
+.uf__logo-one {
+  height: clamp(20px, 2.6vw, 32px);
+  max-height: 32px;
+  width: auto;
+  filter: none;
+  flex: 0 0 auto;
+}
+.uf__logo-urban {
+  height: clamp(12px, 1.6vw, 18px);
+  max-height: 18px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  opacity: .95;
+  flex: 0 0 auto;
+}
+.uf__logo-x {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(245,245,243,.72);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  line-height: 1;
+}
+.uf__logo-fallback {
+  font-family: var(--ff-display);
+  font-size: 22px; font-weight: 300;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--c-white);
+  display: block; width: 180px;
+}
+.uf__brand-desc {
+  font-size: 13px; line-height: 1.7;
+  color: rgba(245,245,243,.45);
+  max-width: 280px;
+}
+
+/* Social icons row */
+.uf__socials {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.uf__social-link {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  border: 1px solid rgba(245,245,243,.1);
+  border-radius: 50%;
+  color: rgba(245,245,243,.5);
+  text-decoration: none;
+  transition: all .35s var(--ease-expo);
+}
+.uf__social-link:hover {
+  border-color: rgba(245,245,243,.35);
+  color: var(--c-white);
+  transform: translateY(-2px);
+}
+.uf__social-link svg {
+  width: 16px; height: 16px; fill: currentColor;
+}
+
+/* Address card */
+.uf__address {
+  font-size: 13px; line-height: 1.7;
+  color: rgba(245,245,243,.5);
+  padding: 16px 18px;
+  border-left: 1px solid rgba(245,245,243,.12);
+  max-width: 260px;
+}
+.uf__address-icon {
+  display: inline-block; margin-right: 4px;
+  font-style: normal; opacity: .6;
+}
+
+/* ── Navigation columns ── */
+.uf__col-title {
+  font-family: var(--ff-display);
+  font-size: clamp(16px,1.4vw,20px);
+  font-weight: 400;
+  letter-spacing: .06em;
+  color: var(--c-white);
+  margin: 0 0 20px;
+  position: relative;
+  padding-bottom: 14px;
+}
+.uf__col-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 24px; height: 1px;
+  background: rgba(245,245,243,.2);
+  transition: width .4s var(--ease-expo);
+}
+.uf__col:hover .uf__col-title::after {
+  width: 48px;
+  background: rgba(245,245,243,.4);
+}
+.uf__nav {
+  list-style: none;
+  margin: 0; padding: 0;
+}
+.uf__nav li { margin-bottom: 10px; }
+.uf__nav a {
+  font-size: 13px; line-height: 1.5;
+  color: rgba(245,245,243,.45);
+  text-decoration: none;
+  transition: all .3s ease;
+  position: relative;
+  display: inline-block;
+}
+.uf__nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0;
+  width: 0; height: 1px;
+  background: rgba(245,245,243,.3);
+  transition: width .35s var(--ease-expo);
+}
+.uf__nav a:hover {
+  color: var(--c-white);
+  transform: translateX(3px);
+}
+.uf__nav a:hover::after { width: 100%; }
+.uf__nav-copy {
+  font-size: 12px;
+  color: rgba(245,245,243,.2);
+  margin-bottom: 12px;
+  padding: 0;
+  list-style: none;
+}
+
+/* ── Bottom bar ── */
+.uf__bottom {
+  max-width: 1400px;
+  margin: clamp(48px,6vw,80px) auto 0;
+  padding: clamp(20px,3vw,28px) clamp(20px,4vw,60px) clamp(24px,3vw,32px);
+  border-top: 1px solid rgba(245,245,243,.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.uf__powered {
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(245,245,243,.15);
+  font-family: var(--ff-body);
+}
+.uf__powered a {
+  color: rgba(245,245,243,.25);
+  text-decoration: none;
+  transition: color .3s ease;
+}
+.uf__powered a:hover { color: rgba(245,245,243,.55); }
+
+/* ── Subtle grain overlay ── */
+.uf__grain {
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0;
+}
+.uf__content { position: relative; z-index: 1; }
+
+/* ── Mobile ── */
+@media (max-width: 1024px) {
+  .uf__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 40px 30px;
+  }
+  .uf__brand { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .uf__grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 36px;
+  }
+  .uf__brand { align-items: center; }
+  .uf__brandmark { justify-content: center; align-items: center; gap: 8px; }
+  .uf__logo-one { height: 24px; max-height: 24px; width: auto; }
+  .uf__logo-urban { height: 14px; max-height: 14px; width: auto; }
+  .uf__logo-x { font-size: 9px; letter-spacing: .08em; }
+  .uf__brand-desc { max-width: 100%; text-align: center; }
+  .uf__logo { margin: 0 auto; }
+  .uf__socials { justify-content: center; }
+  .uf__address {
+    border-left: 0;
+    border-top: 1px solid rgba(245,245,243,.08);
+    padding: 16px 0 0; margin: 0 auto;
+    text-align: center; max-width: 100%;
+  }
+  .uf__col-title { text-align: center; }
+  .uf__col-title::after { left: 50%; transform: translateX(-50%); }
+  .uf__nav { text-align: center; }
+  .uf__nav a:hover { transform: none; }
+  .uf__bottom { flex-direction: column; gap: 8px; }
+  .uf__accent { letter-spacing: .15em; }
+  .uf__col-title { letter-spacing: .06em; }
+}
+
+{%- endstyle -%}
+
+{%- liquid
+  assign is_uk = false
+  if request.locale and request.locale.iso_code
+    if request.locale.iso_code contains 'uk'
+      assign is_uk = true
+    endif
+  endif
+
+  assign footer_address = '21B Baseina St.<br>Kyiv, 02000'
+  assign brand_desc = 'Official Urban Automotive supplier in Ukraine. One Company premium standard.'
+  assign brand_name = 'One Company x Urban Automotive'
+  assign one_company_logo_url = 'https://onecompany.global/branding/logo-light.svg'
+  assign urban_logo_url = 'https://smgassets.blob.core.windows.net/customers/urban/dist/img/svgs/logo.svg'
+  assign collections_title = 'Collections'
+  assign collections_all = 'All Collections'
+  assign about_title = 'Company'
+  assign about_info = 'About Us'
+  assign about_faq = 'FAQ'
+  assign about_blog = 'Journal'
+  assign support_title = 'Support'
+  assign support_contact = 'Contact Us'
+  assign legal_title = 'Legal'
+  assign legal_offer = 'Public Offer'
+  assign legal_privacy = 'Privacy Policy'
+  assign legal_refund = 'Refund Policy'
+  assign legal_terms = 'Terms of Service'
+
+  if is_uk
+    assign footer_address = 'вул. Басейна, 21Б<br>Київ, 02000'
+    assign brand_desc = 'Офіційний постачальник Urban Automotive в Україні. Преміальний стандарт One Company.'
+    assign brand_name = 'One Company x Urban Automotive'
+    assign collections_title = 'Колекції'
+    assign collections_all = 'Всі колекції'
+    assign about_title = 'Компанія'
+    assign about_info = 'Про нас'
+    assign about_faq = 'Питання та відповіді'
+    assign about_blog = 'Журнал'
+    assign support_title = 'Підтримка'
+    assign support_contact = "Зв'язок з нами"
+    assign legal_title = 'Юридична інформація'
+    assign legal_offer = 'Договір публічної оферти'
+    assign legal_privacy = 'Політика конфіденційності'
+    assign legal_refund = 'Політика відшкодування'
+    assign legal_terms = 'Умови обслуговування'
+  endif
+-%}
+
+<footer class="uf">
+  <div class="uf__grain"></div>
+  <div class="uf__content">
+    <div class="uf__border-top"></div>
+
+    {%- comment -%} Accent marker {%- endcomment -%}
+    <div class="uf__accent">
+      <div class="uf__accent-rule"></div>
+      <span class="uf__accent-text">{{ brand_name }}</span>
+    </div>
+
+    {%- comment -%} Main grid {%- endcomment -%}
+    <div class="uf__inner">
+      <div class="uf__grid">
+
+        {%- comment -%} Brand column {%- endcomment -%}
+        <div class="uf__brand">
+          <a href="/" class="uf__logo" aria-label="One Company">
+            <span class="uf__brandmark">
+              <img class="uf__logo-one" src="{{ one_company_logo_url }}" alt="One Company" loading="lazy" width="422" height="155">
+              <span class="uf__logo-x" aria-hidden="true">x</span>
+              <img class="uf__logo-urban" src="{{ urban_logo_url }}" alt="Urban Automotive" loading="lazy" width="643" height="101">
+            </span>
+          </a>
+          <p class="uf__brand-desc">{{ brand_desc }}</p>
+
+          <div class="uf__socials">
+            {%- if settings.social_instagram_link != blank -%}
+              <a href="{{ settings.social_instagram_link }}" target="_blank" rel="noopener" class="uf__social-link" aria-label="Instagram">
+                <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+              </a>
+            {%- endif -%}
+            {%- if settings.social_facebook_link != blank -%}
+              <a href="{{ settings.social_facebook_link }}" target="_blank" rel="noopener" class="uf__social-link" aria-label="Facebook">
+                <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              </a>
+            {%- endif -%}
+            {%- if settings.social_youtube_link != blank -%}
+              <a href="{{ settings.social_youtube_link }}" target="_blank" rel="noopener" class="uf__social-link" aria-label="YouTube">
+                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              </a>
+            {%- endif -%}
+            {%- if settings.social_tiktok_link != blank -%}
+              <a href="{{ settings.social_tiktok_link }}" target="_blank" rel="noopener" class="uf__social-link" aria-label="TikTok">
+                <svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+              </a>
+            {%- endif -%}
+            <a href="#" target="_blank" rel="noopener" class="uf__social-link" aria-label="Telegram">
+              <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0h-.056zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+            </a>
+          </div>
+
+          <div class="uf__address">
+            {{ footer_address }}
+          </div>
+        </div>
+
+        {%- comment -%} Collections {%- endcomment -%}
+        <div class="uf__col">
+          <h3 class="uf__col-title">{{ collections_title }}</h3>
+          <ul class="uf__nav">
+            <li><a href="/collections/all">{{ collections_all }}</a></li>
+          </ul>
+        </div>
+
+        {%- comment -%} Support {%- endcomment -%}
+        <div class="uf__col">
+          <h3 class="uf__col-title">{{ support_title }}</h3>
+          <ul class="uf__nav">
+            <li><a href="/pages/contact">{{ support_contact }}</a></li>
+          </ul>
+        </div>
+
+        {%- comment -%} Legal {%- endcomment -%}
+        <div class="uf__col">
+          <h3 class="uf__col-title">{{ legal_title }}</h3>
+          <ul class="uf__nav">
+            <li class="uf__nav-copy">© {{ 'now' | date: '%Y' }}, {{ brand_name }}</li>
+            <li><a href="/pages/public-offer">{{ legal_offer }}</a></li>
+            <li><a href="/pages/privacy-policy">{{ legal_privacy }}</a></li>
+            <li><a href="/pages/refund-policy">{{ legal_refund }}</a></li>
+            <li><a href="/pages/terms-of-service">{{ legal_terms }}</a></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    {%- comment -%} Bottom bar {%- endcomment -%}
+    <div class="uf__bottom">
+      <span class="uf__powered">{% if is_uk %}Розробка{% else %}Powered by{% endif %} <a href="https://onecompany.global/" target="_blank" rel="noopener">One Company</a></span>
+    </div>
+  </div>
+</footer>

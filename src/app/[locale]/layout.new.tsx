@@ -55,6 +55,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;
+  const currentYear = new Date().getFullYear();
   
   // Validate locale
   const locales = ['en', 'ua'];
@@ -119,7 +120,7 @@ export default async function LocaleLayout({ children, params }: Props) {
                 <main id="main-content" className="flex-grow relative z-10">
                   {children}
                 </main>
-                <Footer />
+                <Footer currentYear={currentYear} />
               </div>
             </ThemeProvider>
           </AuthProvider>

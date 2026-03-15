@@ -1,0 +1,980 @@
+{{ 'section-contact-form.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+
+  :root {
+    --urban-accent: #ffffff;
+  }
+
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  /* Urban Automotive contact styles */
+  .custom-contact-container {
+    background: #000000;
+    color: #ffffff;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: 'Montserrat', sans-serif;
+    max-width: 1200px;
+    width: 100%;
+    border-radius: 20px;
+    border: 1px solid #1f1f1f;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+  }
+
+  .contact-header {
+    text-align: center;
+    margin-bottom: 60px;
+    padding: 0 20px;
+  }
+
+  .contact-header h1 {
+    color: #ffffff;
+    font-size: clamp(2em, 5vw, 3em);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 900;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.08);
+  }
+
+  .contact-header p {
+    color: #bdbdbd;
+    font-size: clamp(1em, 3vw, 1.3em);
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.7;
+    font-weight: 500;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 60px;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    align-items: stretch;
+  }
+
+  .contact-info, .messengers {
+    background: #0b0b0b;
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid #1f1f1f;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .contact-info::before, .messengers::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #ffffff, var(--urban-accent), #ffffff);
+  }
+
+  .contact-info h2, .messengers h2 {
+    color: #ffffff;
+    margin-bottom: 30px;
+    font-size: clamp(1.3em, 4vw, 1.8em);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    text-align: center;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  .contact-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .contact-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: #111111;
+    border-radius: 15px;
+    border: 1px solid #222222;
+    transition: all 0.3s ease;
+    text-align: center;
+    flex: 1;
+    min-height: 80px;
+    position: relative;
+  }
+
+  .contact-item:hover {
+    background: #141414;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    border-color: var(--urban-accent);
+  }
+
+  .contact-item strong {
+    display: block;
+    color: #ffffff;
+    margin-bottom: 8px;
+    font-weight: 700;
+    font-size: clamp(0.9em, 2.5vw, 1em);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .contact-item a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: clamp(0.85em, 2.2vw, 0.95em);
+    text-align: center;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid transparent;
+  }
+
+  .contact-item a:hover {
+    color: var(--urban-accent);
+    border-bottom-color: var(--urban-accent);
+  }
+
+  .contact-item div {
+    font-size: clamp(0.85em, 2.2vw, 0.95em);
+    line-height: 1.6;
+    text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #c7c7c7;
+    font-weight: 500;
+  }
+
+  .messenger-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px 0;
+  }
+
+  .messenger-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 20px;
+    align-items: center;
+  }
+
+  .messenger-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 32px;
+    background: #ffffff;
+    color: #000000 !important;
+    text-decoration: none;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: clamp(0.9em, 2.5vw, 1.05em);
+    transition: all 0.3s ease;
+    border: 1px solid #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 220px;
+  }
+
+  .messenger-btn:hover {
+    background: var(--urban-accent);
+    border-color: var(--urban-accent);
+    color: #000000 !important;
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .services-section {
+    background: #0b0b0b;
+    padding: 60px 40px;
+    border-radius: 20px;
+    border: 1px solid #1f1f1f;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    margin-bottom: 60px;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .services-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #ffffff, var(--urban-accent), #ffffff);
+  }
+
+  .services-section h2 {
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 50px;
+    font-size: clamp(1.8em, 5vw, 2.5em);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 900;
+  }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    max-width: 800px;
+    margin: 0 auto;
+    align-items: stretch;
+  }
+
+  .service-card {
+    background: #111111;
+    padding: 35px;
+    border-radius: 20px;
+    text-align: center;
+    border: 1px solid #222222;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 280px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #ffffff, var(--urban-accent));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+  }
+
+  .service-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .service-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    border-color: var(--urban-accent);
+  }
+
+  .service-card h3 {
+    color: #ffffff;
+    margin-bottom: 20px;
+    font-size: clamp(1.2em, 3vw, 1.5em);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .service-card p {
+    color: #c7c7c7;
+    margin-bottom: 25px;
+    line-height: 1.6;
+    font-size: clamp(0.9em, 2.2vw, 1em);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+  }
+
+  .service-card a {
+    background: #ffffff;
+    color: #000000 !important;
+    padding: 14px 28px;
+    text-decoration: none;
+    border-radius: 999px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: inline-block;
+    border: 1px solid #ffffff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    font-size: clamp(0.8em, 2vw, 0.9em);
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  .service-card a:hover {
+    background: var(--urban-accent);
+    color: #000000 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5);
+    border-color: var(--urban-accent);
+  }
+
+  .form-section {
+    background: #0b0b0b;
+    padding: 60px 40px;
+    border-radius: 20px;
+    border: 1px solid #1f1f1f;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .form-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #ffffff, var(--urban-accent), #ffffff);
+  }
+
+  .form-section h2 {
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: clamp(1.8em, 5vw, 2.5em);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 900;
+  }
+
+  .form-section p {
+    text-align: center;
+    color: #bdbdbd;
+    margin-bottom: 30px;
+    font-size: clamp(0.9em, 2.5vw, 1em);
+    font-weight: 500;
+  }
+
+  /* Shopify form styles adaptation */
+  .custom-contact-container .contact form,
+  .custom-contact-container .contact__fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 25px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .custom-contact-container .field {
+    position: relative;
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .custom-contact-container .field__input,
+  .custom-contact-container .text-area,
+  .custom-contact-container input,
+  .custom-contact-container textarea {
+    width: 100% !important;
+    padding: 18px 22px !important;
+    background: #0f0f0f !important;
+    border: 1px solid #2b2b2b !important;
+    border-radius: 12px !important;
+    color: #ffffff !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    box-sizing: border-box !important;
+    transition: all 0.3s ease !important;
+    outline: none !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+    text-align: left !important;
+  }
+
+  .custom-contact-container .field__input::placeholder,
+  .custom-contact-container .text-area::placeholder,
+  .custom-contact-container input::placeholder,
+  .custom-contact-container textarea::placeholder {
+    color: #7f7f7f !important;
+    font-weight: 400 !important;
+    text-align: left !important;
+  }
+
+  .custom-contact-container .field__input:focus,
+  .custom-contact-container .text-area:focus,
+  .custom-contact-container input:focus,
+  .custom-contact-container textarea:focus {
+    outline: none !important;
+    border-color: var(--urban-accent) !important;
+    box-shadow: 0 0 0 1px rgba(255, 107, 53, 0.6), 0 6px 16px rgba(0, 0, 0, 0.5) !important;
+    background: #101010 !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .custom-contact-container .field__label,
+  .custom-contact-container .form__label,
+  .custom-contact-container label {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    padding: 0 0 10px 0 !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    border-radius: 0 !important;
+    border: none !important;
+    z-index: 10 !important;
+    margin-bottom: 8px !important;
+    text-align: left !important;
+  }
+
+  .custom-contact-container .field--full-width {
+    grid-column: 1 / -1 !important;
+    max-width: 800px !important;
+    margin: 0 auto 25px auto !important;
+  }
+
+  .custom-contact-container .contact__button {
+    text-align: center !important;
+    margin-top: 35px !important;
+    grid-column: 1 / -1 !important;
+  }
+
+  .custom-contact-container .button,
+  .custom-contact-container button {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 18px 46px !important;
+    border: 1px solid #ffffff !important;
+    border-radius: 999px !important;
+    font-weight: 700 !important;
+    font-size: 1em !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    min-width: 240px !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .custom-contact-container .button:hover,
+  .custom-contact-container button:hover {
+    background: var(--urban-accent) !important;
+    border-color: var(--urban-accent) !important;
+    color: #000000 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  /* Hide any default borders or backgrounds completely */
+  .custom-contact-container .field--with-error,
+  .custom-contact-container .contact,
+  .custom-contact-container .contact form,
+  .custom-contact-container .isolate {
+    border: none !important;
+    background: transparent !important;
+    outline: none !important;
+  }
+
+  .custom-contact-container .field--with-error::before,
+  .custom-contact-container .field--with-error::after,
+  .custom-contact-container .field::before,
+  .custom-contact-container .field::after {
+    display: none !important;
+  }
+
+  /* Mobile responsive styles */
+  @media (max-width: 768px) {
+    .custom-contact-container {
+      padding: 20px 15px !important;
+      border-radius: 15px;
+    }
+
+    .contact-header {
+      margin-bottom: 40px !important;
+      padding: 0 10px !important;
+    }
+
+    .contact-grid {
+      grid-template-columns: 1fr !important;
+      gap: 25px !important;
+      margin-bottom: 40px !important;
+    }
+
+    .contact-info, .messengers {
+      padding: 25px 20px !important;
+      min-height: auto !important;
+      border-radius: 15px;
+    }
+
+    .contact-item {
+      padding: 15px !important;
+      flex-direction: column !important;
+      text-align: center !important;
+      min-height: auto !important;
+      border-radius: 12px;
+    }
+
+    .services-grid {
+      grid-template-columns: 1fr !important;
+      gap: 20px !important;
+    }
+
+    .services-section {
+      padding: 40px 20px !important;
+      margin-bottom: 40px !important;
+      border-radius: 15px;
+    }
+
+    .service-card {
+      padding: 25px 20px !important;
+      min-height: auto !important;
+      border-radius: 15px;
+    }
+
+    .form-section {
+      padding: 40px 20px !important;
+      border-radius: 15px;
+    }
+
+    .custom-contact-container .contact__fields {
+      grid-template-columns: 1fr !important;
+      gap: 20px !important;
+      padding: 0 10px !important;
+    }
+
+    .custom-contact-container .field--full-width {
+      grid-column: 1 !important;
+    }
+
+    .custom-contact-container .contact__button {
+      grid-column: 1 !important;
+      padding: 0 10px !important;
+    }
+
+    .custom-contact-container .button,
+    .custom-contact-container button {
+      padding: 16px 26px !important;
+      width: 100% !important;
+      max-width: 300px !important;
+      border-radius: 999px !important;
+    }
+
+    .messenger-btn {
+      padding: 14px 24px !important;
+      border-radius: 999px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .custom-contact-container {
+      padding: 15px 10px !important;
+    }
+
+    .contact-info, .messengers {
+      padding: 20px 15px !important;
+    }
+
+    .services-section {
+      padding: 30px 15px !important;
+    }
+
+    .service-card {
+      padding: 20px 15px !important;
+    }
+
+    .form-section {
+      padding: 30px 15px !important;
+    }
+
+    .custom-contact-container .contact__fields {
+      padding: 0 5px !important;
+    }
+
+    .contact-item {
+      padding: 12px !important;
+    }
+  }
+{%- endstyle -%}
+
+{%- liquid
+  assign is_uk = false
+  if request.locale and request.locale.iso_code
+    if request.locale.iso_code contains 'uk'
+      assign is_uk = true
+    endif
+  endif
+
+  assign contact_header_title = 'URBAN AUTOMOTIVE — CONTACTS'
+  assign contact_header_subtitle = 'Premium carbon solutions and tuning for your vehicle. Contact us to find the best option.'
+  assign contact_info_title = 'Contact information'
+  assign quick_contact_title = 'Quick contact'
+  assign quick_contact_desc = 'Message us on Telegram or Email'
+  assign quick_contact_note = 'We reply within 1–2 hours'
+  assign services_title = 'What are you interested in?'
+  assign service1_title = 'Kit selection'
+  assign service1_desc = 'We will help you choose Urban carbon parts and packages for your vehicle.'
+  assign service2_title = 'Price & availability'
+  assign service2_desc = 'Up-to-date pricing and stock availability for Urban products.'
+  assign form_title = 'Write to us'
+  assign form_desc = 'Fill out the form below and we will get back to you shortly.'
+  assign label_phone = 'Phone'
+  assign label_email = 'Email'
+  assign label_hours = 'Working hours'
+  assign label_city = 'City'
+  assign label_shipping = 'Shipping'
+  assign hours_text = 'Mon–Fri: 9:00–18:00<br>Sat: 10:00–16:00<br>Sun: closed'
+  assign city_text = 'Kyiv, Ukraine'
+  assign shipping_text = 'Ukraine and Europe, Nova Poshta'
+
+  if is_uk
+    assign contact_header_title = 'URBAN AUTOMOTIVE — КОНТАКТИ'
+    assign contact_header_subtitle = "Преміальні карбонові рішення та тюнінг для вашого автомобіля. Зв'яжіться з нами для підбору оптимального рішення."
+    assign contact_info_title = 'Контактна інформація'
+    assign quick_contact_title = "Швидкий зв'язок"
+    assign quick_contact_desc = 'Напишіть нам у Telegram або Email'
+    assign quick_contact_note = 'Відповідаємо протягом 1–2 годин'
+    assign services_title = 'Що вас цікавить?'
+    assign service1_title = 'Підбір комплекту'
+    assign service1_desc = 'Допоможемо підібрати карбонові елементи та пакети Urban для вашого автомобіля.'
+    assign service2_title = 'Ціна та наявність'
+    assign service2_desc = 'Актуальні ціни та інформація про наявність продукції Urban на складі.'
+    assign form_title = 'Напишіть нам'
+    assign form_desc = "Заповніть форму нижче, і ми зв'яжемося з вами найближчим часом."
+    assign label_phone = 'Телефон'
+    assign label_email = 'Email'
+    assign label_hours = 'Години роботи'
+    assign label_city = 'Місто'
+    assign label_shipping = 'Доставка'
+    assign hours_text = 'Пн-Пт: 9:00-18:00<br>Сб: 10:00-16:00<br>Нд: вихідний'
+    assign city_text = 'Київ, Україна'
+    assign shipping_text = 'По Україні та Європі'
+  endif
+-%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <div class="custom-contact-container page-width section-{{ section.id }}-padding">
+    
+    <div class="contact-header">
+      <h1>{{ contact_header_title }}</h1>
+      <p>{{ contact_header_subtitle }}</p>
+    </div>
+
+    <div class="contact-grid">
+      <div class="contact-info">
+        <h2>{{ contact_info_title }}</h2>
+        <div class="contact-content">
+          <div class="contact-item">
+            <div>
+              <strong>{{ label_phone }}:</strong>
+              <a href="tel:+380660771700">+380 66 077 17 00</a>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div>
+              <strong>{{ label_email }}:</strong>
+              <a href="mailto:info@onecompany.global">info@onecompany.global</a>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div>
+              <strong>{{ label_hours }}:</strong>
+              {{ hours_text }}
+            </div>
+          </div>
+          <div class="contact-item">
+            <div>
+              <strong>{{ label_city }}:</strong>
+              {{ city_text }}
+            </div>
+          </div>
+          <div class="contact-item">
+            <div>
+              <strong>{{ label_shipping }}:</strong>
+              {{ shipping_text }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="messengers">
+        <h2>{{ quick_contact_title }}</h2>
+        <div class="messenger-content">
+          <p style="margin-bottom: 15px; color: #bdbdbd;">{{ quick_contact_desc }}</p>
+          <p style="margin-bottom: 25px; color: #ffffff; font-size: 0.9em; font-weight: 600;">{{ quick_contact_note }}</p>
+          <div class="messenger-buttons">
+            <a href="https://t.me/onecompany_global" class="messenger-btn">
+              Telegram
+            </a>
+            <a href="mailto:info@onecompany.global" class="messenger-btn">
+              Email
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="services-section">
+      <h2>{{ services_title }}</h2>
+      <div class="services-grid">
+        <div class="service-card">
+          <h3>{{ service1_title }}</h3>
+          <p>{{ service1_desc }}</p>
+          <a href="https://t.me/onecompany_global">Telegram</a>
+        </div>
+        <div class="service-card">
+          <h3>{{ service2_title }}</h3>
+          <p>{{ service2_desc }}</p>
+          <a href="https://t.me/onecompany_global">Telegram</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>{{ form_title }}</h2>
+      <p>{{ form_desc }}</p>
+
+      {%- if section.settings.heading != blank -%}
+        <h3 class="title title-wrapper--no-top-margin inline-richtext {{ section.settings.heading_size }}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+          {{ section.settings.heading }}
+        </h3>
+      {%- endif -%}
+
+      {%- liquid
+        assign contact_form_class = 'isolate'
+        if settings.animations_reveal_on_scroll
+          assign contact_form_class = 'isolate scroll-trigger animate--slide-in'
+        endif
+      -%}
+
+      {%- form 'contact', id: 'ContactForm', class: contact_form_class -%}
+        {%- if form.posted_successfully? -%}
+          <h2 class="form-status form-status-list form__message" tabindex="-1" autofocus>
+            {{- 'icon-success.svg' | inline_asset_content -}}
+            {{ 'templates.contact.form.post_success' | t }}
+          </h2>
+        {%- elsif form.errors -%}
+          <div class="form__message">
+            <h2 class="form-status caption-large text-body" role="alert" tabindex="-1" autofocus>
+              {{- 'icon-error.svg' | inline_asset_content -}}
+              {{ 'templates.contact.form.error_heading' | t }}
+            </h2>
+          </div>
+          <ul class="form-status-list caption-large" role="list">
+            <li>
+              <a href="#ContactForm-email" class="link">
+                {{ form.errors.translated_fields.email | capitalize }}
+                {{ form.errors.messages.email }}
+              </a>
+            </li>
+          </ul>
+        {%- endif -%}
+
+        <div class="contact__fields">
+          <div class="field">
+            <input
+              class="field__input"
+              autocomplete="name"
+              type="text"
+              id="ContactForm-name"
+              name="contact[{{ 'templates.contact.form.name' | t }}]"
+              value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
+              placeholder="{{ 'templates.contact.form.name' | t }}"
+            >
+            <label class="field__label" for="ContactForm-name">{{ 'templates.contact.form.name' | t }}</label>
+          </div>
+          <div class="field field--with-error">
+            <input
+              autocomplete="email"
+              type="email"
+              id="ContactForm-email"
+              class="field__input"
+              name="contact[email]"
+              spellcheck="false"
+              autocapitalize="off"
+              value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+              aria-required="true"
+              {% if form.errors contains 'email' %}
+                aria-invalid="true"
+                aria-describedby="ContactForm-email-error"
+              {% endif %}
+              placeholder="{{ 'templates.contact.form.email' | t }}"
+            >
+            <label class="field__label" for="ContactForm-email">
+              {{- 'templates.contact.form.email' | t }}
+              <span aria-hidden="true">*</span>
+            </label>
+            {%- if form.errors contains 'email' -%}
+              <small class="contact__field-error" id="ContactForm-email-error">
+                <span class="visually-hidden">{{ 'accessibility.error' | t }}</span>
+                <span class="form__message">
+                  <span class="svg-wrapper">
+                    {{- 'icon-error.svg' | inline_asset_content -}}
+                  </span>
+                  {{- form.errors.translated_fields.email | capitalize }}
+                  {{ form.errors.messages.email -}}
+                </span>
+              </small>
+            {%- endif -%}
+          </div>
+        </div>
+        <div class="field">
+          <input
+            type="tel"
+            id="ContactForm-phone"
+            class="field__input"
+            autocomplete="tel"
+            name="contact[{{ 'templates.contact.form.phone' | t }}]"
+            pattern="[0-9\-]*"
+            value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.phone }}{% endif %}"
+            placeholder="{{ 'templates.contact.form.phone' | t }}"
+          >
+          <label class="field__label" for="ContactForm-phone">{{ 'templates.contact.form.phone' | t }}</label>
+        </div>
+        
+        <div class="field field--full-width">
+          <textarea
+            rows="6"
+            id="ContactForm-body"
+            class="text-area field__input"
+            name="contact[{{ 'templates.contact.form.comment' | t }}]"
+            placeholder="{{ 'templates.contact.form.comment' | t }}"
+          >
+            {{- form.body -}}
+          </textarea>
+          <label class="form__label field__label" for="ContactForm-body">
+            {{- 'templates.contact.form.comment' | t -}}
+          </label>
+        </div>
+        
+        <div class="contact__button">
+          <button type="submit" class="button">
+            {{ 'templates.contact.form.send' | t }}
+          </button>
+        </div>
+      {%- endform -%}
+    </div>
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.contact-form.name",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "t:sections.contact-form.settings.title.default",
+      "label": "t:sections.contact-form.settings.title.label"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "t:sections.all.heading_size.options__1.label"
+        },
+        {
+          "value": "h1",
+          "label": "t:sections.all.heading_size.options__2.label"
+        },
+        {
+          "value": "h0",
+          "label": "t:sections.all.heading_size.options__3.label"
+        },
+        {
+          "value": "hxl",
+          "label": "t:sections.all.heading_size.options__4.label"
+        },
+        {
+          "value": "hxxl",
+          "label": "t:sections.all.heading_size.options__5.label"
+        }
+      ],
+      "default": "h1",
+      "label": "t:sections.all.heading_size.label"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 36
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.contact-form.presets.name"
+    }
+  ]
+}
+{% endschema %}

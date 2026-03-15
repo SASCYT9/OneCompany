@@ -2,12 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/Logo";
 
 export default function LoadingScreen() {
-  const [isLoading, setIsLoading] = useState(true);
+  const pathname = usePathname();
+  const isShopRoute = pathname ? /^\/(ua|en)\/shop(?:\/|$)/.test(pathname) : false;
+  const [isLoading, setIsLoading] = useState(!isShopRoute);
 
   useEffect(() => {
+    if (isShopRoute) {
+      setIsLoading(false);
+      document.body.style.overflow = "unset";
+      return;
+    }
+
     // Prevent scrolling while loading
     document.body.style.overflow = 'hidden';
     
@@ -20,7 +29,7 @@ export default function LoadingScreen() {
       clearTimeout(timer);
       document.body.style.overflow = 'unset';
     };
-  }, []);
+  }, [isShopRoute]);
 
   return (
     <AnimatePresence>

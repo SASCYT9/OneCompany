@@ -114,6 +114,7 @@ export default async function LocalizedHomePage({
 
   const structureLinks = [
     `/${locale}`,
+    `/${locale}/shop`,
     `/${locale}/auto`,
     `/${locale}/moto`,
     `/${locale}/brands`,

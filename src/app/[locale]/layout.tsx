@@ -26,6 +26,7 @@ type Props = {
 
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;
+  const currentYear = new Date().getFullYear();
 
   // Validate locale
   const locales = ['en', 'ua'];
@@ -58,7 +59,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           </main>
           <AutoBreadcrumbs />
           <ScrollToTop />
-          <Footer />
+          <Footer currentYear={currentYear} />
           <CookieBanner locale={locale} />
         </div>
       </AuthProvider>

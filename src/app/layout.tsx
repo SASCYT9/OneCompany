@@ -155,6 +155,7 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async />
       </head>
       <body
         className={cn(

@@ -1,0 +1,42 @@
+import { getServerSession } from 'next-auth';
+import { CustomerGroup } from '@prisma/client';
+import { authOptions } from '@/lib/authOptions';
+
+export type ShopCustomerSession = {
+  customerId: string;
+  email: string;
+  name: string;
+  group: CustomerGroup;
+  b2bDiscountPercent: number | null;
+  preferredLocale: string;
+  companyName: string | null;
+  firstName: string;
+  lastName: string;
+};
+
+export async function getCurrentShopCustomerSession(): Promise<ShopCustomerSession | null> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email || !session.user.customerId || !session.user.group) {
+    return null;
+  }
+
+  return {
+    customerId: session.user.customerId,
+    email: session.user.email,
+    name: session.user.name ?? session.user.email,
+    group: session.user.group,
+    b2bDiscountPercent: session.user.b2bDiscountPercent ?? null,
+    preferredLocale: session.user.preferredLocale ?? 'en',
+    companyName: session.user.companyName ?? null,
+    firstName: session.user.firstName ?? '',
+    lastName: session.user.lastName ?? '',
+  };
+}
+
+export async function assertCurrentShopCustomerSession() {
+  const session = await getCurrentShopCustomerSession();
+  if (!session) {
+    throw new Error('UNAUTHORIZED');
+  }
+  return session;
+}

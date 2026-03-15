@@ -2,7 +2,11 @@
   "nav": {
     "automotive": "Авто",
     "moto": "Мото",
+    "shop": "Магазин",
     "stores": "Магазини",
+    "collections": "Колекції",
+    "allStores": "Усі магазини",
+    "cart": "Кошик",
     "blog": "Блог",
     "about": "Про нас",
     "categories": "Категорії",

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { X, Cookie, Shield } from 'lucide-react';
 
 declare global {
@@ -34,12 +35,20 @@ interface CookieBannerProps {
 }
 
 export default function CookieBanner({ locale = 'ua' }: CookieBannerProps) {
+  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  const isShopRoute = pathname ? /^\/(ua|en)\/shop(?:\/|$)/.test(pathname) : false;
   const t = translations[locale as keyof typeof translations] || translations.ua;
 
   useEffect(() => {
+    if (isShopRoute) {
+      setIsVisible(false);
+      setIsAnimating(false);
+      return;
+    }
+
     // Check if user has already made a choice
     const consent = localStorage.getItem('cookie-consent');
     if (!consent) {
@@ -65,7 +74,7 @@ export default function CookieBanner({ locale = 'ua' }: CookieBannerProps) {
         // Invalid consent data, ignore
       }
     }
-  }, []);
+  }, [isShopRoute]);
 
   const handleAccept = (type: 'all' | 'necessary') => {
     const consent = {
@@ -100,7 +109,7 @@ export default function CookieBanner({ locale = 'ua' }: CookieBannerProps) {
     setTimeout(() => setIsVisible(false), 300);
   };
 
-  if (!isVisible) return null;
+  if (isShopRoute || !isVisible) return null;
 
   return (
     <div

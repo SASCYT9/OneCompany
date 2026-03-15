@@ -1,6 +1,7 @@
 import { siteConfig, type SupportedLocale } from "@/lib/seo";
 
 export const localeAgnosticPublicPrefixes = [
+  "/shop",
   "/auto",
   "/moto",
   "/brands",
@@ -17,6 +18,7 @@ export const localeAgnosticPublicPrefixes = [
 
 export const localizedStaticSlugs = [
   "",
+  "/shop",
   "/auto",
   "/moto",
   "/brands",
@@ -36,19 +38,20 @@ export const localizedStaticSlugs = [
   "/categories",
 ] as const;
 
-export const noindexPrefixes = ["/admin", "/api", "/telegram-app"] as const;
+export const noindexPrefixes = ["/admin", "/api", "/telegram-app", "/figma"] as const;
 
 export const removedBlogSlugs = ["one-company-dtskmdmjfgf"] as const;
 
 export const indexablePatterns = [
   /^\/(ua|en)$/,
-  /^\/(ua|en)\/(?:auto|moto|brands|blog|contact|about|partnership|choice|privacy|terms|cookies|categories)(?:\/[a-z0-9-]+)*$/,
+  /^\/(ua|en)\/(?:shop|auto|moto|brands|blog|contact|about|partnership|choice|privacy|terms|cookies|categories)(?:\/[a-z0-9-]+)*$/,
 ] as const;
 
 export const noindexPatterns = [
   /^\/admin(?:\/.*)?$/,
   /^\/api(?:\/.*)?$/,
   /^\/telegram-app(?:\/.*)?$/,
+  /^\/figma(?:\/.*)?$/,
 ] as const;
 
 export type RedirectPattern = {
@@ -77,7 +80,7 @@ export const redirectPatterns: readonly RedirectPattern[] = [
     id: "locale-first-routing",
     description: "Redirect locale-agnostic public routes to locale-prefixed URLs.",
     pattern:
-      /^\/(?:auto|moto|brands|blog|contact|about|partnership|choice|privacy|terms|cookies|categories)(?:\/.*)?$/,
+      /^\/(?:shop|auto|moto|brands|blog|contact|about|partnership|choice|privacy|terms|cookies|categories)(?:\/.*)?$/,
   },
   {
     id: "root-to-locale",

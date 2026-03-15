@@ -125,3 +125,613 @@ model TelegramAdmin {
   @@index([telegramId])
 }
 
+model AdminUser {
+  id          String          @id @default(cuid())
+  email       String          @unique
+  name        String
+  isActive    Boolean         @default(true)
+  lastLoginAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  roles       AdminUserRole[]
+  auditLogs   AdminAuditLog[]
+
+  @@index([isActive])
+}
+
+model AdminRole {
+  id          String          @id @default(cuid())
+  key         String          @unique
+  name        String
+  permissions String[]        @default([])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  users       AdminUserRole[]
+
+  @@index([key])
+}
+
+model AdminUserRole {
+  userId     String
+  roleId     String
+  assignedAt DateTime  @default(now())
+  user       AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       AdminRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+}
+
+model AdminAuditLog {
+  id         String     @id @default(cuid())
+  actorId    String?
+  actorEmail String
+  actorName  String?
+  scope      String
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime   @default(now())
+  actor      AdminUser? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId])
+  @@index([scope, createdAt])
+  @@index([entityType, entityId])
+}
+
+// Shop (Urban / One Company store — no Shopify)
+model ShopProduct {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  sku          String?
+  scope        String   @default("auto")
+  brand        String?
+  vendor       String?
+  productType  String?
+  productCategory String?
+  tags         String[] @default([])
+  status       ShopCatalogStatus @default(ACTIVE)
+  titleUa      String
+  titleEn      String
+  categoryUa   String?
+  categoryEn   String?
+  shortDescUa  String?  @db.Text
+  shortDescEn  String?  @db.Text
+  longDescUa   String?  @db.Text
+  longDescEn   String?  @db.Text
+  bodyHtmlUa   String?  @db.Text
+  bodyHtmlEn   String?  @db.Text
+  leadTimeUa   String?
+  leadTimeEn   String?
+  stock        String   @default("inStock")
+  collectionUa String?
+  collectionEn String?
+  priceEur     Decimal? @db.Decimal(12, 2)
+  priceUsd     Decimal? @db.Decimal(12, 2)
+  priceUah     Decimal? @db.Decimal(12, 2)
+  priceEurB2b  Decimal? @db.Decimal(12, 2)
+  priceUsdB2b  Decimal? @db.Decimal(12, 2)
+  priceUahB2b  Decimal? @db.Decimal(12, 2)
+  compareAtEur Decimal? @db.Decimal(12, 2)
+  compareAtUsd Decimal? @db.Decimal(12, 2)
+  compareAtUah Decimal? @db.Decimal(12, 2)
+  compareAtEurB2b Decimal? @db.Decimal(12, 2)
+  compareAtUsdB2b Decimal? @db.Decimal(12, 2)
+  compareAtUahB2b Decimal? @db.Decimal(12, 2)
+  image        String?
+  gallery      Json?
+  highlights   Json?
+  seoTitleUa   String?
+  seoTitleEn   String?
+  seoDescriptionUa String? @db.Text
+  seoDescriptionEn String? @db.Text
+  categoryId   String?
+  isPublished  Boolean  @default(true)
+  publishedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  category     ShopCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  media        ShopProductMedia[]
+  options      ShopProductOption[]
+  variants     ShopProductVariant[]
+  metafields   ShopProductMetafield[]
+  collections  ShopProductCollection[]
+  bundle       ShopBundle?
+  bundleComponentItems ShopBundleItem[] @relation("ShopBundleComponentProduct")
+  cartItems    ShopCartItem[]
+  orderItems   ShopOrderItem[]
+
+  @@index([slug])
+  @@index([scope])
+  @@index([isPublished])
+  @@index([status])
+  @@index([categoryId])
+}
+
+model ShopCollection {
+  id            String                  @id @default(cuid())
+  handle        String                  @unique
+  titleUa       String
+  titleEn       String
+  brand         String?
+  descriptionUa String?                 @db.Text
+  descriptionEn String?                 @db.Text
+  heroImage     String?
+  isPublished   Boolean                 @default(true)
+  isUrban       Boolean                 @default(false)
+  sortOrder     Int                     @default(0)
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  products      ShopProductCollection[]
+
+  @@index([handle])
+  @@index([isUrban, sortOrder])
+  @@index([isPublished])
+}
+
+model ShopCategory {
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  titleUa       String
+  titleEn       String
+  descriptionUa String?        @db.Text
+  descriptionEn String?        @db.Text
+  parentId      String?
+  isPublished   Boolean        @default(true)
+  sortOrder     Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  parent        ShopCategory?  @relation("ShopCategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children      ShopCategory[] @relation("ShopCategoryTree")
+  products      ShopProduct[]
+
+  @@index([slug])
+  @@index([parentId, sortOrder])
+  @@index([isPublished, sortOrder])
+}
+
+model ShopProductCollection {
+  productId    String
+  collectionId String
+  sortOrder    Int            @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  product      ShopProduct    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  collection   ShopCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([productId, collectionId])
+  @@index([collectionId, sortOrder])
+}
+
+enum ShopCatalogStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum CustomerGroup {
+  B2C
+  B2B_PENDING
+  B2B_APPROVED
+}
+
+enum ShopMediaType {
+  IMAGE
+  VIDEO
+  EXTERNAL_VIDEO
+}
+
+enum ShopInventoryPolicy {
+  DENY
+  CONTINUE
+}
+
+model ShopProductMedia {
+  id         String        @id @default(cuid())
+  productId  String
+  product    ShopProduct   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  mediaType  ShopMediaType @default(IMAGE)
+  src        String
+  altText    String?
+  position   Int           @default(1)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([productId])
+  @@index([productId, position])
+}
+
+model ShopProductOption {
+  id        String      @id @default(cuid())
+  productId String
+  product   ShopProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  position  Int
+  values    String[]    @default([])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([productId])
+  @@unique([productId, position])
+}
+
+model ShopProductVariant {
+  id                 String              @id @default(cuid())
+  productId          String
+  product            ShopProduct         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  title              String?
+  sku                String?
+  position           Int                 @default(1)
+  option1Value       String?
+  option1LinkedTo    String?
+  option2Value       String?
+  option2LinkedTo    String?
+  option3Value       String?
+  option3LinkedTo    String?
+  grams              Int?
+  inventoryTracker   String?
+  inventoryQty       Int                 @default(0)
+  inventoryPolicy    ShopInventoryPolicy @default(CONTINUE)
+  fulfillmentService String?
+  priceEur           Decimal?            @db.Decimal(12, 2)
+  priceUsd           Decimal?            @db.Decimal(12, 2)
+  priceUah           Decimal?            @db.Decimal(12, 2)
+  priceEurB2b        Decimal?            @db.Decimal(12, 2)
+  priceUsdB2b        Decimal?            @db.Decimal(12, 2)
+  priceUahB2b        Decimal?            @db.Decimal(12, 2)
+  compareAtEur       Decimal?            @db.Decimal(12, 2)
+  compareAtUsd       Decimal?            @db.Decimal(12, 2)
+  compareAtUah       Decimal?            @db.Decimal(12, 2)
+  compareAtEurB2b    Decimal?            @db.Decimal(12, 2)
+  compareAtUsdB2b    Decimal?            @db.Decimal(12, 2)
+  compareAtUahB2b    Decimal?            @db.Decimal(12, 2)
+  requiresShipping   Boolean             @default(true)
+  taxable            Boolean             @default(true)
+  barcode            String?
+  image              String?
+  weightUnit         String?
+  taxCode            String?
+  costPerItem        Decimal?            @db.Decimal(12, 2)
+  isDefault          Boolean             @default(false)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  bundleComponentItems ShopBundleItem[]
+  cartItems          ShopCartItem[]
+
+  @@index([productId])
+  @@index([sku])
+  @@unique([productId, position])
+}
+
+model ShopBundle {
+  id        String           @id @default(cuid())
+  productId String           @unique
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  product   ShopProduct      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  items     ShopBundleItem[]
+
+  @@index([createdAt])
+}
+
+model ShopBundleItem {
+  id                 String             @id @default(cuid())
+  bundleId           String
+  componentProductId String
+  componentVariantId String?
+  quantity           Int                @default(1)
+  position           Int                @default(1)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  bundle             ShopBundle         @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  componentProduct   ShopProduct        @relation("ShopBundleComponentProduct", fields: [componentProductId], references: [id], onDelete: Restrict)
+  componentVariant   ShopProductVariant? @relation(fields: [componentVariantId], references: [id], onDelete: SetNull)
+
+  @@index([bundleId, position])
+  @@index([componentProductId])
+  @@index([componentVariantId])
+  @@unique([bundleId, position])
+}
+
+model ShopProductMetafield {
+  id         String      @id @default(cuid())
+  productId  String
+  product    ShopProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  namespace  String
+  key        String
+  value      String      @db.Text
+  valueType  String      @default("single_line_text_field")
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([productId])
+  @@unique([productId, namespace, key])
+}
+
+// Order status per AGENTS.md Phase C/D
+enum OrderStatus {
+  PENDING_REVIEW
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum ShipmentStatus {
+  LABEL_CREATED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum ShopImportAction {
+  DRY_RUN
+  COMMIT
+}
+
+enum ShopImportStatus {
+  COMPLETED
+  FAILED
+}
+
+enum ShopImportConflictMode {
+  SKIP
+  UPDATE
+  CREATE
+}
+
+model ShopSettings {
+  key                    String   @id
+  b2bVisibilityMode      String   @default("approved_only")
+  defaultB2bDiscountPercent Decimal? @db.Decimal(5, 2)
+  defaultCurrency        String   @default("EUR")
+  enabledCurrencies      String[] @default(["EUR", "USD", "UAH"])
+  currencyRates          Json     @default("{\"EUR\":1,\"USD\":1,\"UAH\":1}")
+  shippingZones          Json     @default("[]")
+  taxRegions             Json     @default("[]")
+  orderNotificationEmail String?
+  b2bNotes               String?  @db.Text
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model ShopCustomer {
+  id              String                @id @default(cuid())
+  email           String                @unique
+  firstName       String
+  lastName        String
+  phone           String?
+  companyName     String?
+  vatNumber       String?
+  group           CustomerGroup         @default(B2C)
+  b2bDiscountPercent Decimal?           @db.Decimal(5, 2)
+  isActive        Boolean               @default(true)
+  notes           String?               @db.Text
+  preferredLocale String                @default("en")
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  account         ShopCustomerAccount?
+  addresses       ShopCustomerAddress[]
+  carts           ShopCart[]
+  orders          ShopOrder[]
+
+  @@index([group, isActive])
+  @@index([createdAt])
+}
+
+model ShopCustomerAccount {
+  id              String       @id @default(cuid())
+  customerId      String       @unique
+  passwordHash    String
+  lastLoginAt     DateTime?
+  emailVerifiedAt DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  customer        ShopCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model ShopCustomerAddress {
+  id                String       @id @default(cuid())
+  customerId        String
+  label             String
+  line1             String
+  line2             String?
+  city              String
+  region            String?
+  postcode          String?
+  country           String
+  isDefaultShipping Boolean      @default(false)
+  isDefaultBilling  Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  customer          ShopCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+}
+
+model ShopCart {
+  id         String         @id @default(cuid())
+  token      String         @unique
+  customerId String?
+  currency   String         @default("EUR")
+  locale     String         @default("en")
+  expiresAt  DateTime
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  customer   ShopCustomer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items      ShopCartItem[]
+
+  @@index([customerId])
+  @@index([expiresAt])
+}
+
+model ShopCartItem {
+  id          String              @id @default(cuid())
+  cartId      String
+  productId   String?
+  variantId   String?
+  productSlug String
+  quantity    Int                 @default(1)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  cart        ShopCart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product     ShopProduct?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant     ShopProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([cartId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+model ShopOrder {
+  id            String       @id @default(cuid())
+  orderNumber   String       @unique // human-readable, e.g. OC-2024-00001
+  status        OrderStatus  @default(PENDING_REVIEW)
+  customerId    String?
+  customerGroupSnapshot CustomerGroup @default(B2C)
+  // Contact (guest checkout)
+  email         String
+  customerName  String
+  phone         String?
+  // Shipping snapshot
+  shippingAddress Json       // { line1, line2?, city, region?, postcode?, country }
+  // Totals snapshot at checkout (same currency for whole order)
+  currency      String       // EUR | USD | UAH
+  subtotal      Decimal     @db.Decimal(12, 2)
+  shippingCost  Decimal     @db.Decimal(12, 2)
+  taxAmount     Decimal     @db.Decimal(12, 2)
+  total         Decimal     @db.Decimal(12, 2)
+  pricingSnapshot Json?
+  // Token for guest order view (e.g. in confirmation email)
+  viewToken     String       @unique
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  customer      ShopCustomer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items         ShopOrderItem[]
+  events        ShopOrderStatusEvent[]
+  shipments     ShopShipment[]
+
+  @@index([orderNumber])
+  @@index([status])
+  @@index([createdAt])
+  @@index([customerId])
+}
+
+model ShopOrderItem {
+  id          String     @id @default(cuid())
+  orderId     String
+  order       ShopOrder  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productSlug String
+  productId   String?    // optional FK; product may be deleted later
+  variantId   String?
+  title       String     // snapshot
+  quantity    Int        @default(1)
+  price       Decimal   @db.Decimal(12, 2) // unit price in order currency
+  total       Decimal   @db.Decimal(12, 2)  // price * quantity
+  image       String?
+  createdAt   DateTime  @default(now())
+  product     ShopProduct? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+}
+
+model ShopOrderStatusEvent {
+  id         String      @id @default(cuid())
+  orderId     String
+  order       ShopOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fromStatus  OrderStatus?
+  toStatus    OrderStatus
+  actorType   String      @default("admin")
+  actorName   String?
+  note        String?     @db.Text
+  createdAt   DateTime    @default(now())
+
+  @@index([orderId, createdAt])
+  @@index([toStatus])
+}
+
+model ShopShipment {
+  id             String         @id @default(cuid())
+  orderId        String
+  carrier        String
+  serviceLevel   String?
+  trackingNumber String
+  trackingUrl    String?
+  status         ShipmentStatus @default(LABEL_CREATED)
+  notes          String?        @db.Text
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  order          ShopOrder      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@index([status])
+  @@index([trackingNumber])
+}
+
+model ShopImportTemplate {
+  id                  String                  @id @default(cuid())
+  name                String
+  supplierName        String?
+  sourceType          String                  @default("shopify_csv")
+  notes               String?                 @db.Text
+  fieldMapping        Json?
+  defaultConflictMode ShopImportConflictMode  @default(UPDATE)
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+  jobs                ShopImportJob[]
+
+  @@index([sourceType, createdAt])
+}
+
+model ShopImportJob {
+  id             String                 @id @default(cuid())
+  sourceType     String                 @default("shopify_csv")
+  sourceFilename String?
+  supplierName   String?
+  templateId     String?
+  action         ShopImportAction
+  status         ShopImportStatus
+  conflictMode   ShopImportConflictMode @default(UPDATE)
+  actorEmail     String
+  actorName      String?
+  totalRows      Int                    @default(0)
+  productsCount  Int                    @default(0)
+  variantsCount  Int                    @default(0)
+  validProducts  Int                    @default(0)
+  createdCount   Int                    @default(0)
+  updatedCount   Int                    @default(0)
+  skippedCount   Int                    @default(0)
+  errorCount     Int                    @default(0)
+  columns        Json?
+  templateSnapshot Json?
+  summary        Json?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  template       ShopImportTemplate?    @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  rowErrors      ShopImportRowError[]
+
+  @@index([action, createdAt])
+  @@index([status, createdAt])
+  @@index([sourceType, createdAt])
+  @@index([templateId])
+}
+
+model ShopImportRowError {
+  id        String         @id @default(cuid())
+  jobId      String
+  rowNumber  Int
+  handle     String?
+  message    String         @db.Text
+  payload    Json?
+  createdAt  DateTime       @default(now())
+  job        ShopImportJob  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId, rowNumber])
+}
+

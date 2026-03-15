@@ -1,0 +1,330 @@
+import { Prisma, PrismaClient, ShopInventoryPolicy } from '@prisma/client';
+
+export const adminVariantSummarySelect = {
+  id: true,
+  productId: true,
+  title: true,
+  sku: true,
+  position: true,
+  inventoryQty: true,
+  inventoryPolicy: true,
+  inventoryTracker: true,
+  fulfillmentService: true,
+  priceEur: true,
+  priceUsd: true,
+  priceUah: true,
+  priceEurB2b: true,
+  priceUsdB2b: true,
+  priceUahB2b: true,
+  compareAtEur: true,
+  compareAtUsd: true,
+  compareAtUah: true,
+  compareAtEurB2b: true,
+  compareAtUsdB2b: true,
+  compareAtUahB2b: true,
+  image: true,
+  isDefault: true,
+  updatedAt: true,
+  product: {
+    select: {
+      id: true,
+      slug: true,
+      titleUa: true,
+      titleEn: true,
+      brand: true,
+      vendor: true,
+      scope: true,
+      status: true,
+      isPublished: true,
+      stock: true,
+      collections: {
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: {
+          collectionId: true,
+          collection: {
+            select: {
+              id: true,
+              handle: true,
+              titleUa: true,
+              titleEn: true,
+              isUrban: true,
+            },
+          },
+        },
+      },
+    },
+  },
+} satisfies Prisma.ShopProductVariantSelect;
+
+export type AdminShopVariantSummaryRecord = Prisma.ShopProductVariantGetPayload<{
+  select: typeof adminVariantSummarySelect;
+}>;
+
+export type AdminInventoryPatchInput = {
+  variantIds: string[];
+  inventoryQty?: number | null;
+  inventoryAdjustment?: number | null;
+  inventoryPolicy?: ShopInventoryPolicy | null;
+  inventoryTracker?: string | null;
+  fulfillmentService?: string | null;
+};
+
+export type AdminPricingPatchInput = {
+  variantIds: string[];
+  priceEur?: number | null;
+  priceUsd?: number | null;
+  priceUah?: number | null;
+  priceEurB2b?: number | null;
+  priceUsdB2b?: number | null;
+  priceUahB2b?: number | null;
+  compareAtEur?: number | null;
+  compareAtUsd?: number | null;
+  compareAtUah?: number | null;
+  compareAtEurB2b?: number | null;
+  compareAtUsdB2b?: number | null;
+  compareAtUahB2b?: number | null;
+};
+
+function decimalToNumber(value: Prisma.Decimal | number | null | undefined): number | null {
+  if (value == null) return null;
+  return Number(value);
+}
+
+function uniqueStrings(values: string[]) {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+export function serializeAdminVariantSummary(record: AdminShopVariantSummaryRecord) {
+  return {
+    id: record.id,
+    productId: record.productId,
+    title: record.title,
+    sku: record.sku,
+    position: record.position,
+    inventoryQty: record.inventoryQty,
+    inventoryPolicy: record.inventoryPolicy,
+    inventoryTracker: record.inventoryTracker,
+    fulfillmentService: record.fulfillmentService,
+    priceEur: decimalToNumber(record.priceEur),
+    priceUsd: decimalToNumber(record.priceUsd),
+    priceUah: decimalToNumber(record.priceUah),
+    priceEurB2b: decimalToNumber(record.priceEurB2b),
+    priceUsdB2b: decimalToNumber(record.priceUsdB2b),
+    priceUahB2b: decimalToNumber(record.priceUahB2b),
+    compareAtEur: decimalToNumber(record.compareAtEur),
+    compareAtUsd: decimalToNumber(record.compareAtUsd),
+    compareAtUah: decimalToNumber(record.compareAtUah),
+    compareAtEurB2b: decimalToNumber(record.compareAtEurB2b),
+    compareAtUsdB2b: decimalToNumber(record.compareAtUsdB2b),
+    compareAtUahB2b: decimalToNumber(record.compareAtUahB2b),
+    image: record.image,
+    isDefault: record.isDefault,
+    updatedAt: record.updatedAt.toISOString(),
+    product: {
+      id: record.product.id,
+      slug: record.product.slug,
+      titleUa: record.product.titleUa,
+      titleEn: record.product.titleEn,
+      brand: record.product.brand,
+      vendor: record.product.vendor,
+      scope: record.product.scope,
+      status: record.product.status,
+      isPublished: record.product.isPublished,
+      stock: record.product.stock,
+      collectionIds: record.product.collections.map((entry) => entry.collectionId),
+      collectionHandles: record.product.collections.map((entry) => entry.collection.handle),
+      collections: record.product.collections.map((entry) => ({
+        id: entry.collection.id,
+        handle: entry.collection.handle,
+        titleUa: entry.collection.titleUa,
+        titleEn: entry.collection.titleEn,
+        isUrban: entry.collection.isUrban,
+      })),
+    },
+  };
+}
+
+async function syncProductsFromDefaultVariantPricing(prisma: PrismaClient, productIds: string[]) {
+  const ids = uniqueStrings(productIds);
+  if (!ids.length) return;
+
+  const defaultVariants = await prisma.shopProductVariant.findMany({
+    where: {
+      productId: { in: ids },
+      isDefault: true,
+    },
+    select: {
+      productId: true,
+      priceEur: true,
+      priceUsd: true,
+      priceUah: true,
+      priceEurB2b: true,
+      priceUsdB2b: true,
+      priceUahB2b: true,
+      compareAtEur: true,
+      compareAtUsd: true,
+      compareAtUah: true,
+      compareAtEurB2b: true,
+      compareAtUsdB2b: true,
+      compareAtUahB2b: true,
+    },
+  });
+
+  if (!defaultVariants.length) return;
+
+  await prisma.$transaction(
+    defaultVariants.map((variant) =>
+      prisma.shopProduct.update({
+        where: { id: variant.productId },
+        data: {
+          priceEur: variant.priceEur,
+          priceUsd: variant.priceUsd,
+          priceUah: variant.priceUah,
+          priceEurB2b: variant.priceEurB2b,
+          priceUsdB2b: variant.priceUsdB2b,
+          priceUahB2b: variant.priceUahB2b,
+          compareAtEur: variant.compareAtEur,
+          compareAtUsd: variant.compareAtUsd,
+          compareAtUah: variant.compareAtUah,
+          compareAtEurB2b: variant.compareAtEurB2b,
+          compareAtUsdB2b: variant.compareAtUsdB2b,
+          compareAtUahB2b: variant.compareAtUahB2b,
+        },
+      })
+    )
+  );
+}
+
+async function syncProductsFromVariantInventory(prisma: PrismaClient, productIds: string[]) {
+  const ids = uniqueStrings(productIds);
+  if (!ids.length) return;
+
+  const variants = await prisma.shopProductVariant.findMany({
+    where: {
+      productId: { in: ids },
+    },
+    select: {
+      productId: true,
+      inventoryQty: true,
+    },
+  });
+
+  const byProduct = new Map<string, boolean>();
+  for (const id of ids) {
+    byProduct.set(id, false);
+  }
+  for (const variant of variants) {
+    if (variant.inventoryQty > 0) {
+      byProduct.set(variant.productId, true);
+    }
+  }
+
+  await prisma.$transaction(
+    ids.map((productId) =>
+      prisma.shopProduct.update({
+        where: { id: productId },
+        data: {
+          stock: byProduct.get(productId) ? 'inStock' : 'preOrder',
+        },
+      })
+    )
+  );
+}
+
+export async function applyAdminInventoryPatch(prisma: PrismaClient, input: AdminInventoryPatchInput) {
+  const variantIds = uniqueStrings(input.variantIds);
+  if (!variantIds.length) {
+    return { updatedCount: 0, productIds: [] as string[] };
+  }
+
+  const variants = await prisma.shopProductVariant.findMany({
+    where: { id: { in: variantIds } },
+    select: {
+      id: true,
+      productId: true,
+      inventoryQty: true,
+    },
+  });
+
+  if (!variants.length) {
+    return { updatedCount: 0, productIds: [] as string[] };
+  }
+
+  await prisma.$transaction(
+    variants.map((variant) =>
+      prisma.shopProductVariant.update({
+        where: { id: variant.id },
+        data: {
+          inventoryQty:
+            input.inventoryQty != null
+              ? input.inventoryQty
+              : input.inventoryAdjustment != null
+                ? variant.inventoryQty + input.inventoryAdjustment
+                : undefined,
+          inventoryPolicy: input.inventoryPolicy ?? undefined,
+          inventoryTracker:
+            input.inventoryTracker !== undefined ? input.inventoryTracker : undefined,
+          fulfillmentService:
+            input.fulfillmentService !== undefined ? input.fulfillmentService : undefined,
+        },
+      })
+    )
+  );
+
+  const productIds = uniqueStrings(variants.map((variant) => variant.productId));
+  await syncProductsFromVariantInventory(prisma, productIds);
+
+  return {
+    updatedCount: variants.length,
+    productIds,
+  };
+}
+
+export async function applyAdminPricingPatch(prisma: PrismaClient, input: AdminPricingPatchInput) {
+  const variantIds = uniqueStrings(input.variantIds);
+  if (!variantIds.length) {
+    return { updatedCount: 0, productIds: [] as string[] };
+  }
+
+  const variants = await prisma.shopProductVariant.findMany({
+    where: { id: { in: variantIds } },
+    select: {
+      id: true,
+      productId: true,
+    },
+  });
+
+  if (!variants.length) {
+    return { updatedCount: 0, productIds: [] as string[] };
+  }
+
+  await prisma.$transaction(
+    variants.map((variant) =>
+      prisma.shopProductVariant.update({
+        where: { id: variant.id },
+        data: {
+          priceEur: input.priceEur !== undefined ? input.priceEur : undefined,
+          priceUsd: input.priceUsd !== undefined ? input.priceUsd : undefined,
+          priceUah: input.priceUah !== undefined ? input.priceUah : undefined,
+          priceEurB2b: input.priceEurB2b !== undefined ? input.priceEurB2b : undefined,
+          priceUsdB2b: input.priceUsdB2b !== undefined ? input.priceUsdB2b : undefined,
+          priceUahB2b: input.priceUahB2b !== undefined ? input.priceUahB2b : undefined,
+          compareAtEur: input.compareAtEur !== undefined ? input.compareAtEur : undefined,
+          compareAtUsd: input.compareAtUsd !== undefined ? input.compareAtUsd : undefined,
+          compareAtUah: input.compareAtUah !== undefined ? input.compareAtUah : undefined,
+          compareAtEurB2b: input.compareAtEurB2b !== undefined ? input.compareAtEurB2b : undefined,
+          compareAtUsdB2b: input.compareAtUsdB2b !== undefined ? input.compareAtUsdB2b : undefined,
+          compareAtUahB2b: input.compareAtUahB2b !== undefined ? input.compareAtUahB2b : undefined,
+        },
+      })
+    )
+  );
+
+  const productIds = uniqueStrings(variants.map((variant) => variant.productId));
+  await syncProductsFromDefaultVariantPricing(prisma, productIds);
+
+  return {
+    updatedCount: variants.length,
+    productIds,
+  };
+}

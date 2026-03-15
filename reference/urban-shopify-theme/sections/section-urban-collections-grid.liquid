@@ -1,0 +1,598 @@
+{% liquid
+  assign cg_id = 'UrbanCollGrid-' | append: section.id
+  assign is_uk = false
+  if request.locale.iso_code == 'uk'
+    assign is_uk = true
+  endif
+%}
+
+<section id="{{ cg_id }}" class="ucg">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Sora:wght@200;300;400;500;600&display=swap');
+
+    #{{ cg_id }} {
+      --ucg-bg: #000;
+      --ucg-card-bg: #0a0a0a;
+      --ucg-border: #1a1a1a;
+      --ucg-text: #fff;
+      --ucg-muted: rgba(255,255,255,0.5);
+      --ucg-gap: clamp(3px, 0.4vw, 6px);
+      background: var(--ucg-bg);
+      padding: 0 0 clamp(40px, 6vw, 80px);
+      font-family: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--ucg-text);
+      min-height: 100vh;
+    }
+
+    /* ── Hero banner ── */
+    #{{ cg_id }} .ucg__hero {
+      position: relative;
+      width: 100%;
+      height: clamp(280px, 42vw, 480px);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: clamp(32px, 5vw, 56px);
+    }
+
+    #{{ cg_id }} .ucg__hero-bg {
+      position: absolute;
+      inset: 0;
+      background: url('{{ section.settings.hero_image }}') center/cover no-repeat;
+      filter: brightness(0.3) saturate(0.7);
+      transform: scale(1.05);
+      transition: transform 8s ease;
+    }
+
+    #{{ cg_id }}.is-visible .ucg__hero-bg {
+      transform: scale(1);
+    }
+
+    #{{ cg_id }} .ucg__hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.8) 100%);
+      pointer-events: none;
+    }
+
+    #{{ cg_id }} .ucg__hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 24px;
+    }
+
+    #{{ cg_id }} .ucg__hero-eyebrow {
+      margin: 0 0 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5em;
+      font-size: clamp(9px, 0.8vw, 11px);
+      font-weight: 400;
+      color: var(--ucg-muted);
+    }
+
+    #{{ cg_id }} .ucg__hero-logo {
+      display: block;
+      width: clamp(140px, 20vw, 260px);
+      height: auto;
+      margin: 0 auto 16px;
+      filter: brightness(0) invert(1);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+    }
+
+    #{{ cg_id }}.is-visible .ucg__hero-logo {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #{{ cg_id }} .ucg__hero-title {
+      margin: 0;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(36px, 5.5vw, 72px);
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    #{{ cg_id }} .ucg__hero-sub {
+      margin: 14px auto 0;
+      max-width: 50ch;
+      font-size: clamp(12px, 1vw, 15px);
+      line-height: 1.7;
+      font-weight: 300;
+      color: var(--ucg-muted);
+    }
+
+    /* ── Brand filter bar ── */
+    #{{ cg_id }} .ucg__filters {
+      max-width: min(1500px, 94vw);
+      margin: 0 auto clamp(20px, 3.5vw, 40px);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: clamp(6px, 1vw, 12px);
+      padding: 0 16px;
+    }
+
+    #{{ cg_id }} .ucg__filter-btn {
+      padding: 7px 18px;
+      border: 1px solid var(--ucg-border);
+      background: transparent;
+      color: var(--ucg-muted);
+      font-family: 'Sora', sans-serif;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    #{{ cg_id }} .ucg__filter-btn:hover,
+    #{{ cg_id }} .ucg__filter-btn.is-active {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    /* ── Grid ── */
+    #{{ cg_id }} .ucg__grid {
+      max-width: min(1500px, 94vw);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--ucg-gap);
+    }
+
+    @media (min-width: 520px) {
+      #{{ cg_id }} .ucg__grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 800px) {
+      #{{ cg_id }} .ucg__grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 1100px) {
+      #{{ cg_id }} .ucg__grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    /* ── Card ── */
+    #{{ cg_id }} .ucg__card {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      background: var(--ucg-card-bg);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    /* First 3 cards span wider on desktop for a nice hero row */
+    @media (min-width: 1100px) {
+      /* Row 1: 2 cards, each 2 cols = fills 4-col grid perfectly */
+      #{{ cg_id }} .ucg__card:nth-child(1),
+      #{{ cg_id }} .ucg__card:nth-child(2) {
+        grid-column: span 2;
+        aspect-ratio: 16 / 9;
+      }
+    }
+
+    @media (min-width: 800px) and (max-width: 1099px) {
+      /* Tablet 3-col: first card full-width hero */
+      #{{ cg_id }} .ucg__card:nth-child(1) {
+        grid-column: span 3;
+        aspect-ratio: 21 / 9;
+      }
+    }
+
+    #{{ cg_id }}.is-visible .ucg__card {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    {% for i in (1..30) %}
+    #{{ cg_id }}.is-visible .ucg__card:nth-child({{ i }}) {
+      transition-delay: {{ i | minus: 1 | times: 0.04 | at_most: 0.5 }}s;
+    }
+    {% endfor %}
+
+    #{{ cg_id }} .ucg__card-link {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: block;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    #{{ cg_id }} .ucg__card-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), filter 0.6s ease;
+      filter: brightness(0.55) saturate(0.85);
+    }
+
+    #{{ cg_id }} .ucg__card:hover .ucg__card-img {
+      transform: scale(1.05);
+      filter: brightness(0.7) saturate(1);
+    }
+
+    #{{ cg_id }} .ucg__card-gradient {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.05) 45%, rgba(0,0,0,0.1) 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    #{{ cg_id }} .ucg__card-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 3;
+      padding: clamp(14px, 2vw, 24px);
+      transform: translateY(6px);
+      transition: transform 0.4s ease;
+      pointer-events: none;
+    }
+
+    #{{ cg_id }} .ucg__card:hover .ucg__card-content {
+      transform: translateY(0);
+    }
+
+    #{{ cg_id }} .ucg__card-brand {
+      margin: 0 0 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.35em;
+      font-size: clamp(7px, 0.6vw, 9px);
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    #{{ cg_id }} .ucg__card-title {
+      margin: 0;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(18px, 2vw, 28px);
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      line-height: 1.15;
+      color: #fff;
+    }
+
+    /* Hero row cards get slightly larger title */
+    #{{ cg_id }} .ucg__card:nth-child(1) .ucg__card-title,
+    #{{ cg_id }} .ucg__card:nth-child(2) .ucg__card-title {
+      font-size: clamp(22px, 2.5vw, 34px);
+    }
+
+    #{{ cg_id }} .ucg__card-arrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: opacity 0.35s ease 0.08s, transform 0.35s ease 0.08s;
+    }
+
+    #{{ cg_id }} .ucg__card:hover .ucg__card-arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    #{{ cg_id }} .ucg__card-arrow svg {
+      transition: transform 0.3s ease;
+    }
+
+    #{{ cg_id }} .ucg__card:hover .ucg__card-arrow svg {
+      transform: translateX(4px);
+    }
+
+    /* ── Count badge ── */
+    #{{ cg_id }} .ucg__card-count {
+      position: absolute;
+      top: clamp(10px, 1.2vw, 16px);
+      right: clamp(10px, 1.2vw, 16px);
+      z-index: 4;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 3px 9px;
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.15em;
+      color: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* ── Placeholder ── */
+    #{{ cg_id }} .ucg__card-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+    }
+
+    #{{ cg_id }} .ucg__card-placeholder svg {
+      width: 40px;
+      height: 40px;
+      opacity: 0.12;
+    }
+
+    /* ── Divider line between hero row and grid ── */
+    #{{ cg_id }} .ucg__divider {
+      max-width: min(1500px, 94vw);
+      margin: 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 20%, rgba(255,255,255,0.08) 80%, transparent 100%);
+    }
+
+    /* ── Mobile text adaptation ── */
+    @media (max-width: 749px) {
+      #{{ cg_id }} .ucg__hero-eyebrow { letter-spacing: 0.2em; }
+      #{{ cg_id }} .ucg__hero-sub { font-size: 12px; }
+      #{{ cg_id }} .ucg__card-brand { letter-spacing: 0.18em; }
+      #{{ cg_id }} .ucg__card-arrow { letter-spacing: 0.15em; }
+      #{{ cg_id }} .ucg__filter-btn { letter-spacing: 0.1em; font-size: 9px; }
+    }
+
+    #{{ cg_id }} .ucg__hero-title,
+    #{{ cg_id }} .ucg__hero-sub,
+    #{{ cg_id }} .ucg__card-title {
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #{{ cg_id }} .ucg__card,
+      #{{ cg_id }} .ucg__card-img,
+      #{{ cg_id }} .ucg__hero-bg {
+        transition: none;
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
+
+  <!-- Hero banner -->
+  <div class="ucg__hero">
+    <div class="ucg__hero-bg"></div>
+    <div class="ucg__hero-overlay"></div>
+    <div class="ucg__hero-content">
+      <img class="ucg__hero-logo" src="https://onecompany.global/branding/logo-light.svg" alt="One Company" loading="eager">
+      {% if is_uk and section.settings.subheading_uk != blank %}
+        <p class="ucg__hero-sub">{{ section.settings.subheading_uk }}</p>
+      {% elsif section.settings.subheading != blank %}
+        <p class="ucg__hero-sub">{{ section.settings.subheading }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Brand filters -->
+  {% if section.settings.show_filters %}
+    <div class="ucg__filters">
+      <button class="ucg__filter-btn is-active" data-filter="all">{% if is_uk %}Всі{% else %}All{% endif %}</button>
+      {% assign brands_seen = '' %}
+      {% for block in section.blocks %}
+        {% assign brand = block.settings.brand | strip %}
+        {% if brand != blank and brands_seen contains brand %}{% continue %}{% endif %}
+        {% if brand != blank %}
+          <button class="ucg__filter-btn" data-filter="{{ brand | handleize }}">{{ brand }}</button>
+          {% assign brands_seen = brands_seen | append: brand | append: ',' %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Collection grid -->
+  <div class="ucg__grid">
+    {% for block in section.blocks %}
+      {% liquid
+        assign ext_url = block.settings.external_image_url | strip
+        assign img_url = ''
+        if ext_url != blank
+          if ext_url contains '://'
+            assign img_url = ext_url
+          else
+            assign img_url = ext_url | file_url
+          endif
+        endif
+        assign coll_handle = block.settings.collection_handle | strip
+        assign brand = block.settings.brand | strip | handleize
+      %}
+      <div
+        class="ucg__card"
+        data-brand="{{ brand }}"
+        {{ block.shopify_attributes }}
+      >
+        <a class="ucg__card-link" href="/collections/{{ coll_handle }}" aria-label="{{ block.settings.title }}"></a>
+
+        {% if block.settings.image != blank %}
+          <img
+            class="ucg__card-img"
+            src="{{ block.settings.image | image_url: width: 1400 }}"
+            alt="{{ block.settings.title | escape }}"
+            width="{{ block.settings.image.width }}"
+            height="{{ block.settings.image.height }}"
+            loading="lazy"
+          >
+        {% elsif img_url != blank %}
+          <img
+            class="ucg__card-img"
+            src="{{ img_url }}"
+            alt="{{ block.settings.title | escape }}"
+            loading="lazy"
+          >
+        {% else %}
+          <div class="ucg__card-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          </div>
+        {% endif %}
+
+        <div class="ucg__card-gradient"></div>
+
+        {% if block.settings.product_count != blank %}
+          <div class="ucg__card-count">{{ block.settings.product_count }}</div>
+        {% endif %}
+
+        <div class="ucg__card-content">
+          {% if block.settings.brand != blank %}
+            <p class="ucg__card-brand">{{ block.settings.brand }}</p>
+          {% endif %}
+          <h2 class="ucg__card-title">{{ block.settings.title }}</h2>
+          <div class="ucg__card-arrow">
+            {% if is_uk %}Дослідити{% else %}Explore{% endif %}
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <script>
+    (() => {
+      const root = document.getElementById('{{ cg_id }}');
+      if (!root || root.dataset.init === '1') return;
+      root.dataset.init = '1';
+
+      /* Scroll reveal */
+      const obs = new IntersectionObserver(([e]) => {
+        if (e.isIntersecting) { root.classList.add('is-visible'); obs.disconnect(); }
+      }, { threshold: 0.05 });
+      obs.observe(root);
+
+      /* Brand filter */
+      const btns = root.querySelectorAll('.ucg__filter-btn');
+      const cards = root.querySelectorAll('.ucg__card');
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          btns.forEach(b => b.classList.remove('is-active'));
+          btn.classList.add('is-active');
+          const f = btn.dataset.filter;
+          cards.forEach(c => {
+            if (f === 'all' || c.dataset.brand === f) {
+              c.style.display = '';
+            } else {
+              c.style.display = 'none';
+            }
+          });
+        });
+      });
+    })();
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "Urban Collections Grid",
+  "tag": "section",
+  "class": "section section-urban-collections-grid",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Urban Automotive"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Our Range"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading (EN)"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading_uk",
+      "label": "Subheading (UK)"
+    },
+    {
+      "type": "text",
+      "id": "hero_image",
+      "label": "Hero background image URL",
+      "default": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/defender2020Plus/2025Updates/hero-1-1920.jpg"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filters",
+      "label": "Show brand filter buttons",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection_card",
+      "name": "Collection Card",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Model Name"
+        },
+        {
+          "type": "text",
+          "id": "brand",
+          "label": "Brand",
+          "info": "Used for filter buttons"
+        },
+        {
+          "type": "text",
+          "id": "collection_handle",
+          "label": "Collection handle",
+          "info": "e.g. audi-rs4"
+        },
+        {
+          "type": "text",
+          "id": "product_count",
+          "label": "Product count label",
+          "info": "e.g. 24 Products"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "external_image_url",
+          "label": "External image URL",
+          "info": "CDN URL for the card image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Urban Collections Grid"
+    }
+  ]
+}
+{% endschema %}
