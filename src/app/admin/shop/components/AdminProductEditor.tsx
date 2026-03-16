@@ -750,6 +750,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [deletingLibraryMediaId, setDeletingLibraryMediaId] = useState<string | null>(null);
   const [variantBulk, setVariantBulk] = useState<VariantBulkState>(createEmptyVariantBulk());
+  const [hardDeleting, setHardDeleting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1084,6 +1085,33 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
     }
   };
 
+  const handleHardDelete = async () => {
+    if (!productId) return;
+    if (
+      !confirm(
+        'Остаточно видалити цей товар разом з усіма варіантами та цінами?\n\nЦю дію не можна скасувати. Перед видаленням переконайтесь, що маєте актуальний бекап.'
+      )
+    ) {
+      return;
+    }
+
+    setHardDeleting(true);
+    setError('');
+    setSuccess('');
+    try {
+      const response = await fetch(`/api/admin/shop/products/${productId}`, { method: 'DELETE' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Не вдалося видалити товар');
+      }
+      router.push('/admin/shop');
+    } catch (deleteError) {
+      setError((deleteError as Error).message);
+    } finally {
+      setHardDeleting(false);
+    }
+  };
+
   const handleDeleteLibraryMedia = async (item: ShopLibraryMediaItem) => {
     setDeletingLibraryMediaId(item.id);
     setError('');
@@ -1353,29 +1381,29 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   };
 
   if (loading) {
-    return <div className="p-6 text-white/60">Loading product…</div>;
+    return <div className="p-6 text-white/60">Завантаження товару…</div>;
   }
 
   return (
     <div className="h-full overflow-auto">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="w-full max-w-6xl mx-auto px-4 md:px-8 py-6">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <Link href="/admin/shop" className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm mb-4">
               <ArrowLeft className="w-4 h-4" />
-              Back to catalog
+              Назад до каталогу
             </Link>
             <h2 className="text-2xl font-semibold text-white">
-              {isEditing ? `Edit product: ${form.titleEn || form.titleUa || form.slug}` : 'New product'}
+              {isEditing ? `Редагувати товар: ${form.titleEn || form.titleUa || form.slug}` : 'Новий товар'}
             </h2>
             <p className="mt-2 text-sm text-white/45">
-              Shopify-style editor for core product data, media, variants, options and metafields.
+              Редактор товару у стилі Shopify: основні дані, медіа, варіанти, опції та додаткові поля для теми URBAN.
             </p>
           </div>
           <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-right">
-            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Catalog state</div>
+            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Стан у каталозі</div>
             <div className="mt-2 text-sm text-white/80">
-              {form.status} · {form.isPublished ? 'Published' : 'Hidden'} · {form.variants.length} variants
+              {form.status} · {form.isPublished ? 'Опублікований' : 'Прихований'} · {form.variants.length} варіант(и)
             </div>
           </div>
         </div>
@@ -1384,11 +1412,14 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         {success && <div className="mb-4 rounded-lg bg-green-900/20 p-3 text-sm text-green-200">{success}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <EditorCard title="Overview" description="Core catalog identity, publishing state and storefront mapping.">
+          <EditorCard
+            title="Огляд"
+            description="Основна ідентичність товару в каталозі, стан публікації та привʼязка до колекцій."
+          >
             <div className="grid gap-4 md:grid-cols-3">
               <InputField label="Slug *" value={form.slug} onChange={(value) => updateField('slug', value)} mono />
               <SelectField
-                label="Scope"
+                label="Сфера (auto / moto)"
                 value={form.scope}
                 onChange={(value) => updateField('scope', value as ProductFormState['scope'])}
                 options={[
@@ -1397,7 +1428,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 ]}
               />
               <SelectField
-                label="Status"
+                label="Статус у каталозі"
                 value={form.status}
                 onChange={(value) => updateField('status', value as ProductStatus)}
                 options={[
@@ -1406,12 +1437,12 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   { label: 'Archived', value: 'ARCHIVED' },
                 ]}
               />
-              <InputField label="Title (EN) *" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
-              <InputField label="Title (UA) *" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
-              <InputField label="Default SKU" value={form.sku} onChange={(value) => updateField('sku', value)} />
-              <InputField label="Brand" value={form.brand} onChange={(value) => updateField('brand', value)} />
+              <InputField label="Назва (EN) *" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
+              <InputField label="Назва (UA) *" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
+              <InputField label="Базовий SKU" value={form.sku} onChange={(value) => updateField('sku', value)} />
+              <InputField label="Бренд" value={form.brand} onChange={(value) => updateField('brand', value)} />
               <InputField label="Vendor" value={form.vendor} onChange={(value) => updateField('vendor', value)} />
-              <InputField label="Product type" value={form.productType} onChange={(value) => updateField('productType', value)} />
+              <InputField label="Тип товару" value={form.productType} onChange={(value) => updateField('productType', value)} />
               <SelectField
                 label="Structured category"
                 value={form.categoryId}
@@ -1454,33 +1485,33 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             <div className="mt-4 rounded-xl border border-white/10 bg-black/30 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <div className="text-sm font-medium text-white">Structured category</div>
+                  <div className="text-sm font-medium text-white">Структурна категорія</div>
                   <p className="mt-1 text-xs text-white/45">
-                    Use category entities for admin filters and future storefront navigation. Legacy category text fields remain available for import compatibility.
+                    Використовуйте сутності категорій для фільтрів в адмінці та майбутньої навігації на сайті. Текстові поля категорій залишені для сумісності з імпортом.
                   </p>
                 </div>
                 <Link href="/admin/shop/categories" className="text-xs text-white/60 hover:text-white">
-                  Manage categories
+                  Керувати категоріями
                 </Link>
               </div>
               <div className="mt-3 text-sm text-white/70">
                 {form.categoryId
                   ? availableCategories.find((category) => category.id === form.categoryId)?.titleEn ||
                     availableCategories.find((category) => category.id === form.categoryId)?.titleUa ||
-                    'Selected category'
-                  : 'No structured category selected'}
+                    'Обрана категорія'
+                  : 'Структурна категорія ще не обрана'}
               </div>
             </div>
             <div className="mt-4 rounded-xl border border-white/10 bg-black/30 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <div className="text-sm font-medium text-white">Assigned collections</div>
+                  <div className="text-sm font-medium text-white">Привʼязані колекції</div>
                   <p className="mt-1 text-xs text-white/45">
-                    Explicit collection links override legacy matching and drive Urban collection pages directly.
+                    Явні привʼязки до колекцій керують відображенням на сторінках URBAN‑колекцій та в каталозі.
                   </p>
                 </div>
                 <Link href="/admin/shop/collections" className="text-xs text-white/60 hover:text-white">
-                  Manage collections
+                  Керувати колекціями
                 </Link>
               </div>
               {availableCollections.length ? (
@@ -1511,10 +1542,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                           />
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-white/45">
-                          <span>{collection.brand || 'No brand'}</span>
+                          <span>{collection.brand || 'Без бренду'}</span>
                           <span>{collection.isUrban ? 'Urban' : 'Custom'}</span>
-                          <span>{collection.isPublished ? 'Published' : 'Hidden'}</span>
-                          <span>{collection.productsCount ?? 0} products</span>
+                          <span>{collection.isPublished ? 'Опублікована' : 'Прихована'}</span>
+                          <span>{collection.productsCount ?? 0} товарів</span>
                         </div>
                       </button>
                     );
@@ -1522,17 +1553,17 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 </div>
               ) : (
                 <div className="mt-4 rounded-lg border border-dashed border-white/10 bg-zinc-950/60 px-4 py-6 text-sm text-white/45">
-                  No collections available yet. Create them first in the collections admin.
+                  Колекцій ще немає. Спочатку створіть їх у розділі «Колекції».
                 </div>
               )}
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <InputField
-                  label="Legacy collection handle (EN)"
+                  label="Старий handle колекції (EN)"
                   value={form.collectionEn}
                   onChange={(value) => updateField('collectionEn', value)}
                 />
                 <InputField
-                  label="Legacy collection handle (UA)"
+                  label="Старий handle колекції (UA)"
                   value={form.collectionUa}
                   onChange={(value) => updateField('collectionUa', value)}
                 />
@@ -1540,17 +1571,20 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-6">
               <CheckboxField
-                label="Published"
+                label="Опублікований у вітрині"
                 checked={form.isPublished}
                 onChange={(checked) => updateField('isPublished', checked)}
               />
               <div className="text-xs text-white/45">
-                Published at: {form.publishedAt ? new Date(form.publishedAt).toLocaleString() : 'not set'}
+                Опубліковано: {form.publishedAt ? new Date(form.publishedAt).toLocaleString() : 'ще не встановлено'}
               </div>
             </div>
           </EditorCard>
 
-          <EditorCard title="Descriptions" description="Short copy, plain text body and raw HTML body from Shopify export.">
+          <EditorCard
+            title="Опис і контент"
+            description="Короткі й довгі описи українською та англійською, а також сирий HTML з імпорту Shopify."
+          >
             <div className="grid gap-4 md:grid-cols-2">
               <TextareaField label="Short description (EN)" value={form.shortDescEn} onChange={(value) => updateField('shortDescEn', value)} rows={3} />
               <TextareaField label="Short description (UA)" value={form.shortDescUa} onChange={(value) => updateField('shortDescUa', value)} rows={3} />
@@ -1560,12 +1594,15 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <TextareaField label="Body HTML (UA)" value={form.bodyHtmlUa} onChange={(value) => updateField('bodyHtmlUa', value)} rows={10} mono />
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <InputField label="Lead time (EN)" value={form.leadTimeEn} onChange={(value) => updateField('leadTimeEn', value)} />
-              <InputField label="Lead time (UA)" value={form.leadTimeUa} onChange={(value) => updateField('leadTimeUa', value)} />
+              <InputField label="Термін постачання (EN)" value={form.leadTimeEn} onChange={(value) => updateField('leadTimeEn', value)} />
+              <InputField label="Термін постачання (UA)" value={form.leadTimeUa} onChange={(value) => updateField('leadTimeUa', value)} />
             </div>
           </EditorCard>
 
-          <EditorCard title="Pricing" description="Top-level fallback pricing for storefront cards, search results and B2B audience rules.">
+          <EditorCard
+            title="Ціни"
+            description="Базові ціни для карток у магазині, пошуку та як дефолт для варіантів (B2C і B2B)."
+          >
             <div className="grid gap-4 md:grid-cols-3">
               <InputField label="Price EUR" type="number" step="0.01" value={form.priceEur} onChange={(value) => updateField('priceEur', value)} />
               <InputField label="Price USD" type="number" step="0.01" value={form.priceUsd} onChange={(value) => updateField('priceUsd', value)} />
@@ -1575,7 +1612,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <InputField label="Compare-at UAH" type="number" step="0.01" value={form.compareAtUah} onChange={(value) => updateField('compareAtUah', value)} />
             </div>
             <div className="mt-5 border-t border-white/10 pt-5">
-              <div className="mb-3 text-sm font-medium text-white">B2B pricing</div>
+              <div className="mb-3 text-sm font-medium text-white">B2B ціни</div>
               <div className="grid gap-4 md:grid-cols-3">
                 <InputField label="B2B override EUR" type="number" step="0.01" value={form.priceEurB2b} onChange={(value) => updateField('priceEurB2b', value)} />
                 <InputField label="B2B override USD" type="number" step="0.01" value={form.priceUsdB2b} onChange={(value) => updateField('priceUsdB2b', value)} />
@@ -1587,7 +1624,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             </div>
           </EditorCard>
 
-          <EditorCard title="SEO" description="Shopify export already carries SEO fields; these map directly into our catalog.">
+          <EditorCard
+            title="SEO"
+            description="SEO‑поля з імпорту Shopify, які напряму мапляться в наш каталог і метадані сторінки."
+          >
             <div className="grid gap-4 md:grid-cols-2">
               <InputField label="SEO title (EN)" value={form.seoTitleEn} onChange={(value) => updateField('seoTitleEn', value)} />
               <InputField label="SEO title (UA)" value={form.seoTitleUa} onChange={(value) => updateField('seoTitleUa', value)} />
@@ -1596,14 +1636,17 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             </div>
           </EditorCard>
 
-          <EditorCard title="Media" description="Ordered storefront media plus uploadable library assets. Variant image mapping reads from the same media sources.">
+          <EditorCard
+            title="Медіа"
+            description="Порядок зображень та відео у вітрині, бібліотека файлів і привʼязка картинок до варіантів."
+          >
             <div className="space-y-4">
               <div className="rounded-xl border border-white/10 bg-black/30 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <div className="text-sm font-medium text-white">Media library</div>
+                    <div className="text-sm font-medium text-white">Бібліотека медіа</div>
                     <p className="mt-1 text-xs text-white/45">
-                      Upload local assets once, reuse them across product media, and block deletion if an asset is already referenced.
+                      Завантажуйте файли один раз і використовуйте в різних товарах; видалення блокується, якщо файл уже привʼязаний.
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -1611,7 +1654,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       href="/admin/shop/media"
                       className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
                     >
-                      Open library
+                      Відкрити бібліотеку
                     </Link>
                     <input
                       ref={uploadInputRef}
@@ -1627,14 +1670,14 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:opacity-50"
                     >
                       <Upload className="h-4 w-4" />
-                      {uploadingMedia ? 'Uploading…' : 'Upload asset'}
+                      {uploadingMedia ? 'Завантажуємо…' : 'Завантажити файл'}
                     </button>
                   </div>
                 </div>
                 <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                   {mediaLibraryLoading ? (
                     <div className="rounded-lg border border-white/10 bg-zinc-950/70 p-4 text-sm text-white/45">
-                      Loading media library…
+                      Завантаження бібліотеки медіа…
                     </div>
                   ) : mediaLibrary.length ? (
                     mediaLibrary.slice(0, 9).map((item) => (
@@ -1656,7 +1699,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                         <div className="mt-3">
                           <div className="truncate text-sm font-medium text-white">{mediaLibraryLabel(item)}</div>
                           <div className="mt-1 text-xs text-white/45">
-                            {item.usageCount} references · {new Date(item.uploadedAt).toLocaleDateString()}
+                            {item.usageCount} використань · {new Date(item.uploadedAt).toLocaleDateString()}
                           </div>
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2">
@@ -1665,7 +1708,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                             onClick={() => addLibraryMediaToProduct(item)}
                             className="rounded-md border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
                           >
-                            Add to product
+                            Додати до товару
                           </button>
                           <button
                             type="button"
@@ -1674,17 +1717,17 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                             className="rounded-md border border-red-500/25 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10 disabled:opacity-50"
                           >
                             {deletingLibraryMediaId === item.id
-                              ? 'Deleting…'
+                              ? 'Видаляємо…'
                               : item.usageCount > 0
-                                ? 'In use'
-                                : 'Delete'}
+                                ? 'Використовується'
+                                : 'Видалити'}
                           </button>
                         </div>
                       </div>
                     ))
                   ) : (
                     <div className="rounded-lg border border-white/10 bg-zinc-950/70 p-4 text-sm text-white/45">
-                      Upload the first asset to start building the shop media library.
+                      Завантажте перший файл, щоб розпочати формувати бібліотеку медіа магазину.
                     </div>
                   )}
                 </div>
@@ -1735,7 +1778,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                         />
                       ) : (
                         <div className="flex h-44 items-center justify-center px-4 text-center text-xs text-white/35">
-                          {item.src.trim() ? 'Preview available for image media only' : 'Add a media URL to preview it here'}
+                          {item.src.trim() ? 'Превʼю доступне лише для зображень' : 'Додайте URL медіа, щоб побачити превʼю'}
                         </div>
                       )}
                     </div>
@@ -1764,44 +1807,67 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   </div>
                 </div>
               ))}
-              <button type="button" onClick={addMedia} className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5">
+              <button
+                type="button"
+                onClick={addMedia}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+              >
                 <Plus className="h-4 w-4" />
-                Add media
+                Додати медіа
               </button>
             </div>
           </EditorCard>
 
-          <EditorCard title="Options" description="Variant option definitions, similar to Shopify option sets.">
+          <EditorCard
+            title="Опції"
+            description="Набори опцій (наприклад, колір / розмір), з яких формуються варіанти."
+          >
             <div className="space-y-4">
               {form.options.map((item, index) => (
                 <div key={item.id ?? `option-${index}`} className="grid gap-4 rounded-xl border border-white/10 bg-black/40 p-4 md:grid-cols-4">
                   <InputField label="Name" value={item.name} onChange={(value) => updateListItem('options', index, { name: value })} />
                   <InputField label="Position" type="number" value={item.position} onChange={(value) => updateListItem('options', index, { position: value })} />
                   <div className="md:col-span-2">
-                    <InputField label="Values" value={item.valuesText} onChange={(value) => updateListItem('options', index, { valuesText: value })} placeholder="Front, Rear, Full Kit" />
+                    <InputField
+                      label="Values"
+                      value={item.valuesText}
+                      onChange={(value) => updateListItem('options', index, { valuesText: value })}
+                      placeholder="Front, Rear, Full Kit"
+                    />
                   </div>
                   <div className="md:col-span-4 flex justify-end">
-                    <button type="button" onClick={() => removeListItem('options', index)} className="rounded-md border border-red-500/30 p-2 text-red-300 hover:bg-red-500/10">
+                    <button
+                      type="button"
+                      onClick={() => removeListItem('options', index)}
+                      className="rounded-md border border-red-500/30 p-2 text-red-300 hover:bg-red-500/10"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
               ))}
-              <button type="button" onClick={addOption} className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5">
+              <button
+                type="button"
+                onClick={addOption}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+              >
                 <Plus className="h-4 w-4" />
-                Add option
+                Додати опцію
               </button>
             </div>
           </EditorCard>
 
-          <EditorCard title="Variants" description="SKU-level pricing, inventory and option values. One variant must remain the default.">
+          <EditorCard
+            title="Варіанти"
+            description="Ціни, залишки та опції на рівні SKU. Один варіант завжди має залишатися основним."
+          >
             <div className="space-y-4">
               <div className="rounded-xl border border-white/10 bg-black/30 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <div className="text-sm font-medium text-white">Variant tools</div>
+                    <div className="text-sm font-medium text-white">Інструменти для варіантів</div>
                     <p className="mt-1 text-xs text-white/45">
-                      Generate combinations from option values and apply shared pricing or inventory in bulk.
+                      Згенеруйте комбінації з опцій і застосуйте спільні ціни чи залишки до всіх варіантів.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -1811,7 +1877,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5"
                     >
                       <Wand2 className="h-4 w-4" />
-                      Generate from options
+                      Згенерувати з опцій
                     </button>
                     <button
                       type="button"
@@ -1819,7 +1885,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5"
                     >
                       <Copy className="h-4 w-4" />
-                      Copy product pricing
+                      Скопіювати ціни товару
                     </button>
                     <button
                       type="button"
@@ -1827,7 +1893,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5"
                     >
                       <Copy className="h-4 w-4" />
-                      Copy default settings
+                      Скопіювати налаштування дефолтного
                     </button>
                   </div>
                 </div>
@@ -1931,7 +1997,11 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 </div>
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                   <div className="text-xs text-white/40">
-                    {optionDefinitions(form.options).reduce((count, definition) => count * Math.max(definition.values.length, 1), 1)} potential combinations from current options.
+                    {optionDefinitions(form.options).reduce(
+                      (count, definition) => count * Math.max(definition.values.length, 1),
+                      1
+                    )}{' '}
+                    можливих комбінацій з поточних опцій.
                   </div>
                   <button
                     type="button"
@@ -1939,7 +2009,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90"
                   >
                     <Copy className="h-4 w-4" />
-                    Apply bulk fields
+                    Застосувати bulk‑поля
                   </button>
                 </div>
               </div>
@@ -1947,15 +2017,23 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 <div key={item.id ?? `variant-${index}`} className="rounded-xl border border-white/10 bg-black/40 p-4">
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="text-sm font-medium text-white">
-                      Variant #{index + 1} {item.isDefault ? '· Default' : ''}
+                      Варіант #{index + 1} {item.isDefault ? '· Основний' : ''}
                     </div>
                     <div className="flex items-center gap-2">
                       {!item.isDefault && (
-                        <button type="button" onClick={() => setDefaultVariant(index)} className="rounded-md border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5">
-                          Make default
+                        <button
+                          type="button"
+                          onClick={() => setDefaultVariant(index)}
+                          className="rounded-md border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
+                        >
+                          Зробити основним
                         </button>
                       )}
-                      <button type="button" onClick={() => removeListItem('variants', index)} className="rounded-md border border-red-500/30 p-2 text-red-300 hover:bg-red-500/10">
+                      <button
+                        type="button"
+                        onClick={() => removeListItem('variants', index)}
+                        className="rounded-md border border-red-500/30 p-2 text-red-300 hover:bg-red-500/10"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
@@ -2022,29 +2100,48 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   <div className="mt-4 rounded-lg border border-white/10 bg-zinc-950/70 p-3 text-xs text-white/45">
                     {item.image.trim()
                       ? form.media.some((mediaItem) => mediaItem.src.trim() === item.image.trim())
-                        ? 'Variant image is linked to current product media and updates when that media source changes.'
-                        : 'Variant image uses a custom URL outside the current product media set.'
-                      : 'Variant image is not set yet.'}
+                        ? 'Зображення варіанта привʼязане до медіа товару і оновиться, якщо змінити джерело.'
+                        : 'Зображення варіанта використовує власний URL поза списком медіа товару.'
+                      : 'Для варіанта ще не задано зображення.'}
                   </div>
                   <div className="mt-4 flex flex-wrap gap-6">
-                    <CheckboxField label="Requires shipping" checked={item.requiresShipping} onChange={(checked) => updateListItem('variants', index, { requiresShipping: checked })} />
-                    <CheckboxField label="Taxable" checked={item.taxable} onChange={(checked) => updateListItem('variants', index, { taxable: checked })} />
+                    <CheckboxField
+                      label="Потребує доставки"
+                      checked={item.requiresShipping}
+                      onChange={(checked) => updateListItem('variants', index, { requiresShipping: checked })}
+                    />
+                    <CheckboxField
+                      label="Оподатковується"
+                      checked={item.taxable}
+                      onChange={(checked) => updateListItem('variants', index, { taxable: checked })}
+                    />
                   </div>
                 </div>
               ))}
-              <button type="button" onClick={addVariant} className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5">
+              <button
+                type="button"
+                onClick={addVariant}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+              >
                 <Plus className="h-4 w-4" />
-                Add variant
+                Додати варіант
               </button>
             </div>
           </EditorCard>
 
-          <EditorCard title="Metafields" description="Custom Shopify-like product metafields used by the Urban theme and CSV export.">
+          <EditorCard
+            title="Мета‑поля"
+            description="Кастомні мета‑поля товару (як у Shopify), які використовуються темою URBAN та в CSV‑експорті."
+          >
             <div className="space-y-4">
               {form.metafields.map((item, index) => (
                 <div key={item.id ?? `metafield-${index}`} className="rounded-xl border border-white/10 bg-black/40 p-4">
                   <div className="mb-4 flex justify-end">
-                    <button type="button" onClick={() => removeListItem('metafields', index)} className="rounded-md border border-red-500/30 p-2 text-red-300 hover:bg-red-500/10">
+                    <button
+                      type="button"
+                      onClick={() => removeListItem('metafields', index)}
+                      className="rounded-md border border-red-500/30 p-2 text-red-300 hover:bg-red-500/10"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
@@ -2058,20 +2155,47 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   </div>
                 </div>
               ))}
-              <button type="button" onClick={addMetafield} className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5">
+              <button
+                type="button"
+                onClick={addMetafield}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+              >
                 <Plus className="h-4 w-4" />
-                Add metafield
+                Додати мета‑поле
               </button>
             </div>
           </EditorCard>
 
+          {isEditing && (
+            <EditorCard
+              title="Небезпечні дії"
+              description="Остаточне видалення товару з бази даних. Використовуйте тільки після бекапу або якщо впевнені, що товар більше ніколи не знадобиться."
+            >
+              <div className="rounded-xl border border-red-500/40 bg-red-900/10 p-4 space-y-2">
+                <p className="text-xs text-red-200">
+                  Після остаточного видалення товару буде втрачено історію варіантів, цін і привʼязок до колекцій. Відновити його
+                  можна буде лише з резервної копії бази даних.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void handleHardDelete()}
+                  disabled={hardDeleting}
+                  className="inline-flex items-center gap-2 rounded-lg border border-red-500/60 bg-red-600/80 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {hardDeleting ? 'Видаляємо…' : 'Остаточно видалити товар'}
+                </button>
+              </div>
+            </EditorCard>
+          )}
+
           <div className="flex flex-wrap gap-3 pb-6">
             <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
               <Save className="h-4 w-4" />
-              {saving ? 'Saving…' : isEditing ? 'Save product' : 'Create product'}
+              {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти товар' : 'Створити товар'}
             </button>
             <Link href="/admin/shop" className="rounded-lg border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
-              Cancel
+              Скасувати
             </Link>
           </div>
         </form>

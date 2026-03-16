@@ -6,8 +6,9 @@ import { useMemo, useState } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { getBrandMetadata, getLocalizedCountry } from '@/lib/brands';
-import { SHOP_PRODUCTS, type ShopScope } from '@/lib/shopCatalog';
+import { SHOP_PRODUCTS, type ShopScope, type ShopMoneySet } from '@/lib/shopCatalog';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
+import { useShopCurrency } from '@/components/shop/CurrencyContext';
 
 type CatalogScope = 'all' | ShopScope;
 type SortMode = 'featured' | 'priceLow' | 'priceHigh';
@@ -37,17 +38,18 @@ function localize(locale: SupportedLocale, value: { ua: string; en: string }) {
   return locale === 'ua' ? value.ua : value.en;
 }
 
-function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 'USD' | 'UAH') {
+function formatPrice(
+  locale: SupportedLocale,
+  amount: number,
+  currency: 'EUR' | 'USD' | 'UAH',
+) {
   const effectiveLocale = locale === 'ua' ? 'uk-UA' : 'en-US';
   const formattedAmount = new Intl.NumberFormat(effectiveLocale, {
     maximumFractionDigits: 0,
   }).format(amount);
 
   if (locale === 'ua') {
-    if (currency === 'UAH') {
-      return `${formattedAmount} грн`;
-    }
-    return `${formattedAmount} ${currency}`;
+    if (currency === 'UAH') return `${formattedAmount} грн`;
   }
 
   return `${currency} ${formattedAmount}`;
@@ -65,9 +67,28 @@ function getScopeLabel(locale: SupportedLocale, scope: CatalogScope) {
   return 'All';
 }
 
+function computePricesFromUah(price: ShopMoneySet, rates: { EUR: number; USD: number } | null) {
+  const baseUah = price.uah;
+
+  if (rates && baseUah > 0) {
+    return {
+      uah: baseUah,
+      eur: baseUah / rates.EUR,
+      usd: baseUah / rates.USD,
+    };
+  }
+
+  return {
+    uah: baseUah,
+    eur: price.eur,
+    usd: price.usd,
+  };
+}
+
 export default function ShopPageClient({ locale, variant = 'default' }: ShopPageClientProps) {
   const isUa = locale === 'ua';
   const isUrban = variant === 'urban';
+  const { currency, rates } = useShopCurrency();
   const [scope, setScope] = useState<CatalogScope>('all');
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -152,9 +173,12 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
       );
     });
 
-    return filtered.sort((a, b) => {
-      if (sortMode === 'priceLow') return a.price.eur - b.price.eur;
-      if (sortMode === 'priceHigh') return b.price.eur - a.price.eur;
+                return filtered.sort((a, b) => {
+      const priceA = computePricesFromUah(a.price, rates && { EUR: rates.EUR, USD: rates.USD });
+      const priceB = computePricesFromUah(b.price, rates && { EUR: rates.EUR, USD: rates.USD });
+
+      if (sortMode === 'priceLow') return priceA.eur - priceB.eur;
+      if (sortMode === 'priceHigh') return priceB.eur - priceA.eur;
       const featuredScore = (brand: string) => {
         const index = featuredBrandOrder.findIndex((item) => item.toLowerCase() === brand.toLowerCase());
         return index === -1 ? 999 : index;
@@ -495,11 +519,40 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
                       </div>
 
                       <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/30 bg-white/90 p-3 backdrop-blur">
-                        <p className="text-[10px] uppercase tracking-[0.22em] text-black/50">{isUa ? 'Ціна від' : 'Price from'}</p>
-                        <p className="mt-1 text-2xl font-light text-[#171511]">{formatPrice(locale, product.price.eur, 'EUR')}</p>
-                        <p className="text-xs text-black/55">
-                          {formatPrice(locale, product.price.usd, 'USD')} / {formatPrice(locale, product.price.uah, 'UAH')}
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-black/50">
+                          {isUa ? 'Ціна від' : 'Price from'}
                         </p>
+                        {(() => {
+                          const computed = computePricesFromUah(
+                            product.price,
+                            rates && { EUR: rates.EUR, USD: rates.USD },
+                          );
+
+                          const primaryAmount =
+                            currency === 'USD'
+                              ? computed.usd
+                              : currency === 'EUR'
+                                ? computed.eur
+                                : computed.uah;
+
+                          return (
+                            <>
+                              <p className="mt-1 text-2xl font-light text-[#171511]">
+                                {currency === 'USD' &&
+                                  formatPrice(locale, primaryAmount, 'USD')}
+                                {currency === 'EUR' &&
+                                  formatPrice(locale, primaryAmount, 'EUR')}
+                                {currency === 'UAH' &&
+                                  formatPrice(locale, primaryAmount, 'UAH')}
+                              </p>
+                              <p className="text-xs text-black/55">
+                                {formatPrice(locale, computed.usd, 'USD')} /{' '}
+                                {formatPrice(locale, computed.eur, 'EUR')} /{' '}
+                                {formatPrice(locale, computed.uah, 'UAH')}
+                              </p>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
 

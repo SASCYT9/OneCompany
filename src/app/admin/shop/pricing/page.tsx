@@ -201,21 +201,21 @@ export default function AdminPricingPage() {
 
   return (
     <div className="h-full overflow-auto">
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="w-full px-4 md:px-8 py-6">
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
               <ArrowLeft className="h-4 w-4" />
-              Back to catalog
+              Назад до каталогу
             </Link>
-            <h2 className="mt-3 text-2xl font-semibold text-white">Pricing</h2>
+            <h2 className="mt-3 text-2xl font-semibold text-white">Ціни (B2C / B2B)</h2>
             <p className="mt-2 text-sm text-white/45">
-              Bulk pricing operations across selected variants. Default variant changes sync back to product card pricing for both B2C and B2B audiences.
+              Масові операції з цінами по варіантах. Зміни дефолтного варіанту автоматично синхронізуються з ціною на картці товару для роздрібних (B2C) та оптових (B2B) клієнтів.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link href="/admin/shop/inventory" className="rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              Inventory
+              Склад
             </Link>
             <button
               type="button"
@@ -223,7 +223,7 @@ export default function AdminPricingPage() {
               className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
             >
               <RefreshCcw className="h-4 w-4" />
-              Refresh
+              Оновити
             </button>
           </div>
         </div>
@@ -231,17 +231,17 @@ export default function AdminPricingPage() {
         <div className="mb-4 grid gap-4 lg:grid-cols-[1fr_320px]">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <div className="grid gap-2 text-sm text-white/70 md:grid-cols-4">
-              <div>{variants.length} variants</div>
-              <div>{variants.filter((variant) => variant.priceEur != null).length} priced in EUR</div>
-              <div>{variants.filter((variant) => variant.priceUsd != null).length} priced in USD</div>
-              <div>{variants.filter((variant) => variant.priceUah != null).length} priced in UAH</div>
+              <div>{variants.length} варіантів</div>
+              <div>{variants.filter((variant) => variant.priceEur != null).length} мають ціну в EUR</div>
+              <div>{variants.filter((variant) => variant.priceUsd != null).length} мають ціну в USD</div>
+              <div>{variants.filter((variant) => variant.priceUah != null).length} мають ціну в UAH</div>
             </div>
             <label className="mt-4 flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
               <Search className="h-4 w-4 text-white/35" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by product, variant, SKU, collection"
+                placeholder="Пошук за товаром, варіантом, SKU або колекцією"
                 className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
               />
             </label>
@@ -250,19 +250,19 @@ export default function AdminPricingPage() {
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-sm font-medium text-white">Selection</div>
+                <div className="text-sm font-medium text-white">Вибір</div>
                 <div className="mt-1 text-xs text-white/45">
-                  {selectedIds.length} selected, {visibleIds.filter((id) => selectedIds.includes(id)).length} visible
+                  Обрано {selectedIds.length}, на екрані {visibleIds.filter((id) => selectedIds.includes(id)).length}
                 </div>
               </div>
               <Tags className="h-5 w-5 text-white/35" />
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <button type="button" onClick={selectVisible} className="rounded-lg border border-white/15 px-3 py-2 text-xs text-white hover:bg-white/5">
-                Select visible
+                Обрати видимі
               </button>
               <button type="button" onClick={clearSelection} className="rounded-lg border border-white/15 px-3 py-2 text-xs text-white hover:bg-white/5">
-                Clear
+                Очистити
               </button>
             </div>
           </div>
@@ -273,10 +273,20 @@ export default function AdminPricingPage() {
 
         <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-white">Bulk update</h3>
+            <h3 className="text-lg font-medium text-white">Масове оновлення</h3>
             <p className="mt-1 text-sm text-white/45">
-              Set new sell prices and compare-at values for selected variants, including dedicated B2B bands.
+              Встановіть нові роздрібні (B2C) та оптові (B2B) ціни, а також compare‑at для обраних варіантів.
             </p>
+            <div className="mt-3 rounded-xl border border-white/10 bg-black/40 p-3 text-xs text-white/65 space-y-1.5">
+              <p className="font-medium text-white/85">Як користуватися:</p>
+              <p>1. Знайдіть потрібні варіанти через пошук або фільтрацію по колекціях.</p>
+              <p>2. Натисніть <span className="font-semibold text-white">«Обрати видимі»</span> або відмітьте чекбокси вручну.</p>
+              <p>3. Заповніть потрібні поля вище (наприклад, тільки B2B UAH) — порожні поля не змінюються.</p>
+              <p>4. Натисніть <span className="font-semibold text-black bg-white/90 px-1 py-0.5 rounded">Apply to selected</span>, щоб оновити ціни.</p>
+              <p className="text-white/55">
+                Зміни одразу впливають на ціни у вітрині магазину для відповідних клієнтів, тому перед масовими операціями бажано мати актуальний бекап.
+              </p>
+            </div>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             <InputField label="Price EUR" value={bulk.priceEur} onChange={(value) => setBulk((current) => ({ ...current, priceEur: value }))} />

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { PrismaClient } from '@prisma/client';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
+import { ShopPrimaryPriceBox } from '@/components/shop/ShopPrimaryPriceBox';
 import { ShopProductViewTracker } from '@/components/shop/ShopProductViewTracker';
 import {
   buildPageMetadata,
@@ -276,15 +277,17 @@ export default async function ShopProductDetailPage({
               </div>
             </div>
 
-            <h1 className="text-balance text-3xl font-light leading-tight sm:text-4xl">{productTitle}</h1>
-            <p className="text-sm leading-relaxed text-white/70 sm:text-base">{shortDescription}</p>
+            <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">{productTitle}</h1>
+            <p className="text-sm leading-relaxed text-white/75 sm:text-base">
+              {longDescription || shortDescription}
+            </p>
 
             <div className="rounded-2xl border border-white/15 bg-black/40 p-4">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">{isUa ? 'Ціна' : 'Pricing'}</p>
-              <p className="mt-2 text-3xl font-light">{formatPrice(resolvedLocale, pricing.effectivePrice.eur, 'EUR')}</p>
-              <p className="text-sm text-white/60">
-                {formatPrice(resolvedLocale, pricing.effectivePrice.usd, 'USD')} / {formatPrice(resolvedLocale, pricing.effectivePrice.uah, 'UAH')}
-              </p>
+              <ShopPrimaryPriceBox
+                locale={resolvedLocale}
+                isUa={isUa}
+                price={pricing.effectivePrice}
+              />
               {pricing.effectiveCompareAt ? (
                 <p className="mt-2 text-xs text-white/45 line-through">
                   {formatPrice(resolvedLocale, pricing.effectiveCompareAt.eur, 'EUR')}
@@ -350,10 +353,7 @@ export default async function ShopProductDetailPage({
               ) : null}
             </div>
 
-            <div className="space-y-2 rounded-2xl border border-white/15 bg-white/[0.03] p-4">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">{isUa ? 'Опис' : 'Description'}</p>
-              <p className="text-sm leading-relaxed text-white/75">{longDescription}</p>
-            </div>
+            {/* Додатковий блок опису прибрано, щоб текст не дублювався */}
 
             {product.highlights.length > 0 ? (
               <div className="space-y-2 rounded-2xl border border-white/15 bg-white/[0.03] p-4">

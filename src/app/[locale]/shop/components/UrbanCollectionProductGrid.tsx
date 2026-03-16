@@ -1,6 +1,10 @@
+"use client";
+
+import type { CSSProperties } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
+import { useShopCurrency } from '@/components/shop/CurrencyContext';
 import type { SupportedLocale } from '@/lib/seo';
 import type { ShopProduct } from '@/lib/shopCatalog';
 import { buildShopProductPath } from '@/lib/urbanCollectionMatcher';
@@ -19,6 +23,22 @@ function localize(locale: SupportedLocale, value: { ua: string; en: string }) {
   return locale === 'ua' ? value.ua : value.en;
 }
 
+function buildPremiumDescription(locale: SupportedLocale, title: { ua: string; en: string }, short: { ua: string; en: string }, long: { ua: string; en: string }) {
+  const t = localize(locale, title).trim();
+  const s = localize(locale, short).trim();
+  const l = localize(locale, long).trim();
+
+  const sNormalized = s.toLowerCase();
+  const tNormalized = t.toLowerCase();
+
+  // Якщо короткий опис дублює заголовок — беремо longDescription
+  if (!s || sNormalized === tNormalized || sNormalized.startsWith(tNormalized)) {
+    return l;
+  }
+
+  return s;
+}
+
 function formatPrice(locale: SupportedLocale, amount: number) {
   const formatter = new Intl.NumberFormat(locale === 'ua' ? 'uk-UA' : 'en-US', {
     maximumFractionDigits: 0,
@@ -27,6 +47,27 @@ function formatPrice(locale: SupportedLocale, amount: number) {
   return locale === 'ua'
     ? `${formatter.format(amount)} грн`
     : `EUR ${formatter.format(amount)}`;
+}
+
+function computePricesFromUah(
+  price: ShopProduct['price'],
+  rates: { EUR: number; USD: number } | null,
+) {
+  const baseUah = price.uah;
+
+  if (rates && baseUah > 0) {
+    return {
+      uah: baseUah,
+      eur: baseUah / rates.EUR,
+      usd: baseUah / rates.USD,
+    };
+  }
+
+  return {
+    uah: baseUah,
+    eur: price.eur,
+    usd: price.usd,
+  };
 }
 
 export default function UrbanCollectionProductGrid({
@@ -38,6 +79,7 @@ export default function UrbanCollectionProductGrid({
   settings,
 }: UrbanCollectionProductGridProps) {
   const isUa = locale === 'ua';
+  const { currency, rates } = useShopCurrency();
 
   return (
     <section
@@ -47,8 +89,9 @@ export default function UrbanCollectionProductGrid({
           '--upg-padding-top': `${settings.paddingTop}px`,
           '--upg-padding-bottom': `${settings.paddingBottom}px`,
           '--upg-mobile-cols': settings.columnsMobile,
-          '--upg-desktop-cols': settings.columnsDesktop,
-        } as React.CSSProperties
+          // Фіксуємо 3 колонки в ряд для десктопа, незалежно від налаштувань теми
+          '--upg-desktop-cols': 3,
+        } as CSSProperties
       }
     >
       <div className="urban-product-grid__inner">
@@ -80,7 +123,19 @@ export default function UrbanCollectionProductGrid({
 
         {products.length > 0 ? (
           <div className="urban-product-grid__cards">
-            {products.map((product) => (
+            {products.map((product) => {
+              const premiumDescription = buildPremiumDescription(
+                locale,
+                product.title,
+                product.shortDescription,
+                product.longDescription,
+              );
+              const computed = computePricesFromUah(
+                product.price,
+                rates && { EUR: rates.EUR, USD: rates.USD },
+              );
+
+              return (
               <article key={product.slug} className="urban-product-grid__card">
                 <Link
                   href={buildShopProductPath(locale, product)}
@@ -102,11 +157,10 @@ export default function UrbanCollectionProductGrid({
                     {localize(locale, product.title)}
                   </h3>
                   <p className="urban-product-grid__description">
-                    {localize(locale, product.shortDescription)}
+                    {premiumDescription}
                   </p>
                   <div className="urban-product-grid__meta">
                     <span>{localize(locale, product.collection)}</span>
-                    <span>{formatPrice(locale, locale === 'ua' ? product.price.uah : product.price.eur)}</span>
                   </div>
                   <div className="urban-product-grid__actions">
                     <AddToCartButton
@@ -118,6 +172,14 @@ export default function UrbanCollectionProductGrid({
                       label={isUa ? 'Додати в кошик' : 'Add to cart'}
                       labelAdded={isUa ? 'Додано' : 'Added'}
                     />
+                    <span className="urban-product-grid__price">
+                      {currency === 'USD' &&
+                        formatPrice(locale, computed.usd)}
+                      {currency === 'EUR' &&
+                        formatPrice(locale, computed.eur)}
+                      {currency === 'UAH' &&
+                        formatPrice(locale, computed.uah)}
+                    </span>
                     <Link
                       href={buildShopProductPath(locale, product)}
                       className="urban-product-grid__details"
@@ -127,7 +189,8 @@ export default function UrbanCollectionProductGrid({
                   </div>
                 </div>
               </article>
-            ))}
+            );
+})}
           </div>
         ) : (
           <div className="urban-product-grid__empty">

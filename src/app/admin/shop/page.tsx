@@ -77,7 +77,13 @@ export default function AdminShopPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this product?')) return;
+    if (
+      !confirm(
+        'Остаточно видалити цей товар з бази даних?\n\nЦю дію не можна скасувати, відновлення можливе тільки з бекапу.'
+      )
+    ) {
+      return;
+    }
     setDeletingId(id);
     try {
       const response = await fetch(`/api/admin/shop/products/${id}`, { method: 'DELETE' });
@@ -96,91 +102,99 @@ export default function AdminShopPage() {
     return (
       <div className="p-6 text-white/60 flex items-center gap-2">
         <Package className="w-5 h-5 animate-pulse" />
-        Loading catalog…
+        Завантаження каталогу…
       </div>
     );
   }
 
   return (
     <div className="h-full overflow-auto">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="w-full px-4 md:px-8 py-6">
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold text-white">Shop catalog</h2>
+            <h2 className="text-2xl font-semibold text-white">Каталог магазину</h2>
             <p className="mt-2 text-sm text-white/45">
-              Products, variants, media and Shopify CSV imports live here.
+              Усі товари, варіанти та колекції. Тут додаємо / редагуємо товари, а детальне ціноутворення — у розділі
+              <span className="font-medium text-white"> Pricing</span>.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link href="/admin/shop/orders" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <ShoppingCart className="w-4 h-4" />
-              Orders
+              Замовлення
             </Link>
             <Link href="/admin/shop/customers" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Users className="w-4 h-4" />
-              Customers
+              Клієнти
             </Link>
             <Link href="/admin/shop/inventory" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Warehouse className="w-4 h-4" />
-              Inventory
+              Склад
             </Link>
             <Link href="/admin/shop/pricing" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Coins className="w-4 h-4" />
-              Pricing
+              Ціни (B2C/B2B)
             </Link>
             <Link href="/admin/shop/settings" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Settings2 className="w-4 h-4" />
-              Settings
+              Налаштування
             </Link>
             <Link href="/admin/shop/audit" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <FileClock className="w-4 h-4" />
-              Audit
+              Аудит
             </Link>
             <Link href="/admin/shop/categories" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <FolderTree className="w-4 h-4" />
-              Categories
+              Категорії
             </Link>
             <Link href="/admin/shop/collections" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Layers3 className="w-4 h-4" />
-              Collections
+              Колекції
             </Link>
             <Link href="/admin/shop/bundles" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Boxes className="w-4 h-4" />
-              Bundles
+              Комплекти
             </Link>
             <Link href="/admin/shop/media" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <ImageIcon className="w-4 h-4" />
-              Media
+              Медіа
             </Link>
             <Link href="/admin/shop/import" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Upload className="w-4 h-4" />
-              Shopify CSV
+              Імпорт CSV
             </Link>
             <Link href="/admin/shop/new" className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
               <Plus className="w-4 h-4" />
-              New product
+              Новий товар
             </Link>
           </div>
         </div>
 
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <div className="grid gap-1 text-sm text-white/70 md:grid-cols-3 md:gap-8">
-            <div>{products.length} products</div>
-            <div>{products.reduce((sum, item) => sum + item.variantsCount, 0)} variants</div>
-            <div>{products.filter((item) => item.isPublished).length} published</div>
+            <div>{products.length} товарів</div>
+            <div>{products.reduce((sum, item) => sum + item.variantsCount, 0)} варіантів</div>
+            <div>{products.filter((item) => item.isPublished).length} опубліковано</div>
           </div>
           <label className="flex min-w-[260px] items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
             <Search className="h-4 w-4 text-white/35" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by slug, title, brand, SKU"
+              placeholder="Пошук за slug, назвою, брендом, SKU"
               className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
             />
           </label>
         </div>
 
         {error && <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div>}
+
+        <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-xs text-white/55 space-y-1">
+          <p className="font-medium text-white/80">Як працювати з каталогом:</p>
+          <p>• <span className="font-semibold text-white">Редагувати товар</span> — клік по назві або кнопка «Edit» у стовпчику дій.</p>
+          <p>• <span className="font-semibold text-white">Ціни B2C / B2B</span> — окремий розділ «Ціни (B2C/B2B)», де можна масово змінювати ціни за варіантами.</p>
+          <p>• <span className="font-semibold text-white">Видалення</span> — іконка кошика. Перед повним видаленням бажано мати актуальний бекап БД.</p>
+        </div>
 
         {filteredProducts.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
@@ -191,13 +205,13 @@ export default function AdminShopPage() {
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
-                  <th className="px-4 py-3 text-white/60 font-medium">Product</th>
-                  <th className="px-4 py-3 text-white/60 font-medium">Type</th>
-                  <th className="px-4 py-3 text-white/60 font-medium">Status</th>
-                  <th className="px-4 py-3 text-white/60 font-medium">Counts</th>
-                  <th className="px-4 py-3 text-white/60 font-medium">Price</th>
-                  <th className="px-4 py-3 text-white/60 font-medium">Updated</th>
-                  <th className="px-4 py-3 text-white/60 font-medium w-28">Actions</th>
+                  <th className="px-4 py-3 text-white/60 font-medium">Товар</th>
+                  <th className="px-4 py-3 text-white/60 font-medium">Тип</th>
+                  <th className="px-4 py-3 text-white/60 font-medium">Статус</th>
+                  <th className="px-4 py-3 text-white/60 font-medium">Кількості</th>
+                  <th className="px-4 py-3 text-white/60 font-medium">Ціна</th>
+                  <th className="px-4 py-3 text-white/60 font-medium">Оновлено</th>
+                  <th className="px-4 py-3 text-white/60 font-medium w-28">Дії</th>
                 </tr>
               </thead>
               <tbody>

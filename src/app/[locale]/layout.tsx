@@ -14,6 +14,7 @@ import CookieBanner from '@/components/ui/CookieBanner';
 import AutoBreadcrumbs from '@/components/seo/AutoBreadcrumbs';
 
 import { ScrollToTop } from '@/components/ScrollToTop';
+import { ShopCurrencyProvider } from '@/components/shop/CurrencyContext';
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ua' }];
@@ -46,22 +47,24 @@ export default async function LocaleLayout({ children, params }: Props) {
           <link rel="preload" href={`/images/${videoConfig.heroPoster}`} as="image" />
         )}
         <LoadingScreen />
-        <div
-          data-server-hero-enabled={videoConfig.heroEnabled ? 'true' : 'false'}
-          className={cn('flex flex-col min-h-screen', locale === 'ua' && 'locale-ua')}
-          lang={locale === 'ua' ? 'uk' : 'en'}
-        >
-          <HeroVideoWrapper src={`/videos/${videoConfig.heroVideo}`} mobileSrc={videoConfig.heroVideoMobile ? `/videos/${videoConfig.heroVideoMobile}` : undefined} poster={videoConfig.heroPoster ? `/images/${videoConfig.heroPoster}` : undefined} serverEnabled={videoConfig.heroEnabled ?? true} />
-          {/* Font debug overlay removed */}
-          <Header />
-          <main id="main-content" className="flex-grow relative z-10">
-            {children}
-          </main>
-          <AutoBreadcrumbs />
-          <ScrollToTop />
-          <Footer currentYear={currentYear} />
-          <CookieBanner locale={locale} />
-        </div>
+        <ShopCurrencyProvider>
+          <div
+            data-server-hero-enabled={videoConfig.heroEnabled ? 'true' : 'false'}
+            className={cn('flex flex-col min-h-screen', locale === 'ua' && 'locale-ua')}
+            lang={locale === 'ua' ? 'uk' : 'en'}
+          >
+            <HeroVideoWrapper src={`/videos/${videoConfig.heroVideo}`} mobileSrc={videoConfig.heroVideoMobile ? `/videos/${videoConfig.heroVideoMobile}` : undefined} poster={videoConfig.heroPoster ? `/images/${videoConfig.heroPoster}` : undefined} serverEnabled={videoConfig.heroEnabled ?? true} />
+            {/* Font debug overlay removed */}
+            <Header />
+            <main id="main-content" className="flex-grow relative z-10">
+              {children}
+            </main>
+            <AutoBreadcrumbs />
+            <ScrollToTop />
+            <Footer currentYear={currentYear} />
+            <CookieBanner locale={locale} />
+          </div>
+        </ShopCurrencyProvider>
       </AuthProvider>
     </NextIntlClientProvider>
   );

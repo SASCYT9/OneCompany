@@ -1,12 +1,5 @@
-[dotenv@17.2.3] injecting env (1) from .env.local -- tip: ⚙️  suppress all logs with { quiet: true }
--- CreateEnum
-CREATE TYPE "ContactMethod" AS ENUM ('TELEGRAM', 'WHATSAPP');
-
--- CreateEnum
-CREATE TYPE "CustomerGroup" AS ENUM ('B2C', 'B2B_PENDING', 'B2B_APPROVED');
-
 -- AlterEnum
-ALTER TYPE "Category" ADD VALUE 'PARTNERSHIP';
+-- (skipped in local dev: PARTNERSHIP already exists)
 
 -- AlterEnum
 -- This migration adds more than one value to an enum.
@@ -16,8 +9,8 @@ ALTER TYPE "Category" ADD VALUE 'PARTNERSHIP';
 -- the enum.
 
 
-ALTER TYPE "Status" ADD VALUE 'IN_PROGRESS';
-ALTER TYPE "Status" ADD VALUE 'COMPLETED';
+-- ALTER TYPE "Status" ADD VALUE 'IN_PROGRESS';
+-- ALTER TYPE "Status" ADD VALUE 'COMPLETED';
 
 -- AlterTable
 ALTER TABLE "Message" ADD COLUMN     "contactMethod" "ContactMethod",

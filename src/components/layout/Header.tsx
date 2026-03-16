@@ -10,6 +10,7 @@ import { Logo } from "@/components/ui/Logo";
 import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
 import { Menu, X } from "lucide-react";
 import { CartIconLink } from "./CartIconLink";
+import { useShopCurrency } from "@/components/shop/CurrencyContext";
 
 const navItems = [
   { key: "automotive", href: "/auto" },
@@ -53,6 +54,7 @@ export function Header() {
         label: tNav(item.key),
       }));
   const logoHref = isUrbanStorefront ? `/${locale}/shop/urban` : `/${locale}`;
+  const { currency, region, setRegion, setCurrency } = useShopCurrency();
 
   return (
     <>
@@ -107,6 +109,40 @@ export function Header() {
             </Link>
           ) : null}
           {isUrbanStorefront ? <CartIconLink locale={locale} /> : null}
+          {isUrbanStorefront ? (
+            <div className="hidden items-center gap-1 rounded-full border border-white/20 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-white/70 md:flex">
+              <button
+                type="button"
+                onClick={() => setRegion("UA")}
+                className={cn(
+                  "px-2 py-1 rounded-full transition",
+                  region === "UA" && "bg-white text-black"
+                )}
+              >
+                UA · UAH
+              </button>
+              <button
+                type="button"
+                onClick={() => setRegion("EU")}
+                className={cn(
+                  "px-2 py-1 rounded-full transition",
+                  region === "EU" && "bg-white text-black"
+                )}
+              >
+                EU · EUR
+              </button>
+              <button
+                type="button"
+                onClick={() => setRegion("US")}
+                className={cn(
+                  "px-2 py-1 rounded-full transition",
+                  region === "US" && "bg-white text-black"
+                )}
+              >
+                US · USD
+              </button>
+            </div>
+          ) : null}
           <LocaleSwitcher className="hidden md:flex" />
           {!isUrbanStorefront ? (
             <Link
