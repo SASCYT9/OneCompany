@@ -153,7 +153,7 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
               {localize(isUa, URBAN_HERO.subtitle, URBAN_HERO.subtitleUk)}
             </p>
             <p className="uh7-hero__official">
-              {isUa ? 'Офіційний постачальник Urban Automotive в Україні' : 'Official Urban Automotive Supplier in Ukraine'}
+              {isUa ? 'One Company × Urban Automotive' : 'One Company × Urban Automotive'}
             </p>
             <div className="uh7-hero__buttons">
               <Link
@@ -179,7 +179,9 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
             <svg className="uh7-trust__icon" viewBox="0 0 24 24">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
-            {isUa ? 'Офіційний постачальник Urban Automotive в Україні' : 'Official Urban Automotive Supplier in Ukraine'}
+            {isUa
+              ? 'Офіційні програми Urban Automotive в Україні'
+              : 'Official Urban Automotive programmes in Ukraine'}
           </div>
           <div className="uh7-trust__item">
             <svg className="uh7-trust__icon" viewBox="0 0 24 24">

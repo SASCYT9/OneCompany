@@ -36,7 +36,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
       streetAddress: "Baseina St, 21B",
       addressLocality: "Kyiv",
       addressCountry: "UA",
-      postalCode: "01004",
+      postalCode: "01024",
     },
     geo: {
       "@type": "GeoCoordinates",
@@ -206,7 +206,7 @@ export function LocalBusinessSchema({ locale = "ua" }: LocalBusinessSchemaProps)
       streetAddress: "Baseina St, 21B",
       addressLocality: "Kyiv",
       addressRegion: "Kyiv",
-      postalCode: "01004",
+      postalCode: "01024",
       addressCountry: "UA",
     },
     geo: {

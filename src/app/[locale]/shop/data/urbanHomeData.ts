@@ -23,11 +23,11 @@ export const URBAN_HERO = {
   eyebrow: 'One Company x Urban Automotive',
   eyebrowUk: 'One Company x Urban Automotive',
   title: 'Premium Urban Styling.',
-  titleUk: 'Преміальні обвіси Urban.',
+  titleUk: 'Преміальні обвіси Urban',
   subtitle:
     'Official Urban Automotive supplier in Ukraine: full Urban body kit range. Premium quality and status. Full turnkey support.',
   subtitleUk:
-    'Офіційний постачальник Urban Automotive в Україні: повний модельний ряд обвісів Urban. Преміальна якість та статус. Повний супровід під ключ.',
+    'Офіційний постачальник Urban Automotive в Україні: повний модельний ряд обвісів Urban, преміальна якість та статус, повний супровід під ключ.',
   primaryButtonLabel: 'Explore Urban Range',
   primaryButtonLabelUk: 'Переглянути модельний ряд Urban',
   primaryButtonLink: '/shop/urban/collections',
