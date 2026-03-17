@@ -14,8 +14,8 @@
 ### Підготовка
 Додай у `.env.local`:
 
-- `OPENAI_API_KEY=...`
-- (опційно) `OPENAI_MODEL=...` (за замовчуванням: `gpt-4o-mini`)
+- `DEEPL_AUTH_KEY=...`
+- (опційно) `DEEPL_BASE_URL=...` (якщо хочеш явно: `https://api-free.deepl.com` або `https://api.deepl.com`)
 
 ### Запуск
 

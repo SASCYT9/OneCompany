@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /**
- * Auto-translate missing EN product texts using OpenAI.
+ * Auto-translate missing EN product texts using DeepL.
  *
  * Why:
  * - Our storefront reads { ua, en } pairs; if EN fields are empty, EN pages show blank.
@@ -17,15 +17,15 @@
  *   node scripts/translate-shop-products-en.js --commit --limit=50
  *
  * Env:
- *   OPENAI_API_KEY=...
- *   OPENAI_MODEL=... (optional)
+ *   DEEPL_AUTH_KEY=...
+ *   DEEPL_BASE_URL=... (optional; default depends on key type)
  */
 require('dotenv').config({ path: '.env.local' });
 
 const { PrismaClient } = require('@prisma/client');
 
-const DEFAULT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-const OPENAI_API_KEY = (process.env.OPENAI_API_KEY || '').trim();
+const DEEPL_AUTH_KEY = (process.env.DEEPL_AUTH_KEY || '').trim();
+const DEEPL_BASE_URL = (process.env.DEEPL_BASE_URL || '').trim();
 
 function parseArgs(argv) {
   const args = { commit: false, dryRun: false, limit: 0, includeUnpublished: false, translateHtml: false };
@@ -56,57 +56,43 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function openaiTranslate({ text, sourceLang, targetLang }) {
-  const prompt = [
-    `Translate from ${sourceLang} to ${targetLang}.`,
-    `Keep brand/product names, SKUs, and model names unchanged.`,
-    `Keep the tone premium, concise, and natural (not literal).`,
-    `Do not add new facts. Do not hallucinate specs.`,
-    `Return ONLY the translated text.`,
-  ].join('\n');
+function deepLBaseUrl(authKey) {
+  if (DEEPL_BASE_URL) return DEEPL_BASE_URL.replace(/\/+$/, '');
+  // Free API keys typically end with ":fx"
+  if (authKey && authKey.toLowerCase().endsWith(':fx')) return 'https://api-free.deepl.com';
+  return 'https://api.deepl.com';
+}
 
-  const res = await fetch('https://api.openai.com/v1/responses', {
+async function deepLTranslate({ text, sourceLang, targetLang }) {
+  const base = deepLBaseUrl(DEEPL_AUTH_KEY);
+  const url = `${base}/v2/translate`;
+  const source = sourceLang === 'Ukrainian' ? 'UK' : undefined;
+  const target = targetLang === 'English' ? 'EN' : targetLang;
+
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      Authorization: `DeepL-Auth-Key ${DEEPL_AUTH_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: DEFAULT_MODEL,
-      input: [
-        {
-          role: 'system',
-          content: [{ type: 'text', text: prompt }],
-        },
-        {
-          role: 'user',
-          content: [{ type: 'text', text }],
-        },
-      ],
-      temperature: 0.2,
+      text: [text],
+      target_lang: target,
+      ...(source ? { source_lang: source } : {}),
+      // DeepL supports 'prefer_more' / 'prefer_less' (as of current docs)
+      formality: 'prefer_more',
     }),
   });
 
   if (!res.ok) {
     const errText = await res.text().catch(() => '');
-    throw new Error(`OpenAI error ${res.status}: ${errText || res.statusText}`);
+    throw new Error(`DeepL error ${res.status}: ${errText || res.statusText}`);
   }
 
   const json = await res.json();
-  const outputText =
-    (typeof json.output_text === 'string' && json.output_text.trim()) ||
-    // Fallback: try to reconstruct from output array
-    (Array.isArray(json.output)
-      ? json.output
-          .flatMap((o) => (Array.isArray(o.content) ? o.content : []))
-          .map((c) => (c && typeof c.text === 'string' ? c.text : ''))
-          .join('\n')
-          .trim()
-      : '');
-
-  if (!outputText) {
-    throw new Error('OpenAI returned empty translation');
-  }
+  const out = Array.isArray(json.translations) ? json.translations[0]?.text : '';
+  const outputText = typeof out === 'string' ? out.trim() : '';
+  if (!outputText) throw new Error('DeepL returned empty translation');
   return outputText;
 }
 
@@ -114,7 +100,7 @@ async function translateWithRetry(payload, { attempts = 4 } = {}) {
   let lastErr = null;
   for (let i = 0; i < attempts; i++) {
     try {
-      return await openaiTranslate(payload);
+      return await deepLTranslate(payload);
     } catch (e) {
       lastErr = e;
       const backoff = 500 * Math.pow(2, i);
@@ -127,8 +113,8 @@ async function translateWithRetry(payload, { attempts = 4 } = {}) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
 
-  if (!OPENAI_API_KEY && args.commit) {
-    console.error('Missing OPENAI_API_KEY. Use --dry-run or set OPENAI_API_KEY in .env.local');
+  if (!DEEPL_AUTH_KEY && args.commit) {
+    console.error('Missing DEEPL_AUTH_KEY. Use --dry-run or set DEEPL_AUTH_KEY in .env.local');
     process.exit(1);
   }
 
@@ -165,7 +151,8 @@ async function main() {
     JSON.stringify(
       {
         mode: args.commit ? 'commit' : 'dry-run',
-        model: DEFAULT_MODEL,
+        provider: 'deepl',
+        baseUrl: deepLBaseUrl(DEEPL_AUTH_KEY),
         totalLoaded: products.length,
         candidates: candidates.length,
         translateHtml: args.translateHtml,
@@ -189,7 +176,7 @@ async function main() {
       const key = `short:${shortUa.toLowerCase()}`;
       const translated =
         cache.get(key) ||
-        (OPENAI_API_KEY
+        (DEEPL_AUTH_KEY
           ? await translateWithRetry({ text: shortUa, sourceLang: 'Ukrainian', targetLang: 'English' })
           : '');
       if (translated) cache.set(key, translated);
@@ -202,7 +189,7 @@ async function main() {
       const key = `long:${longUa.toLowerCase()}`;
       const translated =
         cache.get(key) ||
-        (OPENAI_API_KEY
+        (DEEPL_AUTH_KEY
           ? await translateWithRetry({ text: longUa, sourceLang: 'Ukrainian', targetLang: 'English' })
           : '');
       if (translated) cache.set(key, translated);
@@ -217,7 +204,7 @@ async function main() {
         const key = `body_plain:${bodyUaPlain.toLowerCase()}`;
         const translated =
           cache.get(key) ||
-          (OPENAI_API_KEY
+          (DEEPL_AUTH_KEY
             ? await translateWithRetry({ text: bodyUaPlain, sourceLang: 'Ukrainian', targetLang: 'English' })
             : '');
         if (translated) cache.set(key, translated);
@@ -232,7 +219,7 @@ async function main() {
         const key = `body_html:${bodyUaHtml.toLowerCase()}`;
         const translated =
           cache.get(key) ||
-          (OPENAI_API_KEY
+          (DEEPL_AUTH_KEY
             ? await translateWithRetry({ text: bodyUaHtml, sourceLang: 'Ukrainian', targetLang: 'English' })
             : '');
         if (translated) cache.set(key, translated);
@@ -253,7 +240,7 @@ async function main() {
       console.log(
         `[dry-run] ${p.slug}`,
         hasUpdates ? Object.keys(updates) : planned,
-        OPENAI_API_KEY ? '' : '(no OPENAI_API_KEY; showing plan only)'
+        DEEPL_AUTH_KEY ? '' : '(no DEEPL_AUTH_KEY; showing plan only)'
       );
       continue;
     }
