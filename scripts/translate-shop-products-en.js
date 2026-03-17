@@ -124,6 +124,10 @@ async function translateWithRetry(payload, { attempts = 4 } = {}) {
     } catch (e) {
       lastErr = e;
       const status = e && typeof e === 'object' ? e.status : null;
+      // DeepL quota exceeded: no point retrying.
+      if (status === 456) {
+        throw e;
+      }
       const retryAfterMs = e && typeof e === 'object' ? e.retryAfterMs : null;
       const backoff = 750 * Math.pow(2, i);
       const waitMs =
@@ -214,6 +218,7 @@ async function main() {
   let updated = 0;
   let skipped = 0;
   let failed = 0;
+  let stoppedBecauseQuota = false;
 
   for (const p of candidates) {
     if (args.limit > 0 && updated >= args.limit) break;
@@ -327,6 +332,11 @@ async function main() {
       updated++;
       console.log(`[updated] ${p.slug}`, Object.keys(updates));
     } catch (e) {
+      if (e && typeof e === 'object' && e.status === 456) {
+        stoppedBecauseQuota = true;
+        console.error('[stopped] DeepL quota exceeded. Translation halted.');
+        break;
+      }
       failed++;
       console.error(`[failed] ${p.slug}`, e instanceof Error ? e.message : String(e));
     }
@@ -340,6 +350,7 @@ async function main() {
         skipped,
         failed,
         cacheSize: cache.size,
+        ...(stoppedBecauseQuota ? { stopped: 'quota_exceeded' } : {}),
       },
       null,
       2
