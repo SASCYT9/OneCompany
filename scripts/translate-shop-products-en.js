@@ -225,6 +225,7 @@ async function main() {
     const updates = {};
     const planned = [];
 
+    try {
     const shortUa = normText(p.shortDescUa);
     if (isMissingOrSameAsUa(shortUa, p.shortDescEn) && shortUa) {
       const key = `short:${shortUa.toLowerCase()}`;
@@ -305,6 +306,16 @@ async function main() {
         planned.push('bodyHtmlEn');
         if (args.delayMs) await sleep(args.delayMs);
       }
+    }
+    } catch (e) {
+      if (e && typeof e === 'object' && e.status === 456) {
+        stoppedBecauseQuota = true;
+        console.error('[stopped] DeepL quota exceeded. Translation halted.');
+        break;
+      }
+      failed++;
+      console.error(`[failed] ${p.slug}`, e instanceof Error ? e.message : String(e));
+      continue;
     }
 
     const hasUpdates = Object.keys(updates).length > 0;
