@@ -28,13 +28,23 @@ const DEEPL_AUTH_KEY = (process.env.DEEPL_AUTH_KEY || '').trim();
 const DEEPL_BASE_URL = (process.env.DEEPL_BASE_URL || '').trim();
 
 function parseArgs(argv) {
-  const args = { commit: false, dryRun: false, limit: 0, includeUnpublished: false, translateHtml: false };
+  const args = {
+    commit: false,
+    dryRun: false,
+    limit: 0,
+    scan: 500,
+    includeUnpublished: false,
+    translateHtml: false,
+    delayMs: 250,
+  };
   for (const raw of argv) {
     if (raw === '--commit') args.commit = true;
     if (raw === '--dry-run') args.dryRun = true;
     if (raw === '--include-unpublished') args.includeUnpublished = true;
     if (raw === '--translate-html') args.translateHtml = true;
     if (raw.startsWith('--limit=')) args.limit = Number(raw.split('=')[1] || 0) || 0;
+    if (raw.startsWith('--scan=')) args.scan = Math.max(50, Number(raw.split('=')[1] || 0) || 0);
+    if (raw.startsWith('--delay-ms=')) args.delayMs = Math.max(0, Number(raw.split('=')[1] || 0) || 0);
   }
   if (!args.commit) args.dryRun = true;
   return args;
@@ -85,8 +95,13 @@ async function deepLTranslate({ text, sourceLang, targetLang }) {
   });
 
   if (!res.ok) {
+    const retryAfterHeader = res.headers.get('retry-after');
+    const retryAfterSeconds = retryAfterHeader ? Number(retryAfterHeader) : NaN;
     const errText = await res.text().catch(() => '');
-    throw new Error(`DeepL error ${res.status}: ${errText || res.statusText}`);
+    const err = new Error(`DeepL error ${res.status}: ${errText || res.statusText}`);
+    err.status = res.status;
+    err.retryAfterMs = Number.isFinite(retryAfterSeconds) ? Math.max(0, retryAfterSeconds) * 1000 : null;
+    throw err;
   }
 
   const json = await res.json();
@@ -103,8 +118,14 @@ async function translateWithRetry(payload, { attempts = 4 } = {}) {
       return await deepLTranslate(payload);
     } catch (e) {
       lastErr = e;
-      const backoff = 500 * Math.pow(2, i);
-      await sleep(backoff);
+      const status = e && typeof e === 'object' ? e.status : null;
+      const retryAfterMs = e && typeof e === 'object' ? e.retryAfterMs : null;
+      const backoff = 750 * Math.pow(2, i);
+      const waitMs =
+        status === 429 && typeof retryAfterMs === 'number'
+          ? Math.max(retryAfterMs, backoff)
+          : backoff;
+      await sleep(waitMs);
     }
   }
   throw lastErr || new Error('Translation failed');
@@ -121,24 +142,42 @@ async function main() {
   const prisma = new PrismaClient();
   const where = args.includeUnpublished ? {} : { isPublished: true };
 
-  const products = await prisma.shopProduct.findMany({
-    where,
-    orderBy: { updatedAt: 'desc' },
-    take: args.limit > 0 ? args.limit : undefined,
-    select: {
-      id: true,
-      slug: true,
-      titleUa: true,
-      titleEn: true,
-      shortDescUa: true,
-      shortDescEn: true,
-      longDescUa: true,
-      longDescEn: true,
-      bodyHtmlUa: true,
-      bodyHtmlEn: true,
-      updatedAt: true,
-    },
-  });
+  const products = [];
+  let cursor = undefined;
+  let fetched = 0;
+  while (fetched < args.scan) {
+    const page = await prisma.shopProduct.findMany({
+      where: {
+        ...where,
+        OR: [
+          // We only translate when UA source exists; otherwise skip later.
+          { shortDescUa: { not: null } },
+          { longDescUa: { not: null } },
+          ...(args.translateHtml ? [{ bodyHtmlUa: { not: null } }] : []),
+        ],
+      },
+      orderBy: [{ updatedAt: 'asc' }, { id: 'asc' }],
+      take: Math.min(200, args.scan - fetched),
+      ...(cursor ? { cursor, skip: 1 } : {}),
+      select: {
+        id: true,
+        slug: true,
+        titleUa: true,
+        titleEn: true,
+        shortDescUa: true,
+        shortDescEn: true,
+        longDescUa: true,
+        longDescEn: true,
+        bodyHtmlUa: true,
+        bodyHtmlEn: true,
+        updatedAt: true,
+      },
+    });
+    if (!page.length) break;
+    products.push(...page);
+    fetched += page.length;
+    cursor = { id: page[page.length - 1].id };
+  }
 
   const candidates = products.filter((p) => {
     const shortNeed = isMissingOrSameAsUa(p.shortDescUa, p.shortDescEn);
@@ -156,6 +195,8 @@ async function main() {
         totalLoaded: products.length,
         candidates: candidates.length,
         translateHtml: args.translateHtml,
+        delayMs: args.delayMs,
+        scan: args.scan,
       },
       null,
       2
@@ -168,6 +209,7 @@ async function main() {
   let failed = 0;
 
   for (const p of candidates) {
+    if (args.limit > 0 && updated >= args.limit) break;
     const updates = {};
     const planned = [];
 
@@ -182,6 +224,7 @@ async function main() {
       if (translated) cache.set(key, translated);
       if (translated) updates.shortDescEn = translated;
       planned.push('shortDescEn');
+      if (args.delayMs) await sleep(args.delayMs);
     }
 
     const longUa = normText(p.longDescUa || '');
@@ -195,6 +238,7 @@ async function main() {
       if (translated) cache.set(key, translated);
       if (translated) updates.longDescEn = translated;
       planned.push('longDescEn');
+      if (args.delayMs) await sleep(args.delayMs);
     }
 
     if (!updates.longDescEn) {
@@ -210,6 +254,7 @@ async function main() {
         if (translated) cache.set(key, translated);
         if (translated) updates.longDescEn = translated;
         planned.push('longDescEn(from bodyHtmlUa)');
+        if (args.delayMs) await sleep(args.delayMs);
       }
     }
 
@@ -225,6 +270,7 @@ async function main() {
         if (translated) cache.set(key, translated);
         if (translated) updates.bodyHtmlEn = translated;
         planned.push('bodyHtmlEn');
+        if (args.delayMs) await sleep(args.delayMs);
       }
     }
 
