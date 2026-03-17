@@ -35,7 +35,8 @@ const featuredBrandOrder = [
 ] as const;
 
 function localize(locale: SupportedLocale, value: { ua: string; en: string }) {
-  return locale === 'ua' ? value.ua : value.en;
+  // Fallback to the other language when a translation is missing.
+  return locale === 'ua' ? value.ua || value.en : value.en || value.ua;
 }
 
 function formatPrice(

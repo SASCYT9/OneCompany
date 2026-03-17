@@ -21,7 +21,8 @@ type CartResponse = { items: CartItem[]; totalItems: number };
 
 function localize(locale: SupportedLocale, v: { ua: string; en: string } | undefined) {
   if (!v) return '';
-  return locale === 'ua' ? v.ua : v.en;
+  // Fallback to the other language when a translation is missing.
+  return locale === 'ua' ? v.ua || v.en : v.en || v.ua;
 }
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 'USD' | 'UAH') {

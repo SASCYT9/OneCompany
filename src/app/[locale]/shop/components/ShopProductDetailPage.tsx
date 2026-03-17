@@ -39,7 +39,8 @@ type Props = {
 };
 
 function localize(locale: SupportedLocale, value: { ua: string; en: string }) {
-  return locale === 'ua' ? value.ua : value.en;
+  // Fallback to the other language when a translation is missing.
+  return locale === 'ua' ? value.ua || value.en : value.en || value.ua;
 }
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 'USD' | 'UAH') {
