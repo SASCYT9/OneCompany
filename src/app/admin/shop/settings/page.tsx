@@ -50,6 +50,13 @@ type ShopSettingsResponse = {
   taxRegions: ShopTaxRegion[];
   orderNotificationEmail: string | null;
   b2bNotes: string | null;
+  fopCompanyName: string | null;
+  fopIban: string | null;
+  fopBankName: string | null;
+  fopEdrpou: string | null;
+  fopDetails: string | null;
+  stripeEnabled: boolean;
+  whiteBitEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -87,6 +94,13 @@ type ShopSettingsFormState = {
   taxRegions: TaxRegionForm[];
   orderNotificationEmail: string;
   b2bNotes: string;
+  fopCompanyName: string;
+  fopIban: string;
+  fopBankName: string;
+  fopEdrpou: string;
+  fopDetails: string;
+  stripeEnabled: boolean;
+  whiteBitEnabled: boolean;
 };
 
 type PreviewFormState = {
@@ -121,9 +135,9 @@ type PreviewResponse = {
 const SHOP_CURRENCIES: ShopCurrencyCode[] = ['EUR', 'USD', 'UAH'];
 
 const B2B_OPTIONS = [
-  { value: 'approved_only', label: 'approved_only' },
-  { value: 'public_dual', label: 'public_dual' },
-  { value: 'request_quote', label: 'request_quote' },
+  { value: 'approved_only', label: 'Тільки схвалені B2B (оптові ціни приховані)' },
+  { value: 'public_dual', label: 'Публічно B2C і B2B (обидва цінові канали видимі)' },
+  { value: 'request_quote', label: 'Запит комерційної пропозиції (B2B через запит)' },
 ] as const;
 
 function formatNumber(value: number | null | undefined) {
@@ -156,7 +170,7 @@ function parseNullableNumber(value: string) {
 function createShippingZoneForm(seed: number): ShippingZoneForm {
   return {
     id: `zone-${seed}`,
-    name: `Shipping zone ${seed}`,
+    name: `Зона доставки ${seed}`,
     countriesText: '*',
     regionsText: '',
     baseRate: '0',
@@ -195,6 +209,13 @@ function createEmptyForm(): ShopSettingsFormState {
     taxRegions: [createTaxRegionForm(1)],
     orderNotificationEmail: '',
     b2bNotes: '',
+    fopCompanyName: '',
+    fopIban: '',
+    fopBankName: '',
+    fopEdrpou: '',
+    fopDetails: '',
+    stripeEnabled: false,
+    whiteBitEnabled: false,
   };
 }
 
@@ -244,6 +265,13 @@ function settingsToForm(settings: ShopSettingsResponse): ShopSettingsFormState {
     })),
     orderNotificationEmail: settings.orderNotificationEmail ?? '',
     b2bNotes: settings.b2bNotes ?? '',
+    fopCompanyName: settings.fopCompanyName ?? '',
+    fopIban: settings.fopIban ?? '',
+    fopBankName: settings.fopBankName ?? '',
+    fopEdrpou: settings.fopEdrpou ?? '',
+    fopDetails: settings.fopDetails ?? '',
+    stripeEnabled: settings.stripeEnabled ?? false,
+    whiteBitEnabled: settings.whiteBitEnabled ?? false,
   };
 }
 
@@ -281,6 +309,13 @@ function formToPayload(form: ShopSettingsFormState) {
     })),
     orderNotificationEmail: form.orderNotificationEmail.trim() || null,
     b2bNotes: form.b2bNotes.trim() || null,
+    fopCompanyName: form.fopCompanyName.trim() || null,
+    fopIban: form.fopIban.trim() || null,
+    fopBankName: form.fopBankName.trim() || null,
+    fopEdrpou: form.fopEdrpou.trim() || null,
+    fopDetails: form.fopDetails.trim() || null,
+    stripeEnabled: form.stripeEnabled,
+    whiteBitEnabled: form.whiteBitEnabled,
   };
 }
 
@@ -357,7 +392,7 @@ export default function AdminShopSettingsPage() {
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to build preview');
+          throw new Error(data.error || 'Не вдалося побудувати попередній перегляд');
         }
         setPreviewResult(data as PreviewResponse);
       } catch (previewRequestError) {
@@ -397,7 +432,7 @@ export default function AdminShopSettingsPage() {
       const response = await fetch('/api/admin/shop/settings');
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Failed to load shop settings');
+        setError(data.error || 'Не вдалося завантажити налаштування магазину');
         return;
       }
 
@@ -525,13 +560,13 @@ export default function AdminShopSettingsPage() {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to save settings');
+        throw new Error(data.error || 'Не вдалося зберегти налаштування');
       }
 
       const settings = data as ShopSettingsResponse;
       setForm(settingsToForm(settings));
       setUpdatedAt(settings.updatedAt);
-      setSuccess('Shop settings saved.');
+      setSuccess('Налаштування магазину збережено.');
     } catch (saveError) {
       setError((saveError as Error).message);
     } finally {
@@ -543,7 +578,7 @@ export default function AdminShopSettingsPage() {
     return (
       <div className="flex items-center gap-2 p-6 text-white/60">
         <Settings2 className="h-5 w-5 animate-pulse" />
-        Loading shop settings…
+        Завантаження налаштувань магазину…
       </div>
     );
   }
@@ -555,16 +590,15 @@ export default function AdminShopSettingsPage() {
           <div>
             <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
               <ArrowLeft className="h-4 w-4" />
-              Back to catalog
+              Назад до каталогу
             </Link>
-            <h2 className="mt-3 text-2xl font-semibold text-white">Shop settings</h2>
+            <h2 className="mt-3 text-2xl font-semibold text-white">Налаштування магазину</h2>
             <p className="mt-2 max-w-3xl text-sm text-white/45">
-              Configure storefront currencies, shipping rules, tax rules, B2B visibility and the default B2B discount. Rule order matters:
-              the first matching shipping zone or tax rule wins.
+              Валюти вітрини, правила доставки та податків, видимість B2B та знижка B2B за замовчуванням. Порядок правил важливий: застосовується перша збіжна зона доставки або податкове правило.
             </p>
           </div>
           <div className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-right">
-            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Last updated</div>
+            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Оновлено</div>
             <div className="mt-2 text-sm text-white/80">{updatedAt ? new Date(updatedAt).toLocaleString() : '—'}</div>
           </div>
         </div>
@@ -580,7 +614,7 @@ export default function AdminShopSettingsPage() {
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               <SelectField
-                label="B2B visibility mode"
+                label="Режим видимості B2B"
                 value={form.b2bVisibilityMode}
                 onChange={(value) => updateField('b2bVisibilityMode', value)}
                 options={B2B_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
@@ -592,7 +626,7 @@ export default function AdminShopSettingsPage() {
                 placeholder="8"
               />
               <SelectField
-                label="Default currency"
+                label="Валюта за замовч."
                 value={form.defaultCurrency}
                 onChange={(value) => {
                   const nextCurrency = value as ShopCurrencyCode;
@@ -616,7 +650,7 @@ export default function AdminShopSettingsPage() {
                 placeholder="sales@onecompany.global"
               />
               <div>
-                <div className="mb-1.5 block text-xs text-white/50">Enabled currencies</div>
+                <div className="mb-1.5 block text-xs text-white/50">Увімкнені валюти</div>
                 <div className="flex flex-wrap gap-3">
                   {SHOP_CURRENCIES.map((currency) => (
                     <label key={currency} className="inline-flex items-center gap-2 text-sm text-white/80">
@@ -632,7 +666,7 @@ export default function AdminShopSettingsPage() {
                 </div>
               </div>
               <TextareaField
-                label="B2B notes"
+                label="Примітки B2B"
                 value={form.b2bNotes}
                 onChange={(value) => updateField('b2bNotes', value)}
                 rows={4}
@@ -641,15 +675,79 @@ export default function AdminShopSettingsPage() {
           </section>
 
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="mb-5">
+              <h3 className="text-lg font-medium text-white">Оплата</h3>
+              <p className="mt-1 text-sm text-white/45">Оплата на ФОП (реквізити), Stripe (картка), White Bit (згодом).</p>
+            </div>
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <InputField
+                  label="ФОП — назва / ПІБ"
+                  value={form.fopCompanyName}
+                  onChange={(value) => updateField('fopCompanyName', value)}
+                  placeholder="ФОП Іваненко І. І."
+                />
+                <InputField
+                  label="ФОП — IBAN"
+                  value={form.fopIban}
+                  onChange={(value) => updateField('fopIban', value)}
+                  placeholder="UA123456789012345678901234567"
+                />
+                <InputField
+                  label="ФОП — банк"
+                  value={form.fopBankName}
+                  onChange={(value) => updateField('fopBankName', value)}
+                  placeholder="ПриватБанк"
+                />
+                <InputField
+                  label="ФОП — ЄДРПОУ"
+                  value={form.fopEdrpou}
+                  onChange={(value) => updateField('fopEdrpou', value)}
+                  placeholder="12345678"
+                />
+              </div>
+              <TextareaField
+                label="ФОП — додаткові реквізити (текст)"
+                value={form.fopDetails}
+                onChange={(value) => updateField('fopDetails', value)}
+                rows={3}
+              />
+              <div className="flex flex-wrap gap-6 border-t border-white/10 pt-4">
+                <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-white/80">
+                  <input
+                    type="checkbox"
+                    checked={form.stripeEnabled}
+                    onChange={(e) => updateField('stripeEnabled', e.target.checked)}
+                    className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+                  />
+                  Увімкнено Stripe (картка)
+                </label>
+                <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-white/80">
+                  <input
+                    type="checkbox"
+                    checked={form.whiteBitEnabled}
+                    onChange={(e) => updateField('whiteBitEnabled', e.target.checked)}
+                    className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+                  />
+                  Увімкнено White Bit (згодом)
+                </label>
+              </div>
+              <p className="text-xs text-white/45">
+                Stripe: встановіть STRIPE_SECRET_KEY та STRIPE_WEBHOOK_SECRET у середовищі; webhook URL: /api/shop/stripe/webhook
+              </p>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-lg font-medium text-white">Currency setup</h3>
+                <h3 className="text-lg font-medium text-white">Валюти</h3>
                 <p className="mt-1 text-sm text-white/45">
-                  Reference rates are calculated from EUR. If a product misses a direct currency price, checkout falls back to these rates.
+                  Опорні курси відносно EUR. Якщо у товару немає ціни в валюті, оформлення використовує ці курси.
                 </p>
               </div>
               <div className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/50">
-                Example: 1 EUR = {form.currencyRates.USD || '1.08'} USD
+                Приклад: 1 EUR = {form.currencyRates.USD || '1.08'} USD
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
@@ -659,7 +757,7 @@ export default function AdminShopSettingsPage() {
                     <div>
                       <div className="text-sm font-medium text-white">{currency}</div>
                       <div className="mt-1 text-xs text-white/45">
-                        {form.defaultCurrency === currency ? 'Default storefront currency' : 'Fallback conversion target'}
+                        {form.defaultCurrency === currency ? 'Валюта вітрини за замовч.' : 'Резервна валюта конвертації'}
                       </div>
                     </div>
                     <span
@@ -669,12 +767,12 @@ export default function AdminShopSettingsPage() {
                           : 'border-white/10 bg-white/5 text-white/40'
                       }`}
                     >
-                      {form.enabledCurrencies.includes(currency) ? 'Enabled' : 'Disabled'}
+                      {form.enabledCurrencies.includes(currency) ? 'Увімкнено' : 'Вимкнено'}
                     </span>
                   </div>
                   <div className="mt-4">
                     <InputField
-                      label="Rate vs EUR"
+                      label="Курс до EUR"
                       value={form.currencyRates[currency]}
                       onChange={(value) => updateCurrencyRate(currency, value)}
                       placeholder="0"
@@ -688,9 +786,9 @@ export default function AdminShopSettingsPage() {
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h3 className="text-lg font-medium text-white">Shipping zones</h3>
+                <h3 className="text-lg font-medium text-white">Зони доставки</h3>
                 <p className="mt-1 text-sm text-white/45">
-                  Define worldwide delivery rules. The first enabled matching zone is applied at checkout.
+                  Правила доставки по регіонах. При оформленні замовлення застосовується перша збіжна увімкнена зона.
                 </p>
               </div>
               <button
@@ -699,7 +797,7 @@ export default function AdminShopSettingsPage() {
                 className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
               >
                 <Plus className="h-4 w-4" />
-                Add shipping zone
+                Додати зону доставки
               </button>
             </div>
             <div className="space-y-4">
@@ -709,7 +807,7 @@ export default function AdminShopSettingsPage() {
                     <div>
                       <div className="flex items-center gap-2 text-sm font-medium text-white">
                         <Globe2 className="h-4 w-4 text-white/55" />
-                        {zone.name || `Shipping zone ${index + 1}`}
+                        {zone.name || `Зона доставки ${index + 1}`}
                       </div>
                       <div className="mt-1 text-xs font-mono text-white/40">{zone.id || 'missing-id'}</div>
                     </div>
@@ -719,7 +817,7 @@ export default function AdminShopSettingsPage() {
                         onClick={() => moveShippingZone(index, -1)}
                         disabled={index === 0}
                         className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
-                        title="Move up"
+                        title="Вгору"
                       >
                         <ArrowUp className="h-4 w-4" />
                       </button>
@@ -728,7 +826,7 @@ export default function AdminShopSettingsPage() {
                         onClick={() => moveShippingZone(index, 1)}
                         disabled={index === form.shippingZones.length - 1}
                         className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
-                        title="Move down"
+                        title="Вниз"
                       >
                         <ArrowDown className="h-4 w-4" />
                       </button>
@@ -736,7 +834,7 @@ export default function AdminShopSettingsPage() {
                         type="button"
                         onClick={() => removeShippingZone(index)}
                         className="rounded border border-red-500/25 p-2 text-red-300 hover:bg-red-500/10"
-                        title="Remove zone"
+                        title="Видалити зону"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -744,61 +842,61 @@ export default function AdminShopSettingsPage() {
                   </div>
                   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <InputField
-                      label="Zone id"
+                      label="ID зони"
                       value={zone.id}
                       onChange={(value) => updateShippingZone(index, 'id', value)}
                       placeholder="worldwide-standard"
                     />
                     <InputField
-                      label="Zone name"
+                      label="Назва зони"
                       value={zone.name}
                       onChange={(value) => updateShippingZone(index, 'name', value)}
                       placeholder="Worldwide"
                     />
                     <InputField
-                      label="Countries"
+                      label="Країни"
                       value={zone.countriesText}
                       onChange={(value) => updateShippingZone(index, 'countriesText', value)}
                       placeholder="DE, FR, IT or *"
                     />
                     <InputField
-                      label="Regions"
+                      label="Регіони"
                       value={zone.regionsText}
                       onChange={(value) => updateShippingZone(index, 'regionsText', value)}
                       placeholder="Berlin, Bavaria"
                     />
                     <SelectField
-                      label="Rate currency"
+                      label="Валюта тарифу"
                       value={zone.currency}
                       onChange={(value) => updateShippingZone(index, 'currency', value as ShopCurrencyCode)}
                       options={SHOP_CURRENCIES.map((currency) => ({ value: currency, label: currency }))}
                     />
                     <InputField
-                      label="Base rate"
+                      label="Базовий тариф"
                       value={zone.baseRate}
                       onChange={(value) => updateShippingZone(index, 'baseRate', value)}
                       placeholder="95"
                     />
                     <InputField
-                      label="Per-item rate"
+                      label="Тариф за одиницю"
                       value={zone.perItemRate}
                       onChange={(value) => updateShippingZone(index, 'perItemRate', value)}
                       placeholder="0"
                     />
                     <InputField
-                      label="Free shipping over"
+                      label="Безкоштовна доставка від"
                       value={zone.freeOver}
                       onChange={(value) => updateShippingZone(index, 'freeOver', value)}
                       placeholder="2500"
                     />
                     <InputField
-                      label="Minimum subtotal"
+                      label="Мінімальна сума замовлення"
                       value={zone.minimumSubtotal}
                       onChange={(value) => updateShippingZone(index, 'minimumSubtotal', value)}
-                      placeholder="Optional"
+                      placeholder="Необов'язково"
                     />
                     <CheckboxField
-                      label="Enabled"
+                      label="Увімкнено"
                       checked={zone.enabled}
                       onChange={(checked) => updateShippingZone(index, 'enabled', checked)}
                     />
@@ -811,9 +909,9 @@ export default function AdminShopSettingsPage() {
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h3 className="text-lg font-medium text-white">Tax rules</h3>
+                <h3 className="text-lg font-medium text-white">Правила податку</h3>
                 <p className="mt-1 text-sm text-white/45">
-                  The first enabled matching rule applies to checkout. Use shipping inclusion only where the local rule requires it.
+                  До оформлення застосовується перше збіжне увімкнене правило. Включати доставку в базу оподаткування лише якщо це вимагає локальне правило.
                 </p>
               </div>
               <button
@@ -822,7 +920,7 @@ export default function AdminShopSettingsPage() {
                 className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
               >
                 <Plus className="h-4 w-4" />
-                Add tax rule
+                Додати правило податку
               </button>
             </div>
             <div className="space-y-4">
@@ -842,7 +940,7 @@ export default function AdminShopSettingsPage() {
                         onClick={() => moveTaxRegion(index, -1)}
                         disabled={index === 0}
                         className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
-                        title="Move up"
+                        title="Вгору"
                       >
                         <ArrowUp className="h-4 w-4" />
                       </button>
@@ -851,7 +949,7 @@ export default function AdminShopSettingsPage() {
                         onClick={() => moveTaxRegion(index, 1)}
                         disabled={index === form.taxRegions.length - 1}
                         className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
-                        title="Move down"
+                        title="Вниз"
                       >
                         <ArrowDown className="h-4 w-4" />
                       </button>
@@ -859,7 +957,7 @@ export default function AdminShopSettingsPage() {
                         type="button"
                         onClick={() => removeTaxRegion(index)}
                         className="rounded border border-red-500/25 p-2 text-red-300 hover:bg-red-500/10"
-                        title="Remove tax rule"
+                        title="Видалити правило податку"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -867,42 +965,42 @@ export default function AdminShopSettingsPage() {
                   </div>
                   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <InputField
-                      label="Rule id"
+                      label="ID правила"
                       value={region.id}
                       onChange={(value) => updateTaxRegion(index, 'id', value)}
                       placeholder="eu-vat"
                     />
                     <InputField
-                      label="Rule name"
+                      label="Назва правила"
                       value={region.name}
                       onChange={(value) => updateTaxRegion(index, 'name', value)}
                       placeholder="EU VAT"
                     />
                     <InputField
-                      label="Countries"
+                      label="Країни"
                       value={region.countriesText}
                       onChange={(value) => updateTaxRegion(index, 'countriesText', value)}
                       placeholder="DE, FR, IT or *"
                     />
                     <InputField
-                      label="Regions"
+                      label="Регіони"
                       value={region.regionsText}
                       onChange={(value) => updateTaxRegion(index, 'regionsText', value)}
                       placeholder="Berlin, Bavaria"
                     />
                     <InputField
-                      label="Tax rate"
+                      label="Ставка податку"
                       value={region.rate}
                       onChange={(value) => updateTaxRegion(index, 'rate', value)}
                       placeholder="0.2"
                     />
                     <CheckboxField
-                      label="Apply to shipping"
+                      label="Застосовувати до доставки"
                       checked={region.appliesToShipping}
                       onChange={(checked) => updateTaxRegion(index, 'appliesToShipping', checked)}
                     />
                     <CheckboxField
-                      label="Enabled"
+                      label="Увімкнено"
                       checked={region.enabled}
                       onChange={(checked) => updateTaxRegion(index, 'enabled', checked)}
                     />
@@ -915,9 +1013,9 @@ export default function AdminShopSettingsPage() {
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h3 className="text-lg font-medium text-white">Checkout preview</h3>
+                <h3 className="text-lg font-medium text-white">Попередній перегляд оформлення</h3>
                 <p className="mt-1 text-sm text-white/45">
-                  Live preview runs on the same pricing engine as checkout and reflects unsaved changes before you hit save.
+                  Перегляд використовує той самий движок цін, що й оформлення замовлення, і показує незбережені зміни до натискання «Зберегти».
                 </p>
               </div>
               {previewLoading ? (

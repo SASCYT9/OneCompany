@@ -252,8 +252,8 @@ export default function AdminInventoryPage() {
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-5">
-            <InputField label="Set quantity" value={bulk.inventoryQty} onChange={(value) => setBulk((current) => ({ ...current, inventoryQty: value }))} type="number" />
-            <InputField label="Adjust by" value={bulk.inventoryAdjustment} onChange={(value) => setBulk((current) => ({ ...current, inventoryAdjustment: value }))} type="number" />
+            <InputField label="Встановити кількість" value={bulk.inventoryQty} onChange={(value) => setBulk((current) => ({ ...current, inventoryQty: value }))} type="number" />
+            <InputField label="Змінити на" value={bulk.inventoryAdjustment} onChange={(value) => setBulk((current) => ({ ...current, inventoryAdjustment: value }))} type="number" />
             <SelectField
               label="Inventory policy"
               value={bulk.inventoryPolicy}
@@ -264,8 +264,8 @@ export default function AdminInventoryPage() {
                 { value: 'DENY', label: 'Deny' },
               ]}
             />
-            <InputField label="Inventory tracker" value={bulk.inventoryTracker} onChange={(value) => setBulk((current) => ({ ...current, inventoryTracker: value }))} />
-            <InputField label="Fulfillment service" value={bulk.fulfillmentService} onChange={(value) => setBulk((current) => ({ ...current, fulfillmentService: value }))} />
+            <InputField label="Відстеження складу" value={bulk.inventoryTracker} onChange={(value) => setBulk((current) => ({ ...current, inventoryTracker: value }))} />
+            <InputField label="Служба виконання" value={bulk.fulfillmentService} onChange={(value) => setBulk((current) => ({ ...current, fulfillmentService: value }))} />
           </div>
           <div className="mt-4 flex justify-end">
             <button

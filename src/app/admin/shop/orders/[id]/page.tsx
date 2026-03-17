@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { ArrowLeft, Copy, ExternalLink, PackageCheck, Truck } from 'lucide-react';
 
 type OrderStatus =
+  | 'PENDING_PAYMENT'
   | 'PENDING_REVIEW'
   | 'CONFIRMED'
   | 'PROCESSING'
@@ -91,11 +92,11 @@ type OrderDetail = {
 };
 
 const SHIPMENT_STATUS_OPTIONS: Array<{ value: ShipmentStatus; label: string }> = [
-  { value: 'LABEL_CREATED', label: 'Label created' },
-  { value: 'IN_TRANSIT', label: 'In transit' },
-  { value: 'DELIVERED', label: 'Delivered' },
-  { value: 'CANCELLED', label: 'Cancelled' },
-  { value: 'RETURNED', label: 'Returned' },
+  { value: 'LABEL_CREATED', label: 'Створено етикетку' },
+  { value: 'IN_TRANSIT', label: 'В дорозі' },
+  { value: 'DELIVERED', label: 'Доставлено' },
+  { value: 'CANCELLED', label: 'Скасовано' },
+  { value: 'RETURNED', label: 'Повернено' },
 ];
 
 function emptyShipmentDraft(): ShipmentDraft {
@@ -124,12 +125,24 @@ function buildShipmentDraft(shipment: ShipmentRecord): ShipmentDraft {
   };
 }
 
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  PENDING_PAYMENT: 'Очікує оплату',
+  PENDING_REVIEW: 'На перевірці',
+  CONFIRMED: 'Підтверджено',
+  PROCESSING: 'В обробці',
+  SHIPPED: 'Відправлено',
+  DELIVERED: 'Доставлено',
+  CANCELLED: 'Скасовано',
+  REFUNDED: 'Повернено',
+};
 function statusLabel(status: string) {
-  return status.replace(/_/g, ' ').toLowerCase();
+  return ORDER_STATUS_LABELS[status] ?? status.replace(/_/g, ' ');
 }
 
 function statusBadgeClass(status: string) {
   switch (status) {
+    case 'PENDING_PAYMENT':
+      return 'border-orange-500/30 bg-orange-500/10 text-orange-100';
     case 'PENDING_REVIEW':
       return 'border-amber-500/30 bg-amber-500/10 text-amber-100';
     case 'CONFIRMED':
@@ -187,7 +200,7 @@ export default function AdminOrderDetailPage() {
         return;
       }
       if (!response.ok) {
-        setError(data.error || 'Failed to load order');
+        setError(data.error || 'Не вдалося завантажити замовлення');
         return;
       }
       setOrder(data as OrderDetail);
@@ -234,13 +247,13 @@ export default function AdminOrderDetailPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Update failed');
+        setError(data.error || 'Не вдалося оновити');
         return;
       }
 
       await load();
       setStatusNote('');
-      setSuccess(`Order moved to ${statusLabel(nextStatus)}.`);
+      setSuccess(`Замовлення переведено в статус «${statusLabel(nextStatus)}».`);
     } finally {
       setUpdating(false);
     }
@@ -250,10 +263,10 @@ export default function AdminOrderDetailPage() {
     if (!confirmationUrl) return;
     try {
       await navigator.clipboard.writeText(confirmationUrl);
-      setCopyState('Copied');
+      setCopyState('Скопійовано');
       window.setTimeout(() => setCopyState(''), 1500);
     } catch {
-      setCopyState('Copy failed');
+      setCopyState('Помилка копіювання');
       window.setTimeout(() => setCopyState(''), 1500);
     }
   }
@@ -285,13 +298,13 @@ export default function AdminOrderDetailPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Failed to create shipment');
+        setError(data.error || 'Не вдалося створити відправлення');
         return;
       }
 
       setNewShipment(emptyShipmentDraft());
       await load();
-      setSuccess(`Shipment ${data.trackingNumber} created.`);
+      setSuccess(`Відправлення ${data.trackingNumber} створено.`);
     } finally {
       setShipmentSavingId(null);
     }
@@ -312,19 +325,19 @@ export default function AdminOrderDetailPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Failed to update shipment');
+        setError(data.error || 'Не вдалося оновити відправлення');
         return;
       }
 
       await load();
-      setSuccess(`Shipment ${data.trackingNumber} updated.`);
+      setSuccess(`Відправлення ${data.trackingNumber} оновлено.`);
     } finally {
       setShipmentSavingId(null);
     }
   }
 
   async function handleDeleteShipment(shipmentId: string) {
-    if (!confirm('Delete this shipment?')) return;
+    if (!confirm('Видалити це відправлення?')) return;
 
     setShipmentDeletingId(shipmentId);
     setError('');
@@ -335,19 +348,19 @@ export default function AdminOrderDetailPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Failed to delete shipment');
+        setError(data.error || 'Не вдалося видалити відправлення');
         return;
       }
 
       await load();
-      setSuccess('Shipment deleted.');
+      setSuccess('Відправлення видалено.');
     } finally {
       setShipmentDeletingId(null);
     }
   }
 
   if (loading) {
-    return <div className="p-6 text-white/60">Loading order…</div>;
+    return <div className="p-6 text-white/60">Завантаження замовлення…</div>;
   }
 
   if (error && !order) {
@@ -355,7 +368,7 @@ export default function AdminOrderDetailPage() {
       <div className="p-6">
         <p className="text-amber-400">{error}</p>
         <Link href="/admin/shop/orders" className="mt-4 inline-block text-white/70 hover:text-white">
-          ← Back to orders
+          ← Назад до замовлень
         </Link>
       </div>
     );
@@ -373,7 +386,7 @@ export default function AdminOrderDetailPage() {
           className="mb-6 inline-flex items-center gap-2 text-sm text-white/60 hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to orders
+          Назад до замовлень
         </Link>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -385,7 +398,7 @@ export default function AdminOrderDetailPage() {
                   {statusLabel(order.status)}
                 </span>
                 <span className="text-sm text-white/45">
-                  Created {new Date(order.createdAt).toLocaleString()}
+                  Створено {new Date(order.createdAt).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -396,7 +409,7 @@ export default function AdminOrderDetailPage() {
                 className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
               >
                 <Copy className="h-4 w-4" />
-                {copyState || 'Copy guest link'}
+                {copyState || 'Копіювати посилання для клієнта'}
               </button>
               <a
                 href={confirmationUrl}
@@ -405,7 +418,7 @@ export default function AdminOrderDetailPage() {
                 className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
               >
                 <ExternalLink className="h-4 w-4" />
-                Open guest view
+                Відкрити перегляд для клієнта
               </a>
             </div>
           </div>
@@ -414,26 +427,26 @@ export default function AdminOrderDetailPage() {
           {success ? <div className="mt-4 rounded-lg bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <SummaryCard label="Customer" value={order.customerName} detail={order.email} />
-            <SummaryCard label="Shipping zone" value={order.shippingZoneName || 'No match'} detail={order.shippingZoneId || '—'} />
-            <SummaryCard label="Tax rule" value={order.taxRegionName || 'No match'} detail={order.taxRegionId || '—'} />
-            <SummaryCard label="Shipments" value={String(order.shipments.length)} detail={`${order.events.length} timeline events`} />
+            <SummaryCard label="Клієнт" value={order.customerName} detail={order.email} />
+            <SummaryCard label="Зона доставки" value={order.shippingZoneName || 'Не визначено'} detail={order.shippingZoneId || '—'} />
+            <SummaryCard label="Правило податку" value={order.taxRegionName || 'Не визначено'} detail={order.taxRegionId || '—'} />
+            <SummaryCard label="Відправлення" value={String(order.shipments.length)} detail={`${order.events.length} подій у історії`} />
           </div>
 
           <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-4">
             <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
               <div>
-                <span className="mb-1.5 block text-xs uppercase tracking-wider text-white/50">Status note</span>
+                <span className="mb-1.5 block text-xs uppercase tracking-wider text-white/50">Примітка до статусу</span>
                 <textarea
                   value={statusNote}
                   onChange={(event) => setStatusNote(event.target.value)}
                   rows={3}
-                  placeholder="Optional note for the order timeline"
+                  placeholder="Необов'язкова примітка до історії замовлення"
                   className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                 />
               </div>
               <div>
-                <span className="mb-1.5 block text-xs uppercase tracking-wider text-white/50">Manual transition</span>
+                <span className="mb-1.5 block text-xs uppercase tracking-wider text-white/50">Зміна статусу вручну</span>
                 <div className="flex items-center gap-3">
                   <select
                     value={newStatus}
@@ -452,14 +465,14 @@ export default function AdminOrderDetailPage() {
                     disabled={updating || newStatus === order.status}
                     className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
                   >
-                    {updating ? 'Saving…' : 'Apply'}
+                    {updating ? 'Зберігаємо…' : 'Застосувати'}
                   </button>
                 </div>
               </div>
             </div>
 
             <div className="mt-4">
-              <span className="mb-2 block text-xs uppercase tracking-wider text-white/50">Quick transitions</span>
+              <span className="mb-2 block text-xs uppercase tracking-wider text-white/50">Швидкі переходи</span>
               <div className="flex flex-wrap gap-2">
                 {order.allowedTransitions.length ? (
                   order.allowedTransitions.map((status) => (
@@ -475,7 +488,7 @@ export default function AdminOrderDetailPage() {
                     </button>
                   ))
                 ) : (
-                  <span className="text-xs text-white/35">No further transitions</span>
+                  <span className="text-xs text-white/35">Немає доступних переходів</span>
                 )}
               </div>
             </div>
@@ -483,13 +496,13 @@ export default function AdminOrderDetailPage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-white/10 bg-black/30 p-4">
-              <p className="mb-2 text-xs uppercase tracking-wider text-white/50">Contact</p>
+              <p className="mb-2 text-xs uppercase tracking-wider text-white/50">Контакт</p>
               <p className="text-white">{order.customerName}</p>
               <p className="mt-1 text-white/80">{order.email}</p>
               {order.phone ? <p className="mt-1 text-white/70">{order.phone}</p> : null}
             </div>
             <div className="rounded-xl border border-white/10 bg-black/30 p-4">
-              <p className="mb-2 text-xs uppercase tracking-wider text-white/50">Shipping address</p>
+              <p className="mb-2 text-xs uppercase tracking-wider text-white/50">Адреса доставки</p>
               <p className="text-white/90">{addr.line1}</p>
               {addr.line2 ? <p className="text-white/80">{addr.line2}</p> : null}
               <p className="text-white/90">
@@ -501,7 +514,7 @@ export default function AdminOrderDetailPage() {
           </div>
 
           <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-4">
-            <p className="mb-3 text-xs uppercase tracking-wider text-white/50">Items</p>
+            <p className="mb-3 text-xs uppercase tracking-wider text-white/50">Позиції</p>
             <div className="space-y-3">
               {order.items.map((item) => (
                 <div key={item.id} className="flex flex-wrap items-start justify-between gap-3 border-b border-white/5 pb-3 last:border-b-0 last:pb-0">
@@ -519,21 +532,21 @@ export default function AdminOrderDetailPage() {
 
           <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-4">
             <div className="grid gap-3 text-sm">
-              <SummaryRow label="Subtotal" value={formatMoney(order.subtotal, order.currency)} />
-              <SummaryRow label="Shipping" value={formatMoney(order.shippingCost, order.currency)} />
-              <SummaryRow label="Tax" value={formatMoney(order.taxAmount, order.currency)} />
-              <SummaryRow label="Total" value={formatMoney(order.total, order.currency)} strong />
+              <SummaryRow label="Підсумок" value={formatMoney(order.subtotal, order.currency)} />
+              <SummaryRow label="Доставка" value={formatMoney(order.shippingCost, order.currency)} />
+              <SummaryRow label="Податок" value={formatMoney(order.taxAmount, order.currency)} />
+              <SummaryRow label="Всього" value={formatMoney(order.total, order.currency)} strong />
             </div>
             <div className="mt-4 text-xs text-white/40">
-              Updated {new Date(order.updatedAt).toLocaleString()}
+              Оновлено {new Date(order.updatedAt).toLocaleString()}
             </div>
           </div>
 
           <div className="mt-6 border-t border-white/10 pt-6">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <p className="text-xs uppercase tracking-wider text-white/50">Shipments</p>
+              <p className="text-xs uppercase tracking-wider text-white/50">Відправлення</p>
               <span className="text-xs text-white/40">
-                Tracking updates can advance order status automatically.
+                Оновлення відстеження можуть автоматично змінювати статус замовлення.
               </span>
             </div>
 
@@ -548,7 +561,7 @@ export default function AdminOrderDetailPage() {
                           {shipment.carrier} · {shipment.trackingNumber}
                         </div>
                         <div className="mt-1 text-xs text-white/45">
-                          Created {new Date(shipment.createdAt).toLocaleString()}
+                          Створено {new Date(shipment.createdAt).toLocaleString()}
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
@@ -560,7 +573,7 @@ export default function AdminOrderDetailPage() {
                             className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-white hover:bg-zinc-800"
                           >
                             <ExternalLink className="h-3.5 w-3.5" />
-                            Tracking link
+                            Посилання на відстеження
                           </a>
                         ) : null}
                         <button
@@ -569,13 +582,13 @@ export default function AdminOrderDetailPage() {
                           disabled={shipmentDeletingId === shipment.id}
                           className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-200 hover:bg-red-500/15 disabled:opacity-50"
                         >
-                          Delete
+                          Видалити
                         </button>
                       </div>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
-                      <Field label="Carrier">
+                      <Field label="Перевізник">
                         <input
                           value={draft.carrier}
                           onChange={(event) =>
@@ -587,7 +600,7 @@ export default function AdminOrderDetailPage() {
                           className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         />
                       </Field>
-                      <Field label="Service level">
+                      <Field label="Рівень сервісу">
                         <input
                           value={draft.serviceLevel}
                           onChange={(event) =>
@@ -599,7 +612,7 @@ export default function AdminOrderDetailPage() {
                           className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         />
                       </Field>
-                      <Field label="Tracking number">
+                      <Field label="Номер відстеження">
                         <input
                           value={draft.trackingNumber}
                           onChange={(event) =>
@@ -611,7 +624,7 @@ export default function AdminOrderDetailPage() {
                           className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         />
                       </Field>
-                      <Field label="Tracking URL">
+                      <Field label="URL відстеження">
                         <input
                           value={draft.trackingUrl}
                           onChange={(event) =>
@@ -641,7 +654,7 @@ export default function AdminOrderDetailPage() {
                           ))}
                         </select>
                       </Field>
-                      <Field label="Shipped at">
+                      <Field label="Дата відправлення">
                         <input
                           type="datetime-local"
                           value={draft.shippedAt}
@@ -654,7 +667,7 @@ export default function AdminOrderDetailPage() {
                           className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         />
                       </Field>
-                      <Field label="Delivered at">
+                      <Field label="Дата доставки">
                         <input
                           type="datetime-local"
                           value={draft.deliveredAt}
@@ -667,7 +680,7 @@ export default function AdminOrderDetailPage() {
                           className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         />
                       </Field>
-                      <Field label="Notes">
+                      <Field label="Примітки">
                         <input
                           value={draft.notes}
                           onChange={(event) =>
@@ -689,7 +702,7 @@ export default function AdminOrderDetailPage() {
                         className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
                       >
                         <Truck className="h-4 w-4" />
-                        {shipmentSavingId === shipment.id ? 'Saving…' : 'Save shipment'}
+                        {shipmentSavingId === shipment.id ? 'Зберігаємо…' : 'Зберегти відправлення'}
                       </button>
                     </div>
                   </div>
@@ -699,7 +712,7 @@ export default function AdminOrderDetailPage() {
               <div className="rounded-xl border border-dashed border-white/10 bg-black/20 p-4">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-sm font-medium text-white">Create shipment</div>
+                    <div className="text-sm font-medium text-white">Нове відправлення</div>
                     <div className="mt-1 text-xs text-white/45">
                       Add carrier and tracking data for this order.
                     </div>
@@ -707,7 +720,7 @@ export default function AdminOrderDetailPage() {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Carrier">
+                  <Field label="Перевізник">
                     <input
                       value={newShipment.carrier}
                       onChange={(event) =>
@@ -716,7 +729,7 @@ export default function AdminOrderDetailPage() {
                       className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     />
                   </Field>
-                  <Field label="Service level">
+                  <Field label="Рівень сервісу">
                     <input
                       value={newShipment.serviceLevel}
                       onChange={(event) =>
@@ -725,7 +738,7 @@ export default function AdminOrderDetailPage() {
                       className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     />
                   </Field>
-                  <Field label="Tracking number">
+                  <Field label="Номер відстеження">
                     <input
                       value={newShipment.trackingNumber}
                       onChange={(event) =>
@@ -734,7 +747,7 @@ export default function AdminOrderDetailPage() {
                       className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     />
                   </Field>
-                  <Field label="Tracking URL">
+                  <Field label="URL відстеження">
                     <input
                       value={newShipment.trackingUrl}
                       onChange={(event) =>
@@ -761,7 +774,7 @@ export default function AdminOrderDetailPage() {
                       ))}
                     </select>
                   </Field>
-                  <Field label="Shipped at">
+                  <Field label="Дата відправлення">
                     <input
                       type="datetime-local"
                       value={newShipment.shippedAt}
@@ -771,7 +784,7 @@ export default function AdminOrderDetailPage() {
                       className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     />
                   </Field>
-                  <Field label="Delivered at">
+                  <Field label="Дата доставки">
                     <input
                       type="datetime-local"
                       value={newShipment.deliveredAt}
@@ -781,7 +794,7 @@ export default function AdminOrderDetailPage() {
                       className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     />
                   </Field>
-                  <Field label="Notes">
+                  <Field label="Примітки">
                     <input
                       value={newShipment.notes}
                       onChange={(event) =>
@@ -800,7 +813,7 @@ export default function AdminOrderDetailPage() {
                     className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
                   >
                     <Truck className="h-4 w-4" />
-                    {shipmentSavingId === 'new' ? 'Creating…' : 'Create shipment'}
+                    {shipmentSavingId === 'new' ? 'Створюємо…' : 'Створити відправлення'}
                   </button>
                 </div>
               </div>
@@ -808,7 +821,7 @@ export default function AdminOrderDetailPage() {
           </div>
 
           <div className="mt-6 border-t border-white/10 pt-6">
-            <p className="mb-3 text-xs uppercase tracking-wider text-white/50">Timeline</p>
+            <p className="mb-3 text-xs uppercase tracking-wider text-white/50">Історія</p>
             <div className="space-y-3">
               {order.events.length ? (
                 order.events.map((event) => (
@@ -829,14 +842,14 @@ export default function AdminOrderDetailPage() {
                   </div>
                 ))
               ) : (
-                <div className="text-sm text-white/45">No events yet.</div>
+                <div className="text-sm text-white/45">Подій поки немає.</div>
               )}
             </div>
           </div>
 
           {order.pricingSnapshot ? (
             <div className="mt-6 border-t border-white/10 pt-6">
-              <p className="mb-3 text-xs uppercase tracking-wider text-white/50">Calculation snapshot</p>
+              <p className="mb-3 text-xs uppercase tracking-wider text-white/50">Знімок розрахунку</p>
               <pre className="overflow-x-auto rounded-xl border border-white/10 bg-black/30 p-4 text-xs text-white/65">
                 {JSON.stringify(order.pricingSnapshot, null, 2)}
               </pre>

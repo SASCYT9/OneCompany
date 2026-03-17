@@ -78,9 +78,9 @@ type TemplateDraft = {
 };
 
 const CONFLICT_MODE_COPY: Record<ImportConflictMode, string> = {
-  UPDATE: 'Update existing products',
-  SKIP: 'Skip existing products',
-  CREATE: 'Create-only, log conflicts as errors',
+  UPDATE: 'Оновлювати існуючі товари',
+  SKIP: 'Пропускати існуючі товари',
+  CREATE: 'Тільки створення, конфлікти як помилки',
 };
 
 function buildMappingRows(fieldMapping: Record<string, string> | null | undefined): MappingRow[] {
@@ -159,7 +159,7 @@ export default function AdminShopImportPage() {
     const response = await fetch(`/api/admin/shop/imports/${jobId}`);
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to load import job');
+      throw new Error(data.error || 'Не вдалося завантажити імпорт');
     }
     setSelectedJob(data as ImportJobSummary);
   }, []);
@@ -178,10 +178,10 @@ export default function AdminShopImportPage() {
       ]);
 
       if (!templatesResponse.ok) {
-        throw new Error(templatesData.error || 'Failed to load import templates');
+        throw new Error(templatesData.error || 'Не вдалося завантажити шаблони імпорту');
       }
       if (!jobsResponse.ok) {
-        throw new Error(jobsData.error || 'Failed to load import jobs');
+        throw new Error(jobsData.error || 'Не вдалося завантажити список імпортів');
       }
 
       const templateItems = templatesData as ImportTemplate[];
@@ -230,7 +230,7 @@ export default function AdminShopImportPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Import request failed');
+        throw new Error(data.error || 'Запит імпорту не виконано');
       }
 
       if (data.job?.id) {
@@ -239,7 +239,7 @@ export default function AdminShopImportPage() {
       }
 
       await refreshCenter();
-      setSuccess(action === 'dry-run' ? 'Dry-run completed.' : 'Commit import finished.');
+      setSuccess(action === 'dry-run' ? 'Пробний прогон завершено.' : 'Імпорт виконано.');
     } catch (runError) {
       setError((runError as Error).message);
     } finally {
@@ -319,10 +319,10 @@ export default function AdminShopImportPage() {
       );
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to save template');
+        throw new Error(data.error || 'Не вдалося зберегти шаблон');
       }
 
-      setSuccess(templateDraft.id ? 'Template updated.' : 'Template created.');
+      setSuccess(templateDraft.id ? 'Шаблон оновлено.' : 'Шаблон створено.');
       resetTemplateDraft();
       await refreshCenter();
     } catch (saveError) {
@@ -333,7 +333,7 @@ export default function AdminShopImportPage() {
   }
 
   async function deleteTemplate(templateId: string) {
-    if (!confirm('Delete this import template?')) return;
+    if (!confirm('Видалити цей шаблон імпорту?')) return;
     setDeletingTemplateId(templateId);
     setError('');
     setSuccess('');
@@ -344,7 +344,7 @@ export default function AdminShopImportPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete template');
+        throw new Error(data.error || 'Не вдалося видалити шаблон');
       }
 
       if (selectedTemplateId === templateId) {
@@ -354,7 +354,7 @@ export default function AdminShopImportPage() {
         resetTemplateDraft();
       }
 
-      setSuccess('Template deleted.');
+      setSuccess('Шаблон видалено.');
       await refreshCenter();
     } catch (deleteError) {
       setError((deleteError as Error).message);
@@ -368,15 +368,15 @@ export default function AdminShopImportPage() {
       <div className="mx-auto max-w-7xl p-6">
         <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-white/60 transition hover:text-white">
           <ArrowLeft className="h-4 w-4" />
-          Back to catalog
+          Назад до каталогу
         </Link>
 
         <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-semibold text-white">CSV import center</h2>
+            <h2 className="text-3xl font-semibold text-white">Центр імпорту CSV</h2>
             <p className="mt-2 max-w-3xl text-sm text-white/45">
-              Run Shopify CSV dry-runs and commits, store supplier-specific header mappings,
-              inspect historical jobs, and drill into row-level errors without leaving the admin.
+              Пробний прогон та імпорт з CSV (формат Shopify), збереження мапінгу колонок по постачальниках,
+              перегляд минулих імпортів та помилок по рядках.
             </p>
           </div>
           <button
@@ -386,7 +386,7 @@ export default function AdminShopImportPage() {
             className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white transition hover:bg-zinc-700 disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            Оновити
           </button>
         </div>
 
@@ -397,11 +397,11 @@ export default function AdminShopImportPage() {
           <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
             <div className="flex items-center gap-2 text-white">
               <Upload className="h-4 w-4" />
-              <h3 className="text-lg font-medium">Run import</h3>
+              <h3 className="text-lg font-medium">Запуск імпорту</h3>
             </div>
 
             <div className="mt-5 grid gap-4 lg:grid-cols-2">
-              <Field label="Upload CSV file">
+              <Field label="Завантажити CSV-файл">
                 <input
                   type="file"
                   accept=".csv,text/csv"
@@ -409,7 +409,7 @@ export default function AdminShopImportPage() {
                   className="block w-full text-sm text-white/70 file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-white"
                 />
               </Field>
-              <Field label="Source filename">
+              <Field label="Ім'я файлу джерела">
                 <input
                   value={sourceFilename}
                   onChange={(event) => setSourceFilename(event.target.value)}
@@ -417,7 +417,7 @@ export default function AdminShopImportPage() {
                   className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                 />
               </Field>
-              <Field label="Supplier / source">
+              <Field label="Постачальник / джерело">
                 <input
                   value={supplierName}
                   onChange={(event) => setSupplierName(event.target.value)}
@@ -425,13 +425,13 @@ export default function AdminShopImportPage() {
                   className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                 />
               </Field>
-              <Field label="Template">
+              <Field label="Шаблон">
                 <select
                   value={selectedTemplateId}
                   onChange={(event) => setSelectedTemplateId(event.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:border-white/30 focus:outline-none"
                 >
-                  <option value="">No template</option>
+                  <option value="">Без шаблону</option>
                   {templates.map((template) => (
                     <option key={template.id} value={template.id}>
                       {template.name}
@@ -442,7 +442,7 @@ export default function AdminShopImportPage() {
             </div>
 
             <div className="mt-4">
-              <Field label="Conflict mode">
+              <Field label="Режим при конфлікті">
                 <div className="grid gap-2 md:grid-cols-3">
                   {(Object.keys(CONFLICT_MODE_COPY) as ImportConflictMode[]).map((mode) => (
                     <button
@@ -464,13 +464,13 @@ export default function AdminShopImportPage() {
             </div>
 
             <div className="mt-4">
-              <Field label="CSV payload">
+              <Field label="Вміст CSV">
                 <textarea
                   value={csvText}
                   onChange={(event) => setCsvText(event.target.value)}
                   rows={18}
                   className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-3 py-3 font-mono text-xs text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
-                  placeholder="Paste Shopify CSV here or upload a file."
+                  placeholder="Вставте сюди CSV (формат Shopify) або завантажте файл."
                 />
               </Field>
             </div>
@@ -483,7 +483,7 @@ export default function AdminShopImportPage() {
                 className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-zinc-800 px-4 py-2.5 text-sm text-white transition hover:bg-zinc-700 disabled:opacity-50"
               >
                 <FileCheck className="h-4 w-4" />
-                {loading ? 'Working…' : 'Dry run'}
+                {loading ? 'Виконуємо…' : 'Пробний прогон'}
               </button>
               <button
                 type="button"
@@ -492,7 +492,7 @@ export default function AdminShopImportPage() {
                 className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white/90 disabled:opacity-50"
               >
                 <CheckCircle2 className="h-4 w-4" />
-                {loading ? 'Working…' : 'Commit import'}
+                {loading ? 'Виконуємо…' : 'Виконати імпорт'}
               </button>
             </div>
           </section>
@@ -501,7 +501,7 @@ export default function AdminShopImportPage() {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-white">
                 <Save className="h-4 w-4" />
-                <h3 className="text-lg font-medium">Import templates</h3>
+                <h3 className="text-lg font-medium">Шаблони імпорту</h3>
               </div>
               <button
                 type="button"
@@ -509,14 +509,14 @@ export default function AdminShopImportPage() {
                 className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-3 py-2 text-sm text-white transition hover:bg-zinc-700"
               >
                 <Plus className="h-4 w-4" />
-                New
+                Новий
               </button>
             </div>
 
             <div className="mt-4 space-y-3">
               {templates.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-sm text-white/45">
-                  No templates yet. Add one for supplier-specific column remapping.
+                  Шаблонів ще немає. Додайте шаблон для мапінгу колонок по постачальнику.
                 </div>
               ) : (
                 templates.map((template) => (
@@ -536,7 +536,7 @@ export default function AdminShopImportPage() {
                           {template.name}
                         </button>
                         <div className="mt-1 text-xs text-white/45">
-                          {(template.supplierName || 'No supplier') + ' · ' + template.defaultConflictMode}
+                          {(template.supplierName || 'Без постачальника') + ' · ' + template.defaultConflictMode}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -545,7 +545,7 @@ export default function AdminShopImportPage() {
                           onClick={() => editTemplate(template)}
                           className="rounded-lg border border-white/10 px-2 py-1 text-xs text-white/70 transition hover:border-white/25 hover:text-white"
                         >
-                          Edit
+                          Редагувати
                         </button>
                         <button
                           type="button"
@@ -553,7 +553,7 @@ export default function AdminShopImportPage() {
                           disabled={deletingTemplateId === template.id}
                           className="rounded-lg border border-red-500/25 px-2 py-1 text-xs text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
                         >
-                          Delete
+                          Видалити
                         </button>
                       </div>
                     </div>
@@ -564,10 +564,10 @@ export default function AdminShopImportPage() {
 
             <div className="mt-5 rounded-2xl border border-white/10 bg-zinc-950/40 p-4">
               <div className="text-sm font-medium text-white">
-                {templateDraft.id ? 'Edit template' : 'Create template'}
+                {templateDraft.id ? 'Редагувати шаблон' : 'Створити шаблон'}
               </div>
               <div className="mt-4 grid gap-4">
-                <Field label="Template name">
+                <Field label="Назва шаблону">
                   <input
                     value={templateDraft.name}
                     onChange={(event) => setTemplateDraftField('name', event.target.value)}
@@ -575,7 +575,7 @@ export default function AdminShopImportPage() {
                     className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                   />
                 </Field>
-                <Field label="Supplier name">
+                <Field label="Назва постачальника">
                   <input
                     value={templateDraft.supplierName}
                     onChange={(event) => setTemplateDraftField('supplierName', event.target.value)}
@@ -583,7 +583,7 @@ export default function AdminShopImportPage() {
                     className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                   />
                 </Field>
-                <Field label="Default conflict mode">
+                <Field label="Режим при конфлікті за замовч.">
                   <select
                     value={templateDraft.defaultConflictMode}
                     onChange={(event) =>
@@ -598,27 +598,27 @@ export default function AdminShopImportPage() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Notes">
+                <Field label="Примітки">
                   <textarea
                     value={templateDraft.notes}
                     onChange={(event) => setTemplateDraftField('notes', event.target.value)}
                     rows={3}
                     className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
-                    placeholder="Use this template when supplier headers differ from canonical Shopify export headers."
+                    placeholder="Використовуйте цей шаблон, коли назви колонок постачальника відрізняються від стандартного експорту Shopify."
                   />
                 </Field>
 
                 <div>
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <span className="text-xs uppercase tracking-[0.2em] text-white/45">
-                      Header mapping
+                      Мапінг колонок
                     </span>
                     <button
                       type="button"
                       onClick={addMappingRow}
                       className="rounded-lg border border-white/10 px-2 py-1 text-xs text-white/70 transition hover:border-white/25 hover:text-white"
                     >
-                      Add row
+                      Додати рядок
                     </button>
                   </div>
                   <div className="space-y-2">
@@ -627,13 +627,13 @@ export default function AdminShopImportPage() {
                         <input
                           value={row.source}
                           onChange={(event) => updateMappingRow(row.id, { source: event.target.value })}
-                          placeholder="Source column"
+                          placeholder="Колонка в CSV"
                           className="rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                         />
                         <input
                           value={row.target}
                           onChange={(event) => updateMappingRow(row.id, { target: event.target.value })}
-                          placeholder="Canonical Shopify column"
+                          placeholder="Поле в системі (Shopify)"
                           className="rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                         />
                         <button
@@ -656,7 +656,7 @@ export default function AdminShopImportPage() {
                     className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white/90 disabled:opacity-50"
                   >
                     <Save className="h-4 w-4" />
-                    {savingTemplate ? 'Saving…' : templateDraft.id ? 'Save template' : 'Create template'}
+                    {savingTemplate ? 'Зберігаємо…' : templateDraft.id ? 'Зберегти шаблон' : 'Створити шаблон'}
                   </button>
                   {templateDraft.id ? (
                     <button
@@ -664,7 +664,7 @@ export default function AdminShopImportPage() {
                       onClick={resetTemplateDraft}
                       className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-white/70 transition hover:border-white/25 hover:text-white"
                     >
-                      Cancel edit
+                      Скасувати редагування
                     </button>
                   ) : null}
                 </div>
@@ -677,13 +677,13 @@ export default function AdminShopImportPage() {
           <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
             <div className="flex items-center gap-2 text-white">
               <FileClock className="h-4 w-4" />
-              <h3 className="text-lg font-medium">Import jobs</h3>
+              <h3 className="text-lg font-medium">Історія імпортів</h3>
             </div>
 
             <div className="mt-5 space-y-3">
               {jobs.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-sm text-white/45">
-                  No import jobs yet.
+                  Імпортів поки немає.
                 </div>
               ) : (
                 jobs.map((job) => (
@@ -706,24 +706,24 @@ export default function AdminShopImportPage() {
                           {job.action.replace('_', ' ')} · {job.status}
                         </div>
                         <div className="mt-2 text-sm font-medium text-white">
-                          {job.sourceFilename || 'Untitled import'}
+                          {job.sourceFilename || 'Імпорт без назви'}
                         </div>
                         <div className="mt-1 text-xs text-white/45">
-                          {(job.template?.name || 'No template') + ' · ' + job.conflictMode}
+                          {(job.template?.name || 'Без шаблону') + ' · ' + job.conflictMode}
                         </div>
                       </div>
                       <div className="text-right text-xs text-white/45">
                         <div>{new Date(job.createdAt).toLocaleString()}</div>
                         <div className="mt-1">
-                          {job.createdCount} created · {job.updatedCount} updated
+                          {job.createdCount} створено · {job.updatedCount} оновлено
                         </div>
                       </div>
                     </div>
                     <div className="mt-3 grid grid-cols-4 gap-2 text-xs text-white/60">
-                      <MetricBox label="Rows" value={job.totalRows} />
-                      <MetricBox label="Products" value={job.productsCount} />
-                      <MetricBox label="Valid" value={job.validProducts} />
-                      <MetricBox label="Errors" value={job.errorCount} />
+                      <MetricBox label="Рядків" value={job.totalRows} />
+                      <MetricBox label="Товарів" value={job.productsCount} />
+                      <MetricBox label="Валідних" value={job.validProducts} />
+                      <MetricBox label="Помилок" value={job.errorCount} />
                     </div>
                   </button>
                 ))
@@ -734,49 +734,49 @@ export default function AdminShopImportPage() {
           <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
             <div className="flex items-center gap-2 text-white">
               <FileCheck className="h-4 w-4" />
-              <h3 className="text-lg font-medium">Job detail</h3>
+              <h3 className="text-lg font-medium">Деталі імпорту</h3>
             </div>
 
             {!selectedJob ? (
               <div className="mt-5 rounded-2xl border border-dashed border-white/10 px-4 py-8 text-sm text-white/45">
-                Select an import job to inspect summary, detected columns and row-level errors.
+                Оберіть імпорт зі списку, щоб переглянути підсумок, виявлені колонки та помилки по рядках.
               </div>
             ) : (
               <div className="mt-5 space-y-5">
                 <div className="grid gap-3 md:grid-cols-4">
-                  <MetricCard label="Rows" value={selectedJob.totalRows} />
-                  <MetricCard label="Products" value={selectedJob.productsCount} />
-                  <MetricCard label="Variants" value={selectedJob.variantsCount} />
-                  <MetricCard label="Errors" value={selectedJob.errorCount} />
+                  <MetricCard label="Рядків" value={selectedJob.totalRows} />
+                  <MetricCard label="Товарів" value={selectedJob.productsCount} />
+                  <MetricCard label="Варіантів" value={selectedJob.variantsCount} />
+                  <MetricCard label="Помилок" value={selectedJob.errorCount} />
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <InfoPanel
-                    title="Execution"
+                    title="Виконання"
                     rows={[
-                      ['Action', selectedJob.action],
-                      ['Status', selectedJob.status],
-                      ['Conflict mode', selectedJob.conflictMode],
-                      ['Template', selectedJob.template?.name ?? 'No template'],
-                      ['Supplier', selectedJob.supplierName ?? '—'],
-                      ['Actor', selectedJob.actorName || selectedJob.actorEmail],
+                      ['Дія', selectedJob.action],
+                      ['Статус', selectedJob.status],
+                      ['Режим при конфлікті', selectedJob.conflictMode],
+                      ['Шаблон', selectedJob.template?.name ?? 'Без шаблону'],
+                      ['Постачальник', selectedJob.supplierName ?? '—'],
+                      ['Виконавець', selectedJob.actorName || selectedJob.actorEmail],
                     ]}
                   />
                   <InfoPanel
-                    title="Result"
+                    title="Результат"
                     rows={[
-                      ['Valid products', String(selectedJob.validProducts)],
-                      ['Created', String(selectedJob.createdCount)],
-                      ['Updated', String(selectedJob.updatedCount)],
-                      ['Skipped', String(selectedJob.skippedCount)],
-                      ['Errors', String(selectedJob.errorCount)],
-                      ['Created at', new Date(selectedJob.createdAt).toLocaleString()],
+                      ['Валідних товарів', String(selectedJob.validProducts)],
+                      ['Створено', String(selectedJob.createdCount)],
+                      ['Оновлено', String(selectedJob.updatedCount)],
+                      ['Пропущено', String(selectedJob.skippedCount)],
+                      ['Помилок', String(selectedJob.errorCount)],
+                      ['Створено о', new Date(selectedJob.createdAt).toLocaleString()],
                     ]}
                   />
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-4">
-                  <div className="text-sm font-medium text-white">Detected columns</div>
+                  <div className="text-sm font-medium text-white">Виявлені колонки</div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {(selectedJob.columns ?? []).map((column) => (
                       <span
@@ -787,23 +787,23 @@ export default function AdminShopImportPage() {
                       </span>
                     ))}
                     {!selectedJob.columns?.length ? (
-                      <span className="text-sm text-white/45">No column data stored.</span>
+                      <span className="text-sm text-white/45">Дані про колонки не збережено.</span>
                     ) : null}
                   </div>
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-4">
-                  <div className="text-sm font-medium text-white">Row-level errors</div>
-                  {!selectedJob.rowErrors.length ? (
-                    <div className="mt-3 text-sm text-emerald-200">No row-level errors stored for this job.</div>
+<div className="text-sm font-medium text-white">Помилки по рядках</div>
+              {!selectedJob.rowErrors.length ? (
+                <div className="mt-3 text-sm text-emerald-200">Помилок по рядках для цього імпорту не збережено.</div>
                   ) : (
                     <div className="mt-3 overflow-hidden rounded-2xl border border-white/10">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-white/5 text-white/60">
                           <tr>
-                            <th className="px-3 py-2 font-medium">Row</th>
+                            <th className="px-3 py-2 font-medium">Рядок</th>
                             <th className="px-3 py-2 font-medium">Handle</th>
-                            <th className="px-3 py-2 font-medium">Message</th>
+                            <th className="px-3 py-2 font-medium">Повідомлення</th>
                           </tr>
                         </thead>
                         <tbody>

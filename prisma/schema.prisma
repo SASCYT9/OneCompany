@@ -451,6 +451,7 @@ model ShopProductMetafield {
 
 // Order status per AGENTS.md Phase C/D
 enum OrderStatus {
+  PENDING_PAYMENT  // awaiting Stripe (or other) payment
   PENDING_REVIEW
   CONFIRMED
   PROCESSING
@@ -495,6 +496,14 @@ model ShopSettings {
   taxRegions             Json     @default("[]")
   orderNotificationEmail String?
   b2bNotes               String?  @db.Text
+  // Payment: FOP (оплата на ФОП)
+  fopCompanyName         String?
+  fopIban                String?
+  fopBankName            String?
+  fopEdrpou              String?
+  fopDetails             String?  @db.Text
+  stripeEnabled          Boolean  @default(false)
+  whiteBitEnabled        Boolean  @default(false)
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 }
@@ -593,6 +602,9 @@ model ShopOrder {
   status        OrderStatus  @default(PENDING_REVIEW)
   customerId    String?
   customerGroupSnapshot CustomerGroup @default(B2C)
+  // Payment: FOP | STRIPE | WHITEBIT
+  paymentMethod String      @default("FOP")
+  stripeCheckoutSessionId String?  // set when paying via Stripe; webhook confirms
   // Contact (guest checkout)
   email         String
   customerName  String

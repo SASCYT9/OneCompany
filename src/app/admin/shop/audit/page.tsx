@@ -35,7 +35,7 @@ export default function AdminShopAuditPage() {
         const response = await fetch(`/api/admin/shop/audit?${params.toString()}`);
         const data = await response.json().catch(() => []);
         if (!response.ok) {
-          setError((data as { error?: string }).error || 'Failed to load audit log');
+          setError((data as { error?: string }).error || 'Не вдалося завантажити журнал аудиту');
           return;
         }
 
@@ -73,7 +73,7 @@ export default function AdminShopAuditPage() {
     return (
       <div className="p-6 text-white/60 flex items-center gap-2">
         <FileClock className="h-5 w-5 animate-pulse" />
-        Loading audit log…
+        Завантаження журналу аудиту…
       </div>
     );
   }
@@ -87,9 +87,9 @@ export default function AdminShopAuditPage() {
               <ArrowLeft className="h-4 w-4" />
               Back to catalog
             </Link>
-            <h2 className="mt-3 text-2xl font-semibold text-white">Shop audit log</h2>
+            <h2 className="mt-3 text-2xl font-semibold text-white">Журнал аудиту магазину</h2>
             <p className="mt-2 text-sm text-white/45">
-              Trace catalog, inventory, pricing, settings and order operations across the shop admin.
+              Всі дії з каталогом, складом, цінами, налаштуваннями та замовленнями в адмінці магазину.
             </p>
           </div>
           <button
@@ -98,7 +98,7 @@ export default function AdminShopAuditPage() {
             className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
           >
             <RefreshCcw className="h-4 w-4" />
-            Refresh
+            Оновити
           </button>
         </div>
 
@@ -113,13 +113,13 @@ export default function AdminShopAuditPage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-xs text-white/50">Entity type</span>
+            <span className="mb-1.5 block text-xs text-white/50">Тип сутності</span>
             <select
               value={entityType}
               onChange={(event) => setEntityType(event.target.value)}
               className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
             >
-              <option value="">All entity types</option>
+              <option value="">Усі типи</option>
               {entityTypes.map((entry) => (
                 <option key={entry} value={entry}>
                   {entry}
@@ -130,14 +130,14 @@ export default function AdminShopAuditPage() {
         </div>
 
         <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/70">
-          {filteredLogs.length} log entries
+          {filteredLogs.length} записів у журналі
         </div>
 
         {error ? <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
 
         {filteredLogs.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] py-16 text-center text-white/45">
-            No audit events found.
+            Подій аудиту не знайдено.
           </div>
         ) : (
           <div className="space-y-3 pb-6">
@@ -154,8 +154,8 @@ export default function AdminShopAuditPage() {
                   <div className="text-xs text-white/45">{new Date(log.createdAt).toLocaleString()}</div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-3 text-xs text-white/60">
-                  <span>Actor: {log.actorName ? `${log.actorName} · ` : ''}{log.actorEmail}</span>
-                  <span>Scope: {log.scope}</span>
+                  <span>Виконавець: {log.actorName ? `${log.actorName} · ` : ''}{log.actorEmail}</span>
+                  <span>Область: {log.scope}</span>
                 </div>
                 {log.metadata ? (
                   <pre className="mt-3 overflow-x-auto rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-white/65">

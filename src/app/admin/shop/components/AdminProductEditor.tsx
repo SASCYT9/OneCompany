@@ -1441,7 +1441,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <InputField label="Назва (UA) *" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
               <InputField label="Базовий SKU" value={form.sku} onChange={(value) => updateField('sku', value)} />
               <InputField label="Бренд" value={form.brand} onChange={(value) => updateField('brand', value)} />
-              <InputField label="Vendor" value={form.vendor} onChange={(value) => updateField('vendor', value)} />
+              <InputField label="Постачальник" value={form.vendor} onChange={(value) => updateField('vendor', value)} />
               <InputField label="Тип товару" value={form.productType} onChange={(value) => updateField('productType', value)} />
               <SelectField
                 label="Structured category"
@@ -1455,9 +1455,9 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   })),
                 ]}
               />
-              <InputField label="Product category" value={form.productCategory} onChange={(value) => updateField('productCategory', value)} />
-              <InputField label="Category (EN)" value={form.categoryEn} onChange={(value) => updateField('categoryEn', value)} />
-              <InputField label="Category (UA)" value={form.categoryUa} onChange={(value) => updateField('categoryUa', value)} />
+              <InputField label="Категорія товару" value={form.productCategory} onChange={(value) => updateField('productCategory', value)} />
+              <InputField label="Категорія (EN)" value={form.categoryEn} onChange={(value) => updateField('categoryEn', value)} />
+              <InputField label="Категорія (UA)" value={form.categoryUa} onChange={(value) => updateField('categoryUa', value)} />
               <SelectField
                 label="Storefront stock state"
                 value={form.stock}
@@ -1604,22 +1604,22 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             description="Базові ціни для карток у магазині, пошуку та як дефолт для варіантів (B2C і B2B)."
           >
             <div className="grid gap-4 md:grid-cols-3">
-              <InputField label="Price EUR" type="number" step="0.01" value={form.priceEur} onChange={(value) => updateField('priceEur', value)} />
-              <InputField label="Price USD" type="number" step="0.01" value={form.priceUsd} onChange={(value) => updateField('priceUsd', value)} />
-              <InputField label="Price UAH" type="number" step="0.01" value={form.priceUah} onChange={(value) => updateField('priceUah', value)} />
-              <InputField label="Compare-at EUR" type="number" step="0.01" value={form.compareAtEur} onChange={(value) => updateField('compareAtEur', value)} />
-              <InputField label="Compare-at USD" type="number" step="0.01" value={form.compareAtUsd} onChange={(value) => updateField('compareAtUsd', value)} />
-              <InputField label="Compare-at UAH" type="number" step="0.01" value={form.compareAtUah} onChange={(value) => updateField('compareAtUah', value)} />
+              <InputField label="Ціна EUR" type="number" step="0.01" value={form.priceEur} onChange={(value) => updateField('priceEur', value)} />
+              <InputField label="Ціна USD" type="number" step="0.01" value={form.priceUsd} onChange={(value) => updateField('priceUsd', value)} />
+              <InputField label="Ціна UAH" type="number" step="0.01" value={form.priceUah} onChange={(value) => updateField('priceUah', value)} />
+              <InputField label="Порівн. ціна EUR" type="number" step="0.01" value={form.compareAtEur} onChange={(value) => updateField('compareAtEur', value)} />
+              <InputField label="Порівн. ціна USD" type="number" step="0.01" value={form.compareAtUsd} onChange={(value) => updateField('compareAtUsd', value)} />
+              <InputField label="Порівн. ціна UAH" type="number" step="0.01" value={form.compareAtUah} onChange={(value) => updateField('compareAtUah', value)} />
             </div>
             <div className="mt-5 border-t border-white/10 pt-5">
               <div className="mb-3 text-sm font-medium text-white">B2B ціни</div>
               <div className="grid gap-4 md:grid-cols-3">
-                <InputField label="B2B override EUR" type="number" step="0.01" value={form.priceEurB2b} onChange={(value) => updateField('priceEurB2b', value)} />
-                <InputField label="B2B override USD" type="number" step="0.01" value={form.priceUsdB2b} onChange={(value) => updateField('priceUsdB2b', value)} />
-                <InputField label="B2B override UAH" type="number" step="0.01" value={form.priceUahB2b} onChange={(value) => updateField('priceUahB2b', value)} />
-                <InputField label="B2B override compare-at EUR" type="number" step="0.01" value={form.compareAtEurB2b} onChange={(value) => updateField('compareAtEurB2b', value)} />
-                <InputField label="B2B override compare-at USD" type="number" step="0.01" value={form.compareAtUsdB2b} onChange={(value) => updateField('compareAtUsdB2b', value)} />
-                <InputField label="B2B override compare-at UAH" type="number" step="0.01" value={form.compareAtUahB2b} onChange={(value) => updateField('compareAtUahB2b', value)} />
+                <InputField label="B2B (опт) EUR" type="number" step="0.01" value={form.priceEurB2b} onChange={(value) => updateField('priceEurB2b', value)} />
+                <InputField label="B2B (опт) USD" type="number" step="0.01" value={form.priceUsdB2b} onChange={(value) => updateField('priceUsdB2b', value)} />
+                <InputField label="B2B (опт) UAH" type="number" step="0.01" value={form.priceUahB2b} onChange={(value) => updateField('priceUahB2b', value)} />
+                <InputField label="B2B порівн. EUR" type="number" step="0.01" value={form.compareAtEurB2b} onChange={(value) => updateField('compareAtEurB2b', value)} />
+                <InputField label="B2B порівн. USD" type="number" step="0.01" value={form.compareAtUsdB2b} onChange={(value) => updateField('compareAtUsdB2b', value)} />
+                <InputField label="B2B порівн. UAH" type="number" step="0.01" value={form.compareAtUahB2b} onChange={(value) => updateField('compareAtUahB2b', value)} />
               </div>
             </div>
           </EditorCard>
@@ -1629,8 +1629,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             description="SEO‑поля з імпорту Shopify, які напряму мапляться в наш каталог і метадані сторінки."
           >
             <div className="grid gap-4 md:grid-cols-2">
-              <InputField label="SEO title (EN)" value={form.seoTitleEn} onChange={(value) => updateField('seoTitleEn', value)} />
-              <InputField label="SEO title (UA)" value={form.seoTitleUa} onChange={(value) => updateField('seoTitleUa', value)} />
+              <InputField label="SEO заголовок (EN)" value={form.seoTitleEn} onChange={(value) => updateField('seoTitleEn', value)} />
+              <InputField label="SEO заголовок (UA)" value={form.seoTitleUa} onChange={(value) => updateField('seoTitleUa', value)} />
               <TextareaField label="SEO description (EN)" value={form.seoDescriptionEn} onChange={(value) => updateField('seoDescriptionEn', value)} rows={3} />
               <TextareaField label="SEO description (UA)" value={form.seoDescriptionUa} onChange={(value) => updateField('seoDescriptionUa', value)} rows={3} />
             </div>
@@ -1784,10 +1784,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     </div>
                     <div className="grid gap-4 md:grid-cols-4">
                     <div className="md:col-span-2">
-                      <InputField label="Source URL" value={item.src} onChange={(value) => updateMediaSource(index, value)} />
+                      <InputField label="URL джерела" value={item.src} onChange={(value) => updateMediaSource(index, value)} />
                     </div>
-                    <InputField label="Alt text" value={item.altText} onChange={(value) => updateListItem('media', index, { altText: value })} />
-                    <InputField label="Position" type="number" value={item.position} onChange={(value) => updateListItem('media', index, { position: value })} />
+                    <InputField label="Альт текст" value={item.altText} onChange={(value) => updateListItem('media', index, { altText: value })} />
+                    <InputField label="Позиція" type="number" value={item.position} onChange={(value) => updateListItem('media', index, { position: value })} />
                     <SelectField
                       label="Type"
                       value={item.mediaType}
@@ -1825,8 +1825,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             <div className="space-y-4">
               {form.options.map((item, index) => (
                 <div key={item.id ?? `option-${index}`} className="grid gap-4 rounded-xl border border-white/10 bg-black/40 p-4 md:grid-cols-4">
-                  <InputField label="Name" value={item.name} onChange={(value) => updateListItem('options', index, { name: value })} />
-                  <InputField label="Position" type="number" value={item.position} onChange={(value) => updateListItem('options', index, { position: value })} />
+                  <InputField label="Назва" value={item.name} onChange={(value) => updateListItem('options', index, { name: value })} />
+                  <InputField label="Позиція" type="number" value={item.position} onChange={(value) => updateListItem('options', index, { position: value })} />
                   <div className="md:col-span-2">
                     <InputField
                       label="Values"
@@ -1926,21 +1926,21 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     onChange={(value) => setVariantBulk((current) => ({ ...current, priceUah: value }))}
                   />
                   <InputField
-                    label="Bulk B2B override EUR"
+                    label="Масово B2B EUR"
                     type="number"
                     step="0.01"
                     value={variantBulk.priceEurB2b}
                     onChange={(value) => setVariantBulk((current) => ({ ...current, priceEurB2b: value }))}
                   />
                   <InputField
-                    label="Bulk B2B override USD"
+                    label="Масово B2B USD"
                     type="number"
                     step="0.01"
                     value={variantBulk.priceUsdB2b}
                     onChange={(value) => setVariantBulk((current) => ({ ...current, priceUsdB2b: value }))}
                   />
                   <InputField
-                    label="Bulk B2B override UAH"
+                    label="Масово B2B UAH"
                     type="number"
                     step="0.01"
                     value={variantBulk.priceUahB2b}
@@ -1968,21 +1968,21 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     onChange={(value) => setVariantBulk((current) => ({ ...current, compareAtUah: value }))}
                   />
                   <InputField
-                    label="Bulk B2B override compare-at EUR"
+                    label="Масово B2B порівн. EUR"
                     type="number"
                     step="0.01"
                     value={variantBulk.compareAtEurB2b}
                     onChange={(value) => setVariantBulk((current) => ({ ...current, compareAtEurB2b: value }))}
                   />
                   <InputField
-                    label="Bulk B2B override compare-at USD"
+                    label="Масово B2B порівн. USD"
                     type="number"
                     step="0.01"
                     value={variantBulk.compareAtUsdB2b}
                     onChange={(value) => setVariantBulk((current) => ({ ...current, compareAtUsdB2b: value }))}
                   />
                   <InputField
-                    label="Bulk B2B override compare-at UAH"
+                    label="Масово B2B порівн. UAH"
                     type="number"
                     step="0.01"
                     value={variantBulk.compareAtUahB2b}
@@ -2039,9 +2039,9 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     </div>
                   </div>
                   <div className="grid gap-4 md:grid-cols-4">
-                    <InputField label="Title" value={item.title} onChange={(value) => updateListItem('variants', index, { title: value })} />
+                    <InputField label="Назва" value={item.title} onChange={(value) => updateListItem('variants', index, { title: value })} />
                     <InputField label="SKU" value={item.sku} onChange={(value) => updateListItem('variants', index, { sku: value })} />
-                    <InputField label="Position" type="number" value={item.position} onChange={(value) => updateListItem('variants', index, { position: value })} />
+                    <InputField label="Позиція" type="number" value={item.position} onChange={(value) => updateListItem('variants', index, { position: value })} />
                     <SelectField
                       label="Linked product media"
                       value={form.media.some((mediaItem) => mediaItem.src.trim() && mediaItem.src.trim() === item.image.trim()) ? item.image : '__custom__'}
@@ -2060,14 +2060,14 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                           })),
                       ]}
                     />
-                    <InputField label="Image URL" value={item.image} onChange={(value) => updateListItem('variants', index, { image: value })} />
-                    <InputField label="Option 1 value" value={item.option1Value} onChange={(value) => updateListItem('variants', index, { option1Value: value })} />
-                    <InputField label="Option 1 linked" value={item.option1LinkedTo} onChange={(value) => updateListItem('variants', index, { option1LinkedTo: value })} />
-                    <InputField label="Option 2 value" value={item.option2Value} onChange={(value) => updateListItem('variants', index, { option2Value: value })} />
-                    <InputField label="Option 2 linked" value={item.option2LinkedTo} onChange={(value) => updateListItem('variants', index, { option2LinkedTo: value })} />
-                    <InputField label="Option 3 value" value={item.option3Value} onChange={(value) => updateListItem('variants', index, { option3Value: value })} />
-                    <InputField label="Option 3 linked" value={item.option3LinkedTo} onChange={(value) => updateListItem('variants', index, { option3LinkedTo: value })} />
-                    <InputField label="Inventory qty" type="number" value={item.inventoryQty} onChange={(value) => updateListItem('variants', index, { inventoryQty: value })} />
+                    <InputField label="URL зображення" value={item.image} onChange={(value) => updateListItem('variants', index, { image: value })} />
+                    <InputField label="Опція 1 значення" value={item.option1Value} onChange={(value) => updateListItem('variants', index, { option1Value: value })} />
+                    <InputField label="Опція 1 зв’язок" value={item.option1LinkedTo} onChange={(value) => updateListItem('variants', index, { option1LinkedTo: value })} />
+                    <InputField label="Опція 2 значення" value={item.option2Value} onChange={(value) => updateListItem('variants', index, { option2Value: value })} />
+                    <InputField label="Опція 2 зв’язок" value={item.option2LinkedTo} onChange={(value) => updateListItem('variants', index, { option2LinkedTo: value })} />
+                    <InputField label="Опція 3 значення" value={item.option3Value} onChange={(value) => updateListItem('variants', index, { option3Value: value })} />
+                    <InputField label="Опція 3 зв’язок" value={item.option3LinkedTo} onChange={(value) => updateListItem('variants', index, { option3LinkedTo: value })} />
+                    <InputField label="Кількість на складі" type="number" value={item.inventoryQty} onChange={(value) => updateListItem('variants', index, { inventoryQty: value })} />
                     <SelectField
                       label="Inventory policy"
                       value={item.inventoryPolicy}
@@ -2077,25 +2077,25 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                         { label: 'Deny', value: 'DENY' },
                       ]}
                     />
-                    <InputField label="Inventory tracker" value={item.inventoryTracker} onChange={(value) => updateListItem('variants', index, { inventoryTracker: value })} />
-                    <InputField label="Fulfillment service" value={item.fulfillmentService} onChange={(value) => updateListItem('variants', index, { fulfillmentService: value })} />
-                    <InputField label="Barcode" value={item.barcode} onChange={(value) => updateListItem('variants', index, { barcode: value })} />
-                    <InputField label="Weight unit" value={item.weightUnit} onChange={(value) => updateListItem('variants', index, { weightUnit: value })} />
-                    <InputField label="Grams" type="number" value={item.grams} onChange={(value) => updateListItem('variants', index, { grams: value })} />
-                    <InputField label="Tax code" value={item.taxCode} onChange={(value) => updateListItem('variants', index, { taxCode: value })} />
-                    <InputField label="Cost per item" type="number" step="0.01" value={item.costPerItem} onChange={(value) => updateListItem('variants', index, { costPerItem: value })} />
-                    <InputField label="Price EUR" type="number" step="0.01" value={item.priceEur} onChange={(value) => updateListItem('variants', index, { priceEur: value })} />
-                    <InputField label="Price USD" type="number" step="0.01" value={item.priceUsd} onChange={(value) => updateListItem('variants', index, { priceUsd: value })} />
-                    <InputField label="Price UAH" type="number" step="0.01" value={item.priceUah} onChange={(value) => updateListItem('variants', index, { priceUah: value })} />
-                    <InputField label="B2B override EUR" type="number" step="0.01" value={item.priceEurB2b} onChange={(value) => updateListItem('variants', index, { priceEurB2b: value })} />
-                    <InputField label="B2B override USD" type="number" step="0.01" value={item.priceUsdB2b} onChange={(value) => updateListItem('variants', index, { priceUsdB2b: value })} />
-                    <InputField label="B2B override UAH" type="number" step="0.01" value={item.priceUahB2b} onChange={(value) => updateListItem('variants', index, { priceUahB2b: value })} />
-                    <InputField label="Compare-at EUR" type="number" step="0.01" value={item.compareAtEur} onChange={(value) => updateListItem('variants', index, { compareAtEur: value })} />
-                    <InputField label="Compare-at USD" type="number" step="0.01" value={item.compareAtUsd} onChange={(value) => updateListItem('variants', index, { compareAtUsd: value })} />
-                    <InputField label="Compare-at UAH" type="number" step="0.01" value={item.compareAtUah} onChange={(value) => updateListItem('variants', index, { compareAtUah: value })} />
-                    <InputField label="B2B override compare-at EUR" type="number" step="0.01" value={item.compareAtEurB2b} onChange={(value) => updateListItem('variants', index, { compareAtEurB2b: value })} />
-                    <InputField label="B2B override compare-at USD" type="number" step="0.01" value={item.compareAtUsdB2b} onChange={(value) => updateListItem('variants', index, { compareAtUsdB2b: value })} />
-                    <InputField label="B2B override compare-at UAH" type="number" step="0.01" value={item.compareAtUahB2b} onChange={(value) => updateListItem('variants', index, { compareAtUahB2b: value })} />
+                    <InputField label="Відстеження складу" value={item.inventoryTracker} onChange={(value) => updateListItem('variants', index, { inventoryTracker: value })} />
+                    <InputField label="Служба виконання" value={item.fulfillmentService} onChange={(value) => updateListItem('variants', index, { fulfillmentService: value })} />
+                    <InputField label="Штрихкод" value={item.barcode} onChange={(value) => updateListItem('variants', index, { barcode: value })} />
+                    <InputField label="Одиниця ваги" value={item.weightUnit} onChange={(value) => updateListItem('variants', index, { weightUnit: value })} />
+                    <InputField label="Грами" type="number" value={item.grams} onChange={(value) => updateListItem('variants', index, { grams: value })} />
+                    <InputField label="Податковий код" value={item.taxCode} onChange={(value) => updateListItem('variants', index, { taxCode: value })} />
+                    <InputField label="Собівартість" type="number" step="0.01" value={item.costPerItem} onChange={(value) => updateListItem('variants', index, { costPerItem: value })} />
+                    <InputField label="Ціна EUR" type="number" step="0.01" value={item.priceEur} onChange={(value) => updateListItem('variants', index, { priceEur: value })} />
+                    <InputField label="Ціна USD" type="number" step="0.01" value={item.priceUsd} onChange={(value) => updateListItem('variants', index, { priceUsd: value })} />
+                    <InputField label="Ціна UAH" type="number" step="0.01" value={item.priceUah} onChange={(value) => updateListItem('variants', index, { priceUah: value })} />
+                    <InputField label="B2B (опт) EUR" type="number" step="0.01" value={item.priceEurB2b} onChange={(value) => updateListItem('variants', index, { priceEurB2b: value })} />
+                    <InputField label="B2B (опт) USD" type="number" step="0.01" value={item.priceUsdB2b} onChange={(value) => updateListItem('variants', index, { priceUsdB2b: value })} />
+                    <InputField label="B2B (опт) UAH" type="number" step="0.01" value={item.priceUahB2b} onChange={(value) => updateListItem('variants', index, { priceUahB2b: value })} />
+                    <InputField label="Порівн. ціна EUR" type="number" step="0.01" value={item.compareAtEur} onChange={(value) => updateListItem('variants', index, { compareAtEur: value })} />
+                    <InputField label="Порівн. ціна USD" type="number" step="0.01" value={item.compareAtUsd} onChange={(value) => updateListItem('variants', index, { compareAtUsd: value })} />
+                    <InputField label="Порівн. ціна UAH" type="number" step="0.01" value={item.compareAtUah} onChange={(value) => updateListItem('variants', index, { compareAtUah: value })} />
+                    <InputField label="B2B порівн. EUR" type="number" step="0.01" value={item.compareAtEurB2b} onChange={(value) => updateListItem('variants', index, { compareAtEurB2b: value })} />
+                    <InputField label="B2B порівн. USD" type="number" step="0.01" value={item.compareAtUsdB2b} onChange={(value) => updateListItem('variants', index, { compareAtUsdB2b: value })} />
+                    <InputField label="B2B порівн. UAH" type="number" step="0.01" value={item.compareAtUahB2b} onChange={(value) => updateListItem('variants', index, { compareAtUahB2b: value })} />
                   </div>
                   <div className="mt-4 rounded-lg border border-white/10 bg-zinc-950/70 p-3 text-xs text-white/45">
                     {item.image.trim()
@@ -2189,7 +2189,17 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             </EditorCard>
           )}
 
-          <div className="flex flex-wrap gap-3 pb-6">
+          <div className="flex flex-wrap gap-3 pb-6 md:pb-0 hidden md:flex">
+            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
+              <Save className="h-4 w-4" />
+              {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти товар' : 'Створити товар'}
+            </button>
+            <Link href="/admin/shop" className="rounded-lg border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
+              Скасувати
+            </Link>
+          </div>
+          <div className="h-20 md:hidden" aria-hidden />
+          <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-3 border-t border-white/10 bg-zinc-900/95 px-4 py-3 backdrop-blur-sm safe-area-pb md:hidden">
             <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
               <Save className="h-4 w-4" />
               {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти товар' : 'Створити товар'}

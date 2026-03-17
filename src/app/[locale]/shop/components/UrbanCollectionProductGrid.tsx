@@ -39,14 +39,16 @@ function buildPremiumDescription(locale: SupportedLocale, title: { ua: string; e
   return s;
 }
 
-function formatPrice(locale: SupportedLocale, amount: number) {
+function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 'USD' | 'UAH') {
   const formatter = new Intl.NumberFormat(locale === 'ua' ? 'uk-UA' : 'en-US', {
     maximumFractionDigits: 0,
   });
 
-  return locale === 'ua'
-    ? `${formatter.format(amount)} грн`
-    : `EUR ${formatter.format(amount)}`;
+  const formatted = formatter.format(amount);
+  if (locale === 'ua' && currency === 'UAH') {
+    return `${formatted} грн`;
+  }
+  return locale === 'ua' ? `${formatted} ${currency}` : `${currency} ${formatted}`;
 }
 
 function computePricesFromUah(
@@ -168,17 +170,18 @@ export default function UrbanCollectionProductGrid({
                       locale={locale}
                       redirect={false}
                       variant="inline"
+                      productName={localize(locale, product.title)}
                       className="urban-product-grid__add"
                       label={isUa ? 'Додати в кошик' : 'Add to cart'}
                       labelAdded={isUa ? 'Додано' : 'Added'}
                     />
                     <span className="urban-product-grid__price">
                       {currency === 'USD' &&
-                        formatPrice(locale, computed.usd)}
+                        formatPrice(locale, computed.usd, 'USD')}
                       {currency === 'EUR' &&
-                        formatPrice(locale, computed.eur)}
+                        formatPrice(locale, computed.eur, 'EUR')}
                       {currency === 'UAH' &&
-                        formatPrice(locale, computed.uah)}
+                        formatPrice(locale, computed.uah, 'UAH')}
                     </span>
                     <Link
                       href={buildShopProductPath(locale, product)}

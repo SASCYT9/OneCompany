@@ -40,6 +40,7 @@ export default function AdminShopPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'DRAFT' | 'ACTIVE' | 'ARCHIVED'>('ALL');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,14 +48,18 @@ export default function AdminShopPage() {
   }, []);
 
   const filteredProducts = useMemo(() => {
+    let list = products;
+    if (statusFilter !== 'ALL') {
+      list = list.filter((p) => p.status === statusFilter);
+    }
     const needle = query.trim().toLowerCase();
-    if (!needle) return products;
-    return products.filter((product) =>
+    if (!needle) return list;
+    return list.filter((product) =>
       [product.slug, product.titleEn, product.titleUa, product.brand, product.vendor, product.sku]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(needle))
     );
-  }, [products, query]);
+  }, [products, query, statusFilter]);
 
   async function load() {
     setLoading(true);
@@ -115,55 +120,58 @@ export default function AdminShopPage() {
             <h2 className="text-2xl font-semibold text-white">Каталог магазину</h2>
             <p className="mt-2 text-sm text-white/45">
               Усі товари, варіанти та колекції. Тут додаємо / редагуємо товари, а детальне ціноутворення — у розділі
-              <span className="font-medium text-white"> Pricing</span>.
+              <span className="font-medium text-white"> Ціни (B2C/B2B)</span>.
             </p>
+            <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-2 text-xs text-white/55">
+              <span className="font-medium text-white/75">Що робить кожен модуль:</span> Замовлення — перегляд і обробка замовлень; Клієнти — база B2B/B2C; Склад — залишки по варіантах; Ціни — масове ціноутворення; Налаштування — валюти, доставка, податки; Аудит — журнал дій; Категорії — дерево категорій; Колекції — підбірки товарів; Комплекти — збирання комплектів; Медіа — бібліотека зображень; Імпорт CSV — імпорт з мапінгом колонок.
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Link href="/admin/shop/orders" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/orders" title="Перегляд і обробка замовлень клієнтів" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <ShoppingCart className="w-4 h-4" />
               Замовлення
             </Link>
-            <Link href="/admin/shop/customers" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/customers" title="База клієнтів B2B та B2C" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Users className="w-4 h-4" />
               Клієнти
             </Link>
-            <Link href="/admin/shop/inventory" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/inventory" title="Залишки та відстеження по варіантах" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Warehouse className="w-4 h-4" />
               Склад
             </Link>
-            <Link href="/admin/shop/pricing" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/pricing" title="Масове ціноутворення B2C та B2B" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Coins className="w-4 h-4" />
               Ціни (B2C/B2B)
             </Link>
-            <Link href="/admin/shop/settings" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/settings" title="Валюти, зони доставки, податки, B2B" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Settings2 className="w-4 h-4" />
               Налаштування
             </Link>
-            <Link href="/admin/shop/audit" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/audit" title="Журнал дій у магазині" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <FileClock className="w-4 h-4" />
               Аудит
             </Link>
-            <Link href="/admin/shop/categories" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/categories" title="Дерево категорій товарів" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <FolderTree className="w-4 h-4" />
               Категорії
             </Link>
-            <Link href="/admin/shop/collections" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/collections" title="Підбірки та колекції товарів" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Layers3 className="w-4 h-4" />
               Колекції
             </Link>
-            <Link href="/admin/shop/bundles" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/bundles" title="Комплекти з кількох товарів" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Boxes className="w-4 h-4" />
               Комплекти
             </Link>
-            <Link href="/admin/shop/media" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/media" title="Бібліотека зображень" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <ImageIcon className="w-4 h-4" />
               Медіа
             </Link>
-            <Link href="/admin/shop/import" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/import" title="Імпорт товарів з CSV і мапінг колонок" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Upload className="w-4 h-4" />
               Імпорт CSV
             </Link>
-            <Link href="/admin/shop/new" className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
+            <Link href="/admin/shop/new" title="Створити новий товар" className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
               <Plus className="w-4 h-4" />
               Новий товар
             </Link>
@@ -176,7 +184,18 @@ export default function AdminShopPage() {
             <div>{products.reduce((sum, item) => sum + item.variantsCount, 0)} варіантів</div>
             <div>{products.filter((item) => item.isPublished).length} опубліковано</div>
           </div>
-          <label className="flex min-w-[260px] items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as 'ALL' | 'DRAFT' | 'ACTIVE' | 'ARCHIVED')}
+              className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white"
+            >
+              <option value="ALL">Усі статуси</option>
+              <option value="ACTIVE">Активні</option>
+              <option value="DRAFT">Чернетки</option>
+              <option value="ARCHIVED">Архів</option>
+            </select>
+            <label className="flex min-w-[260px] items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
             <Search className="h-4 w-4 text-white/35" />
             <input
               value={query}
@@ -184,25 +203,26 @@ export default function AdminShopPage() {
               placeholder="Пошук за slug, назвою, брендом, SKU"
               className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
             />
-          </label>
+            </label>
+          </div>
         </div>
 
         {error && <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div>}
 
         <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-xs text-white/55 space-y-1">
           <p className="font-medium text-white/80">Як працювати з каталогом:</p>
-          <p>• <span className="font-semibold text-white">Редагувати товар</span> — клік по назві або кнопка «Edit» у стовпчику дій.</p>
+          <p>• <span className="font-semibold text-white">Редагувати товар</span> — клік по назві або іконка олівця у стовпчику дій.</p>
           <p>• <span className="font-semibold text-white">Ціни B2C / B2B</span> — окремий розділ «Ціни (B2C/B2B)», де можна масово змінювати ціни за варіантами.</p>
           <p>• <span className="font-semibold text-white">Видалення</span> — іконка кошика. Перед повним видаленням бажано мати актуальний бекап БД.</p>
         </div>
 
         {filteredProducts.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
-            No products found. Import a Shopify CSV or add one manually.
+            Товарів не знайдено. Імпортуйте CSV або додайте товар вручну.
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-white/10">
-            <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto rounded-2xl border border-white/10">
+            <table className="w-full min-w-[800px] text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
                   <th className="px-4 py-3 text-white/60 font-medium">Товар</th>
@@ -246,12 +266,12 @@ export default function AdminShopPage() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-white/80">{product.status}</div>
-                      <div className="mt-1 text-xs text-white/45">{product.isPublished ? 'Published' : 'Hidden'}</div>
+                      <div className="mt-1 text-xs text-white/45">{product.isPublished ? 'Опубліковано' : 'Приховано'}</div>
                     </td>
                     <td className="px-4 py-4 text-white/70">
-                      <div>{product.variantsCount} variants</div>
+                      <div>{product.variantsCount} варіантів</div>
                       <div className="mt-1 text-xs text-white/45">
-                        {product.mediaCount} media · {product.collectionsCount} collections · {product.stock}
+                        {product.mediaCount} медіа · {product.collectionsCount} колекцій · {product.stock}
                       </div>
                     </td>
                     <td className="px-4 py-4 text-white/70">{priceLabel(product)}</td>
@@ -260,7 +280,7 @@ export default function AdminShopPage() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
-                        <Link href={`/admin/shop/${product.id}`} className="rounded border border-white/20 p-1.5 text-white/80 hover:bg-white/10" title="Edit">
+                        <Link href={`/admin/shop/${product.id}`} className="rounded border border-white/20 p-1.5 text-white/80 hover:bg-white/10" title="Редагувати">
                           <Pencil className="h-4 w-4" />
                         </Link>
                         <button
@@ -268,7 +288,7 @@ export default function AdminShopPage() {
                           onClick={() => handleDelete(product.id)}
                           disabled={deletingId === product.id}
                           className="rounded border border-red-500/30 p-1.5 text-red-400 hover:bg-red-500/10 disabled:opacity-50"
-                          title="Delete"
+                          title="Видалити"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

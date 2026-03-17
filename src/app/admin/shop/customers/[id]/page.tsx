@@ -265,12 +265,12 @@ export default function AdminShopCustomerDetailPage() {
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
               <h3 className="mb-4 text-lg font-medium text-white">Profile</h3>
               <div className="grid gap-4 md:grid-cols-2">
-                <InputField label="First name" value={form.firstName} onChange={(value) => setForm((current) => current ? { ...current, firstName: value } : current)} />
+                <InputField label="Ім'я" value={form.firstName} onChange={(value) => setForm((current) => current ? { ...current, firstName: value } : current)} />
                 <InputField label="Last name" value={form.lastName} onChange={(value) => setForm((current) => current ? { ...current, lastName: value } : current)} />
-                <InputField label="Phone" value={form.phone} onChange={(value) => setForm((current) => current ? { ...current, phone: value } : current)} />
-                <InputField label="Company" value={form.companyName} onChange={(value) => setForm((current) => current ? { ...current, companyName: value } : current)} />
-                <InputField label="VAT number" value={form.vatNumber} onChange={(value) => setForm((current) => current ? { ...current, vatNumber: value } : current)} />
-                <InputField label="B2B discount %" value={form.b2bDiscountPercent} onChange={(value) => setForm((current) => current ? { ...current, b2bDiscountPercent: value } : current)} />
+                <InputField label="Телефон" value={form.phone} onChange={(value) => setForm((current) => current ? { ...current, phone: value } : current)} />
+                <InputField label="Компанія" value={form.companyName} onChange={(value) => setForm((current) => current ? { ...current, companyName: value } : current)} />
+                <InputField label="ІПН" value={form.vatNumber} onChange={(value) => setForm((current) => current ? { ...current, vatNumber: value } : current)} />
+                <InputField label="Знижка B2B %" value={form.b2bDiscountPercent} onChange={(value) => setForm((current) => current ? { ...current, b2bDiscountPercent: value } : current)} />
                 <label className="block">
                   <span className="mb-1.5 block text-xs text-white/50">Preferred locale</span>
                   <select

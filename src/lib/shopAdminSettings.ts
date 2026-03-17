@@ -37,6 +37,13 @@ export type ShopSettingsRuntime = {
   taxRegions: ShopTaxRegion[];
   orderNotificationEmail: string | null;
   b2bNotes: string | null;
+  fopCompanyName: string | null;
+  fopIban: string | null;
+  fopBankName: string | null;
+  fopEdrpou: string | null;
+  fopDetails: string | null;
+  stripeEnabled: boolean;
+  whiteBitEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -52,6 +59,13 @@ export type ShopSettingsRecord = {
   taxRegions: Prisma.JsonValue;
   orderNotificationEmail: string | null;
   b2bNotes: string | null;
+  fopCompanyName: string | null;
+  fopIban: string | null;
+  fopBankName: string | null;
+  fopEdrpou: string | null;
+  fopDetails: string | null;
+  stripeEnabled: boolean;
+  whiteBitEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -66,6 +80,13 @@ export type ShopSettingsPayload = {
   taxRegions: Array<Record<string, unknown>>;
   orderNotificationEmail: string | null;
   b2bNotes: string | null;
+  fopCompanyName: string | null;
+  fopIban: string | null;
+  fopBankName: string | null;
+  fopEdrpou: string | null;
+  fopDetails: string | null;
+  stripeEnabled: boolean;
+  whiteBitEnabled: boolean;
 };
 
 export const DEFAULT_CURRENCY_RATES: Record<ShopCurrencyCode, number> = {
@@ -258,6 +279,13 @@ export function normalizeShopSettingsPayload(input: unknown) {
     taxRegions: normalizeShopTaxRegions(source.taxRegions),
     orderNotificationEmail: nullableString(source.orderNotificationEmail),
     b2bNotes: nullableString(source.b2bNotes),
+    fopCompanyName: nullableString(source.fopCompanyName),
+    fopIban: nullableString(source.fopIban),
+    fopBankName: nullableString(source.fopBankName),
+    fopEdrpou: nullableString(source.fopEdrpou),
+    fopDetails: nullableString(source.fopDetails),
+    stripeEnabled: source.stripeEnabled === true,
+    whiteBitEnabled: source.whiteBitEnabled === true,
   };
 
   if (!payload.enabledCurrencies.length) {
@@ -307,6 +335,13 @@ export function buildShopSettingsRuntimeFromPayload(
     taxRegions: normalizeShopTaxRegions(payload.taxRegions),
     orderNotificationEmail: payload.orderNotificationEmail,
     b2bNotes: payload.b2bNotes,
+    fopCompanyName: payload.fopCompanyName,
+    fopIban: payload.fopIban,
+    fopBankName: payload.fopBankName,
+    fopEdrpou: payload.fopEdrpou,
+    fopDetails: payload.fopDetails,
+    stripeEnabled: payload.stripeEnabled,
+    whiteBitEnabled: payload.whiteBitEnabled,
     createdAt: overrides?.createdAt ?? new Date(),
     updatedAt: overrides?.updatedAt ?? new Date(),
   };
@@ -324,6 +359,13 @@ export function getShopSettingsRuntime(record: ShopSettingsRecord): ShopSettings
       taxRegions: record.taxRegions,
       orderNotificationEmail: record.orderNotificationEmail,
       b2bNotes: record.b2bNotes,
+      fopCompanyName: record.fopCompanyName,
+      fopIban: record.fopIban,
+      fopBankName: record.fopBankName,
+      fopEdrpou: record.fopEdrpou,
+      fopDetails: record.fopDetails,
+      stripeEnabled: record.stripeEnabled,
+      whiteBitEnabled: record.whiteBitEnabled,
     }),
     {
       key: record.key,
@@ -346,6 +388,13 @@ export function serializeShopSettings(record: ShopSettingsRecord) {
     taxRegions: runtime.taxRegions,
     orderNotificationEmail: runtime.orderNotificationEmail,
     b2bNotes: runtime.b2bNotes,
+    fopCompanyName: runtime.fopCompanyName,
+    fopIban: runtime.fopIban,
+    fopBankName: runtime.fopBankName,
+    fopEdrpou: runtime.fopEdrpou,
+    fopDetails: runtime.fopDetails,
+    stripeEnabled: runtime.stripeEnabled,
+    whiteBitEnabled: runtime.whiteBitEnabled,
     createdAt: runtime.createdAt.toISOString(),
     updatedAt: runtime.updatedAt.toISOString(),
   };
@@ -363,6 +412,8 @@ export async function getOrCreateShopSettings(prisma: PrismaClient) {
       currencyRates: DEFAULT_CURRENCY_RATES,
       shippingZones: DEFAULT_SHIPPING_ZONES,
       taxRegions: DEFAULT_TAX_REGIONS,
+      stripeEnabled: false,
+      whiteBitEnabled: false,
     },
     update: {},
   });

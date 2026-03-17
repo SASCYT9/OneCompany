@@ -51,6 +51,13 @@ export async function PATCH(request: NextRequest) {
         taxRegions: payload.taxRegions as Prisma.InputJsonValue,
         orderNotificationEmail: payload.orderNotificationEmail,
         b2bNotes: payload.b2bNotes,
+        fopCompanyName: payload.fopCompanyName,
+        fopIban: payload.fopIban,
+        fopBankName: payload.fopBankName,
+        fopEdrpou: payload.fopEdrpou,
+        fopDetails: payload.fopDetails,
+        stripeEnabled: payload.stripeEnabled,
+        whiteBitEnabled: payload.whiteBitEnabled,
       },
       update: {
         b2bVisibilityMode: payload.b2bVisibilityMode,
@@ -62,6 +69,13 @@ export async function PATCH(request: NextRequest) {
         taxRegions: payload.taxRegions as Prisma.InputJsonValue,
         orderNotificationEmail: payload.orderNotificationEmail,
         b2bNotes: payload.b2bNotes,
+        fopCompanyName: payload.fopCompanyName,
+        fopIban: payload.fopIban,
+        fopBankName: payload.fopBankName,
+        fopEdrpou: payload.fopEdrpou,
+        fopDetails: payload.fopDetails,
+        stripeEnabled: payload.stripeEnabled,
+        whiteBitEnabled: payload.whiteBitEnabled,
       },
     });
     await writeAdminAuditLog(prisma, session, {

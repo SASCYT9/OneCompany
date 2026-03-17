@@ -43,6 +43,17 @@ type CheckoutQuote = {
   taxRegion: { id: string; name: string; rate?: number } | null;
 };
 
+type PaymentOptions = {
+  methods: Array<'FOP' | 'STRIPE' | 'WHITEBIT'>;
+  fopDetails: {
+    companyName: string | null;
+    iban: string | null;
+    bankName: string | null;
+    edrpou: string | null;
+    details: string | null;
+  } | null;
+};
+
 export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale }) {
   const router = useRouter();
   const isUa = locale === 'ua';
@@ -65,7 +76,9 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
     postcode: '',
     country: isUa ? 'Ukraine' : '',
     currency: isUa ? 'UAH' : 'EUR',
+    paymentMethod: 'FOP' as 'FOP' | 'STRIPE' | 'WHITEBIT',
   });
+  const [paymentOptions, setPaymentOptions] = useState<PaymentOptions | null>(null);
 
   const checkoutTrackedRef = useRef(false);
   const quoteRequestRef = useRef(0);
@@ -79,9 +92,11 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           return response.ok ? (data as AccountProfile) : null;
         })
         .catch(() => null),
+      fetch('/api/shop/checkout/payment-options').then((r) => r.json()).catch(() => ({ methods: ['FOP'], fopDetails: null })),
     ])
-      .then(([cartData, accountData]) => {
+      .then(([cartData, accountData, paymentOpts]) => {
         setCart(cartData);
+        setPaymentOptions(paymentOpts as PaymentOptions);
         if (accountData) {
           setForm((current) => ({
             ...current,
@@ -181,11 +196,16 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           },
           currency: form.currency,
           locale,
+          paymentMethod: form.paymentMethod,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error || (isUa ? 'Помилка оформлення' : 'Checkout failed'));
+        return;
+      }
+      if (data.redirectUrl) {
+        window.location.href = data.redirectUrl;
         return;
       }
       router.push(`/${locale}/shop/checkout/success?order=${encodeURIComponent(data.orderNumber)}&token=${encodeURIComponent(data.viewToken)}`);
@@ -334,6 +354,56 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
               <option value="USD">USD</option>
               <option value="UAH">UAH</option>
             </select>
+          </div>
+
+          <div>
+            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-white/55">
+              {isUa ? 'Спосіб оплати' : 'Payment method'}
+            </h2>
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/25 px-4 py-3 transition hover:bg-white/5 has-[:checked]:border-white/30 has-[:checked]:bg-white/10">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="FOP"
+                  checked={form.paymentMethod === 'FOP'}
+                  onChange={() => setForm((f) => ({ ...f, paymentMethod: 'FOP' }))}
+                  className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50"
+                />
+                <span className="text-white/90">{isUa ? 'Оплата на ФОП (реквізити)' : 'Payment to company (bank details)'}</span>
+              </label>
+              {paymentOptions?.methods.includes('STRIPE') && (
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/25 px-4 py-3 transition hover:bg-white/5 has-[:checked]:border-white/30 has-[:checked]:bg-white/10">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="STRIPE"
+                    checked={form.paymentMethod === 'STRIPE'}
+                    onChange={() => setForm((f) => ({ ...f, paymentMethod: 'STRIPE' }))}
+                    className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50"
+                  />
+                  <span className="text-white/90">Stripe (картка)</span>
+                </label>
+              )}
+              {paymentOptions?.methods.includes('WHITEBIT') && (
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/25 px-4 py-3 transition hover:bg-white/5 has-[:checked]:border-white/30 has-[:checked]:bg-white/10">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="WHITEBIT"
+                    checked={form.paymentMethod === 'WHITEBIT'}
+                    onChange={() => setForm((f) => ({ ...f, paymentMethod: 'WHITEBIT' }))}
+                    className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50"
+                  />
+                  <span className="text-white/90">White Bit</span>
+                </label>
+              )}
+              {!paymentOptions?.methods.includes('STRIPE') && !paymentOptions?.methods.includes('WHITEBIT') && (
+                <p className="text-xs text-white/40">
+                  {isUa ? 'Stripe та White Bit будуть доступні після налаштування.' : 'Stripe and White Bit will be available after setup.'}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-black/25 p-5">

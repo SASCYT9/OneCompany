@@ -117,7 +117,7 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
         const response = await fetch('/api/admin/shop/categories');
         const data = await response.json().catch(() => []);
         if (!response.ok) {
-          throw new Error((data as { error?: string }).error || 'Failed to load categories');
+          throw new Error((data as { error?: string }).error || 'Не вдалося завантажити категорії');
         }
         if (!cancelled) {
           setAvailableParents(Array.isArray(data) ? (data as CategoryOption[]) : []);
@@ -151,7 +151,7 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
         const response = await fetch(`/api/admin/shop/categories/${categoryId}`);
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error((data as { error?: string }).error || 'Failed to load category');
+          throw new Error((data as { error?: string }).error || 'Не вдалося завантажити категорію');
         }
         if (!cancelled) {
           const category = data as CategoryResponse;
@@ -220,10 +220,10 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error((data as { error?: string }).error || 'Failed to save category');
+        throw new Error((data as { error?: string }).error || 'Не вдалося зберегти категорію');
       }
 
-      setSuccess(isEditing ? 'Category updated.' : 'Category created.');
+      setSuccess(isEditing ? 'Категорію оновлено.' : 'Категорію створено.');
       if (!isEditing) {
         router.push('/admin/shop/categories');
         router.refresh();
@@ -246,7 +246,7 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
   }
 
   if (loading) {
-    return <div className="p-6 text-white/60">Loading category…</div>;
+    return <div className="p-6 text-white/60">Завантаження категорії…</div>;
   }
 
   return (
@@ -256,10 +256,10 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
           <div>
             <Link href="/admin/shop/categories" className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white">
               <ArrowLeft className="h-4 w-4" />
-              Back to categories
+              Назад до категорій
             </Link>
             <h1 className="mt-3 text-3xl font-semibold text-white">
-              {isEditing ? 'Edit category' : 'New category'}
+              {isEditing ? 'Редагувати категорію' : 'Нова категорія'}
             </h1>
             <p className="mt-2 text-sm text-white/45">
               Structured product categories for catalog filters, sync and future storefront navigation.
@@ -277,11 +277,11 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
               <p className="mt-1 text-sm text-white/45">Category identity, tree placement and publish state.</p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <InputField label="Title (EN)" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
-              <InputField label="Title (UA)" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
+              <InputField label="Назва (EN)" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
+              <InputField label="Назва (UA)" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
               <InputField label="Slug" value={form.slug} onChange={(value) => updateField('slug', slugify(value))} />
               <SelectField
-                label="Parent category"
+                label="Батьківська категорія"
                 value={form.parentId}
                 onChange={(value) => updateField('parentId', value)}
                 options={[
@@ -294,10 +294,10 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
                     })),
                 ]}
               />
-              <InputField label="Sort order" type="number" value={form.sortOrder} onChange={(value) => updateField('sortOrder', value)} />
+              <InputField label="Порядок сортування" type="number" value={form.sortOrder} onChange={(value) => updateField('sortOrder', value)} />
             </div>
             <div className="mt-4 flex flex-wrap gap-6">
-              <CheckboxField label="Published" checked={form.isPublished} onChange={(checked) => updateField('isPublished', checked)} />
+              <CheckboxField label="Опубліковано" checked={form.isPublished} onChange={(checked) => updateField('isPublished', checked)} />
             </div>
           </section>
 
@@ -307,8 +307,8 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
               <p className="mt-1 text-sm text-white/45">Optional localized copy for future storefront category pages.</p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <TextareaField label="Description (EN)" value={form.descriptionEn} onChange={(value) => updateField('descriptionEn', value)} rows={6} />
-              <TextareaField label="Description (UA)" value={form.descriptionUa} onChange={(value) => updateField('descriptionUa', value)} rows={6} />
+              <TextareaField label="Опис (EN)" value={form.descriptionEn} onChange={(value) => updateField('descriptionEn', value)} rows={6} />
+              <TextareaField label="Опис (UA)" value={form.descriptionUa} onChange={(value) => updateField('descriptionUa', value)} rows={6} />
             </div>
           </section>
 
@@ -371,10 +371,10 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
           <div className="flex flex-wrap gap-3 pb-6">
             <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
               <Save className="h-4 w-4" />
-              {saving ? 'Saving…' : isEditing ? 'Save category' : 'Create category'}
+              {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти категорію' : 'Створити категорію'}
             </button>
             <Link href="/admin/shop/categories" className="rounded-lg border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
-              Cancel
+              Скасувати
             </Link>
           </div>
         </form>

@@ -113,7 +113,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
         const response = await fetch(`/api/admin/shop/collections/${collectionId}`);
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to load collection');
+          throw new Error(data.error || 'Не вдалося завантажити колекцію');
         }
         if (!cancelled) {
           const collection = data as CollectionResponse;
@@ -183,10 +183,10 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to save collection');
+        throw new Error(data.error || 'Не вдалося зберегти колекцію');
       }
 
-      setSuccess(isEditing ? 'Collection updated.' : 'Collection created.');
+      setSuccess(isEditing ? 'Колекцію оновлено.' : 'Колекцію створено.');
       if (!isEditing) {
         router.push('/admin/shop/collections');
         router.refresh();
@@ -201,7 +201,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
   }
 
   if (loading) {
-    return <div className="p-6 text-white/60">Loading collection…</div>;
+    return <div className="p-6 text-white/60">Завантаження колекції…</div>;
   }
 
   return (
@@ -211,10 +211,10 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
           <div>
             <Link href="/admin/shop/collections" className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white">
               <ArrowLeft className="h-4 w-4" />
-              Back to collections
+              Назад до колекцій
             </Link>
             <h1 className="mt-3 text-3xl font-semibold text-white">
-              {isEditing ? 'Edit collection' : 'New collection'}
+              {isEditing ? 'Редагувати колекцію' : 'Нова колекція'}
             </h1>
             <p className="mt-2 text-sm text-white/45">
               Define collection handle, storefront copy, and assignment target for products.
@@ -232,16 +232,16 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
               <p className="mt-1 text-sm text-white/45">Collection identity used in admin, storefront and sitemap.</p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <InputField label="Title (EN)" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
-              <InputField label="Title (UA)" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
-              <InputField label="Handle" value={form.handle} onChange={(value) => updateField('handle', slugify(value))} />
+              <InputField label="Назва (EN)" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
+              <InputField label="Назва (UA)" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
+              <InputField label="Handle (символний ідентифікатор)" value={form.handle} onChange={(value) => updateField('handle', slugify(value))} />
               <InputField label="Brand" value={form.brand} onChange={(value) => updateField('brand', value)} />
-              <InputField label="Sort order" type="number" value={form.sortOrder} onChange={(value) => updateField('sortOrder', value)} />
-              <InputField label="Hero image URL" value={form.heroImage} onChange={(value) => updateField('heroImage', value)} />
+              <InputField label="Порядок сортування" type="number" value={form.sortOrder} onChange={(value) => updateField('sortOrder', value)} />
+              <InputField label="URL головного зображення" value={form.heroImage} onChange={(value) => updateField('heroImage', value)} />
             </div>
             <div className="mt-4 flex flex-wrap gap-6">
-              <CheckboxField label="Published" checked={form.isPublished} onChange={(checked) => updateField('isPublished', checked)} />
-              <CheckboxField label="Urban collection" checked={form.isUrban} onChange={(checked) => updateField('isUrban', checked)} />
+              <CheckboxField label="Опубліковано" checked={form.isPublished} onChange={(checked) => updateField('isPublished', checked)} />
+              <CheckboxField label="Колекція Urban" checked={form.isUrban} onChange={(checked) => updateField('isUrban', checked)} />
             </div>
           </section>
 
@@ -251,8 +251,8 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
               <p className="mt-1 text-sm text-white/45">Optional collection copy for future landing pages and SEO.</p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <TextareaField label="Description (EN)" value={form.descriptionEn} onChange={(value) => updateField('descriptionEn', value)} rows={6} />
-              <TextareaField label="Description (UA)" value={form.descriptionUa} onChange={(value) => updateField('descriptionUa', value)} rows={6} />
+              <TextareaField label="Опис (EN)" value={form.descriptionEn} onChange={(value) => updateField('descriptionEn', value)} rows={6} />
+              <TextareaField label="Опис (UA)" value={form.descriptionUa} onChange={(value) => updateField('descriptionUa', value)} rows={6} />
             </div>
           </section>
 
@@ -287,10 +287,10 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
           <div className="flex flex-wrap gap-3 pb-6">
             <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
               <Save className="h-4 w-4" />
-              {saving ? 'Saving…' : isEditing ? 'Save collection' : 'Create collection'}
+              {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти колекцію' : 'Створити колекцію'}
             </button>
             <Link href="/admin/shop/collections" className="rounded-lg border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
-              Cancel
+              Скасувати
             </Link>
           </div>
         </form>

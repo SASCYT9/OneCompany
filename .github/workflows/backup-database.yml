@@ -1,0 +1,38 @@
+# Бекап PostgreSQL (Vercel Postgres / Prisma).
+# Запуск: за розкладом (щодня о 03:00 UTC) або вручну (Actions → Backup database → Run workflow).
+# Секрет: DATABASE_URL у GitHub Settings → Secrets (те саме, що для деплою).
+# Артефакти зберігаються 7 днів. Для довгострокового зберігання додайте крок завантаження в S3/R2.
+
+name: Backup database
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+      - name: Create dump
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL secret is not set in repository secrets."
+            exit 1
+          fi
+          mkdir -p backups
+          pg_dump "$DATABASE_URL" --no-owner --no-acl -F p -f "backups/backup-$(date -u +%Y%m%d-%H%M%S).sql"
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgres-backup-${{ github.run_number }}
+          path: backups/
+          retention-days: 7

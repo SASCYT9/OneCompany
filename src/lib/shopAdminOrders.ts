@@ -2,6 +2,7 @@ import { OrderStatus, Prisma, PrismaClient } from '@prisma/client';
 import { serializeAdminShipment } from '@/lib/shopAdminShipments';
 
 export const ALL_ORDER_STATUSES: OrderStatus[] = [
+  'PENDING_PAYMENT',
   'PENDING_REVIEW',
   'CONFIRMED',
   'PROCESSING',
@@ -12,6 +13,7 @@ export const ALL_ORDER_STATUSES: OrderStatus[] = [
 ];
 
 export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  PENDING_PAYMENT: ['CONFIRMED', 'CANCELLED'],
   PENDING_REVIEW: ['CONFIRMED', 'CANCELLED'],
   CONFIRMED: ['PROCESSING', 'CANCELLED'],
   PROCESSING: ['SHIPPED', 'CANCELLED'],

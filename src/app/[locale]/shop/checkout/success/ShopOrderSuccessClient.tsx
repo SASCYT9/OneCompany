@@ -8,6 +8,7 @@ import { trackOrderPlaced } from '@/lib/analytics';
 type OrderData = {
   orderNumber: string;
   status: string;
+  paymentMethod?: string;
   email: string;
   customerName: string;
   currency: string;
@@ -19,10 +20,19 @@ type OrderData = {
   items: Array<{ title: string; quantity: number; total: number }>;
 };
 
+type FopDetails = {
+  companyName: string | null;
+  iban: string | null;
+  bankName: string | null;
+  edrpou: string | null;
+  details: string | null;
+};
+
 type Props = { locale: SupportedLocale; orderNumber?: string | null; token?: string | null };
 
 export default function ShopOrderSuccessClient({ locale, orderNumber, token }: Props) {
   const [order, setOrder] = useState<OrderData | null>(null);
+  const [fopDetails, setFopDetails] = useState<FopDetails | null>(null);
   const [loading, setLoading] = useState(!!(orderNumber && token));
   const [error, setError] = useState('');
   const trackedRef = useRef(false);
@@ -44,6 +54,12 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
         if (!trackedRef.current) {
           trackedRef.current = true;
           trackOrderPlaced(data.orderNumber, data.total, data.currency);
+        }
+        if (data.paymentMethod === 'FOP') {
+          return fetch('/api/shop/checkout/payment-options')
+            .then((r) => r.json())
+            .then((opts: { fopDetails: FopDetails | null }) => setFopDetails(opts.fopDetails ?? null))
+            .catch(() => {});
         }
       })
       .catch(() => setError(isUa ? 'Замовлення не знайдено.' : 'Order not found.'))
@@ -111,6 +127,23 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
               {isUa ? 'Разом' : 'Total'}: {order.currency} {order.total.toFixed(0)}
             </p>
           </div>
+          {order.paymentMethod === 'FOP' && fopDetails && (fopDetails.companyName || fopDetails.iban || fopDetails.details) && (
+            <div className="mt-6 border-t border-white/10 pt-6 text-left">
+              <p className="text-xs uppercase tracking-wider text-white/45">
+                {isUa ? 'Оплата на ФОП — реквізити' : 'Payment to company — details'}
+              </p>
+              <div className="mt-3 space-y-1 text-sm text-white/80 font-mono">
+                {fopDetails.companyName && <p>{fopDetails.companyName}</p>}
+                {fopDetails.iban && <p>IBAN: {fopDetails.iban}</p>}
+                {fopDetails.bankName && <p>{fopDetails.bankName}</p>}
+                {fopDetails.edrpou && <p>ЄДРПОУ: {fopDetails.edrpou}</p>}
+                {fopDetails.details && <p className="mt-2 whitespace-pre-wrap text-white/70">{fopDetails.details}</p>}
+              </div>
+              <p className="mt-2 text-xs text-white/50">
+                {isUa ? 'Оплатіть за цими реквізитами. У призначенні платежу вкажіть номер замовлення.' : 'Pay using these details. Include order number in the payment reference.'}
+              </p>
+            </div>
+          )}
           <Link
             href={`/${locale}/shop/urban/collections`}
             className="mt-8 inline-block rounded-full border border-white/20 bg-white px-6 py-2 text-sm text-black transition hover:bg-white/90"

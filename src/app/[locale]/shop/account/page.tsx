@@ -4,7 +4,11 @@ import type { SupportedLocale } from '@/lib/seo';
 import { buildNoIndexPageMetadata, resolveLocale } from '@/lib/seo';
 import ShopAccountClient from './components/ShopAccountClient';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
-import { serializeShopCustomerProfile, shopCustomerProfileInclude } from '@/lib/shopCustomers';
+import {
+  getOrdersForCustomerDisplay,
+  serializeShopCustomerProfile,
+  shopCustomerProfileIncludeWithoutOrders,
+} from '@/lib/shopCustomers';
 
 const prisma = new PrismaClient();
 
@@ -31,12 +35,15 @@ export default async function ShopAccountPage({ params }: Props) {
 
   const customer = await prisma.shopCustomer.findUnique({
     where: { id: session.customerId },
-    include: shopCustomerProfileInclude,
+    include: shopCustomerProfileIncludeWithoutOrders,
   });
 
   if (!customer) {
     redirect(`/${locale}/shop/account/login`);
   }
 
-  return <ShopAccountClient locale={locale} profile={serializeShopCustomerProfile(customer)} />;
+  const orders = await getOrdersForCustomerDisplay(prisma, customer.id, customer.email);
+  const profile = serializeShopCustomerProfile({ ...customer, orders });
+
+  return <ShopAccountClient locale={locale} profile={profile} />;
 }

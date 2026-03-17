@@ -29,12 +29,17 @@ export function trackEvent(event: string, props?: AnalyticsEventProps) {
       window.gtag('event', event, props);
     }
 
-    // Meta Pixel — map to standard events where possible
+    // Meta Pixel — map to standard events where possible (incl. shop funnel)
     if (typeof window.fbq === 'function') {
       const fbMap: Record<string, string> = {
         form_submit_contact: 'Lead',
         form_submit_partnership: 'Lead',
         cta_click: 'Contact',
+        shop_view_product: 'ViewContent',
+        shop_add_to_cart: 'AddToCart',
+        shop_view_cart: 'ViewContent',
+        shop_begin_checkout: 'InitiateCheckout',
+        shop_order_placed: 'Purchase',
       };
       const fbEvent = fbMap[event];
       if (fbEvent) {

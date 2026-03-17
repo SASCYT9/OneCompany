@@ -473,7 +473,7 @@ export default function AdminShopBundlesPage() {
               </label>
 
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/60">
-                Bundle price and B2B overrides stay on the linked product card. This screen controls only component composition and computed availability.
+                Ціна комплекту та B2B-ціни задаються на картці пов’язаного товару. Тут налаштовуються лише склад комплекту та обчислена доступність.
               </div>
 
               <div className="space-y-3">

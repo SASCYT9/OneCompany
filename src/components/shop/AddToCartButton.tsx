@@ -15,6 +15,8 @@ type Props = {
   className?: string;
   label?: string;
   labelAdded?: string;
+  /** Product name for analytics (view_product / add_to_cart). */
+  productName?: string;
 };
 
 export function AddToCartButton({
@@ -26,6 +28,7 @@ export function AddToCartButton({
   className = '',
   label,
   labelAdded,
+  productName,
 }: Props) {
   const router = useRouter();
   const [adding, setAdding] = useState(false);
@@ -49,7 +52,7 @@ export function AddToCartButton({
         throw new Error('Add to cart failed');
       }
       setAdded(true);
-      trackAddToCart(slug, 1);
+      trackAddToCart(slug, 1, productName);
       if (redirect) router.push(`/${locale}/shop/cart`);
     } catch {
       setAdding(false);

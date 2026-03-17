@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 type OrderStatus =
+  | 'PENDING_PAYMENT'
   | 'PENDING_REVIEW'
   | 'CONFIRMED'
   | 'PROCESSING'
@@ -54,6 +55,7 @@ type OrdersResponse = {
 };
 
 const ALL_ORDER_STATUSES: OrderStatus[] = [
+  'PENDING_PAYMENT',
   'PENDING_REVIEW',
   'CONFIRMED',
   'PROCESSING',
@@ -64,18 +66,30 @@ const ALL_ORDER_STATUSES: OrderStatus[] = [
 ];
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All statuses' },
-  { value: 'PENDING_REVIEW', label: 'Pending review' },
-  { value: 'CONFIRMED', label: 'Confirmed' },
-  { value: 'PROCESSING', label: 'Processing' },
-  { value: 'SHIPPED', label: 'Shipped' },
-  { value: 'DELIVERED', label: 'Delivered' },
-  { value: 'CANCELLED', label: 'Cancelled' },
-  { value: 'REFUNDED', label: 'Refunded' },
+  { value: '', label: 'Усі статуси' },
+  { value: 'PENDING_PAYMENT', label: 'Очікує оплату' },
+  { value: 'PENDING_REVIEW', label: 'На перевірці' },
+  { value: 'CONFIRMED', label: 'Підтверджено' },
+  { value: 'PROCESSING', label: 'В обробці' },
+  { value: 'SHIPPED', label: 'Відправлено' },
+  { value: 'DELIVERED', label: 'Доставлено' },
+  { value: 'CANCELLED', label: 'Скасовано' },
+  { value: 'REFUNDED', label: 'Повернено' },
 ] as const;
 
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  PENDING_PAYMENT: 'Очікує оплату',
+  PENDING_REVIEW: 'На перевірці',
+  CONFIRMED: 'Підтверджено',
+  PROCESSING: 'В обробці',
+  SHIPPED: 'Відправлено',
+  DELIVERED: 'Доставлено',
+  CANCELLED: 'Скасовано',
+  REFUNDED: 'Повернено',
+};
+
 function formatMoney(value: number, currency: string) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('uk-UA', {
     style: 'currency',
     currency,
     maximumFractionDigits: 2,
@@ -83,11 +97,13 @@ function formatMoney(value: number, currency: string) {
 }
 
 function statusLabel(status: string) {
-  return status.replace(/_/g, ' ').toLowerCase();
+  return ORDER_STATUS_LABELS[status] ?? status.replace(/_/g, ' ');
 }
 
 function statusBadgeClass(status: string) {
   switch (status) {
+    case 'PENDING_PAYMENT':
+      return 'border-orange-500/30 bg-orange-500/10 text-orange-100';
     case 'PENDING_REVIEW':
       return 'border-amber-500/30 bg-amber-500/10 text-amber-100';
     case 'CONFIRMED':
@@ -152,7 +168,7 @@ export default function AdminOrdersPage() {
           return;
         }
         if (!response.ok) {
-          setError(data.error || 'Failed to load orders');
+          setError(data.error || 'Не вдалося завантажити замовлення');
           return;
         }
 
@@ -242,7 +258,7 @@ export default function AdminOrdersPage() {
       }
 
       setSuccess(
-        `Updated ${data.updatedCount ?? 0} orders to ${statusLabel(String(data.status ?? bulkStatus))}.`
+        `Оновлено замовлень: ${data.updatedCount ?? 0}. Новий статус: ${statusLabel(String(data.status ?? bulkStatus))}.`
       );
       setBulkNote('');
       setBulkStatus('');
@@ -257,7 +273,7 @@ export default function AdminOrdersPage() {
     return (
       <div className="flex items-center gap-2 p-6 text-white/60">
         <Package className="h-5 w-5 animate-pulse" />
-        Loading orders…
+        Завантаження замовлень…
       </div>
     );
   }
@@ -267,9 +283,9 @@ export default function AdminOrdersPage() {
       <div className="mx-auto max-w-7xl p-6">
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold text-white">Orders</h2>
+            <h2 className="text-2xl font-semibold text-white">Замовлення</h2>
             <p className="mt-2 text-sm text-white/45">
-              Operational queue for review, fulfillment and delivery. Filters and bulk actions apply to the current result set.
+              Черга замовлень для перевірки, виконання та доставки. Фільтри та масові дії застосовуються до поточного списку.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -279,26 +295,27 @@ export default function AdminOrdersPage() {
               className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
             >
               <RefreshCcw className="h-4 w-4" />
-              Refresh
+              Оновити
             </button>
             <Link
               href="/admin/shop/audit"
               className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
             >
               <FileClock className="h-4 w-4" />
-              Audit
+              Аудит
             </Link>
             <Link href="/admin/shop" className="text-sm text-white/60 hover:text-white">
-              ← Shop products
+              ← Каталог товарів
             </Link>
           </div>
         </div>
 
         <div className="mb-4 grid gap-4 md:grid-cols-4">
-          <SummaryCard label="Visible orders" value={String(stats.total)} detail={`${selectedIds.length} selected`} />
-          <SummaryCard label="Pending review" value={String(stats.statusCounts.PENDING_REVIEW || 0)} detail="Needs confirmation" />
-          <SummaryCard label="Processing" value={String(stats.statusCounts.PROCESSING || 0)} detail="Active fulfillment" />
-          <SummaryCard label="Shipped" value={String(stats.statusCounts.SHIPPED || 0)} detail="In transit" />
+          <SummaryCard label="Видимих замовлень" value={String(stats.total)} detail={`Обрано: ${selectedIds.length}`} />
+          <SummaryCard label="Очікує оплату" value={String(stats.statusCounts.PENDING_PAYMENT || 0)} detail="Stripe / інше" />
+          <SummaryCard label="На перевірці" value={String(stats.statusCounts.PENDING_REVIEW || 0)} detail="Потребують підтвердження" />
+          <SummaryCard label="В обробці" value={String(stats.statusCounts.PROCESSING || 0)} detail="Активне виконання" />
+          <SummaryCard label="Відправлено" value={String(stats.statusCounts.SHIPPED || 0)} detail="В дорозі" />
         </div>
 
         <div className="mb-4 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 md:grid-cols-5">
@@ -307,17 +324,17 @@ export default function AdminOrdersPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by order number, customer or email"
+              placeholder="Пошук за номером, клієнтом або email"
               className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
             />
           </label>
-          <SelectField label="Status" value={status} onChange={setStatus} options={STATUS_OPTIONS.map((option) => ({ value: option.value, label: option.label }))} />
+          <SelectField label="Статус" value={status} onChange={setStatus} options={STATUS_OPTIONS.map((option) => ({ value: option.value, label: option.label }))} />
           <SelectField
-            label="Currency"
+            label="Валюта"
             value={currency}
             onChange={setCurrency}
             options={[
-              { value: '', label: 'All currencies' },
+              { value: '', label: 'Усі валюти' },
               ...filterOptions.currencies.map((option) => ({
                 value: option.value,
                 label: `${option.label} (${option.count})`,
@@ -325,11 +342,11 @@ export default function AdminOrdersPage() {
             ]}
           />
           <SelectField
-            label="Shipping zone"
+            label="Зона доставки"
             value={shippingZone}
             onChange={setShippingZone}
             options={[
-              { value: '', label: 'All shipping zones' },
+              { value: '', label: 'Усі зони доставки' },
               ...filterOptions.shippingZones.map((option) => ({
                 value: option.value,
                 label: `${option.label} (${option.count})`,
@@ -338,11 +355,11 @@ export default function AdminOrdersPage() {
           />
           <div className="md:col-span-5">
             <SelectField
-              label="Tax rule"
+              label="Правило податку"
               value={taxRegion}
               onChange={setTaxRegion}
               options={[
-                { value: '', label: 'All tax rules' },
+                { value: '', label: 'Усі правила податку' },
                 ...filterOptions.taxRegions.map((option) => ({
                   value: option.value,
                   label: `${option.label} (${option.count})`,
@@ -356,23 +373,23 @@ export default function AdminOrdersPage() {
           <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm text-white/75">
-                {selectedOrders.length} selected · {selectedOrders.map((order) => order.orderNumber).join(', ')}
+                {selectedOrders.length} обрано · {selectedOrders.map((order) => order.orderNumber).join(', ')}
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedIds([])}
                 className="text-xs text-white/45 hover:text-white"
               >
-                Clear selection
+                Зняти вибір
               </button>
             </div>
             <div className="grid gap-4 md:grid-cols-[220px_1fr_auto]">
               <SelectField
-                label="Bulk status"
+                label="Масовий статус"
                 value={bulkStatus}
                 onChange={setBulkStatus}
                 options={[
-                  { value: '', label: 'Choose status' },
+                  { value: '', label: 'Обрати статус' },
                   ...commonBulkStatuses.map((candidate) => ({
                     value: candidate,
                     label: statusLabel(candidate),
@@ -396,7 +413,7 @@ export default function AdminOrdersPage() {
                   className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  {bulkUpdating ? 'Applying…' : 'Apply bulk update'}
+                  {bulkUpdating ? 'Застосовуємо…' : 'Застосувати масове оновлення'}
                 </button>
               </div>
             </div>
@@ -408,7 +425,7 @@ export default function AdminOrdersPage() {
 
         {orders.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
-            No orders found for the current filters.
+            За обраними фільтрами замовлень не знайдено.
           </div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-white/10">
@@ -423,12 +440,12 @@ export default function AdminOrdersPage() {
                       className="h-4 w-4 rounded border-white/20 bg-zinc-950"
                     />
                   </th>
-                  <th className="px-4 py-3 font-medium text-white/60">Order</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Status</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Operations</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Total</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Created</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Open</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Замовлення</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Статус</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Операції</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Всього</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Створено</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Відкрити</th>
                 </tr>
               </thead>
               <tbody>
@@ -453,8 +470,8 @@ export default function AdminOrdersPage() {
                       </span>
                       <div className="mt-2 text-xs text-white/45">
                         {order.allowedTransitions.length
-                          ? `Next: ${order.allowedTransitions.map(statusLabel).join(', ')}`
-                          : 'No further transitions'}
+                          ? `Далі: ${order.allowedTransitions.map(statusLabel).join(', ')}`
+                          : 'Немає доступних переходів'}
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -479,7 +496,7 @@ export default function AdminOrdersPage() {
                         href={`/admin/shop/orders/${order.id}`}
                         className="inline-flex items-center gap-2 rounded border border-white/15 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
                       >
-                        Open
+                        Відкрити
                         <ChevronRight className="h-4 w-4 text-white/40" />
                       </Link>
                     </td>

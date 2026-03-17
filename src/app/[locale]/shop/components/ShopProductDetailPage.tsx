@@ -152,13 +152,17 @@ export default async function ShopProductDetailPage({
     ? `/${resolvedLocale}/shop/urban/products/${product.slug}`
     : buildShopProductPath(resolvedLocale, product, isUrbanMode);
   const productUrl = `${baseUrl}${productPath}`;
+  const imageUrl = product.image.startsWith('http') ? product.image : `${baseUrl}${product.image}`;
+  const priceValidUntil = new Date();
+  priceValidUntil.setDate(priceValidUntil.getDate() + 30);
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: productTitle,
     description: shortDescription,
-    image: product.image.startsWith('http') ? product.image : `${baseUrl}${product.image}`,
+    image: imageUrl,
     url: productUrl,
+    ...(product.sku && { sku: product.sku }),
     brand: {
       '@type': 'Brand',
       name: product.brand,
@@ -169,6 +173,7 @@ export default async function ShopProductDetailPage({
       priceCurrency: 'EUR',
       availability: isInStock ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
       url: productUrl,
+      priceValidUntil: priceValidUntil.toISOString().slice(0, 10),
     },
   };
   const backLinkHref =
@@ -418,7 +423,7 @@ export default async function ShopProductDetailPage({
             ) : null}
 
             <div className="flex flex-wrap gap-3">
-              <AddToCartButton slug={product.slug} locale={resolvedLocale} variantId={defaultVariant?.id ?? null} />
+              <AddToCartButton slug={product.slug} locale={resolvedLocale} variantId={defaultVariant?.id ?? null} productName={productTitle} />
               <Link
                 href={`/${resolvedLocale}/contact`}
                 className="rounded-full border border-white/25 bg-white px-5 py-2 text-xs uppercase tracking-[0.2em] text-black transition hover:border-white hover:bg-white/90"

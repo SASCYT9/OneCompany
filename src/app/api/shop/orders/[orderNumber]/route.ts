@@ -41,6 +41,7 @@ export async function GET(
   return NextResponse.json({
     orderNumber: order.orderNumber,
     status: order.status,
+    paymentMethod: order.paymentMethod ?? 'FOP',
     email: order.email,
     customerName: order.customerName,
     phone: order.phone,

@@ -98,7 +98,7 @@ export default function AdminBackupsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full min-w-[320px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-white/10 bg-white/5">
                     <th className="px-4 py-3 text-white/60 font-medium">Файл</th>
@@ -125,10 +125,12 @@ export default function AdminBackupsPage() {
         </div>
 
         <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-xs text-white/60 space-y-1">
-          <p className="font-medium text-white/80">Як відновити з бекапу (інструкція для DevOps):</p>
-          <p>• Бекапи зберігаються в папці `backups/` у корені проєкту на сервері.</p>
-          <p>• Для відновлення використовуйте `psql` або `pg_restore` (залежно від формату дампу).</p>
-          <p>• Перед відновленням бажано зупинити застосунок і зробити додатковий дамп поточного стану.</p>
+          <p className="font-medium text-white/80">Архітектура та бекапи на проді (Vercel):</p>
+          <p>• На Vercel немає <code className="rounded bg-white/10 px-1">pg_dump</code> у рантаймі, тому кнопка «Зробити бекап зараз» на проді не спрацює. Для продакшну налаштуйте бекапи через <strong>GitHub Actions</strong> та зовнішнє сховище (артефакти, S3 тощо).</p>
+          <p>• Детальна інструкція: політика зберігання, приклад workflow, відновлення — у документі <code className="rounded bg-white/10 px-1">docs/BACKUPS.md</code> у репозиторії.</p>
+          <p className="font-medium text-white/80 mt-3">Як відновити з бекапу (DevOps):</p>
+          <p>• Бекапи зберігаються в папці <code className="rounded bg-white/10 px-1">backups/</code> на сервері (якщо є доступ). На Vercel ця папка ефемерна.</p>
+          <p>• Відновлення: <code className="rounded bg-white/10 px-1">psql</code> або <code className="rounded bg-white/10 px-1">pg_restore</code>. Перед відновленням зробіть поточний дамп стану БД.</p>
         </div>
       </div>
     </div>

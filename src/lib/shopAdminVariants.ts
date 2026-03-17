@@ -83,6 +83,13 @@ export type AdminPricingPatchInput = {
   compareAtEurB2b?: number | null;
   compareAtUsdB2b?: number | null;
   compareAtUahB2b?: number | null;
+  /** Множник поточної ціни (наприклад 1.1 = +10%). Застосовується до обраних варіантів, якщо не задано абсолютне значення. */
+  multiplyUah?: number | null;
+  multiplyEur?: number | null;
+  multiplyUsd?: number | null;
+  multiplyEurB2b?: number | null;
+  multiplyUsdB2b?: number | null;
+  multiplyUahB2b?: number | null;
 };
 
 function decimalToNumber(value: Prisma.Decimal | number | null | undefined): number | null {
@@ -280,17 +287,41 @@ export async function applyAdminInventoryPatch(prisma: PrismaClient, input: Admi
   };
 }
 
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
 export async function applyAdminPricingPatch(prisma: PrismaClient, input: AdminPricingPatchInput) {
   const variantIds = uniqueStrings(input.variantIds);
   if (!variantIds.length) {
     return { updatedCount: 0, productIds: [] as string[] };
   }
 
+  const hasMultiplier =
+    input.multiplyUah != null ||
+    input.multiplyEur != null ||
+    input.multiplyUsd != null ||
+    input.multiplyEurB2b != null ||
+    input.multiplyUsdB2b != null ||
+    input.multiplyUahB2b != null;
+
   const variants = await prisma.shopProductVariant.findMany({
     where: { id: { in: variantIds } },
     select: {
       id: true,
       productId: true,
+      priceEur: true,
+      priceUsd: true,
+      priceUah: true,
+      priceEurB2b: true,
+      priceUsdB2b: true,
+      priceUahB2b: true,
+      compareAtEur: true,
+      compareAtUsd: true,
+      compareAtUah: true,
+      compareAtEurB2b: true,
+      compareAtUsdB2b: true,
+      compareAtUahB2b: true,
     },
   });
 
@@ -299,25 +330,70 @@ export async function applyAdminPricingPatch(prisma: PrismaClient, input: AdminP
   }
 
   await prisma.$transaction(
-    variants.map((variant) =>
-      prisma.shopProductVariant.update({
+    variants.map((variant) => {
+      const current = {
+        priceEur: decimalToNumber(variant.priceEur),
+        priceUsd: decimalToNumber(variant.priceUsd),
+        priceUah: decimalToNumber(variant.priceUah),
+        priceEurB2b: decimalToNumber(variant.priceEurB2b),
+        priceUsdB2b: decimalToNumber(variant.priceUsdB2b),
+        priceUahB2b: decimalToNumber(variant.priceUahB2b),
+        compareAtEur: decimalToNumber(variant.compareAtEur),
+        compareAtUsd: decimalToNumber(variant.compareAtUsd),
+        compareAtUah: decimalToNumber(variant.compareAtUah),
+        compareAtEurB2b: decimalToNumber(variant.compareAtEurB2b),
+        compareAtUsdB2b: decimalToNumber(variant.compareAtUsdB2b),
+        compareAtUahB2b: decimalToNumber(variant.compareAtUahB2b),
+      };
+      const data: Prisma.ShopProductVariantUpdateInput = {
+        priceEur:
+          input.priceEur !== undefined
+            ? input.priceEur
+            : hasMultiplier && input.multiplyEur != null && current.priceEur != null
+              ? round2(current.priceEur * input.multiplyEur)
+              : undefined,
+        priceUsd:
+          input.priceUsd !== undefined
+            ? input.priceUsd
+            : hasMultiplier && input.multiplyUsd != null && current.priceUsd != null
+              ? round2(current.priceUsd * input.multiplyUsd)
+              : undefined,
+        priceUah:
+          input.priceUah !== undefined
+            ? input.priceUah
+            : hasMultiplier && input.multiplyUah != null && current.priceUah != null
+              ? round2(current.priceUah * input.multiplyUah)
+              : undefined,
+        priceEurB2b:
+          input.priceEurB2b !== undefined
+            ? input.priceEurB2b
+            : hasMultiplier && input.multiplyEurB2b != null && current.priceEurB2b != null
+              ? round2(current.priceEurB2b * input.multiplyEurB2b)
+              : undefined,
+        priceUsdB2b:
+          input.priceUsdB2b !== undefined
+            ? input.priceUsdB2b
+            : hasMultiplier && input.multiplyUsdB2b != null && current.priceUsdB2b != null
+              ? round2(current.priceUsdB2b * input.multiplyUsdB2b)
+              : undefined,
+        priceUahB2b:
+          input.priceUahB2b !== undefined
+            ? input.priceUahB2b
+            : hasMultiplier && input.multiplyUahB2b != null && current.priceUahB2b != null
+              ? round2(current.priceUahB2b * input.multiplyUahB2b)
+              : undefined,
+        compareAtEur: input.compareAtEur !== undefined ? input.compareAtEur : undefined,
+        compareAtUsd: input.compareAtUsd !== undefined ? input.compareAtUsd : undefined,
+        compareAtUah: input.compareAtUah !== undefined ? input.compareAtUah : undefined,
+        compareAtEurB2b: input.compareAtEurB2b !== undefined ? input.compareAtEurB2b : undefined,
+        compareAtUsdB2b: input.compareAtUsdB2b !== undefined ? input.compareAtUsdB2b : undefined,
+        compareAtUahB2b: input.compareAtUahB2b !== undefined ? input.compareAtUahB2b : undefined,
+      };
+      return prisma.shopProductVariant.update({
         where: { id: variant.id },
-        data: {
-          priceEur: input.priceEur !== undefined ? input.priceEur : undefined,
-          priceUsd: input.priceUsd !== undefined ? input.priceUsd : undefined,
-          priceUah: input.priceUah !== undefined ? input.priceUah : undefined,
-          priceEurB2b: input.priceEurB2b !== undefined ? input.priceEurB2b : undefined,
-          priceUsdB2b: input.priceUsdB2b !== undefined ? input.priceUsdB2b : undefined,
-          priceUahB2b: input.priceUahB2b !== undefined ? input.priceUahB2b : undefined,
-          compareAtEur: input.compareAtEur !== undefined ? input.compareAtEur : undefined,
-          compareAtUsd: input.compareAtUsd !== undefined ? input.compareAtUsd : undefined,
-          compareAtUah: input.compareAtUah !== undefined ? input.compareAtUah : undefined,
-          compareAtEurB2b: input.compareAtEurB2b !== undefined ? input.compareAtEurB2b : undefined,
-          compareAtUsdB2b: input.compareAtUsdB2b !== undefined ? input.compareAtUsdB2b : undefined,
-          compareAtUahB2b: input.compareAtUahB2b !== undefined ? input.compareAtUahB2b : undefined,
-        },
-      })
-    )
+        data,
+      });
+    })
   );
 
   const productIds = uniqueStrings(variants.map((variant) => variant.productId));

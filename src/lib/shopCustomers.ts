@@ -18,6 +18,14 @@ export const shopCustomerProfileInclude = {
   },
 } satisfies Prisma.ShopCustomerInclude;
 
+/** For account/cabinet: load customer without orders; use getOrdersForCustomerDisplay for full list (incl. guest by email). */
+export const shopCustomerProfileIncludeWithoutOrders = {
+  account: true,
+  addresses: {
+    orderBy: [{ isDefaultShipping: 'desc' }, { createdAt: 'asc' }],
+  },
+} satisfies Prisma.ShopCustomerInclude;
+
 export const shopCustomerAdminListSelect = {
   id: true,
   email: true,
@@ -43,6 +51,29 @@ export const shopCustomerAdminListSelect = {
 export type ShopCustomerProfileRecord = Prisma.ShopCustomerGetPayload<{
   include: typeof shopCustomerProfileInclude;
 }>;
+
+export type ShopCustomerProfileBaseRecord = Prisma.ShopCustomerGetPayload<{
+  include: typeof shopCustomerProfileIncludeWithoutOrders;
+}>;
+
+/** All orders to show in cabinet: linked by customerId + guest orders with same email (case-insensitive). Sorted by createdAt desc. */
+export async function getOrdersForCustomerDisplay(
+  prisma: PrismaClient,
+  customerId: string,
+  customerEmail: string
+) {
+  const email = normalizeCustomerEmail(customerEmail);
+  return prisma.shopOrder.findMany({
+    where: {
+      OR: [
+        { customerId },
+        { customerId: null, email: { equals: email, mode: 'insensitive' } },
+      ],
+    },
+    orderBy: { createdAt: 'desc' },
+    include: { items: true },
+  });
+}
 
 export type ShopCustomerAdminListRecord = Prisma.ShopCustomerGetPayload<{
   select: typeof shopCustomerAdminListSelect;
@@ -337,7 +368,9 @@ function serializeAddress(address: {
   };
 }
 
-export function serializeShopCustomerProfile(record: ShopCustomerProfileRecord) {
+export function serializeShopCustomerProfile(
+  record: Omit<ShopCustomerProfileRecord, 'orders'> & { orders: ShopCustomerProfileRecord['orders'] }
+) {
   const defaultShippingAddress = getDefaultShippingAddress(record.addresses);
 
   return {

@@ -90,6 +90,8 @@
 - Подієва аналітика: view product, add to cart, begin checkout, order placed.
 - Перед релізом: дані seed, smoke-тести, доступи ролей, backup/rollback міграцій.
 
+**Phase F — поточний стан:** Sitemap включає `/shop`, `/shop/urban`, колекції та сторінки товарів. Сторінки товарів: `generateMetadata` через `getShopProductPageMetadata` (title, description, og/twitter, image), JSON-LD `Product` (name, description, image, brand, offers, sku, priceValidUntil). Аналітика: `shop_view_product`, `shop_add_to_cart`, `shop_view_cart`, `shop_begin_checkout`, `shop_order_placed` викликаються з відповідних компонентів; Plausible/GA4 отримують custom events, Meta Pixel — стандартні (ViewContent, AddToCart, InitiateCheckout, Purchase). **Google Merchant Center:** XML-фід товарів доступний за GET `/api/shop/feed/products` (query: `locale`, `currency`); інструкція — `docs/SHOP_GOOGLE_MERCHANT_CENTER.md`.
+
 ### 4. Test Plan (обов’язкові сценарії)
 - Unit:
   - калькуляція ціни (валюти/B2B/B2C).

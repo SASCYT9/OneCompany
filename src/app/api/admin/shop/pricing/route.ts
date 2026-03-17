@@ -64,6 +64,12 @@ export async function PATCH(request: NextRequest) {
       compareAtEurB2b: Object.prototype.hasOwnProperty.call(body, 'compareAtEurB2b') ? decimalOrNull(body.compareAtEurB2b) : undefined,
       compareAtUsdB2b: Object.prototype.hasOwnProperty.call(body, 'compareAtUsdB2b') ? decimalOrNull(body.compareAtUsdB2b) : undefined,
       compareAtUahB2b: Object.prototype.hasOwnProperty.call(body, 'compareAtUahB2b') ? decimalOrNull(body.compareAtUahB2b) : undefined,
+      multiplyUah: Object.prototype.hasOwnProperty.call(body, 'multiplyUah') ? decimalOrNull(body.multiplyUah) : undefined,
+      multiplyEur: Object.prototype.hasOwnProperty.call(body, 'multiplyEur') ? decimalOrNull(body.multiplyEur) : undefined,
+      multiplyUsd: Object.prototype.hasOwnProperty.call(body, 'multiplyUsd') ? decimalOrNull(body.multiplyUsd) : undefined,
+      multiplyEurB2b: Object.prototype.hasOwnProperty.call(body, 'multiplyEurB2b') ? decimalOrNull(body.multiplyEurB2b) : undefined,
+      multiplyUsdB2b: Object.prototype.hasOwnProperty.call(body, 'multiplyUsdB2b') ? decimalOrNull(body.multiplyUsdB2b) : undefined,
+      multiplyUahB2b: Object.prototype.hasOwnProperty.call(body, 'multiplyUahB2b') ? decimalOrNull(body.multiplyUahB2b) : undefined,
     };
 
     if (!variantIds.length) {
@@ -97,6 +103,12 @@ export async function PATCH(request: NextRequest) {
         compareAtEurB2b: payload.compareAtEurB2b,
         compareAtUsdB2b: payload.compareAtUsdB2b,
         compareAtUahB2b: payload.compareAtUahB2b,
+        multiplyUah: payload.multiplyUah,
+        multiplyEur: payload.multiplyEur,
+        multiplyUsd: payload.multiplyUsd,
+        multiplyEurB2b: payload.multiplyEurB2b,
+        multiplyUsdB2b: payload.multiplyUsdB2b,
+        multiplyUahB2b: payload.multiplyUahB2b,
         affectedCount: result.updatedCount,
       },
     });
