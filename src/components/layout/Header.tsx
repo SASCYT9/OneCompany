@@ -70,6 +70,7 @@ export function Header() {
       >
         <Link
           href={logoHref}
+          suppressHydrationWarning
           className="absolute left-1/2 -translate-x-1/2 md:relative md:left-auto md:translate-x-0 z-10 inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           aria-label={isUrbanStorefront ? "Urban home" : "ONE COMPANY home"}
         >
@@ -83,6 +84,7 @@ export function Header() {
               <Link
                 key={item.key}
                 href={item.href}
+                suppressHydrationWarning
                 className={cn(
                   "relative whitespace-nowrap font-display text-xs uppercase tracking-[0.15em] text-white/60 transition-colors md:text-[13px] md:tracking-[0.2em]",
                   isActive && "text-white"
@@ -103,6 +105,7 @@ export function Header() {
           {isUrbanStorefront ? (
             <Link
               href={`/${locale}/shop/account`}
+              suppressHydrationWarning
               className="hidden rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-white/70 transition hover:border-white hover:text-white md:inline-flex"
             >
               {isUa ? "Акаунт" : "Account"}
@@ -206,6 +209,7 @@ export function Header() {
                   <Link
                     href={`/${locale}/shop/account`}
                     onClick={() => setMobileMenuOpen(false)}
+                    suppressHydrationWarning
                     className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition"
                   >
                     {isUa ? "Акаунт" : "Account"}
@@ -215,6 +219,7 @@ export function Header() {
                   <Link
                     href={`/${locale}/partnership`}
                     onClick={() => setMobileMenuOpen(false)}
+                    suppressHydrationWarning
                     className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-black transition"
                   >
                     {tNav("bookAtelier")}

@@ -25,7 +25,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
     >
       <div className={styles.shell}>
         <div className={styles.topbar}>
-          <Link href={`/${locale}`} className={styles.backLink}>
+          <Link href={`/${locale}`} className={styles.backLink} suppressHydrationWarning>
             {isUa ? "← На головну" : "← Back home"}
           </Link>
         </div>
@@ -109,13 +109,14 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.card}
+                  suppressHydrationWarning
                 >
                   {content}
                 </a>
               );
             }
             return (
-              <Link key={store.id} href={href} className={styles.card}>
+              <Link key={store.id} href={href} className={styles.card} suppressHydrationWarning>
                 {content}
               </Link>
             );

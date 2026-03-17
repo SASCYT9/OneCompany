@@ -48,6 +48,10 @@
     background-color 0.25s ease;
 }
 
+.backLink:visited {
+  color: rgba(255, 255, 255, 0.72);
+}
+
 .backLink:hover {
   border-color: rgba(255, 255, 255, 0.28);
   color: #fff;
@@ -115,6 +119,10 @@
     transform 0.35s ease,
     border-color 0.35s ease,
     box-shadow 0.35s ease;
+}
+
+.card:visited {
+  color: inherit;
 }
 
 .card:hover {
@@ -230,6 +238,7 @@
   font-weight: 500;
   line-height: 1.05;
   letter-spacing: -0.03em;
+  color: #fff;
 }
 
 .cardSubtitle {
