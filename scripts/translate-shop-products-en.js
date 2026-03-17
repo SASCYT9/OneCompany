@@ -62,6 +62,10 @@ function isMissingOrSameAsUa(ua, en) {
   return uaN.toLowerCase() === enN.toLowerCase();
 }
 
+function stripHtml(value) {
+  return normText(String(value ?? '').replace(/<[^>]+>/g, ' '));
+}
+
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
@@ -183,7 +187,9 @@ async function main() {
   const candidates = products.filter((p) => {
     const shortNeed = isMissingOrSameAsUa(p.shortDescUa, p.shortDescEn);
     const longNeed = isMissingOrSameAsUa(p.longDescUa || p.bodyHtmlUa, p.longDescEn || p.bodyHtmlEn);
-    const htmlNeed = args.translateHtml && isMissingOrSameAsUa(p.bodyHtmlUa, p.bodyHtmlEn);
+    const htmlNeed =
+      args.translateHtml &&
+      isMissingOrSameAsUa(stripHtml(p.bodyHtmlUa), stripHtml(p.bodyHtmlEn));
     return shortNeed || longNeed || htmlNeed;
   });
 
@@ -276,7 +282,8 @@ async function main() {
 
     if (args.translateHtml) {
       const bodyUaHtml = normText(p.bodyHtmlUa);
-      if (isMissingOrSameAsUa(bodyUaHtml, p.bodyHtmlEn) && bodyUaHtml) {
+      const bodyEnHtml = normText(p.bodyHtmlEn);
+      if (isMissingOrSameAsUa(stripHtml(bodyUaHtml), stripHtml(bodyEnHtml)) && bodyUaHtml) {
         const key = `body_html:${bodyUaHtml.toLowerCase()}`;
         const translated =
           cache.get(key) ||
