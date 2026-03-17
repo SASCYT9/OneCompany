@@ -73,7 +73,7 @@ function deepLBaseUrl(authKey) {
   return 'https://api.deepl.com';
 }
 
-async function deepLTranslate({ text, sourceLang, targetLang }) {
+async function deepLTranslate({ text, sourceLang, targetLang, isHtml }) {
   const base = deepLBaseUrl(DEEPL_AUTH_KEY);
   const url = `${base}/v2/translate`;
   const source = sourceLang === 'Ukrainian' ? 'UK' : undefined;
@@ -89,6 +89,7 @@ async function deepLTranslate({ text, sourceLang, targetLang }) {
       text: [text],
       target_lang: target,
       ...(source ? { source_lang: source } : {}),
+      ...(isHtml ? { tag_handling: 'html' } : {}),
       // DeepL supports 'prefer_more' / 'prefer_less' (as of current docs)
       formality: 'prefer_more',
     }),
@@ -219,7 +220,12 @@ async function main() {
       const translated =
         cache.get(key) ||
         (DEEPL_AUTH_KEY
-          ? await translateWithRetry({ text: shortUa, sourceLang: 'Ukrainian', targetLang: 'English' })
+          ? await translateWithRetry({
+              text: shortUa,
+              sourceLang: 'Ukrainian',
+              targetLang: 'English',
+              isHtml: false,
+            })
           : '');
       if (translated) cache.set(key, translated);
       if (translated) updates.shortDescEn = translated;
@@ -233,7 +239,12 @@ async function main() {
       const translated =
         cache.get(key) ||
         (DEEPL_AUTH_KEY
-          ? await translateWithRetry({ text: longUa, sourceLang: 'Ukrainian', targetLang: 'English' })
+          ? await translateWithRetry({
+              text: longUa,
+              sourceLang: 'Ukrainian',
+              targetLang: 'English',
+              isHtml: false,
+            })
           : '');
       if (translated) cache.set(key, translated);
       if (translated) updates.longDescEn = translated;
@@ -249,7 +260,12 @@ async function main() {
         const translated =
           cache.get(key) ||
           (DEEPL_AUTH_KEY
-            ? await translateWithRetry({ text: bodyUaPlain, sourceLang: 'Ukrainian', targetLang: 'English' })
+            ? await translateWithRetry({
+                text: bodyUaPlain,
+                sourceLang: 'Ukrainian',
+                targetLang: 'English',
+                isHtml: false,
+              })
             : '');
         if (translated) cache.set(key, translated);
         if (translated) updates.longDescEn = translated;
@@ -265,7 +281,12 @@ async function main() {
         const translated =
           cache.get(key) ||
           (DEEPL_AUTH_KEY
-            ? await translateWithRetry({ text: bodyUaHtml, sourceLang: 'Ukrainian', targetLang: 'English' })
+            ? await translateWithRetry({
+                text: bodyUaHtml,
+                sourceLang: 'Ukrainian',
+                targetLang: 'English',
+                isHtml: true,
+              })
             : '');
         if (translated) cache.set(key, translated);
         if (translated) updates.bodyHtmlEn = translated;
