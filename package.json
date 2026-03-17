@@ -17,6 +17,8 @@
     "predeploy-check": "node scripts/predeploy-check.js",
     "deploy:prod": "npm run predeploy-check && vercel --prod",
     "bot": "node scripts/telegram-bot-polling.js",
+    "shop:translate-en:dry": "node scripts/translate-shop-products-en.js --dry-run",
+    "shop:translate-en": "node scripts/translate-shop-products-en.js --commit",
     "seo:structure-check": "tsx scripts/seo-structure-audit.ts --baseUrl=https://onecompany.global --locales=ua,en --maxDepth=4",
     "fetch:logos": "tsx scripts/fetch-brand-logos.ts",
     "fetch:logos:js": "node scripts/fetch-brand-logos.js",
