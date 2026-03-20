@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { absoluteUrl, buildPageMetadata, resolveLocale } from '@/lib/seo';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
+import { buildShopListingResult, normalizeShopListingQuery } from '@/lib/shopListing';
 import { getProductsForUrbanCollection } from '@/lib/urbanCollectionMatcher';
 import { URBAN_COLLECTION_CARDS } from '../../../data/urbanCollectionsList';
 import { getUrbanCollectionPageConfig, getUrbanCollectionTemplateHandles } from '../../../data/urbanCollectionPages.server';
@@ -16,6 +17,17 @@ import UrbanCollectionProductGrid from '../../../components/UrbanCollectionProdu
 
 type Props = {
   params: Promise<{ locale: string; handle: string }>;
+  searchParams: Promise<{
+    q?: string | string[];
+    sort?: string | string[];
+    brand?: string | string[];
+    category?: string | string[];
+    priceMin?: string | string[];
+    priceMax?: string | string[];
+    availability?: string | string[];
+    store?: string | string[];
+    collection?: string | string[];
+  }>;
 };
 
 export async function generateStaticParams() {
@@ -36,8 +48,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function UrbanCollectionHandlePage({ params }: Props) {
+export default async function UrbanCollectionHandlePage({ params, searchParams }: Props) {
   const { locale, handle } = await params;
+  const rawSearchParams = await searchParams;
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === 'ua';
   const config = getUrbanCollectionPageConfig(handle);
@@ -67,10 +80,17 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
     );
   }
 
-  const collectionProducts = getProductsForUrbanCollection(products, handle, card?.title, card?.brand).slice(
-    0,
-    config.productGrid.productsPerPage
-  );
+  const collectionProducts = getProductsForUrbanCollection(products, handle, card?.title, card?.brand);
+  const listingQuery = normalizeShopListingQuery(rawSearchParams, {
+    store: 'urban',
+    collection: handle,
+  });
+  const listing = buildShopListingResult(collectionProducts, {
+    locale: resolvedLocale,
+    currency: 'UAH',
+    rates: null,
+    query: listingQuery,
+  });
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -78,7 +98,7 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
     url: absoluteUrl(`/${resolvedLocale}/shop/urban/collections/${handle}`),
     mainEntity: {
       '@type': 'ItemList',
-      itemListElement: collectionProducts.map((product, index) => ({
+      itemListElement: listing.products.map((product, index) => ({
         '@type': 'ListItem',
         position: index + 1,
         url: absoluteUrl(`/${resolvedLocale}/shop/urban/products/${product.slug}`),

@@ -1,12 +1,15 @@
 "use client";
 
-import type { CSSProperties } from 'react';
+import { startTransition, type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
+import { ShopListingToolbar } from '@/components/shop/ShopListingToolbar';
 import type { SupportedLocale } from '@/lib/seo';
 import type { ShopProduct } from '@/lib/shopCatalog';
+import { buildShopListingResult, normalizeShopListingQuery, type ShopListingQueryState } from '@/lib/shopListing';
 import { localizeShopText } from '@/lib/shopText';
 import { buildShopProductPath } from '@/lib/urbanCollectionMatcher';
 import type { UrbanProductGridConfig } from '../data/urbanCollectionPages';
@@ -78,7 +81,76 @@ export default function UrbanCollectionProductGrid({
   settings,
 }: UrbanCollectionProductGridProps) {
   const isUa = locale === 'ua';
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { currency, rates } = useShopCurrency();
+  const listingQuery = useMemo(
+    () => normalizeShopListingQuery(searchParams, { store: 'urban', collection: handle }),
+    [handle, searchParams]
+  );
+  const [queryDraft, setQueryDraft] = useState(listingQuery);
+  const queryDraftRef = useRef(queryDraft);
+
+  useEffect(() => {
+    setQueryDraft(listingQuery);
+  }, [listingQuery]);
+
+  useEffect(() => {
+    queryDraftRef.current = queryDraft;
+  }, [queryDraft]);
+
+  const listing = useMemo(
+    () =>
+      buildShopListingResult(products, {
+        locale,
+        currency,
+        rates: rates ? { EUR: rates.EUR, USD: rates.USD } : null,
+        query: queryDraft,
+      }),
+    [currency, locale, products, queryDraft, rates]
+  );
+
+  const updateListingQuery = (updates: Partial<ShopListingQueryState>) => {
+    const nextState = normalizeShopListingQuery({}, {
+      ...queryDraftRef.current,
+      ...updates,
+      store: 'urban',
+      collection: handle,
+    });
+    setQueryDraft(nextState);
+    const next = new URLSearchParams();
+
+    (Object.keys(nextState) as Array<keyof ShopListingQueryState>).forEach((key) => {
+      const rawValue = nextState[key];
+      const queryKey = key as string;
+
+      if (
+        rawValue == null ||
+        rawValue === '' ||
+        rawValue === 'all' ||
+        rawValue === handle ||
+        (key === 'sort' && rawValue === 'featured')
+      ) {
+        next.delete(queryKey);
+        return;
+      }
+
+      next.set(queryKey, String(rawValue));
+    });
+
+    const nextQuery = next.toString();
+    startTransition(() => {
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    });
+  };
+
+  const resetListingQuery = () => {
+    setQueryDraft(normalizeShopListingQuery({}, { store: 'urban', collection: handle }));
+    startTransition(() => {
+      router.replace(pathname, { scroll: false });
+    });
+  };
 
   return (
     <section
@@ -103,10 +175,10 @@ export default function UrbanCollectionProductGrid({
               {isUa ? `Товари для ${title}` : `${title} Products`}
             </h2>
             <p className="urban-product-grid__sub">
-              {products.length > 0
+              {listing.total > 0
                 ? isUa
-                  ? `Підібрані позиції для колекції ${title}.`
-                  : `Curated parts currently mapped to the ${title} collection.`
+                  ? `Підібрані позиції для ${title}. Знайдено ${listing.total} результатів за поточними фільтрами.`
+                  : `Curated parts mapped to ${title}. ${listing.total} results match the active filters.`
                 : isUa
                   ? 'Найближчим часом колекція буде доступна в каталозі.'
                   : 'This collection will be available in the catalog shortly.'}
@@ -121,8 +193,24 @@ export default function UrbanCollectionProductGrid({
         </div>
 
         {products.length > 0 ? (
-          <div className="urban-product-grid__cards">
-            {products.map((product, index) => {
+          <>
+            <div className="urban-product-grid__toolbar">
+              <ShopListingToolbar
+                locale={locale}
+                query={queryDraft}
+                filters={listing.availableFilters}
+                total={listing.total}
+                onQueryChange={updateListingQuery}
+                onReset={resetListingQuery}
+                theme="dark"
+                showSearch
+                showBrand={settings.enableFiltering}
+                showCategory={settings.enableFiltering}
+              />
+            </div>
+          {listing.products.length > 0 ? (
+            <div className="urban-product-grid__cards">
+              {listing.products.map((product, index) => {
               const premiumDescription = buildPremiumDescription(
                 locale,
                 product.title,
@@ -192,7 +280,23 @@ export default function UrbanCollectionProductGrid({
               </article>
             );
 })}
-          </div>
+            </div>
+          ) : (
+            <div className="urban-product-grid__empty">
+              <p className="urban-product-grid__empty-title">
+                {isUa ? 'За поточними фільтрами нічого не знайдено' : 'No products match these filters'}
+              </p>
+              <p className="urban-product-grid__empty-copy">
+                {isUa
+                  ? 'Спробуйте змінити діапазон цін, доступність або скинути фільтри.'
+                  : 'Try adjusting the price range, availability, or reset the active filters.'}
+              </p>
+              <button type="button" onClick={resetListingQuery} className="urban-product-grid__empty-cta">
+                {isUa ? 'Скинути фільтри' : 'Reset filters'}
+              </button>
+            </div>
+          )}
+          </>
         ) : (
           <div className="urban-product-grid__empty">
             <p className="urban-product-grid__empty-title">

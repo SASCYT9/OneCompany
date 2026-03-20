@@ -399,6 +399,10 @@
   color: #000;
 }
 
+.urban-product-grid__toolbar {
+  margin-bottom: clamp(18px, 2vw, 26px);
+}
+
 .urban-product-grid__cards {
   display: grid;
   grid-template-columns: repeat(var(--upg-mobile-cols), minmax(0, 1fr));

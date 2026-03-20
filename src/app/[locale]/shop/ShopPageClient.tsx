@@ -2,38 +2,31 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { SupportedLocale } from '@/lib/seo';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { getBrandMetadata, getLocalizedCountry } from '@/lib/brands';
 import { SHOP_PRODUCTS, type ShopScope, type ShopMoneySet } from '@/lib/shopCatalog';
 import { localizeShopText } from '@/lib/shopText';
+import { ShopListingToolbar } from '@/components/shop/ShopListingToolbar';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
+import {
+  buildFeaturedBrandComparator,
+  buildShopListingResult,
+  getShopProductCategoryLabel,
+  normalizeShopListingQuery,
+  type ShopListingQueryState,
+} from '@/lib/shopListing';
 
 type CatalogScope = 'all' | ShopScope;
-type SortMode = 'featured' | 'priceLow' | 'priceHigh';
 
 type ShopPageClientProps = {
   locale: SupportedLocale;
   /** When 'urban', use dark theme to match Urban Home section */
   variant?: 'default' | 'urban';
 };
-
-const featuredBrandOrder = [
-  'Akrapovic',
-  'KW Suspension',
-  'Eventuri',
-  'FI Exhaust',
-  'Brembo',
-  'HRE wheels',
-  'Termignoni',
-  'Ohlins',
-  'SC-Project',
-  'Rizoma',
-  'Rotobox',
-  'Jetprime',
-] as const;
 
 function formatPrice(
   locale: SupportedLocale,
@@ -85,110 +78,98 @@ function computePricesFromUah(price: ShopMoneySet, rates: { EUR: number; USD: nu
 export default function ShopPageClient({ locale, variant = 'default' }: ShopPageClientProps) {
   const isUa = locale === 'ua';
   const isUrban = variant === 'urban';
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { currency, rates } = useShopCurrency();
   const [scope, setScope] = useState<CatalogScope>('all');
-  const [selectedBrand, setSelectedBrand] = useState<string>('all');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [sortMode, setSortMode] = useState<SortMode>('featured');
-  const [search, setSearch] = useState('');
+  const listingQuery = useMemo(() => normalizeShopListingQuery(searchParams), [searchParams]);
+  const [queryDraft, setQueryDraft] = useState(listingQuery);
+  const queryDraftRef = useRef(queryDraft);
+
+  useEffect(() => {
+    setQueryDraft(listingQuery);
+  }, [listingQuery]);
+
+  useEffect(() => {
+    queryDraftRef.current = queryDraft;
+  }, [queryDraft]);
 
   const scopedProducts = useMemo(() => {
     return SHOP_PRODUCTS.filter((product) => scope === 'all' || product.scope === scope);
   }, [scope]);
 
-  const brandCards = useMemo(() => {
-    const map = new Map<string, { name: string; count: number; image: string }>();
+  const updateListingQuery = (updates: Partial<ShopListingQueryState>) => {
+    const nextState = normalizeShopListingQuery({}, { ...queryDraftRef.current, ...updates });
+    setQueryDraft(nextState);
+    const next = new URLSearchParams();
 
-    scopedProducts.forEach((product) => {
-      const existing = map.get(product.brand);
-      if (existing) {
-        map.set(product.brand, {
-          ...existing,
-          count: existing.count + 1,
-        });
-      } else {
-        map.set(product.brand, {
-          name: product.brand,
-          count: 1,
-          image: product.image,
-        });
+    (Object.keys(nextState) as Array<keyof ShopListingQueryState>).forEach((key) => {
+      const rawValue = nextState[key];
+      const queryKey = key as string;
+
+      if (
+        rawValue == null ||
+        rawValue === '' ||
+        rawValue === 'all' ||
+        (key === 'sort' && rawValue === 'featured')
+      ) {
+        next.delete(queryKey);
+        return;
       }
+
+      next.set(queryKey, String(rawValue));
     });
 
-    const order = new Map<string, number>(featuredBrandOrder.map((brand, index) => [brand.toLowerCase(), index]));
+    const nextQuery = next.toString();
+    startTransition(() => {
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    });
+  };
 
-    return Array.from(map.values())
-      .sort((a, b) => {
-        const aOrder = order.get(a.name.toLowerCase()) ?? 999;
-        const bOrder = order.get(b.name.toLowerCase()) ?? 999;
-        if (aOrder !== bOrder) return aOrder - bOrder;
-        return b.count - a.count || a.name.localeCompare(b.name);
-      })
-      .slice(0, 12);
-  }, [scopedProducts]);
+  const resetListingQuery = () => {
+    setQueryDraft(normalizeShopListingQuery({}, {}));
+    startTransition(() => {
+      router.replace(pathname, { scroll: false });
+    });
+  };
+
+  const listing = useMemo(
+    () =>
+      buildShopListingResult(scopedProducts, {
+        locale,
+        currency,
+        rates: rates ? { EUR: rates.EUR, USD: rates.USD } : null,
+        query: queryDraft,
+        featuredComparator: buildFeaturedBrandComparator(),
+      }),
+    [currency, locale, queryDraft, rates, scopedProducts]
+  );
+
+  const brandCards = useMemo(() => {
+    return listing.availableFilters.brands.map((brand) => ({
+      name: brand.value,
+      count: brand.count,
+      image: scopedProducts.find((product) => product.brand === brand.value)?.image ?? '/branding/og-image.png',
+    })).slice(0, 12);
+  }, [listing.availableFilters.brands, scopedProducts]);
 
   const categoryCards = useMemo(() => {
-    const map = new Map<string, { key: string; label: string; image: string; count: number }>();
-
-    scopedProducts.forEach((product) => {
-      const label = localizeShopText(locale, product.category, { kind: 'label' });
-      const existing = map.get(label);
-      if (existing) {
-        map.set(label, { ...existing, count: existing.count + 1 });
-      } else {
-        map.set(label, {
-          key: label,
-          label,
-          image: product.image,
-          count: 1,
-        });
-      }
-    });
-
-    return Array.from(map.values()).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
-  }, [locale, scopedProducts]);
-
-  const filteredProducts = useMemo(() => {
-    const needle = search.trim().toLowerCase();
-
-    const filtered = scopedProducts.filter((product) => {
-      if (selectedBrand !== 'all' && product.brand !== selectedBrand) return false;
-
-      const categoryLabel = localizeShopText(locale, product.category, { kind: 'label' });
-      if (selectedCategory !== 'all' && categoryLabel !== selectedCategory) return false;
-
-      if (!needle) return true;
-
-      const title = localizeShopText(locale, product.title, { kind: 'title' }).toLowerCase();
-      const shortDescription = localizeShopText(locale, product.shortDescription, { kind: 'description' }).toLowerCase();
-
-      return (
-        title.includes(needle) ||
-        shortDescription.includes(needle) ||
-        categoryLabel.toLowerCase().includes(needle) ||
-        product.brand.toLowerCase().includes(needle)
-      );
-    });
-
-                return filtered.sort((a, b) => {
-      const priceA = computePricesFromUah(a.price, rates && { EUR: rates.EUR, USD: rates.USD });
-      const priceB = computePricesFromUah(b.price, rates && { EUR: rates.EUR, USD: rates.USD });
-
-      if (sortMode === 'priceLow') return priceA.eur - priceB.eur;
-      if (sortMode === 'priceHigh') return priceB.eur - priceA.eur;
-      const featuredScore = (brand: string) => {
-        const index = featuredBrandOrder.findIndex((item) => item.toLowerCase() === brand.toLowerCase());
-        return index === -1 ? 999 : index;
-      };
-      return featuredScore(a.brand) - featuredScore(b.brand);
-    });
-  }, [locale, scopedProducts, selectedBrand, selectedCategory, search, sortMode]);
+    return listing.availableFilters.categories.map((category) => ({
+      key: category.value,
+      label: category.label,
+      image:
+        scopedProducts.find((product) => getShopProductCategoryLabel(product, locale) === category.label)?.image ??
+        '/branding/og-image.png',
+      count: category.count,
+    }));
+  }, [listing.availableFilters.categories, locale, scopedProducts]);
 
   const stats = useMemo(() => {
     return {
       products: scopedProducts.length,
       brands: new Set(scopedProducts.map((product) => product.brand)).size,
-      categories: new Set(scopedProducts.map((product) => localizeShopText(locale, product.category, { kind: 'label' }))).size,
+      categories: new Set(scopedProducts.map((product) => getShopProductCategoryLabel(product, locale))).size,
     };
   }, [locale, scopedProducts]);
 
@@ -252,8 +233,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
                   type="button"
                   onClick={() => {
                     setScope(item);
-                    setSelectedBrand('all');
-                    setSelectedCategory('all');
+                    updateListingQuery({ brand: 'all', category: 'all' });
                   }}
                   className={`rounded-full border px-4 py-2 text-xs uppercase tracking-[0.2em] transition ${
                     isUrban
@@ -297,7 +277,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
               <h2 className="mt-2 text-3xl font-light text-[#171511]">{isUa ? 'Обери бренд' : 'Select a brand'}</h2>
             </div>
             <button
-              onClick={() => setSelectedBrand('all')}
+              onClick={() => updateListingQuery({ brand: 'all' })}
               className="rounded-full border border-black/20 bg-white px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-black/70 transition hover:border-black/35 hover:text-black"
             >
               {isUa ? 'Показати всі' : 'Show all'}
@@ -306,9 +286,9 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <button
-              onClick={() => setSelectedBrand('all')}
+              onClick={() => updateListingQuery({ brand: 'all' })}
               className={`rounded-2xl border p-5 text-left transition ${
-                selectedBrand === 'all'
+                queryDraft.brand === 'all'
                   ? 'border-black/80 bg-[#11110f] text-white'
                   : 'border-black/15 bg-white text-black hover:border-black/35'
               }`}
@@ -321,9 +301,9 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
             {brandCards.map((brand) => (
               <button
                 key={brand.name}
-                onClick={() => setSelectedBrand(brand.name)}
+                onClick={() => updateListingQuery({ brand: brand.name })}
                 className={`group relative overflow-hidden rounded-2xl border bg-white text-left transition ${
-                  selectedBrand === brand.name
+                  queryDraft.brand === brand.name
                     ? 'border-black/80 shadow-[0_14px_30px_rgba(0,0,0,0.13)]'
                     : 'border-black/15 hover:border-black/35 hover:shadow-[0_14px_30px_rgba(0,0,0,0.08)]'
                 }`}
@@ -364,7 +344,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
               <h2 className="mt-2 text-3xl font-light text-[#171511]">{isUa ? 'Категорії та колекції' : 'Collections and categories'}</h2>
             </div>
             <button
-              onClick={() => setSelectedCategory('all')}
+              onClick={() => updateListingQuery({ category: 'all' })}
               className="rounded-full border border-black/20 bg-white px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-black/70 transition hover:border-black/35 hover:text-black"
             >
               {isUa ? 'Скинути категорію' : 'Reset category'}
@@ -373,9 +353,9 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <button
-              onClick={() => setSelectedCategory('all')}
+              onClick={() => updateListingQuery({ category: 'all' })}
               className={`rounded-2xl border p-4 text-left transition ${
-                selectedCategory === 'all'
+                queryDraft.category === 'all'
                   ? 'border-black/80 bg-[#11110f] text-white'
                   : 'border-black/15 bg-white text-black hover:border-black/35'
               }`}
@@ -387,9 +367,9 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
             {categoryCards.map((category) => (
               <button
                 key={category.key}
-                onClick={() => setSelectedCategory(category.label)}
+                onClick={() => updateListingQuery({ category: category.key })}
                 className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition ${
-                  selectedCategory === category.label
+                  queryDraft.category === category.key
                     ? 'border-black/80 bg-white'
                     : 'border-black/15 bg-white hover:border-black/35'
                 }`}
@@ -423,52 +403,22 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
               <h2 className="mt-2 text-3xl font-light text-[#171511]">{isUa ? 'Товари каталогу' : 'Catalog products'}</h2>
             </div>
             <p className="rounded-full border border-black/20 bg-white px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-black/70">
-              {filteredProducts.length} {isUa ? 'результатів' : 'results'}
+              {listing.total} {isUa ? 'результатів' : 'results'}
             </p>
           </div>
 
-          <div className="grid gap-3 rounded-2xl border border-black/10 bg-white p-4 shadow-[0_12px_26px_rgba(0,0,0,0.06)] sm:grid-cols-2 lg:grid-cols-[1.2fr_220px_220px]">
-            <label className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/40" aria-hidden>⌕</span>
-              <input
-                type="search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={isUa ? 'Пошук товару або бренду' : 'Search by product or brand'}
-                aria-label={isUa ? 'Пошук за назвою товару або бренду' : 'Search by product name or brand'}
-                className="w-full rounded-xl border border-black/15 bg-[#fbfaf8] py-3 pl-8 pr-3 text-sm text-black placeholder:text-black/45 focus:border-black/35 focus:outline-none focus:ring-2 focus:ring-black/10"
-              />
-            </label>
+          <ShopListingToolbar
+            locale={locale}
+            query={queryDraft}
+            filters={listing.availableFilters}
+            total={listing.total}
+            onQueryChange={updateListingQuery}
+            onReset={resetListingQuery}
+            showBrand={false}
+            showCategory={false}
+          />
 
-            <div className="relative">
-              <select
-                value={selectedBrand}
-                onChange={(event) => setSelectedBrand(event.target.value)}
-                className="w-full appearance-none rounded-xl border border-black/15 bg-[#fbfaf8] px-3 py-3 text-sm text-black focus:border-black/35 focus:outline-none"
-              >
-                <option value="all">{isUa ? 'Усі бренди' : 'All brands'}</option>
-                {brandCards.map((brand) => (
-                  <option key={brand.name} value={brand.name}>
-                    {brand.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="relative">
-              <select
-                value={sortMode}
-                onChange={(event) => setSortMode(event.target.value as SortMode)}
-                className="w-full appearance-none rounded-xl border border-black/15 bg-[#fbfaf8] px-3 py-3 text-sm text-black focus:border-black/35 focus:outline-none"
-              >
-                <option value="featured">{isUa ? 'Рекомендовані' : 'Featured'}</option>
-                <option value="priceLow">{isUa ? 'Ціна: спочатку дешевші' : 'Price: low to high'}</option>
-                <option value="priceHigh">{isUa ? 'Ціна: спочатку дорожчі' : 'Price: high to low'}</option>
-              </select>
-            </div>
-          </div>
-
-          {filteredProducts.length === 0 ? (
+          {listing.products.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-black/25 bg-white p-10 text-center text-black/60">
               {isUa
                 ? 'За поточними фільтрами товари не знайдені. Спробуй змінити бренд або категорію.'
@@ -476,7 +426,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredProducts.map((product) => {
+              {listing.products.map((product) => {
                 const productTitle = localizeShopText(locale, product.title, { kind: 'title' });
                 const category = localizeShopText(locale, product.category, { kind: 'label' });
                 const shortDescription = localizeShopText(locale, product.shortDescription, { kind: 'description' });

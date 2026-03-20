@@ -101,6 +101,8 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
   return {
     id: row.id,
     storeKey: row.storeKey,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
     slug: row.slug,
     sku: row.sku ?? primaryVariant?.sku ?? '',
     scope: row.scope as ShopScope,
