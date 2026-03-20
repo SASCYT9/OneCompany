@@ -4,10 +4,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { normalizeShopStoreKey } from '@/lib/shopStores';
 
 export async function GET(
   req: NextRequest,
@@ -15,13 +14,14 @@ export async function GET(
 ) {
   const { orderNumber } = await params;
   const token = req.nextUrl.searchParams.get('token');
+  const storeKey = normalizeShopStoreKey(req.nextUrl.searchParams.get('store'));
   const session = await getCurrentShopCustomerSession();
 
   const order = await prisma.shopOrder.findFirst({
     where: token?.trim()
-      ? { orderNumber, viewToken: token }
+      ? { orderNumber, viewToken: token, storeKey }
       : session?.customerId
-        ? { orderNumber, customerId: session.customerId }
+        ? { orderNumber, customerId: session.customerId, storeKey }
         : { orderNumber: '__missing__' },
     include: {
       items: true,
@@ -39,6 +39,7 @@ export async function GET(
   }
 
   return NextResponse.json({
+    storeKey: order.storeKey,
     orderNumber: order.orderNumber,
     status: order.status,
     paymentMethod: order.paymentMethod ?? 'FOP',

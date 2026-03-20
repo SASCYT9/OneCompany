@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
+import { prisma } from '@/lib/prisma';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import { serializePublicShopProduct } from '@/lib/shopPublicProducts';
-
-const prisma = new PrismaClient();
+import { normalizeShopStoreKey } from '@/lib/shopStores';
 
 export async function GET(request: NextRequest) {
   try {
+    const storeKey = normalizeShopStoreKey(request.nextUrl.searchParams.get('store'));
     const [settingsRecord, session, products] = await Promise.all([
       getOrCreateShopSettings(prisma),
       getCurrentShopCustomerSession(),
-      getShopProductsServer(),
+      getShopProductsServer(storeKey),
     ]);
     const settings = getShopSettingsRuntime(settingsRecord);
     const pricingContext = buildShopViewerPricingContext(

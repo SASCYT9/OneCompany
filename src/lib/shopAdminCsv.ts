@@ -117,6 +117,18 @@ function firstNullableValue(rows: CsvRecord[], column: string): string | null {
   return nullableString(firstNonEmptyValue(rows, column));
 }
 
+function firstNonEmptyValueFromColumns(rows: CsvRecord[], columns: string[]): string {
+  for (const column of columns) {
+    const value = firstNonEmptyValue(rows, column);
+    if (value) return value;
+  }
+  return '';
+}
+
+function firstNullableValueFromColumns(rows: CsvRecord[], columns: string[]): string | null {
+  return nullableString(firstNonEmptyValueFromColumns(rows, columns));
+}
+
 function boolValue(value: string | undefined, fallback = false): boolean {
   const normalized = stringValue(value).toLowerCase();
   if (!normalized) return fallback;
@@ -201,6 +213,21 @@ function optionLinkedTo(record: CsvRecord, index: 1 | 2 | 3) {
 function buildProductPayload(handle: string, rows: CsvRecord[], columns: string[]): AdminShopProductPayload {
   const first = rows.find((row) => stringValue(row['Title'])) ?? rows[0];
   const bodyHtml = firstNonEmptyValue(rows, 'Body (HTML)');
+  const titleEn = firstNonEmptyValueFromColumns(rows, ['Title (EN)', 'Title EN', 'title_en', 'Title']);
+  const categoryEn = firstNullableValueFromColumns(rows, ['Type (EN)', 'Type EN', 'type_en', 'Type']);
+  const shortDescEn = firstNonEmptyValueFromColumns(rows, [
+    'Short Description (EN)',
+    'Short description (EN)',
+    'short_description_en',
+  ]);
+  const longDescEn = firstNonEmptyValueFromColumns(rows, [
+    'Long Description (EN)',
+    'Long description (EN)',
+    'long_description_en',
+  ]);
+  const bodyHtmlEn = firstNullableValueFromColumns(rows, ['Body (HTML) (EN)', 'Body HTML (EN)', 'body_html_en', 'Body (HTML)']);
+  const seoTitleEn = firstNullableValueFromColumns(rows, ['SEO Title (EN)', 'seo_title_en', 'SEO Title']);
+  const seoDescriptionEn = firstNullableValueFromColumns(rows, ['SEO Description (EN)', 'seo_description_en', 'SEO Description']);
   const defaultImage = firstNullableValue(rows, 'Image Src');
   const defaultVariantImage = firstNullableValue(rows, 'Variant Image');
   const mediaMap = new Map<string, { src: string; altText?: string; position: number }>();
@@ -297,6 +324,7 @@ function buildProductPayload(handle: string, rows: CsvRecord[], columns: string[
   const published = boolValue(first['Published'], status === 'ACTIVE');
 
   return {
+    storeKey: 'urban',
     slug: slugify(handle),
     sku: firstNullableValue(rows, 'Variant SKU'),
     scope: 'auto',
@@ -311,15 +339,15 @@ function buildProductPayload(handle: string, rows: CsvRecord[], columns: string[
     collectionIds: [],
     status,
     titleUa: firstNonEmptyValue(rows, 'Title'),
-    titleEn: firstNonEmptyValue(rows, 'Title'),
+    titleEn,
     categoryUa: firstNullableValue(rows, 'Type'),
-    categoryEn: firstNullableValue(rows, 'Type'),
+    categoryEn,
     shortDescUa: excerpt(bodyHtml),
-    shortDescEn: excerpt(bodyHtml),
+    shortDescEn: shortDescEn || excerpt(bodyHtml),
     longDescUa: htmlToPlainText(bodyHtml),
-    longDescEn: htmlToPlainText(bodyHtml),
+    longDescEn: longDescEn || htmlToPlainText(bodyHtml),
     bodyHtmlUa: nullableString(bodyHtml),
-    bodyHtmlEn: nullableString(bodyHtml),
+    bodyHtmlEn,
     leadTimeUa: null,
     leadTimeEn: null,
     stock: (variants.some((variant) => (variant.inventoryQty ?? 0) > 0) ? 'inStock' : 'preOrder'),
@@ -333,9 +361,9 @@ function buildProductPayload(handle: string, rows: CsvRecord[], columns: string[
     compareAtUah: primaryVariant?.compareAtUah ?? null,
     image: defaultImage ?? defaultVariantImage,
     seoTitleUa: firstNullableValue(rows, 'SEO Title'),
-    seoTitleEn: firstNullableValue(rows, 'SEO Title'),
+    seoTitleEn,
     seoDescriptionUa: firstNullableValue(rows, 'SEO Description'),
-    seoDescriptionEn: firstNullableValue(rows, 'SEO Description'),
+    seoDescriptionEn,
     isPublished: published,
     publishedAt: published ? new Date().toISOString() : null,
     gallery: Array.from(mediaMap.values()).map((item) => item.src),

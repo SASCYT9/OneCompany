@@ -1,8 +1,15 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollectionsList';
 import { getUrbanCollectionHandleForProduct } from '@/lib/urbanCollectionMatcher';
+import { DEFAULT_SHOP_STORE_KEY, normalizeShopStoreKey } from '@/lib/shopStores';
 
 export const adminCollectionInclude = {
+  store: {
+    select: {
+      key: true,
+      name: true,
+    },
+  },
   products: {
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     include: {
@@ -23,6 +30,13 @@ export const adminCollectionInclude = {
 
 export const adminCollectionListSelect = {
   id: true,
+  storeKey: true,
+  store: {
+    select: {
+      key: true,
+      name: true,
+    },
+  },
   handle: true,
   titleUa: true,
   titleEn: true,
@@ -48,6 +62,7 @@ export type AdminShopCollectionListRecord = Prisma.ShopCollectionGetPayload<{
 }>;
 
 export type AdminShopCollectionPayload = {
+  storeKey: string;
   handle: string;
   titleUa: string;
   titleEn: string;
@@ -99,12 +114,14 @@ export function normalizeAdminCollectionPayload(input: unknown) {
   const titleUa = stringValue(source.titleUa || source.title_ua || source.title);
   const titleEn = stringValue(source.titleEn || source.title_en || source.title);
   const handle = sanitizeHandle(source.handle || source.slug || titleEn || titleUa);
+  const storeKey = normalizeShopStoreKey(source.storeKey);
   const errors: string[] = [];
 
   if (!handle) errors.push('handle is required');
   if (!titleUa && !titleEn) errors.push('titleUa or titleEn is required');
 
   const data: AdminShopCollectionPayload = {
+    storeKey,
     handle,
     titleUa: titleUa || titleEn,
     titleEn: titleEn || titleUa,
@@ -122,6 +139,11 @@ export function normalizeAdminCollectionPayload(input: unknown) {
 
 export function buildAdminCollectionCreateData(data: AdminShopCollectionPayload): Prisma.ShopCollectionCreateInput {
   return {
+    store: {
+      connect: {
+        key: data.storeKey || DEFAULT_SHOP_STORE_KEY,
+      },
+    },
     handle: data.handle,
     titleUa: data.titleUa,
     titleEn: data.titleEn,
@@ -137,6 +159,11 @@ export function buildAdminCollectionCreateData(data: AdminShopCollectionPayload)
 
 export function buildAdminCollectionUpdateData(data: AdminShopCollectionPayload): Prisma.ShopCollectionUpdateInput {
   return {
+    store: {
+      connect: {
+        key: data.storeKey || DEFAULT_SHOP_STORE_KEY,
+      },
+    },
     handle: data.handle,
     titleUa: data.titleUa,
     titleEn: data.titleEn,
@@ -153,6 +180,8 @@ export function buildAdminCollectionUpdateData(data: AdminShopCollectionPayload)
 export function serializeAdminCollection(record: AdminShopCollectionRecord) {
   return {
     id: record.id,
+    storeKey: record.storeKey,
+    store: record.store,
     handle: record.handle,
     titleUa: record.titleUa,
     titleEn: record.titleEn,
@@ -182,6 +211,8 @@ export function serializeAdminCollection(record: AdminShopCollectionRecord) {
 export function serializeAdminCollectionListItem(record: AdminShopCollectionRecord | AdminShopCollectionListRecord) {
   return {
     id: record.id,
+    storeKey: record.storeKey,
+    store: record.store,
     handle: record.handle,
     titleUa: record.titleUa,
     titleEn: record.titleEn,
@@ -202,7 +233,12 @@ export async function syncUrbanCollections(prisma: PrismaClient) {
 
   for (const [index, card] of URBAN_COLLECTION_CARDS.entries()) {
     const collection = await prisma.shopCollection.upsert({
-      where: { handle: card.collectionHandle },
+      where: {
+        storeKey_handle: {
+          storeKey: 'urban',
+          handle: card.collectionHandle,
+        },
+      },
       update: {
         titleUa: card.title,
         titleEn: card.title,
@@ -213,6 +249,7 @@ export async function syncUrbanCollections(prisma: PrismaClient) {
         sortOrder: index,
       },
       create: {
+        storeKey: 'urban',
         handle: card.collectionHandle,
         titleUa: card.title,
         titleEn: card.title,
@@ -244,6 +281,7 @@ export async function syncUrbanCollections(prisma: PrismaClient) {
 export async function syncUrbanCollectionAssignments(prisma: PrismaClient) {
   const { created, updated, collectionIdByHandle } = await syncUrbanCollections(prisma);
   const products = await prisma.shopProduct.findMany({
+    where: { storeKey: 'urban' },
     orderBy: { updatedAt: 'desc' },
     select: {
       id: true,

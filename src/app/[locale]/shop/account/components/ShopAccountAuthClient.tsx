@@ -11,6 +11,7 @@ type Mode = 'login' | 'register';
 type Props = {
   locale: SupportedLocale;
   mode: Mode;
+  storeKey?: string;
 };
 
 function baseCopy(locale: SupportedLocale, mode: Mode) {
@@ -40,12 +41,12 @@ function baseCopy(locale: SupportedLocale, mode: Mode) {
   };
 }
 
-export default function ShopAccountAuthClient({ locale, mode }: Props) {
+export default function ShopAccountAuthClient({ locale, mode, storeKey = 'urban' }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const copy = baseCopy(locale, mode);
   const isUa = locale === 'ua';
-  const nextHref = searchParams.get('next') || `/${locale}/shop/account`;
+  const nextHref = searchParams.get('next') || `/${locale}/shop/account?store=${encodeURIComponent(storeKey)}`;
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
@@ -68,7 +69,7 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
       throw new Error(isUa ? 'Невірний email або пароль' : 'Invalid email or password');
     }
 
-    await fetch('/api/shop/cart');
+    await fetch(`/api/shop/cart?store=${encodeURIComponent(storeKey)}`);
     router.push(nextHref);
     router.refresh();
   }
@@ -88,6 +89,7 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
         email: form.email,
         password: form.password,
         preferredLocale: locale,
+        storeKey,
       }),
     });
     const registerData = await registerResponse.json().catch(() => ({}));
@@ -185,7 +187,7 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
             <Link href={`/${locale}/shop/urban/collections`} className="hover:text-white">
               {isUa ? '← До колекцій Urban' : '← Back to Urban collections'}
             </Link>
-            <Link href={copy.altHref} className="hover:text-white">
+            <Link href={`${copy.altHref}?store=${encodeURIComponent(storeKey)}`} className="hover:text-white">
               {copy.altLabel}
             </Link>
           </div>

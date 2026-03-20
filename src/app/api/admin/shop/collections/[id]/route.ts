@@ -1,16 +1,15 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import {
   adminCollectionInclude,
   buildAdminCollectionUpdateData,
   normalizeAdminCollectionPayload,
   serializeAdminCollection,
 } from '@/lib/shopAdminCollections';
-
-const prisma = new PrismaClient();
+import { ensureDefaultShopStores } from '@/lib/shopStores';
 
 export async function GET(
   _request: NextRequest,
@@ -19,6 +18,7 @@ export async function GET(
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_COLLECTIONS_READ);
+    await ensureDefaultShopStores(prisma);
     const { id } = await params;
     const collection = await prisma.shopCollection.findUnique({
       where: { id },
@@ -47,6 +47,7 @@ export async function PATCH(
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_COLLECTIONS_WRITE);
+    await ensureDefaultShopStores(prisma);
     const { id } = await params;
     const body = await request.json();
     const { data, errors } = normalizeAdminCollectionPayload(body);
@@ -54,7 +55,7 @@ export async function PATCH(
       return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
     }
     const existing = await prisma.shopCollection.findFirst({
-      where: { handle: data.handle, NOT: { id } },
+      where: { handle: data.handle, storeKey: data.storeKey, NOT: { id } },
     });
     if (existing) {
       return NextResponse.json({ error: 'Another collection with this handle exists' }, { status: 409 });
@@ -70,6 +71,7 @@ export async function PATCH(
       entityType: 'shop.collection',
       entityId: collection.id,
       metadata: {
+        storeKey: collection.storeKey,
         handle: collection.handle,
         isUrban: collection.isUrban,
       },
@@ -94,10 +96,11 @@ export async function DELETE(
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_COLLECTIONS_WRITE);
+    await ensureDefaultShopStores(prisma);
     const { id } = await params;
     const deleted = await prisma.shopCollection.delete({
       where: { id },
-      select: { id: true, handle: true },
+      select: { id: true, storeKey: true, handle: true },
     });
     await writeAdminAuditLog(prisma, session, {
       scope: 'shop',
@@ -105,6 +108,7 @@ export async function DELETE(
       entityType: 'shop.collection',
       entityId: deleted.id,
       metadata: {
+        storeKey: deleted.storeKey,
         handle: deleted.handle,
       },
     });

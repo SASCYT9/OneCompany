@@ -1,22 +1,22 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import { syncUrbanCollectionAssignments } from '@/lib/shopAdminCollections';
-
-const prisma = new PrismaClient();
+import { ensureDefaultShopStores } from '@/lib/shopStores';
 
 export async function POST() {
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_COLLECTIONS_WRITE);
+    await ensureDefaultShopStores(prisma);
     const result = await syncUrbanCollectionAssignments(prisma);
     await writeAdminAuditLog(prisma, session, {
       scope: 'shop',
       action: 'collection.sync_urban',
       entityType: 'shop.collection',
-      metadata: result,
+      metadata: { storeKey: 'urban', ...result },
     });
     return NextResponse.json(result);
   } catch (error) {

@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { ADMIN_SESSION_COOKIE, adminSessionCookieOptions, createSessionToken } from '@/lib/adminAuth';
 import { ensureAdminBootstrap } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 
 // Trim any whitespace/newline characters from environment variable
 const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || 'admin123').trim();
-const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {

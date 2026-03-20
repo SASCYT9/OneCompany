@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Save } from 'lucide-react';
 
 type CollectionFormState = {
+  storeKey: string;
   handle: string;
   titleUa: string;
   titleEn: string;
@@ -20,6 +21,11 @@ type CollectionFormState = {
 
 type CollectionResponse = {
   id: string;
+  storeKey: string;
+  store: {
+    key: string;
+    name: string;
+  } | null;
   handle: string;
   titleUa: string;
   titleEn: string;
@@ -43,6 +49,14 @@ type CollectionResponse = {
   }>;
 };
 
+type ShopStoreSummary = {
+  key: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  sortOrder: number;
+};
+
 function slugify(value: string) {
   return value
     .trim()
@@ -53,8 +67,9 @@ function slugify(value: string) {
     .replace(/^-|-$/g, '');
 }
 
-function createEmptyForm(): CollectionFormState {
+function createEmptyForm(storeKey = 'urban'): CollectionFormState {
   return {
+    storeKey,
     handle: '',
     titleUa: '',
     titleEn: '',
@@ -70,6 +85,7 @@ function createEmptyForm(): CollectionFormState {
 
 function collectionToForm(collection: CollectionResponse): CollectionFormState {
   return {
+    storeKey: collection.storeKey || 'urban',
     handle: collection.handle,
     titleUa: collection.titleUa,
     titleEn: collection.titleEn,
@@ -89,14 +105,48 @@ type Props = {
 
 export default function AdminCollectionEditor({ collectionId }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const isEditing = Boolean(collectionId);
+  const initialStoreKey = searchParams.get('store') || 'urban';
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [handleTouched, setHandleTouched] = useState(isEditing);
-  const [form, setForm] = useState<CollectionFormState>(createEmptyForm());
+  const [stores, setStores] = useState<ShopStoreSummary[]>([]);
+  const [form, setForm] = useState<CollectionFormState>(() => createEmptyForm(initialStoreKey));
   const [linkedProducts, setLinkedProducts] = useState<CollectionResponse['products']>([]);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setForm((current) => ({ ...current, storeKey: current.storeKey || initialStoreKey }));
+    }
+  }, [initialStoreKey, isEditing]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadStores() {
+      try {
+        const response = await fetch('/api/admin/shop/stores');
+        const data = await response.json().catch(() => []);
+        if (!response.ok || cancelled) return;
+        const nextStores = Array.isArray(data) ? (data as ShopStoreSummary[]) : [];
+        setStores(nextStores);
+        if (!isEditing && nextStores.length && !nextStores.some((store) => store.key === form.storeKey)) {
+          setForm((current) => ({ ...current, storeKey: nextStores[0].key }));
+        }
+      } catch {
+        // Keep default store when bootstrap route is unavailable.
+      }
+    }
+
+    void loadStores();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [form.storeKey, isEditing]);
 
   useEffect(() => {
     if (!collectionId) {
@@ -167,6 +217,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
           method: isEditing ? 'PATCH' : 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            storeKey: form.storeKey,
             handle: form.handle,
             titleUa: form.titleUa,
             titleEn: form.titleEn,
@@ -188,7 +239,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
 
       setSuccess(isEditing ? 'Колекцію оновлено.' : 'Колекцію створено.');
       if (!isEditing) {
-        router.push('/admin/shop/collections');
+        router.push(`/admin/shop/collections?store=${encodeURIComponent(form.storeKey)}`);
         router.refresh();
       } else {
         setLinkedProducts((data.products ?? []) as CollectionResponse['products']);
@@ -217,7 +268,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
               {isEditing ? 'Редагувати колекцію' : 'Нова колекція'}
             </h1>
             <p className="mt-2 text-sm text-white/45">
-              Define collection handle, storefront copy, and assignment target for products.
+              Налаштуйте handle колекції, тексти для вітрини та ціль прив’язки товарів.
             </p>
           </div>
         </div>
@@ -228,14 +279,27 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
         <form onSubmit={handleSubmit} className="space-y-6">
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5">
-              <h2 className="text-lg font-medium text-white">Overview</h2>
-              <p className="mt-1 text-sm text-white/45">Collection identity used in admin, storefront and sitemap.</p>
+              <h2 className="text-lg font-medium text-white">Огляд</h2>
+              <p className="mt-1 text-sm text-white/45">Ідентичність колекції для адмінки, вітрини та sitemap.</p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
+              <SelectField
+                label="Магазин"
+                value={form.storeKey}
+                onChange={(value) => updateField('storeKey', value)}
+                disabled={isEditing}
+                options={(stores.length
+                  ? stores
+                  : [{ key: 'urban', name: 'Urban Automotive', description: null, isActive: true, sortOrder: 0 }]
+                ).map((store) => ({
+                  value: store.key,
+                  label: store.name,
+                }))}
+              />
               <InputField label="Назва (EN)" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
               <InputField label="Назва (UA)" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
               <InputField label="Handle (символний ідентифікатор)" value={form.handle} onChange={(value) => updateField('handle', slugify(value))} />
-              <InputField label="Brand" value={form.brand} onChange={(value) => updateField('brand', value)} />
+              <InputField label="Бренд" value={form.brand} onChange={(value) => updateField('brand', value)} />
               <InputField label="Порядок сортування" type="number" value={form.sortOrder} onChange={(value) => updateField('sortOrder', value)} />
               <InputField label="URL головного зображення" value={form.heroImage} onChange={(value) => updateField('heroImage', value)} />
             </div>
@@ -247,8 +311,8 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
 
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5">
-              <h2 className="text-lg font-medium text-white">Descriptions</h2>
-              <p className="mt-1 text-sm text-white/45">Optional collection copy for future landing pages and SEO.</p>
+              <h2 className="text-lg font-medium text-white">Описи</h2>
+              <p className="mt-1 text-sm text-white/45">Необов’язкові тексти колекції для майбутніх landing pages і SEO.</p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <TextareaField label="Опис (EN)" value={form.descriptionEn} onChange={(value) => updateField('descriptionEn', value)} rows={6} />
@@ -259,8 +323,8 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
           {isEditing ? (
             <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
               <div className="mb-5">
-                <h2 className="text-lg font-medium text-white">Assigned products</h2>
-                <p className="mt-1 text-sm text-white/45">Products are assigned from the product editor or via Urban sync.</p>
+                <h2 className="text-lg font-medium text-white">Призначені товари</h2>
+                <p className="mt-1 text-sm text-white/45">Товари прив’язуються з редактора товару або через синхронізацію Urban.</p>
               </div>
               {linkedProducts.length ? (
                 <div className="grid gap-3 md:grid-cols-2">
@@ -278,7 +342,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
                 </div>
               ) : (
                 <div className="rounded-xl border border-dashed border-white/10 bg-black/30 px-4 py-8 text-sm text-white/45">
-                  No products assigned yet.
+                  Товари ще не призначені.
                 </div>
               )}
             </section>
@@ -289,7 +353,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
               <Save className="h-4 w-4" />
               {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти колекцію' : 'Створити колекцію'}
             </button>
-            <Link href="/admin/shop/collections" className="rounded-lg border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
+            <Link href={`/admin/shop/collections${form.storeKey ? `?store=${encodeURIComponent(form.storeKey)}` : ''}`} className="rounded-lg border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
               Скасувати
             </Link>
           </div>
@@ -357,6 +421,34 @@ function CheckboxField({ label, checked, onChange }: CheckboxFieldProps) {
         className="h-4 w-4 rounded border-white/20 bg-zinc-950"
       />
       {label}
+    </label>
+  );
+}
+
+type SelectFieldProps = {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+  disabled?: boolean;
+};
+
+function SelectField({ label, value, onChange, options, disabled = false }: SelectFieldProps) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        disabled={disabled}
+        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none disabled:opacity-60"
+      >
+        {options.map((option) => (
+          <option key={`${option.value}-${option.label}`} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </label>
   );
 }

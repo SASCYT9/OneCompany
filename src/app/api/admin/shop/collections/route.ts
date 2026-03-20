@@ -1,8 +1,8 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import {
   adminCollectionInclude,
   adminCollectionListSelect,
@@ -10,14 +10,16 @@ import {
   normalizeAdminCollectionPayload,
   serializeAdminCollectionListItem,
 } from '@/lib/shopAdminCollections';
+import { ensureDefaultShopStores, normalizeShopStoreKey } from '@/lib/shopStores';
 
-const prisma = new PrismaClient();
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_COLLECTIONS_READ);
+    await ensureDefaultShopStores(prisma);
+    const storeKey = normalizeShopStoreKey(request.nextUrl.searchParams.get('store'));
     const collections = await prisma.shopCollection.findMany({
+      where: { storeKey },
       orderBy: [{ isUrban: 'desc' }, { sortOrder: 'asc' }, { titleEn: 'asc' }],
       select: adminCollectionListSelect,
     });
@@ -38,12 +40,15 @@ export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_COLLECTIONS_WRITE);
+    await ensureDefaultShopStores(prisma);
     const body = await request.json();
     const { data, errors } = normalizeAdminCollectionPayload(body);
     if (errors.length) {
       return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
     }
-    const existing = await prisma.shopCollection.findUnique({ where: { handle: data.handle } });
+    const existing = await prisma.shopCollection.findFirst({
+      where: { storeKey: data.storeKey, handle: data.handle },
+    });
     if (existing) {
       return NextResponse.json({ error: 'Collection with this handle already exists' }, { status: 409 });
     }
@@ -57,6 +62,7 @@ export async function POST(request: NextRequest) {
       entityType: 'shop.collection',
       entityId: collection.id,
       metadata: {
+        storeKey: collection.storeKey,
         handle: collection.handle,
         isUrban: collection.isUrban,
       },

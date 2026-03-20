@@ -1121,7 +1121,7 @@ export default function AdminShopSettingsPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              {saving ? 'Saving…' : 'Save settings'}
+              {saving ? 'Збереження…' : 'Зберегти налаштування'}
             </button>
             <button
               type="button"

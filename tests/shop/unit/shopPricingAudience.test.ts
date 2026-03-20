@@ -16,6 +16,13 @@ const baseSettings = buildShopSettingsRuntimeFromPayload({
   taxRegions: [],
   orderNotificationEmail: null,
   b2bNotes: null,
+  fopCompanyName: null,
+  fopIban: null,
+  fopBankName: null,
+  fopEdrpou: null,
+  fopDetails: null,
+  stripeEnabled: false,
+  whiteBitEnabled: false,
 });
 
 test('approved B2B viewer gets discount-derived pricing when explicit B2B prices are absent', () => {

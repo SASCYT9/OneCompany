@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import type { SupportedLocale } from '@/lib/seo';
 import { buildNoIndexPageMetadata, resolveLocale } from '@/lib/seo';
+import { prisma } from '@/lib/prisma';
 import ShopAccountClient from './components/ShopAccountClient';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import {
@@ -9,11 +9,11 @@ import {
   serializeShopCustomerProfile,
   shopCustomerProfileIncludeWithoutOrders,
 } from '@/lib/shopCustomers';
-
-const prisma = new PrismaClient();
+import { normalizeShopStoreKey } from '@/lib/shopStores';
 
 type Props = {
   params: Promise<{ locale: SupportedLocale }>;
+  searchParams: Promise<{ store?: string | string[] }>;
 };
 
 export async function generateMetadata({ params }: Props) {
@@ -25,12 +25,14 @@ export async function generateMetadata({ params }: Props) {
   });
 }
 
-export default async function ShopAccountPage({ params }: Props) {
+export default async function ShopAccountPage({ params, searchParams }: Props) {
   const { locale } = await params;
+  const { store } = await searchParams;
+  const storeKey = normalizeShopStoreKey(Array.isArray(store) ? store[0] : store);
   const session = await getCurrentShopCustomerSession();
 
   if (!session) {
-    redirect(`/${locale}/shop/account/login?next=${encodeURIComponent(`/${locale}/shop/account`)}`);
+    redirect(`/${locale}/shop/account/login?store=${encodeURIComponent(storeKey)}&next=${encodeURIComponent(`/${locale}/shop/account?store=${encodeURIComponent(storeKey)}`)}`);
   }
 
   const customer = await prisma.shopCustomer.findUnique({
@@ -39,11 +41,11 @@ export default async function ShopAccountPage({ params }: Props) {
   });
 
   if (!customer) {
-    redirect(`/${locale}/shop/account/login`);
+    redirect(`/${locale}/shop/account/login?store=${encodeURIComponent(storeKey)}`);
   }
 
-  const orders = await getOrdersForCustomerDisplay(prisma, customer.id, customer.email);
+  const orders = await getOrdersForCustomerDisplay(prisma, customer.id, customer.email, storeKey);
   const profile = serializeShopCustomerProfile({ ...customer, orders });
 
-  return <ShopAccountClient locale={locale} profile={profile} />;
+  return <ShopAccountClient locale={locale} profile={profile} storeKey={storeKey} />;
 }

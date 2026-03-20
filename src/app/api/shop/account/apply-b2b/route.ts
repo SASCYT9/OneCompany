@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { applyCustomerB2BRequest } from '@/lib/shopCustomers';
+import { prisma } from '@/lib/prisma';
 import { consumeRateLimit, getRequestIp } from '@/lib/shopPublicRateLimit';
 import { notifyAdminShopB2BRequest } from '@/lib/telegramNotifications';
-
-const prisma = new PrismaClient();
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 6;
 

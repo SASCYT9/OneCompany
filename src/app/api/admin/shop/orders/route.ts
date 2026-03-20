@@ -1,16 +1,16 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, PrismaClient, type OrderStatus } from '@prisma/client';
+import { Prisma, type OrderStatus } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import {
   adminOrderInclude,
   ALL_ORDER_STATUSES,
   canTransitionOrderStatus,
   serializeAdminOrderSummary,
 } from '@/lib/shopAdminOrders';
-
-const prisma = new PrismaClient();
+import { ensureDefaultShopStores, normalizeShopStoreKey } from '@/lib/shopStores';
 
 type SerializedOrderSummary = ReturnType<typeof serializeAdminOrderSummary>;
 
@@ -77,12 +77,15 @@ export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
+    await ensureDefaultShopStores(prisma);
     const status = request.nextUrl.searchParams.get('status')?.trim().toUpperCase() || '';
     const query = request.nextUrl.searchParams.get('q')?.trim() || '';
+    const storeKey = normalizeShopStoreKey(request.nextUrl.searchParams.get('store'));
     const currency = request.nextUrl.searchParams.get('currency')?.trim().toUpperCase() || '';
     const shippingZone = request.nextUrl.searchParams.get('shippingZone')?.trim() || '';
     const taxRegion = request.nextUrl.searchParams.get('taxRegion')?.trim() || '';
     const where: Prisma.ShopOrderWhereInput = {
+      storeKey,
       ...(status ? { status: status as Prisma.ShopOrderWhereInput['status'] } : {}),
       ...(query
         ? {
@@ -129,12 +132,14 @@ export async function PATCH(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
+    await ensureDefaultShopStores(prisma);
     const body = await request.json().catch(() => ({}));
     const rawOrderIds: unknown[] = Array.isArray(body.orderIds) ? body.orderIds : [];
     const orderIds: string[] = Array.from(
       new Set(rawOrderIds.map((value: unknown) => String(value ?? '').trim()).filter(Boolean))
     );
     const status = String(body.status ?? '').trim().toUpperCase() as OrderStatus;
+    const storeKey = normalizeShopStoreKey(body.storeKey);
     const note = typeof body.note === 'string' ? body.note.trim() : '';
 
     if (!orderIds.length) {
@@ -146,7 +151,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const orders = await prisma.shopOrder.findMany({
-      where: { id: { in: orderIds } },
+      where: { id: { in: orderIds }, storeKey },
       select: {
         id: true,
         orderNumber: true,
@@ -206,6 +211,7 @@ export async function PATCH(request: NextRequest) {
       metadata: {
         orderIds,
         changedOrderIds: changedOrders.map((order) => order.id),
+        storeKey,
         toStatus: status,
         note: note || null,
       },

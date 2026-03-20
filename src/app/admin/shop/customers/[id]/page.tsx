@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, RotateCcw, Save, UserRound } from 'lucide-react';
 
 type CustomerGroup = 'B2C' | 'B2B_PENDING' | 'B2B_APPROVED';
@@ -106,7 +106,9 @@ function createForm(customer: CustomerDetail): CustomerForm {
 
 export default function AdminShopCustomerDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params?.id as string;
+  const storeKey = searchParams.get('store') || 'urban';
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
   const [form, setForm] = useState<CustomerForm | null>(null);
   const [loading, setLoading] = useState(true);
@@ -119,10 +121,10 @@ export default function AdminShopCustomerDetailPage() {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`/api/admin/shop/customers/${id}`);
+      const response = await fetch(`/api/admin/shop/customers/${id}?store=${encodeURIComponent(storeKey)}`);
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Failed to load customer');
+        setError((data as { error?: string }).error || 'Не вдалося завантажити клієнта');
         return;
       }
       const nextCustomer = data as CustomerDetail;
@@ -131,7 +133,7 @@ export default function AdminShopCustomerDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, storeKey]);
 
   useEffect(() => {
     void load();
@@ -143,20 +145,20 @@ export default function AdminShopCustomerDetailPage() {
     setError('');
     setSuccess('');
     try {
-      const response = await fetch(`/api/admin/shop/customers/${customer.id}`, {
+      const response = await fetch(`/api/admin/shop/customers/${customer.id}?store=${encodeURIComponent(storeKey)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Failed to update customer');
+        setError((data as { error?: string }).error || 'Не вдалося оновити клієнта');
         return;
       }
       const nextCustomer = data as CustomerDetail;
       setCustomer(nextCustomer);
       setForm(createForm(nextCustomer));
-      setSuccess('Customer updated.');
+      setSuccess('Клієнта оновлено.');
     } finally {
       setSaving(false);
     }
@@ -168,20 +170,20 @@ export default function AdminShopCustomerDetailPage() {
     setError('');
     setSuccess('');
     try {
-      const response = await fetch(`/api/admin/shop/customers/${customer.id}`, {
+      const response = await fetch(`/api/admin/shop/customers/${customer.id}?store=${encodeURIComponent(storeKey)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Customer action failed');
+        setError((data as { error?: string }).error || 'Не вдалося виконати дію над клієнтом');
         return;
       }
       const nextCustomer = data as CustomerDetail;
       setCustomer(nextCustomer);
       setForm(createForm(nextCustomer));
-      setSuccess(action === 'approve_b2b' ? 'Customer approved for B2B.' : 'Customer reverted to B2C.');
+      setSuccess(action === 'approve_b2b' ? 'Клієнта погоджено для B2B.' : 'Клієнта повернуто до B2C.');
     } finally {
       setSaving(false);
     }
@@ -191,7 +193,7 @@ export default function AdminShopCustomerDetailPage() {
     return (
       <div className="p-6 text-white/60 flex items-center gap-2">
         <UserRound className="h-5 w-5 animate-pulse" />
-        Loading customer…
+        Завантаження клієнта…
       </div>
     );
   }
@@ -199,9 +201,9 @@ export default function AdminShopCustomerDetailPage() {
   if (!customer || !form) {
     return (
       <div className="p-6">
-        <div className="rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error || 'Customer not found'}</div>
-        <Link href="/admin/shop/customers" className="mt-4 inline-block text-sm text-white/70 hover:text-white">
-          ← Back to customers
+        <div className="rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error || 'Клієнта не знайдено'}</div>
+        <Link href={`/admin/shop/customers?store=${encodeURIComponent(storeKey)}`} className="mt-4 inline-block text-sm text-white/70 hover:text-white">
+          ← Назад до клієнтів
         </Link>
       </div>
     );
@@ -210,9 +212,9 @@ export default function AdminShopCustomerDetailPage() {
   return (
     <div className="h-full overflow-auto">
       <div className="mx-auto max-w-6xl p-6">
-        <Link href="/admin/shop/customers" className="mb-6 inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
+        <Link href={`/admin/shop/customers?store=${encodeURIComponent(storeKey)}`} className="mb-6 inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
           <ArrowLeft className="h-4 w-4" />
-          Back to customers
+          Назад до клієнтів
         </Link>
 
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -231,7 +233,7 @@ export default function AdminShopCustomerDetailPage() {
                 className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100 hover:bg-emerald-500/15 disabled:opacity-50"
               >
                 <CheckCircle2 className="h-4 w-4" />
-                Approve B2B
+                Погодити B2B
               </button>
             ) : null}
             {customer.group !== 'B2C' ? (
@@ -242,7 +244,7 @@ export default function AdminShopCustomerDetailPage() {
                 className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/[0.04] px-4 py-2 text-sm text-white hover:bg-white/[0.08] disabled:opacity-50"
               >
                 <RotateCcw className="h-4 w-4" />
-                Revert to B2C
+                Повернути в B2C
               </button>
             ) : null}
             <button
@@ -252,7 +254,7 @@ export default function AdminShopCustomerDetailPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              {saving ? 'Saving…' : 'Save'}
+              {saving ? 'Збереження…' : 'Зберегти'}
             </button>
           </div>
         </div>
@@ -263,16 +265,16 @@ export default function AdminShopCustomerDetailPage() {
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="space-y-6">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-              <h3 className="mb-4 text-lg font-medium text-white">Profile</h3>
+              <h3 className="mb-4 text-lg font-medium text-white">Профіль</h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <InputField label="Ім'я" value={form.firstName} onChange={(value) => setForm((current) => current ? { ...current, firstName: value } : current)} />
-                <InputField label="Last name" value={form.lastName} onChange={(value) => setForm((current) => current ? { ...current, lastName: value } : current)} />
+                <InputField label="Прізвище" value={form.lastName} onChange={(value) => setForm((current) => current ? { ...current, lastName: value } : current)} />
                 <InputField label="Телефон" value={form.phone} onChange={(value) => setForm((current) => current ? { ...current, phone: value } : current)} />
                 <InputField label="Компанія" value={form.companyName} onChange={(value) => setForm((current) => current ? { ...current, companyName: value } : current)} />
                 <InputField label="ІПН" value={form.vatNumber} onChange={(value) => setForm((current) => current ? { ...current, vatNumber: value } : current)} />
                 <InputField label="Знижка B2B %" value={form.b2bDiscountPercent} onChange={(value) => setForm((current) => current ? { ...current, b2bDiscountPercent: value } : current)} />
                 <label className="block">
-                  <span className="mb-1.5 block text-xs text-white/50">Preferred locale</span>
+                  <span className="mb-1.5 block text-xs text-white/50">Бажана мова</span>
                   <select
                     value={form.preferredLocale}
                     onChange={(event) => setForm((current) => current ? { ...current, preferredLocale: event.target.value } : current)}
@@ -283,15 +285,15 @@ export default function AdminShopCustomerDetailPage() {
                   </select>
                 </label>
                 <label className="block">
-                  <span className="mb-1.5 block text-xs text-white/50">Group</span>
+                  <span className="mb-1.5 block text-xs text-white/50">Група</span>
                   <select
                     value={form.group}
                     onChange={(event) => setForm((current) => current ? { ...current, group: event.target.value as CustomerGroup } : current)}
                     className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
                   >
                     <option value="B2C">B2C</option>
-                    <option value="B2B_PENDING">B2B pending</option>
-                    <option value="B2B_APPROVED">B2B approved</option>
+                    <option value="B2B_PENDING">B2B очікує погодження</option>
+                    <option value="B2B_APPROVED">B2B погоджено</option>
                   </select>
                 </label>
                 <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
@@ -301,17 +303,17 @@ export default function AdminShopCustomerDetailPage() {
                     onChange={(event) => setForm((current) => current ? { ...current, isActive: event.target.checked } : current)}
                     className="h-4 w-4 rounded border-white/20 bg-zinc-950"
                   />
-                  Active customer
+                  Активний клієнт
                 </label>
                 <div className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white/70">
-                  <div>Joined {new Date(customer.createdAt).toLocaleString()}</div>
+                  <div>Створено {new Date(customer.createdAt).toLocaleString()}</div>
                   <div className="mt-1 text-white/45">
-                    Last login {customer.account?.lastLoginAt ? new Date(customer.account.lastLoginAt).toLocaleString() : '—'}
+                    Останній вхід {customer.account?.lastLoginAt ? new Date(customer.account.lastLoginAt).toLocaleString() : '—'}
                   </div>
                 </div>
                 <div className="md:col-span-2">
                   <label className="block">
-                    <span className="mb-1.5 block text-xs text-white/50">Internal notes</span>
+                    <span className="mb-1.5 block text-xs text-white/50">Внутрішні нотатки</span>
                     <textarea
                       value={form.notes}
                       onChange={(event) => setForm((current) => current ? { ...current, notes: event.target.value } : current)}
@@ -324,7 +326,7 @@ export default function AdminShopCustomerDetailPage() {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-              <h3 className="mb-4 text-lg font-medium text-white">Order history</h3>
+              <h3 className="mb-4 text-lg font-medium text-white">Історія замовлень</h3>
               <div className="space-y-3">
                 {customer.orders.length ? customer.orders.map((order) => (
                   <div key={order.id} className="rounded-xl border border-white/10 bg-black/30 p-4">
@@ -332,19 +334,19 @@ export default function AdminShopCustomerDetailPage() {
                       <div>
                         <div className="font-medium text-white">{order.orderNumber}</div>
                         <div className="mt-1 text-xs text-white/45">
-                          {new Date(order.createdAt).toLocaleString()} · {order.itemCount} items
+                          {new Date(order.createdAt).toLocaleString()} · {order.itemCount} товарів
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-sm text-white">{order.currency} {order.total.toFixed(2)}</div>
                         <Link href={`/admin/shop/orders/${order.id}`} className="mt-1 inline-block text-xs text-white/60 hover:text-white">
-                          Open order
+                          Відкрити замовлення
                         </Link>
                       </div>
                     </div>
                   </div>
                 )) : (
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">No orders yet.</div>
+                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">Замовлень ще немає.</div>
                 )}
               </div>
             </div>
@@ -352,7 +354,7 @@ export default function AdminShopCustomerDetailPage() {
 
           <section className="space-y-6">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-              <h3 className="mb-4 text-lg font-medium text-white">Addresses</h3>
+              <h3 className="mb-4 text-lg font-medium text-white">Адреси</h3>
               <div className="space-y-3">
                 {customer.addresses.length ? customer.addresses.map((address) => (
                   <div key={address.id} className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/75">
@@ -362,34 +364,34 @@ export default function AdminShopCustomerDetailPage() {
                     <div>{[address.city, address.region, address.postcode].filter(Boolean).join(', ')}</div>
                     <div>{address.country}</div>
                     <div className="mt-2 text-xs text-white/45">
-                      {address.isDefaultShipping ? 'Default shipping' : '—'} {address.isDefaultBilling ? '· Default billing' : ''}
+                      {address.isDefaultShipping ? 'Основна доставка' : '—'} {address.isDefaultBilling ? '· Основний білінг' : ''}
                     </div>
                   </div>
                 )) : (
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">No addresses saved.</div>
+                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">Збережених адрес немає.</div>
                 )}
               </div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-              <h3 className="mb-4 text-lg font-medium text-white">Active carts</h3>
+              <h3 className="mb-4 text-lg font-medium text-white">Активні кошики</h3>
               <div className="space-y-3">
                 {customer.carts.length ? customer.carts.map((cart) => (
                   <div key={cart.id} className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/75">
                     <div className="font-medium text-white">{cart.currency} · {cart.locale}</div>
                     <div className="mt-1 text-xs text-white/45">
-                      {cart.itemCount} items · updated {new Date(cart.updatedAt).toLocaleString()}
+                      {cart.itemCount} товарів · оновлено {new Date(cart.updatedAt).toLocaleString()}
                     </div>
                     <div className="mt-1 text-xs font-mono text-white/35">{cart.token}</div>
                   </div>
                 )) : (
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">No carts found.</div>
+                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">Кошики не знайдено.</div>
                 )}
               </div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-              <h3 className="mb-4 text-lg font-medium text-white">Audit trail</h3>
+              <h3 className="mb-4 text-lg font-medium text-white">Аудит дій</h3>
               <div className="space-y-3">
                 {customer.auditLog.length ? customer.auditLog.map((entry) => (
                   <div key={entry.id} className="rounded-xl border border-white/10 bg-black/30 p-4">
@@ -407,7 +409,7 @@ export default function AdminShopCustomerDetailPage() {
                     ) : null}
                   </div>
                 )) : (
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">No audit events yet.</div>
+                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">Подій аудиту ще немає.</div>
                 )}
               </div>
             </div>

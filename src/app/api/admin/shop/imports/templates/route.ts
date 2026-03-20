@@ -1,15 +1,13 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import {
   createImportTemplate,
   listImportTemplates,
   normalizeImportTemplatePayload,
 } from '@/lib/shopAdminImports';
-
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {

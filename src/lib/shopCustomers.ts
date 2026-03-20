@@ -60,11 +60,13 @@ export type ShopCustomerProfileBaseRecord = Prisma.ShopCustomerGetPayload<{
 export async function getOrdersForCustomerDisplay(
   prisma: PrismaClient,
   customerId: string,
-  customerEmail: string
+  customerEmail: string,
+  storeKey?: string | null
 ) {
   const email = normalizeCustomerEmail(customerEmail);
   return prisma.shopOrder.findMany({
     where: {
+      ...(storeKey ? { storeKey } : {}),
       OR: [
         { customerId },
         { customerId: null, email: { equals: email, mode: 'insensitive' } },

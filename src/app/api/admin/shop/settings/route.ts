@@ -1,15 +1,14 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import {
   getOrCreateShopSettings,
   normalizeShopSettingsPayload,
   serializeShopSettings,
 } from '@/lib/shopAdminSettings';
-
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {

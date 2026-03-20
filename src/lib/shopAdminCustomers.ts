@@ -5,6 +5,7 @@ import {
   serializeShopCustomerAdminListItem,
   shopCustomerAdminListSelect,
 } from '@/lib/shopCustomers';
+import { normalizeShopStoreKey } from '@/lib/shopStores';
 
 export const shopCustomerAdminDetailInclude = {
   account: true,
@@ -156,11 +157,86 @@ export async function listShopCustomersAdmin(
     q?: string | null;
     group?: string | null;
     status?: string | null;
+    storeKey?: string | null;
   } = {}
 ) {
   const q = String(input.q ?? '').trim();
   const group = String(input.group ?? '').trim();
   const status = String(input.status ?? '').trim().toLowerCase();
+  const storeKey = input.storeKey ? normalizeShopStoreKey(input.storeKey) : null;
+
+  if (storeKey) {
+    const records = await prisma.shopCustomer.findMany({
+      where: {
+        ...(group && ['B2C', 'B2B_PENDING', 'B2B_APPROVED'].includes(group)
+          ? { group: group as CustomerGroup }
+          : {}),
+        ...(status === 'active' ? { isActive: true } : status === 'inactive' ? { isActive: false } : {}),
+        ...(q
+          ? {
+              OR: [
+                { email: { contains: q, mode: 'insensitive' } },
+                { firstName: { contains: q, mode: 'insensitive' } },
+                { lastName: { contains: q, mode: 'insensitive' } },
+                { companyName: { contains: q, mode: 'insensitive' } },
+                { phone: { contains: q, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
+        OR: [
+          { orders: { some: { storeKey } } },
+          { carts: { some: { storeKey } } },
+        ],
+      },
+      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        companyName: true,
+        group: true,
+        b2bDiscountPercent: true,
+        isActive: true,
+        preferredLocale: true,
+        createdAt: true,
+        updatedAt: true,
+        addresses: {
+          select: { id: true },
+        },
+        orders: {
+          where: { storeKey },
+          select: { id: true },
+        },
+        carts: {
+          where: { storeKey },
+          select: { id: true },
+        },
+      },
+    });
+
+    return records.map((record) => ({
+      id: record.id,
+      email: record.email,
+      firstName: record.firstName,
+      lastName: record.lastName,
+      fullName: buildCustomerDisplayName(record),
+      phone: record.phone,
+      companyName: record.companyName,
+      group: record.group,
+      b2bDiscountPercent: record.b2bDiscountPercent != null ? Number(record.b2bDiscountPercent) : null,
+      isActive: record.isActive,
+      preferredLocale: record.preferredLocale,
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
+      counts: {
+        orders: record.orders.length,
+        carts: record.carts.length,
+        addresses: record.addresses.length,
+      },
+    }));
+  }
 
   const records = await prisma.shopCustomer.findMany({
     where: {
@@ -187,10 +263,38 @@ export async function listShopCustomersAdmin(
   return records.map(serializeShopCustomerAdminListItem);
 }
 
-export async function getShopCustomerAdminDetail(prisma: PrismaClient, customerId: string) {
+export async function getShopCustomerAdminDetail(
+  prisma: PrismaClient,
+  customerId: string,
+  storeKey?: string | null
+) {
+  const normalizedStoreKey = storeKey ? normalizeShopStoreKey(storeKey) : null;
   const record = await prisma.shopCustomer.findUnique({
     where: { id: customerId },
-    include: shopCustomerAdminDetailInclude,
+    include: normalizedStoreKey
+      ? {
+          account: true,
+          addresses: {
+            orderBy: [{ isDefaultShipping: 'desc' }, { createdAt: 'asc' }],
+          },
+          orders: {
+            where: { storeKey: normalizedStoreKey },
+            orderBy: { createdAt: 'desc' },
+            take: 30,
+            include: {
+              items: true,
+            },
+          },
+          carts: {
+            where: { storeKey: normalizedStoreKey },
+            orderBy: { updatedAt: 'desc' },
+            include: {
+              items: true,
+            },
+            take: 10,
+          },
+        }
+      : shopCustomerAdminDetailInclude,
   });
 
   if (!record) {

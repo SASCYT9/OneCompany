@@ -1,11 +1,11 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, type OrderStatus } from '@prisma/client';
+import { type OrderStatus } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import { adminOrderInclude, canTransitionOrderStatus, serializeAdminOrder } from '@/lib/shopAdminOrders';
-
-const prisma = new PrismaClient();
+import { ensureDefaultShopStores } from '@/lib/shopStores';
 
 const ALLOWED_STATUSES: OrderStatus[] = ['PENDING_REVIEW', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
 
@@ -16,6 +16,7 @@ export async function GET(
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_READ);
+    await ensureDefaultShopStores(prisma);
     const { id } = await params;
     const order = await prisma.shopOrder.findUnique({
       where: { id },
@@ -44,6 +45,7 @@ export async function PATCH(
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
+    await ensureDefaultShopStores(prisma);
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
     const status = body.status as string | undefined;
@@ -89,13 +91,14 @@ export async function PATCH(
       entityType: 'shop.order',
       entityId: order.id,
       metadata: {
+        storeKey: order.storeKey,
         fromStatus: currentOrder.status,
         toStatus: status,
         note: note || null,
       },
     });
 
-    return NextResponse.json({ id: order.id, status: order.status });
+    return NextResponse.json({ id: order.id, storeKey: order.storeKey, status: order.status });
   } catch (e) {
     if ((e as Error).message === 'UNAUTHORIZED') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

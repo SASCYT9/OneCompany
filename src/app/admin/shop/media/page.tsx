@@ -30,9 +30,9 @@ function formatBytes(value: number) {
 
 function usageLabel(item: ShopLibraryMediaItem) {
   return [
-    `${item.usage.productPrimaryImages} primary`,
-    `${item.usage.productMedia} gallery`,
-    `${item.usage.variantImages} variants`,
+    `${item.usage.productPrimaryImages} головних`,
+    `${item.usage.productMedia} у галереї`,
+    `${item.usage.variantImages} у варіантах`,
   ].join(' · ');
 }
 
@@ -82,12 +82,12 @@ export default function AdminShopMediaPage() {
       const data = (await response.json().catch(() => ({}))) as { items?: ShopLibraryMediaItem[]; error?: string };
 
       if (response.status === 401) {
-        setError('Unauthorized');
+        setError('Немає доступу');
         return;
       }
 
       if (!response.ok) {
-        setError(data.error || 'Failed to load media library');
+        setError(data.error || 'Не вдалося завантажити медіатеку');
         return;
       }
 
@@ -118,11 +118,11 @@ export default function AdminShopMediaPage() {
       const data = (await response.json().catch(() => ({}))) as { item?: ShopLibraryMediaItem; error?: string };
 
       if (!response.ok || !data.item) {
-        throw new Error(data.error || 'Media upload failed');
+        throw new Error(data.error || 'Не вдалося завантажити файл');
       }
 
       setItems((current) => [data.item!, ...current.filter((item) => item.id !== data.item!.id)]);
-      setSuccess(`Uploaded ${data.item.originalName}.`);
+      setSuccess(`Завантажено ${data.item.originalName}.`);
     } catch (uploadError) {
       setError((uploadError as Error).message);
     } finally {
@@ -133,11 +133,11 @@ export default function AdminShopMediaPage() {
 
   async function handleDelete(item: ShopLibraryMediaItem) {
     if (item.usageCount > 0) {
-      setError('This asset is still in use and cannot be deleted.');
+      setError('Цей файл ще використовується і не може бути видалений.');
       return;
     }
 
-    if (!confirm(`Delete ${item.originalName}?`)) {
+    if (!confirm(`Видалити ${item.originalName}?`)) {
       return;
     }
 
@@ -160,11 +160,11 @@ export default function AdminShopMediaPage() {
             `Asset is in use: ${data.usage.productPrimaryImages} primary, ${data.usage.productMedia} gallery, ${data.usage.variantImages} variant references.`
           );
         }
-        throw new Error(data.error || 'Delete failed');
+        throw new Error(data.error || 'Не вдалося видалити файл');
       }
 
       setItems((current) => current.filter((entry) => entry.id !== item.id));
-      setSuccess(`Deleted ${item.originalName}.`);
+      setSuccess(`Видалено ${item.originalName}.`);
     } catch (deleteError) {
       setError((deleteError as Error).message);
     } finally {
@@ -175,10 +175,10 @@ export default function AdminShopMediaPage() {
   async function handleCopy(url: string) {
     try {
       await navigator.clipboard.writeText(url);
-      setSuccess(`Copied ${url}`);
+      setSuccess(`Скопійовано ${url}`);
       setError('');
     } catch {
-      setError('Clipboard is not available in this browser.');
+      setError('Буфер обміну недоступний у цьому браузері.');
     }
   }
 
@@ -186,7 +186,7 @@ export default function AdminShopMediaPage() {
     return (
       <div className="p-6 text-white/60 flex items-center gap-2">
         <RefreshCcw className="h-5 w-5 animate-spin" />
-        Loading media library…
+        Завантаження медіатеки…
       </div>
     );
   }
@@ -197,11 +197,11 @@ export default function AdminShopMediaPage() {
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
-              Back to catalog
+              Назад до каталогу
             </Link>
-            <h2 className="mt-4 text-2xl font-semibold text-white">Shop media</h2>
+            <h2 className="mt-4 text-2xl font-semibold text-white">Медіатека магазину</h2>
             <p className="mt-2 text-sm text-white/45">
-              Central media library for uploaded product assets with reuse tracking and safe delete rules.
+              Центральна медіатека для завантажених файлів товарів з відстеженням використання і безпечним видаленням.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -211,7 +211,7 @@ export default function AdminShopMediaPage() {
               className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
             >
               <RefreshCcw className="h-4 w-4" />
-              Refresh
+              Оновити
             </button>
             <input
               ref={uploadInputRef}
@@ -227,7 +227,7 @@ export default function AdminShopMediaPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-60"
             >
               <Upload className="h-4 w-4" />
-              {uploading ? 'Uploading…' : 'Upload asset'}
+              {uploading ? 'Завантаження…' : 'Завантажити файл'}
             </button>
           </div>
         </div>
@@ -237,19 +237,19 @@ export default function AdminShopMediaPage() {
 
         <div className="mb-4 grid gap-4 md:grid-cols-4">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Assets</div>
+            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Файли</div>
             <div className="mt-2 text-2xl font-semibold text-white">{summary.total}</div>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Images</div>
+            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Зображення</div>
             <div className="mt-2 text-2xl font-semibold text-white">{summary.images}</div>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Videos</div>
+            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Відео</div>
             <div className="mt-2 text-2xl font-semibold text-white">{summary.videos}</div>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <div className="text-xs uppercase tracking-[0.24em] text-white/40">In Use</div>
+            <div className="text-xs uppercase tracking-[0.24em] text-white/40">У використанні</div>
             <div className="mt-2 text-2xl font-semibold text-white">{summary.inUse}</div>
           </div>
         </div>
@@ -260,16 +260,16 @@ export default function AdminShopMediaPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by name, file, URL or type"
+              placeholder="Пошук за назвою, файлом, URL або типом"
               className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
             />
           </label>
-          <div className="text-sm text-white/45">{filteredItems.length} visible assets</div>
+          <div className="text-sm text-white/45">{filteredItems.length} видимих файлів</div>
         </div>
 
         {filteredItems.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
-            No media assets found.
+            Файлів у медіатеці не знайдено.
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -300,24 +300,24 @@ export default function AdminShopMediaPage() {
                           : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100'
                       }`}
                     >
-                      {item.usageCount > 0 ? `${item.usageCount} refs` : 'Unused'}
+                      {item.usageCount > 0 ? `${item.usageCount} посилань` : 'Не використовується'}
                     </span>
                   </div>
 
                   <div className="mt-4 grid gap-2 text-xs text-white/55">
                     <div className="flex items-center justify-between gap-3">
-                      <span>Type</span>
+                      <span>Тип</span>
                       <span className="inline-flex items-center gap-1 text-white/75">
                         <ImageIcon className="h-3.5 w-3.5" />
                         {item.kind}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span>Size</span>
+                      <span>Розмір</span>
                       <span className="text-white/75">{formatBytes(item.size)}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span>Uploaded</span>
+                      <span>Завантажено</span>
                       <span className="text-white/75">
                         {new Date(item.uploadedAt).toLocaleDateString()}
                       </span>
@@ -336,7 +336,7 @@ export default function AdminShopMediaPage() {
                       className="inline-flex items-center gap-2 rounded-md border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
                     >
                       <ArrowUpRight className="h-3.5 w-3.5" />
-                      Open
+                      Відкрити
                     </a>
                     <button
                       type="button"
@@ -344,7 +344,7 @@ export default function AdminShopMediaPage() {
                       className="inline-flex items-center gap-2 rounded-md border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
                     >
                       <Copy className="h-3.5 w-3.5" />
-                      Copy URL
+                      Копіювати URL
                     </button>
                     <button
                       type="button"
@@ -353,7 +353,7 @@ export default function AdminShopMediaPage() {
                       className="inline-flex items-center gap-2 rounded-md border border-red-500/25 px-3 py-2 text-xs text-red-300 hover:bg-red-500/10 disabled:opacity-50"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
-                      {deletingId === item.id ? 'Deleting…' : item.usageCount > 0 ? 'In use' : 'Delete'}
+                      {deletingId === item.id ? 'Видалення…' : item.usageCount > 0 ? 'Використовується' : 'Видалити'}
                     </button>
                   </div>
                 </div>

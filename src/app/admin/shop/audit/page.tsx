@@ -85,7 +85,7 @@ export default function AdminShopAuditPage() {
           <div>
             <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
               <ArrowLeft className="h-4 w-4" />
-              Back to catalog
+              Назад до каталогу
             </Link>
             <h2 className="mt-3 text-2xl font-semibold text-white">Журнал аудиту магазину</h2>
             <p className="mt-2 text-sm text-white/45">
@@ -108,7 +108,7 @@ export default function AdminShopAuditPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by actor, action, entity, metadata"
+              placeholder="Пошук за виконавцем, дією, сутністю або метаданими"
               className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
             />
           </label>

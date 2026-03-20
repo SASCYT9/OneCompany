@@ -121,7 +121,7 @@ function priceLabel(product: ProductOption | BundleListItem['product']) {
   if (product.priceEur != null) return `EUR ${product.priceEur}`;
   if (product.priceUsd != null) return `USD ${product.priceUsd}`;
   if (product.priceUah != null) return `UAH ${product.priceUah}`;
-  return 'No price';
+  return 'Ціну не задано';
 }
 
 export default function AdminShopBundlesPage() {
@@ -160,7 +160,7 @@ export default function AdminShopBundlesPage() {
       const response = await fetch('/api/admin/shop/bundles');
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(data?.error || 'Failed to load bundles');
+        setError(data?.error || 'Не вдалося завантажити комплекти');
         return;
       }
 
@@ -190,7 +190,7 @@ export default function AdminShopBundlesPage() {
       const response = await fetch(`/api/admin/shop/bundles/${id}`);
       const raw = (await response.json().catch(() => null)) as BundleDetail | { error?: string } | null;
       if (!response.ok || !isBundleDetail(raw)) {
-        setError((raw as { error?: string } | null)?.error || 'Failed to load bundle detail');
+        setError((raw as { error?: string } | null)?.error || 'Не вдалося завантажити деталі комплекту');
         return;
       }
 
@@ -295,7 +295,7 @@ export default function AdminShopBundlesPage() {
       );
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(data?.error || 'Failed to save bundle');
+        setError(data?.error || 'Не вдалося зберегти комплект');
         return;
       }
 
@@ -311,7 +311,7 @@ export default function AdminShopBundlesPage() {
   }
 
   async function handleDelete() {
-    if (!form.id || !confirm('Delete this bundle?')) return;
+    if (!form.id || !confirm('Видалити цей комплект?')) return;
     setDeleting(true);
     setError('');
     try {
@@ -320,7 +320,7 @@ export default function AdminShopBundlesPage() {
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(data?.error || 'Failed to delete bundle');
+        setError(data?.error || 'Не вдалося видалити комплект');
         return;
       }
 
@@ -335,7 +335,7 @@ export default function AdminShopBundlesPage() {
     return (
       <div className="p-6 text-white/60 flex items-center gap-2">
         <Boxes className="h-5 w-5 animate-pulse" />
-        Loading bundles…
+        Завантаження комплектів…
       </div>
     );
   }
@@ -345,9 +345,9 @@ export default function AdminShopBundlesPage() {
       <div className="mx-auto max-w-7xl p-6">
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold text-white">Bundles</h2>
+            <h2 className="text-2xl font-semibold text-white">Комплекти</h2>
             <p className="mt-2 text-sm text-white/45">
-              Bundle shell product, component items and computed availability. Bundle pricing stays on the product itself.
+              Керування товарами-комплектами, їх складом і розрахунковою доступністю. Ціна комплекту задається на самому товарі.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -358,7 +358,7 @@ export default function AdminShopBundlesPage() {
               className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700 disabled:opacity-50"
             >
               <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
+              Оновити
             </button>
             <button
               type="button"
@@ -366,7 +366,7 @@ export default function AdminShopBundlesPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90"
             >
               <Plus className="h-4 w-4" />
-              New bundle
+              Новий комплект
             </button>
           </div>
         </div>
@@ -376,12 +376,12 @@ export default function AdminShopBundlesPage() {
         <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03]">
             <div className="border-b border-white/10 px-4 py-3 text-sm text-white/60">
-              {bundles.length} bundles
+              {bundles.length} комплектів
             </div>
             <div className="max-h-[70vh] overflow-auto">
               {bundles.length === 0 ? (
                 <div className="px-4 py-10 text-center text-sm text-white/45">
-                  No bundles yet.
+                  Комплектів ще немає.
                 </div>
               ) : (
                 bundles.map((bundle) => (
@@ -398,8 +398,8 @@ export default function AdminShopBundlesPage() {
                     </div>
                     <div className="mt-1 text-xs text-white/45">{bundle.product.slug}</div>
                     <div className="mt-2 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.16em] text-white/55">
-                      <span>{bundle.componentsCount} items</span>
-                      <span>{bundle.availableQuantity} available</span>
+                      <span>{bundle.componentsCount} позицій</span>
+                      <span>{bundle.availableQuantity} доступно</span>
                       <span>{priceLabel(bundle.product)}</span>
                     </div>
                   </button>
@@ -412,10 +412,10 @@ export default function AdminShopBundlesPage() {
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-white">
-                  {form.id ? 'Edit bundle' : 'Create bundle'}
+                  {form.id ? 'Редагування комплекту' : 'Створення комплекту'}
                 </h3>
                 <p className="mt-1 text-sm text-white/45">
-                  Choose the bundle product shell, then attach component products and optional variants.
+                  Оберіть товар-оболонку комплекту, потім додайте складові товари та, за потреби, конкретні варіанти.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -424,7 +424,7 @@ export default function AdminShopBundlesPage() {
                     href={`/admin/shop/${selectedBundle.productId}`}
                     className="rounded-lg border border-white/10 bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
                   >
-                    Open product
+                    Відкрити товар
                   </Link>
                 ) : null}
                 {form.id ? (
@@ -435,7 +435,7 @@ export default function AdminShopBundlesPage() {
                     className="inline-flex items-center gap-2 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-2 text-sm text-red-200 hover:bg-red-500/15 disabled:opacity-50"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Delete
+                    Видалити
                   </button>
                 ) : null}
                 <button
@@ -445,14 +445,14 @@ export default function AdminShopBundlesPage() {
                   className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" />
-                  {saving ? 'Saving…' : 'Save bundle'}
+                  {saving ? 'Збереження…' : 'Зберегти комплект'}
                 </button>
               </div>
             </div>
 
             <div className="grid gap-5">
               <label className="grid gap-2 text-sm text-white/75">
-                <span>Bundle product</span>
+                <span>Товар комплекту</span>
                 <select
                   value={form.productId}
                   onChange={(event) =>
@@ -463,7 +463,7 @@ export default function AdminShopBundlesPage() {
                   }
                   className="rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
                 >
-                  <option value="">Select bundle product…</option>
+                  <option value="">Оберіть товар комплекту…</option>
                   {bundleProductOptions.map((product) => (
                     <option key={product.id} value={product.id}>
                       {product.titleEn || product.titleUa} ({product.slug})
@@ -479,7 +479,7 @@ export default function AdminShopBundlesPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <h4 className="text-sm font-medium uppercase tracking-[0.16em] text-white/60">
-                    Components
+                    Компоненти
                   </h4>
                   <button
                     type="button"
@@ -487,7 +487,7 @@ export default function AdminShopBundlesPage() {
                     className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
                   >
                     <Plus className="h-4 w-4" />
-                    Add item
+                    Додати позицію
                   </button>
                 </div>
 
@@ -503,7 +503,7 @@ export default function AdminShopBundlesPage() {
                       className="grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_120px_56px]"
                     >
                       <label className="grid gap-2 text-sm text-white/75">
-                        <span>Component product #{index + 1}</span>
+                        <span>Товар-компонент #{index + 1}</span>
                         <select
                           value={item.componentProductId}
                           onChange={(event) =>
@@ -514,7 +514,7 @@ export default function AdminShopBundlesPage() {
                           }
                           className="rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
                         >
-                          <option value="">Select product…</option>
+                          <option value="">Оберіть товар…</option>
                           {productOptions
                             .filter((product) => product.id !== form.productId)
                             .map((product) => (
@@ -526,7 +526,7 @@ export default function AdminShopBundlesPage() {
                       </label>
 
                       <label className="grid gap-2 text-sm text-white/75">
-                        <span>Variant</span>
+                        <span>Варіант</span>
                         <select
                           value={item.componentVariantId ?? ''}
                           onChange={(event) =>
@@ -536,7 +536,7 @@ export default function AdminShopBundlesPage() {
                           }
                           className="rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
                         >
-                          <option value="">Default variant</option>
+                          <option value="">Базовий варіант</option>
                           {variantOptions.map((variant) => (
                             <option key={variant.id} value={variant.id}>
                               {variant.title || variant.sku || variant.id}
@@ -546,7 +546,7 @@ export default function AdminShopBundlesPage() {
                       </label>
 
                       <label className="grid gap-2 text-sm text-white/75">
-                        <span>Qty</span>
+                        <span>К-сть</span>
                         <input
                           type="number"
                           min={1}
@@ -580,7 +580,7 @@ export default function AdminShopBundlesPage() {
                           {variantOptions.find((variant) => variant.id === item.componentVariantId)?.inventoryQty ??
                             variantOptions.find((variant) => variant.isDefault)?.inventoryQty ??
                             0}{' '}
-                          units on selected/default variant
+                          шт. у вибраному або базовому варіанті
                         </div>
                       ) : null}
                     </div>

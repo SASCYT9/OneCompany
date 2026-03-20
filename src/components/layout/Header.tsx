@@ -54,6 +54,7 @@ export function Header() {
         label: tNav(item.key),
       }));
   const logoHref = isUrbanStorefront ? `/${locale}/shop/urban` : `/${locale}`;
+  const storefrontStoreKey = isUrbanStorefront ? "urban" : undefined;
   const { currency, region, setRegion, setCurrency } = useShopCurrency();
 
   return (
@@ -102,13 +103,13 @@ export function Header() {
         <div className="ml-auto flex items-center gap-2 sm:gap-4">
           {isUrbanStorefront ? (
             <Link
-              href={`/${locale}/shop/account`}
+              href={`/${locale}/shop/account?store=${encodeURIComponent(storefrontStoreKey ?? "urban")}`}
               className="hidden rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-white/70 transition hover:border-white hover:text-white md:inline-flex"
             >
               {isUa ? "Акаунт" : "Account"}
             </Link>
           ) : null}
-          {isUrbanStorefront ? <CartIconLink locale={locale} /> : null}
+          {isUrbanStorefront ? <CartIconLink locale={locale} storeKey={storefrontStoreKey} /> : null}
           {isUrbanStorefront ? (
             <div className="hidden items-center gap-1 rounded-full border border-white/20 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-white/70 md:flex">
               <button
@@ -204,7 +205,7 @@ export function Header() {
                 </div>
                 {isUrbanStorefront ? (
                   <Link
-                    href={`/${locale}/shop/account`}
+                    href={`/${locale}/shop/account?store=${encodeURIComponent(storefrontStoreKey ?? "urban")}`}
                     onClick={() => setMobileMenuOpen(false)}
                     className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition"
                   >

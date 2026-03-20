@@ -1,16 +1,14 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import {
   adminShopBundleInclude,
   listAdminShopBundleProductOptions,
   normalizeAdminShopBundlePayload,
   serializeAdminShopBundleListItem,
 } from '@/lib/shopAdminBundles';
-
-const prisma = new PrismaClient();
 
 async function validateBundlePayload(
   data: ReturnType<typeof normalizeAdminShopBundlePayload>['data'],

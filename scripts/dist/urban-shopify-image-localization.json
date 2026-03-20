@@ -1,0 +1,16 @@
+{
+  "generatedAt": "2026-03-20T11:26:06.561Z",
+  "storeKey": "urban",
+  "apply": true,
+  "totals": {
+    "products": 565,
+    "uniqueShopifyUrls": 1136,
+    "successfulLocalizations": 1136,
+    "failedLocalizations": 0,
+    "productsUpdated": 565,
+    "mediaUpdated": 3955,
+    "variantsUpdated": 3955,
+    "galleryEntriesUpdated": 3955
+  },
+  "failures": []
+}

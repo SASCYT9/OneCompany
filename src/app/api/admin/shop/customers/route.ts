@@ -1,22 +1,23 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import { listShopCustomersAdmin } from '@/lib/shopAdminCustomers';
-
-const prisma = new PrismaClient();
+import { ensureDefaultShopStores, normalizeShopStoreKey } from '@/lib/shopStores';
 
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ);
+    await ensureDefaultShopStores(prisma);
 
     const url = new URL(request.url);
     const customers = await listShopCustomersAdmin(prisma, {
       q: url.searchParams.get('q'),
       group: url.searchParams.get('group'),
       status: url.searchParams.get('status'),
+      storeKey: normalizeShopStoreKey(url.searchParams.get('store')),
     });
 
     return NextResponse.json(customers);

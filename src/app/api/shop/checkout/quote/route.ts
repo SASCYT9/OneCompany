@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { buildCheckoutQuote, type CheckoutShippingAddress } from '@/lib/shopCheckout';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { resolveShopCart, SHOP_CART_COOKIE } from '@/lib/shopCart';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { ensureDefaultShopStores, normalizeShopStoreKey } from '@/lib/shopStores';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 type QuoteBody = {
   items?: Array<{ slug: string; quantity: number; variantId?: string | null }>;
   shipping?: Partial<CheckoutShippingAddress>;
   currency?: string;
+  storeKey?: string;
 };
 
 function normalizeShippingAddress(input: Partial<CheckoutShippingAddress> | undefined): CheckoutShippingAddress {
@@ -34,9 +34,12 @@ export async function POST(request: NextRequest) {
   }
 
   const session = await getCurrentShopCustomerSession();
+  await ensureDefaultShopStores(prisma);
   const settingsRecord = await getOrCreateShopSettings(prisma);
   const settings = getShopSettingsRuntime(settingsRecord);
+  const storeKey = normalizeShopStoreKey(body.storeKey ?? request.nextUrl.searchParams.get('store'));
   const activeCart = await resolveShopCart(prisma, {
+    storeKey,
     cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
     customerId: session?.customerId ?? null,
     locale: session?.preferredLocale ?? 'en',
@@ -82,6 +85,7 @@ export async function POST(request: NextRequest) {
 
   const shippingAddress = normalizeShippingAddress(body.shipping);
   const quote = await buildCheckoutQuote(prisma, {
+    storeKey,
     items,
     shippingAddress,
     currency: body.currency,

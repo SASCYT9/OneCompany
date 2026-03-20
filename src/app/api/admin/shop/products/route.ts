@@ -1,8 +1,8 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import {
   adminProductInclude,
   adminProductListSelect,
@@ -10,14 +10,16 @@ import {
   normalizeAdminProductPayload,
   serializeAdminProductListItem,
 } from '@/lib/shopAdminCatalog';
+import { ensureDefaultShopStores, normalizeShopStoreKey } from '@/lib/shopStores';
 
-const prisma = new PrismaClient();
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
+    await ensureDefaultShopStores(prisma);
+    const storeKey = normalizeShopStoreKey(request.nextUrl.searchParams.get('store'));
     const products = await prisma.shopProduct.findMany({
+      where: { storeKey },
       orderBy: { updatedAt: 'desc' },
       select: adminProductListSelect,
     });
@@ -43,6 +45,7 @@ export async function POST(request: NextRequest) {
     if (errors.length) {
       return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
     }
+    await ensureDefaultShopStores(prisma);
     if (data.categoryId) {
       const category = await prisma.shopCategory.findUnique({
         where: { id: data.categoryId },
@@ -52,7 +55,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Selected category not found' }, { status: 400 });
       }
     }
-    const existing = await prisma.shopProduct.findUnique({ where: { slug: data.slug } });
+    const existing = await prisma.shopProduct.findUnique({
+      where: {
+        storeKey_slug: {
+          storeKey: data.storeKey,
+          slug: data.slug,
+        },
+      },
+    });
     if (existing) {
       return NextResponse.json({ error: 'Product with this slug already exists' }, { status: 409 });
     }

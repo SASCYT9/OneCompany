@@ -63,6 +63,7 @@ export type ShopBundleSummary = {
 
 export interface ShopProduct {
   id?: string;
+  storeKey?: string;
   slug: string;
   sku: string;
   scope: ShopScope;

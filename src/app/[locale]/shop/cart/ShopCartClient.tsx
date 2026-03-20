@@ -29,7 +29,13 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 
   return locale === 'ua' ? `${n} ${currency === 'UAH' ? 'грн' : currency}` : `${currency} ${n}`;
 }
 
-export default function ShopCartClient({ locale }: { locale: SupportedLocale }) {
+export default function ShopCartClient({
+  locale,
+  storeKey = 'urban',
+}: {
+  locale: SupportedLocale;
+  storeKey?: string;
+}) {
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
@@ -37,7 +43,7 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
 
   const loadCart = async () => {
     try {
-      const res = await fetch('/api/shop/cart');
+      const res = await fetch(`/api/shop/cart?store=${encodeURIComponent(storeKey)}`);
       const data = await res.json();
       setCart(data);
     } catch {
@@ -49,16 +55,16 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
 
   useEffect(() => {
     loadCart();
-  }, []);
+  }, [storeKey]);
 
   const setQuantity = async (itemId: string, quantity: number) => {
     if (!cart) return;
     setUpdating(itemId);
     try {
-      const response = await fetch(`/api/shop/cart/items/${itemId}`, {
+      const response = await fetch(`/api/shop/cart/items/${itemId}?store=${encodeURIComponent(storeKey)}`, {
         method: quantity > 0 ? 'PATCH' : 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        ...(quantity > 0 ? { body: JSON.stringify({ quantity }) } : {}),
+        ...(quantity > 0 ? { body: JSON.stringify({ quantity, storeKey }) } : {}),
       });
       if (!response.ok) {
         throw new Error('Cart update failed');
@@ -194,7 +200,7 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
                 <span>{formatPrice(locale, subtotal, currency)}</span>
               </div>
               <Link
-                href={`/${locale}/shop/checkout`}
+                href={`/${locale}/shop/checkout?store=${encodeURIComponent(storeKey)}`}
                 className="mt-4 block w-full rounded-full border border-white/20 bg-white py-3 text-center font-medium text-black transition hover:bg-white/90"
               >
                 {isUa ? 'Оформити замовлення' : 'Proceed to checkout'}

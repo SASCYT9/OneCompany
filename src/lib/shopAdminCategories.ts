@@ -1,6 +1,13 @@
 import { Prisma, PrismaClient } from '@prisma/client';
+import { DEFAULT_SHOP_STORE_KEY, normalizeShopStoreKey } from '@/lib/shopStores';
 
 export const adminCategoryInclude = {
+  store: {
+    select: {
+      key: true,
+      name: true,
+    },
+  },
   parent: {
     select: {
       id: true,
@@ -36,6 +43,13 @@ export const adminCategoryInclude = {
 
 export const adminCategoryListSelect = {
   id: true,
+  storeKey: true,
+  store: {
+    select: {
+      key: true,
+      name: true,
+    },
+  },
   slug: true,
   titleUa: true,
   titleEn: true,
@@ -67,6 +81,7 @@ export type AdminShopCategoryListRecord = Prisma.ShopCategoryGetPayload<{
 }>;
 
 export type AdminShopCategoryPayload = {
+  storeKey: string;
   slug: string;
   titleUa: string;
   titleEn: string;
@@ -136,12 +151,14 @@ export function normalizeAdminCategoryPayload(input: unknown) {
   const titleUa = stringValue(source.titleUa || source.title_ua || source.title);
   const titleEn = stringValue(source.titleEn || source.title_en || source.title);
   const slug = sanitizeSlug(source.slug || source.handle || titleEn || titleUa);
+  const storeKey = normalizeShopStoreKey(source.storeKey);
   const errors: string[] = [];
 
   if (!slug) errors.push('slug is required');
   if (!titleUa && !titleEn) errors.push('titleUa or titleEn is required');
 
   const data: AdminShopCategoryPayload = {
+    storeKey,
     slug,
     titleUa: titleUa || titleEn,
     titleEn: titleEn || titleUa,
@@ -157,6 +174,11 @@ export function normalizeAdminCategoryPayload(input: unknown) {
 
 export function buildAdminCategoryCreateData(data: AdminShopCategoryPayload): Prisma.ShopCategoryCreateInput {
   return {
+    store: {
+      connect: {
+        key: data.storeKey || DEFAULT_SHOP_STORE_KEY,
+      },
+    },
     slug: data.slug,
     titleUa: data.titleUa,
     titleEn: data.titleEn,
@@ -170,6 +192,11 @@ export function buildAdminCategoryCreateData(data: AdminShopCategoryPayload): Pr
 
 export function buildAdminCategoryUpdateData(data: AdminShopCategoryPayload): Prisma.ShopCategoryUpdateInput {
   return {
+    store: {
+      connect: {
+        key: data.storeKey || DEFAULT_SHOP_STORE_KEY,
+      },
+    },
     slug: data.slug,
     titleUa: data.titleUa,
     titleEn: data.titleEn,
@@ -184,6 +211,8 @@ export function buildAdminCategoryUpdateData(data: AdminShopCategoryPayload): Pr
 export function serializeAdminCategory(record: AdminShopCategoryRecord) {
   return {
     id: record.id,
+    storeKey: record.storeKey,
+    store: record.store,
     slug: record.slug,
     titleUa: record.titleUa,
     titleEn: record.titleEn,
@@ -226,6 +255,8 @@ export function serializeAdminCategory(record: AdminShopCategoryRecord) {
 export function serializeAdminCategoryListItem(record: AdminShopCategoryRecord | AdminShopCategoryListRecord) {
   return {
     id: record.id,
+    storeKey: record.storeKey,
+    store: record.store,
     slug: record.slug,
     titleUa: record.titleUa,
     titleEn: record.titleEn,
@@ -245,8 +276,9 @@ export function serializeAdminCategoryListItem(record: AdminShopCategoryRecord |
   };
 }
 
-export async function syncCatalogCategories(prisma: PrismaClient) {
+export async function syncCatalogCategories(prisma: PrismaClient, storeKey = DEFAULT_SHOP_STORE_KEY) {
   const existingCategories = await prisma.shopCategory.findMany({
+    where: { storeKey },
     select: {
       id: true,
       slug: true,
@@ -254,6 +286,7 @@ export async function syncCatalogCategories(prisma: PrismaClient) {
   });
   const existingBySlug = new Map(existingCategories.map((item) => [item.slug, item.id]));
   const products = await prisma.shopProduct.findMany({
+    where: { storeKey },
     select: {
       id: true,
       productCategory: true,
@@ -275,13 +308,19 @@ export async function syncCatalogCategories(prisma: PrismaClient) {
 
     const previousCategoryId = categoryIdBySlug.get(seed.slug);
     const category = await prisma.shopCategory.upsert({
-      where: { slug: seed.slug },
+      where: {
+        storeKey_slug: {
+          storeKey,
+          slug: seed.slug,
+        },
+      },
       update: {
         titleEn: seed.titleEn,
         titleUa: seed.titleUa,
         isPublished: true,
       },
       create: {
+        storeKey,
         slug: seed.slug,
         titleEn: seed.titleEn,
         titleUa: seed.titleUa,

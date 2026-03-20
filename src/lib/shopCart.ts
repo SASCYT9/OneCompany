@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { getShopProductBySlugServer } from '@/lib/shopCatalogServer';
+import { DEFAULT_SHOP_STORE_KEY, normalizeShopStoreKey } from '@/lib/shopStores';
 import {
   resolveShopPriceBands,
   resolveShopProductPricing,
@@ -86,10 +87,14 @@ async function loadCartByToken(prisma: PrismaClient, token?: string | null) {
   });
 }
 
-async function loadCustomerCart(prisma: PrismaClient, customerId?: string | null) {
+async function loadCustomerCart(
+  prisma: PrismaClient,
+  customerId?: string | null,
+  storeKey = DEFAULT_SHOP_STORE_KEY
+) {
   if (!customerId) return null;
   return prisma.shopCart.findFirst({
-    where: { customerId },
+    where: { customerId, storeKey },
     orderBy: { updatedAt: 'desc' },
     include: cartWithItemsInclude,
   });
@@ -98,6 +103,7 @@ async function loadCustomerCart(prisma: PrismaClient, customerId?: string | null
 async function createCart(
   prisma: PrismaClient,
   input: {
+    storeKey?: string | null;
     customerId?: string | null;
     token?: string | null;
     currency?: string | null;
@@ -106,6 +112,7 @@ async function createCart(
 ) {
   return prisma.shopCart.create({
     data: {
+      storeKey: normalizeShopStoreKey(input.storeKey),
       token: input.token?.trim() || createCartToken(),
       customerId: input.customerId ?? null,
       currency: String(input.currency ?? 'EUR').toUpperCase(),
@@ -120,6 +127,7 @@ async function touchCart(
   prisma: PrismaClient,
   cart: ShopCartWithItems,
   input: {
+    storeKey?: string | null;
     customerId?: string | null;
     currency?: string | null;
     locale?: string | null;
@@ -128,6 +136,7 @@ async function touchCart(
   return prisma.shopCart.update({
     where: { id: cart.id },
     data: {
+      storeKey: normalizeShopStoreKey(input.storeKey ?? cart.storeKey),
       customerId: input.customerId ?? cart.customerId ?? null,
       currency: String(input.currency ?? cart.currency).toUpperCase(),
       locale: normalizeLocale(input.locale ?? cart.locale),
@@ -137,11 +146,17 @@ async function touchCart(
   });
 }
 
-async function replaceCartItems(prisma: PrismaClient, cartId: string, items: ShopCartItemInput[]) {
+async function replaceCartItems(
+  prisma: PrismaClient,
+  cartId: string,
+  storeKey: string,
+  items: ShopCartItemInput[]
+) {
   const normalized = normalizeItems(items);
   const products = normalized.length
     ? await prisma.shopProduct.findMany({
         where: {
+          storeKey,
           slug: {
             in: normalized.map((item) => item.slug),
           },
@@ -198,7 +213,7 @@ async function mergeCartItems(
     ),
   ];
 
-  await replaceCartItems(prisma, targetCart.id, combined);
+  await replaceCartItems(prisma, targetCart.id, targetCart.storeKey, combined);
   await prisma.shopCart.delete({
     where: { id: sourceCart.id },
   });
@@ -207,14 +222,17 @@ async function mergeCartItems(
 export async function resolveShopCart(
   prisma: PrismaClient,
   input: {
+    storeKey?: string | null;
     cartToken?: string | null;
     customerId?: string | null;
     currency?: string | null;
     locale?: string | null;
   }
 ) {
-  const guestCart = await loadCartByToken(prisma, input.cartToken);
-  const customerCart = await loadCustomerCart(prisma, input.customerId);
+  const storeKey = normalizeShopStoreKey(input.storeKey);
+  const loadedGuestCart = await loadCartByToken(prisma, input.cartToken);
+  const guestCart = loadedGuestCart?.storeKey === storeKey ? loadedGuestCart : null;
+  const customerCart = await loadCustomerCart(prisma, input.customerId, storeKey);
 
   if (input.customerId) {
     if (customerCart && guestCart && customerCart.id !== guestCart.id) {
@@ -224,26 +242,26 @@ export async function resolveShopCart(
         include: cartWithItemsInclude,
       });
       return {
-        cart: await touchCart(prisma, merged, input),
+        cart: await touchCart(prisma, merged, { ...input, storeKey }),
         token: merged.token,
       };
     }
 
     if (customerCart) {
       return {
-        cart: await touchCart(prisma, customerCart, input),
+        cart: await touchCart(prisma, customerCart, { ...input, storeKey }),
         token: customerCart.token,
       };
     }
 
     if (guestCart) {
       return {
-        cart: await touchCart(prisma, guestCart, input),
+        cart: await touchCart(prisma, guestCart, { ...input, storeKey }),
         token: guestCart.token,
       };
     }
 
-    const created = await createCart(prisma, input);
+    const created = await createCart(prisma, { ...input, storeKey });
     return {
       cart: created,
       token: created.token,
@@ -252,12 +270,12 @@ export async function resolveShopCart(
 
   if (guestCart) {
     return {
-      cart: await touchCart(prisma, guestCart, input),
+      cart: await touchCart(prisma, guestCart, { ...input, storeKey }),
       token: guestCart.token,
     };
   }
 
-  const created = await createCart(prisma, input);
+  const created = await createCart(prisma, { ...input, storeKey });
   return {
     cart: created,
     token: created.token,
@@ -267,6 +285,7 @@ export async function resolveShopCart(
 export async function replaceEntireShopCart(
   prisma: PrismaClient,
   input: {
+    storeKey?: string | null;
     cartToken?: string | null;
     customerId?: string | null;
     currency?: string | null;
@@ -275,7 +294,7 @@ export async function replaceEntireShopCart(
   }
 ) {
   const { cart, token } = await resolveShopCart(prisma, input);
-  await replaceCartItems(prisma, cart.id, input.items);
+  await replaceCartItems(prisma, cart.id, cart.storeKey, input.items);
   const refreshed = await prisma.shopCart.findUniqueOrThrow({
     where: { id: cart.id },
     include: cartWithItemsInclude,
@@ -286,6 +305,7 @@ export async function replaceEntireShopCart(
 export async function addItemToShopCart(
   prisma: PrismaClient,
   input: {
+    storeKey?: string | null;
     cartToken?: string | null;
     customerId?: string | null;
     currency?: string | null;
@@ -302,7 +322,7 @@ export async function addItemToShopCart(
     })),
     input.item,
   ];
-  await replaceCartItems(prisma, cart.id, nextItems);
+  await replaceCartItems(prisma, cart.id, cart.storeKey, nextItems);
   const refreshed = await prisma.shopCart.findUniqueOrThrow({
     where: { id: cart.id },
     include: cartWithItemsInclude,
@@ -313,6 +333,7 @@ export async function addItemToShopCart(
 export async function updateShopCartItemQuantity(
   prisma: PrismaClient,
   input: {
+    storeKey?: string | null;
     cartToken?: string | null;
     customerId?: string | null;
     currency?: string | null;
@@ -332,7 +353,7 @@ export async function updateShopCartItemQuantity(
     quantity: item.id === input.itemId ? input.quantity : item.quantity,
     variantId: item.variantId,
   }));
-  await replaceCartItems(prisma, cart.id, nextItems);
+  await replaceCartItems(prisma, cart.id, cart.storeKey, nextItems);
   const refreshed = await prisma.shopCart.findUniqueOrThrow({
     where: { id: cart.id },
     include: cartWithItemsInclude,
@@ -343,6 +364,7 @@ export async function updateShopCartItemQuantity(
 export async function deleteShopCartItem(
   prisma: PrismaClient,
   input: {
+    storeKey?: string | null;
     cartToken?: string | null;
     customerId?: string | null;
     currency?: string | null;
@@ -358,7 +380,7 @@ export async function deleteShopCartItem(
       quantity: item.quantity,
       variantId: item.variantId,
     }));
-  await replaceCartItems(prisma, cart.id, nextItems);
+  await replaceCartItems(prisma, cart.id, cart.storeKey, nextItems);
   const refreshed = await prisma.shopCart.findUniqueOrThrow({
     where: { id: cart.id },
     include: cartWithItemsInclude,
@@ -369,6 +391,7 @@ export async function deleteShopCartItem(
 export async function clearShopCart(
   prisma: PrismaClient,
   input: {
+    storeKey?: string | null;
     cartToken?: string | null;
     customerId?: string | null;
     currency?: string | null;
@@ -393,7 +416,7 @@ export async function serializeResolvedShopCart(
   const items = [];
 
   for (const item of cart.items) {
-    const product = await getShopProductBySlugServer(item.productSlug);
+    const product = await getShopProductBySlugServer(item.productSlug, cart.storeKey);
     if (!product) continue;
 
     const variant = item.variantId
@@ -431,6 +454,7 @@ export async function serializeResolvedShopCart(
   return {
     id: cart.id,
     token: cart.token,
+    storeKey: cart.storeKey,
     currency: cart.currency,
     locale: cart.locale,
     items,

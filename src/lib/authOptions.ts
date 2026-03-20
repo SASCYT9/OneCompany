@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { prisma } from '@/lib/prisma';
 import {
   buildCustomerDisplayName,
   findCustomerAccountByEmail,
@@ -8,8 +8,6 @@ import {
   verifyShopCustomerPassword,
 } from '@/lib/shopCustomers';
 import { consumeRateLimit } from '@/lib/shopPublicRateLimit';
-
-const prisma = new PrismaClient();
 const LOGIN_WINDOW_MS = 60_000;
 const LOGIN_MAX_PER_WINDOW = 12;
 

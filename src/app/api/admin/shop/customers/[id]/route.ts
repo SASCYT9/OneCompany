@@ -1,15 +1,14 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import { approveCustomerB2B, revertCustomerToB2C } from '@/lib/shopCustomers';
 import {
   getShopCustomerAdminDetail,
   normalizeShopCustomerAdminPayload,
 } from '@/lib/shopAdminCustomers';
-
-const prisma = new PrismaClient();
+import { ensureDefaultShopStores, normalizeShopStoreKey } from '@/lib/shopStores';
 
 type Params = {
   params: Promise<{ id: string }>;
@@ -19,8 +18,10 @@ export async function GET(_request: NextRequest, context: Params) {
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ);
+    await ensureDefaultShopStores(prisma);
     const { id } = await context.params;
-    const customer = await getShopCustomerAdminDetail(prisma, id);
+    const storeKey = normalizeShopStoreKey(_request.nextUrl.searchParams.get('store'));
+    const customer = await getShopCustomerAdminDetail(prisma, id, storeKey);
 
     if (!customer) {
       return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
@@ -43,9 +44,11 @@ export async function PATCH(request: NextRequest, context: Params) {
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_WRITE);
+    await ensureDefaultShopStores(prisma);
     const { id } = await context.params;
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
     const action = String(body.action ?? '').trim();
+    const storeKey = normalizeShopStoreKey(request.nextUrl.searchParams.get('store'));
 
     const existing = await prisma.shopCustomer.findUnique({
       where: { id },
@@ -70,7 +73,7 @@ export async function PATCH(request: NextRequest, context: Params) {
         },
       });
 
-      return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
+      return NextResponse.json(await getShopCustomerAdminDetail(prisma, id, storeKey));
     }
 
     if (action === 'revert_b2c') {
@@ -87,7 +90,7 @@ export async function PATCH(request: NextRequest, context: Params) {
         },
       });
 
-      return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
+      return NextResponse.json(await getShopCustomerAdminDetail(prisma, id, storeKey));
     }
 
     const payload = normalizeShopCustomerAdminPayload(body);
@@ -127,7 +130,7 @@ export async function PATCH(request: NextRequest, context: Params) {
       },
     });
 
-    return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
+    return NextResponse.json(await getShopCustomerAdminDetail(prisma, id, storeKey));
   } catch (error) {
     if ((error as Error).message === 'UNAUTHORIZED') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

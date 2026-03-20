@@ -3,8 +3,6 @@
  * Use for [slug] page and sitemap. When DATABASE_URL is set and migration applied,
  * products from admin appear; otherwise only static catalog is used.
  */
-
-import { PrismaClient } from '@prisma/client';
 import {
   SHOP_PRODUCTS,
   getShopProductBySlug as getStaticBySlug,
@@ -18,8 +16,8 @@ import {
   type AdminShopProductRecord,
 } from '@/lib/shopAdminCatalog';
 import { resolveBundleInventory } from '@/lib/shopBundles';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { DEFAULT_SHOP_STORE_KEY } from '@/lib/shopStores';
 
 function moneySet(input: Partial<ShopMoneySet> | null | undefined): ShopMoneySet {
   return {
@@ -102,6 +100,7 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
 
   return {
     id: row.id,
+    storeKey: row.storeKey,
     slug: row.slug,
     sku: row.sku ?? primaryVariant?.sku ?? '',
     scope: row.scope as ShopScope,
@@ -229,37 +228,42 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
 }
 
 /** All products: from DB (published) then static catalog (by slug, DB wins). */
-export async function getShopProductsServer(): Promise<ShopProduct[]> {
+export async function getShopProductsServer(storeKey = DEFAULT_SHOP_STORE_KEY): Promise<ShopProduct[]> {
   let dbRows: AdminShopProductRecord[] = [];
   try {
     dbRows = await prisma.shopProduct.findMany({
-      where: { isPublished: true },
+      where: { isPublished: true, storeKey },
       orderBy: { updatedAt: 'desc' },
       include: adminProductInclude,
     });
   } catch {
     // No DB or not migrated — use only static
-    return [...SHOP_PRODUCTS];
+    return storeKey === DEFAULT_SHOP_STORE_KEY ? [...SHOP_PRODUCTS] : [];
   }
 
   const bySlug = new Map<string, ShopProduct>();
   dbRows.forEach((row) => bySlug.set(row.slug, mapDbToCatalog(row)));
-  SHOP_PRODUCTS.forEach((p) => {
-    if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
-  });
+  if (storeKey === DEFAULT_SHOP_STORE_KEY) {
+    SHOP_PRODUCTS.forEach((p) => {
+      if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
+    });
+  }
   return Array.from(bySlug.values());
 }
 
 /** One product by slug: DB first, then static. */
-export async function getShopProductBySlugServer(slug: string): Promise<ShopProduct | undefined> {
+export async function getShopProductBySlugServer(
+  slug: string,
+  storeKey = DEFAULT_SHOP_STORE_KEY
+): Promise<ShopProduct | undefined> {
   try {
     const row = await prisma.shopProduct.findFirst({
-      where: { slug, isPublished: true },
+      where: { slug, isPublished: true, storeKey },
       include: adminProductInclude,
     });
     if (row) return mapDbToCatalog(row);
   } catch {
     // ignore
   }
-  return getStaticBySlug(slug);
+  return storeKey === DEFAULT_SHOP_STORE_KEY ? getStaticBySlug(slug) : undefined;
 }

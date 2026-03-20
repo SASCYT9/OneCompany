@@ -37,6 +37,13 @@ test('checkout settings preview applies shipping zones, tax regions and totals',
     ],
     orderNotificationEmail: null,
     b2bNotes: null,
+    fopCompanyName: null,
+    fopIban: null,
+    fopBankName: null,
+    fopEdrpou: null,
+    fopDetails: null,
+    stripeEnabled: false,
+    whiteBitEnabled: false,
   });
 
   const quote = buildCheckoutSettingsPreview(settings, {

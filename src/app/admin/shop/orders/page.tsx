@@ -23,6 +23,11 @@ type OrderStatus =
 
 type OrderSummary = {
   id: string;
+  storeKey: string;
+  store: {
+    key: string;
+    name: string;
+  } | null;
   orderNumber: string;
   status: OrderStatus;
   email: string;
@@ -38,6 +43,14 @@ type OrderSummary = {
   shippingZoneName: string | null;
   taxRegionId: string | null;
   taxRegionName: string | null;
+};
+
+type ShopStoreSummary = {
+  key: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  sortOrder: number;
 };
 
 type OrdersResponse = {
@@ -138,6 +151,8 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [stores, setStores] = useState<ShopStoreSummary[]>([]);
+  const [storeKey, setStoreKey] = useState('urban');
   const [status, setStatus] = useState('');
   const [currency, setCurrency] = useState('');
   const [shippingZone, setShippingZone] = useState('');
@@ -150,11 +165,31 @@ export default function AdminOrdersPage() {
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    async function loadStores() {
+      try {
+        const response = await fetch('/api/admin/shop/stores');
+        const data = await response.json().catch(() => []);
+        if (!response.ok) return;
+        const nextStores = data as ShopStoreSummary[];
+        setStores(nextStores);
+        if (nextStores.length && !nextStores.some((store) => store.key === storeKey)) {
+          setStoreKey(nextStores[0].key);
+        }
+      } catch {
+        // Keep default store.
+      }
+    }
+
+    void loadStores();
+  }, [storeKey]);
+
+  useEffect(() => {
     async function run() {
       setLoading(true);
       setError('');
       try {
         const params = new URLSearchParams();
+        if (storeKey) params.set('store', storeKey);
         if (status) params.set('status', status);
         if (currency) params.set('currency', currency);
         if (shippingZone) params.set('shippingZone', shippingZone);
@@ -162,11 +197,11 @@ export default function AdminOrdersPage() {
         if (query.trim()) params.set('q', query.trim());
 
         const response = await fetch(`/api/admin/shop/orders${params.toString() ? `?${params.toString()}` : ''}`);
-        const data = (await response.json().catch(() => ({}))) as Partial<OrdersResponse> & { error?: string };
-        if (response.status === 401) {
-          setError('Unauthorized');
-          return;
-        }
+          const data = (await response.json().catch(() => ({}))) as Partial<OrdersResponse> & { error?: string };
+          if (response.status === 401) {
+          setError('Доступ заборонено');
+            return;
+          }
         if (!response.ok) {
           setError(data.error || 'Не вдалося завантажити замовлення');
           return;
@@ -193,7 +228,7 @@ export default function AdminOrdersPage() {
     }
 
     void run();
-  }, [currency, query, reloadKey, shippingZone, status, taxRegion]);
+  }, [currency, query, reloadKey, shippingZone, status, storeKey, taxRegion]);
 
   useEffect(() => {
     setSelectedIds((current) => current.filter((id) => orders.some((order) => order.id === id)));
@@ -247,6 +282,7 @@ export default function AdminOrdersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderIds: selectedIds,
+          storeKey,
           status: bulkStatus,
           note: bulkNote,
         }),
@@ -312,7 +348,7 @@ export default function AdminOrdersPage() {
 
         <div className="mb-4 grid gap-4 md:grid-cols-4">
           <SummaryCard label="Видимих замовлень" value={String(stats.total)} detail={`Обрано: ${selectedIds.length}`} />
-          <SummaryCard label="Очікує оплату" value={String(stats.statusCounts.PENDING_PAYMENT || 0)} detail="Stripe / інше" />
+          <SummaryCard label="Очікує оплату" value={String(stats.statusCounts.PENDING_PAYMENT || 0)} detail="Stripe / інші методи" />
           <SummaryCard label="На перевірці" value={String(stats.statusCounts.PENDING_REVIEW || 0)} detail="Потребують підтвердження" />
           <SummaryCard label="В обробці" value={String(stats.statusCounts.PROCESSING || 0)} detail="Активне виконання" />
           <SummaryCard label="Відправлено" value={String(stats.statusCounts.SHIPPED || 0)} detail="В дорозі" />
@@ -328,6 +364,18 @@ export default function AdminOrdersPage() {
               className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
             />
           </label>
+          <SelectField
+            label="Магазин"
+            value={storeKey}
+            onChange={setStoreKey}
+            options={(stores.length
+              ? stores
+              : [{ key: 'urban', name: 'Urban Automotive', description: null, isActive: true, sortOrder: 0 }]
+            ).map((store) => ({
+              value: store.key,
+              label: store.name,
+            }))}
+          />
           <SelectField label="Статус" value={status} onChange={setStatus} options={STATUS_OPTIONS.map((option) => ({ value: option.value, label: option.label }))} />
           <SelectField
             label="Валюта"
@@ -397,11 +445,11 @@ export default function AdminOrdersPage() {
                 ]}
               />
               <label className="block">
-                <span className="mb-1.5 block text-xs text-white/50">Timeline note</span>
+                <span className="mb-1.5 block text-xs text-white/50">Нотатка в таймлайні</span>
                 <input
                   value={bulkNote}
                   onChange={(event) => setBulkNote(event.target.value)}
-                  placeholder="Optional note for all selected orders"
+                  placeholder="Необовʼязкова примітка для всіх обраних замовлень"
                   className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                 />
               </label>
@@ -461,6 +509,7 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="font-mono text-sm text-white">{order.orderNumber}</div>
+                      <div className="mt-1 text-xs text-white/55">{order.store?.name ?? order.storeKey}</div>
                       <div className="mt-1 text-white/75">{order.customerName}</div>
                       <div className="mt-1 text-xs text-white/45">{order.email}</div>
                     </td>
@@ -476,13 +525,13 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-white/80">
-                        {order.shippingZoneName || 'No shipping zone'}
+                        {order.shippingZoneName || 'Зона доставки не визначена'}
                       </div>
                       <div className="mt-1 text-xs text-white/45">
-                        {order.taxRegionName || 'No tax rule'}
+                        {order.taxRegionName || 'Правило податку не визначене'}
                       </div>
                       <div className="mt-1 text-xs text-white/45">
-                        {order.itemCount} item{order.itemCount !== 1 ? 's' : ''} · {order.shipmentsCount} shipments · {order.timelineCount} events
+                        {order.itemCount} {order.itemCount === 1 ? 'позиція' : 'позицій'} · {order.shipmentsCount} відправлень · {order.timelineCount} подій
                       </div>
                     </td>
                     <td className="px-4 py-4 text-white/80">

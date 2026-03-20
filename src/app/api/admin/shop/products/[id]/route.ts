@@ -1,16 +1,15 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import {
   adminProductInclude,
   buildAdminProductUpdateData,
   normalizeAdminProductPayload,
   serializeAdminProduct,
 } from '@/lib/shopAdminCatalog';
-
-const prisma = new PrismaClient();
+import { ensureDefaultShopStores } from '@/lib/shopStores';
 
 export async function GET(
   _request: NextRequest,
@@ -19,6 +18,7 @@ export async function GET(
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
+    await ensureDefaultShopStores(prisma);
     const { id } = await params;
     const product = await prisma.shopProduct.findUnique({
       where: { id },
@@ -52,6 +52,7 @@ export async function PATCH(
     if (errors.length) {
       return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
     }
+    await ensureDefaultShopStores(prisma);
     if (data.categoryId) {
       const category = await prisma.shopCategory.findUnique({
         where: { id: data.categoryId },
@@ -63,7 +64,7 @@ export async function PATCH(
     }
     if (data.slug) {
       const existing = await prisma.shopProduct.findFirst({
-        where: { slug: data.slug, NOT: { id } },
+        where: { slug: data.slug, storeKey: data.storeKey, NOT: { id } },
       });
       if (existing) {
         return NextResponse.json({ error: 'Another product with this slug exists' }, { status: 409 });

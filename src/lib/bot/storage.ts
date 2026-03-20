@@ -1,9 +1,7 @@
 // Prisma Session Storage for grammY
-import { PrismaClient } from '@prisma/client';
 import type { StorageAdapter } from 'grammy';
+import { prisma } from '@/lib/prisma';
 import type { SessionData } from './types';
-
-const prisma = new PrismaClient();
 
 // Default session data
 export const defaultSession: SessionData = {

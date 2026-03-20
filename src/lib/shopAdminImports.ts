@@ -13,10 +13,18 @@ import {
 } from '@/lib/shopAdminCatalog';
 import { buildProductsFromShopifyCsv, type CsvHeaderMapping } from '@/lib/shopAdminCsv';
 import { writeAdminAuditLog } from '@/lib/adminRbac';
+import { DEFAULT_SHOP_STORE_KEY, ensureDefaultShopStores, normalizeShopStoreKey } from '@/lib/shopStores';
 
 export const adminImportTemplateSelect = {
   id: true,
   name: true,
+  storeKey: true,
+  store: {
+    select: {
+      key: true,
+      name: true,
+    },
+  },
   supplierName: true,
   sourceType: true,
   notes: true,
@@ -32,10 +40,23 @@ export const adminImportTemplateSelect = {
 } satisfies Prisma.ShopImportTemplateSelect;
 
 export const adminImportJobInclude = {
+  store: {
+    select: {
+      key: true,
+      name: true,
+    },
+  },
   template: {
     select: {
       id: true,
       name: true,
+      storeKey: true,
+      store: {
+        select: {
+          key: true,
+          name: true,
+        },
+      },
       supplierName: true,
     },
   },
@@ -60,6 +81,7 @@ type CsvImportRequest = {
   sourceFilename?: string | null;
   templateId?: string | null;
   conflictMode?: string | null;
+  storeKey?: string | null;
 };
 
 type ImportRowErrorInput = {
@@ -93,6 +115,8 @@ export function serializeImportTemplate(record: AdminImportTemplateRecord) {
   return {
     id: record.id,
     name: record.name,
+    storeKey: record.storeKey,
+    store: record.store,
     supplierName: record.supplierName,
     sourceType: record.sourceType,
     notes: record.notes,
@@ -107,6 +131,13 @@ export function serializeImportTemplate(record: AdminImportTemplateRecord) {
 export function serializeImportJob(record: AdminImportJobRecord) {
   return {
     id: record.id,
+    storeKey: record.storeKey,
+    store: record.store
+      ? {
+          key: record.store.key,
+          name: record.store.name,
+        }
+      : null,
     sourceType: record.sourceType,
     sourceFilename: record.sourceFilename,
     supplierName: record.supplierName,
@@ -153,6 +184,7 @@ export function normalizeImportTemplatePayload(input: unknown) {
   return {
     data: {
       name,
+      storeKey: normalizeShopStoreKey(source.storeKey),
       supplierName: nullableString(source.supplierName),
       sourceType: nullableString(source.sourceType) ?? 'shopify_csv',
       notes: nullableString(source.notes),
@@ -206,6 +238,7 @@ function extractHeaderMapping(value: unknown): CsvHeaderMapping | undefined {
 }
 
 export async function listImportTemplates(prisma: PrismaClient) {
+  await ensureDefaultShopStores(prisma);
   const templates = await prisma.shopImportTemplate.findMany({
     orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
     select: adminImportTemplateSelect,
@@ -215,6 +248,7 @@ export async function listImportTemplates(prisma: PrismaClient) {
 }
 
 export async function listImportJobs(prisma: PrismaClient) {
+  await ensureDefaultShopStores(prisma);
   const jobs = await prisma.shopImportJob.findMany({
     orderBy: [{ createdAt: 'desc' }],
     include: adminImportJobInclude,
@@ -229,9 +263,11 @@ export async function createImportTemplate(
   payload: ImportTemplatePayload,
   session: AdminSession
 ) {
+  await ensureDefaultShopStores(prisma);
   const template = await prisma.shopImportTemplate.create({
     data: {
       name: payload.name,
+      store: { connect: { key: payload.storeKey } },
       supplierName: payload.supplierName,
       sourceType: payload.sourceType,
       notes: payload.notes,
@@ -246,9 +282,10 @@ export async function createImportTemplate(
     action: 'import.template.create',
     entityType: 'shop.import_template',
     entityId: template.id,
-    metadata: {
-      name: template.name,
-      supplierName: template.supplierName,
+      metadata: {
+        name: template.name,
+        storeKey: template.storeKey,
+        supplierName: template.supplierName,
       sourceType: template.sourceType,
       defaultConflictMode: template.defaultConflictMode,
     },
@@ -263,10 +300,12 @@ export async function updateImportTemplate(
   payload: ImportTemplatePayload,
   session: AdminSession
 ) {
+  await ensureDefaultShopStores(prisma);
   const template = await prisma.shopImportTemplate.update({
     where: { id: templateId },
     data: {
       name: payload.name,
+      store: { connect: { key: payload.storeKey } },
       supplierName: payload.supplierName,
       sourceType: payload.sourceType,
       notes: payload.notes,
@@ -281,9 +320,10 @@ export async function updateImportTemplate(
     action: 'import.template.update',
     entityType: 'shop.import_template',
     entityId: template.id,
-    metadata: {
-      name: template.name,
-      supplierName: template.supplierName,
+      metadata: {
+        name: template.name,
+        storeKey: template.storeKey,
+        supplierName: template.supplierName,
       sourceType: template.sourceType,
       defaultConflictMode: template.defaultConflictMode,
     },
@@ -302,6 +342,7 @@ export async function deleteImportTemplate(
     select: {
       id: true,
       name: true,
+      storeKey: true,
       supplierName: true,
       sourceType: true,
       defaultConflictMode: true,
@@ -313,9 +354,10 @@ export async function deleteImportTemplate(
     action: 'import.template.delete',
     entityType: 'shop.import_template',
     entityId: template.id,
-    metadata: {
-      name: template.name,
-      supplierName: template.supplierName,
+      metadata: {
+        name: template.name,
+        storeKey: template.storeKey,
+        supplierName: template.supplierName,
       sourceType: template.sourceType,
       defaultConflictMode: template.defaultConflictMode,
     },
@@ -325,6 +367,7 @@ export async function deleteImportTemplate(
 }
 
 export async function getImportJob(prisma: PrismaClient, jobId: string) {
+  await ensureDefaultShopStores(prisma);
   const job = await prisma.shopImportJob.findUnique({
     where: { id: jobId },
     include: {
@@ -352,6 +395,7 @@ async function findTemplate(prisma: PrismaClient, templateId?: string | null) {
     select: {
       id: true,
       name: true,
+      storeKey: true,
       supplierName: true,
       sourceType: true,
       notes: true,
@@ -383,14 +427,16 @@ async function createImportJobRecord(
     templateSnapshot?: unknown;
     summary?: unknown;
     rowErrors?: ImportRowErrorInput[];
+    storeKey?: string | null;
   }
  ) {
   return prisma.shopImportJob.create({
     data: {
+      store: { connect: { key: normalizeShopStoreKey(input.storeKey) } },
       sourceType: 'shopify_csv',
       sourceFilename: input.sourceFilename ?? null,
       supplierName: input.supplierName ?? null,
-      templateId: input.templateId ?? null,
+      template: input.templateId ? { connect: { id: input.templateId } } : undefined,
       action: input.action,
       status: input.status,
       conflictMode: input.conflictMode,
@@ -427,7 +473,9 @@ export async function runShopCsvImport(
   session: AdminSession,
   request: CsvImportRequest
 ) {
+  await ensureDefaultShopStores(prisma);
   const template = await findTemplate(prisma, request.templateId);
+  const storeKey = normalizeShopStoreKey(request.storeKey ?? template?.storeKey ?? DEFAULT_SHOP_STORE_KEY);
   const headerMapping = extractHeaderMapping(template?.fieldMapping);
   const parsed = buildProductsFromShopifyCsv(request.csvText, headerMapping);
   if (parsed.columns.length === 0) {
@@ -445,6 +493,7 @@ export async function runShopCsvImport(
 
   const productsToUpsert = parsed.productRows.map(({ product, rowNumber }) => {
     const normalized = normalizeAdminProductPayload(product);
+    normalized.data.storeKey = storeKey;
     normalized.errors.forEach((message) => {
       validationErrors.push({
         rowNumber,
@@ -469,6 +518,7 @@ export async function runShopCsvImport(
     ? {
         id: template.id,
         name: template.name,
+        storeKey: template.storeKey,
         supplierName: template.supplierName,
         sourceType: template.sourceType,
         fieldMapping: template.fieldMapping,
@@ -484,6 +534,7 @@ export async function runShopCsvImport(
       sourceFilename: request.sourceFilename,
       supplierName: request.supplierName ?? template?.supplierName ?? null,
       templateId: template?.id ?? null,
+      storeKey,
       conflictMode,
       totalRows: parsed.totalRows,
       productsCount: parsed.products.length,
@@ -505,6 +556,7 @@ export async function runShopCsvImport(
       entityId: job.id,
       metadata: {
         totalRows: parsed.totalRows,
+      storeKey,
       products: parsed.products.length,
       variants: parsed.variantsCount,
       errorCount: validationErrors.length,
@@ -541,8 +593,8 @@ export async function runShopCsvImport(
 
     try {
       const existing = await prisma.shopProduct.findUnique({
-        where: { slug: data.slug },
-        select: { id: true, slug: true },
+        where: { storeKey_slug: { storeKey, slug: data.slug } },
+        select: { id: true, slug: true, storeKey: true },
       });
 
       if (existing) {
@@ -564,7 +616,12 @@ export async function runShopCsvImport(
         }
 
         await prisma.shopProduct.update({
-          where: { slug: data.slug },
+          where: {
+            storeKey_slug: {
+              storeKey,
+              slug: data.slug,
+            },
+          },
           data: buildAdminProductUpdateData(data),
         });
         updated += 1;
@@ -594,6 +651,7 @@ export async function runShopCsvImport(
     sourceFilename: request.sourceFilename,
     supplierName: request.supplierName ?? template?.supplierName ?? null,
     templateId: template?.id ?? null,
+    storeKey,
     conflictMode,
     totalRows: parsed.totalRows,
       productsCount: parsed.products.length,
@@ -621,6 +679,7 @@ export async function runShopCsvImport(
     entityId: job.id,
     metadata: {
       totalRows: parsed.totalRows,
+      storeKey,
       products: parsed.products.length,
       variants: parsed.variantsCount,
       created,

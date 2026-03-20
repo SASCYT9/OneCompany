@@ -8,6 +8,7 @@ import { trackAddToCart } from '@/lib/analytics';
 type Props = {
   slug: string;
   locale: string;
+  storeKey?: string;
   variantId?: string | null;
   variant?: 'default' | 'minimal' | 'inline';
   /** When false, do not redirect to cart after add (e.g. when button is inside a product card link). */
@@ -22,6 +23,7 @@ type Props = {
 export function AddToCartButton({
   slug,
   locale,
+  storeKey = 'urban',
   variantId,
   variant = 'default',
   redirect = true,
@@ -46,14 +48,14 @@ export function AddToCartButton({
       const response = await fetch('/api/shop/cart/items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, quantity: 1, variantId }),
+        body: JSON.stringify({ slug, quantity: 1, variantId, storeKey }),
       });
       if (!response.ok) {
         throw new Error('Add to cart failed');
       }
       setAdded(true);
       trackAddToCart(slug, 1, productName);
-      if (redirect) router.push(`/${locale}/shop/cart`);
+      if (redirect) router.push(`/${locale}/shop/cart?store=${encodeURIComponent(storeKey)}`);
     } catch {
       setAdding(false);
     }
@@ -77,7 +79,7 @@ export function AddToCartButton({
       type="button"
       onClick={handleClick}
       disabled={adding}
-      className={`rounded-full border border-white/25 bg-white px-5 py-2 text-xs uppercase tracking-[0.2em] text-black transition hover:border-white hover:bg-white/90 disabled:opacity-50 ${className}`}
+      className={`min-h-[46px] rounded-full border border-white/25 bg-white px-5 py-3 text-xs uppercase tracking-[0.2em] text-black transition hover:border-white hover:bg-white/90 disabled:opacity-50 ${className}`}
     >
       {adding ? (isUa ? 'Додаємо…' : 'Adding…') : (label ?? defaultLabel)}
     </button>
@@ -85,10 +87,18 @@ export function AddToCartButton({
 }
 
 /** Link that goes to cart (e.g. in header). */
-export function CartLink({ locale, className = '' }: { locale: string; className?: string }) {
+export function CartLink({
+  locale,
+  className = '',
+  storeKey = 'urban',
+}: {
+  locale: string;
+  className?: string;
+  storeKey?: string;
+}) {
   const isUa = locale === 'ua';
   return (
-    <Link href={`/${locale}/shop/cart`} className={className}>
+    <Link href={`/${locale}/shop/cart?store=${encodeURIComponent(storeKey)}`} className={className}>
       {isUa ? 'Кошик' : 'Cart'}
     </Link>
   );

@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { addItemToShopCart, SHOP_CART_COOKIE, serializeResolvedShopCart } from '@/lib/shopCart';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
+import { prisma } from '@/lib/prisma';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
-
-const prisma = new PrismaClient();
+import { ensureDefaultShopStores, normalizeShopStoreKey } from '@/lib/shopStores';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 function setCartCookie(response: NextResponse, token: string) {
@@ -19,9 +18,9 @@ function setCartCookie(response: NextResponse, token: string) {
 }
 
 export async function POST(request: NextRequest) {
-  let body: { slug?: string; quantity?: number; variantId?: string | null; currency?: string; locale?: string };
+  let body: { slug?: string; quantity?: number; variantId?: string | null; currency?: string; locale?: string; storeKey?: string };
   try {
-    body = (await request.json()) as { slug?: string; quantity?: number; variantId?: string | null; currency?: string; locale?: string };
+    body = (await request.json()) as { slug?: string; quantity?: number; variantId?: string | null; currency?: string; locale?: string; storeKey?: string };
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
@@ -31,6 +30,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    await ensureDefaultShopStores(prisma);
+    const storeKey = normalizeShopStoreKey(body.storeKey ?? request.nextUrl.searchParams.get('store'));
     const [session, settingsRecord] = await Promise.all([
       getCurrentShopCustomerSession(),
       getOrCreateShopSettings(prisma),
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
       session?.b2bDiscountPercent ?? null
     );
     const { cart, token } = await addItemToShopCart(prisma, {
+      storeKey,
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
       customerId: session?.customerId ?? null,
       currency: body.currency ?? settings.defaultCurrency,

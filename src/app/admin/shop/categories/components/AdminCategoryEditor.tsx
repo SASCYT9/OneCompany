@@ -2,11 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Save } from 'lucide-react';
 
 type CategoryOption = {
   id: string;
+  storeKey: string;
+  store: {
+    key: string;
+    name: string;
+  } | null;
   slug: string;
   titleUa: string;
   titleEn: string;
@@ -46,6 +51,7 @@ type CategoryResponse = CategoryOption & {
 };
 
 type CategoryFormState = {
+  storeKey: string;
   slug: string;
   titleUa: string;
   titleEn: string;
@@ -66,8 +72,17 @@ function slugify(value: string) {
     .replace(/^-|-$/g, '');
 }
 
-function createEmptyForm(): CategoryFormState {
+type ShopStoreSummary = {
+  key: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  sortOrder: number;
+};
+
+function createEmptyForm(storeKey = 'urban'): CategoryFormState {
   return {
+    storeKey,
     slug: '',
     titleUa: '',
     titleEn: '',
@@ -81,6 +96,7 @@ function createEmptyForm(): CategoryFormState {
 
 function categoryToForm(category: CategoryResponse): CategoryFormState {
   return {
+    storeKey: category.storeKey || 'urban',
     slug: category.slug,
     titleUa: category.titleUa,
     titleEn: category.titleEn,
@@ -98,23 +114,57 @@ type Props = {
 
 export default function AdminCategoryEditor({ categoryId }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const isEditing = Boolean(categoryId);
+  const initialStoreKey = searchParams.get('store') || 'urban';
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [slugTouched, setSlugTouched] = useState(isEditing);
-  const [form, setForm] = useState<CategoryFormState>(createEmptyForm());
+  const [stores, setStores] = useState<ShopStoreSummary[]>([]);
+  const [form, setForm] = useState<CategoryFormState>(() => createEmptyForm(initialStoreKey));
   const [availableParents, setAvailableParents] = useState<CategoryOption[]>([]);
   const [linkedProducts, setLinkedProducts] = useState<CategoryResponse['products']>([]);
   const [children, setChildren] = useState<CategoryResponse['children']>([]);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setForm((current) => ({ ...current, storeKey: current.storeKey || initialStoreKey }));
+    }
+  }, [initialStoreKey, isEditing]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadStores() {
+      try {
+        const response = await fetch('/api/admin/shop/stores');
+        const data = await response.json().catch(() => []);
+        if (!response.ok || cancelled) return;
+        const nextStores = Array.isArray(data) ? (data as ShopStoreSummary[]) : [];
+        setStores(nextStores);
+        if (!isEditing && nextStores.length && !nextStores.some((store) => store.key === form.storeKey)) {
+          setForm((current) => ({ ...current, storeKey: nextStores[0].key }));
+        }
+      } catch {
+        // Keep default store when bootstrap route is unavailable.
+      }
+    }
+
+    void loadStores();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [form.storeKey, isEditing]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadParents() {
       try {
-        const response = await fetch('/api/admin/shop/categories');
+        const response = await fetch(`/api/admin/shop/categories?store=${encodeURIComponent(form.storeKey)}`);
         const data = await response.json().catch(() => []);
         if (!response.ok) {
           throw new Error((data as { error?: string }).error || 'Не вдалося завантажити категорії');
@@ -134,7 +184,7 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [form.storeKey]);
 
   useEffect(() => {
     if (!categoryId) {
@@ -206,6 +256,7 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
           method: isEditing ? 'PATCH' : 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            storeKey: form.storeKey,
             slug: form.slug,
             titleUa: form.titleUa,
             titleEn: form.titleEn,
@@ -225,7 +276,7 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
 
       setSuccess(isEditing ? 'Категорію оновлено.' : 'Категорію створено.');
       if (!isEditing) {
-        router.push('/admin/shop/categories');
+        router.push(`/admin/shop/categories?store=${encodeURIComponent(form.storeKey)}`);
         router.refresh();
         return;
       }
@@ -262,7 +313,7 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
               {isEditing ? 'Редагувати категорію' : 'Нова категорія'}
             </h1>
             <p className="mt-2 text-sm text-white/45">
-              Structured product categories for catalog filters, sync and future storefront navigation.
+              Структуровані категорії товарів для фільтрів каталогу, синхронізації та майбутньої навігації вітриною.
             </p>
           </div>
         </div>
@@ -273,10 +324,23 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
         <form onSubmit={handleSubmit} className="space-y-6">
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5">
-              <h2 className="text-lg font-medium text-white">Overview</h2>
-              <p className="mt-1 text-sm text-white/45">Category identity, tree placement and publish state.</p>
+              <h2 className="text-lg font-medium text-white">Огляд</h2>
+              <p className="mt-1 text-sm text-white/45">Ідентичність категорії, її місце в дереві та стан публікації.</p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
+              <SelectField
+                label="Магазин"
+                value={form.storeKey}
+                onChange={(value) => updateField('storeKey', value)}
+                disabled={isEditing}
+                options={(stores.length
+                  ? stores
+                  : [{ key: 'urban', name: 'Urban Automotive', description: null, isActive: true, sortOrder: 0 }]
+                ).map((store) => ({
+                  value: store.key,
+                  label: store.name,
+                }))}
+              />
               <InputField label="Назва (EN)" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
               <InputField label="Назва (UA)" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
               <InputField label="Slug" value={form.slug} onChange={(value) => updateField('slug', slugify(value))} />
@@ -285,12 +349,12 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
                 value={form.parentId}
                 onChange={(value) => updateField('parentId', value)}
                 options={[
-                  { value: '', label: 'No parent' },
+                  { value: '', label: 'Без батьківської категорії' },
                   ...availableParents
                     .filter((category) => category.id !== categoryId)
                     .map((category) => ({
                       value: category.id,
-                      label: category.titleEn || category.titleUa || category.slug,
+                      label: `${category.titleEn || category.titleUa || category.slug}${category.store ? ` · ${category.store.name}` : ''}`,
                     })),
                 ]}
               />
@@ -303,8 +367,8 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
 
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5">
-              <h2 className="text-lg font-medium text-white">Descriptions</h2>
-              <p className="mt-1 text-sm text-white/45">Optional localized copy for future storefront category pages.</p>
+              <h2 className="text-lg font-medium text-white">Описи</h2>
+              <p className="mt-1 text-sm text-white/45">Необов’язкові локалізовані тексти для майбутніх сторінок категорій на вітрині.</p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <TextareaField label="Опис (EN)" value={form.descriptionEn} onChange={(value) => updateField('descriptionEn', value)} rows={6} />
@@ -316,8 +380,8 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
             <>
               <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
                 <div className="mb-5">
-                  <h2 className="text-lg font-medium text-white">Child categories</h2>
-                  <p className="mt-1 text-sm text-white/45">Use this to build catalog trees when deeper grouping is needed.</p>
+                <h2 className="text-lg font-medium text-white">Дочірні категорії</h2>
+                <p className="mt-1 text-sm text-white/45">Використовуйте це для побудови дерева каталогу, коли потрібне глибше групування.</p>
                 </div>
                 {children.length ? (
                   <div className="grid gap-3 md:grid-cols-2">
@@ -329,21 +393,21 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
                       >
                         <div className="font-medium text-white">{child.titleEn || child.titleUa}</div>
                         <div className="mt-1 font-mono text-xs text-white/45">{child.slug}</div>
-                        <div className="mt-2 text-xs text-white/50">Sort {child.sortOrder}</div>
+                        <div className="mt-2 text-xs text-white/50">Сортування {child.sortOrder}</div>
                       </Link>
                     ))}
                   </div>
                 ) : (
                   <div className="rounded-xl border border-dashed border-white/10 bg-black/30 px-4 py-8 text-sm text-white/45">
-                    No child categories yet.
+                    Дочірніх категорій ще немає.
                   </div>
                 )}
               </section>
 
               <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
                 <div className="mb-5">
-                  <h2 className="text-lg font-medium text-white">Assigned products</h2>
-                  <p className="mt-1 text-sm text-white/45">Products are linked directly from the product editor or the sync action.</p>
+                  <h2 className="text-lg font-medium text-white">Призначені товари</h2>
+                  <p className="mt-1 text-sm text-white/45">Товари прив’язуються безпосередньо з редактора товару або через дію синхронізації.</p>
                 </div>
                 {linkedProducts.length ? (
                   <div className="grid gap-3 md:grid-cols-2">
@@ -361,7 +425,7 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
                   </div>
                 ) : (
                   <div className="rounded-xl border border-dashed border-white/10 bg-black/30 px-4 py-8 text-sm text-white/45">
-                    No products assigned yet.
+                    Товари ще не призначені.
                   </div>
                 )}
               </section>
@@ -373,7 +437,7 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
               <Save className="h-4 w-4" />
               {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти категорію' : 'Створити категорію'}
             </button>
-            <Link href="/admin/shop/categories" className="rounded-lg border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
+            <Link href={`/admin/shop/categories${form.storeKey ? `?store=${encodeURIComponent(form.storeKey)}` : ''}`} className="rounded-lg border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
               Скасувати
             </Link>
           </div>
@@ -430,16 +494,18 @@ type SelectFieldProps = {
   value: string;
   onChange: (value: string) => void;
   options: Array<{ value: string; label: string }>;
+  disabled?: boolean;
 };
 
-function SelectField({ label, value, onChange, options }: SelectFieldProps) {
+function SelectField({ label, value, onChange, options, disabled = false }: SelectFieldProps) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-xs text-white/50">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+        disabled={disabled}
+        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none disabled:opacity-60"
       >
         {options.map((option) => (
           <option key={`${option.value}-${option.label}`} value={option.value}>

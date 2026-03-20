@@ -1,9 +1,11 @@
 import type { SupportedLocale } from '@/lib/seo';
 import { buildNoIndexPageMetadata, resolveLocale } from '@/lib/seo';
 import ShopAccountAuthClient from '../components/ShopAccountAuthClient';
+import { normalizeShopStoreKey } from '@/lib/shopStores';
 
 type Props = {
   params: Promise<{ locale: SupportedLocale }>;
+  searchParams: Promise<{ store?: string | string[] }>;
 };
 
 export async function generateMetadata({ params }: Props) {
@@ -15,7 +17,9 @@ export async function generateMetadata({ params }: Props) {
   });
 }
 
-export default async function ShopAccountLoginPage({ params }: Props) {
+export default async function ShopAccountLoginPage({ params, searchParams }: Props) {
   const { locale } = await params;
-  return <ShopAccountAuthClient locale={locale} mode="login" />;
+  const { store } = await searchParams;
+  const storeKey = normalizeShopStoreKey(Array.isArray(store) ? store[0] : store);
+  return <ShopAccountAuthClient locale={locale} mode="login" storeKey={storeKey} />;
 }

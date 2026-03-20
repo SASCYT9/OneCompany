@@ -60,6 +60,7 @@ export const adminBundleInclude = {
 } satisfies Prisma.ShopBundleInclude;
 
 export const adminProductInclude = {
+  store: true,
   category: true,
   media: { orderBy: { position: 'asc' } },
   options: { orderBy: { position: 'asc' } },
@@ -78,6 +79,13 @@ export const adminProductInclude = {
 
 export const adminProductListSelect = {
   id: true,
+  storeKey: true,
+  store: {
+    select: {
+      key: true,
+      name: true,
+    },
+  },
   slug: true,
   sku: true,
   scope: true,
@@ -202,6 +210,7 @@ export type AdminShopProductMetafieldInput = {
 };
 
 export type AdminShopProductPayload = {
+  storeKey: string;
   slug: string;
   sku?: string | null;
   scope: string;
@@ -426,6 +435,7 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
   if (!titleUa && !titleEn) errors.push('titleUa or titleEn is required');
 
   const data: AdminShopProductPayload = {
+    storeKey: stringValue(source.storeKey, 'urban').toLowerCase(),
     slug,
     sku: nullableString(source.sku),
     scope: stringValue(source.scope, 'auto') === 'moto' ? 'moto' : 'auto',
@@ -592,6 +602,7 @@ function jsonValueOrNull(value: unknown) {
 
 export function buildAdminProductCreateData(data: AdminShopProductPayload): Prisma.ShopProductCreateInput {
   return {
+    store: { connect: { key: data.storeKey } },
     slug: data.slug,
     sku: data.sku ?? null,
     scope: data.scope,
@@ -655,6 +666,7 @@ export function buildAdminProductCreateData(data: AdminShopProductPayload): Pris
 
 export function buildAdminProductUpdateData(data: AdminShopProductPayload): Prisma.ShopProductUpdateInput {
   return {
+    store: { connect: { key: data.storeKey } },
     slug: data.slug,
     sku: data.sku ?? null,
     scope: data.scope,
@@ -785,6 +797,13 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
 
   return {
     id: record.id,
+    storeKey: record.storeKey,
+    store: record.store
+      ? {
+          key: record.store.key,
+          name: record.store.name,
+        }
+      : null,
     slug: record.slug,
     sku: record.sku,
     scope: record.scope,
@@ -923,6 +942,13 @@ export function serializeAdminProductListItem(record: AdminShopProductRecord | A
   const primaryVariant = record.variants[0];
   return {
     id: record.id,
+    storeKey: record.storeKey,
+    store: 'store' in record && record.store
+      ? {
+          key: record.store.key,
+          name: record.store.name,
+        }
+      : null,
     slug: record.slug,
     sku: record.sku,
     scope: record.scope,

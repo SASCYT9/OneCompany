@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { deleteShopCartItem, SHOP_CART_COOKIE, serializeResolvedShopCart, updateShopCartItemQuantity } from '@/lib/shopCart';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
+import { prisma } from '@/lib/prisma';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
-
-const prisma = new PrismaClient();
+import { ensureDefaultShopStores, normalizeShopStoreKey } from '@/lib/shopStores';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 function setCartCookie(response: NextResponse, token: string) {
@@ -40,9 +39,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ itemId: string }> }
 ) {
-  let body: { quantity?: number; currency?: string; locale?: string };
+  let body: { quantity?: number; currency?: string; locale?: string; storeKey?: string };
   try {
-    body = (await request.json()) as { quantity?: number; currency?: string; locale?: string };
+    body = (await request.json()) as { quantity?: number; currency?: string; locale?: string; storeKey?: string };
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
@@ -55,8 +54,11 @@ export async function PATCH(
   const { itemId } = await params;
 
   try {
+    await ensureDefaultShopStores(prisma);
+    const storeKey = normalizeShopStoreKey(body.storeKey ?? request.nextUrl.searchParams.get('store'));
     const { session, settings, context } = await loadPricingContext();
     const { cart, token } = await updateShopCartItemQuantity(prisma, {
+      storeKey,
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
       customerId: session?.customerId ?? null,
       currency: body.currency ?? settings.defaultCurrency,
@@ -83,8 +85,11 @@ export async function DELETE(
 ) {
   const { itemId } = await params;
   try {
+    await ensureDefaultShopStores(prisma);
+    const storeKey = normalizeShopStoreKey(request.nextUrl.searchParams.get('store'));
     const { session, settings, context } = await loadPricingContext();
     const { cart, token } = await deleteShopCartItem(prisma, {
+      storeKey,
       cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
       customerId: session?.customerId ?? null,
       currency: settings.defaultCurrency,

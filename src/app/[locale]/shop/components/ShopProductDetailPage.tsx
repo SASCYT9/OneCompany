@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { PrismaClient } from '@prisma/client';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { ShopPrimaryPriceBox } from '@/components/shop/ShopPrimaryPriceBox';
 import { ShopProductViewTracker } from '@/components/shop/ShopProductViewTracker';
@@ -11,6 +10,7 @@ import {
   resolveLocale,
   type SupportedLocale,
 } from '@/lib/seo';
+import { localizeShopText } from '@/lib/shopText';
 import { getBrandLogo } from '@/lib/brandLogos';
 import {
   getBrandMetadata,
@@ -26,9 +26,8 @@ import {
   getProductsForUrbanCollection,
   getUrbanCollectionHandleForProduct,
 } from '@/lib/urbanCollectionMatcher';
+import { prisma } from '@/lib/prisma';
 import { URBAN_COLLECTION_CARDS } from '../data/urbanCollectionsList';
-
-const prisma = new PrismaClient();
 
 type ProductPageMode = 'default' | 'urban';
 
@@ -37,10 +36,6 @@ type Props = {
   slug: string;
   mode?: ProductPageMode;
 };
-
-function localize(locale: SupportedLocale, value: { ua: string; en: string }) {
-  return locale === 'ua' ? value.ua : value.en;
-}
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 'USD' | 'UAH') {
   const effectiveLocale = locale === 'ua' ? 'uk-UA' : 'en-US';
@@ -75,8 +70,8 @@ export async function getShopProductPageMetadata({
   }
 
   return buildPageMetadata(resolvedLocale, pageSlug, {
-    title: `${localize(resolvedLocale, product.title)} | ${product.brand} | One Company Shop`,
-    description: localize(resolvedLocale, product.shortDescription),
+    title: `${localizeShopText(resolvedLocale, product.title, { kind: 'title' })} | ${product.brand} | One Company Shop`,
+    description: localizeShopText(resolvedLocale, product.shortDescription, { kind: 'description' }),
     image: product.image,
     type: 'website',
   });
@@ -117,12 +112,12 @@ export default async function ShopProductDetailPage({
     : null;
   const isUrbanMode = mode === 'urban' || Boolean(urbanCollectionHandle);
 
-  const productTitle = localize(resolvedLocale, product.title);
-  const productCategory = localize(resolvedLocale, product.category);
-  const shortDescription = localize(resolvedLocale, product.shortDescription);
-  const longDescription = localize(resolvedLocale, product.longDescription);
-  const leadTime = localize(resolvedLocale, product.leadTime);
-  const collection = localize(resolvedLocale, product.collection);
+  const productTitle = localizeShopText(resolvedLocale, product.title, { kind: 'title' });
+  const productCategory = localizeShopText(resolvedLocale, product.category, { kind: 'label' });
+  const shortDescription = localizeShopText(resolvedLocale, product.shortDescription, { kind: 'description' });
+  const longDescription = localizeShopText(resolvedLocale, product.longDescription, { kind: 'description' });
+  const leadTime = localizeShopText(resolvedLocale, product.leadTime, { kind: 'label' });
+  const collection = localizeShopText(resolvedLocale, product.collection, { kind: 'label' });
   const isInStock = product.stock === 'inStock';
 
   const brandMeta = getBrandMetadata(product.brand);
@@ -300,7 +295,7 @@ export default async function ShopProductDetailPage({
               ) : null}
               {pricing.b2bVisible ? (
                 <p className="mt-2 text-xs uppercase tracking-[0.18em] text-emerald-200/80">
-                  {isUa ? 'B2B band visible' : 'B2B band visible'}
+                  {isUa ? 'B2B ціна доступна' : 'B2B price is available'}
                 </p>
               ) : null}
               {pricing.audience === 'b2b' && pricing.source === 'b2b-discount' && pricing.discountPercent != null ? (
@@ -323,8 +318,8 @@ export default async function ShopProductDetailPage({
               {pricing.b2bVisible && pricing.bands.b2b?.source === 'b2b-discount' && pricing.bands.b2b.discountPercent != null ? (
                 <p className="text-xs text-white/45">
                   {isUa
-                    ? `B2B band побудований від базової ціни зі знижкою ${pricing.bands.b2b.discountPercent}%`
-                    : `B2B band is derived from base pricing with a ${pricing.bands.b2b.discountPercent}% discount`}
+                    ? `B2B ціна побудована від базової ціни зі знижкою ${pricing.bands.b2b.discountPercent}%`
+                    : `B2B pricing is derived from base pricing with a ${pricing.bands.b2b.discountPercent}% discount`}
                 </p>
               ) : null}
             </div>
@@ -367,7 +362,7 @@ export default async function ShopProductDetailPage({
                   {product.highlights.map((item) => (
                     <li key={item.en} className="flex gap-2">
                       <span className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-white/60" />
-                      <span>{localize(resolvedLocale, item)}</span>
+                      <span>{localizeShopText(resolvedLocale, item, { kind: 'label' })}</span>
                     </li>
                   ))}
                 </ul>
@@ -398,7 +393,7 @@ export default async function ShopProductDetailPage({
                       className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/75 transition hover:border-white/25 hover:text-white"
                     >
                       <div>
-                        <p className="font-medium">{localize(resolvedLocale, item.product.title)}</p>
+                        <p className="font-medium">{localizeShopText(resolvedLocale, item.product.title, { kind: 'title' })}</p>
                         <p className="mt-1 text-xs text-white/45">
                           {item.quantity} × {item.variantTitle || (isUa ? 'Базовий варіант' : 'Default variant')}
                         </p>
@@ -422,17 +417,23 @@ export default async function ShopProductDetailPage({
               </div>
             ) : null}
 
-            <div className="flex flex-wrap gap-3">
-              <AddToCartButton slug={product.slug} locale={resolvedLocale} variantId={defaultVariant?.id ?? null} productName={productTitle} />
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <AddToCartButton
+                slug={product.slug}
+                locale={resolvedLocale}
+                variantId={defaultVariant?.id ?? null}
+                productName={productTitle}
+                className="w-full justify-center sm:w-auto"
+              />
               <Link
                 href={`/${resolvedLocale}/contact`}
-                className="rounded-full border border-white/25 bg-white px-5 py-2 text-xs uppercase tracking-[0.2em] text-black transition hover:border-white hover:bg-white/90"
+                className="inline-flex min-h-[46px] w-full items-center justify-center rounded-full border border-white/25 bg-white px-5 py-3 text-center text-xs uppercase tracking-[0.2em] text-black transition hover:border-white hover:bg-white/90 sm:w-auto"
               >
                 {pricing.requestQuote ? (isUa ? 'Запитати B2B ціну' : 'Request B2B pricing') : (isUa ? 'Запит по товару' : 'Request product')}
               </Link>
               <Link
                 href={continueShoppingHref}
-                className="rounded-full border border-white/25 bg-white/[0.03] px-5 py-2 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/50"
+                className="inline-flex min-h-[46px] w-full items-center justify-center rounded-full border border-white/25 bg-white/[0.03] px-5 py-3 text-center text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/50 sm:w-auto"
               >
                 {isUa ? 'Продовжити покупки' : 'Continue shopping'}
               </Link>
@@ -452,7 +453,7 @@ export default async function ShopProductDetailPage({
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <Image
                     src={item.image}
-                    alt={localize(resolvedLocale, item.title)}
+                    alt={localizeShopText(resolvedLocale, item.title, { kind: 'title' })}
                     fill
                     sizes="(max-width: 1280px) 100vw, 30vw"
                     className="object-cover transition duration-500 group-hover:scale-105"
@@ -461,7 +462,7 @@ export default async function ShopProductDetailPage({
                 </div>
                 <div className="space-y-2 p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-white/55">{item.brand}</p>
-                  <h3 className="text-lg font-light leading-snug">{localize(resolvedLocale, item.title)}</h3>
+                  <h3 className="text-lg font-light leading-snug">{localizeShopText(resolvedLocale, item.title, { kind: 'title' })}</h3>
                   <p className="text-sm text-white/65">
                     {formatPrice(resolvedLocale, resolveShopProductPricing(item, viewerContext).effectivePrice.eur, 'EUR')}
                   </p>

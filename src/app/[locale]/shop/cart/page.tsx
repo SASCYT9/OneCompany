@@ -2,8 +2,12 @@ import { resolveLocale } from '@/lib/seo';
 import { buildNoIndexPageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 import ShopCartClient from './ShopCartClient';
+import { normalizeShopStoreKey } from '@/lib/shopStores';
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ store?: string | string[] }>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
@@ -14,8 +18,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function ShopCartPage({ params }: Props) {
+export default async function ShopCartPage({ params, searchParams }: Props) {
   const { locale } = await params;
+  const { store } = await searchParams;
   const resolvedLocale = resolveLocale(locale);
-  return <ShopCartClient locale={resolvedLocale} />;
+  const storeKey = normalizeShopStoreKey(Array.isArray(store) ? store[0] : store);
+  return <ShopCartClient locale={resolvedLocale} storeKey={storeKey} />;
 }

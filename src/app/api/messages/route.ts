@@ -3,11 +3,10 @@ import { render } from '@react-email/render';
 import { ReplyEmail } from '@/components/emails/ReplyEmail';
 import { Resend } from 'resend';
 import React from 'react';
-import { PrismaClient, Status } from '@prisma/client';
-import { isAuthenticated } from '@/lib/telegram-auth';
 import { isAdminRequestAuthenticated } from '@/lib/adminAuth';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { isAuthenticated } from '@/lib/telegram-auth';
+import { Status } from '@prisma/client';
 // Initialize Resend with a fallback key to prevent build-time errors if env var is missing.
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
 

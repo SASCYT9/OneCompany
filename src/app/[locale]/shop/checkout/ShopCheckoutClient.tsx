@@ -54,7 +54,13 @@ type PaymentOptions = {
   } | null;
 };
 
-export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale }) {
+export default function ShopCheckoutClient({
+  locale,
+  storeKey = 'urban',
+}: {
+  locale: SupportedLocale;
+  storeKey?: string;
+}) {
   const router = useRouter();
   const isUa = locale === 'ua';
   const [cart, setCart] = useState<{ items: CartItem[] } | null>(null);
@@ -84,10 +90,9 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
   const quoteRequestRef = useRef(0);
   useEffect(() => {
     Promise.all([
-      fetch('/api/shop/cart').then((r) => r.json()),
-      fetch('/api/shop/account')
+      fetch(`/api/shop/cart?store=${encodeURIComponent(storeKey)}`).then((r) => r.json()),
+      fetch(`/api/shop/account?store=${encodeURIComponent(storeKey)}&optional=1`)
         .then(async (response) => {
-          if (response.status === 401) return null;
           const data = await response.json().catch(() => null);
           return response.ok ? (data as AccountProfile) : null;
         })
@@ -127,7 +132,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
         setLoading(false);
         setAccountLoaded(true);
       });
-  }, [isUa]);
+  }, [isUa, storeKey]);
 
   useEffect(() => {
     if (!cart?.items?.length) {
@@ -144,6 +149,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        storeKey,
         items: cart.items.map((item) => ({ slug: item.slug, quantity: item.quantity, variantId: item.variantId })),
         shipping: {
           line1: form.line1,
@@ -173,7 +179,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           setQuoteLoading(false);
         }
       });
-  }, [accountLoaded, cart, form.city, form.country, form.currency, form.line1, form.line2, form.postcode, form.region]);
+  }, [accountLoaded, cart, form.city, form.country, form.currency, form.line1, form.line2, form.postcode, form.region, storeKey]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,6 +190,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          storeKey,
           items: (cart?.items ?? []).map((i) => ({ slug: i.slug, quantity: i.quantity, variantId: i.variantId })),
           contact: { email: form.email.trim(), name: form.name.trim(), phone: form.phone.trim() || undefined },
           shipping: {
@@ -205,10 +212,12 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
         return;
       }
       if (data.redirectUrl) {
-        window.location.href = data.redirectUrl;
+        window.location.assign(data.redirectUrl);
         return;
       }
-      router.push(`/${locale}/shop/checkout/success?order=${encodeURIComponent(data.orderNumber)}&token=${encodeURIComponent(data.viewToken)}`);
+      const successHref = `/${locale}/shop/checkout/success?order=${encodeURIComponent(data.orderNumber)}&token=${encodeURIComponent(data.viewToken)}&store=${encodeURIComponent(storeKey)}`;
+      window.location.assign(successHref);
+      return;
     } finally {
       setSubmitting(false);
     }
@@ -241,7 +250,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
       className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)] text-white"
     >
       <div className="mx-auto max-w-3xl px-4 pb-20 pt-28 sm:px-6">
-        <Link href={`/${locale}/shop/cart`} className="mb-6 inline-flex items-center gap-2 text-sm text-white/55 transition hover:text-white">
+        <Link href={`/${locale}/shop/cart?store=${encodeURIComponent(storeKey)}`} className="mb-6 inline-flex items-center gap-2 text-sm text-white/55 transition hover:text-white">
           ← {isUa ? 'Кошик' : 'Cart'}
         </Link>
         <header>

@@ -7,6 +7,7 @@ import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
 import type { SupportedLocale } from '@/lib/seo';
 import type { ShopProduct } from '@/lib/shopCatalog';
+import { localizeShopText } from '@/lib/shopText';
 import { buildShopProductPath } from '@/lib/urbanCollectionMatcher';
 import type { UrbanProductGridConfig } from '../data/urbanCollectionPages';
 
@@ -19,14 +20,10 @@ type UrbanCollectionProductGridProps = {
   settings: UrbanProductGridConfig;
 };
 
-function localize(locale: SupportedLocale, value: { ua: string; en: string }) {
-  return locale === 'ua' ? value.ua : value.en;
-}
-
 function buildPremiumDescription(locale: SupportedLocale, title: { ua: string; en: string }, short: { ua: string; en: string }, long: { ua: string; en: string }) {
-  const t = localize(locale, title).trim();
-  const s = localize(locale, short).trim();
-  const l = localize(locale, long).trim();
+  const t = localizeShopText(locale, title, { kind: 'title' }).trim();
+  const s = localizeShopText(locale, short, { kind: 'description' }).trim();
+  const l = localizeShopText(locale, long, { kind: 'description' }).trim();
 
   const sNormalized = s.toLowerCase();
   const tNormalized = t.toLowerCase();
@@ -125,7 +122,7 @@ export default function UrbanCollectionProductGrid({
 
         {products.length > 0 ? (
           <div className="urban-product-grid__cards">
-            {products.map((product) => {
+            {products.map((product, index) => {
               const premiumDescription = buildPremiumDescription(
                 locale,
                 product.title,
@@ -142,27 +139,28 @@ export default function UrbanCollectionProductGrid({
                 <Link
                   href={buildShopProductPath(locale, product)}
                   className="urban-product-grid__card-link"
-                  aria-label={localize(locale, product.title)}
+                  aria-label={localizeShopText(locale, product.title, { kind: 'title' })}
                 />
                 <div className="urban-product-grid__media">
                   <Image
                     src={product.image}
-                    alt={localize(locale, product.title)}
+                    alt={localizeShopText(locale, product.title, { kind: 'title' })}
                     fill
-                    sizes="(max-width: 768px) 100vw, 25vw"
+                    sizes="(max-width: 479px) 100vw, (max-width: 768px) 50vw, 25vw"
                     className="object-cover"
+                    priority={index === 0}
                   />
                 </div>
                 <div className="urban-product-grid__body">
                   <p className="urban-product-grid__brand">{product.brand}</p>
                   <h3 className="urban-product-grid__name">
-                    {localize(locale, product.title)}
+                    {localizeShopText(locale, product.title, { kind: 'title' })}
                   </h3>
                   <p className="urban-product-grid__description">
                     {premiumDescription}
                   </p>
                   <div className="urban-product-grid__meta">
-                    <span>{localize(locale, product.collection)}</span>
+                    <span>{localizeShopText(locale, product.collection, { kind: 'label' })}</span>
                   </div>
                   <div className="urban-product-grid__actions">
                     <AddToCartButton
@@ -170,7 +168,7 @@ export default function UrbanCollectionProductGrid({
                       locale={locale}
                       redirect={false}
                       variant="inline"
-                      productName={localize(locale, product.title)}
+                      productName={localizeShopText(locale, product.title, { kind: 'title' })}
                       className="urban-product-grid__add"
                       label={isUa ? 'Додати в кошик' : 'Add to cart'}
                       labelAdded={isUa ? 'Додано' : 'Added'}

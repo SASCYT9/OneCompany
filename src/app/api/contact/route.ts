@@ -5,7 +5,6 @@ import type { NextRequest } from 'next/server';
 import { Resend } from 'resend';
 import * as fs from 'fs';
 import * as path from 'path';
-import { PrismaClient } from '@prisma/client';
 import { notifyAdminsNewMessage } from '@/lib/bot/notifications';
 import {
   buildTelegramActionButtons,
@@ -13,6 +12,7 @@ import {
   normalizeTelegramChatId,
   sendTelegramToDestinations,
 } from '@/lib/telegramNotifications';
+import { prisma } from '@/lib/prisma';
 
 // Basic rate limiting (memory). For production replace with Redis or durable store.
 const WINDOW_MS = 60_000; // 1 minute
@@ -51,7 +51,6 @@ type ContactFormData = {
 type AutoFormData = ContactFormData & { carModel: string };
 type MotoFormData = ContactFormData & { motoModel: string };
 
-const prisma = new PrismaClient();
 // Initialize Resend with a fallback key to prevent build-time errors if env var is missing.
 // The actual sending logic checks for the presence of the key.
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');

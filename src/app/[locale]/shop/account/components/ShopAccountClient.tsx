@@ -7,6 +7,7 @@ import type { SupportedLocale } from '@/lib/seo';
 
 type Props = {
   locale: SupportedLocale;
+  storeKey?: string;
   profile: {
     email: string;
     fullName: string;
@@ -49,15 +50,15 @@ function groupLabel(locale: SupportedLocale, group: Props['profile']['group']) {
   return 'B2C';
 }
 
-export default function ShopAccountClient({ locale, profile }: Props) {
+export default function ShopAccountClient({ locale, profile, storeKey = 'urban' }: Props) {
   const isUa = locale === 'ua';
   const [submittingB2B, setSubmittingB2B] = useState(false);
   const [b2bMessage, setB2BMessage] = useState('');
   const [profileGroup, setProfileGroup] = useState<Props['profile']['group']>(profile.group);
   const signOutCallbackUrl =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/${locale}/shop/account/login`
-      : `/${locale}/shop/account/login`;
+      ? `${window.location.origin}/${locale}/shop/account/login?store=${encodeURIComponent(storeKey)}`
+      : `/${locale}/shop/account/login?store=${encodeURIComponent(storeKey)}`;
 
   async function handleApplyB2B() {
     setSubmittingB2B(true);
@@ -65,6 +66,8 @@ export default function ShopAccountClient({ locale, profile }: Props) {
     try {
       const response = await fetch('/api/shop/account/apply-b2b', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeKey }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {

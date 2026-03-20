@@ -7,6 +7,7 @@ import type { SupportedLocale } from '@/lib/seo';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { getBrandMetadata, getLocalizedCountry } from '@/lib/brands';
 import { SHOP_PRODUCTS, type ShopScope, type ShopMoneySet } from '@/lib/shopCatalog';
+import { localizeShopText } from '@/lib/shopText';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
 
@@ -33,10 +34,6 @@ const featuredBrandOrder = [
   'Rotobox',
   'Jetprime',
 ] as const;
-
-function localize(locale: SupportedLocale, value: { ua: string; en: string }) {
-  return locale === 'ua' ? value.ua : value.en;
-}
 
 function formatPrice(
   locale: SupportedLocale,
@@ -134,7 +131,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
     const map = new Map<string, { key: string; label: string; image: string; count: number }>();
 
     scopedProducts.forEach((product) => {
-      const label = localize(locale, product.category);
+      const label = localizeShopText(locale, product.category, { kind: 'label' });
       const existing = map.get(label);
       if (existing) {
         map.set(label, { ...existing, count: existing.count + 1 });
@@ -157,13 +154,13 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
     const filtered = scopedProducts.filter((product) => {
       if (selectedBrand !== 'all' && product.brand !== selectedBrand) return false;
 
-      const categoryLabel = localize(locale, product.category);
+      const categoryLabel = localizeShopText(locale, product.category, { kind: 'label' });
       if (selectedCategory !== 'all' && categoryLabel !== selectedCategory) return false;
 
       if (!needle) return true;
 
-      const title = localize(locale, product.title).toLowerCase();
-      const shortDescription = localize(locale, product.shortDescription).toLowerCase();
+      const title = localizeShopText(locale, product.title, { kind: 'title' }).toLowerCase();
+      const shortDescription = localizeShopText(locale, product.shortDescription, { kind: 'description' }).toLowerCase();
 
       return (
         title.includes(needle) ||
@@ -191,7 +188,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
     return {
       products: scopedProducts.length,
       brands: new Set(scopedProducts.map((product) => product.brand)).size,
-      categories: new Set(scopedProducts.map((product) => localize(locale, product.category))).size,
+      categories: new Set(scopedProducts.map((product) => localizeShopText(locale, product.category, { kind: 'label' }))).size,
     };
   }, [locale, scopedProducts]);
 
@@ -480,9 +477,9 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {filteredProducts.map((product) => {
-                const productTitle = localize(locale, product.title);
-                const category = localize(locale, product.category);
-                const shortDescription = localize(locale, product.shortDescription);
+                const productTitle = localizeShopText(locale, product.title, { kind: 'title' });
+                const category = localizeShopText(locale, product.category, { kind: 'label' });
+                const shortDescription = localizeShopText(locale, product.shortDescription, { kind: 'description' });
                 const isInStock = product.stock === 'inStock';
                 const brandMeta = getBrandMetadata(product.brand);
                 const country = brandMeta ? getLocalizedCountry(brandMeta.country, locale) : null;
@@ -575,7 +572,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
                           </span>
                         ) : null}
                         <span className="rounded-full border border-black/15 bg-[#f8f6f2] px-3 py-1 text-[11px] text-black/65">
-                          {localize(locale, product.collection)}
+                          {localizeShopText(locale, product.collection, { kind: 'label' })}
                         </span>
                       </div>
 
@@ -585,7 +582,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
                           locale={locale}
                           variant="inline"
                           redirect={false}
-                          productName={localize(locale, product.title)}
+                          productName={localizeShopText(locale, product.title, { kind: 'title' })}
                           className="rounded-full border border-black/20 bg-[#f8f6f2] px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-black/80 hover:bg-black/10 transition"
                         />
                         <p className="text-xs uppercase tracking-[0.2em] text-black/50">

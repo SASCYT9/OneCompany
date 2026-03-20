@@ -194,11 +194,11 @@ export default function AdminOrderDetailPage() {
     setSuccess('');
     try {
       const response = await fetch(`/api/admin/shop/orders/${id}`);
-      const data = await response.json().catch(() => ({}));
-      if (response.status === 401) {
-        setError('Unauthorized');
-        return;
-      }
+        const data = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+        setError('Доступ заборонено');
+          return;
+        }
       if (!response.ok) {
         setError(data.error || 'Не вдалося завантажити замовлення');
         return;

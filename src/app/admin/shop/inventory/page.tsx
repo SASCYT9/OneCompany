@@ -94,7 +94,7 @@ export default function AdminInventoryPage() {
       const response = await fetch('/api/admin/shop/inventory');
       const data = await response.json().catch(() => []);
       if (!response.ok) {
-        setError(data.error || 'Failed to load inventory');
+        setError(data.error || 'Не вдалося завантажити склад');
         return;
       }
       setVariants(data as InventoryRow[]);
@@ -120,11 +120,11 @@ export default function AdminInventoryPage() {
     setSuccess('');
 
     if (!selectedIds.length) {
-      setError('Select at least one variant.');
+      setError('Оберіть хоча б один варіант.');
       return;
     }
     if (bulk.inventoryQty.trim() && bulk.inventoryAdjustment.trim()) {
-      setError('Use either set quantity or adjustment, not both.');
+      setError('Використовуйте або встановлення кількості, або зміну на значення, але не обидва одночасно.');
       return;
     }
 
@@ -139,7 +139,7 @@ export default function AdminInventoryPage() {
     if (bulk.fulfillmentService.trim()) payload.fulfillmentService = bulk.fulfillmentService.trim();
 
     if (Object.keys(payload).length === 1) {
-      setError('Enter at least one bulk inventory change.');
+      setError('Вкажіть хоча б одну масову зміну складу.');
       return;
     }
 
@@ -152,10 +152,10 @@ export default function AdminInventoryPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Failed to update inventory');
+        setError(data.error || 'Не вдалося оновити склад');
         return;
       }
-      setSuccess(`Updated ${data.updatedCount ?? selectedIds.length} variants.`);
+      setSuccess(`Оновлено ${data.updatedCount ?? selectedIds.length} варіантів.`);
       setBulk(createEmptyBulkState());
       await load();
     } finally {
@@ -167,7 +167,7 @@ export default function AdminInventoryPage() {
     return (
       <div className="p-6 text-white/60 flex items-center gap-2">
         <Warehouse className="h-5 w-5 animate-pulse" />
-        Loading inventory…
+        Завантаження складу…
       </div>
     );
   }
@@ -179,16 +179,16 @@ export default function AdminInventoryPage() {
           <div>
             <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
               <ArrowLeft className="h-4 w-4" />
-              Back to catalog
+              Назад до каталогу
             </Link>
-            <h2 className="mt-3 text-2xl font-semibold text-white">Inventory</h2>
+            <h2 className="mt-3 text-2xl font-semibold text-white">Склад</h2>
             <p className="mt-2 text-sm text-white/45">
-              Bulk inventory operations for variant quantities, tracking, and fulfillment fields.
+              Масові операції для кількості варіантів, правил відстеження та полів виконання.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link href="/admin/shop/pricing" className="rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              Pricing
+              Ціни
             </Link>
             <button
               type="button"
@@ -196,7 +196,7 @@ export default function AdminInventoryPage() {
               className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
             >
               <RefreshCcw className="h-4 w-4" />
-              Refresh
+              Оновити
             </button>
           </div>
         </div>
@@ -204,17 +204,17 @@ export default function AdminInventoryPage() {
         <div className="mb-4 grid gap-4 lg:grid-cols-[1fr_320px]">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <div className="grid gap-2 text-sm text-white/70 md:grid-cols-4">
-              <div>{variants.length} variants</div>
-              <div>{variants.filter((variant) => variant.inventoryQty > 0).length} in stock</div>
-              <div>{variants.filter((variant) => variant.inventoryQty <= 0).length} zero/negative</div>
-              <div>{variants.filter((variant) => variant.inventoryTracker).length} tracked</div>
+              <div>{variants.length} варіантів</div>
+              <div>{variants.filter((variant) => variant.inventoryQty > 0).length} в наявності</div>
+              <div>{variants.filter((variant) => variant.inventoryQty <= 0).length} нуль або мінус</div>
+              <div>{variants.filter((variant) => variant.inventoryTracker).length} з відстеженням</div>
             </div>
             <label className="mt-4 flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
               <Search className="h-4 w-4 text-white/35" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by product, variant, SKU, collection"
+                placeholder="Пошук за товаром, варіантом, SKU або колекцією"
                 className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
               />
             </label>
@@ -223,19 +223,19 @@ export default function AdminInventoryPage() {
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-sm font-medium text-white">Selection</div>
+                <div className="text-sm font-medium text-white">Вибір</div>
                 <div className="mt-1 text-xs text-white/45">
-                  {selectedIds.length} selected, {selectedVisibleCount} visible
+                  {selectedIds.length} обрано, {selectedVisibleCount} видимо
                 </div>
               </div>
               <CheckSquare className="h-5 w-5 text-white/35" />
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <button type="button" onClick={selectVisible} className="rounded-lg border border-white/15 px-3 py-2 text-xs text-white hover:bg-white/5">
-                Select visible
+                Обрати видимі
               </button>
               <button type="button" onClick={clearSelection} className="rounded-lg border border-white/15 px-3 py-2 text-xs text-white hover:bg-white/5">
-                Clear
+                Очистити
               </button>
             </div>
           </div>
@@ -246,22 +246,22 @@ export default function AdminInventoryPage() {
 
         <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-white">Bulk update</h3>
+            <h3 className="text-lg font-medium text-white">Масове оновлення</h3>
             <p className="mt-1 text-sm text-white/45">
-              Set inventory quantities or apply a delta across selected variants. Product stock state syncs automatically after update.
+              Встановіть кількість або застосуйте зміну до обраних варіантів. Стан товару синхронізується автоматично після оновлення.
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-5">
             <InputField label="Встановити кількість" value={bulk.inventoryQty} onChange={(value) => setBulk((current) => ({ ...current, inventoryQty: value }))} type="number" />
             <InputField label="Змінити на" value={bulk.inventoryAdjustment} onChange={(value) => setBulk((current) => ({ ...current, inventoryAdjustment: value }))} type="number" />
             <SelectField
-              label="Inventory policy"
+              label="Правило складу"
               value={bulk.inventoryPolicy}
               onChange={(value) => setBulk((current) => ({ ...current, inventoryPolicy: value as BulkInventoryState['inventoryPolicy'] }))}
               options={[
-                { value: '', label: 'Keep as is' },
-                { value: 'CONTINUE', label: 'Continue' },
-                { value: 'DENY', label: 'Deny' },
+                { value: '', label: 'Без змін' },
+                { value: 'CONTINUE', label: 'Продовжувати продаж' },
+                { value: 'DENY', label: 'Заборонити продаж' },
               ]}
             />
             <InputField label="Відстеження складу" value={bulk.inventoryTracker} onChange={(value) => setBulk((current) => ({ ...current, inventoryTracker: value }))} />
@@ -275,7 +275,7 @@ export default function AdminInventoryPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
             >
               <Boxes className="h-4 w-4" />
-              {applying ? 'Applying…' : 'Apply to selected'}
+              {applying ? 'Застосування…' : 'Застосувати до обраних'}
             </button>
           </div>
         </div>
@@ -285,14 +285,14 @@ export default function AdminInventoryPage() {
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
-                  <th className="px-4 py-3 font-medium text-white/60">Select</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Product</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Variant</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Collections</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Qty</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Policy</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Tracker</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Actions</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Обрати</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Товар</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Варіант</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Колекції</th>
+                  <th className="px-4 py-3 font-medium text-white/60">К-сть</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Правило</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Трекер</th>
+                  <th className="px-4 py-3 font-medium text-white/60">Дії</th>
                 </tr>
               </thead>
               <tbody>
@@ -315,9 +315,9 @@ export default function AdminInventoryPage() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-white/80">
-                        {variant.title || `Variant #${variant.position}`} {variant.isDefault ? '· Default' : ''}
+                        {variant.title || `Варіант #${variant.position}`} {variant.isDefault ? '· Базовий' : ''}
                       </div>
-                      <div className="mt-1 font-mono text-xs text-white/45">{variant.sku || 'No SKU'}</div>
+                      <div className="mt-1 font-mono text-xs text-white/45">{variant.sku || 'Без SKU'}</div>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex max-w-[280px] flex-wrap gap-1.5">
@@ -328,7 +328,7 @@ export default function AdminInventoryPage() {
                             </span>
                           ))
                         ) : (
-                          <span className="text-xs text-white/35">No collections</span>
+                          <span className="text-xs text-white/35">Без колекцій</span>
                         )}
                       </div>
                     </td>
@@ -340,7 +340,7 @@ export default function AdminInventoryPage() {
                     </td>
                     <td className="px-4 py-4">
                       <Link href={`/admin/shop/${variant.productId}`} className="text-sm text-white/70 hover:text-white">
-                        Edit product
+                        Редагувати товар
                       </Link>
                     </td>
                   </tr>

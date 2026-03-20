@@ -24,6 +24,12 @@ export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 };
 
 export const adminOrderInclude = {
+  store: {
+    select: {
+      key: true,
+      name: true,
+    },
+  },
   items: true,
   shipments: {
     orderBy: [{ createdAt: 'desc' }],
@@ -84,6 +90,8 @@ export function serializeAdminOrderSummary(record: AdminShopOrderRecord) {
 
   return {
     id: record.id,
+    storeKey: record.storeKey,
+    store: record.store,
     orderNumber: record.orderNumber,
     status: record.status,
     email: record.email,
@@ -107,6 +115,8 @@ export function serializeAdminOrder(record: AdminShopOrderRecord) {
 
   return {
     id: record.id,
+    storeKey: record.storeKey,
+    store: record.store,
     orderNumber: record.orderNumber,
     status: record.status,
     email: record.email,
@@ -157,15 +167,22 @@ export function getCommonAllowedTransitions(statuses: OrderStatus[]) {
   );
 }
 
-export async function createInitialOrderEvent(prisma: PrismaClient, orderId: string) {
+export async function createInitialOrderEvent(
+  prisma: PrismaClient,
+  orderId: string,
+  status: OrderStatus = 'PENDING_REVIEW'
+) {
   return prisma.shopOrderStatusEvent.create({
     data: {
       orderId,
       fromStatus: null,
-      toStatus: 'PENDING_REVIEW',
+      toStatus: status,
       actorType: 'system',
       actorName: 'checkout',
-      note: 'Order created from storefront checkout.',
+      note:
+        status === 'PENDING_PAYMENT'
+          ? 'Order created from storefront checkout and is waiting for payment.'
+          : 'Order created from storefront checkout.',
     },
   });
 }

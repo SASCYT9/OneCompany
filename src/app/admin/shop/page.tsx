@@ -6,6 +6,11 @@ import { Plus, Pencil, Trash2, Upload, Package, ShoppingCart, Search, Layers3, W
 
 type ShopProductListItem = {
   id: string;
+  storeKey: string;
+  store: {
+    key: string;
+    name: string;
+  } | null;
   slug: string;
   sku: string | null;
   scope: string;
@@ -28,6 +33,14 @@ type ShopProductListItem = {
   collectionsCount: number;
 };
 
+type ShopStoreSummary = {
+  key: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  sortOrder: number;
+};
+
 function priceLabel(product: ShopProductListItem) {
   if (product.priceEur != null) return `€${product.priceEur}`;
   if (product.priceUsd != null) return `$${product.priceUsd}`;
@@ -37,14 +50,20 @@ function priceLabel(product: ShopProductListItem) {
 
 export default function AdminShopPage() {
   const [products, setProducts] = useState<ShopProductListItem[]>([]);
+  const [stores, setStores] = useState<ShopStoreSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
+  const [storeKey, setStoreKey] = useState('urban');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'DRAFT' | 'ACTIVE' | 'ARCHIVED'>('ALL');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     void load();
+  }, [storeKey]);
+
+  useEffect(() => {
+    void loadStores();
   }, []);
 
   const filteredProducts = useMemo(() => {
@@ -65,19 +84,36 @@ export default function AdminShopPage() {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('/api/admin/shop/products');
+      const response = await fetch(`/api/admin/shop/products?store=${encodeURIComponent(storeKey)}`);
       if (response.status === 401) {
-        setError('Unauthorized');
+        setError('Доступ заборонено');
         return;
       }
       const data = await response.json().catch(() => []);
       if (!response.ok) {
-        setError(data.error || 'Failed to load');
+        setError(data.error || 'Не вдалося завантажити каталог');
         return;
       }
       setProducts(data as ShopProductListItem[]);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadStores() {
+    try {
+      const response = await fetch('/api/admin/shop/stores');
+      const data = await response.json().catch(() => []);
+      if (!response.ok) {
+        return;
+      }
+      const nextStores = data as ShopStoreSummary[];
+      setStores(nextStores);
+      if (nextStores.length && !nextStores.some((store) => store.key === storeKey)) {
+        setStoreKey(nextStores[0].key);
+      }
+    } catch {
+      // Keep default urban store if bootstrap route is not available yet.
     }
   }
 
@@ -94,7 +130,7 @@ export default function AdminShopPage() {
       const response = await fetch(`/api/admin/shop/products/${id}`, { method: 'DELETE' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Delete failed');
+        setError(data.error || 'Не вдалося видалити товар');
         return;
       }
       await load();
@@ -147,6 +183,10 @@ export default function AdminShopPage() {
               <Settings2 className="w-4 h-4" />
               Налаштування
             </Link>
+            <Link href="/admin/shop/stores" title="Керування магазинами та store-контейнерами" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+              <Boxes className="w-4 h-4" />
+              Магазини
+            </Link>
             <Link href="/admin/shop/audit" title="Журнал дій у магазині" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <FileClock className="w-4 h-4" />
               Аудит
@@ -171,6 +211,14 @@ export default function AdminShopPage() {
               <Upload className="w-4 h-4" />
               Імпорт CSV
             </Link>
+            <a
+              href={`/api/admin/shop/products/export?store=${encodeURIComponent(storeKey)}`}
+              title="Експорт товарів поточного магазину у CSV"
+              className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
+            >
+              <Upload className="w-4 h-4" />
+              Експорт CSV
+            </a>
             <Link href="/admin/shop/new" title="Створити новий товар" className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
               <Plus className="w-4 h-4" />
               Новий товар
@@ -185,6 +233,20 @@ export default function AdminShopPage() {
             <div>{products.filter((item) => item.isPublished).length} опубліковано</div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={storeKey}
+              onChange={(e) => setStoreKey(e.target.value)}
+              className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white"
+            >
+              {(stores.length
+                ? stores
+                : [{ key: 'urban', name: 'Urban Automotive', description: null, isActive: true, sortOrder: 0 }]
+              ).map((store) => (
+                <option key={store.key} value={store.key}>
+                  {store.name}
+                </option>
+              ))}
+            </select>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as 'ALL' | 'DRAFT' | 'ACTIVE' | 'ARCHIVED')}
@@ -211,6 +273,7 @@ export default function AdminShopPage() {
 
         <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-xs text-white/55 space-y-1">
           <p className="font-medium text-white/80">Як працювати з каталогом:</p>
+          <p>• <span className="font-semibold text-white">Активний магазин</span> — селектор зверху перемикає store-контекст. Список та експорт працюють тільки в межах обраного магазину.</p>
           <p>• <span className="font-semibold text-white">Редагувати товар</span> — клік по назві або іконка олівця у стовпчику дій.</p>
           <p>• <span className="font-semibold text-white">Ціни B2C / B2B</span> — окремий розділ «Ціни (B2C/B2B)», де можна масово змінювати ціни за варіантами.</p>
           <p>• <span className="font-semibold text-white">Видалення</span> — іконка кошика. Перед повним видаленням бажано мати актуальний бекап БД.</p>
@@ -239,6 +302,9 @@ export default function AdminShopPage() {
                   <tr key={product.id} className="border-b border-white/5 align-top hover:bg-white/[0.03]">
                     <td className="px-4 py-4">
                       <div className="font-medium text-white">{product.titleEn || product.titleUa}</div>
+                      <div className="mt-1 text-xs text-white/55">
+                        {(product.store?.name ?? product.storeKey).toUpperCase()}
+                      </div>
                       <div className="mt-1 text-xs font-mono text-white/45">{product.slug}</div>
                       <div className="mt-1 text-xs text-white/45">
                         {[product.brand, product.vendor, product.sku].filter(Boolean).join(' · ') || '—'}

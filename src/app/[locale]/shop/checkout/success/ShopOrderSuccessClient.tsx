@@ -28,9 +28,14 @@ type FopDetails = {
   details: string | null;
 };
 
-type Props = { locale: SupportedLocale; orderNumber?: string | null; token?: string | null };
+type Props = {
+  locale: SupportedLocale;
+  orderNumber?: string | null;
+  token?: string | null;
+  storeKey?: string;
+};
 
-export default function ShopOrderSuccessClient({ locale, orderNumber, token }: Props) {
+export default function ShopOrderSuccessClient({ locale, orderNumber, token, storeKey = 'urban' }: Props) {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [fopDetails, setFopDetails] = useState<FopDetails | null>(null);
   const [loading, setLoading] = useState(!!(orderNumber && token));
@@ -44,7 +49,7 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
       setError(isUa ? 'Немає даних замовлення.' : 'No order data.');
       return;
     }
-    fetch(`/api/shop/orders/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}`)
+    fetch(`/api/shop/orders/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}&store=${encodeURIComponent(storeKey)}`)
       .then((r) => {
         if (!r.ok) throw new Error('Not found');
         return r.json();
@@ -64,7 +69,7 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
       })
       .catch(() => setError(isUa ? 'Замовлення не знайдено.' : 'Order not found.'))
       .finally(() => setLoading(false));
-  }, [orderNumber, token, isUa]);
+  }, [orderNumber, token, isUa, storeKey]);
 
   if (loading) {
     return (

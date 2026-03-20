@@ -7,7 +7,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { render } from '@react-email/render';
 import { Resend } from 'resend';
 import { generateOrderNumber, generateViewToken } from '@/lib/shopOrder';
@@ -19,12 +18,12 @@ import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { clearShopCart, resolveShopCart, SHOP_CART_COOKIE } from '@/lib/shopCart';
 import { upsertCustomerDefaultShippingAddress } from '@/lib/shopCustomers';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
+import { prisma } from '@/lib/prisma';
 import {
   createStripeCheckoutSession,
   stripeSupportedCurrency,
 } from '@/lib/shopStripe';
-
-const prisma = new PrismaClient();
+import { ensureDefaultShopStores, normalizeShopStoreKey } from '@/lib/shopStores';
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
@@ -54,6 +53,7 @@ type CheckoutBody = {
   currency?: string;
   locale?: string;
   paymentMethod?: string;
+  storeKey?: string;
 };
 export async function POST(req: NextRequest) {
   let body: CheckoutBody;
@@ -64,9 +64,12 @@ export async function POST(req: NextRequest) {
   }
 
   const session = await getCurrentShopCustomerSession();
+  await ensureDefaultShopStores(prisma);
   const settingsRecord = await getOrCreateShopSettings(prisma);
   const settings = getShopSettingsRuntime(settingsRecord);
+  const storeKey = normalizeShopStoreKey(body.storeKey ?? req.nextUrl.searchParams.get('store'));
   const activeCart = await resolveShopCart(prisma, {
+    storeKey,
     cartToken: req.cookies.get(SHOP_CART_COOKIE)?.value,
     customerId: session?.customerId ?? null,
     locale: session?.preferredLocale ?? 'en',
@@ -106,6 +109,7 @@ export async function POST(req: NextRequest) {
   }
 
   const quote = await buildCheckoutQuote(prisma, {
+    storeKey,
     items,
     shippingAddress: {
       line1,
@@ -149,6 +153,7 @@ export async function POST(req: NextRequest) {
   };
 
   const orderData = {
+    storeKey,
     orderNumber,
     status: paymentMethod === 'STRIPE' ? ('PENDING_PAYMENT' as const) : ('PENDING_REVIEW' as const),
     paymentMethod: paymentMethod === 'STRIPE' ? 'STRIPE' : paymentMethod === 'WHITEBIT' ? 'WHITEBIT' : 'FOP',
@@ -195,7 +200,7 @@ export async function POST(req: NextRequest) {
     const order = await prisma.shopOrder.create({
       data: orderData,
     });
-    await createInitialOrderEvent(prisma, order.id);
+    await createInitialOrderEvent(prisma, order.id, order.status);
     if (session?.customerId) {
       await upsertCustomerDefaultShippingAddress(prisma, session.customerId, shippingAddress);
     }
@@ -225,6 +230,7 @@ export async function POST(req: NextRequest) {
     });
 
     await clearShopCart(prisma, {
+      storeKey,
       cartToken: activeCart.token,
       customerId: session?.customerId ?? null,
       locale: session?.preferredLocale ?? 'en',
@@ -256,11 +262,12 @@ export async function POST(req: NextRequest) {
     data: orderData,
   });
 
-  await createInitialOrderEvent(prisma, order.id);
+  await createInitialOrderEvent(prisma, order.id, order.status);
   if (session?.customerId) {
     await upsertCustomerDefaultShippingAddress(prisma, session.customerId, shippingAddress);
   }
   await clearShopCart(prisma, {
+    storeKey,
     cartToken: activeCart.token,
     customerId: session?.customerId ?? null,
     locale: session?.preferredLocale ?? 'en',

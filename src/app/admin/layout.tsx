@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,10 +37,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         sessionStorage.setItem('adminAuth', 'true');
         setIsAuthenticated(true);
       } else {
-        setError(data.error || 'Invalid password');
+        setError(data.error || 'Невірний пароль');
       }
     } catch {
-      setError('Failed to authenticate. Please try again.');
+      setError('Не вдалося авторизуватися. Спробуйте ще раз.');
     } finally {
       setLoading(false);
     }
@@ -51,6 +51,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
     setPassword('');
   };
+
+  if (isAuthenticated == null) {
+    return <div className="min-h-screen bg-black" />;
+  }
 
   if (!isAuthenticated) {
     return (
@@ -66,17 +70,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <Lock className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-4xl font-normal tracking-tight text-white mb-4">
-              Admin Access
+              Адмін-доступ
             </h1>
             <p className="text-sm font-normal text-white/50">
-              Enter your password to continue
+              Введіть пароль, щоб продовжити
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label htmlFor="password" className="block text-xs uppercase tracking-widest text-white/40 mb-3 font-medium">
-                Password
+                Пароль
               </label>
               <input
                 type="password"
@@ -84,7 +88,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-0 py-3 bg-transparent border-b border-white/20 text-white placeholder:text-white/30 focus:outline-none focus:border-white transition-colors font-normal"
-                placeholder="Enter admin password"
+                placeholder="Введіть пароль адміністратора"
                 required
               />
             </div>
@@ -106,7 +110,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               whileTap={{ scale: loading ? 1 : 0.98 }}
               className="w-full py-4 bg-white text-black text-sm uppercase tracking-widest font-medium hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
             >
-              {loading ? 'Authenticating...' : 'Login'}
+              {loading ? 'Перевіряємо...' : 'Увійти'}
             </motion.button>
           </form>
         </motion.div>

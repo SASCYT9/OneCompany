@@ -133,6 +133,7 @@ type VariantBulkState = {
 };
 
 type ProductFormState = {
+  storeKey: string;
   slug: string;
   sku: string;
   scope: 'auto' | 'moto';
@@ -188,6 +189,7 @@ type ProductFormState = {
 
 type ProductResponse = {
   id: string;
+  storeKey: string;
   slug: string;
   sku: string | null;
   scope: string;
@@ -430,6 +432,7 @@ function cartesianProduct<T>(groups: T[][]): T[][] {
 
 function createEmptyForm(): ProductFormState {
   return {
+    storeKey: 'urban',
     slug: '',
     sku: '',
     scope: 'auto',
@@ -486,6 +489,7 @@ function createEmptyForm(): ProductFormState {
 
 function productToForm(product: ProductResponse): ProductFormState {
   return {
+    storeKey: product.storeKey || 'urban',
     slug: product.slug,
     sku: product.sku ?? '',
     scope: product.scope === 'moto' ? 'moto' : 'auto',
@@ -611,6 +615,7 @@ function intOrNull(value: string): number | null {
 
 function buildPayload(form: ProductFormState) {
   return {
+    storeKey: form.storeKey,
     slug: form.slug,
     sku: form.sku || null,
     scope: form.scope,
@@ -760,7 +765,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         const response = await fetch('/api/admin/shop/categories');
         const data = await response.json().catch(() => []);
         if (!response.ok) {
-          throw new Error((data as { error?: string }).error || 'Failed to load categories');
+          throw new Error((data as { error?: string }).error || 'Не вдалося завантажити категорії');
         }
         if (!cancelled) {
           setAvailableCategories(Array.isArray(data) ? (data as CategoryOption[]) : []);
@@ -777,7 +782,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         const response = await fetch('/api/admin/shop/collections');
         const data = await response.json().catch(() => []);
         if (!response.ok) {
-          throw new Error((data as { error?: string }).error || 'Failed to load collections');
+          throw new Error((data as { error?: string }).error || 'Не вдалося завантажити колекції');
         }
         if (!cancelled) {
           setAvailableCollections(Array.isArray(data) ? (data as CollectionOption[]) : []);
@@ -806,7 +811,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         const response = await fetch('/api/admin/shop/media');
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error((data as { error?: string }).error || 'Failed to load media library');
+          throw new Error((data as { error?: string }).error || 'Не вдалося завантажити медіатеку');
         }
         if (!cancelled) {
           setMediaLibrary(Array.isArray((data as { items?: unknown[] }).items) ? ((data as { items: ShopLibraryMediaItem[] }).items) : []);
@@ -844,7 +849,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         const response = await fetch(`/api/admin/shop/products/${productId}`);
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to load product');
+          throw new Error(data.error || 'Не вдалося завантажити товар');
         }
         if (!cancelled) {
           setForm(productToForm(data as ProductResponse));
@@ -1143,7 +1148,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           ),
         };
       });
-      setSuccess(`Deleted ${mediaLibraryLabel(item)} from library.`);
+      setSuccess(`Елемент «${mediaLibraryLabel(item)}» видалено з медіатеки.`);
     } catch (deleteError) {
       setError((deleteError as Error).message);
     } finally {
@@ -1363,7 +1368,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       );
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Save failed');
+        throw new Error(data.error || 'Не вдалося зберегти товар');
       }
       if (!productId && data.id) {
         router.push(`/admin/shop/${data.id}`);
@@ -1371,7 +1376,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       }
       if (productId) {
         setForm(productToForm(data as ProductResponse));
-        setSuccess('Saved');
+          setSuccess('Збережено');
       }
     } catch (saveError) {
       setError((saveError as Error).message);
@@ -1444,11 +1449,11 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <InputField label="Постачальник" value={form.vendor} onChange={(value) => updateField('vendor', value)} />
               <InputField label="Тип товару" value={form.productType} onChange={(value) => updateField('productType', value)} />
               <SelectField
-                label="Structured category"
+                label="Структурна категорія"
                 value={form.categoryId}
                 onChange={(value) => updateField('categoryId', value)}
                 options={[
-                  { label: 'No category', value: '' },
+                  { label: 'Без категорії', value: '' },
                   ...availableCategories.map((category) => ({
                     label: `${category.titleEn || category.titleUa || category.slug}${category.parent ? ` · ${category.parent.titleEn || category.parent.titleUa}` : ''}`,
                     value: category.id,
@@ -1459,24 +1464,24 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <InputField label="Категорія (EN)" value={form.categoryEn} onChange={(value) => updateField('categoryEn', value)} />
               <InputField label="Категорія (UA)" value={form.categoryUa} onChange={(value) => updateField('categoryUa', value)} />
               <SelectField
-                label="Storefront stock state"
+                label="Стан товару у вітрині"
                 value={form.stock}
                 onChange={(value) => updateField('stock', value as ProductFormState['stock'])}
                 options={[
-                  { label: 'In stock', value: 'inStock' },
-                  { label: 'Pre-order', value: 'preOrder' },
+                  { label: 'В наявності', value: 'inStock' },
+                  { label: 'Передзамовлення', value: 'preOrder' },
                 ]}
               />
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <InputField
-                label="Tags"
+                label="Теги"
                 value={form.tagsText}
                 onChange={(value) => updateField('tagsText', value)}
                 placeholder="urban, defender, widetrack"
               />
               <InputField
-                label="Main image URL"
+                label="URL головного зображення"
                 value={form.image}
                 onChange={(value) => updateField('image', value)}
                 placeholder="https://..."
@@ -1583,15 +1588,15 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
           <EditorCard
             title="Опис і контент"
-            description="Короткі й довгі описи українською та англійською, а також сирий HTML з імпорту Shopify."
+            description="Короткі й довгі описи українською та англійською, а також сирий HTML з імпорту."
           >
             <div className="grid gap-4 md:grid-cols-2">
-              <TextareaField label="Short description (EN)" value={form.shortDescEn} onChange={(value) => updateField('shortDescEn', value)} rows={3} />
-              <TextareaField label="Short description (UA)" value={form.shortDescUa} onChange={(value) => updateField('shortDescUa', value)} rows={3} />
-              <TextareaField label="Long description (EN)" value={form.longDescEn} onChange={(value) => updateField('longDescEn', value)} rows={6} />
-              <TextareaField label="Long description (UA)" value={form.longDescUa} onChange={(value) => updateField('longDescUa', value)} rows={6} />
-              <TextareaField label="Body HTML (EN)" value={form.bodyHtmlEn} onChange={(value) => updateField('bodyHtmlEn', value)} rows={10} mono />
-              <TextareaField label="Body HTML (UA)" value={form.bodyHtmlUa} onChange={(value) => updateField('bodyHtmlUa', value)} rows={10} mono />
+              <TextareaField label="Короткий опис (EN)" value={form.shortDescEn} onChange={(value) => updateField('shortDescEn', value)} rows={3} />
+              <TextareaField label="Короткий опис (UA)" value={form.shortDescUa} onChange={(value) => updateField('shortDescUa', value)} rows={3} />
+              <TextareaField label="Довгий опис (EN)" value={form.longDescEn} onChange={(value) => updateField('longDescEn', value)} rows={6} />
+              <TextareaField label="Довгий опис (UA)" value={form.longDescUa} onChange={(value) => updateField('longDescUa', value)} rows={6} />
+              <TextareaField label="HTML-контент (EN)" value={form.bodyHtmlEn} onChange={(value) => updateField('bodyHtmlEn', value)} rows={10} mono />
+              <TextareaField label="HTML-контент (UA)" value={form.bodyHtmlUa} onChange={(value) => updateField('bodyHtmlUa', value)} rows={10} mono />
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <InputField label="Термін постачання (EN)" value={form.leadTimeEn} onChange={(value) => updateField('leadTimeEn', value)} />
@@ -1789,7 +1794,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <InputField label="Альт текст" value={item.altText} onChange={(value) => updateListItem('media', index, { altText: value })} />
                     <InputField label="Позиція" type="number" value={item.position} onChange={(value) => updateListItem('media', index, { position: value })} />
                     <SelectField
-                      label="Type"
+                      label="Тип"
                       value={item.mediaType}
                       onChange={(value) => updateListItem('media', index, { mediaType: value as ProductMediaType })}
                       options={[
@@ -1899,27 +1904,27 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 </div>
                 <div className="mt-4 grid gap-4 md:grid-cols-4">
                   <InputField
-                    label="Bulk inventory qty"
+                    label="Масова кількість складу"
                     type="number"
                     value={variantBulk.inventoryQty}
                     onChange={(value) => setVariantBulk((current) => ({ ...current, inventoryQty: value }))}
                   />
                   <InputField
-                    label="Bulk price EUR"
+                    label="Масова ціна EUR"
                     type="number"
                     step="0.01"
                     value={variantBulk.priceEur}
                     onChange={(value) => setVariantBulk((current) => ({ ...current, priceEur: value }))}
                   />
                   <InputField
-                    label="Bulk price USD"
+                    label="Масова ціна USD"
                     type="number"
                     step="0.01"
                     value={variantBulk.priceUsd}
                     onChange={(value) => setVariantBulk((current) => ({ ...current, priceUsd: value }))}
                   />
                   <InputField
-                    label="Bulk price UAH"
+                    label="Масова ціна UAH"
                     type="number"
                     step="0.01"
                     value={variantBulk.priceUah}
@@ -1947,7 +1952,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     onChange={(value) => setVariantBulk((current) => ({ ...current, priceUahB2b: value }))}
                   />
                   <InputField
-                    label="Bulk compare-at EUR"
+                    label="Масова порівняльна ціна EUR"
                     type="number"
                     step="0.01"
                     value={variantBulk.compareAtEur}

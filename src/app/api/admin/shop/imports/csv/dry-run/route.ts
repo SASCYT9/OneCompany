@@ -1,11 +1,9 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import { runShopCsvImport } from '@/lib/shopAdminImports';
-
-const prisma = new PrismaClient();
 
 async function parseImportRequest(request: NextRequest) {
   const contentType = request.headers.get('content-type') || '';
@@ -14,6 +12,7 @@ async function parseImportRequest(request: NextRequest) {
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
     return {
       csvText: String(body.csvText ?? body.csv ?? body.data ?? '').trim(),
+      storeKey: body.storeKey ? String(body.storeKey) : null,
       supplierName: body.supplierName ? String(body.supplierName) : null,
       sourceFilename: body.sourceFilename ? String(body.sourceFilename) : null,
       templateId: body.templateId ? String(body.templateId) : null,
@@ -31,6 +30,7 @@ async function parseImportRequest(request: NextRequest) {
 
     return {
       csvText,
+      storeKey: formData.get('storeKey') ? String(formData.get('storeKey')) : null,
       supplierName: formData.get('supplierName') ? String(formData.get('supplierName')) : null,
       sourceFilename:
         file instanceof File

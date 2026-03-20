@@ -1,16 +1,15 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
 import {
   adminCategoryInclude,
   buildAdminCategoryUpdateData,
   normalizeAdminCategoryPayload,
   serializeAdminCategory,
 } from '@/lib/shopAdminCategories';
-
-const prisma = new PrismaClient();
+import { ensureDefaultShopStores } from '@/lib/shopStores';
 
 export async function GET(
   _request: NextRequest,
@@ -19,6 +18,7 @@ export async function GET(
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CATEGORIES_READ);
+    await ensureDefaultShopStores(prisma);
     const { id } = await params;
     const category = await prisma.shopCategory.findUnique({
       where: { id },
@@ -47,6 +47,7 @@ export async function PATCH(
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CATEGORIES_WRITE);
+    await ensureDefaultShopStores(prisma);
     const { id } = await params;
     const body = await request.json();
     const { data, errors } = normalizeAdminCategoryPayload(body);
@@ -57,15 +58,21 @@ export async function PATCH(
       return NextResponse.json({ error: 'Category cannot be its own parent' }, { status: 400 });
     }
     const existing = await prisma.shopCategory.findFirst({
-      where: { slug: data.slug, NOT: { id } },
+      where: { slug: data.slug, storeKey: data.storeKey, NOT: { id } },
     });
     if (existing) {
       return NextResponse.json({ error: 'Another category with this slug exists' }, { status: 409 });
     }
     if (data.parentId) {
-      const parent = await prisma.shopCategory.findUnique({ where: { id: data.parentId }, select: { id: true } });
+      const parent = await prisma.shopCategory.findUnique({
+        where: { id: data.parentId },
+        select: { id: true, storeKey: true },
+      });
       if (!parent) {
         return NextResponse.json({ error: 'Parent category not found' }, { status: 400 });
+      }
+      if (parent.storeKey !== data.storeKey) {
+        return NextResponse.json({ error: 'Parent category must belong to the same store' }, { status: 400 });
       }
     }
     const category = await prisma.shopCategory.update({
@@ -79,6 +86,7 @@ export async function PATCH(
       entityType: 'shop.category',
       entityId: category.id,
       metadata: {
+        storeKey: category.storeKey,
         slug: category.slug,
       },
     });
@@ -102,12 +110,14 @@ export async function DELETE(
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CATEGORIES_WRITE);
+    await ensureDefaultShopStores(prisma);
     const { id } = await params;
     const linked = await prisma.shopCategory.findUnique({
       where: { id },
       select: {
         id: true,
         slug: true,
+        storeKey: true,
         _count: {
           select: {
             products: true,
@@ -138,6 +148,7 @@ export async function DELETE(
       entityType: 'shop.category',
       entityId: linked.id,
       metadata: {
+        storeKey: linked.storeKey,
         slug: linked.slug,
       },
     });

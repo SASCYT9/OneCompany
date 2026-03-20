@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, Status } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { isAuthenticated } from '@/lib/telegram-auth';
-
-const prisma = new PrismaClient();
+import { Status } from '@prisma/client';
 
 interface RouteParams {
   params: Promise<{ id: string }>;

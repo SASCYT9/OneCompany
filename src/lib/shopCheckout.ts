@@ -15,6 +15,7 @@ import {
   resolveShopProductPricing,
   type ShopPriceAudience,
 } from '@/lib/shopPricingAudience';
+import { DEFAULT_SHOP_STORE_KEY, normalizeShopStoreKey } from '@/lib/shopStores';
 
 type CheckoutRequestItem = {
   slug: string;
@@ -384,6 +385,7 @@ export function buildCheckoutSettingsPreview(
 export async function buildCheckoutQuote(
   prisma: PrismaClient,
   input: {
+    storeKey?: string | null;
     items: CheckoutRequestItem[];
     shippingAddress: CheckoutShippingAddress;
     currency?: string;
@@ -392,6 +394,7 @@ export async function buildCheckoutQuote(
     customerB2BDiscountPercent?: number | null;
   }
 ): Promise<CheckoutQuote> {
+  const storeKey = normalizeShopStoreKey(input.storeKey ?? DEFAULT_SHOP_STORE_KEY);
   const settingsRecord = await getOrCreateShopSettings(prisma);
   const settings = getShopSettingsRuntime(settingsRecord);
   const currency = resolveRequestedCurrency(settings, input.currency);
@@ -409,7 +412,7 @@ export async function buildCheckoutQuote(
 
   for (const rawItem of input.items) {
     const quantity = Math.max(1, Math.floor(Number(rawItem.quantity) || 1));
-    const product = await getShopProductBySlugServer(rawItem.slug);
+    const product = await getShopProductBySlugServer(rawItem.slug, storeKey);
     if (!product) continue;
 
     const variant = rawItem.variantId
