@@ -53,6 +53,13 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 
   return `${currency} ${formattedAmount}`;
 }
 
+function getSalePercent(currentPrice: number, compareAtPrice?: number | null) {
+  if (!compareAtPrice || compareAtPrice <= currentPrice || currentPrice <= 0) {
+    return null;
+  }
+  return Math.round(((compareAtPrice - currentPrice) / compareAtPrice) * 100);
+}
+
 export async function getShopProductPageMetadata({
   locale,
   slug,
@@ -119,6 +126,7 @@ export default async function ShopProductDetailPage({
   const leadTime = localizeShopText(resolvedLocale, product.leadTime, { kind: 'label' });
   const collection = localizeShopText(resolvedLocale, product.collection, { kind: 'label' });
   const isInStock = product.stock === 'inStock';
+  const salePercent = getSalePercent(pricing.effectivePrice.eur, pricing.effectiveCompareAt?.eur ?? null);
 
   const brandMeta = getBrandMetadata(product.brand);
   const country = brandMeta ? getLocalizedCountry(brandMeta.country, resolvedLocale) : null;
@@ -231,9 +239,16 @@ export default async function ShopProductDetailPage({
               />
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/15 to-black/65" />
               <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-3">
-                <span className="rounded-full border border-white/25 bg-black/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/75">
-                  {productCategory}
-                </span>
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full border border-white/25 bg-black/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/75">
+                    {productCategory}
+                  </span>
+                  {salePercent ? (
+                    <span className="rounded-full border border-emerald-300/40 bg-emerald-400/20 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-emerald-100">
+                      {isUa ? `Акція -${salePercent}%` : `Sale -${salePercent}%`}
+                    </span>
+                  ) : null}
+                </div>
                 <span
                   className={`rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.2em] ${
                     isInStock
@@ -291,6 +306,11 @@ export default async function ShopProductDetailPage({
               {pricing.effectiveCompareAt ? (
                 <p className="mt-2 text-xs text-white/45 line-through">
                   {formatPrice(resolvedLocale, pricing.effectiveCompareAt.eur, 'EUR')}
+                </p>
+              ) : null}
+              {salePercent ? (
+                <p className="mt-2 text-xs text-emerald-200/80">
+                  {isUa ? `Економія ${salePercent}% від базової ціни` : `Save ${salePercent}% off regular price`}
                 </p>
               ) : null}
               {pricing.b2bVisible ? (

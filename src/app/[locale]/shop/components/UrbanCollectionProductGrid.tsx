@@ -51,6 +51,13 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 
   return locale === 'ua' ? `${formatted} ${currency}` : `${currency} ${formatted}`;
 }
 
+function getSalePercent(currentPrice: number, compareAtPrice?: number | null) {
+  if (!compareAtPrice || compareAtPrice <= currentPrice || currentPrice <= 0) {
+    return null;
+  }
+  return Math.round(((compareAtPrice - currentPrice) / compareAtPrice) * 100);
+}
+
 function computePricesFromUah(
   price: ShopProduct['price'],
   rates: { EUR: number; USD: number } | null,
@@ -222,6 +229,18 @@ export default function UrbanCollectionProductGrid({
                 product.price,
                 rates && { EUR: rates.EUR, USD: rates.USD },
               );
+              const compareComputed = product.compareAt
+                ? computePricesFromUah(product.compareAt, rates && { EUR: rates.EUR, USD: rates.USD })
+                : null;
+              const activePrice = currency === 'USD' ? computed.usd : currency === 'UAH' ? computed.uah : computed.eur;
+              const activeCompareAt = compareComputed
+                ? currency === 'USD'
+                  ? compareComputed.usd
+                  : currency === 'UAH'
+                    ? compareComputed.uah
+                    : compareComputed.eur
+                : null;
+              const salePercent = getSalePercent(activePrice, activeCompareAt);
 
               return (
               <article key={product.slug} className="urban-product-grid__card">
@@ -231,6 +250,11 @@ export default function UrbanCollectionProductGrid({
                   aria-label={localizeShopText(locale, product.title, { kind: 'title' })}
                 />
                 <div className="urban-product-grid__media">
+                  {salePercent ? (
+                    <span className="absolute left-3 top-3 z-10 rounded-full border border-emerald-300/35 bg-emerald-400/20 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-emerald-100 backdrop-blur">
+                      {isUa ? `-${salePercent}% акція` : `-${salePercent}% sale`}
+                    </span>
+                  ) : null}
                   <Image
                     src={product.image}
                     alt={localizeShopText(locale, product.title, { kind: 'title' })}
@@ -252,6 +276,24 @@ export default function UrbanCollectionProductGrid({
                     <span>{localizeShopText(locale, product.collection, { kind: 'label' })}</span>
                   </div>
                   <div className="urban-product-grid__actions">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-medium text-white/90">
+                        {currency === 'USD'
+                          ? formatPrice(locale, computed.usd, 'USD')
+                          : currency === 'UAH'
+                            ? formatPrice(locale, computed.uah, 'UAH')
+                            : formatPrice(locale, computed.eur, 'EUR')}
+                      </span>
+                      {activeCompareAt ? (
+                        <span className="text-xs text-white/35 line-through">
+                          {currency === 'USD'
+                            ? formatPrice(locale, compareComputed?.usd ?? 0, 'USD')
+                            : currency === 'UAH'
+                              ? formatPrice(locale, compareComputed?.uah ?? 0, 'UAH')
+                              : formatPrice(locale, compareComputed?.eur ?? 0, 'EUR')}
+                        </span>
+                      ) : null}
+                    </div>
                     <AddToCartButton
                       slug={product.slug}
                       locale={locale}

@@ -37,6 +37,8 @@ type FormState = {
   code: string;
   titleUa: string;
   titleEn: string;
+  descriptionUa: string;
+  descriptionEn: string;
   promotionType: PromotionRow['promotionType'];
   discountValue: string;
   currency: string;
@@ -57,6 +59,8 @@ function createEmptyForm(): FormState {
     code: '',
     titleUa: '',
     titleEn: '',
+    descriptionUa: '',
+    descriptionEn: '',
     promotionType: 'PERCENTAGE',
     discountValue: '',
     currency: 'EUR',
@@ -78,6 +82,7 @@ export default function AdminPromotionsPage() {
   const [stores, setStores] = useState<ShopStoreSummary[]>([]);
   const [storeKey, setStoreKey] = useState('urban');
   const [form, setForm] = useState<FormState>(createEmptyForm());
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -124,13 +129,46 @@ export default function AdminPromotionsPage() {
     }
   }
 
-  async function handleCreate() {
+  function startEditing(promotion: PromotionRow) {
+    setEditingId(promotion.id);
+    setForm({
+      code: promotion.code ?? '',
+      titleUa: promotion.titleUa,
+      titleEn: promotion.titleEn,
+      descriptionUa: promotion.descriptionUa ?? '',
+      descriptionEn: promotion.descriptionEn ?? '',
+      promotionType: promotion.promotionType,
+      discountValue: promotion.discountValue != null ? String(promotion.discountValue) : '',
+      currency: promotion.currency ?? 'EUR',
+      minimumSubtotal: promotion.minimumSubtotal != null ? String(promotion.minimumSubtotal) : '',
+      usageLimit: promotion.usageLimit != null ? String(promotion.usageLimit) : '',
+      customerGroup: promotion.customerGroup ?? '',
+      appliesToAll: promotion.appliesToAll,
+      productSlugs: promotion.productSlugs.join(', '),
+      categorySlugs: promotion.categorySlugs.join(', '),
+      brandNames: promotion.brandNames.join(', '),
+      startsAt: promotion.startsAt ? promotion.startsAt.slice(0, 16) : '',
+      endsAt: promotion.endsAt ? promotion.endsAt.slice(0, 16) : '',
+      isActive: promotion.isActive,
+    });
+    setError('');
+    setSuccess('');
+  }
+
+  function resetForm() {
+    setEditingId(null);
+    setForm(createEmptyForm());
+    setError('');
+    setSuccess('');
+  }
+
+  async function handleSave() {
     setSaving(true);
     setError('');
     setSuccess('');
     try {
-      const response = await fetch('/api/admin/shop/promotions', {
-        method: 'POST',
+      const response = await fetch(editingId ? `/api/admin/shop/promotions/${editingId}` : '/api/admin/shop/promotions', {
+        method: editingId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           storeKey,
@@ -143,11 +181,11 @@ export default function AdminPromotionsPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Не вдалося створити акцію');
+        setError(data.error || (editingId ? 'Не вдалося оновити акцію' : 'Не вдалося створити акцію'));
         return;
       }
-      setForm(createEmptyForm());
-      setSuccess('Акцію збережено.');
+      resetForm();
+      setSuccess(editingId ? 'Акцію оновлено.' : 'Акцію збережено.');
       await loadPromotions();
     } finally {
       setSaving(false);
@@ -222,12 +260,14 @@ export default function AdminPromotionsPage() {
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <div className="mb-4 flex items-center gap-2 text-white">
               <Plus className="h-4 w-4" />
-              Нова акція
+              {editingId ? 'Редагування акції' : 'Нова акція'}
             </div>
             <div className="space-y-3">
               <input value={form.code} onChange={(e) => setForm((current) => ({ ...current, code: e.target.value.toUpperCase() }))} placeholder="Промокод" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
               <input value={form.titleUa} onChange={(e) => setForm((current) => ({ ...current, titleUa: e.target.value }))} placeholder="Назва UA" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
               <input value={form.titleEn} onChange={(e) => setForm((current) => ({ ...current, titleEn: e.target.value }))} placeholder="Назва EN" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
+              <textarea value={form.descriptionUa} onChange={(e) => setForm((current) => ({ ...current, descriptionUa: e.target.value }))} placeholder="Опис UA" className="min-h-[84px] w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
+              <textarea value={form.descriptionEn} onChange={(e) => setForm((current) => ({ ...current, descriptionEn: e.target.value }))} placeholder="Опис EN" className="min-h-[84px] w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
               <select value={form.promotionType} onChange={(e) => setForm((current) => ({ ...current, promotionType: e.target.value as FormState['promotionType'] }))} className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
                 <option value="PERCENTAGE">Відсоток</option>
                 <option value="FIXED_AMOUNT">Фіксована сума</option>
@@ -250,11 +290,22 @@ export default function AdminPromotionsPage() {
               <input value={form.productSlugs} onChange={(e) => setForm((current) => ({ ...current, productSlugs: e.target.value }))} placeholder="Product slugs через кому" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
               <input value={form.categorySlugs} onChange={(e) => setForm((current) => ({ ...current, categorySlugs: e.target.value }))} placeholder="Category slugs через кому" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
               <input value={form.brandNames} onChange={(e) => setForm((current) => ({ ...current, brandNames: e.target.value }))} placeholder="Бренди через кому" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input type="datetime-local" value={form.startsAt} onChange={(e) => setForm((current) => ({ ...current, startsAt: e.target.value }))} className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
+                <input type="datetime-local" value={form.endsAt} onChange={(e) => setForm((current) => ({ ...current, endsAt: e.target.value }))} className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
+              </div>
               <label className="flex items-center gap-2 text-sm text-white/70"><input type="checkbox" checked={form.appliesToAll} onChange={(e) => setForm((current) => ({ ...current, appliesToAll: e.target.checked }))} /> Застосовувати до всього замовлення</label>
               <label className="flex items-center gap-2 text-sm text-white/70"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm((current) => ({ ...current, isActive: e.target.checked }))} /> Активна</label>
-              <button type="button" onClick={() => void handleCreate()} disabled={saving} className="w-full rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
-                {saving ? 'Зберігаємо…' : 'Створити акцію'}
-              </button>
+              <div className="flex gap-3">
+                <button type="button" onClick={() => void handleSave()} disabled={saving} className="flex-1 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
+                  {saving ? 'Зберігаємо…' : editingId ? 'Оновити акцію' : 'Створити акцію'}
+                </button>
+                {editingId ? (
+                  <button type="button" onClick={resetForm} className="rounded-lg border border-white/10 bg-zinc-950 px-4 py-2 text-sm text-white hover:bg-zinc-900">
+                    Скасувати
+                  </button>
+                ) : null}
+              </div>
               {error ? <p className="text-sm text-red-400">{error}</p> : null}
               {success ? <p className="text-sm text-emerald-400">{success}</p> : null}
             </div>
@@ -293,6 +344,13 @@ export default function AdminPromotionsPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => startEditing(promotion)}
+                          className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/75 hover:bg-white/10"
+                        >
+                          Редагувати
+                        </button>
                         <button
                           type="button"
                           onClick={() => void handleToggle(promotion.id, !promotion.isActive)}
