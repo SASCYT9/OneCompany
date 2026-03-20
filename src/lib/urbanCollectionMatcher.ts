@@ -159,9 +159,19 @@ export function getProductsForUrbanCollection(
     .map((product) => ({
       product,
       score: getUrbanMatchScore(product, handle, title, brand),
+      explicitCollectionEntry:
+        product.collections?.find((entry) => entry.handle === handle) ?? null,
     }))
     .filter((entry) => entry.score >= 60)
     .sort((left, right) => {
+      if (left.explicitCollectionEntry && right.explicitCollectionEntry) {
+        if (left.explicitCollectionEntry.sortOrder !== right.explicitCollectionEntry.sortOrder) {
+          return (left.explicitCollectionEntry.sortOrder ?? 0) - (right.explicitCollectionEntry.sortOrder ?? 0);
+        }
+      } else if (left.explicitCollectionEntry || right.explicitCollectionEntry) {
+        return left.explicitCollectionEntry ? -1 : 1;
+      }
+
       if (right.score !== left.score) {
         return right.score - left.score;
       }

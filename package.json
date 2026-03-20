@@ -18,6 +18,7 @@
     "shop:fix:urban:safe": "tsx scripts/audit-urban-catalog.ts --apply-safe-fixes",
     "shop:localize:urban:images": "tsx scripts/localize-urban-shopify-images.ts",
     "shop:localize:urban:images:apply": "tsx scripts/localize-urban-shopify-images.ts --apply",
+    "shop:translate:deepl": "tsx scripts/translate-shop-store-deepl.ts",
     "predeploy-check": "node scripts/predeploy-check.js",
     "deploy:prod": "npm run predeploy-check && vercel --prod",
     "bot": "node scripts/telegram-bot-polling.js",

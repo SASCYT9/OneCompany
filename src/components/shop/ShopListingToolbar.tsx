@@ -20,6 +20,10 @@ function cx(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(' ');
 }
 
+function withCount(label: string, count: number) {
+  return `${label} (${count})`;
+}
+
 export function ShopListingToolbar({
   locale,
   query,
@@ -124,7 +128,7 @@ export function ShopListingToolbar({
             <option value="all">{isUa ? 'Усі бренди' : 'All brands'}</option>
             {brandOptions.map((brand) => (
               <option key={brand.value} value={brand.value}>
-                {brand.label}
+                {withCount(brand.label, brand.count)}
               </option>
             ))}
           </select>
@@ -139,7 +143,7 @@ export function ShopListingToolbar({
             <option value="all">{isUa ? 'Усі категорії' : 'All categories'}</option>
             {categoryOptions.map((category) => (
               <option key={category.value} value={category.value}>
-                {category.label}
+                {withCount(category.label, category.count)}
               </option>
             ))}
           </select>

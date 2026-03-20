@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import {
   buildFeaturedBrandComparator,
   buildShopListingResult,
+  getShopProductCategoryLabel,
   normalizeShopListingQuery,
   type ShopListingQueryState,
 } from '../../../src/lib/shopListing';
 import type { ShopProduct } from '../../../src/lib/shopCatalog';
+import { getProductsForUrbanCollection } from '../../../src/lib/urbanCollectionMatcher';
 
 const PRODUCTS: ShopProduct[] = [
   {
@@ -138,4 +140,50 @@ test('buildShopListingResult combines brand, category, price and availability fi
 
   assert.equal(result.total, 1);
   assert.equal(result.products[0]?.slug, 'eventuri-intake');
+});
+
+test('getShopProductCategoryLabel localizes imported raw taxonomy labels', () => {
+  const labelUa = getShopProductCategoryLabel(
+    {
+      ...PRODUCTS[0],
+      category: { ua: 'productBase', en: 'productBase' },
+    },
+    'ua'
+  );
+  const labelEn = getShopProductCategoryLabel(
+    {
+      ...PRODUCTS[0],
+      category: { ua: 'productBase', en: 'productBase' },
+    },
+    'en'
+  );
+
+  assert.equal(labelUa, 'Базовий продукт');
+  assert.equal(labelEn, 'Base product');
+});
+
+test('getProductsForUrbanCollection respects explicit collection merchandising order', () => {
+  const collectionProducts: ShopProduct[] = [
+    {
+      ...PRODUCTS[0],
+      slug: 'first',
+      title: { ua: 'Перший', en: 'First' },
+      collections: [{ handle: 'range-rover-l460', title: { ua: 'Range Rover L460', en: 'Range Rover L460' }, sortOrder: 2 }],
+    },
+    {
+      ...PRODUCTS[1],
+      slug: 'second',
+      title: { ua: 'Другий', en: 'Second' },
+      collections: [{ handle: 'range-rover-l460', title: { ua: 'Range Rover L460', en: 'Range Rover L460' }, sortOrder: 0 }],
+    },
+    {
+      ...PRODUCTS[2],
+      slug: 'third',
+      title: { ua: 'Третій', en: 'Third' },
+      collections: [{ handle: 'range-rover-l460', title: { ua: 'Range Rover L460', en: 'Range Rover L460' }, sortOrder: 1 }],
+    },
+  ];
+
+  const result = getProductsForUrbanCollection(collectionProducts, 'range-rover-l460', 'Range Rover L460', 'Range Rover');
+  assert.deepEqual(result.map((product) => product.slug), ['second', 'third', 'first']);
 });

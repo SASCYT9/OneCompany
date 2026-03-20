@@ -1,6 +1,7 @@
 import type { SupportedLocale } from '@/lib/seo';
 import type { ShopMoneySet, ShopProduct } from '@/lib/shopCatalog';
 import { localizeShopText } from '@/lib/shopText';
+import { localizeShopTaxonomyLabel } from '@/lib/shopTaxonomy';
 
 export type ShopListingSortMode = 'featured' | 'newest' | 'priceLow' | 'priceHigh';
 export type ShopListingAvailability = 'all' | 'inStock' | 'preOrder';
@@ -131,7 +132,7 @@ export function getShopProductCategoryValue(product: ShopProduct) {
 }
 
 export function getShopProductCategoryLabel(product: ShopProduct, locale: SupportedLocale) {
-  return localizeShopText(locale, product.category, { kind: 'label' });
+  return localizeShopTaxonomyLabel(locale, product.category);
 }
 
 export function normalizeShopListingQuery(
