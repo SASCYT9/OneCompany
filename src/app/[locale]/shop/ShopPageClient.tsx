@@ -233,7 +233,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
                   type="button"
                   onClick={() => {
                     setScope(item);
-                    updateListingQuery({ brand: 'all', category: 'all' });
+                    updateListingQuery({ brand: 'all', category: 'all', tag: 'all' });
                   }}
                   className={`rounded-full border px-4 py-2 text-xs uppercase tracking-[0.2em] transition ${
                     isUrban
@@ -416,6 +416,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
             onReset={resetListingQuery}
             showBrand={false}
             showCategory={false}
+            showTag
           />
 
           {listing.products.length === 0 ? (

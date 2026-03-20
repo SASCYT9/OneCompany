@@ -50,6 +50,14 @@ export async function PATCH(
     await ensureDefaultShopStores(prisma);
     const { id } = await params;
     const body = await request.json();
+    const productAssignments = Array.isArray(body.productAssignments)
+      ? (body.productAssignments as Array<{ id?: string; sortOrder?: number }>)
+          .filter((entry) => typeof entry?.id === 'string')
+          .map((entry, index) => ({
+            id: String(entry.id),
+            sortOrder: Number.isFinite(Number(entry.sortOrder)) ? Math.trunc(Number(entry.sortOrder)) : index,
+          }))
+      : null;
     const { data, errors } = normalizeAdminCollectionPayload(body);
     if (errors.length) {
       return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
@@ -60,20 +68,48 @@ export async function PATCH(
     if (existing) {
       return NextResponse.json({ error: 'Another collection with this handle exists' }, { status: 409 });
     }
-    const collection = await prisma.shopCollection.update({
-      where: { id },
-      data: buildAdminCollectionUpdateData(data),
-      include: adminCollectionInclude,
+    const collection = await prisma.$transaction(async (tx) => {
+      const updatedCollection = await tx.shopCollection.update({
+        where: { id },
+        data: buildAdminCollectionUpdateData(data),
+        include: adminCollectionInclude,
+      });
+
+      if (productAssignments) {
+        await Promise.all(
+          productAssignments.map((entry) =>
+            tx.shopProductCollection.update({
+              where: {
+                productId_collectionId: {
+                  productId: entry.id,
+                  collectionId: id,
+                },
+              },
+              data: {
+                sortOrder: entry.sortOrder,
+              },
+            })
+          )
+        );
+
+        return tx.shopCollection.findUniqueOrThrow({
+          where: { id },
+          include: adminCollectionInclude,
+        });
+      }
+
+      return updatedCollection;
     });
     await writeAdminAuditLog(prisma, session, {
       scope: 'shop',
-      action: 'collection.update',
+      action: productAssignments ? 'collection.update_with_product_order' : 'collection.update',
       entityType: 'shop.collection',
       entityId: collection.id,
       metadata: {
         storeKey: collection.storeKey,
         handle: collection.handle,
         isUrban: collection.isUrban,
+        productAssignmentsCount: productAssignments?.length ?? 0,
       },
     });
     return NextResponse.json(serializeAdminCollection(collection));

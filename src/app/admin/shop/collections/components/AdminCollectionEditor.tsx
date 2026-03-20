@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, ArrowDown, ArrowUp, Save } from 'lucide-react';
 
 type CollectionFormState = {
   storeKey: string;
@@ -204,6 +204,62 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
     }
   }
 
+  function moveLinkedProduct(index: number, direction: -1 | 1) {
+    setLinkedProducts((current) => {
+      const nextIndex = index + direction;
+      if (nextIndex < 0 || nextIndex >= current.length) {
+        return current;
+      }
+
+      const next = [...current];
+      const [item] = next.splice(index, 1);
+      next.splice(nextIndex, 0, item);
+      return next.map((entry, sortIndex) => ({
+        ...entry,
+        sortOrder: sortIndex,
+      }));
+    });
+  }
+
+  async function saveProductOrder() {
+    if (!collectionId) return;
+
+    setSaving(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await fetch(`/api/admin/shop/collections/${collectionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          brand: form.brand || null,
+          descriptionUa: form.descriptionUa || null,
+          descriptionEn: form.descriptionEn || null,
+          heroImage: form.heroImage || null,
+          sortOrder: Number(form.sortOrder) || 0,
+          productAssignments: linkedProducts.map((product, index) => ({
+            id: product.id,
+            sortOrder: index,
+          })),
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Не вдалося зберегти порядок товарів');
+      }
+
+      setLinkedProducts((data.products ?? []) as CollectionResponse['products']);
+      setSuccess('Порядок товарів у колекції збережено.');
+    } catch (saveError) {
+      setError((saveError as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
@@ -328,16 +384,39 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
               </div>
               {linkedProducts.length ? (
                 <div className="grid gap-3 md:grid-cols-2">
-                  {linkedProducts.map((product) => (
-                    <Link
-                      key={product.id}
-                      href={`/admin/shop/${product.id}`}
-                      className="rounded-xl border border-white/10 bg-black/40 p-4 text-sm text-white/80 hover:bg-white/5"
-                    >
-                      <div className="font-medium text-white">{product.titleEn || product.titleUa}</div>
-                      <div className="mt-1 font-mono text-xs text-white/45">{product.slug}</div>
-                      <div className="mt-2 text-xs text-white/50">{product.brand || '—'}</div>
-                    </Link>
+                  {linkedProducts.map((product, index) => (
+                    <div key={product.id} className="rounded-xl border border-white/10 bg-black/40 p-4 text-sm text-white/80">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <Link href={`/admin/shop/${product.id}`} className="font-medium text-white hover:text-white/80">
+                            {product.titleEn || product.titleUa}
+                          </Link>
+                          <div className="mt-1 font-mono text-xs text-white/45">{product.slug}</div>
+                          <div className="mt-2 text-xs text-white/50">{product.brand || '—'}</div>
+                          <div className="mt-2 text-xs text-white/35">Позиція {index + 1}</div>
+                        </div>
+                        <div className="flex shrink-0 flex-col gap-2">
+                          <button
+                            type="button"
+                            onClick={() => moveLinkedProduct(index, -1)}
+                            disabled={index === 0 || saving}
+                            className="rounded-md border border-white/10 p-2 text-white/70 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-35"
+                            aria-label="Move product up"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveLinkedProduct(index, 1)}
+                            disabled={index === linkedProducts.length - 1 || saving}
+                            className="rounded-md border border-white/10 p-2 text-white/70 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-35"
+                            aria-label="Move product down"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -345,6 +424,19 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
                   Товари ще не призначені.
                 </div>
               )}
+              {linkedProducts.length ? (
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={saveProductOrder}
+                    disabled={saving}
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:opacity-50"
+                  >
+                    <Save className="h-4 w-4" />
+                    {saving ? 'Зберігаємо порядок…' : 'Зберегти порядок товарів'}
+                  </button>
+                </div>
+              ) : null}
             </section>
           ) : null}
 

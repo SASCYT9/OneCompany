@@ -16,6 +16,7 @@ const PRODUCTS: ShopProduct[] = [
     sku: 'KW-1',
     scope: 'auto',
     brand: 'KW Suspension',
+    tags: ['coilover', 'track'],
     title: { ua: 'KW V4', en: 'KW V4' },
     category: { ua: 'Підвіска', en: 'Suspension' },
     shortDescription: { ua: 'Трекова підвіска', en: 'Track suspension' },
@@ -36,6 +37,7 @@ const PRODUCTS: ShopProduct[] = [
     sku: 'FI-1',
     scope: 'auto',
     brand: 'FI Exhaust',
+    tags: ['exhaust', 'valved'],
     title: { ua: 'FI System', en: 'FI System' },
     category: { ua: 'Вихлоп', en: 'Exhaust' },
     shortDescription: { ua: 'Вихлопна система', en: 'Exhaust system' },
@@ -56,6 +58,7 @@ const PRODUCTS: ShopProduct[] = [
     sku: 'EV-1',
     scope: 'auto',
     brand: 'Eventuri',
+    tags: ['carbon', 'intake'],
     title: { ua: 'Eventuri Intake', en: 'Eventuri Intake' },
     category: { ua: 'Впуск', en: 'Intake' },
     shortDescription: { ua: 'Карбоновий впуск', en: 'Carbon intake' },
@@ -82,6 +85,7 @@ function buildResult(query: Partial<ShopListingQueryState>) {
       sort: 'featured',
       brand: 'all',
       category: 'all',
+      tag: 'all',
       priceMin: null,
       priceMax: null,
       availability: 'all',
@@ -140,6 +144,11 @@ test('buildShopListingResult combines brand, category, price and availability fi
 
   assert.equal(result.total, 1);
   assert.equal(result.products[0]?.slug, 'eventuri-intake');
+});
+
+test('buildShopListingResult filters by tag facet', () => {
+  const result = buildResult({ tag: 'carbon' });
+  assert.deepEqual(result.products.map((product) => product.slug), ['eventuri-intake']);
 });
 
 test('getShopProductCategoryLabel localizes imported raw taxonomy labels', () => {

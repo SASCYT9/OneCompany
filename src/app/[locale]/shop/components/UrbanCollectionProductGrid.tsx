@@ -206,6 +206,7 @@ export default function UrbanCollectionProductGrid({
                 showSearch
                 showBrand={settings.enableFiltering}
                 showCategory={settings.enableFiltering}
+                showTag={settings.enableFiltering}
               />
             </div>
           {listing.products.length > 0 ? (

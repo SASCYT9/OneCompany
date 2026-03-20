@@ -11,6 +11,7 @@ export type ShopListingQueryState = {
   sort: ShopListingSortMode;
   brand: string;
   category: string;
+  tag: string;
   priceMin: number | null;
   priceMax: number | null;
   availability: ShopListingAvailability;
@@ -32,6 +33,7 @@ export type ShopListingResult = {
   availableFilters: {
     brands: ShopListingFilterOption[];
     categories: ShopListingFilterOption[];
+    tags: ShopListingFilterOption[];
     availability: ShopListingFilterOption[];
     priceRange: {
       min: number | null;
@@ -61,6 +63,7 @@ export const SHOP_LISTING_DEFAULTS: ShopListingQueryState = {
   sort: 'featured',
   brand: 'all',
   category: 'all',
+  tag: 'all',
   priceMin: null,
   priceMax: null,
   availability: 'all',
@@ -160,6 +163,7 @@ export function normalizeShopListingQuery(
       : (overrides.sort ?? SHOP_LISTING_DEFAULTS.sort),
     brand: normalizeString(getFirstQueryValue(input, 'brand'), overrides.brand ?? SHOP_LISTING_DEFAULTS.brand),
     category: normalizeString(getFirstQueryValue(input, 'category'), overrides.category ?? SHOP_LISTING_DEFAULTS.category),
+    tag: normalizeString(getFirstQueryValue(input, 'tag'), overrides.tag ?? SHOP_LISTING_DEFAULTS.tag),
     priceMin: priceMin ?? overrides.priceMin ?? SHOP_LISTING_DEFAULTS.priceMin,
     priceMax: priceMax ?? overrides.priceMax ?? SHOP_LISTING_DEFAULTS.priceMax,
     availability: VALID_AVAILABILITY.has(availabilityCandidate as ShopListingAvailability)
@@ -232,6 +236,7 @@ export function buildShopListingResult(
 
   const brandMap = new Map<string, ShopListingFilterOption>();
   const categoryMap = new Map<string, ShopListingFilterOption>();
+  const tagMap = new Map<string, ShopListingFilterOption>();
   const availabilityMap = new Map<string, ShopListingFilterOption>();
   let priceRangeMin: number | null = null;
   let priceRangeMax: number | null = null;
@@ -256,6 +261,19 @@ export function buildShopListingResult(
       label: categoryLabel,
       count: (categoryExisting?.count ?? 0) + 1,
     });
+
+    (product.tags ?? [])
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .forEach((tag) => {
+        const tagLabel = localizeShopTaxonomyLabel(locale, tag);
+        const tagExisting = tagMap.get(tag);
+        tagMap.set(tag, {
+          value: tag,
+          label: tagLabel,
+          count: (tagExisting?.count ?? 0) + 1,
+        });
+      });
 
     const availabilityValue = product.stock === 'preOrder' ? 'preOrder' : 'inStock';
     const availabilityLabel =
@@ -285,6 +303,10 @@ export function buildShopListingResult(
         return false;
       }
 
+      if (query.tag !== 'all' && !(product.tags ?? []).includes(query.tag)) {
+        return false;
+      }
+
       if (query.availability !== 'all' && product.stock !== query.availability) {
         return false;
       }
@@ -307,6 +329,7 @@ export function buildShopListingResult(
       const longDescription = localizeShopText(locale, product.longDescription, { kind: 'description' }).toLowerCase();
       const categoryLabel = getShopProductCategoryLabel(product, locale).toLowerCase();
       const collectionLabel = localizeShopText(locale, product.collection, { kind: 'label' }).toLowerCase();
+      const tagLabels = (product.tags ?? []).map((tag) => localizeShopTaxonomyLabel(locale, tag).toLowerCase());
 
       return (
         title.includes(queryNeedle) ||
@@ -314,7 +337,8 @@ export function buildShopListingResult(
         longDescription.includes(queryNeedle) ||
         product.brand.toLowerCase().includes(queryNeedle) ||
         categoryLabel.includes(queryNeedle) ||
-        collectionLabel.includes(queryNeedle)
+        collectionLabel.includes(queryNeedle) ||
+        tagLabels.some((tag) => tag.includes(queryNeedle))
       );
     });
 
@@ -363,6 +387,7 @@ export function buildShopListingResult(
       categories: Array.from(categoryMap.values()).sort(
         (left, right) => right.count - left.count || left.label.localeCompare(right.label)
       ),
+      tags: Array.from(tagMap.values()).sort((left, right) => right.count - left.count || left.label.localeCompare(right.label)),
       availability: Array.from(availabilityMap.values()).sort((left, right) => left.label.localeCompare(right.label)),
       priceRange: {
         min: priceRangeMin == null ? null : Math.floor(priceRangeMin),

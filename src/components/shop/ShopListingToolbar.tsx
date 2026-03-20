@@ -13,6 +13,7 @@ type ShopListingToolbarProps = {
   theme?: 'light' | 'dark';
   showBrand?: boolean;
   showCategory?: boolean;
+  showTag?: boolean;
   showSearch?: boolean;
 };
 
@@ -34,6 +35,7 @@ export function ShopListingToolbar({
   theme = 'light',
   showBrand = true,
   showCategory = true,
+  showTag = false,
   showSearch = true,
 }: ShopListingToolbarProps) {
   const isUa = locale === 'ua';
@@ -62,6 +64,7 @@ export function ShopListingToolbar({
 
   const brandOptions = showBrand ? filters.brands : [];
   const categoryOptions = showCategory ? filters.categories : [];
+  const tagOptions = showTag ? filters.tags : [];
   const applyPriceRange = () => {
     onQueryChange({
       priceMin: draftPriceMin ? Number(draftPriceMin) : null,
@@ -144,6 +147,21 @@ export function ShopListingToolbar({
             {categoryOptions.map((category) => (
               <option key={category.value} value={category.value}>
                 {withCount(category.label, category.count)}
+              </option>
+            ))}
+          </select>
+        ) : null}
+
+        {tagOptions.length > 1 ? (
+          <select
+            value={query.tag}
+            onChange={(event) => onQueryChange({ tag: event.target.value })}
+            className={cx('w-full rounded-xl border px-3 py-3 text-sm outline-none', fieldClassName)}
+          >
+            <option value="all">{isUa ? 'Усі теги' : 'All tags'}</option>
+            {tagOptions.map((tag) => (
+              <option key={tag.value} value={tag.value}>
+                {withCount(tag.label, tag.count)}
               </option>
             ))}
           </select>
