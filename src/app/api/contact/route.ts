@@ -2,7 +2,6 @@ import { render } from '@react-email/render';
 import { ContactEmail } from '@/components/emails/ContactEmail';
 import { formatAutoMessage, formatMotoMessage } from '@/lib/telegram';
 import type { NextRequest } from 'next/server';
-import { Resend } from 'resend';
 import * as fs from 'fs';
 import * as path from 'path';
 import { notifyAdminsNewMessage } from '@/lib/bot/notifications';
@@ -13,6 +12,7 @@ import {
   sendTelegramToDestinations,
 } from '@/lib/telegramNotifications';
 import { prisma } from '@/lib/prisma';
+import { getOptionalResendClient } from '@/lib/runtimeEnv';
 
 // Basic rate limiting (memory). For production replace with Redis or durable store.
 const WINDOW_MS = 60_000; // 1 minute
@@ -51,9 +51,7 @@ type ContactFormData = {
 type AutoFormData = ContactFormData & { carModel: string };
 type MotoFormData = ContactFormData & { motoModel: string };
 
-// Initialize Resend with a fallback key to prevent build-time errors if env var is missing.
-// The actual sending logic checks for the presence of the key.
-const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
+const resend = getOptionalResendClient();
 
 function rateLimit(ip: string): boolean {
   const now = Date.now();
@@ -111,7 +109,7 @@ async function sendEmail(
   const from = process.env.EMAIL_FROM;
   const to = type === 'auto' ? process.env.EMAIL_AUTO : process.env.EMAIL_MOTO;
 
-  if (!from || !to || !process.env.RESEND_API_KEY) {
+  if (!from || !to || !resend) {
     console.error('Email (Resend) environment variables are not set!');
     return { ok: false, error: 'Missing email env vars' };
   }

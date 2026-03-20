@@ -8,7 +8,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { render } from '@react-email/render';
-import { Resend } from 'resend';
 import { generateOrderNumber, generateViewToken } from '@/lib/shopOrder';
 import { createInitialOrderEvent } from '@/lib/shopAdminOrders';
 import { buildCheckoutQuote } from '@/lib/shopCheckout';
@@ -24,7 +23,9 @@ import {
   stripeSupportedCurrency,
 } from '@/lib/shopStripe';
 import { ensureDefaultShopStores, normalizeShopStoreKey } from '@/lib/shopStores';
-const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
+import { getOptionalResendClient } from '@/lib/runtimeEnv';
+
+const resend = getOptionalResendClient();
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 const CURRENCIES = ['EUR', 'USD', 'UAH'] as const;
@@ -276,7 +277,7 @@ export async function POST(req: NextRequest) {
 
   const viewOrderUrl = `${baseUrl}/${locale}/shop/checkout/success?order=${encodeURIComponent(orderNumber)}&token=${encodeURIComponent(viewToken)}`;
 
-  if (process.env.RESEND_API_KEY && process.env.EMAIL_FROM) {
+  if (resend && process.env.EMAIL_FROM) {
     try {
       const emailHtml = await render(
         OrderConfirmationEmail({

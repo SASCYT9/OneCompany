@@ -2,15 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ADMIN_SESSION_COOKIE, adminSessionCookieOptions, createSessionToken } from '@/lib/adminAuth';
 import { ensureAdminBootstrap } from '@/lib/adminRbac';
 import { prisma } from '@/lib/prisma';
-
-// Trim any whitespace/newline characters from environment variable
-const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || 'admin123').trim();
+import { getRequiredEnv } from '@/lib/runtimeEnv';
 
 export async function POST(request: NextRequest) {
   try {
+    const adminPassword = getRequiredEnv('ADMIN_PASSWORD', 'admin123');
     const { password } = await request.json();
 
-    if (password === ADMIN_PASSWORD) {
+    if (password === adminPassword) {
       const admin = await ensureAdminBootstrap(prisma);
       const response = NextResponse.json({ success: true });
       response.cookies.set(

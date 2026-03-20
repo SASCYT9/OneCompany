@@ -8,6 +8,7 @@ import {
   verifyShopCustomerPassword,
 } from '@/lib/shopCustomers';
 import { consumeRateLimit } from '@/lib/shopPublicRateLimit';
+import { getRequiredEnv } from '@/lib/runtimeEnv';
 const LOGIN_WINDOW_MS = 60_000;
 const LOGIN_MAX_PER_WINDOW = 12;
 
@@ -62,7 +63,7 @@ async function loadCurrentCustomerTokenState(customerId: string) {
 }
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET || 'dev-shop-customer-secret',
+  secret: getRequiredEnv('NEXTAUTH_SECRET', 'dev-shop-customer-secret'),
   session: {
     strategy: 'jwt',
   },

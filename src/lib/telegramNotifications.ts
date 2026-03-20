@@ -105,8 +105,14 @@ export function buildTelegramActionButtons(params: BuildActionButtonsParams): Te
 }
 
 export function getConfiguredContactTopicDestination(): TelegramDestination | null {
-  const topicChatId = normalizeTelegramChatId(process.env.TELEGRAM_CONTACT_TOPIC_CHAT_ID || '-1003859998121');
-  const topicThreadId = normalizeTelegramThreadId(process.env.TELEGRAM_CONTACT_TOPIC_THREAD_ID || '3');
+  const topicChatId = normalizeTelegramChatId(
+    process.env.TELEGRAM_CONTACT_TOPIC_CHAT_ID ??
+      (process.env.NODE_ENV !== 'production' ? '-1003859998121' : undefined)
+  );
+  const topicThreadId = normalizeTelegramThreadId(
+    process.env.TELEGRAM_CONTACT_TOPIC_THREAD_ID ??
+      (process.env.NODE_ENV !== 'production' ? '3' : undefined)
+  );
 
   if (!topicChatId || !topicThreadId) {
     return null;

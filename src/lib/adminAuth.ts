@@ -1,7 +1,7 @@
 import crypto from 'crypto';
+import { getRequiredEnv } from '@/lib/runtimeEnv';
 
 export const ADMIN_SESSION_COOKIE = 'onecompany-admin-session';
-const DEFAULT_SECRET = 'dev-admin-session-secret';
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 
 export type AdminSession = {
@@ -25,12 +25,7 @@ type SessionTokenPayload = {
 };
 
 function getSecret(): string {
-  const rawSecret = process.env.ADMIN_SESSION_SECRET ?? DEFAULT_SECRET;
-  const secret = rawSecret.trim();
-  if (!secret) {
-    throw new Error('ADMIN_SESSION_SECRET is not set');
-  }
-  return secret;
+  return getRequiredEnv('ADMIN_SESSION_SECRET', 'dev-admin-session-secret');
 }
 
 function signPayload(payload: string): string {

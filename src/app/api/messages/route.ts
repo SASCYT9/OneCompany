@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { render } from '@react-email/render';
 import { ReplyEmail } from '@/components/emails/ReplyEmail';
-import { Resend } from 'resend';
 import React from 'react';
 import { isAdminRequestAuthenticated } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 import { isAuthenticated } from '@/lib/telegram-auth';
 import { Status } from '@prisma/client';
-// Initialize Resend with a fallback key to prevent build-time errors if env var is missing.
-const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
+import { getOptionalResendClient } from '@/lib/runtimeEnv';
+
+const resend = getOptionalResendClient();
 
 export async function GET(req: NextRequest) {
   const isTelegramAuth = isAuthenticated(req);
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       const { replyText, recipientEmail, originalMessage, userName } = body;
       
       const from = process.env.EMAIL_FROM;
-      if (!from || !process.env.RESEND_API_KEY) {
+      if (!from || !resend) {
         console.error('Email (Resend) environment variables are not set!');
         return NextResponse.json({ error: 'Server misconfigured for sending email' }, { status: 500 });
       }

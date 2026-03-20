@@ -2,7 +2,6 @@ import { render } from '@react-email/render';
 import { PartnershipEmail } from '@/components/emails/PartnershipEmail';
 import { formatPartnershipMessage } from '@/lib/telegram';
 import type { NextRequest } from 'next/server';
-import { Resend } from 'resend';
 import * as fs from 'fs';
 import * as path from 'path';
 import {
@@ -12,6 +11,7 @@ import {
   sendTelegramToDestinations,
 } from '@/lib/telegramNotifications';
 import { prisma } from '@/lib/prisma';
+import { getOptionalResendClient } from '@/lib/runtimeEnv';
 
 // Basic rate limiting (memory).
 const WINDOW_MS = 60_000; // 1 minute
@@ -28,7 +28,7 @@ type PartnershipRequestBody = {
   message?: string;
 };
 
-const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
+const resend = getOptionalResendClient();
 
 function rateLimit(ip: string): boolean {
   const now = Date.now();
@@ -82,7 +82,7 @@ async function sendEmail(
   // Send to AUTO email as default for partnerships
   const to = process.env.EMAIL_AUTO;
 
-  if (!from || !to || !process.env.RESEND_API_KEY) {
+  if (!from || !to || !resend) {
     console.error('Email (Resend) environment variables are not set!');
     return { ok: false, error: 'Missing email env vars' };
   }

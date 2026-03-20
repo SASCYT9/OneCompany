@@ -6,12 +6,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { render } from '@react-email/render';
-import { Resend } from 'resend';
 import OrderConfirmationEmail from '@/components/emails/OrderConfirmationEmail';
 import { notifyAdminNewShopOrder } from '@/lib/telegramNotifications';
 import { prisma } from '@/lib/prisma';
 import { getStripeClient } from '@/lib/shopStripe';
-const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
+import { getOptionalResendClient } from '@/lib/runtimeEnv';
+
+const resend = getOptionalResendClient();
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
 
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
   const locale = 'ua'; // or derive from order/customer
   const viewOrderUrl = `${baseUrl}/${locale}/shop/checkout/success?order=${encodeURIComponent(order.orderNumber)}&token=${encodeURIComponent(order.viewToken)}`;
 
-  if (process.env.RESEND_API_KEY && process.env.EMAIL_FROM) {
+  if (resend && process.env.EMAIL_FROM) {
     try {
       const emailHtml = await render(
         OrderConfirmationEmail({
