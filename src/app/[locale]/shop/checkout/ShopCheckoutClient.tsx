@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import { trackBeginCheckout } from '@/lib/analytics';
+import { localizeShopText } from '@/lib/shopText';
 
 type CartItem = {
   id: string;
@@ -88,6 +89,18 @@ export default function ShopCheckoutClient({
 
   const checkoutTrackedRef = useRef(false);
   const quoteRequestRef = useRef(0);
+  const quotePending = !quote && quoteLoading;
+  const localizeItemTitle = (value?: { ua: string; en: string }) =>
+    value ? localizeShopText(locale, value, { kind: 'title' }) : '';
+
+  const formatQuoteAmount = (amount?: number) => {
+    if (!quote) {
+      return '—';
+    }
+
+    return `${quote.currency || form.currency} ${Number(amount ?? 0).toFixed(0)}`;
+  };
+
   useEffect(() => {
     Promise.all([
       fetch(`/api/shop/cart?store=${encodeURIComponent(storeKey)}`).then((r) => r.json()),
@@ -434,7 +447,7 @@ export default function ShopCheckoutClient({
               {(cart.items ?? []).map((item) => (
                 <li key={item.id} className="flex items-center justify-between gap-4">
                   <span className="truncate">
-                    {(isUa ? item.title?.ua : item.title?.en) || item.title?.en || item.slug} × {item.quantity}
+                    {localizeItemTitle(item.title) || item.slug} × {item.quantity}
                     {item.variantTitle ? ` · ${item.variantTitle}` : ''}
                   </span>
                   <span className="text-white/55">
@@ -444,24 +457,30 @@ export default function ShopCheckoutClient({
               ))}
             </ul>
 
+            {quotePending ? (
+              <p className="mt-4 text-sm text-white/45">
+                {isUa ? 'Розраховуємо підсумок замовлення…' : 'Calculating order totals…'}
+              </p>
+            ) : null}
+
             {quoteError ? <p className="mt-4 text-sm text-amber-400">{quoteError}</p> : null}
 
             <div className="mt-4 space-y-2 border-t border-white/10 pt-4 text-sm text-white/70">
               <div className="flex items-center justify-between">
                 <span>{isUa ? 'Підсумок товарів' : 'Subtotal'}</span>
-                <span>{quote?.currency || form.currency} {(quote?.subtotal ?? 0).toFixed(0)}</span>
+                <span>{formatQuoteAmount(quote?.subtotal)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>{isUa ? 'Доставка' : 'Shipping'}</span>
-                <span>{quote?.currency || form.currency} {(quote?.shippingCost ?? 0).toFixed(0)}</span>
+                <span>{formatQuoteAmount(quote?.shippingCost)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>{isUa ? 'Податок' : 'Tax'}</span>
-                <span>{quote?.currency || form.currency} {(quote?.taxAmount ?? 0).toFixed(0)}</span>
+                <span>{formatQuoteAmount(quote?.taxAmount)}</span>
               </div>
               <div className="flex items-center justify-between border-t border-white/10 pt-3 text-base font-medium text-white">
                 <span>{isUa ? 'Разом' : 'Total'}</span>
-                <span>{quote?.currency || form.currency} {(quote?.total ?? 0).toFixed(0)}</span>
+                <span>{formatQuoteAmount(quote?.total)}</span>
               </div>
             </div>
 
@@ -478,7 +497,7 @@ export default function ShopCheckoutClient({
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || quoteLoading || !quote || Boolean(quoteError)}
             className="w-full rounded-full border border-white/20 bg-white py-3 font-medium text-black transition hover:bg-white/90 disabled:opacity-50"
           >
             {submitting ? (isUa ? 'Відправка…' : 'Submitting…') : (isUa ? 'Підтвердити замовлення' : 'Place order')}

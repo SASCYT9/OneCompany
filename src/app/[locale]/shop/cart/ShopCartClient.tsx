@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import { trackViewCart } from '@/lib/analytics';
+import { localizeShopText } from '@/lib/shopText';
 
 type CartItem = {
   id: string;
@@ -21,7 +22,7 @@ type CartResponse = { items: CartItem[]; totalItems: number };
 
 function localize(locale: SupportedLocale, v: { ua: string; en: string } | undefined) {
   if (!v) return '';
-  return locale === 'ua' ? v.ua : v.en;
+  return localizeShopText(locale, v, { kind: 'title' });
 }
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 'USD' | 'UAH') {

@@ -12,7 +12,7 @@ interface OrganizationSchemaProps {
   locale?: "en" | "ua";
 }
 
-export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
+export function OrganizationSchema({ locale = "en" }: OrganizationSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -70,14 +70,9 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
       "KW suspension",
       "Ohlins suspension",
       "Brembo brakes",
-      "тюнінг авто",
-      "тюнінг мото",
       "OEM parts",
       "Auto repair services",
       "Motorcycle parts supply",
-      "мото тюнинг",
-      "автосервіс",
-      "електрик для машини",
     ],
     areaServed: [
       {
@@ -108,7 +103,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
   );
 }
 
-export function WebSiteSchema() {
+export function WebSiteSchema({ locale = "en" }: OrganizationSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -116,7 +111,10 @@ export function WebSiteSchema() {
     url: "https://onecompany.global",
     name: "One Company Global",
     alternateName: ["OneCompany", "One Company"],
-    description: "Тюнінг авто та мото Київ, Україна. Premium auto & moto tuning importer.",
+    description:
+      locale === "ua"
+        ? "Тюнінг авто та мото Київ, Україна. Premium auto & moto tuning importer."
+        : "Auto and moto tuning in Kyiv, Ukraine. Premium performance parts importer.",
     publisher: {
       "@id": "https://onecompany.global/#organization",
     },

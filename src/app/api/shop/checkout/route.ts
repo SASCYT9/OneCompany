@@ -123,6 +123,7 @@ export async function POST(req: NextRequest) {
     currency: CURRENCIES.includes((body.currency ?? 'EUR') as (typeof CURRENCIES)[number])
       ? (body.currency ?? 'EUR')
       : 'EUR',
+    locale: body.locale === 'ua' ? 'ua' : 'en',
     customerGroup: session?.group ?? null,
     customerId: session?.customerId ?? null,
     customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,

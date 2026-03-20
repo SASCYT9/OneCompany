@@ -131,6 +131,9 @@ export function localizeShopText(
   }
 
   if (kind === 'description') {
+    if (ua) {
+      return generateEnglishFallback(ua);
+    }
     return en || ua;
   }
 

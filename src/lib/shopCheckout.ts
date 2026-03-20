@@ -1,5 +1,6 @@
 import { CustomerGroup, Prisma, PrismaClient } from '@prisma/client';
 import { getShopProductBySlugServer } from '@/lib/shopCatalogServer';
+import type { SupportedLocale } from '@/lib/seo';
 import {
   getOrCreateShopSettings,
   getShopSettingsRuntime,
@@ -16,6 +17,7 @@ import {
   type ShopPriceAudience,
 } from '@/lib/shopPricingAudience';
 import { DEFAULT_SHOP_STORE_KEY, normalizeShopStoreKey } from '@/lib/shopStores';
+import { localizeShopText } from '@/lib/shopText';
 
 type CheckoutRequestItem = {
   slug: string;
@@ -389,6 +391,7 @@ export async function buildCheckoutQuote(
     items: CheckoutRequestItem[];
     shippingAddress: CheckoutShippingAddress;
     currency?: string;
+    locale?: SupportedLocale;
     customerGroup?: CustomerGroup | null;
     customerId?: string | null;
     customerB2BDiscountPercent?: number | null;
@@ -432,7 +435,7 @@ export async function buildCheckoutQuote(
     const total = roundMoney(amount * quantity);
     const title =
       typeof product.title === 'object' && product.title !== null
-        ? product.title.en || product.title.ua || rawItem.slug
+        ? localizeShopText(input.locale ?? 'en', product.title, { kind: 'title' }) || rawItem.slug
         : String(product.title);
 
     resolvedItems.push({

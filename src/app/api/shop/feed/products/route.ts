@@ -8,6 +8,7 @@
 
 import { NextRequest } from 'next/server';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
+import { localizeShopText } from '@/lib/shopText';
 import { buildShopProductPath } from '@/lib/urbanCollectionMatcher';
 import type { ShopProduct } from '@/lib/shopCatalog';
 
@@ -25,11 +26,15 @@ function escapeXml(text: string): string {
 }
 
 function localize(product: ShopProduct, locale: 'ua' | 'en'): { title: string; description: string } {
-  const title = locale === 'ua' ? product.title.ua : product.title.en;
-  const description = locale === 'ua' ? product.shortDescription.ua : product.shortDescription.en;
+  const title = localizeShopText(locale, product.title, { kind: 'title' });
+  const description =
+    localizeShopText(locale, product.shortDescription, { kind: 'description' }) ||
+    localizeShopText(locale, product.longDescription, { kind: 'description' }) ||
+    title;
+
   return {
-    title: (title || product.title.en || product.slug).trim().slice(0, 150),
-    description: (description || product.shortDescription.en || '').trim().slice(0, 5000),
+    title: (title || product.slug).trim().slice(0, 150),
+    description: description.trim().slice(0, 5000),
   };
 }
 

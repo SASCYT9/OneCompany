@@ -15,8 +15,31 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const isAuth = sessionStorage.getItem('adminAuth') === 'true';
-    setIsAuthenticated(isAuth);
+    let cancelled = false;
+
+    fetch('/api/admin/session', { cache: 'no-store' })
+      .then(async (response) => {
+        if (cancelled) return;
+
+        if (response.ok) {
+          sessionStorage.setItem('adminAuth', 'true');
+          setIsAuthenticated(true);
+          return;
+        }
+
+        sessionStorage.removeItem('adminAuth');
+        setIsAuthenticated(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+
+        const isAuth = sessionStorage.getItem('adminAuth') === 'true';
+        setIsAuthenticated(isAuth);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -46,7 +69,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/session', { method: 'DELETE' });
+    } catch {}
+
     sessionStorage.removeItem('adminAuth');
     setIsAuthenticated(false);
     setPassword('');
