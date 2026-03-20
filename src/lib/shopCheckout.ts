@@ -16,6 +16,7 @@ import {
   resolveShopProductPricing,
   type ShopPriceAudience,
 } from '@/lib/shopPricingAudience';
+import { evaluateShopPromotion, type AppliedPromotionSummary } from '@/lib/shopPromotions';
 import { DEFAULT_SHOP_STORE_KEY, normalizeShopStoreKey } from '@/lib/shopStores';
 import { localizeShopText } from '@/lib/shopText';
 
@@ -38,6 +39,8 @@ type ResolvedCheckoutItem = {
   productSlug: string;
   productId: string | null;
   variantId: string | null;
+  brand: string | null;
+  categorySlug: string | null;
   title: string;
   quantity: number;
   unitPrice: number;
@@ -65,11 +68,13 @@ export type CheckoutQuote = {
   currency: ShopCurrencyCode;
   pricingAudience: ShopPriceAudience;
   subtotal: number;
+  discountAmount: number;
   shippingCost: number;
   taxAmount: number;
   total: number;
   itemCount: number;
   items: ResolvedCheckoutItem[];
+  promotion: AppliedPromotionSummary | null;
   shippingZone: CheckoutRuleSnapshot | null;
   taxRegion: CheckoutRuleSnapshot | null;
   pricingSnapshot: Prisma.InputJsonValue;
@@ -85,6 +90,8 @@ type CheckoutQuoteSummaryInput = {
   subtotal: number;
   itemCount: number;
   items: ResolvedCheckoutItem[];
+  promotion: AppliedPromotionSummary | null;
+  discountAmount: number;
 };
 
 function roundMoney(value: number) {
@@ -234,11 +241,13 @@ function buildPricingSnapshot(params: {
   customerB2BDiscountPercent: number | null;
   address: CheckoutShippingAddress;
   subtotal: number;
+  discountAmount: number;
   shippingCost: number;
   taxAmount: number;
   total: number;
   itemCount: number;
   items: ResolvedCheckoutItem[];
+  promotion: AppliedPromotionSummary | null;
   shippingZone: ShopShippingZone | null;
   taxRegion: ShopTaxRegion | null;
 }): Prisma.InputJsonValue {
@@ -271,9 +280,11 @@ function buildPricingSnapshot(params: {
       })),
     itemCount,
     subtotal,
+    discountAmount: params.discountAmount,
     shippingCost,
     taxAmount,
     total,
+    promotion: params.promotion,
     shippingZone: shippingZone
       ? {
           id: shippingZone.id,
@@ -318,11 +329,13 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
     customerB2BDiscountPercent: input.customerB2BDiscountPercent,
     address: input.shippingAddress,
     subtotal,
+    discountAmount: input.discountAmount,
     shippingCost,
     taxAmount,
     total,
     itemCount,
     items: input.items,
+    promotion: input.promotion,
     shippingZone,
     taxRegion,
   });
@@ -331,11 +344,13 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
     currency,
     pricingAudience: input.audience,
     subtotal,
+    discountAmount: input.discountAmount,
     shippingCost,
     taxAmount,
     total,
     itemCount,
     items: input.items,
+    promotion: input.promotion,
     shippingZone: shippingZone
       ? {
           id: shippingZone.id,
@@ -381,6 +396,8 @@ export function buildCheckoutSettingsPreview(
     subtotal: input.subtotal,
     itemCount: input.itemCount,
     items: [],
+    promotion: null,
+    discountAmount: 0,
   });
 }
 
@@ -395,6 +412,7 @@ export async function buildCheckoutQuote(
     customerGroup?: CustomerGroup | null;
     customerId?: string | null;
     customerB2BDiscountPercent?: number | null;
+    promoCode?: string | null;
   }
 ): Promise<CheckoutQuote> {
   const storeKey = normalizeShopStoreKey(input.storeKey ?? DEFAULT_SHOP_STORE_KEY);
@@ -442,6 +460,8 @@ export async function buildCheckoutQuote(
       productSlug: rawItem.slug,
       productId: product.id ?? null,
       variantId: variant?.id ?? rawItem.variantId ?? null,
+      brand: product.brand ?? null,
+      categorySlug: product.categoryNode?.slug ?? null,
       title,
       quantity,
       unitPrice: amount,
@@ -455,7 +475,7 @@ export async function buildCheckoutQuote(
     itemCount += quantity;
   }
 
-  return buildQuoteFromSummary({
+  const baseQuote = buildQuoteFromSummary({
     settings,
     shippingAddress: input.shippingAddress,
     currency,
@@ -465,5 +485,64 @@ export async function buildCheckoutQuote(
     subtotal,
     itemCount,
     items: resolvedItems,
+    promotion: null,
+    discountAmount: 0,
   });
+
+  const promotionResult = await evaluateShopPromotion(prisma, {
+    storeKey,
+    promoCode: input.promoCode ?? null,
+    currency: baseQuote.currency,
+    locale: input.locale ?? 'en',
+    customerGroup: input.customerGroup ?? null,
+    settings,
+    subtotal: baseQuote.subtotal,
+    shippingCost: baseQuote.shippingCost,
+    items: resolvedItems.map((item) => ({
+      productSlug: item.productSlug,
+      brand: item.brand,
+      categorySlug: item.categorySlug,
+      total: item.total,
+    })),
+  });
+
+  const shippingZone = resolveShippingZone(settings, input.shippingAddress, baseQuote.subtotal);
+  const taxRegion = resolveTaxRegion(settings, input.shippingAddress);
+  const taxAmount = calculateTaxAmount(
+    taxRegion,
+    promotionResult.discountedSubtotal,
+    promotionResult.discountedShippingCost
+  );
+  const total = roundMoney(
+    promotionResult.discountedSubtotal + promotionResult.discountedShippingCost + taxAmount
+  );
+  const pricingSnapshot = buildPricingSnapshot({
+    settings,
+    currency: baseQuote.currency,
+    audience: pricingAudience,
+    customerGroup: input.customerGroup ?? null,
+    customerB2BDiscountPercent: input.customerB2BDiscountPercent ?? null,
+    address: input.shippingAddress,
+    subtotal: baseQuote.subtotal,
+    discountAmount: promotionResult.discountAmount,
+    shippingCost: promotionResult.discountedShippingCost,
+    taxAmount,
+    total,
+    itemCount,
+    items: resolvedItems,
+    promotion: promotionResult.promotion,
+    shippingZone,
+    taxRegion,
+  });
+
+  return {
+    ...baseQuote,
+    subtotal: baseQuote.subtotal,
+    discountAmount: promotionResult.discountAmount,
+    shippingCost: promotionResult.discountedShippingCost,
+    taxAmount,
+    total,
+    promotion: promotionResult.promotion,
+    pricingSnapshot,
+  };
 }

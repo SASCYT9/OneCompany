@@ -36,10 +36,18 @@ type CheckoutQuote = {
   currency: string;
   pricingAudience: 'b2c' | 'b2b';
   subtotal: number;
+  discountAmount: number;
   shippingCost: number;
   taxAmount: number;
   total: number;
   itemCount: number;
+  promotion: {
+    id: string;
+    code: string | null;
+    title: string;
+    description: string | null;
+    amount: number;
+  } | null;
   shippingZone: { id: string; name: string } | null;
   taxRegion: { id: string; name: string; rate?: number } | null;
 };
@@ -86,12 +94,32 @@ export default function ShopCheckoutClient({
     paymentMethod: 'FOP' as 'FOP' | 'STRIPE' | 'WHITEBIT',
   });
   const [paymentOptions, setPaymentOptions] = useState<PaymentOptions | null>(null);
+  const [promoCode, setPromoCode] = useState('');
 
   const checkoutTrackedRef = useRef(false);
   const quoteRequestRef = useRef(0);
   const quotePending = !quote && quoteLoading;
   const localizeItemTitle = (value?: { ua: string; en: string }) =>
     value ? localizeShopText(locale, value, { kind: 'title' }) : '';
+
+  const localizeCheckoutError = (message: string) => {
+    if (!isUa) return message;
+
+    switch (message) {
+      case 'Promo code not found':
+        return 'Промокод не знайдено.';
+      case 'Promo code is not active for this order':
+        return 'Промокод зараз неактивний для цього замовлення.';
+      case 'Order subtotal does not meet promo minimum':
+        return 'Сума товарів ще не дотягує до мінімуму для цього промокоду.';
+      case 'Promo code does not apply to these items':
+        return 'Цей промокод не застосовується до поточних товарів.';
+      case 'Checkout failed':
+        return 'Помилка оформлення.';
+      default:
+        return message;
+    }
+  };
 
   const formatQuoteAmount = (amount?: number) => {
     if (!quote) {
@@ -173,12 +201,13 @@ export default function ShopCheckoutClient({
           country: form.country,
         },
         currency: form.currency,
+        promoCode: promoCode.trim() || undefined,
       }),
     })
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to quote checkout');
+          throw new Error(localizeCheckoutError(data.error || 'Failed to quote checkout'));
         }
         if (quoteRequestRef.current !== requestId) return;
         setQuote(data as CheckoutQuote);
@@ -215,13 +244,14 @@ export default function ShopCheckoutClient({
             country: form.country.trim(),
           },
           currency: form.currency,
+          promoCode: promoCode.trim() || undefined,
           locale,
           paymentMethod: form.paymentMethod,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || (isUa ? 'Помилка оформлення' : 'Checkout failed'));
+        setError(localizeCheckoutError(data.error || 'Checkout failed'));
         return;
       }
       if (data.redirectUrl) {
@@ -379,6 +409,31 @@ export default function ShopCheckoutClient({
           </div>
 
           <div>
+            <label className="text-sm font-medium uppercase tracking-wider text-white/55">
+              {isUa ? 'Промокод / купон' : 'Promo code / coupon'}
+            </label>
+            <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+              <input
+                type="text"
+                placeholder={isUa ? 'Напр. URBAN10' : 'For example URBAN10'}
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-white/35 focus:border-white/35 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setPromoCode((current) => current.trim().toUpperCase())}
+                className="rounded-xl border border-white/15 px-4 py-3 text-sm text-white/80 transition hover:bg-white/5"
+              >
+                {isUa ? 'Застосувати' : 'Apply'}
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-white/40">
+              {isUa ? 'Акції та промокоди перераховують суму замовлення ще до підтвердження.' : 'Promotions and coupon codes update the order total before submission.'}
+            </p>
+          </div>
+
+          <div>
             <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-white/55">
               {isUa ? 'Спосіб оплати' : 'Payment method'}
             </h2>
@@ -470,6 +525,15 @@ export default function ShopCheckoutClient({
                 <span>{isUa ? 'Підсумок товарів' : 'Subtotal'}</span>
                 <span>{formatQuoteAmount(quote?.subtotal)}</span>
               </div>
+              {quote?.discountAmount ? (
+                <div className="flex items-center justify-between text-emerald-300">
+                  <span>
+                    {isUa ? 'Знижка' : 'Discount'}
+                    {quote.promotion?.code ? ` · ${quote.promotion.code}` : ''}
+                  </span>
+                  <span>-{formatQuoteAmount(quote.discountAmount)}</span>
+                </div>
+              ) : null}
               <div className="flex items-center justify-between">
                 <span>{isUa ? 'Доставка' : 'Shipping'}</span>
                 <span>{formatQuoteAmount(quote?.shippingCost)}</span>
@@ -487,6 +551,13 @@ export default function ShopCheckoutClient({
             <p className="mt-3 text-xs text-white/40">
               {quote?.pricingAudience === 'b2b' ? 'B2B pricing applied' : 'B2C pricing applied'}
             </p>
+
+            {quote?.promotion ? (
+              <p className="mt-3 text-xs text-emerald-300">
+                {quote.promotion.title}
+                {quote.promotion.description ? ` · ${quote.promotion.description}` : ''}
+              </p>
+            ) : null}
 
             {quote?.taxRegion ? (
               <p className="mt-3 text-xs text-white/40">

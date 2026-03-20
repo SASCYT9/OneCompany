@@ -12,7 +12,23 @@ type QuoteBody = {
   shipping?: Partial<CheckoutShippingAddress>;
   currency?: string;
   storeKey?: string;
+  promoCode?: string;
 };
+
+function mapPromotionError(error: unknown) {
+  switch ((error as Error).message) {
+    case 'PROMOTION_NOT_FOUND':
+      return 'Promo code not found';
+    case 'PROMOTION_UNAVAILABLE':
+      return 'Promo code is not active for this order';
+    case 'PROMOTION_MINIMUM_NOT_MET':
+      return 'Order subtotal does not meet promo minimum';
+    case 'PROMOTION_NOT_APPLICABLE':
+      return 'Promo code does not apply to these items';
+    default:
+      return null;
+  }
+}
 
 function normalizeShippingAddress(input: Partial<CheckoutShippingAddress> | undefined): CheckoutShippingAddress {
   return {
@@ -65,11 +81,13 @@ export async function POST(request: NextRequest) {
       currency: String(body.currency ?? 'EUR').toUpperCase(),
       pricingAudience: session?.group === 'B2B_APPROVED' ? 'b2b' : 'b2c',
       subtotal: 0,
+      discountAmount: 0,
       shippingCost: 0,
       taxAmount: 0,
       total: 0,
       itemCount: 0,
       items: [],
+      promotion: null,
       shippingZone: null,
       taxRegion: null,
     });
@@ -84,25 +102,37 @@ export async function POST(request: NextRequest) {
   }
 
   const shippingAddress = normalizeShippingAddress(body.shipping);
-  const quote = await buildCheckoutQuote(prisma, {
-    storeKey,
-    items,
-    shippingAddress,
-    currency: body.currency,
-    customerGroup: session?.group ?? null,
-    customerId: session?.customerId ?? null,
-    customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,
-  });
+  let quote;
+  try {
+    quote = await buildCheckoutQuote(prisma, {
+      storeKey,
+      items,
+      shippingAddress,
+      currency: body.currency,
+      customerGroup: session?.group ?? null,
+      customerId: session?.customerId ?? null,
+      customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,
+      promoCode: body.promoCode ?? null,
+    });
+  } catch (error) {
+    const promotionError = mapPromotionError(error);
+    if (promotionError) {
+      return NextResponse.json({ error: promotionError }, { status: 400 });
+    }
+    throw error;
+  }
 
   const response = NextResponse.json({
     currency: quote.currency,
     pricingAudience: quote.pricingAudience,
     subtotal: quote.subtotal,
+    discountAmount: quote.discountAmount,
     shippingCost: quote.shippingCost,
     taxAmount: quote.taxAmount,
     total: quote.total,
     itemCount: quote.itemCount,
     items: quote.items,
+    promotion: quote.promotion,
     shippingZone: quote.shippingZone,
     taxRegion: quote.taxRegion,
   });

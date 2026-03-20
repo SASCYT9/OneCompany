@@ -234,6 +234,9 @@ export default function AdminPricingPage() {
             <Link href="/admin/shop/inventory" className="rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               Склад
             </Link>
+            <Link href="/admin/shop/promotions" className="rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+              Акції / купони
+            </Link>
             <button
               type="button"
               onClick={() => void load()}

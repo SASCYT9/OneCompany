@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Pencil, Trash2, Upload, Package, ShoppingCart, Search, Layers3, Warehouse, Coins, Settings2, FileClock, ImageIcon, FolderTree, Users, Boxes } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, Package, ShoppingCart, Search, Layers3, Warehouse, Coins, Settings2, FileClock, ImageIcon, FolderTree, Users, Boxes, BadgePercent } from 'lucide-react';
 
 type ShopProductListItem = {
   id: string;
@@ -178,6 +178,10 @@ export default function AdminShopPage() {
             <Link href="/admin/shop/pricing" title="Масове ціноутворення B2C та B2B" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Coins className="w-4 h-4" />
               Ціни (B2C/B2B)
+            </Link>
+            <Link href="/admin/shop/promotions" title="Акції, купони та промокоди" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+              <BadgePercent className="w-4 h-4" />
+              Акції / купони
             </Link>
             <Link href="/admin/shop/settings" title="Валюти, зони доставки, податки, B2B" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Settings2 className="w-4 h-4" />

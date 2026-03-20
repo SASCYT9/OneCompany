@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { render } from '@react-email/render';
+import { Prisma } from '@prisma/client';
 import { generateOrderNumber, generateViewToken } from '@/lib/shopOrder';
 import { createInitialOrderEvent } from '@/lib/shopAdminOrders';
 import { buildCheckoutQuote } from '@/lib/shopCheckout';
@@ -55,7 +56,23 @@ type CheckoutBody = {
   locale?: string;
   paymentMethod?: string;
   storeKey?: string;
+  promoCode?: string;
 };
+
+function mapPromotionError(error: unknown) {
+  switch ((error as Error).message) {
+    case 'PROMOTION_NOT_FOUND':
+      return 'Promo code not found';
+    case 'PROMOTION_UNAVAILABLE':
+      return 'Promo code is not active for this order';
+    case 'PROMOTION_MINIMUM_NOT_MET':
+      return 'Order subtotal does not meet promo minimum';
+    case 'PROMOTION_NOT_APPLICABLE':
+      return 'Promo code does not apply to these items';
+    default:
+      return null;
+  }
+}
 export async function POST(req: NextRequest) {
   let body: CheckoutBody;
   try {
@@ -109,25 +126,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Shipping address (line1, city, country) is required' }, { status: 400 });
   }
 
-  const quote = await buildCheckoutQuote(prisma, {
-    storeKey,
-    items,
-    shippingAddress: {
-      line1,
-      line2: typeof shipping.line2 === 'string' ? shipping.line2.trim() : undefined,
-      city,
-      region: typeof shipping.region === 'string' ? shipping.region.trim() : undefined,
-      postcode: typeof shipping.postcode === 'string' ? shipping.postcode.trim() : undefined,
-      country,
-    },
-    currency: CURRENCIES.includes((body.currency ?? 'EUR') as (typeof CURRENCIES)[number])
-      ? (body.currency ?? 'EUR')
-      : 'EUR',
-    locale: body.locale === 'ua' ? 'ua' : 'en',
-    customerGroup: session?.group ?? null,
-    customerId: session?.customerId ?? null,
-    customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,
-  });
+  let quote;
+  try {
+    quote = await buildCheckoutQuote(prisma, {
+      storeKey,
+      items,
+      shippingAddress: {
+        line1,
+        line2: typeof shipping.line2 === 'string' ? shipping.line2.trim() : undefined,
+        city,
+        region: typeof shipping.region === 'string' ? shipping.region.trim() : undefined,
+        postcode: typeof shipping.postcode === 'string' ? shipping.postcode.trim() : undefined,
+        country,
+      },
+      currency: CURRENCIES.includes((body.currency ?? 'EUR') as (typeof CURRENCIES)[number])
+        ? (body.currency ?? 'EUR')
+        : 'EUR',
+      locale: body.locale === 'ua' ? 'ua' : 'en',
+      customerGroup: session?.group ?? null,
+      customerId: session?.customerId ?? null,
+      customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,
+      promoCode: body.promoCode ?? null,
+    });
+  } catch (error) {
+    const promotionError = mapPromotionError(error);
+    if (promotionError) {
+      return NextResponse.json({ error: promotionError }, { status: 400 });
+    }
+    throw error;
+  }
 
   if (quote.items.length === 0) {
     return NextResponse.json({ error: 'No valid items in cart' }, { status: 400 });
@@ -167,10 +194,14 @@ export async function POST(req: NextRequest) {
     shippingAddress,
     currency: quote.currency,
     subtotal: quote.subtotal,
+    discountAmount: quote.discountAmount,
     shippingCost: quote.shippingCost,
     taxAmount: quote.taxAmount,
     total: quote.total,
     pricingSnapshot: quote.pricingSnapshot,
+    promotionId: quote.promotion?.id ?? null,
+    promotionCode: quote.promotion?.code ?? null,
+    promotionSnapshot: quote.promotion ? (quote.promotion as Prisma.InputJsonValue) : undefined,
     viewToken,
     items: {
       create: quote.items.map((i) => ({
@@ -203,6 +234,12 @@ export async function POST(req: NextRequest) {
       data: orderData,
     });
     await createInitialOrderEvent(prisma, order.id, order.status);
+    if (quote.promotion?.id) {
+      await prisma.shopPromotion.update({
+        where: { id: quote.promotion.id },
+        data: { usageCount: { increment: 1 } },
+      });
+    }
     if (session?.customerId) {
       await upsertCustomerDefaultShippingAddress(prisma, session.customerId, shippingAddress);
     }
@@ -244,6 +281,7 @@ export async function POST(req: NextRequest) {
       orderNumber,
       viewToken,
       subtotal: quote.subtotal,
+      discountAmount: quote.discountAmount,
       shippingCost: quote.shippingCost,
       taxAmount: quote.taxAmount,
       total: quote.total,
@@ -265,6 +303,12 @@ export async function POST(req: NextRequest) {
   });
 
   await createInitialOrderEvent(prisma, order.id, order.status);
+  if (quote.promotion?.id) {
+    await prisma.shopPromotion.update({
+      where: { id: quote.promotion.id },
+      data: { usageCount: { increment: 1 } },
+    });
+  }
   if (session?.customerId) {
     await upsertCustomerDefaultShippingAddress(prisma, session.customerId, shippingAddress);
   }
@@ -322,11 +366,12 @@ export async function POST(req: NextRequest) {
   const response = NextResponse.json({
     orderNumber,
     viewToken,
-    subtotal: quote.subtotal,
-    shippingCost: quote.shippingCost,
-    taxAmount: quote.taxAmount,
-    total: quote.total,
-    currency: quote.currency,
+      subtotal: quote.subtotal,
+      discountAmount: quote.discountAmount,
+      shippingCost: quote.shippingCost,
+      taxAmount: quote.taxAmount,
+      total: quote.total,
+      currency: quote.currency,
     pricingAudience: quote.pricingAudience,
     shippingZone: quote.shippingZone,
     taxRegion: quote.taxRegion,
