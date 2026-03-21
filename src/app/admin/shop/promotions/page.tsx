@@ -35,6 +35,21 @@ type ShopStoreSummary = {
   name: string;
 };
 
+type ProductOption = {
+  id: string;
+  slug: string;
+  titleUa: string;
+  titleEn: string;
+  brand: string | null;
+};
+
+type CategoryOption = {
+  id: string;
+  slug: string;
+  titleUa: string;
+  titleEn: string;
+};
+
 type FormState = {
   code: string;
   titleUa: string;
@@ -93,6 +108,11 @@ export default function AdminPromotionsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([]);
+  const [productSearch, setProductSearch] = useState('');
+  const [categorySearch, setCategorySearch] = useState('');
+  const [brandSearch, setBrandSearch] = useState('');
 
   const activePromotions = useMemo(() => promotions.filter((promotion) => promotion.isActive).length, [promotions]);
   const autoApplyPromotions = useMemo(() => promotions.filter((promotion) => promotion.autoApply && promotion.isActive).length, [promotions]);
@@ -107,6 +127,7 @@ export default function AdminPromotionsPage() {
 
   useEffect(() => {
     void loadPromotions();
+    void loadTargetOptions();
   }, [storeKey]);
 
   async function loadStores() {
@@ -137,6 +158,27 @@ export default function AdminPromotionsPage() {
       setPromotions(data as PromotionRow[]);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadTargetOptions() {
+    try {
+      const [productsResponse, categoriesResponse] = await Promise.all([
+        fetch(`/api/admin/shop/products?store=${encodeURIComponent(storeKey)}`),
+        fetch(`/api/admin/shop/categories?store=${encodeURIComponent(storeKey)}`),
+      ]);
+      const [productsData, categoriesData] = await Promise.all([
+        productsResponse.json().catch(() => []),
+        categoriesResponse.json().catch(() => []),
+      ]);
+      if (productsResponse.ok) {
+        setProductOptions(productsData as ProductOption[]);
+      }
+      if (categoriesResponse.ok) {
+        setCategoryOptions(categoriesData as CategoryOption[]);
+      }
+    } catch {
+      // ignore
     }
   }
 
@@ -233,6 +275,74 @@ export default function AdminPromotionsPage() {
     await loadPromotions();
   }
 
+  function parseList(value: string) {
+    return value
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+
+  function toggleListValue(field: 'productSlugs' | 'categorySlugs' | 'brandNames', value: string) {
+    setForm((current) => {
+      const set = new Set(parseList(current[field]));
+      if (set.has(value)) {
+        set.delete(value);
+      } else {
+        set.add(value);
+      }
+
+      return {
+        ...current,
+        [field]: Array.from(set).join(', '),
+      };
+    });
+  }
+
+  const selectedProductSlugs = useMemo(() => new Set(parseList(form.productSlugs)), [form.productSlugs]);
+  const selectedCategorySlugs = useMemo(() => new Set(parseList(form.categorySlugs)), [form.categorySlugs]);
+  const selectedBrands = useMemo(() => new Set(parseList(form.brandNames)), [form.brandNames]);
+
+  const brandOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          productOptions
+            .map((product) => product.brand?.trim())
+            .filter((brand): brand is string => Boolean(brand))
+        )
+      ).sort((left, right) => left.localeCompare(right, 'uk')),
+    [productOptions]
+  );
+
+  const filteredProducts = useMemo(() => {
+    const search = productSearch.trim().toLowerCase();
+    if (!search) return productOptions.slice(0, 18);
+    return productOptions
+      .filter((product) =>
+        [product.titleUa, product.titleEn, product.slug, product.brand ?? '']
+          .join(' ')
+          .toLowerCase()
+          .includes(search)
+      )
+      .slice(0, 18);
+  }, [productOptions, productSearch]);
+
+  const filteredCategories = useMemo(() => {
+    const search = categorySearch.trim().toLowerCase();
+    if (!search) return categoryOptions.slice(0, 18);
+    return categoryOptions
+      .filter((category) =>
+        [category.titleUa, category.titleEn, category.slug].join(' ').toLowerCase().includes(search)
+      )
+      .slice(0, 18);
+  }, [categoryOptions, categorySearch]);
+
+  const filteredBrands = useMemo(() => {
+    const search = brandSearch.trim().toLowerCase();
+    if (!search) return brandOptions;
+    return brandOptions.filter((brand) => brand.toLowerCase().includes(search));
+  }, [brandOptions, brandSearch]);
+
   return (
     <div className="h-full overflow-auto">
       <div className="w-full px-4 py-6 md:px-8">
@@ -308,9 +418,64 @@ export default function AdminPromotionsPage() {
                 <option value="B2B_PENDING">B2B pending</option>
                 <option value="B2B_APPROVED">B2B approved</option>
               </select>
-              <input value={form.productSlugs} onChange={(e) => setForm((current) => ({ ...current, productSlugs: e.target.value }))} placeholder="Product slugs через кому" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
-              <input value={form.categorySlugs} onChange={(e) => setForm((current) => ({ ...current, categorySlugs: e.target.value }))} placeholder="Category slugs через кому" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
-              <input value={form.brandNames} onChange={(e) => setForm((current) => ({ ...current, brandNames: e.target.value }))} placeholder="Бренди через кому" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
+              <div className="space-y-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                <div className="text-xs uppercase tracking-[0.18em] text-white/45">Товари для акції</div>
+                <input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Пошук товару" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
+                <div className="max-h-40 space-y-2 overflow-auto">
+                  {filteredProducts.map((product) => (
+                    <label key={product.id} className="flex items-start gap-2 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-sm text-white/80">
+                      <input
+                        type="checkbox"
+                        checked={selectedProductSlugs.has(product.slug)}
+                        onChange={() => toggleListValue('productSlugs', product.slug)}
+                      />
+                      <span>
+                        <span className="block">{product.titleUa}</span>
+                        <span className="block text-xs text-white/45">{product.slug}{product.brand ? ` · ${product.brand}` : ''}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                <div className="text-xs uppercase tracking-[0.18em] text-white/45">Категорії для акції</div>
+                <input value={categorySearch} onChange={(e) => setCategorySearch(e.target.value)} placeholder="Пошук категорії" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
+                <div className="max-h-32 space-y-2 overflow-auto">
+                  {filteredCategories.map((category) => (
+                    <label key={category.id} className="flex items-start gap-2 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-sm text-white/80">
+                      <input
+                        type="checkbox"
+                        checked={selectedCategorySlugs.has(category.slug)}
+                        onChange={() => toggleListValue('categorySlugs', category.slug)}
+                      />
+                      <span>
+                        <span className="block">{category.titleUa}</span>
+                        <span className="block text-xs text-white/45">{category.slug}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                <div className="text-xs uppercase tracking-[0.18em] text-white/45">Бренди для акції</div>
+                <input value={brandSearch} onChange={(e) => setBrandSearch(e.target.value)} placeholder="Пошук бренду" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
+                <div className="flex max-h-32 flex-wrap gap-2 overflow-auto">
+                  {filteredBrands.map((brand) => (
+                    <button
+                      key={brand}
+                      type="button"
+                      onClick={() => toggleListValue('brandNames', brand)}
+                      className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                        selectedBrands.has(brand)
+                          ? 'border-emerald-400/30 bg-emerald-500/15 text-emerald-200'
+                          : 'border-white/10 bg-white/5 text-white/65 hover:bg-white/10'
+                      }`}
+                    >
+                      {brand}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <input type="datetime-local" value={form.startsAt} onChange={(e) => setForm((current) => ({ ...current, startsAt: e.target.value }))} className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
                 <input type="datetime-local" value={form.endsAt} onChange={(e) => setForm((current) => ({ ...current, endsAt: e.target.value }))} className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
@@ -325,6 +490,11 @@ export default function AdminPromotionsPage() {
                 <p className="text-xs text-emerald-300/80">
                   Якщо одночасно активні кілька автоакцій, storefront вибере найвигіднішу, а при однаковій знижці спрацює більший пріоритет.
                 </p>
+              ) : null}
+              {!form.appliesToAll ? (
+                <div className="rounded-xl border border-white/10 bg-zinc-950/50 p-3 text-xs text-white/45">
+                  Вибрано: {selectedProductSlugs.size} товарів, {selectedCategorySlugs.size} категорій, {selectedBrands.size} брендів
+                </div>
               ) : null}
               <label className="flex items-center gap-2 text-sm text-white/70"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm((current) => ({ ...current, isActive: e.target.checked }))} /> Активна</label>
               <div className="flex gap-3">
