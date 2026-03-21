@@ -44,6 +44,8 @@ function normalizePromotionPayload(body: Record<string, unknown>) {
     promotionType: (Object.values(ShopPromotionType) as string[]).includes(promotionType)
       ? (promotionType as ShopPromotionType)
       : ShopPromotionType.PERCENTAGE,
+    autoApply: body.autoApply === true,
+    priority: Math.max(0, Number(body.priority ?? 0) || 0),
     discountValue: nullableNumber(body.discountValue),
     currency: nullableString(body.currency)?.toUpperCase() ?? null,
     minimumSubtotal: nullableNumber(body.minimumSubtotal),
@@ -69,7 +71,7 @@ export async function GET(request: NextRequest) {
     const storeKey = normalizeShopStoreKey(request.nextUrl.searchParams.get('store'));
     const promotions = await prisma.shopPromotion.findMany({
       where: { storeKey },
-      orderBy: [{ isActive: 'desc' }, { updatedAt: 'desc' }],
+      orderBy: [{ isActive: 'desc' }, { autoApply: 'desc' }, { priority: 'desc' }, { updatedAt: 'desc' }],
     });
     return NextResponse.json(promotions.map(serializeAdminPromotion));
   } catch (error) {

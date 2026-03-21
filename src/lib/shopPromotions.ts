@@ -167,83 +167,6 @@ function buildPromotionAmount(params: {
   }
 }
 
-export async function evaluateShopPromotion(
-  prisma: PrismaClient,
-  input: PromotionEvaluationInput
-): Promise<PromotionEvaluationResult> {
-  const promoCode = String(input.promoCode ?? '').trim();
-  if (!promoCode) {
-    return {
-      promotion: null,
-      discountAmount: 0,
-      itemDiscountAmount: 0,
-      shippingDiscountAmount: 0,
-      discountedSubtotal: roundMoney(input.subtotal),
-      discountedShippingCost: roundMoney(input.shippingCost),
-    };
-  }
-
-  const now = input.now ?? new Date();
-  const promotion = await prisma.shopPromotion.findFirst({
-    where: {
-      storeKey: input.storeKey,
-      isActive: true,
-      code: { equals: promoCode, mode: 'insensitive' },
-    },
-  });
-
-  if (!promotion) {
-    throw new Error('PROMOTION_NOT_FOUND');
-  }
-
-  if (!matchesSchedule(promotion, now) || !matchesCustomerGroup(promotion, input.customerGroup) || !matchesUsageLimit(promotion)) {
-    throw new Error('PROMOTION_UNAVAILABLE');
-  }
-
-  const minimumSubtotal = decimalToNumber(promotion.minimumSubtotal);
-  if (minimumSubtotal != null && input.subtotal < minimumSubtotal) {
-    throw new Error('PROMOTION_MINIMUM_NOT_MET');
-  }
-
-  const eligibleItems = getEligibleItems(promotion, input.items);
-  if (!eligibleItems.length) {
-    throw new Error('PROMOTION_NOT_APPLICABLE');
-  }
-
-  const eligibleSubtotal = roundMoney(eligibleItems.reduce((sum, item) => sum + item.total, 0));
-  const localized = localizePromotion(input.locale, promotion);
-  const amounts = buildPromotionAmount({
-    promotion,
-    currency: input.currency,
-    settings: input.settings,
-    eligibleSubtotal,
-    shippingCost: input.shippingCost,
-  });
-  const itemDiscountAmount = Math.min(amounts.itemDiscountAmount, roundMoney(input.subtotal));
-  const shippingDiscountAmount = Math.min(amounts.shippingDiscountAmount, roundMoney(input.shippingCost));
-  const discountAmount = roundMoney(itemDiscountAmount + shippingDiscountAmount);
-
-  return {
-    promotion: {
-      id: promotion.id,
-      code: promotion.code,
-      title: localized.title,
-      description: localized.description,
-      promotionType: promotion.promotionType,
-      amount: discountAmount,
-      itemDiscountAmount,
-      shippingDiscountAmount,
-      currency: input.currency,
-      minimumSubtotal,
-    },
-    discountAmount,
-    itemDiscountAmount,
-    shippingDiscountAmount,
-    discountedSubtotal: roundMoney(input.subtotal - itemDiscountAmount),
-    discountedShippingCost: roundMoney(input.shippingCost - shippingDiscountAmount),
-  };
-}
-
 export function serializeAdminPromotion(record: ShopPromotion) {
   return {
     id: record.id,
@@ -254,6 +177,8 @@ export function serializeAdminPromotion(record: ShopPromotion) {
     descriptionUa: record.descriptionUa,
     descriptionEn: record.descriptionEn,
     promotionType: record.promotionType,
+    autoApply: record.autoApply,
+    priority: record.priority,
     discountValue: decimalToNumber(record.discountValue),
     currency: record.currency,
     minimumSubtotal: decimalToNumber(record.minimumSubtotal),
@@ -280,6 +205,65 @@ export type StorefrontPromotionHighlight = {
   promotionType: ShopPromotionType;
 };
 
+function comparePromotionCandidates(
+  left: { amount: number; promotion: ShopPromotion },
+  right: { amount: number; promotion: ShopPromotion }
+) {
+  if (left.amount !== right.amount) {
+    return right.amount - left.amount;
+  }
+
+  if (left.promotion.priority !== right.promotion.priority) {
+    return right.promotion.priority - left.promotion.priority;
+  }
+
+  return right.promotion.updatedAt.getTime() - left.promotion.updatedAt.getTime();
+}
+
+function resolvePromotionAmounts(
+  promotion: ShopPromotion,
+  input: PromotionEvaluationInput,
+  eligibleSubtotal: number
+) {
+  const amounts = buildPromotionAmount({
+    promotion,
+    currency: input.currency,
+    settings: input.settings,
+    eligibleSubtotal,
+    shippingCost: input.shippingCost,
+  });
+  const itemDiscountAmount = Math.min(amounts.itemDiscountAmount, roundMoney(input.subtotal));
+  const shippingDiscountAmount = Math.min(amounts.shippingDiscountAmount, roundMoney(input.shippingCost));
+  const discountAmount = roundMoney(itemDiscountAmount + shippingDiscountAmount);
+
+  return {
+    itemDiscountAmount,
+    shippingDiscountAmount,
+    discountAmount,
+  };
+}
+
+function buildPromotionSummary(
+  promotion: ShopPromotion,
+  input: PromotionEvaluationInput,
+  minimumSubtotal: number | null,
+  amounts: { discountAmount: number; itemDiscountAmount: number; shippingDiscountAmount: number }
+): AppliedPromotionSummary {
+  const localized = localizePromotion(input.locale, promotion);
+  return {
+    id: promotion.id,
+    code: promotion.code,
+    title: localized.title,
+    description: localized.description,
+    promotionType: promotion.promotionType,
+    amount: amounts.discountAmount,
+    itemDiscountAmount: amounts.itemDiscountAmount,
+    shippingDiscountAmount: amounts.shippingDiscountAmount,
+    currency: input.currency,
+    minimumSubtotal,
+  };
+}
+
 export async function getStorefrontPromotionHighlights(
   prisma: PrismaClient,
   input: {
@@ -296,7 +280,7 @@ export async function getStorefrontPromotionHighlights(
       storeKey: input.storeKey,
       isActive: true,
     },
-    orderBy: [{ updatedAt: 'desc' }],
+    orderBy: [{ priority: 'desc' }, { updatedAt: 'desc' }],
   });
 
   return promotions
@@ -332,7 +316,7 @@ export async function getStorefrontPromotionHighlightsForItems(
       storeKey: input.storeKey,
       isActive: true,
     },
-    orderBy: [{ updatedAt: 'desc' }],
+    orderBy: [{ priority: 'desc' }, { updatedAt: 'desc' }],
   });
 
   return promotions
@@ -350,4 +334,123 @@ export async function getStorefrontPromotionHighlightsForItems(
         promotionType: promotion.promotionType,
       } satisfies StorefrontPromotionHighlight;
     });
+}
+
+export async function evaluateShopPromotion(
+  prisma: PrismaClient,
+  input: PromotionEvaluationInput
+): Promise<PromotionEvaluationResult> {
+  const promoCode = String(input.promoCode ?? '').trim();
+  const now = input.now ?? new Date();
+
+  if (promoCode) {
+    const promotion = await prisma.shopPromotion.findFirst({
+      where: {
+        storeKey: input.storeKey,
+        isActive: true,
+        code: { equals: promoCode, mode: 'insensitive' },
+      },
+    });
+
+    if (!promotion) {
+      throw new Error('PROMOTION_NOT_FOUND');
+    }
+
+    if (!matchesSchedule(promotion, now) || !matchesCustomerGroup(promotion, input.customerGroup) || !matchesUsageLimit(promotion)) {
+      throw new Error('PROMOTION_UNAVAILABLE');
+    }
+
+    const minimumSubtotal = decimalToNumber(promotion.minimumSubtotal);
+    if (minimumSubtotal != null && input.subtotal < minimumSubtotal) {
+      throw new Error('PROMOTION_MINIMUM_NOT_MET');
+    }
+
+    const eligibleItems = getEligibleItems(promotion, input.items);
+    if (!eligibleItems.length) {
+      throw new Error('PROMOTION_NOT_APPLICABLE');
+    }
+
+    const eligibleSubtotal = roundMoney(eligibleItems.reduce((sum, item) => sum + item.total, 0));
+    const amounts = resolvePromotionAmounts(promotion, input, eligibleSubtotal);
+
+    return {
+      promotion: buildPromotionSummary(promotion, input, minimumSubtotal, amounts),
+      discountAmount: amounts.discountAmount,
+      itemDiscountAmount: amounts.itemDiscountAmount,
+      shippingDiscountAmount: amounts.shippingDiscountAmount,
+      discountedSubtotal: roundMoney(input.subtotal - amounts.itemDiscountAmount),
+      discountedShippingCost: roundMoney(input.shippingCost - amounts.shippingDiscountAmount),
+    };
+  }
+
+  const promotions = await prisma.shopPromotion.findMany({
+    where: {
+      storeKey: input.storeKey,
+      isActive: true,
+      autoApply: true,
+    },
+    orderBy: [{ priority: 'desc' }, { updatedAt: 'desc' }],
+  });
+
+  const candidates = promotions
+    .filter((promotion) => matchesSchedule(promotion, now))
+    .filter((promotion) => matchesCustomerGroup(promotion, input.customerGroup))
+    .filter((promotion) => matchesUsageLimit(promotion))
+    .map((promotion) => {
+      const minimumSubtotal = decimalToNumber(promotion.minimumSubtotal);
+      if (minimumSubtotal != null && input.subtotal < minimumSubtotal) {
+        return null;
+      }
+
+      const eligibleItems = getEligibleItems(promotion, input.items);
+      if (!eligibleItems.length) {
+        return null;
+      }
+
+      const eligibleSubtotal = roundMoney(eligibleItems.reduce((sum, item) => sum + item.total, 0));
+      const amounts = resolvePromotionAmounts(promotion, input, eligibleSubtotal);
+      if (amounts.discountAmount <= 0) {
+        return null;
+      }
+
+      return {
+        promotion,
+        minimumSubtotal,
+        amounts,
+      };
+    })
+    .filter(Boolean) as Array<{
+      promotion: ShopPromotion;
+      minimumSubtotal: number | null;
+      amounts: { discountAmount: number; itemDiscountAmount: number; shippingDiscountAmount: number };
+    }>;
+
+  if (!candidates.length) {
+    return {
+      promotion: null,
+      discountAmount: 0,
+      itemDiscountAmount: 0,
+      shippingDiscountAmount: 0,
+      discountedSubtotal: roundMoney(input.subtotal),
+      discountedShippingCost: roundMoney(input.shippingCost),
+    };
+  }
+
+  candidates.sort((left, right) =>
+    comparePromotionCandidates(
+      { amount: left.amounts.discountAmount, promotion: left.promotion },
+      { amount: right.amounts.discountAmount, promotion: right.promotion }
+    )
+  );
+
+  const selected = candidates[0];
+
+  return {
+    promotion: buildPromotionSummary(selected.promotion, input, selected.minimumSubtotal, selected.amounts),
+    discountAmount: selected.amounts.discountAmount,
+    itemDiscountAmount: selected.amounts.itemDiscountAmount,
+    shippingDiscountAmount: selected.amounts.shippingDiscountAmount,
+    discountedSubtotal: roundMoney(input.subtotal - selected.amounts.itemDiscountAmount),
+    discountedShippingCost: roundMoney(input.shippingCost - selected.amounts.shippingDiscountAmount),
+  };
 }

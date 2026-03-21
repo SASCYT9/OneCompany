@@ -13,6 +13,8 @@ type PromotionRow = {
   descriptionUa: string | null;
   descriptionEn: string | null;
   promotionType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING';
+  autoApply: boolean;
+  priority: number;
   discountValue: number | null;
   currency: string | null;
   minimumSubtotal: number | null;
@@ -40,6 +42,8 @@ type FormState = {
   descriptionUa: string;
   descriptionEn: string;
   promotionType: PromotionRow['promotionType'];
+  autoApply: boolean;
+  priority: string;
   discountValue: string;
   currency: string;
   minimumSubtotal: string;
@@ -62,6 +66,8 @@ function createEmptyForm(): FormState {
     descriptionUa: '',
     descriptionEn: '',
     promotionType: 'PERCENTAGE',
+    autoApply: false,
+    priority: '0',
     discountValue: '',
     currency: 'EUR',
     minimumSubtotal: '',
@@ -89,6 +95,11 @@ export default function AdminPromotionsPage() {
   const [success, setSuccess] = useState('');
 
   const activePromotions = useMemo(() => promotions.filter((promotion) => promotion.isActive).length, [promotions]);
+  const autoApplyPromotions = useMemo(() => promotions.filter((promotion) => promotion.autoApply && promotion.isActive).length, [promotions]);
+  const totalUsageCount = useMemo(
+    () => promotions.reduce((sum, promotion) => sum + promotion.usageCount, 0),
+    [promotions]
+  );
 
   useEffect(() => {
     void loadStores();
@@ -138,6 +149,8 @@ export default function AdminPromotionsPage() {
       descriptionUa: promotion.descriptionUa ?? '',
       descriptionEn: promotion.descriptionEn ?? '',
       promotionType: promotion.promotionType,
+      autoApply: promotion.autoApply,
+      priority: String(promotion.priority),
       discountValue: promotion.discountValue != null ? String(promotion.discountValue) : '',
       currency: promotion.currency ?? 'EUR',
       minimumSubtotal: promotion.minimumSubtotal != null ? String(promotion.minimumSubtotal) : '',
@@ -177,6 +190,7 @@ export default function AdminPromotionsPage() {
           minimumSubtotal: form.minimumSubtotal || null,
           usageLimit: form.usageLimit || null,
           customerGroup: form.customerGroup || null,
+          priority: form.priority || '0',
         }),
       });
       const data = await response.json().catch(() => ({}));
@@ -271,6 +285,10 @@ export default function AdminPromotionsPage() {
               <input value={form.titleEn} onChange={(e) => setForm((current) => ({ ...current, titleEn: e.target.value }))} placeholder="Назва EN" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
               <textarea value={form.descriptionUa} onChange={(e) => setForm((current) => ({ ...current, descriptionUa: e.target.value }))} placeholder="Опис UA" className="min-h-[84px] w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
               <textarea value={form.descriptionEn} onChange={(e) => setForm((current) => ({ ...current, descriptionEn: e.target.value }))} placeholder="Опис EN" className="min-h-[84px] w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="flex items-center gap-2 text-sm text-white/70"><input type="checkbox" checked={form.autoApply} onChange={(e) => setForm((current) => ({ ...current, autoApply: e.target.checked }))} /> Автозастосування без коду</label>
+                <input value={form.priority} onChange={(e) => setForm((current) => ({ ...current, priority: e.target.value }))} placeholder="Пріоритет" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
+              </div>
               <select value={form.promotionType} onChange={(e) => setForm((current) => ({ ...current, promotionType: e.target.value as FormState['promotionType'] }))} className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
                 <option value="PERCENTAGE">Відсоток</option>
                 <option value="FIXED_AMOUNT">Фіксована сума</option>
@@ -303,6 +321,11 @@ export default function AdminPromotionsPage() {
                   Якщо вимкнено, акція працює тільки для вибраних `product slugs`, `category slugs` або брендів нижче.
                 </p>
               ) : null}
+              {form.autoApply ? (
+                <p className="text-xs text-emerald-300/80">
+                  Якщо одночасно активні кілька автоакцій, storefront вибере найвигіднішу, а при однаковій знижці спрацює більший пріоритет.
+                </p>
+              ) : null}
               <label className="flex items-center gap-2 text-sm text-white/70"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm((current) => ({ ...current, isActive: e.target.checked }))} /> Активна</label>
               <div className="flex gap-3">
                 <button type="button" onClick={() => void handleSave()} disabled={saving} className="flex-1 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
@@ -320,6 +343,20 @@ export default function AdminPromotionsPage() {
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="mb-4 grid gap-3 md:grid-cols-3">
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <div className="text-xs uppercase tracking-[0.18em] text-white/45">Активні</div>
+                <div className="mt-2 text-2xl font-semibold text-white">{activePromotions}</div>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <div className="text-xs uppercase tracking-[0.18em] text-white/45">Автоакції</div>
+                <div className="mt-2 text-2xl font-semibold text-white">{autoApplyPromotions}</div>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <div className="text-xs uppercase tracking-[0.18em] text-white/45">Використань</div>
+                <div className="mt-2 text-2xl font-semibold text-white">{totalUsageCount}</div>
+              </div>
+            </div>
             <div className="mb-4 flex items-center justify-between">
               <div className="text-sm text-white/65">{promotions.length} акцій, з них {activePromotions} активних</div>
               <div className="inline-flex items-center gap-2 text-sm text-white/50">
@@ -339,6 +376,7 @@ export default function AdminPromotionsPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-sm font-medium text-white">{promotion.titleUa}</span>
                           {promotion.code ? <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-white/60">{promotion.code}</span> : null}
+                          {promotion.autoApply ? <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">Авто</span> : null}
                           <span className={`rounded-full px-2 py-0.5 text-xs ${promotion.isActive ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/10 text-white/50'}`}>
                             {promotion.isActive ? 'Активна' : 'Вимкнена'}
                           </span>
@@ -346,6 +384,7 @@ export default function AdminPromotionsPage() {
                         <p className="mt-1 text-xs text-white/45">
                           {promotion.promotionType} · використано {promotion.usageCount}
                           {promotion.usageLimit != null ? ` / ${promotion.usageLimit}` : ''}
+                          {promotion.autoApply ? ` · пріоритет ${promotion.priority}` : ''}
                         </p>
                         <p className="mt-2 text-sm text-white/70">
                           {promotion.descriptionUa || 'Без окремого опису'}

@@ -33,6 +33,8 @@ function createPromotion(overrides: Record<string, unknown> = {}) {
     descriptionUa: 'Знижка 10%',
     descriptionEn: '10% off',
     promotionType: ShopPromotionType.PERCENTAGE,
+    autoApply: false,
+    priority: 0,
     discountValue: 10,
     currency: 'EUR',
     minimumSubtotal: null,
@@ -52,10 +54,11 @@ function createPromotion(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function createPrismaMock(promotion: Record<string, unknown> | null) {
+function createPrismaMock(promotion: Record<string, unknown> | null, promotions: Record<string, unknown>[] = []) {
   return {
     shopPromotion: {
       findFirst: async () => promotion,
+      findMany: async () => promotions,
     },
   } as any;
 }
@@ -129,4 +132,73 @@ test('evaluateShopPromotion rejects subtotal below minimum', async () => {
       ),
     /PROMOTION_MINIMUM_NOT_MET/
   );
+});
+
+test('evaluateShopPromotion auto applies best matching promotion when no code is provided', async () => {
+  const result = await evaluateShopPromotion(
+    createPrismaMock(null, [
+      createPromotion({
+        id: 'promo-auto-1',
+        code: null,
+        autoApply: true,
+        discountValue: 5,
+      }),
+      createPromotion({
+        id: 'promo-auto-2',
+        code: null,
+        autoApply: true,
+        discountValue: 12,
+        brandNames: ['Urban'],
+        appliesToAll: false,
+      }),
+    ]),
+    {
+      storeKey: 'urban',
+      currency: 'EUR',
+      locale: 'en',
+      customerGroup: CustomerGroup.B2C,
+      settings,
+      subtotal: 1000,
+      shippingCost: 90,
+      items: [{ productSlug: 'test-product', brand: 'Urban', categorySlug: 'bodykits', total: 1000 }],
+    }
+  );
+
+  assert.equal(result.promotion?.amount, 120);
+  assert.equal(result.promotion?.code, null);
+  assert.equal(result.discountAmount, 120);
+});
+
+test('evaluateShopPromotion uses priority to break ties for auto promotions', async () => {
+  const result = await evaluateShopPromotion(
+    createPrismaMock(null, [
+      createPromotion({
+        id: 'promo-auto-low',
+        code: null,
+        autoApply: true,
+        priority: 1,
+        discountValue: 10,
+      }),
+      createPromotion({
+        id: 'promo-auto-high',
+        code: null,
+        autoApply: true,
+        priority: 20,
+        discountValue: 10,
+      }),
+    ]),
+    {
+      storeKey: 'urban',
+      currency: 'EUR',
+      locale: 'en',
+      customerGroup: CustomerGroup.B2C,
+      settings,
+      subtotal: 1000,
+      shippingCost: 90,
+      items: [{ productSlug: 'test-product', brand: 'Urban', categorySlug: 'bodykits', total: 1000 }],
+    }
+  );
+
+  assert.equal(result.promotion?.id, 'promo-auto-high');
+  assert.equal(result.discountAmount, 100);
 });

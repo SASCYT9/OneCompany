@@ -553,6 +553,8 @@ model ShopPromotion {
   descriptionUa    String?           @db.Text
   descriptionEn    String?           @db.Text
   promotionType    ShopPromotionType
+  autoApply        Boolean           @default(false)
+  priority         Int               @default(0)
   discountValue    Decimal?          @db.Decimal(12, 2)
   currency         String?
   minimumSubtotal  Decimal?          @db.Decimal(12, 2)

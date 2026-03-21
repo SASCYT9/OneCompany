@@ -40,6 +40,8 @@ function normalizePromotionPatch(body: Record<string, unknown>) {
     descriptionUa: Object.prototype.hasOwnProperty.call(body, 'descriptionUa') ? nullableString(body.descriptionUa) : undefined,
     descriptionEn: Object.prototype.hasOwnProperty.call(body, 'descriptionEn') ? nullableString(body.descriptionEn) : undefined,
     promotionType: rawType && (Object.values(ShopPromotionType) as string[]).includes(rawType) ? (rawType as ShopPromotionType) : undefined,
+    autoApply: Object.prototype.hasOwnProperty.call(body, 'autoApply') ? body.autoApply === true : undefined,
+    priority: Object.prototype.hasOwnProperty.call(body, 'priority') ? Math.max(0, Number(body.priority ?? 0) || 0) : undefined,
     discountValue: Object.prototype.hasOwnProperty.call(body, 'discountValue') ? nullableNumber(body.discountValue) : undefined,
     currency: Object.prototype.hasOwnProperty.call(body, 'currency') ? nullableString(body.currency)?.toUpperCase() ?? null : undefined,
     minimumSubtotal: Object.prototype.hasOwnProperty.call(body, 'minimumSubtotal') ? nullableNumber(body.minimumSubtotal) : undefined,
