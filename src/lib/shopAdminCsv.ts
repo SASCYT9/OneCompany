@@ -117,6 +117,18 @@ function firstNullableValue(rows: CsvRecord[], column: string): string | null {
   return nullableString(firstNonEmptyValue(rows, column));
 }
 
+function firstNonEmptyFromColumns(rows: CsvRecord[], columns: string[]): string {
+  for (const column of columns) {
+    const value = firstNonEmptyValue(rows, column);
+    if (value) return value;
+  }
+  return '';
+}
+
+function firstNullableFromColumns(rows: CsvRecord[], columns: string[]): string | null {
+  return nullableString(firstNonEmptyFromColumns(rows, columns));
+}
+
 function boolValue(value: string | undefined, fallback = false): boolean {
   const normalized = stringValue(value).toLowerCase();
   if (!normalized) return fallback;
@@ -201,6 +213,16 @@ function optionLinkedTo(record: CsvRecord, index: 1 | 2 | 3) {
 function buildProductPayload(handle: string, rows: CsvRecord[], columns: string[]): AdminShopProductPayload {
   const first = rows.find((row) => stringValue(row['Title'])) ?? rows[0];
   const bodyHtml = firstNonEmptyValue(rows, 'Body (HTML)');
+  const titleEn = firstNonEmptyFromColumns(rows, ['Title (EN)', 'Title EN', 'title_en', 'titleEn']) || firstNonEmptyValue(rows, 'Title');
+  const bodyHtmlEn = firstNonEmptyFromColumns(rows, ['Body (HTML) (EN)', 'Body (HTML) EN', 'body_html_en', 'bodyHtmlEn']);
+  const categoryEn = firstNonEmptyFromColumns(rows, ['Type (EN)', 'Type EN', 'category_en', 'Category EN', 'product_category_en']);
+  const collectionEn = firstNonEmptyFromColumns(rows, [
+    'vehicle_en (product.metafields.custom.vehicle_en)',
+    'vehicle_en',
+    'Vehicle EN',
+    'Collection EN',
+    'collection_en',
+  ]);
   const defaultImage = firstNullableValue(rows, 'Image Src');
   const defaultVariantImage = firstNullableValue(rows, 'Variant Image');
   const mediaMap = new Map<string, { src: string; altText?: string; position: number }>();
@@ -311,20 +333,20 @@ function buildProductPayload(handle: string, rows: CsvRecord[], columns: string[
     collectionIds: [],
     status,
     titleUa: firstNonEmptyValue(rows, 'Title'),
-    titleEn: firstNonEmptyValue(rows, 'Title'),
+    titleEn,
     categoryUa: firstNullableValue(rows, 'Type'),
-    categoryEn: firstNullableValue(rows, 'Type'),
+    categoryEn: categoryEn ?? firstNullableValue(rows, 'Type'),
     shortDescUa: excerpt(bodyHtml),
-    shortDescEn: excerpt(bodyHtml),
+    shortDescEn: excerpt(bodyHtmlEn || bodyHtml),
     longDescUa: htmlToPlainText(bodyHtml),
-    longDescEn: htmlToPlainText(bodyHtml),
+    longDescEn: htmlToPlainText(bodyHtmlEn || bodyHtml),
     bodyHtmlUa: nullableString(bodyHtml),
-    bodyHtmlEn: nullableString(bodyHtml),
+    bodyHtmlEn: nullableString(bodyHtmlEn || bodyHtml),
     leadTimeUa: null,
     leadTimeEn: null,
     stock: (variants.some((variant) => (variant.inventoryQty ?? 0) > 0) ? 'inStock' : 'preOrder'),
     collectionUa: firstNullableValue(rows, 'vehicle (product.metafields.custom.vehicle)'),
-    collectionEn: firstNullableValue(rows, 'vehicle (product.metafields.custom.vehicle)'),
+    collectionEn: collectionEn ?? firstNullableValue(rows, 'vehicle (product.metafields.custom.vehicle)'),
     priceEur: primaryVariant?.priceEur ?? null,
     priceUsd: null,
     priceUah: primaryVariant?.priceUah ?? null,
@@ -333,9 +355,11 @@ function buildProductPayload(handle: string, rows: CsvRecord[], columns: string[
     compareAtUah: primaryVariant?.compareAtUah ?? null,
     image: defaultImage ?? defaultVariantImage,
     seoTitleUa: firstNullableValue(rows, 'SEO Title'),
-    seoTitleEn: firstNullableValue(rows, 'SEO Title'),
+    seoTitleEn: firstNullableFromColumns(rows, ['SEO Title (EN)', 'SEO Title EN', 'seo_title_en', 'seoTitleEn']) ?? firstNullableValue(rows, 'SEO Title'),
     seoDescriptionUa: firstNullableValue(rows, 'SEO Description'),
-    seoDescriptionEn: firstNullableValue(rows, 'SEO Description'),
+    seoDescriptionEn:
+      firstNullableFromColumns(rows, ['SEO Description (EN)', 'SEO Description EN', 'seo_description_en', 'seoDescriptionEn']) ??
+      firstNullableValue(rows, 'SEO Description'),
     isPublished: published,
     publishedAt: published ? new Date().toISOString() : null,
     gallery: Array.from(mediaMap.values()).map((item) => item.src),

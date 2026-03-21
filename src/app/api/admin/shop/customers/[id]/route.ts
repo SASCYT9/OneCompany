@@ -1,6 +1,5 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import { approveCustomerB2B, revertCustomerToB2C } from '@/lib/shopCustomers';
@@ -8,8 +7,7 @@ import {
   getShopCustomerAdminDetail,
   normalizeShopCustomerAdminPayload,
 } from '@/lib/shopAdminCustomers';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 type Params = {
   params: Promise<{ id: string }>;

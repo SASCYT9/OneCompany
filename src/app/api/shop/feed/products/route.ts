@@ -10,6 +10,7 @@ import { NextRequest } from 'next/server';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import { buildShopProductPath } from '@/lib/urbanCollectionMatcher';
 import type { ShopProduct } from '@/lib/shopCatalog';
+import { localizeShopDescription, localizeShopProductTitle } from '@/lib/shopText';
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -25,11 +26,11 @@ function escapeXml(text: string): string {
 }
 
 function localize(product: ShopProduct, locale: 'ua' | 'en'): { title: string; description: string } {
-  const title = locale === 'ua' ? product.title.ua : product.title.en;
-  const description = locale === 'ua' ? product.shortDescription.ua : product.shortDescription.en;
+  const title = localizeShopProductTitle(locale, product);
+  const description = localizeShopDescription(locale, product.shortDescription);
   return {
-    title: (title || product.title.en || product.slug).trim().slice(0, 150),
-    description: (description || product.shortDescription.en || '').trim().slice(0, 5000),
+    title: (title || product.slug).trim().slice(0, 150),
+    description: (description || '').trim().slice(0, 5000),
   };
 }
 

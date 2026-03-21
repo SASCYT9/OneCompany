@@ -227,7 +227,8 @@ export default function AdminOrderDetailPage() {
     if (!order || typeof window === 'undefined') {
       return '';
     }
-    return `${window.location.origin}/api/shop/orders/${order.orderNumber}?token=${order.viewToken}`;
+    const locale = 'ua';
+    return `${window.location.origin}/${locale}/shop/checkout/success?order=${encodeURIComponent(order.orderNumber)}&token=${encodeURIComponent(order.viewToken)}`;
   }, [order]);
 
   async function handleStatusChange(targetStatus?: string) {

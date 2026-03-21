@@ -11,16 +11,18 @@ function verifySetupAccess(req: NextRequest): boolean {
   if (authHeader?.startsWith('Bearer ')) {
     return authHeader.slice(7) === ADMIN_API_SECRET;
   }
-
-  const url = new URL(req.url);
-  return url.searchParams.get('secret') === ADMIN_API_SECRET;
+  return false;
 }
 
 /**
  * Налаштовує веб-хук для Telegram бота
- * Викликайте цей endpoint після деплою: GET /api/telegram/setup
+ * Викликайте цей endpoint після деплою: POST /api/telegram/setup
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
+  return NextResponse.json({ error: 'Method Not Allowed' }, { status: 405 });
+}
+
+export async function POST(req: NextRequest) {
   try {
     if (!verifySetupAccess(req)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

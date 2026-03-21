@@ -4,7 +4,6 @@
  * products from admin appear; otherwise only static catalog is used.
  */
 
-import { PrismaClient } from '@prisma/client';
 import {
   SHOP_PRODUCTS,
   getShopProductBySlug as getStaticBySlug,
@@ -18,8 +17,8 @@ import {
   type AdminShopProductRecord,
 } from '@/lib/shopAdminCatalog';
 import { resolveBundleInventory } from '@/lib/shopBundles';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { resolveUrbanThemeAssetUrl } from '@/lib/urbanThemeAssets';
 
 function moneySet(input: Partial<ShopMoneySet> | null | undefined): ShopMoneySet {
   return {
@@ -62,7 +61,7 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
             slug: item.componentProduct.slug,
             scope: item.componentProduct.scope === 'moto' ? 'moto' : 'auto',
             brand: item.componentProduct.brand ?? '',
-            image: item.componentProduct.image ?? '',
+            image: resolveUrbanThemeAssetUrl(item.componentProduct.image ?? ''),
             title: {
               ua: item.componentProduct.titleUa,
               en: item.componentProduct.titleEn,
@@ -159,8 +158,8 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
       productB2BCompareAt.eur > 0 || productB2BCompareAt.usd > 0 || productB2BCompareAt.uah > 0
         ? productB2BCompareAt
         : undefined,
-    image: row.image ?? primaryVariant?.image ?? galleryFromMedia[0] ?? '',
-    gallery: legacyGallery.length ? legacyGallery : galleryFromMedia,
+    image: resolveUrbanThemeAssetUrl(row.image ?? primaryVariant?.image ?? galleryFromMedia[0] ?? ''),
+    gallery: (legacyGallery.length ? legacyGallery : galleryFromMedia).map((url) => resolveUrbanThemeAssetUrl(url)),
     highlights: highlightsArr,
     variants: row.variants.map((variant) => {
       const variantB2BPrice = moneySet({
@@ -183,7 +182,7 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
           (value): value is string => Boolean(value)
         ),
         inventoryQty: variant.inventoryQty,
-        image: variant.image,
+        image: variant.image ? resolveUrbanThemeAssetUrl(variant.image) : null,
         isDefault: variant.isDefault,
         price: moneySet({
           eur: num(variant.priceEur),

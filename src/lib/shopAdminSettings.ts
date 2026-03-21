@@ -26,6 +26,17 @@ export type ShopTaxRegion = {
   enabled: boolean;
 };
 
+export type ShopRegionalPricingRule = {
+  id: string;
+  name: string;
+  countries: string[];
+  regions: string[];
+  mode: 'percent' | 'fixed';
+  value: number;
+  currency: ShopCurrencyCode;
+  enabled: boolean;
+};
+
 export type ShopSettingsRuntime = {
   key: string;
   b2bVisibilityMode: string;
@@ -35,8 +46,10 @@ export type ShopSettingsRuntime = {
   currencyRates: Record<ShopCurrencyCode, number>;
   shippingZones: ShopShippingZone[];
   taxRegions: ShopTaxRegion[];
+  regionalPricingRules: ShopRegionalPricingRule[];
   orderNotificationEmail: string | null;
   b2bNotes: string | null;
+  showTaxesIncludedNotice: boolean;
   fopCompanyName: string | null;
   fopIban: string | null;
   fopBankName: string | null;
@@ -57,8 +70,10 @@ export type ShopSettingsRecord = {
   currencyRates: Prisma.JsonValue;
   shippingZones: Prisma.JsonValue;
   taxRegions: Prisma.JsonValue;
+  regionalPricingRules: Prisma.JsonValue;
   orderNotificationEmail: string | null;
   b2bNotes: string | null;
+  showTaxesIncludedNotice: boolean;
   fopCompanyName: string | null;
   fopIban: string | null;
   fopBankName: string | null;
@@ -78,8 +93,10 @@ export type ShopSettingsPayload = {
   currencyRates: Record<string, number>;
   shippingZones: Array<Record<string, unknown>>;
   taxRegions: Array<Record<string, unknown>>;
+  regionalPricingRules: Array<Record<string, unknown>>;
   orderNotificationEmail: string | null;
   b2bNotes: string | null;
+  showTaxesIncludedNotice: boolean;
   fopCompanyName: string | null;
   fopIban: string | null;
   fopBankName: string | null;
@@ -142,6 +159,8 @@ export const DEFAULT_TAX_REGIONS: ShopTaxRegion[] = [
     enabled: false,
   },
 ];
+
+export const DEFAULT_REGIONAL_PRICING_RULES: ShopRegionalPricingRule[] = [];
 
 function stringValue(value: unknown, fallback = ''): string {
   return String(value ?? fallback).trim();
@@ -247,6 +266,26 @@ function normalizeShopTaxRegions(value: unknown): ShopTaxRegion[] {
   return regions.length ? regions : DEFAULT_TAX_REGIONS.map((region) => ({ ...region }));
 }
 
+function normalizeShopRegionalPricingRules(value: unknown): ShopRegionalPricingRule[] {
+  return asObjectArray(value).map((entry, index) => {
+    const countries = stringArray(entry.countries);
+    const regions = stringArray(entry.regions);
+    const mode = stringValue(entry.mode, 'percent') === 'fixed' ? 'fixed' : 'percent';
+    const parsedValue = Number(entry.value ?? 0);
+
+    return {
+      id: stringValue(entry.id, `regional-rule-${index + 1}`) || `regional-rule-${index + 1}`,
+      name: stringValue(entry.name, `Regional rule ${index + 1}`) || `Regional rule ${index + 1}`,
+      countries: countries.length ? countries : ['*'],
+      regions,
+      mode,
+      value: Number.isFinite(parsedValue) ? parsedValue : 0,
+      currency: normalizeCurrencyCode(entry.currency, 'EUR'),
+      enabled: entry.enabled === true,
+    } satisfies ShopRegionalPricingRule;
+  });
+}
+
 function normalizeEnabledCurrencies(value: unknown, fallback: ShopCurrencyCode): ShopCurrencyCode[] {
   const values = Array.from(
     new Set(
@@ -277,8 +316,10 @@ export function normalizeShopSettingsPayload(input: unknown) {
     currencyRates: normalizeShopCurrencyRates(source.currencyRates),
     shippingZones: normalizeShopShippingZones(source.shippingZones),
     taxRegions: normalizeShopTaxRegions(source.taxRegions),
+    regionalPricingRules: normalizeShopRegionalPricingRules(source.regionalPricingRules),
     orderNotificationEmail: nullableString(source.orderNotificationEmail),
     b2bNotes: nullableString(source.b2bNotes),
+    showTaxesIncludedNotice: source.showTaxesIncludedNotice === true,
     fopCompanyName: nullableString(source.fopCompanyName),
     fopIban: nullableString(source.fopIban),
     fopBankName: nullableString(source.fopBankName),
@@ -333,8 +374,10 @@ export function buildShopSettingsRuntimeFromPayload(
     currencyRates: normalizeShopCurrencyRates(payload.currencyRates),
     shippingZones: normalizeShopShippingZones(payload.shippingZones),
     taxRegions: normalizeShopTaxRegions(payload.taxRegions),
+    regionalPricingRules: normalizeShopRegionalPricingRules(payload.regionalPricingRules),
     orderNotificationEmail: payload.orderNotificationEmail,
     b2bNotes: payload.b2bNotes,
+    showTaxesIncludedNotice: payload.showTaxesIncludedNotice,
     fopCompanyName: payload.fopCompanyName,
     fopIban: payload.fopIban,
     fopBankName: payload.fopBankName,
@@ -357,8 +400,10 @@ export function getShopSettingsRuntime(record: ShopSettingsRecord): ShopSettings
       currencyRates: record.currencyRates,
       shippingZones: record.shippingZones,
       taxRegions: record.taxRegions,
+      regionalPricingRules: record.regionalPricingRules,
       orderNotificationEmail: record.orderNotificationEmail,
       b2bNotes: record.b2bNotes,
+      showTaxesIncludedNotice: record.showTaxesIncludedNotice,
       fopCompanyName: record.fopCompanyName,
       fopIban: record.fopIban,
       fopBankName: record.fopBankName,
@@ -386,8 +431,10 @@ export function serializeShopSettings(record: ShopSettingsRecord) {
     currencyRates: runtime.currencyRates,
     shippingZones: runtime.shippingZones,
     taxRegions: runtime.taxRegions,
+    regionalPricingRules: runtime.regionalPricingRules,
     orderNotificationEmail: runtime.orderNotificationEmail,
     b2bNotes: runtime.b2bNotes,
+    showTaxesIncludedNotice: runtime.showTaxesIncludedNotice,
     fopCompanyName: runtime.fopCompanyName,
     fopIban: runtime.fopIban,
     fopBankName: runtime.fopBankName,
@@ -412,6 +459,8 @@ export async function getOrCreateShopSettings(prisma: PrismaClient) {
       currencyRates: DEFAULT_CURRENCY_RATES,
       shippingZones: DEFAULT_SHIPPING_ZONES,
       taxRegions: DEFAULT_TAX_REGIONS,
+      regionalPricingRules: DEFAULT_REGIONAL_PRICING_RULES,
+      showTaxesIncludedNotice: false,
       stripeEnabled: false,
       whiteBitEnabled: false,
     },

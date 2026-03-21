@@ -1,6 +1,5 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import {
@@ -8,8 +7,7 @@ import {
   normalizeAdminShopBundlePayload,
   serializeAdminShopBundleDetail,
 } from '@/lib/shopAdminBundles';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 async function validateBundlePayload(
   bundleId: string,

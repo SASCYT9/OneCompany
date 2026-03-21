@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { buildCheckoutQuote, type CheckoutShippingAddress } from '@/lib/shopCheckout';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { resolveShopCart, SHOP_CART_COOKIE } from '@/lib/shopCart';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 type QuoteBody = {
@@ -62,6 +61,7 @@ export async function POST(request: NextRequest) {
       currency: String(body.currency ?? 'EUR').toUpperCase(),
       pricingAudience: session?.group === 'B2B_APPROVED' ? 'b2b' : 'b2c',
       subtotal: 0,
+      regionalAdjustmentAmount: 0,
       shippingCost: 0,
       taxAmount: 0,
       total: 0,
@@ -69,6 +69,8 @@ export async function POST(request: NextRequest) {
       items: [],
       shippingZone: null,
       taxRegion: null,
+      regionalPricingRule: null,
+      showTaxesIncludedNotice: false,
     });
     response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
       path: '/',
@@ -94,6 +96,7 @@ export async function POST(request: NextRequest) {
     currency: quote.currency,
     pricingAudience: quote.pricingAudience,
     subtotal: quote.subtotal,
+    regionalAdjustmentAmount: quote.regionalAdjustmentAmount,
     shippingCost: quote.shippingCost,
     taxAmount: quote.taxAmount,
     total: quote.total,
@@ -101,6 +104,8 @@ export async function POST(request: NextRequest) {
     items: quote.items,
     shippingZone: quote.shippingZone,
     taxRegion: quote.taxRegion,
+    regionalPricingRule: quote.regionalPricingRule,
+    showTaxesIncludedNotice: quote.showTaxesIncludedNotice,
   });
   response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
     path: '/',

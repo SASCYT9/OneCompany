@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import {
   getOrdersForCustomerDisplay,
   serializeShopCustomerProfile,
   shopCustomerProfileIncludeWithoutOrders,
 } from '@/lib/shopCustomers';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {

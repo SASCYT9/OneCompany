@@ -144,7 +144,7 @@ export default function PartnershipPageClient() {
               </a>
 
               <a
-                href="#"
+                href="tel:+380660771700"
                 className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] text-white group w-fit"
               >
                 <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">

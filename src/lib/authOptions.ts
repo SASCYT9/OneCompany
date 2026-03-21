@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import {
@@ -8,10 +7,15 @@ import {
   verifyShopCustomerPassword,
 } from '@/lib/shopCustomers';
 import { consumeRateLimit } from '@/lib/shopPublicRateLimit';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
 const LOGIN_WINDOW_MS = 60_000;
 const LOGIN_MAX_PER_WINDOW = 12;
+const NEXTAUTH_SECRET = (process.env.NEXTAUTH_SECRET || '').trim();
+
+if (process.env.NODE_ENV === 'production' && !NEXTAUTH_SECRET) {
+  throw new Error('NEXTAUTH_SECRET is required in production');
+}
 
 function getRequestIpFromNextAuthRequest(request: unknown) {
   const headers = (request as { headers?: Headers | Record<string, string | string[] | undefined> })?.headers;
@@ -64,7 +68,7 @@ async function loadCurrentCustomerTokenState(customerId: string) {
 }
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET || 'dev-shop-customer-secret',
+  secret: NEXTAUTH_SECRET || 'dev-shop-customer-secret',
   session: {
     strategy: 'jwt',
   },

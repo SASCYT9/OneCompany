@@ -1,6 +1,5 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import {
@@ -10,8 +9,7 @@ import {
   normalizeAdminProductPayload,
   serializeAdminProductListItem,
 } from '@/lib/shopAdminCatalog';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {

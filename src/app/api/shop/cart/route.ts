@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { SHOP_CART_COOKIE, replaceEntireShopCart, resolveShopCart, serializeResolvedShopCart } from '@/lib/shopCart';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 function setCartCookie(response: NextResponse, token: string) {

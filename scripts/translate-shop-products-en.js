@@ -62,6 +62,10 @@ function isMissingOrSameAsUa(ua, en) {
   return uaN.toLowerCase() === enN.toLowerCase();
 }
 
+function containsCyrillic(value) {
+  return /[А-Яа-яІіЇїЄєҐґ]/.test(String(value ?? ''));
+}
+
 function stripHtml(value) {
   return normText(String(value ?? '').replace(/<[^>]+>/g, ' '));
 }
@@ -173,6 +177,8 @@ async function main() {
         slug: true,
         titleUa: true,
         titleEn: true,
+        seoTitleUa: true,
+        seoTitleEn: true,
         shortDescUa: true,
         shortDescEn: true,
         longDescUa: true,
@@ -189,12 +195,14 @@ async function main() {
   }
 
   const candidates = products.filter((p) => {
+    const titleNeed = isMissingOrSameAsUa(p.titleUa, p.titleEn) || containsCyrillic(p.titleEn);
+    const seoTitleNeed = isMissingOrSameAsUa(p.seoTitleUa, p.seoTitleEn) || containsCyrillic(p.seoTitleEn);
     const shortNeed = isMissingOrSameAsUa(p.shortDescUa, p.shortDescEn);
     const longNeed = isMissingOrSameAsUa(p.longDescUa || p.bodyHtmlUa, p.longDescEn || p.bodyHtmlEn);
     const htmlNeed =
       args.translateHtml &&
       isMissingOrSameAsUa(stripHtml(p.bodyHtmlUa), stripHtml(p.bodyHtmlEn));
-    return shortNeed || longNeed || htmlNeed;
+    return titleNeed || seoTitleNeed || shortNeed || longNeed || htmlNeed;
   });
 
   console.log(
@@ -226,6 +234,44 @@ async function main() {
     const planned = [];
 
     try {
+    const titleUa = normText(p.titleUa);
+    if ((isMissingOrSameAsUa(titleUa, p.titleEn) || containsCyrillic(p.titleEn)) && titleUa) {
+      const key = `title:${titleUa.toLowerCase()}`;
+      const translated =
+        cache.get(key) ||
+        (DEEPL_AUTH_KEY
+          ? await translateWithRetry({
+              text: titleUa,
+              sourceLang: 'Ukrainian',
+              targetLang: 'English',
+              isHtml: false,
+            })
+          : '');
+      if (translated) cache.set(key, translated);
+      if (translated) updates.titleEn = translated;
+      planned.push('titleEn');
+      if (args.delayMs) await sleep(args.delayMs);
+    }
+
+    const seoTitleUa = normText(p.seoTitleUa);
+    if ((isMissingOrSameAsUa(seoTitleUa, p.seoTitleEn) || containsCyrillic(p.seoTitleEn)) && seoTitleUa) {
+      const key = `seo_title:${seoTitleUa.toLowerCase()}`;
+      const translated =
+        cache.get(key) ||
+        (DEEPL_AUTH_KEY
+          ? await translateWithRetry({
+              text: seoTitleUa,
+              sourceLang: 'Ukrainian',
+              targetLang: 'English',
+              isHtml: false,
+            })
+          : '');
+      if (translated) cache.set(key, translated);
+      if (translated) updates.seoTitleEn = translated;
+      planned.push('seoTitleEn');
+      if (args.delayMs) await sleep(args.delayMs);
+    }
+
     const shortUa = normText(p.shortDescUa);
     if (isMissingOrSameAsUa(shortUa, p.shortDescEn) && shortUa) {
       const key = `short:${shortUa.toLowerCase()}`;

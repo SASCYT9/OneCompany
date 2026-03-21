@@ -28,8 +28,7 @@ export const OUR_STORES: OurStore[] = [
     descriptionUk:
       "Преміальні обвіси та стилізація. Офіційний постачальник Urban в Україні.",
     href: "",
-    imageUrl:
-      "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp",
+    imageUrl: "/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp",
   },
   {
     id: "kw",
@@ -54,9 +53,8 @@ export const OUR_STORES: OurStore[] = [
       "Керовані вихлопні системи з фірмовим звучанням для преміальних спортивних авто.",
     href: "https://fiexhaust.shop",
     external: true,
-    // Офіційне фото з store.fi-exhaust.com — Lamborghini Revuelto Valvetronic Muffler
-    imageUrl:
-      "https://cdn.shopify.com/s/files/1/0552/0615/0282/files/reveulto-valvetronic-exhaust-no-cel-3.webp?v=1752216936",
+    // Офіційне фото — Lamborghini Revuelto Valvetronic Muffler (збережено локально)
+    imageUrl: "/images/shop/stores/fi-reveulto-valvetronic-exhaust.webp",
   },
   {
     id: "eventuri",

@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 
 interface BrandLogoProps {
   name: string;
@@ -62,16 +61,15 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({ name, src, className = '',
         </div>
       )}
       {inView && (
-        <Image
+        <img
           src={current}
           alt={alt || `${name} - офіційний дилер Україна Київ, купити ${name} тюнінг`}
-          fill
-          className={`object-contain transition-all duration-500 ${loaded ? 'opacity-90 hover:opacity-100' : 'opacity-0'}`}
+          className={`absolute inset-0 h-full w-full object-contain transition-all duration-500 ${loaded ? 'opacity-90 hover:opacity-100' : 'opacity-0'}`}
           loading={lazy ? 'lazy' : 'eager'}
           onLoad={() => setLoaded(true)}
           onError={() => {
             setLoaded(false);
-            setIdx(prev => (prev + 1));
+            setIdx((prev) => prev + 1);
           }}
         />
       )}

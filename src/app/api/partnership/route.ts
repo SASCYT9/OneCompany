@@ -5,13 +5,13 @@ import type { NextRequest } from 'next/server';
 import { Resend } from 'resend';
 import * as fs from 'fs';
 import * as path from 'path';
-import { PrismaClient } from '@prisma/client';
 import {
   buildTelegramActionButtons,
   getConfiguredContactTopicDestination,
   normalizeTelegramChatId,
   sendTelegramToDestinations,
 } from '@/lib/telegramNotifications';
+import { prisma } from '@/lib/prisma';
 
 // Basic rate limiting (memory).
 const WINDOW_MS = 60_000; // 1 minute
@@ -28,7 +28,6 @@ type PartnershipRequestBody = {
   message?: string;
 };
 
-const prisma = new PrismaClient();
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
 
 function rateLimit(ip: string): boolean {

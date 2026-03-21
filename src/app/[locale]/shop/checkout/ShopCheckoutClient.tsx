@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import { trackBeginCheckout } from '@/lib/analytics';
+import { formatShopMoney, type ShopCurrencyCode } from '@/lib/shopMoneyFormat';
 
 type CartItem = {
   id: string;
@@ -35,12 +36,15 @@ type CheckoutQuote = {
   currency: string;
   pricingAudience: 'b2c' | 'b2b';
   subtotal: number;
+  regionalAdjustmentAmount: number;
   shippingCost: number;
   taxAmount: number;
   total: number;
   itemCount: number;
   shippingZone: { id: string; name: string } | null;
   taxRegion: { id: string; name: string; rate?: number } | null;
+  regionalPricingRule: { id: string; name: string; value?: number; mode?: 'percent' | 'fixed'; currency?: string } | null;
+  showTaxesIncludedNotice: boolean;
 };
 
 type PaymentOptions = {
@@ -53,6 +57,15 @@ type PaymentOptions = {
     details: string | null;
   } | null;
 };
+
+function getPrice(
+  price: { eur: number; usd: number; uah: number },
+  currency: ShopCurrencyCode,
+) {
+  if (currency === 'USD') return price.usd;
+  if (currency === 'EUR') return price.eur;
+  return price.uah;
+}
 
 export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale }) {
   const router = useRouter();
@@ -429,7 +442,13 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                     {item.variantTitle ? ` · ${item.variantTitle}` : ''}
                   </span>
                   <span className="text-white/55">
-                    {quote?.currency || form.currency}
+                    {item.price
+                      ? formatShopMoney(
+                          locale,
+                          getPrice(item.price, (quote?.currency || form.currency) as ShopCurrencyCode) * item.quantity,
+                          (quote?.currency || form.currency) as ShopCurrencyCode,
+                        )
+                      : '—'}
                   </span>
                 </li>
               ))}
@@ -440,19 +459,27 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
             <div className="mt-4 space-y-2 border-t border-white/10 pt-4 text-sm text-white/70">
               <div className="flex items-center justify-between">
                 <span>{isUa ? 'Підсумок товарів' : 'Subtotal'}</span>
-                <span>{quote?.currency || form.currency} {(quote?.subtotal ?? 0).toFixed(0)}</span>
+                <span>{formatShopMoney(locale, quote?.subtotal ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>{isUa ? 'Регіональна корекція' : 'Regional adjustment'}</span>
+                <span>{formatShopMoney(locale, quote?.regionalAdjustmentAmount ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>{isUa ? 'Доставка' : 'Shipping'}</span>
-                <span>{quote?.currency || form.currency} {(quote?.shippingCost ?? 0).toFixed(0)}</span>
+                <span>{formatShopMoney(locale, quote?.shippingCost ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>{isUa ? 'Податок' : 'Tax'}</span>
-                <span>{quote?.currency || form.currency} {(quote?.taxAmount ?? 0).toFixed(0)}</span>
+                <span>
+                  {quote && quote.taxAmount <= 0 && quote.showTaxesIncludedNotice
+                    ? (isUa ? 'Податки включено' : 'Taxes included')
+                    : formatShopMoney(locale, quote?.taxAmount ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}
+                </span>
               </div>
               <div className="flex items-center justify-between border-t border-white/10 pt-3 text-base font-medium text-white">
                 <span>{isUa ? 'Разом' : 'Total'}</span>
-                <span>{quote?.currency || form.currency} {(quote?.total ?? 0).toFixed(0)}</span>
+                <span>{formatShopMoney(locale, quote?.total ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
               </div>
             </div>
 
@@ -463,6 +490,11 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
             {quote?.taxRegion ? (
               <p className="mt-3 text-xs text-white/40">
                 {isUa ? 'Податкове правило' : 'Tax rule'}: {quote.taxRegion.name}
+              </p>
+            ) : null}
+            {quote?.regionalPricingRule ? (
+              <p className="mt-2 text-xs text-white/40">
+                {isUa ? 'Регіональна корекція' : 'Regional adjustment'}: {quote.regionalPricingRule.name}
               </p>
             ) : null}
           </div>

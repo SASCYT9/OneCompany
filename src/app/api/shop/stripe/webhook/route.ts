@@ -4,15 +4,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import Stripe from 'stripe';
 import { render } from '@react-email/render';
 import { Resend } from 'resend';
 import OrderConfirmationEmail from '@/components/emails/OrderConfirmationEmail';
 import { notifyAdminNewShopOrder } from '@/lib/telegramNotifications';
 import { getStripeClient } from '@/lib/shopStripe';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();

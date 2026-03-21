@@ -4,6 +4,7 @@ import {
   getOrCreateShopSettings,
   getShopSettingsRuntime,
   type ShopCurrencyCode,
+  type ShopRegionalPricingRule,
   type ShopSettingsRuntime,
   type ShopShippingZone,
   type ShopTaxRegion,
@@ -52,6 +53,8 @@ type CheckoutRuleSnapshot = {
   countries: string[];
   regions: string[];
   rate?: number;
+  value?: number;
+  mode?: 'percent' | 'fixed';
   baseRate?: number;
   perItemRate?: number;
   freeOver?: number | null;
@@ -62,6 +65,7 @@ export type CheckoutQuote = {
   currency: ShopCurrencyCode;
   pricingAudience: ShopPriceAudience;
   subtotal: number;
+  regionalAdjustmentAmount: number;
   shippingCost: number;
   taxAmount: number;
   total: number;
@@ -69,6 +73,8 @@ export type CheckoutQuote = {
   items: ResolvedCheckoutItem[];
   shippingZone: CheckoutRuleSnapshot | null;
   taxRegion: CheckoutRuleSnapshot | null;
+  regionalPricingRule: CheckoutRuleSnapshot | null;
+  showTaxesIncludedNotice: boolean;
   pricingSnapshot: Prisma.InputJsonValue;
 };
 
@@ -197,6 +203,20 @@ function resolveTaxRegion(
   return matched ?? null;
 }
 
+function resolveRegionalPricingRule(
+  settings: ShopSettingsRuntime,
+  address: CheckoutShippingAddress
+) {
+  const matched = settings.regionalPricingRules.find((rule) => {
+    if (!rule.enabled) return false;
+    if (!matchesLocation(rule.countries, address.country)) return false;
+    if (!matchesLocation(rule.regions, address.region)) return false;
+    return true;
+  });
+
+  return matched ?? null;
+}
+
 function calculateShippingCost(
   zone: ShopShippingZone | null,
   currency: ShopCurrencyCode,
@@ -223,6 +243,21 @@ function calculateTaxAmount(
   return roundMoney(base * region.rate);
 }
 
+function calculateRegionalAdjustmentAmount(
+  rule: ShopRegionalPricingRule | null,
+  subtotal: number,
+  currency: ShopCurrencyCode,
+  settings: ShopSettingsRuntime
+) {
+  if (!rule) return 0;
+
+  if (rule.mode === 'percent') {
+    return roundMoney(subtotal * (rule.value / 100));
+  }
+
+  return convertAmount(rule.value, rule.currency, currency, settings.currencyRates);
+}
+
 function buildPricingSnapshot(params: {
   settings: ShopSettingsRuntime;
   currency: ShopCurrencyCode;
@@ -231,6 +266,7 @@ function buildPricingSnapshot(params: {
   customerB2BDiscountPercent: number | null;
   address: CheckoutShippingAddress;
   subtotal: number;
+  regionalAdjustmentAmount: number;
   shippingCost: number;
   taxAmount: number;
   total: number;
@@ -238,8 +274,9 @@ function buildPricingSnapshot(params: {
   items: ResolvedCheckoutItem[];
   shippingZone: ShopShippingZone | null;
   taxRegion: ShopTaxRegion | null;
+  regionalPricingRule: ShopRegionalPricingRule | null;
 }): Prisma.InputJsonValue {
-  const { settings, currency, address, subtotal, shippingCost, taxAmount, total, itemCount, items, shippingZone, taxRegion } = params;
+  const { settings, currency, address, subtotal, regionalAdjustmentAmount, shippingCost, taxAmount, total, itemCount, items, shippingZone, taxRegion, regionalPricingRule } = params;
 
   return {
     computedAt: new Date().toISOString(),
@@ -268,6 +305,7 @@ function buildPricingSnapshot(params: {
       })),
     itemCount,
     subtotal,
+    regionalAdjustmentAmount,
     shippingCost,
     taxAmount,
     total,
@@ -294,6 +332,18 @@ function buildPricingSnapshot(params: {
           appliesToShipping: taxRegion.appliesToShipping,
         }
       : null,
+    regionalPricingRule: regionalPricingRule
+      ? {
+          id: regionalPricingRule.id,
+          name: regionalPricingRule.name,
+          countries: regionalPricingRule.countries,
+          regions: regionalPricingRule.regions,
+          mode: regionalPricingRule.mode,
+          value: regionalPricingRule.value,
+          currency: regionalPricingRule.currency,
+        }
+      : null,
+    showTaxesIncludedNotice: settings.showTaxesIncludedNotice,
   };
 }
 
@@ -301,11 +351,15 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
   const currency = resolveRequestedCurrency(input.settings, input.currency);
   const subtotal = roundMoney(Math.max(0, Number(input.subtotal) || 0));
   const itemCount = Math.max(0, Math.floor(Number(input.itemCount) || 0));
-  const shippingZone = resolveShippingZone(input.settings, input.shippingAddress, subtotal);
-  const shippingCost = calculateShippingCost(shippingZone, currency, input.settings, subtotal, itemCount);
+  const regionalPricingRule = resolveRegionalPricingRule(input.settings, input.shippingAddress);
+  const rawRegionalAdjustmentAmount = calculateRegionalAdjustmentAmount(regionalPricingRule, subtotal, currency, input.settings);
+  const adjustedSubtotal = roundMoney(Math.max(0, subtotal + rawRegionalAdjustmentAmount));
+  const regionalAdjustmentAmount = roundMoney(adjustedSubtotal - subtotal);
+  const shippingZone = resolveShippingZone(input.settings, input.shippingAddress, adjustedSubtotal);
+  const shippingCost = calculateShippingCost(shippingZone, currency, input.settings, adjustedSubtotal, itemCount);
   const taxRegion = resolveTaxRegion(input.settings, input.shippingAddress);
-  const taxAmount = calculateTaxAmount(taxRegion, subtotal, shippingCost);
-  const total = roundMoney(subtotal + shippingCost + taxAmount);
+  const taxAmount = calculateTaxAmount(taxRegion, adjustedSubtotal, shippingCost);
+  const total = roundMoney(adjustedSubtotal + shippingCost + taxAmount);
 
   const pricingSnapshot = buildPricingSnapshot({
     settings: input.settings,
@@ -315,6 +369,7 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
     customerB2BDiscountPercent: input.customerB2BDiscountPercent,
     address: input.shippingAddress,
     subtotal,
+    regionalAdjustmentAmount,
     shippingCost,
     taxAmount,
     total,
@@ -322,12 +377,14 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
     items: input.items,
     shippingZone,
     taxRegion,
+    regionalPricingRule,
   });
 
   return {
     currency,
     pricingAudience: input.audience,
     subtotal,
+    regionalAdjustmentAmount,
     shippingCost,
     taxAmount,
     total,
@@ -355,6 +412,18 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
           appliesToShipping: taxRegion.appliesToShipping,
         }
       : null,
+    regionalPricingRule: regionalPricingRule
+      ? {
+          id: regionalPricingRule.id,
+          name: regionalPricingRule.name,
+          currency: regionalPricingRule.currency,
+          countries: regionalPricingRule.countries,
+          regions: regionalPricingRule.regions,
+          value: regionalPricingRule.value,
+          mode: regionalPricingRule.mode,
+        }
+      : null,
+    showTaxesIncludedNotice: input.settings.showTaxesIncludedNotice,
     pricingSnapshot,
   };
 }

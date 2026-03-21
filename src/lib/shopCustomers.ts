@@ -405,6 +405,12 @@ export function serializeShopCustomerProfile(
       total: Number(order.total),
       createdAt: order.createdAt.toISOString(),
       itemCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
+      previewItem: order.items[0]
+        ? {
+            title: order.items[0].title,
+            image: order.items[0].image ?? null,
+          }
+        : null,
     })),
   };
 }

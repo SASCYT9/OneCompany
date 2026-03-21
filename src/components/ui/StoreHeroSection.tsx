@@ -127,13 +127,11 @@ export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) 
           {/* Заголовок */}
           <div className={`text-center mb-4 md:mb-8 transition-all duration-1000 delay-200 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
             <div className="flex justify-center mb-3 md:mb-4">
-              <Image
+              <img
                 src="/logos/fi.svg"
                 alt="Fi Exhaust Україна - вихлопні системи Valvetronic тюнінг Київ, купити Fi Exhaust OneCompany"
-                width={0}
-                height={0}
-                sizes="100vw"
                 className="h-6 md:h-8 lg:h-10 w-auto opacity-90"
+                loading="lazy"
               />
             </div>
             <div className="mb-3 md:mb-4">
@@ -213,13 +211,11 @@ export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) 
           {/* Заголовок */}
           <div className={`text-center mb-4 md:mb-8 transition-all duration-1000 delay-200 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
             <div className="flex justify-center mb-3 md:mb-4">
-              <Image
+              <img
                 src="/logos/eventuri.svg"
                 alt="Eventuri Україна - карбонові впускні системи тюнінг Київ, купити Eventuri OneCompany"
-                width={0}
-                height={0}
-                sizes="100vw"
                 className="h-6 md:h-8 lg:h-10 w-auto opacity-90"
+                loading="lazy"
               />
             </div>
             <div className="mb-3 md:mb-4">

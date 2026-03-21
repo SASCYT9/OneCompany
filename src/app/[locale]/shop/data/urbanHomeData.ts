@@ -35,9 +35,8 @@ export const URBAN_HERO = {
   secondaryButtonLabelUk: 'Про One Company',
   secondaryButtonLink: 'https://onecompany.global/ua',
   secondaryButtonNewTab: true,
-  /** Placeholder or first showcase image from theme assets */
-  heroImageUrl:
-    'https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp',
+  /** Placeholder or first showcase image (local) */
+  heroImageUrl: '/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp',
 } as const;
 
 export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
@@ -54,7 +53,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/urban/collections/rolls-royce-cullinan-series-ii',
     imageUrl:
-      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/cullinanSeriesII/webp/urban-automotive-rolls-royce-cullinan.webp',
+      '/images/shop/urban/cols/models/cullinanSeriesII/webp/urban-automotive-rolls-royce-cullinan.webp',
   },
   {
     title: 'Defender Widetrack',
@@ -69,7 +68,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/urban/collections/land-rover-defender-110',
     imageUrl:
-      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp',
+      '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp',
   },
   {
     title: 'G-Wagon W465',
@@ -84,7 +83,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/urban/collections/mercedes-g-wagon-w465-widetrack',
     imageUrl:
-      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-1-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-1-2560.webp',
   },
   {
     title: 'Lamborghini Urus',
@@ -99,7 +98,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/urban/collections/lamborghini-urus',
     imageUrl:
-      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/urus/carousel-1-1920.jpg',
+      '/images/shop/urban/carousel/models/urus/carousel-1-1920.jpg',
   },
   {
     title: 'Rolls-Royce Ghost',
@@ -114,7 +113,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/urban/collections/rolls-royce-ghost-series-ii',
     imageUrl:
-      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/ghost/col-image-1-lg.jpg',
+      '/images/shop/urban/cols/models/ghost/col-image-1-lg.jpg',
   },
   {
     title: 'Range Rover L460',
@@ -129,7 +128,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/urban/collections/range-rover-l460',
     imageUrl:
-      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/rangeRover2022Plus/col-image-1-lg.jpg',
+      '/images/shop/urban/cols/models/rangeRover2022Plus/col-image-1-lg.jpg',
   },
   {
     title: 'Bentley Continental GT',
@@ -144,7 +143,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/urban/collections/bentley-continental-gt',
     imageUrl:
-      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/continentalGT/hero-1-1920.jpg',
+      '/images/shop/urban/hero/models/continentalGT/hero-1-1920.jpg',
   },
   {
     title: 'Audi RSQ8',
@@ -159,6 +158,6 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/urban/collections/audi-rsq8-facelift',
     imageUrl:
-      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-front-1920.webp',
+      '/images/shop/urban/banners/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-front-1920.webp',
   },
 ];

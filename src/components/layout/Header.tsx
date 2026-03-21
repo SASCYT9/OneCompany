@@ -101,7 +101,7 @@ export function Header() {
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-2 sm:gap-4">
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
           {isUrbanStorefront ? (
             <Link
               href={`/${locale}/shop/account`}
@@ -146,15 +146,15 @@ export function Header() {
               </button>
             </div>
           ) : null}
-          <LocaleSwitcher className="hidden md:flex" />
+          <LocaleSwitcher className="hidden shrink-0 md:ml-2 md:flex" />
           {!isUrbanStorefront ? (
             <Link
               href={`/${locale}/partnership`}
-              className="group hidden items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 font-display text-[10px] font-semibold uppercase tracking-[0.25em] text-white transition hover:border-white hover:bg-white hover:text-black sm:inline-flex sm:gap-3 sm:px-5 sm:py-2 sm:text-xs sm:tracking-[0.35em]"
+              className="group hidden items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 font-display text-[10px] font-semibold uppercase tracking-[0.25em] text-white transition hover:border-white hover:bg-white hover:text-black sm:inline-flex sm:gap-2 sm:px-4 sm:py-1.5 sm:text-[11px] sm:tracking-[0.28em]"
             >
               <span className="hidden sm:inline">{tNav("bookAtelier")}</span>
               <span className="sm:hidden">Book</span>
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/30 text-white transition group-hover:bg-black/80 sm:h-6 sm:w-6">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/30 text-white transition group-hover:bg-black/80">
                 →
               </span>
             </Link>

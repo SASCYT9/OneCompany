@@ -4,7 +4,7 @@
  * Urban — власний магазин на нашому сайті (Next.js + наш бекенд), без Shopify.
  */
 
-const BASE = 'https://smgassets.blob.core.windows.net/customers/urban/dist/img';
+const BASE = '/images/shop/urban';
 
 export type UrbanShowcase = {
   num: string;

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
+import { sanitizeNextPath } from '@/lib/safeRedirect';
 
 type Mode = 'login' | 'register';
 
@@ -45,7 +46,7 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
   const searchParams = useSearchParams();
   const copy = baseCopy(locale, mode);
   const isUa = locale === 'ua';
-  const nextHref = searchParams.get('next') || `/${locale}/shop/account`;
+  const nextHref = sanitizeNextPath(searchParams.get('next'), `/${locale}/shop/account`);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({

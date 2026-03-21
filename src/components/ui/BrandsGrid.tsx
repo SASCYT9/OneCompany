@@ -58,7 +58,11 @@ export function BrandsGrid() {
             className="group block rounded-2xl border border-white/10 bg-black/60 backdrop-blur-xl p-8 transition-colors duration-300 hover:border-white/20"
           >
             <div className="flex items-center gap-4 mb-6">
-              <Image src={b.logo} alt={b.name} width={120} height={40} className="h-8 w-auto opacity-90" />
+              {b.logo.endsWith(".svg") ? (
+                <img src={b.logo} alt={b.name} width={120} height={40} className="h-8 w-auto opacity-90" loading="lazy" />
+              ) : (
+                <Image src={b.logo} alt={b.name} width={120} height={40} className="h-8 w-auto opacity-90" />
+              )}
             </div>
             <h4 className="text-2xl font-light text-white mb-2 tracking-wide">{b.name}</h4>
             <p className="text-sm text-white/60 font-light mb-8">{b.blurb}</p>

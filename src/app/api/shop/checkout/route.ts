@@ -7,7 +7,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { render } from '@react-email/render';
 import { Resend } from 'resend';
 import { generateOrderNumber, generateViewToken } from '@/lib/shopOrder';
@@ -23,8 +22,8 @@ import {
   createStripeCheckoutSession,
   stripeSupportedCurrency,
 } from '@/lib/shopStripe';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
@@ -236,11 +235,14 @@ export async function POST(req: NextRequest) {
       orderNumber,
       viewToken,
       subtotal: quote.subtotal,
+      regionalAdjustmentAmount: quote.regionalAdjustmentAmount,
       shippingCost: quote.shippingCost,
       taxAmount: quote.taxAmount,
       total: quote.total,
       currency: quote.currency,
       paymentMethod: 'STRIPE',
+      regionalPricingRule: quote.regionalPricingRule,
+      showTaxesIncludedNotice: quote.showTaxesIncludedNotice,
     });
     response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
       path: '/',
@@ -314,6 +316,7 @@ export async function POST(req: NextRequest) {
     orderNumber,
     viewToken,
     subtotal: quote.subtotal,
+    regionalAdjustmentAmount: quote.regionalAdjustmentAmount,
     shippingCost: quote.shippingCost,
     taxAmount: quote.taxAmount,
     total: quote.total,
@@ -321,6 +324,8 @@ export async function POST(req: NextRequest) {
     pricingAudience: quote.pricingAudience,
     shippingZone: quote.shippingZone,
     taxRegion: quote.taxRegion,
+    regionalPricingRule: quote.regionalPricingRule,
+    showTaxesIncludedNotice: quote.showTaxesIncludedNotice,
   });
   response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
     path: '/',

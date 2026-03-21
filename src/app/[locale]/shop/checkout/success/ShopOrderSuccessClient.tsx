@@ -1,9 +1,12 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import { trackOrderPlaced } from '@/lib/analytics';
+import { formatShopMoney, type ShopCurrencyCode } from '@/lib/shopMoneyFormat';
+import { formatShopOrderStatus, shopOrderStatusBadgeClass } from '@/lib/shopOrderPresentation';
 
 type OrderData = {
   orderNumber: string;
@@ -13,11 +16,13 @@ type OrderData = {
   customerName: string;
   currency: string;
   subtotal: number;
+  regionalAdjustmentAmount: number;
   shippingCost: number;
   taxAmount: number;
   total: number;
+  showTaxesIncludedNotice: boolean;
   createdAt: string;
-  items: Array<{ title: string; quantity: number; total: number }>;
+  items: Array<{ productSlug: string; title: string; quantity: number; price: number; total: number; image: string | null }>;
 };
 
 type FopDetails = {
@@ -106,25 +111,52 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
             {isUa ? 'Замовлення прийнято' : 'Urban order confirmed'}
           </h1>
           <p className="mt-2 font-mono text-lg text-white/80">{order.orderNumber}</p>
+          <div className={`mt-4 inline-flex rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.18em] ${shopOrderStatusBadgeClass(order.status)}`}>
+            {formatShopOrderStatus(locale, order.status)}
+          </div>
           <p className="mt-4 text-sm text-white/60">
             {isUa ? 'Ми надішлемо підтвердження на' : 'We will send confirmation to'} {order.email}
           </p>
           <div className="mt-6 border-t border-white/10 pt-6 text-left">
             <p className="text-xs uppercase tracking-wider text-white/45">{isUa ? 'Склад замовлення' : 'Order summary'}</p>
-            <ul className="mt-2 space-y-1 text-sm text-white/80">
+            <ul className="mt-4 space-y-3">
               {order.items.map((i, idx) => (
-                <li key={idx}>
-                  {i.title} × {i.quantity} — {order.currency} {i.total.toFixed(0)}
+                <li key={idx} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-black/20 p-3">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+                    {i.image ? (
+                      <Image src={i.image} alt={i.title} fill className="object-cover" sizes="64px" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.22em] text-white/30">
+                        OC
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    {i.productSlug ? (
+                      <Link href={`/${locale}/shop/urban/products/${i.productSlug}`} className="line-clamp-2 text-sm text-white/85 transition hover:text-white">
+                        {i.title}
+                      </Link>
+                    ) : (
+                      <div className="line-clamp-2 text-sm text-white/85">{i.title}</div>
+                    )}
+                    <div className="mt-1 text-xs text-white/45">
+                      {i.quantity} × {formatShopMoney(locale, i.price, order.currency as ShopCurrencyCode)}
+                    </div>
+                  </div>
+                  <div className="text-right text-sm font-medium text-white">
+                    {formatShopMoney(locale, i.total, order.currency as ShopCurrencyCode)}
+                  </div>
                 </li>
               ))}
             </ul>
             <div className="mt-4 space-y-1 text-sm text-white/70">
-              <p>{isUa ? 'Товари' : 'Subtotal'}: {order.currency} {order.subtotal.toFixed(0)}</p>
-              <p>{isUa ? 'Доставка' : 'Shipping'}: {order.currency} {order.shippingCost.toFixed(0)}</p>
-              <p>{isUa ? 'Податок' : 'Tax'}: {order.currency} {order.taxAmount.toFixed(0)}</p>
+              <p>{isUa ? 'Товари' : 'Subtotal'}: {formatShopMoney(locale, order.subtotal, order.currency as ShopCurrencyCode)}</p>
+              <p>{isUa ? 'Регіональна корекція' : 'Regional adjustment'}: {formatShopMoney(locale, order.regionalAdjustmentAmount, order.currency as ShopCurrencyCode)}</p>
+              <p>{isUa ? 'Доставка' : 'Shipping'}: {formatShopMoney(locale, order.shippingCost, order.currency as ShopCurrencyCode)}</p>
+              <p>{isUa ? 'Податок' : 'Tax'}: {order.taxAmount <= 0 && order.showTaxesIncludedNotice ? (isUa ? 'Податки включено' : 'Taxes included') : formatShopMoney(locale, order.taxAmount, order.currency as ShopCurrencyCode)}</p>
             </div>
             <p className="mt-4 font-medium text-white">
-              {isUa ? 'Разом' : 'Total'}: {order.currency} {order.total.toFixed(0)}
+              {isUa ? 'Разом' : 'Total'}: {formatShopMoney(locale, order.total, order.currency as ShopCurrencyCode)}
             </p>
           </div>
           {order.paymentMethod === 'FOP' && fopDetails && (fopDetails.companyName || fopDetails.iban || fopDetails.details) && (

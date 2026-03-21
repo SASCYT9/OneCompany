@@ -1,9 +1,12 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
+import { formatShopMoney, type ShopCurrencyCode } from '@/lib/shopMoneyFormat';
+import { formatShopOrderStatus, shopOrderStatusBadgeClass } from '@/lib/shopOrderPresentation';
 
 type Props = {
   locale: SupportedLocale;
@@ -34,6 +37,10 @@ type Props = {
       total: number;
       createdAt: string;
       itemCount: number;
+      previewItem: {
+        title: string;
+        image: string | null;
+      } | null;
     }>;
   };
 };
@@ -172,7 +179,12 @@ export default function ShopAccountClient({ locale, profile }: Props) {
 
           <section className="rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
             <div className="flex items-center justify-between gap-4">
-              <h2 className="text-lg font-medium text-white">{isUa ? 'Замовлення' : 'Orders'}</h2>
+              <div>
+                <h2 className="text-lg font-medium text-white">{isUa ? 'Замовлення' : 'Orders'}</h2>
+                <p className="mt-1 text-xs uppercase tracking-[0.22em] text-white/35">
+                  {isUa ? 'Історія покупок Urban Automotive' : 'Urban Automotive purchase history'}
+                </p>
+              </div>
               <Link href={`/${locale}/shop/urban/collections`} className="text-sm text-white/55 hover:text-white">
                 {isUa ? 'До покупок' : 'Continue shopping'}
               </Link>
@@ -180,24 +192,72 @@ export default function ShopAccountClient({ locale, profile }: Props) {
             {profile.orders.length ? (
               <ul className="mt-4 space-y-3">
                 {profile.orders.map((order) => (
-                  <li key={order.orderNumber} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <div className="font-mono text-sm text-white">{order.orderNumber}</div>
-                        <div className="mt-1 text-xs uppercase tracking-[0.18em] text-white/45">{order.status}</div>
+                  <li
+                    key={order.orderNumber}
+                    className="overflow-hidden rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-4 shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition hover:-translate-y-[1px] hover:border-white/20 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))]"
+                  >
+                    <Link
+                      href={`/${locale}/shop/account/orders/${order.orderNumber}`}
+                      className="block"
+                    >
+                      <div className="mb-4 h-px w-full bg-[linear-gradient(90deg,rgba(201,168,106,0.35),rgba(255,255,255,0.08),transparent)]" />
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex min-w-0 items-start gap-4">
+                          <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[22px] border border-white/10 bg-white/5 shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
+                            {order.previewItem?.image ? (
+                              <Image
+                                src={order.previewItem.image}
+                                alt={order.previewItem.title}
+                                fill
+                                className="object-cover"
+                                sizes="64px"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.22em] text-white/30">
+                                OC
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <div className="font-mono text-sm text-white hover:text-white/90">{order.orderNumber}</div>
+                              <span className="text-[10px] uppercase tracking-[0.22em] text-white/25">•</span>
+                              <div className="text-[11px] uppercase tracking-[0.18em] text-white/40">
+                                {new Intl.DateTimeFormat(locale === 'ua' ? 'uk-UA' : 'en-US', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                }).format(new Date(order.createdAt))}
+                              </div>
+                            </div>
+                            <div className="mt-3 line-clamp-2 text-[15px] leading-6 text-white/88">
+                              {order.previewItem?.title || (isUa ? 'Замовлення без прев’ю товару' : 'Order without preview item')}
+                            </div>
+                            {order.itemCount > 1 ? (
+                              <div className="mt-2 text-xs uppercase tracking-[0.18em] text-white/45">
+                                {isUa ? `Ще ${order.itemCount - 1} позицій` : `${order.itemCount - 1} more items`}
+                              </div>
+                            ) : null}
+                            <div className={`mt-3 inline-flex rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.18em] ${shopOrderStatusBadgeClass(order.status)}`}>
+                              {formatShopOrderStatus(locale, order.status)}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right text-sm text-white/70">
+                          <div className="text-[11px] uppercase tracking-[0.2em] text-white/35">
+                            {isUa ? 'Разом' : 'Total'}
+                          </div>
+                          <div className="mt-2 text-base font-medium text-white">
+                            {formatShopMoney(locale, order.total, order.currency as ShopCurrencyCode)}
+                          </div>
+                          <div className="mt-2 text-xs text-white/45">{order.itemCount} {isUa ? 'позицій' : 'items'}</div>
+                        </div>
                       </div>
-                      <div className="text-right text-sm text-white/70">
-                        <div>{order.currency} {order.total.toFixed(0)}</div>
-                        <div className="mt-1 text-xs text-white/45">{order.itemCount} {isUa ? 'позицій' : 'items'}</div>
+                      <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-xs uppercase tracking-[0.18em] text-white/42">
+                        <span>{isUa ? 'Відкрити замовлення' : 'Open order'}</span>
+                        <span aria-hidden>→</span>
                       </div>
-                    </div>
-                    <div className="mt-3 text-xs text-white/45">
-                      {new Intl.DateTimeFormat(locale === 'ua' ? 'uk-UA' : 'en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      }).format(new Date(order.createdAt))}
-                    </div>
+                    </Link>
                   </li>
                 ))}
               </ul>

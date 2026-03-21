@@ -9,9 +9,9 @@ import UrbanThemeScript from './UrbanThemeScript';
 
 const HOME_ID = 'UrbanHomeV7';
 const ONE_COMPANY_LOGO = 'https://onecompany.global/branding/logo-light.svg';
-const URBAN_LOGO = 'https://smgassets.blob.core.windows.net/customers/urban/dist/img/svgs/logo.svg';
-const WIDETRACK_LOGO = 'https://smgassets.blob.core.windows.net/customers/urban/dist/img/svgs/widetrack.svg';
-const DEFENDER_IMG = 'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp';
+const URBAN_LOGO = '/images/shop/urban/svgs/logo.svg';
+const WIDETRACK_LOGO = '/images/shop/urban/svgs/widetrack.svg';
+const DEFENDER_IMG = '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp';
 
 type UrbanHomeSignatureProps = {
   locale: SupportedLocale;

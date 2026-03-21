@@ -1,11 +1,9 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
 import { runShopCsvImport } from '@/lib/shopAdminImports';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 async function parseImportRequest(request: NextRequest) {
   const contentType = request.headers.get('content-type') || '';

@@ -1,11 +1,10 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, type OrderStatus } from '@prisma/client';
+import { type OrderStatus } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import { adminOrderInclude, canTransitionOrderStatus, serializeAdminOrder } from '@/lib/shopAdminOrders';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 const ALLOWED_STATUSES: OrderStatus[] = ['PENDING_REVIEW', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
 

@@ -1,8 +1,6 @@
 // Admin Management API
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 // Secret for initial setup
 const SETUP_SECRET = process.env.ADMIN_API_SECRET;

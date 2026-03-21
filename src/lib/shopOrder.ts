@@ -2,10 +2,8 @@
  * Shop order helpers: order number generation, view token.
  */
 
-import { PrismaClient } from '@prisma/client';
 import { randomBytes } from 'crypto';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 /** Generate next order number for current year: OC-YYYY-NNNNN */
 export async function generateOrderNumber(): Promise<string> {

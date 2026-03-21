@@ -3,6 +3,23 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
+const isProd = process.env.NODE_ENV === 'production';
+
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  // Next/React + current analytics snippets rely on inline scripts/styles.
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://www.clarity.ms https://www.google-analytics.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data: https:",
+  "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://www.clarity.ms https://c.clarity.ms https://bank.gov.ua",
+  "frame-src 'self' https://www.googletagmanager.com https://player.vimeo.com https://maps.google.com",
+  'upgrade-insecure-requests',
+].join('; ');
+
 const nextConfig: NextConfig = {
   // Для Docker standalone output
   output: 'standalone',
@@ -13,7 +30,7 @@ const nextConfig: NextConfig = {
 
   // Images configuration - optimized for SEO & performance
   images: {
-    dangerouslyAllowSVG: true,
+    dangerouslyAllowSVG: false,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
@@ -96,6 +113,14 @@ const nextConfig: NextConfig = {
       {
         source: '/:path*',
         headers: [
+          ...(isProd
+            ? [
+                {
+                  key: 'Content-Security-Policy',
+                  value: CONTENT_SECURITY_POLICY,
+                },
+              ]
+            : []),
           {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
@@ -111,10 +136,6 @@ const nextConfig: NextConfig = {
           {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
           },
           {
             key: 'Permissions-Policy',

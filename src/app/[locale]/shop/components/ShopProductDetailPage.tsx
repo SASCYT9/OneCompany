@@ -20,6 +20,7 @@ import {
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
+import { localizeShopDescription, localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopViewerPricingContext, resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import {
   buildShopProductPath,
@@ -37,11 +38,6 @@ type Props = {
   slug: string;
   mode?: ProductPageMode;
 };
-
-function localize(locale: SupportedLocale, value: { ua: string; en: string }) {
-  // Fallback to the other language when a translation is missing.
-  return locale === 'ua' ? value.ua || value.en : value.en || value.ua;
-}
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 'USD' | 'UAH') {
   const effectiveLocale = locale === 'ua' ? 'uk-UA' : 'en-US';
@@ -76,8 +72,8 @@ export async function getShopProductPageMetadata({
   }
 
   return buildPageMetadata(resolvedLocale, pageSlug, {
-    title: `${localize(resolvedLocale, product.title)} | ${product.brand} | One Company Shop`,
-    description: localize(resolvedLocale, product.shortDescription),
+    title: `${localizeShopProductTitle(resolvedLocale, product)} | ${product.brand} | One Company Shop`,
+    description: localizeShopDescription(resolvedLocale, product.shortDescription),
     image: product.image,
     type: 'website',
   });
@@ -118,12 +114,12 @@ export default async function ShopProductDetailPage({
     : null;
   const isUrbanMode = mode === 'urban' || Boolean(urbanCollectionHandle);
 
-  const productTitle = localize(resolvedLocale, product.title);
-  const productCategory = localize(resolvedLocale, product.category);
-  const shortDescription = localize(resolvedLocale, product.shortDescription);
-  const longDescription = localize(resolvedLocale, product.longDescription);
-  const leadTime = localize(resolvedLocale, product.leadTime);
-  const collection = localize(resolvedLocale, product.collection);
+  const productTitle = localizeShopProductTitle(resolvedLocale, product);
+  const productCategory = localizeShopText(resolvedLocale, product.category);
+  const shortDescription = localizeShopDescription(resolvedLocale, product.shortDescription);
+  const longDescription = localizeShopDescription(resolvedLocale, product.longDescription);
+  const leadTime = localizeShopText(resolvedLocale, product.leadTime);
+  const collection = localizeShopText(resolvedLocale, product.collection);
   const isInStock = product.stock === 'inStock';
 
   const brandMeta = getBrandMetadata(product.brand);
@@ -368,7 +364,7 @@ export default async function ShopProductDetailPage({
                   {product.highlights.map((item) => (
                     <li key={item.en} className="flex gap-2">
                       <span className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-white/60" />
-                      <span>{localize(resolvedLocale, item)}</span>
+                      <span>{localizeShopText(resolvedLocale, item)}</span>
                     </li>
                   ))}
                 </ul>
@@ -399,7 +395,7 @@ export default async function ShopProductDetailPage({
                       className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/75 transition hover:border-white/25 hover:text-white"
                     >
                       <div>
-                        <p className="font-medium">{localize(resolvedLocale, item.product.title)}</p>
+                        <p className="font-medium">{localizeShopProductTitle(resolvedLocale, item.product)}</p>
                         <p className="mt-1 text-xs text-white/45">
                           {item.quantity} × {item.variantTitle || (isUa ? 'Базовий варіант' : 'Default variant')}
                         </p>
@@ -453,7 +449,7 @@ export default async function ShopProductDetailPage({
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <Image
                     src={item.image}
-                    alt={localize(resolvedLocale, item.title)}
+                    alt={localizeShopProductTitle(resolvedLocale, item)}
                     fill
                     sizes="(max-width: 1280px) 100vw, 30vw"
                     className="object-cover transition duration-500 group-hover:scale-105"
@@ -462,7 +458,7 @@ export default async function ShopProductDetailPage({
                 </div>
                 <div className="space-y-2 p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-white/55">{item.brand}</p>
-                  <h3 className="text-lg font-light leading-snug">{localize(resolvedLocale, item.title)}</h3>
+                  <h3 className="text-lg font-light leading-snug">{localizeShopProductTitle(resolvedLocale, item)}</h3>
                   <p className="text-sm text-white/65">
                     {formatPrice(resolvedLocale, resolveShopProductPricing(item, viewerContext).effectivePrice.eur, 'EUR')}
                   </p>

@@ -75,13 +75,24 @@ export default function BrandCarousel({
               {/* Shine effect on hover */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent translate-x-[-200%] group-hover/card:translate-x-[200%] transition-transform duration-700 dark:via-white/5" />
               
-              <Image
-                src={brand.logo}
-                alt={brand.name}
-                width={140}
-                height={70}
-                className={`object-contain ${shouldInvertBrandOrLogo(brand.name, brand.logo) ? 'filter brightness-0 invert opacity-95 group-hover/card:opacity-100' : 'opacity-80 group-hover/card:opacity-100'} transition-opacity duration-300 relative z-10`}
-              />
+              {brand.logo.endsWith(".svg") ? (
+                <img
+                  src={brand.logo}
+                  alt={brand.name}
+                  width={140}
+                  height={70}
+                  loading="lazy"
+                  className={`object-contain ${shouldInvertBrandOrLogo(brand.name, brand.logo) ? 'filter brightness-0 invert opacity-95 group-hover/card:opacity-100' : 'opacity-80 group-hover/card:opacity-100'} transition-opacity duration-300 relative z-10`}
+                />
+              ) : (
+                <Image
+                  src={brand.logo}
+                  alt={brand.name}
+                  width={140}
+                  height={70}
+                  className={`object-contain ${shouldInvertBrandOrLogo(brand.name, brand.logo) ? 'filter brightness-0 invert opacity-95 group-hover/card:opacity-100' : 'opacity-80 group-hover/card:opacity-100'} transition-opacity duration-300 relative z-10`}
+                />
+              )}
             </motion.div>
           ))}
         </motion.div>

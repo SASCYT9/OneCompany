@@ -2,7 +2,6 @@
 
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { useScroll, useMotionValueEvent } from 'framer-motion';
-import Image from 'next/image';
 import clsx from 'clsx';
 import {
   BadgeCheck,
@@ -11,9 +10,9 @@ import {
   History,
   MapPin,
   Briefcase,
-  ShieldCheck,
-  LucideIcon
+  ShieldCheck
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 type StickyScrollItem = {
   id: string;
@@ -112,11 +111,11 @@ export function StickyScroll({ items }: { items: StickyScrollItem[] }) {
               >
                 {/* Mobile Watermark */}
                 <div className="absolute -bottom-10 -right-10 w-40 h-40 opacity-[0.05] pointer-events-none rotate-[-15deg] lg:hidden">
-                  <Image
+                  <img
                     src="/branding/one-company-logo.svg"
                     alt="Watermark"
-                    fill
-                    className="object-contain invert"
+                    className="h-full w-full object-contain invert"
+                    loading="lazy"
                   />
                 </div>
 

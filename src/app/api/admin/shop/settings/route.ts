@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import {
@@ -8,8 +8,7 @@ import {
   normalizeShopSettingsPayload,
   serializeShopSettings,
 } from '@/lib/shopAdminSettings';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
@@ -49,8 +48,10 @@ export async function PATCH(request: NextRequest) {
         currencyRates: payload.currencyRates as Prisma.InputJsonValue,
         shippingZones: payload.shippingZones as Prisma.InputJsonValue,
         taxRegions: payload.taxRegions as Prisma.InputJsonValue,
+        regionalPricingRules: payload.regionalPricingRules as Prisma.InputJsonValue,
         orderNotificationEmail: payload.orderNotificationEmail,
         b2bNotes: payload.b2bNotes,
+        showTaxesIncludedNotice: payload.showTaxesIncludedNotice,
         fopCompanyName: payload.fopCompanyName,
         fopIban: payload.fopIban,
         fopBankName: payload.fopBankName,
@@ -67,8 +68,10 @@ export async function PATCH(request: NextRequest) {
         currencyRates: payload.currencyRates as Prisma.InputJsonValue,
         shippingZones: payload.shippingZones as Prisma.InputJsonValue,
         taxRegions: payload.taxRegions as Prisma.InputJsonValue,
+        regionalPricingRules: payload.regionalPricingRules as Prisma.InputJsonValue,
         orderNotificationEmail: payload.orderNotificationEmail,
         b2bNotes: payload.b2bNotes,
+        showTaxesIncludedNotice: payload.showTaxesIncludedNotice,
         fopCompanyName: payload.fopCompanyName,
         fopIban: payload.fopIban,
         fopBankName: payload.fopBankName,

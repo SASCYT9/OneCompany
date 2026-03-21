@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, ShopInventoryPolicy } from '@prisma/client';
+import { ShopInventoryPolicy } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import {
@@ -8,8 +8,7 @@ import {
   applyAdminInventoryPatch,
   serializeAdminVariantSummary,
 } from '@/lib/shopAdminVariants';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 function numberOrNull(value: unknown): number | null {
   if (value === '' || value == null) return null;

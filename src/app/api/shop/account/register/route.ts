@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { createShopCustomerRegistration } from '@/lib/shopCustomers';
 import { consumeRateLimit, getRequestIp } from '@/lib/shopPublicRateLimit';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 8;
 

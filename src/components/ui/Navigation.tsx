@@ -46,6 +46,14 @@ export function Navigation() {
     message: ''
   });
   const years = yearsOfExcellence();
+  const navPillClass =
+    'inline-flex min-h-[44px] items-center justify-center whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-light transition-all duration-500';
+  const navGhostClass = `${navPillClass} text-white/80 hover:bg-white/5 hover:text-white`;
+  const navActiveClass = `${navPillClass} bg-white/5 text-white`;
+  const navCtaClass =
+    'cta-primary inline-flex min-h-[44px] min-w-[9.5rem] items-center justify-center whitespace-nowrap px-4 py-2.5 text-sm tracking-wide ease-soft-out';
+  const navOutlineClass =
+    'cta-outline inline-flex min-h-[44px] min-w-[8.5rem] items-center justify-center whitespace-nowrap px-4 py-2.5 text-sm text-white/90 hover:bg-white hover:text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40';
 
   const resetForm = () => {
     setPayload({ type: 'auto', name: '', email: '', phone: '', contactMethod: 'telegram', subject: '', message: '' });
@@ -88,9 +96,9 @@ export function Navigation() {
               {locale === 'ua' ? `З ${foundedYear} • ${years}+ років довіри` : `Since ${foundedYear} • ${years}+ years trusted`}
             </span>
           </div>
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-4">
             <div className="group relative">
-              <button className="px-5 py-2.5 text-white/80 hover:text-white font-light transition-all duration-500 flex items-center gap-2.5 rounded-full hover:bg-white/5">
+              <button className={`${navGhostClass} gap-2.5`}>
                 {t.nav.stores}
                 <svg className="w-3 h-3 transition-transform duration-500 group-hover:rotate-180" fill="none" viewBox="0 0 12 8"><path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </button>
@@ -108,22 +116,22 @@ export function Navigation() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-1 px-3 py-2 rounded-full bg-white/5">
-              <button onClick={() => setLocale('ua')} className={'px-3 py-1 text-sm font-light rounded-full transition-all duration-300 ' + (locale === 'ua' ? 'text-white bg-white/10' : 'text-white/60 hover:text-white/80')}>UA</button>
-              <button onClick={() => setLocale('en')} className={'px-3 py-1 text-sm font-light rounded-full transition-all duration-300 ' + (locale === 'en' ? 'text-white bg-white/10' : 'text-white/60 hover:text-white/80')}>EN</button>
-            </div>
             {extraLinks.map(link => (
-              <Link key={link.href} href={link.href} className={'px-5 py-2.5 font-light transition-all duration-500 rounded-full ' + (pathname === link.href ? 'text-white bg-white/5' : 'text-white/80 hover:text-white hover:bg-white/5')}>
+              <Link key={link.href} href={link.href} className={pathname === link.href ? navActiveClass : navGhostClass}>
                 {locale==='ua' ? link.labelUa : link.labelEn}
               </Link>
             ))}
-            <Link href="/about" className={'px-5 py-2.5 font-light transition-all duration-500 rounded-full ' + (pathname === '/about' ? 'text-white bg-white/5' : 'text-white/80 hover:text-white hover:bg-white/5')}>{t.nav.about}</Link>
-            <Link href="/#stores" className="cta-primary px-7 py-3 text-sm tracking-wide ease-soft-out">
+            <Link href="/about" className={pathname === '/about' ? navActiveClass : navGhostClass}>{t.nav.about}</Link>
+            <Link href="/#stores" className={navCtaClass}>
               {t.nav.selectStore}
             </Link>
+            <div className="inline-flex min-h-[44px] items-center gap-1 rounded-full bg-white/5 px-3 py-2">
+              <button onClick={() => setLocale('ua')} className={'px-3 py-1 text-sm font-light rounded-full transition-all duration-300 ' + (locale === 'ua' ? 'text-white bg-white/10' : 'text-white/60 hover:text-white/80')}>UA</button>
+              <button onClick={() => setLocale('en')} className={'px-3 py-1 text-sm font-light rounded-full transition-all duration-300 ' + (locale === 'en' ? 'text-white bg-white/10' : 'text-white/60 hover:text-white/80')}>EN</button>
+            </div>
             <button
               onClick={() => setContactOpen(true)}
-              className="cta-outline px-6 py-2.5 text-white/90 hover:text-black hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              className={navOutlineClass}
             >
               <span className="relative z-10 tracking-wide">{t.nav.contact}</span>
             </button>

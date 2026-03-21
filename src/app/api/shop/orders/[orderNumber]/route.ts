@@ -4,10 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function GET(
   req: NextRequest,
@@ -49,10 +47,13 @@ export async function GET(
     currency: order.currency,
     customerGroupSnapshot: order.customerGroupSnapshot,
     subtotal: Number(order.subtotal),
+    regionalAdjustmentAmount: Number(((order.pricingSnapshot as Record<string, unknown> | null)?.regionalAdjustmentAmount as number | undefined) ?? 0),
     shippingCost: Number(order.shippingCost),
     taxAmount: Number(order.taxAmount),
     total: Number(order.total),
     pricingSnapshot: order.pricingSnapshot,
+    regionalPricingRule: ((order.pricingSnapshot as Record<string, unknown> | null)?.regionalPricingRule as object | undefined) ?? null,
+    showTaxesIncludedNotice: Boolean((order.pricingSnapshot as Record<string, unknown> | null)?.showTaxesIncludedNotice),
     createdAt: order.createdAt.toISOString(),
     items: order.items.map((i) => ({
       productSlug: i.productSlug,

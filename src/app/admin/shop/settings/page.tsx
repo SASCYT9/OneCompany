@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   ArrowUp,
   Globe2,
+  RefreshCw,
   Percent,
   Plus,
   Save,
@@ -39,6 +40,17 @@ type ShopTaxRegion = {
   enabled: boolean;
 };
 
+type ShopRegionalPricingRule = {
+  id: string;
+  name: string;
+  countries: string[];
+  regions: string[];
+  mode: 'percent' | 'fixed';
+  value: number;
+  currency: ShopCurrencyCode;
+  enabled: boolean;
+};
+
 type ShopSettingsResponse = {
   key: string;
   b2bVisibilityMode: string;
@@ -48,8 +60,10 @@ type ShopSettingsResponse = {
   currencyRates: Record<ShopCurrencyCode, number>;
   shippingZones: ShopShippingZone[];
   taxRegions: ShopTaxRegion[];
+  regionalPricingRules: ShopRegionalPricingRule[];
   orderNotificationEmail: string | null;
   b2bNotes: string | null;
+  showTaxesIncludedNotice: boolean;
   fopCompanyName: string | null;
   fopIban: string | null;
   fopBankName: string | null;
@@ -92,8 +106,10 @@ type ShopSettingsFormState = {
   currencyRates: Record<ShopCurrencyCode, string>;
   shippingZones: ShippingZoneForm[];
   taxRegions: TaxRegionForm[];
+  regionalPricingRules: RegionalPricingRuleForm[];
   orderNotificationEmail: string;
   b2bNotes: string;
+  showTaxesIncludedNotice: boolean;
   fopCompanyName: string;
   fopIban: string;
   fopBankName: string;
@@ -116,6 +132,7 @@ type PreviewFormState = {
 type PreviewResponse = {
   currency: ShopCurrencyCode;
   subtotal: number;
+  regionalAdjustmentAmount: number;
   shippingCost: number;
   taxAmount: number;
   total: number;
@@ -130,6 +147,59 @@ type PreviewResponse = {
     name: string;
     rate?: number;
   };
+  regionalPricingRule: null | {
+    id: string;
+    name: string;
+    value?: number;
+    mode?: 'percent' | 'fixed';
+    currency?: ShopCurrencyCode;
+  };
+  showTaxesIncludedNotice: boolean;
+};
+
+type NbuRefreshResponse = {
+  settings: ShopSettingsResponse;
+  nbu: {
+    source: 'nbu';
+    exchangedAt: string;
+    eurToUah: number;
+    usdToUah: number;
+    usdPerEur: number;
+    usdSpecial: boolean;
+  };
+};
+
+type EnTranslationResponse = {
+  mode: 'dry-run' | 'commit';
+  totalLoaded: number;
+  candidates: number;
+  updated?: number;
+  failed?: number;
+  stoppedBecauseQuota?: boolean;
+  scan: number;
+  limit: number;
+  includeUnpublished: boolean;
+  translateHtml: boolean;
+  items: Array<{
+    id: string;
+    slug: string;
+    fields: string[];
+  }>;
+  errors?: Array<{
+    slug: string;
+    message: string;
+  }>;
+};
+
+type RegionalPricingRuleForm = {
+  id: string;
+  name: string;
+  countriesText: string;
+  regionsText: string;
+  mode: 'percent' | 'fixed';
+  value: string;
+  currency: ShopCurrencyCode;
+  enabled: boolean;
 };
 
 const SHOP_CURRENCIES: ShopCurrencyCode[] = ['EUR', 'USD', 'UAH'];
@@ -194,6 +264,19 @@ function createTaxRegionForm(seed: number): TaxRegionForm {
   };
 }
 
+function createRegionalPricingRuleForm(seed: number): RegionalPricingRuleForm {
+  return {
+    id: `regional-rule-${seed}`,
+    name: `Регіональна корекція ${seed}`,
+    countriesText: '*',
+    regionsText: '',
+    mode: 'percent',
+    value: '0',
+    currency: 'EUR',
+    enabled: false,
+  };
+}
+
 function createEmptyForm(): ShopSettingsFormState {
   return {
     b2bVisibilityMode: 'approved_only',
@@ -207,8 +290,10 @@ function createEmptyForm(): ShopSettingsFormState {
     },
     shippingZones: [createShippingZoneForm(1)],
     taxRegions: [createTaxRegionForm(1)],
+    regionalPricingRules: [],
     orderNotificationEmail: '',
     b2bNotes: '',
+    showTaxesIncludedNotice: false,
     fopCompanyName: '',
     fopIban: '',
     fopBankName: '',
@@ -263,8 +348,19 @@ function settingsToForm(settings: ShopSettingsResponse): ShopSettingsFormState {
       appliesToShipping: region.appliesToShipping,
       enabled: region.enabled,
     })),
+    regionalPricingRules: settings.regionalPricingRules.map((rule) => ({
+      id: rule.id,
+      name: rule.name,
+      countriesText: joinCommaList(rule.countries),
+      regionsText: joinCommaList(rule.regions),
+      mode: rule.mode,
+      value: formatNumber(rule.value),
+      currency: rule.currency,
+      enabled: rule.enabled,
+    })),
     orderNotificationEmail: settings.orderNotificationEmail ?? '',
     b2bNotes: settings.b2bNotes ?? '',
+    showTaxesIncludedNotice: settings.showTaxesIncludedNotice ?? false,
     fopCompanyName: settings.fopCompanyName ?? '',
     fopIban: settings.fopIban ?? '',
     fopBankName: settings.fopBankName ?? '',
@@ -307,8 +403,19 @@ function formToPayload(form: ShopSettingsFormState) {
       appliesToShipping: region.appliesToShipping,
       enabled: region.enabled,
     })),
+    regionalPricingRules: form.regionalPricingRules.map((rule) => ({
+      id: rule.id.trim(),
+      name: rule.name.trim(),
+      countries: splitCommaList(rule.countriesText),
+      regions: splitCommaList(rule.regionsText),
+      mode: rule.mode,
+      value: parseNumber(rule.value),
+      currency: rule.currency,
+      enabled: rule.enabled,
+    })),
     orderNotificationEmail: form.orderNotificationEmail.trim() || null,
     b2bNotes: form.b2bNotes.trim() || null,
+    showTaxesIncludedNotice: form.showTaxesIncludedNotice,
     fopCompanyName: form.fopCompanyName.trim() || null,
     fopIban: form.fopIban.trim() || null,
     fopBankName: form.fopBankName.trim() || null,
@@ -350,6 +457,16 @@ export default function AdminShopSettingsPage() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState('');
   const [previewResult, setPreviewResult] = useState<PreviewResponse | null>(null);
+  const [currencySyncLoading, setCurrencySyncLoading] = useState(false);
+  const [currencySyncMeta, setCurrencySyncMeta] = useState<NbuRefreshResponse['nbu'] | null>(null);
+  const [translationLoading, setTranslationLoading] = useState(false);
+  const [translationParams, setTranslationParams] = useState({
+    scan: '500',
+    limit: '50',
+    includeUnpublished: false,
+    translateHtml: false,
+  });
+  const [translationResult, setTranslationResult] = useState<EnTranslationResponse | null>(null);
 
   useEffect(() => {
     void load();
@@ -503,6 +620,19 @@ export default function AdminShopSettingsPage() {
     }));
   }
 
+  function updateRegionalPricingRule(
+    index: number,
+    field: keyof RegionalPricingRuleForm,
+    value: RegionalPricingRuleForm[keyof RegionalPricingRuleForm]
+  ) {
+    setForm((current) => ({
+      ...current,
+      regionalPricingRules: current.regionalPricingRules.map((rule, ruleIndex) =>
+        ruleIndex === index ? { ...rule, [field]: value } : rule
+      ),
+    }));
+  }
+
   function addShippingZone() {
     setForm((current) => ({
       ...current,
@@ -514,6 +644,13 @@ export default function AdminShopSettingsPage() {
     setForm((current) => ({
       ...current,
       taxRegions: [...current.taxRegions, createTaxRegionForm(current.taxRegions.length + 1)],
+    }));
+  }
+
+  function addRegionalPricingRule() {
+    setForm((current) => ({
+      ...current,
+      regionalPricingRules: [...current.regionalPricingRules, createRegionalPricingRuleForm(current.regionalPricingRules.length + 1)],
     }));
   }
 
@@ -531,6 +668,13 @@ export default function AdminShopSettingsPage() {
     }));
   }
 
+  function removeRegionalPricingRule(index: number) {
+    setForm((current) => ({
+      ...current,
+      regionalPricingRules: current.regionalPricingRules.filter((_, ruleIndex) => ruleIndex !== index),
+    }));
+  }
+
   function moveShippingZone(index: number, direction: -1 | 1) {
     setForm((current) => ({
       ...current,
@@ -542,6 +686,13 @@ export default function AdminShopSettingsPage() {
     setForm((current) => ({
       ...current,
       taxRegions: moveItem(current.taxRegions, index, direction),
+    }));
+  }
+
+  function moveRegionalPricingRule(index: number, direction: -1 | 1) {
+    setForm((current) => ({
+      ...current,
+      regionalPricingRules: moveItem(current.regionalPricingRules, index, direction),
     }));
   }
 
@@ -571,6 +722,82 @@ export default function AdminShopSettingsPage() {
       setError((saveError as Error).message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleRefreshRatesFromNbu() {
+    setCurrencySyncLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await fetch('/api/admin/shop/settings/currency-rates/nbu', {
+        method: 'POST',
+      });
+      const data = (await response.json().catch(() => ({}))) as Partial<NbuRefreshResponse> & { error?: string };
+      if (!response.ok || !data.settings || !data.nbu) {
+        throw new Error(data.error || 'Не вдалося оновити курси з НБУ');
+      }
+      const settings = data.settings;
+      const nbu = data.nbu;
+
+      setForm((current) => ({
+        ...current,
+        currencyRates: {
+          EUR: formatNumber(settings.currencyRates.EUR),
+          USD: formatNumber(settings.currencyRates.USD),
+          UAH: formatNumber(settings.currencyRates.UAH),
+        },
+      }));
+      setUpdatedAt(settings.updatedAt);
+      setCurrencySyncMeta(nbu);
+      setSuccess(
+        `Курси з НБУ оновлено. 1 EUR = ${nbu.eurToUah} UAH, 1 EUR = ${nbu.usdPerEur} USD на ${nbu.exchangedAt}.`
+      );
+    } catch (refreshError) {
+      setError((refreshError as Error).message);
+    } finally {
+      setCurrencySyncLoading(false);
+    }
+  }
+
+  async function handleEnTranslation(commit: boolean) {
+    setTranslationLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await fetch('/api/admin/shop/translations/en', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          commit,
+          scan: parseNumber(translationParams.scan, 500),
+          limit: parseNumber(translationParams.limit, 50),
+          includeUnpublished: translationParams.includeUnpublished,
+          translateHtml: translationParams.translateHtml,
+        }),
+      });
+
+      const data = (await response.json().catch(() => ({}))) as Partial<EnTranslationResponse> & { error?: string };
+      if (!response.ok) {
+        throw new Error(data.error || 'Не вдалося запустити EN переклад');
+      }
+
+      setTranslationResult(data as EnTranslationResponse);
+      if (commit) {
+        setSuccess(
+          data.stoppedBecauseQuota
+            ? `DeepL зупинив переклад через квоту. Оновлено ${data.updated ?? 0} товарів.`
+            : `EN переклад завершено. Оновлено ${data.updated ?? 0} товарів.`
+        );
+      } else {
+        setSuccess(`Сканування EN полів завершено. Кандидатів: ${data.candidates ?? 0}.`);
+      }
+    } catch (translationError) {
+      setError((translationError as Error).message);
+    } finally {
+      setTranslationLoading(false);
     }
   }
 
@@ -672,6 +899,137 @@ export default function AdminShopSettingsPage() {
                 rows={4}
               />
             </div>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <CheckboxField
+                label="Показувати “Податки включено”, якщо окремий податок = 0"
+                checked={form.showTaxesIncludedNotice}
+                onChange={(checked) => updateField('showTaxesIncludedNotice', checked)}
+              />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-medium text-white">EN переклад каталогу</h3>
+                <p className="mt-1 max-w-3xl text-sm text-white/45">
+                  DeepL backfill для товарів, де англійські назви чи описи порожні, дублюють українську або ще містять кирилицю.
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/45">
+                <div>Оновлює: titleEn, seoTitleEn, shortDescEn, longDescEn</div>
+                <div className="mt-1">HTML-опис можна вмикати окремо, щоб не спалювати квоту зайвими текстами.</div>
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-[160px_160px_1fr]">
+              <InputField
+                label="Сканувати записів"
+                value={translationParams.scan}
+                onChange={(value) => setTranslationParams((current) => ({ ...current, scan: value }))}
+                placeholder="500"
+              />
+              <InputField
+                label="Макс. оновлень"
+                value={translationParams.limit}
+                onChange={(value) => setTranslationParams((current) => ({ ...current, limit: value }))}
+                placeholder="50"
+              />
+              <div className="grid gap-3 md:grid-cols-2">
+                <CheckboxField
+                  label="Включати неопубліковані товари"
+                  checked={translationParams.includeUnpublished}
+                  onChange={(checked) => setTranslationParams((current) => ({ ...current, includeUnpublished: checked }))}
+                />
+                <CheckboxField
+                  label="Перекладати HTML bodyHtmlEn"
+                  checked={translationParams.translateHtml}
+                  onChange={(checked) => setTranslationParams((current) => ({ ...current, translateHtml: checked }))}
+                />
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => void handleEnTranslation(false)}
+                disabled={translationLoading}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Globe2 className="h-4 w-4" />
+                Сканувати EN прогалини
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleEnTranslation(true)}
+                disabled={translationLoading}
+                className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <RefreshCw className={`h-4 w-4 ${translationLoading ? 'animate-spin' : ''}`} />
+                Перекласти EN через DeepL
+              </button>
+            </div>
+            {translationResult ? (
+              <div className="mt-4 rounded-xl border border-white/10 bg-zinc-950/60 p-4">
+                <div className="grid gap-3 md:grid-cols-4">
+                  <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Завантажено</div>
+                    <div className="mt-2 text-lg font-medium text-white">{translationResult.totalLoaded}</div>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Кандидати</div>
+                    <div className="mt-2 text-lg font-medium text-white">{translationResult.candidates}</div>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Оновлено</div>
+                    <div className="mt-2 text-lg font-medium text-emerald-200">{translationResult.updated ?? 0}</div>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Помилки</div>
+                    <div className="mt-2 text-lg font-medium text-amber-200">{translationResult.failed ?? 0}</div>
+                  </div>
+                </div>
+                {translationResult.stoppedBecauseQuota ? (
+                  <div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+                    DeepL зупинився через вичерпану квоту. Уже перекладені записи збережені.
+                  </div>
+                ) : null}
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-white/35">Перші кандидати</div>
+                    <div className="mt-3 space-y-2">
+                      {translationResult.items.length ? (
+                        translationResult.items.slice(0, 8).map((item) => (
+                          <div key={item.id} className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+                            <div className="text-sm font-medium text-white">{item.slug}</div>
+                            <div className="mt-1 text-xs text-white/45">{item.fields.join(', ')}</div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/50">
+                          Немає кандидатів на переклад.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-white/35">Останні помилки</div>
+                    <div className="mt-3 space-y-2">
+                      {translationResult.errors?.length ? (
+                        translationResult.errors.slice(0, 8).map((item, index) => (
+                          <div key={`${item.slug}-${index}`} className="rounded-lg border border-red-500/15 bg-red-950/10 px-3 py-2">
+                            <div className="text-sm font-medium text-red-100">{item.slug}</div>
+                            <div className="mt-1 text-xs text-red-200/70">{item.message}</div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/50">
+                          Порожньо. Якщо все добре, тут не буде записів.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </section>
 
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
@@ -746,8 +1104,27 @@ export default function AdminShopSettingsPage() {
                   Опорні курси відносно EUR. Якщо у товару немає ціни в валюті, оформлення використовує ці курси.
                 </p>
               </div>
-              <div className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/50">
-                Приклад: 1 EUR = {form.currencyRates.USD || '1.08'} USD
+              <div className="flex flex-wrap items-start justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={handleRefreshRatesFromNbu}
+                  disabled={currencySyncLoading}
+                  className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-4 w-4 ${currencySyncLoading ? 'animate-spin' : ''}`} />
+                  Оновити з НБУ
+                </button>
+                <div className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/50">
+                  <div>Приклад: 1 EUR = {form.currencyRates.USD || '1.08'} USD</div>
+                  {currencySyncMeta ? (
+                    <div className="mt-1 text-[11px] text-white/35">
+                      НБУ: {currencySyncMeta.exchangedAt}
+                      {currencySyncMeta.usdSpecial ? ' · USD за особливих умов' : ''}
+                    </div>
+                  ) : (
+                    <div className="mt-1 text-[11px] text-white/35">Джерело: офіційний курс НБУ</div>
+                  )}
+                </div>
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
@@ -1013,6 +1390,124 @@ export default function AdminShopSettingsPage() {
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
+                <h3 className="text-lg font-medium text-white">Регіональна корекція ціни</h3>
+                <p className="mt-1 text-sm text-white/45">
+                  Використовуйте для націнок або знижок по країнах і регіонах. Наприклад: США = -10%, UAE = +12%. Застосовується перше збіжне увімкнене правило.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={addRegionalPricingRule}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+              >
+                <Plus className="h-4 w-4" />
+                Додати регіональне правило
+              </button>
+            </div>
+            <div className="space-y-4">
+              {form.regionalPricingRules.length ? form.regionalPricingRules.map((rule, index) => (
+                <div key={`${rule.id}-${index}`} className="rounded-xl border border-white/10 bg-zinc-950/70 p-4">
+                  <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 text-sm font-medium text-white">
+                        <Globe2 className="h-4 w-4 text-white/55" />
+                        {rule.name || `Regional rule ${index + 1}`}
+                      </div>
+                      <div className="mt-1 text-xs font-mono text-white/40">{rule.id || 'missing-id'}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => moveRegionalPricingRule(index, -1)}
+                        disabled={index === 0}
+                        className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                        title="Вгору"
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveRegionalPricingRule(index, 1)}
+                        disabled={index === form.regionalPricingRules.length - 1}
+                        className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                        title="Вниз"
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeRegionalPricingRule(index)}
+                        className="rounded border border-red-500/25 p-2 text-red-300 hover:bg-red-500/10"
+                        title="Видалити регіональне правило"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <InputField
+                      label="ID правила"
+                      value={rule.id}
+                      onChange={(value) => updateRegionalPricingRule(index, 'id', value)}
+                      placeholder="us-minus-10"
+                    />
+                    <InputField
+                      label="Назва правила"
+                      value={rule.name}
+                      onChange={(value) => updateRegionalPricingRule(index, 'name', value)}
+                      placeholder="USA -10%"
+                    />
+                    <InputField
+                      label="Країни"
+                      value={rule.countriesText}
+                      onChange={(value) => updateRegionalPricingRule(index, 'countriesText', value)}
+                      placeholder="US, USA"
+                    />
+                    <InputField
+                      label="Регіони"
+                      value={rule.regionsText}
+                      onChange={(value) => updateRegionalPricingRule(index, 'regionsText', value)}
+                      placeholder="California, Texas"
+                    />
+                    <SelectField
+                      label="Тип корекції"
+                      value={rule.mode}
+                      onChange={(value) => updateRegionalPricingRule(index, 'mode', value as 'percent' | 'fixed')}
+                      options={[
+                        { value: 'percent', label: 'Відсоток' },
+                        { value: 'fixed', label: 'Фіксована сума' },
+                      ]}
+                    />
+                    <InputField
+                      label={rule.mode === 'percent' ? 'Значення %' : 'Сума корекції'}
+                      value={rule.value}
+                      onChange={(value) => updateRegionalPricingRule(index, 'value', value)}
+                      placeholder={rule.mode === 'percent' ? '-10' : '-150'}
+                    />
+                    <SelectField
+                      label="Валюта суми"
+                      value={rule.currency}
+                      onChange={(value) => updateRegionalPricingRule(index, 'currency', value as ShopCurrencyCode)}
+                      options={SHOP_CURRENCIES.map((currency) => ({ value: currency, label: currency }))}
+                    />
+                    <CheckboxField
+                      label="Увімкнено"
+                      checked={rule.enabled}
+                      onChange={(checked) => updateRegionalPricingRule(index, 'enabled', checked)}
+                    />
+                  </div>
+                </div>
+              )) : (
+                <div className="rounded-xl border border-dashed border-white/10 bg-zinc-950/40 p-4 text-sm text-white/40">
+                  Наразі регіональних корекцій ціни немає. Додайте правило, якщо хочете окрему ціну для США, ОАЕ або іншого ринку.
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div>
                 <h3 className="text-lg font-medium text-white">Попередній перегляд оформлення</h3>
                 <p className="mt-1 text-sm text-white/45">
                   Перегляд використовує той самий движок цін, що й оформлення замовлення, і показує незбережені зміни до натискання «Зберегти».
@@ -1078,12 +1573,22 @@ export default function AdminShopSettingsPage() {
                         value={formatMoney(previewResult.subtotal, previewResult.currency)}
                       />
                       <SummaryRow
+                        label="Regional adjustment"
+                        value={formatMoney(previewResult.regionalAdjustmentAmount, previewResult.currency)}
+                      />
+                      <SummaryRow
                         label="Shipping"
                         value={formatMoney(previewResult.shippingCost, previewResult.currency)}
                       />
                       <SummaryRow
                         label="Tax"
-                        value={formatMoney(previewResult.taxAmount, previewResult.currency)}
+                        value={
+                          previewResult.taxAmount > 0
+                            ? formatMoney(previewResult.taxAmount, previewResult.currency)
+                            : previewResult.showTaxesIncludedNotice
+                              ? 'Taxes included'
+                              : formatMoney(previewResult.taxAmount, previewResult.currency)
+                        }
                       />
                       <SummaryRow
                         label="Total"
@@ -1101,6 +1606,14 @@ export default function AdminShopSettingsPage() {
                         value={
                           previewResult.taxRegion
                             ? `${previewResult.taxRegion.name} (${previewResult.taxRegion.id})`
+                            : 'No match'
+                        }
+                      />
+                      <SummaryRow
+                        label="Matched regional rule"
+                        value={
+                          previewResult.regionalPricingRule
+                            ? `${previewResult.regionalPricingRule.name} (${previewResult.regionalPricingRule.id})`
                             : 'No match'
                         }
                       />

@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, PrismaClient, type OrderStatus } from '@prisma/client';
+import { Prisma, type OrderStatus } from '@prisma/client';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import {
@@ -9,8 +9,7 @@ import {
   canTransitionOrderStatus,
   serializeAdminOrderSummary,
 } from '@/lib/shopAdminOrders';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 type SerializedOrderSummary = ReturnType<typeof serializeAdminOrderSummary>;
 

@@ -7,6 +7,7 @@ import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
 import type { SupportedLocale } from '@/lib/seo';
 import type { ShopProduct } from '@/lib/shopCatalog';
+import { localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopProductPath } from '@/lib/urbanCollectionMatcher';
 import type { UrbanProductGridConfig } from '../data/urbanCollectionPages';
 
@@ -18,27 +19,6 @@ type UrbanCollectionProductGridProps = {
   products: ShopProduct[];
   settings: UrbanProductGridConfig;
 };
-
-function localize(locale: SupportedLocale, value: { ua: string; en: string }) {
-  // Fallback to the other language when a translation is missing.
-  return locale === 'ua' ? value.ua || value.en : value.en || value.ua;
-}
-
-function buildPremiumDescription(locale: SupportedLocale, title: { ua: string; en: string }, short: { ua: string; en: string }, long: { ua: string; en: string }) {
-  const t = localize(locale, title).trim();
-  const s = localize(locale, short).trim();
-  const l = localize(locale, long).trim();
-
-  const sNormalized = s.toLowerCase();
-  const tNormalized = t.toLowerCase();
-
-  // Якщо короткий опис дублює заголовок — беремо longDescription
-  if (!s || sNormalized === tNormalized || sNormalized.startsWith(tNormalized)) {
-    return l;
-  }
-
-  return s;
-}
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 'USD' | 'UAH') {
   const formatter = new Intl.NumberFormat(locale === 'ua' ? 'uk-UA' : 'en-US', {
@@ -127,28 +107,24 @@ export default function UrbanCollectionProductGrid({
         {products.length > 0 ? (
           <div className="urban-product-grid__cards">
             {products.map((product) => {
-              const premiumDescription = buildPremiumDescription(
-                locale,
-                product.title,
-                product.shortDescription,
-                product.longDescription,
-              );
               const computed = computePricesFromUah(
                 product.price,
                 rates && { EUR: rates.EUR, USD: rates.USD },
               );
+              const productTitle = localizeShopProductTitle(locale, product);
+              const productCollection = localizeShopText(locale, product.collection);
 
               return (
               <article key={product.slug} className="urban-product-grid__card">
                 <Link
                   href={buildShopProductPath(locale, product)}
                   className="urban-product-grid__card-link"
-                  aria-label={localize(locale, product.title)}
+                  aria-label={productTitle}
                 />
                 <div className="urban-product-grid__media">
                   <Image
                     src={product.image}
-                    alt={localize(locale, product.title)}
+                    alt={productTitle}
                     fill
                     sizes="(max-width: 768px) 100vw, 25vw"
                     className="object-cover"
@@ -157,13 +133,10 @@ export default function UrbanCollectionProductGrid({
                 <div className="urban-product-grid__body">
                   <p className="urban-product-grid__brand">{product.brand}</p>
                   <h3 className="urban-product-grid__name">
-                    {localize(locale, product.title)}
+                    {productTitle}
                   </h3>
-                  <p className="urban-product-grid__description">
-                    {premiumDescription}
-                  </p>
                   <div className="urban-product-grid__meta">
-                    <span>{localize(locale, product.collection)}</span>
+                    <span>{productCollection}</span>
                   </div>
                   <div className="urban-product-grid__actions">
                     <AddToCartButton
@@ -171,7 +144,7 @@ export default function UrbanCollectionProductGrid({
                       locale={locale}
                       redirect={false}
                       variant="inline"
-                      productName={localize(locale, product.title)}
+                      productName={productTitle}
                       className="urban-product-grid__add"
                       label={isUa ? 'Додати в кошик' : 'Add to cart'}
                       labelAdded={isUa ? 'Додано' : 'Added'}

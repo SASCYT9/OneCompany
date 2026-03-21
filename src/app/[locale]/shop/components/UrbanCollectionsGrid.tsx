@@ -8,11 +8,14 @@ import {
   URBAN_COLLECTIONS_GRID_SETTINGS,
   URBAN_COLLECTION_BRANDS,
 } from '../data/urbanCollectionsList';
+import type { UrbanCollectionCard } from '../data/urbanCollectionsList';
 
 const ONE_COMPANY_LOGO = 'https://onecompany.global/branding/logo-light.svg';
 
 type UrbanCollectionsGridProps = {
   locale: SupportedLocale;
+  /** When provided, only these cards are shown (e.g. those with a collection page config). */
+  cards?: UrbanCollectionCard[];
 };
 
 function slugifyBrand(brand: string): string {
@@ -22,11 +25,13 @@ function slugifyBrand(brand: string): string {
     .replace(/[^a-z0-9-]/g, '');
 }
 
-export default function UrbanCollectionsGrid({ locale }: UrbanCollectionsGridProps) {
+export default function UrbanCollectionsGrid({ locale, cards: cardsProp }: UrbanCollectionsGridProps) {
   const isUa = locale === 'ua';
   const rootRef = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
   const [filter, setFilter] = useState<string>('all');
+
+  const baseCards = cardsProp ?? URBAN_COLLECTION_CARDS;
 
   useEffect(() => {
     const root = rootRef.current;
@@ -44,8 +49,8 @@ export default function UrbanCollectionsGrid({ locale }: UrbanCollectionsGridPro
   }, []);
 
   const filteredCards = filter === 'all'
-    ? URBAN_COLLECTION_CARDS
-    : URBAN_COLLECTION_CARDS.filter((c) => slugifyBrand(c.brand) === filter);
+    ? baseCards
+    : baseCards.filter((c) => slugifyBrand(c.brand) === filter);
 
   const subheading = isUa
     ? URBAN_COLLECTIONS_GRID_SETTINGS.subheadingUk

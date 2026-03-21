@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import clsx from 'clsx';
 
 type LogoSize = 'default' | 'compact';
@@ -31,12 +30,12 @@ export function Logo({
 
   const image = (
     <span className={clsx('inline-flex items-center', className)}>
-      <Image
+      <img
         src={logoSrc}
         alt="OneCompany - преміум тюнінг авто мото Київ Україна, офіційний дилер Akrapovic Brabus Mansory"
         width={width}
         height={height}
-        priority={priority}
+        loading={priority ? 'eager' : 'lazy'}
         className="h-auto w-full"
       />
     </span>

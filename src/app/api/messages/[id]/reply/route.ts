@@ -1,10 +1,8 @@
 // Reply to message API
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { notifyUserReply } from '@/lib/bot/notifications';
 import { isAuthenticated } from '@/lib/telegram-auth';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
