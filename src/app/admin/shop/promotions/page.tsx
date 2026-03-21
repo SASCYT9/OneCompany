@@ -232,6 +232,9 @@ export default function AdminPromotionsPage() {
             <p className="mt-2 text-sm text-white/45">
               Тут керуємо ручними акціями: відсоток, фіксована знижка або безкоштовна доставка. Промокоди застосовуються в checkout і пишуться в snapshot замовлення.
             </p>
+            <p className="mt-2 text-xs text-white/35">
+              Storefront банери теж беруться тільки звідси: активна акція показується лише там, де її таргетинг збігається з товаром або колекцією.
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <select
@@ -295,6 +298,11 @@ export default function AdminPromotionsPage() {
                 <input type="datetime-local" value={form.endsAt} onChange={(e) => setForm((current) => ({ ...current, endsAt: e.target.value }))} className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white" />
               </div>
               <label className="flex items-center gap-2 text-sm text-white/70"><input type="checkbox" checked={form.appliesToAll} onChange={(e) => setForm((current) => ({ ...current, appliesToAll: e.target.checked }))} /> Застосовувати до всього замовлення</label>
+              {!form.appliesToAll ? (
+                <p className="text-xs text-white/40">
+                  Якщо вимкнено, акція працює тільки для вибраних `product slugs`, `category slugs` або брендів нижче.
+                </p>
+              ) : null}
               <label className="flex items-center gap-2 text-sm text-white/70"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm((current) => ({ ...current, isActive: e.target.checked }))} /> Активна</label>
               <div className="flex gap-3">
                 <button type="button" onClick={() => void handleSave()} disabled={saving} className="flex-1 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">

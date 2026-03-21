@@ -21,6 +21,7 @@ import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdmin
 import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { buildShopViewerPricingContext, resolveShopProductPricing } from '@/lib/shopPricingAudience';
+import { getStorefrontPromotionHighlights } from '@/lib/shopPromotions';
 import {
   buildShopProductPath,
   getProductsForUrbanCollection,
@@ -111,6 +112,16 @@ export default async function ShopProductDetailPage({
     session?.b2bDiscountPercent ?? null
   );
   const pricing = resolveShopProductPricing(product, viewerContext);
+  const storefrontPromotions = await getStorefrontPromotionHighlights(prisma, {
+    storeKey: product.storeKey ?? 'urban',
+    locale: resolvedLocale,
+    customerGroup: session?.group ?? null,
+    item: {
+      productSlug: product.slug,
+      brand: product.brand ?? null,
+      categorySlug: product.categoryNode?.slug ?? null,
+    },
+  });
   const defaultVariant = product.variants?.find((item) => item.isDefault) ?? product.variants?.[0] ?? null;
 
   const urbanCollectionHandle = getUrbanCollectionHandleForProduct(product);
@@ -293,6 +304,25 @@ export default async function ShopProductDetailPage({
             </div>
 
             <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">{productTitle}</h1>
+            {storefrontPromotions.length ? (
+              <div className="space-y-2">
+                {storefrontPromotions.slice(0, 2).map((promotion) => (
+                  <div
+                    key={promotion.id}
+                    className="rounded-2xl border border-emerald-300/25 bg-emerald-400/10 px-4 py-3"
+                  >
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-200/80">
+                      {promotion.code ? `${promotion.code} · ` : ''}
+                      {isUa ? 'Акція активна' : 'Promotion active'}
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-emerald-50">{promotion.title}</p>
+                    {promotion.description ? (
+                      <p className="mt-1 text-sm text-emerald-100/75">{promotion.description}</p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
             <p className="text-sm leading-relaxed text-white/75 sm:text-base">
               {longDescription || shortDescription}
             </p>

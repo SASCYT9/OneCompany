@@ -10,6 +10,8 @@ type PromotionApplicableItem = {
   total: number;
 };
 
+export type PromotionTargetItem = Omit<PromotionApplicableItem, 'total'>;
+
 export type PromotionEvaluationInput = {
   storeKey: string;
   promoCode?: string | null;
@@ -96,6 +98,10 @@ function getEligibleItems(promotion: ShopPromotion, items: PromotionApplicableIt
       (brand && brandNames.includes(brand))
     );
   });
+}
+
+function matchesPromotionTarget(promotion: ShopPromotion, item: PromotionTargetItem) {
+  return getEligibleItems(promotion, [{ ...item, total: 1 }]).length > 0;
 }
 
 function convertAmount(
@@ -264,4 +270,48 @@ export function serializeAdminPromotion(record: ShopPromotion) {
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
   };
+}
+
+export type StorefrontPromotionHighlight = {
+  id: string;
+  code: string | null;
+  title: string;
+  description: string | null;
+  promotionType: ShopPromotionType;
+};
+
+export async function getStorefrontPromotionHighlights(
+  prisma: PrismaClient,
+  input: {
+    storeKey: string;
+    locale: SupportedLocale;
+    customerGroup: CustomerGroup | null;
+    item: PromotionTargetItem;
+    now?: Date;
+  }
+): Promise<StorefrontPromotionHighlight[]> {
+  const now = input.now ?? new Date();
+  const promotions = await prisma.shopPromotion.findMany({
+    where: {
+      storeKey: input.storeKey,
+      isActive: true,
+    },
+    orderBy: [{ updatedAt: 'desc' }],
+  });
+
+  return promotions
+    .filter((promotion) => matchesSchedule(promotion, now))
+    .filter((promotion) => matchesCustomerGroup(promotion, input.customerGroup))
+    .filter((promotion) => matchesUsageLimit(promotion))
+    .filter((promotion) => matchesPromotionTarget(promotion, input.item))
+    .map((promotion) => {
+      const localized = localizePromotion(input.locale, promotion);
+      return {
+        id: promotion.id,
+        code: promotion.code,
+        title: localized.title,
+        description: localized.description,
+        promotionType: promotion.promotionType,
+      } satisfies StorefrontPromotionHighlight;
+    });
 }
