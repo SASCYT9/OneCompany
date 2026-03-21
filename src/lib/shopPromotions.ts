@@ -315,3 +315,39 @@ export async function getStorefrontPromotionHighlights(
       } satisfies StorefrontPromotionHighlight;
     });
 }
+
+export async function getStorefrontPromotionHighlightsForItems(
+  prisma: PrismaClient,
+  input: {
+    storeKey: string;
+    locale: SupportedLocale;
+    customerGroup: CustomerGroup | null;
+    items: PromotionTargetItem[];
+    now?: Date;
+  }
+): Promise<StorefrontPromotionHighlight[]> {
+  const now = input.now ?? new Date();
+  const promotions = await prisma.shopPromotion.findMany({
+    where: {
+      storeKey: input.storeKey,
+      isActive: true,
+    },
+    orderBy: [{ updatedAt: 'desc' }],
+  });
+
+  return promotions
+    .filter((promotion) => matchesSchedule(promotion, now))
+    .filter((promotion) => matchesCustomerGroup(promotion, input.customerGroup))
+    .filter((promotion) => matchesUsageLimit(promotion))
+    .filter((promotion) => input.items.some((item) => matchesPromotionTarget(promotion, item)))
+    .map((promotion) => {
+      const localized = localizePromotion(input.locale, promotion);
+      return {
+        id: promotion.id,
+        code: promotion.code,
+        title: localized.title,
+        description: localized.description,
+        promotionType: promotion.promotionType,
+      } satisfies StorefrontPromotionHighlight;
+    });
+}

@@ -34,6 +34,8 @@ type OrderSummary = {
   customerName: string;
   currency: string;
   total: number;
+  discountAmount: number;
+  promotionCode: string | null;
   createdAt: string;
   itemCount: number;
   shipmentsCount: number;
@@ -510,6 +512,11 @@ export default function AdminOrdersPage() {
                     <td className="px-4 py-4">
                       <div className="font-mono text-sm text-white">{order.orderNumber}</div>
                       <div className="mt-1 text-xs text-white/55">{order.store?.name ?? order.storeKey}</div>
+                      {order.promotionCode ? (
+                        <div className="mt-2 inline-flex rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-200">
+                          {order.promotionCode}
+                        </div>
+                      ) : null}
                       <div className="mt-1 text-white/75">{order.customerName}</div>
                       <div className="mt-1 text-xs text-white/45">{order.email}</div>
                     </td>
@@ -535,7 +542,12 @@ export default function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="px-4 py-4 text-white/80">
-                      {formatMoney(order.total, order.currency)}
+                      <div>{formatMoney(order.total, order.currency)}</div>
+                      {order.discountAmount > 0 ? (
+                        <div className="mt-1 text-xs text-emerald-300">
+                          Знижка: -{formatMoney(order.discountAmount, order.currency)}
+                        </div>
+                      ) : null}
                     </td>
                     <td className="px-4 py-4 text-white/45">
                       {new Date(order.createdAt).toLocaleDateString()}

@@ -58,9 +58,12 @@ type OrderDetail = {
   shippingAddress: Record<string, unknown>;
   currency: string;
   subtotal: number;
+  discountAmount: number;
   shippingCost: number;
   taxAmount: number;
   total: number;
+  promotionCode: string | null;
+  promotionSnapshot?: unknown;
   pricingSnapshot?: unknown;
   shippingZoneId: string | null;
   shippingZoneName: string | null;
@@ -533,10 +536,33 @@ export default function AdminOrderDetailPage() {
           <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-4">
             <div className="grid gap-3 text-sm">
               <SummaryRow label="Підсумок" value={formatMoney(order.subtotal, order.currency)} />
+              {order.discountAmount > 0 ? (
+                <SummaryRow
+                  label={order.promotionCode ? `Промокод ${order.promotionCode}` : 'Знижка'}
+                  value={`-${formatMoney(order.discountAmount, order.currency)}`}
+                />
+              ) : null}
               <SummaryRow label="Доставка" value={formatMoney(order.shippingCost, order.currency)} />
               <SummaryRow label="Податок" value={formatMoney(order.taxAmount, order.currency)} />
               <SummaryRow label="Всього" value={formatMoney(order.total, order.currency)} strong />
             </div>
+            {order.promotionCode || order.promotionSnapshot ? (
+              <div className="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+                <p className="text-xs uppercase tracking-wider text-emerald-200/75">Застосована акція</p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {order.promotionCode ? (
+                    <span className="inline-flex rounded-full border border-emerald-300/20 bg-emerald-400/10 px-2.5 py-1 text-xs font-medium uppercase tracking-[0.18em] text-emerald-100">
+                      {order.promotionCode}
+                    </span>
+                  ) : null}
+                  {order.discountAmount > 0 ? (
+                    <span className="text-sm text-emerald-50">
+                      Економія клієнта: {formatMoney(order.discountAmount, order.currency)}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
             <div className="mt-4 text-xs text-white/40">
               Оновлено {new Date(order.updatedAt).toLocaleString()}
             </div>

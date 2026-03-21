@@ -98,6 +98,8 @@ export function serializeAdminOrderSummary(record: AdminShopOrderRecord) {
     customerName: record.customerName,
     currency: record.currency,
     total: decimalToNumber(record.total) ?? 0,
+    discountAmount: decimalToNumber(record.discountAmount) ?? 0,
+    promotionCode: record.promotionCode,
     createdAt: record.createdAt.toISOString(),
     itemCount: record.items.reduce((sum, item) => sum + item.quantity, 0),
     shipmentsCount: record.shipments.length,

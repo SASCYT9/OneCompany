@@ -1,8 +1,11 @@
 import Link from 'next/link';
 import { absoluteUrl, buildPageMetadata, resolveLocale } from '@/lib/seo';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
+import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { buildShopListingResult, normalizeShopListingQuery } from '@/lib/shopListing';
+import { getStorefrontPromotionHighlightsForItems } from '@/lib/shopPromotions';
 import { getProductsForUrbanCollection } from '@/lib/urbanCollectionMatcher';
+import { prisma } from '@/lib/prisma';
 import { URBAN_COLLECTION_CARDS } from '../../../data/urbanCollectionsList';
 import { getUrbanCollectionPageConfig, getUrbanCollectionTemplateHandles } from '../../../data/urbanCollectionPages.server';
 import {
@@ -55,7 +58,9 @@ export default async function UrbanCollectionHandlePage({ params, searchParams }
   const isUa = resolvedLocale === 'ua';
   const config = getUrbanCollectionPageConfig(handle);
   const card = URBAN_COLLECTION_CARDS.find((item) => item.collectionHandle === handle);
-  const products = config ? await getShopProductsServer() : [];
+  const [products, session] = config
+    ? await Promise.all([getShopProductsServer(), getCurrentShopCustomerSession()])
+    : [[], null];
 
   if (!config) {
     return (
@@ -91,6 +96,16 @@ export default async function UrbanCollectionHandlePage({ params, searchParams }
     rates: null,
     query: listingQuery,
   });
+  const collectionPromotions = await getStorefrontPromotionHighlightsForItems(prisma, {
+    storeKey: 'urban',
+    locale: resolvedLocale,
+    customerGroup: session?.group ?? null,
+    items: collectionProducts.map((product) => ({
+      productSlug: product.slug,
+      brand: product.brand ?? null,
+      categorySlug: product.categoryNode?.slug ?? null,
+    })),
+  });
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -121,6 +136,27 @@ export default async function UrbanCollectionHandlePage({ params, searchParams }
       <UrbanCinematicHero locale={resolvedLocale} config={config.hero} />
       <UrbanModelOverview locale={resolvedLocale} config={config.overview} />
       <UrbanGalleryCarousel locale={resolvedLocale} config={config.gallery} />
+      {collectionPromotions.length ? (
+        <section className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
+          <div className="grid gap-3">
+            {collectionPromotions.slice(0, 2).map((promotion) => (
+              <div
+                key={promotion.id}
+                className="rounded-3xl border border-emerald-300/20 bg-emerald-400/10 px-5 py-4 backdrop-blur"
+              >
+                <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-200/75">
+                  {promotion.code ? `${promotion.code} · ` : ''}
+                  {isUa ? 'Акція колекції' : 'Collection promotion'}
+                </p>
+                <p className="mt-1 text-lg font-medium text-emerald-50">{promotion.title}</p>
+                {promotion.description ? (
+                  <p className="mt-1 text-sm text-emerald-100/75">{promotion.description}</p>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
       {config.videoPointer ? (
         <UrbanVideoPointer locale={resolvedLocale} config={config.videoPointer} />
       ) : null}
