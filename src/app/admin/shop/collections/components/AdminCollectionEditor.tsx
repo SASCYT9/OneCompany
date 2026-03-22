@@ -206,7 +206,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
 
   return (
     <div className="h-full overflow-auto bg-[#090909]">
-      <div className="mx-auto max-w-5xl px-6 py-8">
+      <div className="mx-auto w-full px-6 md:px-12 py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <Link href="/admin/shop/collections" className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white">

@@ -122,6 +122,36 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
             );
           })}
         </div>
+        
+        <Link href={`/${locale}/shop/stock`} className={styles.fullCard} suppressHydrationWarning>
+          <Image
+            src="/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp"
+            alt="One Company Stock"
+            fill
+            sizes="100vw"
+            className={styles.fullCardBg}
+          />
+          <div className={styles.fullCardGradient} aria-hidden />
+          <div className={styles.fullCardContent}>
+            <span className={styles.badge} style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.1)' }}>
+              {isUa ? "Глобальний Каталог" : "Global Catalog"}
+            </span>
+            <h3 className={styles.cardTitle}>
+              One Company Stock
+            </h3>
+            <p className={styles.cardSubtitle} style={{ color: 'rgba(255,255,255,0.85)', fontSize: '16px', maxWidth: '60ch' }}>
+              {isUa 
+                ? "Доступ до мільйонів преміальних деталей від провідних виробників усього світу напряму з нашого складу."
+                : "Access millions of premium parts from the world's leading manufacturers directly from our stock."}
+            </p>
+          </div>
+          <div className={styles.cardArrow} aria-hidden>
+            <svg viewBox="0 0 24 24">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </div>
+        </Link>
       </div>
     </section>
   );

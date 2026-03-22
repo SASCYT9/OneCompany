@@ -47,8 +47,21 @@ export async function PATCH(
     const body = await req.json().catch(() => ({}));
     const status = body.status as string | undefined;
     const note = typeof body.note === 'string' ? body.note.trim() : '';
-    if (!status || !ALLOWED_STATUSES.includes(status as OrderStatus)) {
-      return NextResponse.json({ error: 'Valid status required' }, { status: 400 });
+
+    const updateData: any = {};
+    if (status) {
+      if (!ALLOWED_STATUSES.includes(status as OrderStatus)) return NextResponse.json({ error: 'Valid status required' }, { status: 400 });
+      updateData.status = status as OrderStatus;
+    }
+
+    if (body.paymentStatus) updateData.paymentStatus = body.paymentStatus;
+    if (body.amountPaid !== undefined) updateData.amountPaid = Number(body.amountPaid);
+    if (body.deliveryMethod !== undefined) updateData.deliveryMethod = body.deliveryMethod || null;
+    if (body.ttnNumber !== undefined) updateData.ttnNumber = body.ttnNumber || null;
+    if (body.shippingCalculatedCost !== undefined) updateData.shippingCalculatedCost = body.shippingCalculatedCost ? Number(body.shippingCalculatedCost) : null;
+    
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: 'No valid fields provided' }, { status: 400 });
     }
     const currentOrder = await prisma.shopOrder.findUnique({
       where: { id },
@@ -57,22 +70,22 @@ export async function PATCH(
     if (!currentOrder) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
-    if (!canTransitionOrderStatus(currentOrder.status, status as OrderStatus)) {
-      return NextResponse.json({ error: `Invalid transition: ${currentOrder.status} -> ${status}` }, { status: 400 });
+    if (updateData.status && !canTransitionOrderStatus(currentOrder.status, updateData.status as OrderStatus)) {
+      return NextResponse.json({ error: `Invalid transition: ${currentOrder.status} -> ${updateData.status}` }, { status: 400 });
     }
 
     const order = await prisma.$transaction(async (tx) => {
       const updatedOrder = await tx.shopOrder.update({
         where: { id },
-        data: { status: status as OrderStatus },
+        data: updateData,
       });
 
-      if (currentOrder.status !== status) {
+      if (updateData.status && currentOrder.status !== updateData.status) {
         await tx.shopOrderStatusEvent.create({
           data: {
             orderId: id,
             fromStatus: currentOrder.status,
-            toStatus: status as OrderStatus,
+            toStatus: updateData.status as OrderStatus,
             actorType: 'admin',
             actorName: session.name,
             note: note || null,
@@ -89,8 +102,9 @@ export async function PATCH(
       entityId: order.id,
       metadata: {
         fromStatus: currentOrder.status,
-        toStatus: status,
+        toStatus: updateData.status || currentOrder.status,
         note: note || null,
+        updates: updateData,
       },
     });
 

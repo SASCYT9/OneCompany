@@ -365,7 +365,7 @@ export default function AdminShopImportPage() {
 
   return (
     <div className="h-full overflow-auto">
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="w-full px-6 md:px-12 py-6">
         <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-white/60 transition hover:text-white">
           <ArrowLeft className="h-4 w-4" />
           Назад до каталогу

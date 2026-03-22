@@ -30,4 +30,57 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    const cookieStore = await cookies();
+    // Assuming SHOP_CUSTOMERS_READ is sufficient or we can just use simple auth
+    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ);
+
+    const data = await request.json();
+    const { email, firstName, lastName, phone, companyName, group, isActive, preferredLocale, b2bDiscountPercent, preferredCurrency } = data;
+
+    if (!email || !firstName || !lastName) {
+      return NextResponse.json(
+        { error: 'Email, First Name, and Last Name are required' },
+        { status: 400 }
+      );
+    }
+
+    const existing = await prisma.shopCustomer.findUnique({
+      where: { email },
+    });
+    if (existing) {
+      return NextResponse.json(
+        { error: 'Customer with this email already exists' },
+        { status: 400 }
+      );
+    }
+
+    const customer = await prisma.shopCustomer.create({
+      data: {
+        email,
+        firstName,
+        lastName,
+        phone,
+        companyName,
+        group: group || 'B2C',
+        isActive: isActive !== undefined ? isActive : true,
+        preferredLocale: preferredLocale || 'en',
+        b2bDiscountPercent: b2bDiscountPercent ? parseFloat(b2bDiscountPercent) : 0,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      customerId: customer.id,
+      customer,
+    });
+  } catch (error: any) {
+    if (error.message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (error.message === 'FORBIDDEN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    console.error('Admin customer create', error);
+    return NextResponse.json({ error: error.message || 'Failed to create customer' }, { status: 500 });
+  }
+}
+
 export const runtime = 'nodejs';

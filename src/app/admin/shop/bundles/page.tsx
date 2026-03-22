@@ -342,7 +342,7 @@ export default function AdminShopBundlesPage() {
 
   return (
     <div className="h-full overflow-auto">
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="w-full px-6 md:px-12 py-6">
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold text-white">Bundles</h2>

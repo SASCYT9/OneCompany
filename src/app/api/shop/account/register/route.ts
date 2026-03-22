@@ -22,6 +22,8 @@ export async function POST(request: NextRequest) {
   const password = String(body.password ?? '');
   const phone = String(body.phone ?? '').trim();
   const preferredLocale = String(body.preferredLocale ?? '').trim() || null;
+  const region = String(body.region ?? '').trim() || null;
+  const currencyPref = String(body.currencyPref ?? '').trim() || 'EUR';
 
   if (
     !consumeRateLimit({
@@ -49,6 +51,7 @@ export async function POST(request: NextRequest) {
       password,
       phone,
       preferredLocale,
+      currencyPref,
     });
 
     return NextResponse.json({

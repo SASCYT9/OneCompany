@@ -8,6 +8,9 @@ export type ShopCustomerSession = {
   name: string;
   group: CustomerGroup;
   b2bDiscountPercent: number | null;
+  discountTier: string | null;
+  currencyPref: string;
+  balance: number;
   preferredLocale: string;
   companyName: string | null;
   firstName: string;
@@ -26,6 +29,9 @@ export async function getCurrentShopCustomerSession(): Promise<ShopCustomerSessi
     name: session.user.name ?? session.user.email,
     group: session.user.group,
     b2bDiscountPercent: session.user.b2bDiscountPercent ?? null,
+    discountTier: session.user.discountTier ?? null,
+    currencyPref: session.user.currencyPref ?? 'EUR',
+    balance: session.user.balance ?? 0,
     preferredLocale: session.user.preferredLocale ?? 'en',
     companyName: session.user.companyName ?? null,
     firstName: session.user.firstName ?? '',

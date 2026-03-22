@@ -80,7 +80,7 @@ export default function AdminShopAuditPage() {
 
   return (
     <div className="h-full overflow-auto">
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="w-full px-6 md:px-12 py-6">
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">

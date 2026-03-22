@@ -3,6 +3,7 @@ import { ADMIN_SESSION_COOKIE, adminSessionCookieOptions, createSessionToken } f
 import { ensureAdminBootstrap } from '@/lib/adminRbac';
 import { consumeRateLimit, getRequestIp } from '@/lib/shopPublicRateLimit';
 import { prisma } from '@/lib/prisma';
+import { verifyPassword } from '@/lib/hashPassword';
 
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW_PER_IP = 20;
@@ -51,27 +52,63 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { password } = await request.json();
+    const { email, password } = await request.json();
+    const providedEmail = String(email || '').trim().toLowerCase();
 
-    if (String(password ?? '') === adminPassword) {
+    // 1. Check Global Fallback
+    const fallbackEmail = (process.env.ADMIN_EMAIL || 'admin@onecompany.local').trim().toLowerCase();
+    if (providedEmail === fallbackEmail && String(password ?? '') === adminPassword) {
       const admin = await ensureAdminBootstrap(prisma);
       const response = NextResponse.json({ success: true });
       response.cookies.set(
         ADMIN_SESSION_COOKIE,
         createSessionToken({
           email: admin.email,
-          name: admin.name,
+          name: admin.name || 'Admin',
           permissions: admin.permissions,
         }),
         adminSessionCookieOptions
       );
       return response;
-    } else {
-      return NextResponse.json(
-        { error: 'Invalid password' },
-        { status: 401 }
-      );
+    } 
+
+    // 2. Check Database Individual User
+    if (providedEmail) {
+      const dbUser = await prisma.adminUser.findUnique({
+        where: { email: providedEmail },
+        include: { roles: { include: { role: true } } }
+      });
+
+      if (dbUser && dbUser.isActive && (dbUser as any).passwordHash) {
+        if (verifyPassword(String(password ?? ''), (dbUser as any).passwordHash)) {
+          // Update last login
+          await prisma.adminUser.update({
+            where: { id: dbUser.id },
+            data: { lastLoginAt: new Date() }
+          });
+
+          // Aggregate permissions
+          const permissions = dbUser.roles.flatMap(r => r.role.permissions);
+
+          const response = NextResponse.json({ success: true });
+          response.cookies.set(
+            ADMIN_SESSION_COOKIE,
+            createSessionToken({
+              email: dbUser.email,
+              name: dbUser.name || 'Admin',
+              permissions,
+            }),
+            adminSessionCookieOptions
+          );
+          return response;
+        }
+      }
     }
+
+    return NextResponse.json(
+      { error: 'Invalid email or password' },
+      { status: 401 }
+    );
   } catch {
     return NextResponse.json(
       { error: 'Authentication failed' },

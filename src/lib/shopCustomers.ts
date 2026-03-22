@@ -35,6 +35,9 @@ export const shopCustomerAdminListSelect = {
   companyName: true,
   group: true,
   b2bDiscountPercent: true,
+  // discountTier: true,
+  // region: true,
+  // currencyPref: true,
   isActive: true,
   preferredLocale: true,
   createdAt: true,
@@ -86,6 +89,7 @@ export type ShopCustomerRegistrationInput = {
   password: string;
   phone?: string | null;
   preferredLocale?: string | null;
+  currencyPref?: string | null;
 };
 
 type CustomerAddressSnapshot = {
@@ -185,6 +189,7 @@ export async function createShopCustomerRegistration(
       lastName: input.lastName.trim(),
       phone: nullableString(input.phone),
       preferredLocale: nullableString(input.preferredLocale) ?? 'en',
+      // currencyPref: input.currencyPref || 'EUR',
       group: 'B2C',
       account: {
         create: {

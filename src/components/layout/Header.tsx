@@ -102,7 +102,7 @@ export function Header() {
           })}
         </nav>
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
-          {isUrbanStorefront ? (
+          {segments[0] === "shop" ? (
             <Link
               href={`/${locale}/shop/account`}
               suppressHydrationWarning
@@ -111,8 +111,8 @@ export function Header() {
               {isUa ? "Акаунт" : "Account"}
             </Link>
           ) : null}
-          {isUrbanStorefront ? <CartIconLink locale={locale} /> : null}
-          {isUrbanStorefront ? (
+          {segments[0] === "shop" ? <CartIconLink locale={locale} /> : null}
+          {segments[0] === "shop" ? (
             <div className="hidden items-center gap-1 rounded-full border border-white/20 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-white/70 md:flex">
               <button
                 type="button"
@@ -205,7 +205,7 @@ export function Header() {
                 <div className="flex items-center gap-3">
                   <LocaleSwitcher />
                 </div>
-                {isUrbanStorefront ? (
+                {segments[0] === "shop" ? (
                   <Link
                     href={`/${locale}/shop/account`}
                     onClick={() => setMobileMenuOpen(false)}
@@ -215,7 +215,7 @@ export function Header() {
                     {isUa ? "Акаунт" : "Account"}
                   </Link>
                 ) : null}
-                {!isUrbanStorefront ? (
+                {segments[0] !== "shop" ? (
                   <Link
                     href={`/${locale}/partnership`}
                     onClick={() => setMobileMenuOpen(false)}

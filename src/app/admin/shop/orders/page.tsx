@@ -86,6 +86,13 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
   DELIVERED: 'Доставлено',
   CANCELLED: 'Скасовано',
   REFUNDED: 'Повернено',
+}
+
+const STATUS_BAR_ORDER = ['PENDING_PAYMENT','PENDING_REVIEW','CONFIRMED','PROCESSING','SHIPPED','DELIVERED','CANCELLED','REFUNDED'];
+const STATUS_BAR_COLORS: Record<string, string> = {
+  PENDING_PAYMENT: '#f97316', PENDING_REVIEW: '#f59e0b', CONFIRMED: '#3b82f6',
+  PROCESSING: '#8b5cf6', SHIPPED: '#06b6d4', DELIVERED: '#22c55e',
+  CANCELLED: '#ef4444', REFUNDED: '#71717a',
 };
 
 function formatMoney(value: number, currency: string) {
@@ -279,9 +286,9 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="mx-auto max-w-7xl p-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <div className="w-full h-full overflow-auto text-white">
+      <div className="w-full px-4 py-8 md:px-8 lg:px-12">
+        <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold text-white">Замовлення</h2>
             <p className="mt-2 text-sm text-white/45">
@@ -289,22 +296,28 @@ export default function AdminOrdersPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/admin/shop/orders/new"
+              className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300"
+            >
+              Створити власноруч
+            </Link>
             <button
               type="button"
               onClick={() => setReloadKey((current) => current + 1)}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
+              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-transparent hover:bg-white/5 transition-all duration-300 px-4 py-2 text-sm font-medium text-white/80 hover:text-white"
             >
-              <RefreshCcw className="h-4 w-4" />
+              <RefreshCcw className="h-4 w-4 text-white/50" />
               Оновити
             </button>
             <Link
               href="/admin/shop/audit"
-              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
+              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-transparent hover:bg-white/5 transition-all duration-300 px-4 py-2 text-sm font-medium text-white/80 hover:text-white"
             >
-              <FileClock className="h-4 w-4" />
+              <FileClock className="h-4 w-4 text-white/50" />
               Аудит
             </Link>
-            <Link href="/admin/shop" className="text-sm text-white/60 hover:text-white">
+            <Link href="/admin/shop" className="text-sm text-white/40 hover:text-white transition-colors ml-2">
               ← Каталог товарів
             </Link>
           </div>
@@ -318,8 +331,38 @@ export default function AdminOrdersPage() {
           <SummaryCard label="Відправлено" value={String(stats.statusCounts.SHIPPED || 0)} detail="В дорозі" />
         </div>
 
-        <div className="mb-4 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 md:grid-cols-5">
-          <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white md:col-span-2">
+        {/* Status Distribution Bar */}
+        {stats.total > 0 && (
+          <div className="mb-6 px-1">
+            <div className="flex h-2 w-full overflow-hidden rounded-full bg-white/[0.03]">
+              {STATUS_BAR_ORDER.map(s => {
+                const count = stats.statusCounts[s] || 0;
+                if (count === 0) return null;
+                const pct = (count / stats.total) * 100;
+                return (
+                  <div key={s} title={`${statusLabel(s)}: ${count}`}
+                    style={{ width: `${pct}%`, backgroundColor: STATUS_BAR_COLORS[s] || '#6b7280' }}
+                    className="transition-all duration-500 first:rounded-l-full last:rounded-r-full" />
+                );
+              })}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+              {STATUS_BAR_ORDER.map(s => {
+                const count = stats.statusCounts[s] || 0;
+                if (count === 0) return null;
+                return (
+                  <div key={s} className="flex items-center gap-1.5 text-[9px] text-white/35">
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: STATUS_BAR_COLORS[s] }} />
+                    {statusLabel(s)} ({count})
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="mb-6 grid gap-4 rounded-2xl border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-6 md:grid-cols-5">
+          <label className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-black/40 px-4 py-2.5 text-sm text-white md:col-span-2 transition-colors focus-within:border-indigo-500/50">
             <Search className="h-4 w-4 text-white/35" />
             <input
               value={query}
@@ -370,8 +413,8 @@ export default function AdminOrdersPage() {
         </div>
 
         {selectedOrders.length ? (
-          <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="mb-6 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 backdrop-blur-xl p-6 shadow-[0_0_20px_rgba(99,102,241,0.05)]">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm text-white/75">
                 {selectedOrders.length} обрано · {selectedOrders.map((order) => order.orderNumber).join(', ')}
               </div>
@@ -424,15 +467,15 @@ export default function AdminOrdersPage() {
         {success ? <div className="mb-4 rounded-lg bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
 
         {orders.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
+          <div className="rounded-2xl border border-white/[0.08] bg-black/40 py-24 text-center text-white/40 tracking-wider text-sm shadow-2xl backdrop-blur-sm">
             За обраними фільтрами замовлень не знайдено.
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-white/10">
+          <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-black/60 backdrop-blur-2xl shadow-2xl">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-white/10 bg-white/5">
-                  <th className="px-4 py-3">
+                <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+                  <th className="px-5 py-4">
                     <input
                       type="checkbox"
                       checked={orders.length > 0 && selectedIds.length === orders.length}
@@ -440,15 +483,15 @@ export default function AdminOrdersPage() {
                       className="h-4 w-4 rounded border-white/20 bg-zinc-950"
                     />
                   </th>
-                  <th className="px-4 py-3 font-medium text-white/60">Замовлення</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Статус</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Операції</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Всього</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Створено</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Відкрити</th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Замовлення</th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Статус</th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Операції</th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Всього</th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Створено</th>
+                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Відкрити</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-white/[0.04]">
                 {orders.map((order) => (
                   <tr key={order.id} className="border-b border-white/5 align-top hover:bg-white/[0.03]">
                     <td className="px-4 py-4">
@@ -459,12 +502,12 @@ export default function AdminOrdersPage() {
                         className="h-4 w-4 rounded border-white/20 bg-zinc-950"
                       />
                     </td>
-                    <td className="px-4 py-4">
-                      <div className="font-mono text-sm text-white">{order.orderNumber}</div>
-                      <div className="mt-1 text-white/75">{order.customerName}</div>
-                      <div className="mt-1 text-xs text-white/45">{order.email}</div>
+                    <td className="px-5 py-5">
+                      <div className="font-mono text-xs font-semibold tracking-wide text-white drop-shadow-sm">{order.orderNumber}</div>
+                      <div className="mt-1 text-sm font-medium text-white/80">{order.customerName}</div>
+                      <div className="mt-1 text-xs text-white/40">{order.email}</div>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-5 py-5">
                       <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs capitalize ${statusBadgeClass(order.status)}`}>
                         {statusLabel(order.status)}
                       </span>
@@ -481,23 +524,23 @@ export default function AdminOrdersPage() {
                       <div className="mt-1 text-xs text-white/45">
                         {order.taxRegionName || 'No tax rule'}
                       </div>
-                      <div className="mt-1 text-xs text-white/45">
-                        {order.itemCount} item{order.itemCount !== 1 ? 's' : ''} · {order.shipmentsCount} shipments · {order.timelineCount} events
+                      <div className="mt-1.5 text-[11px] text-white/30 uppercase tracking-widest font-medium">
+                        {order.itemCount} item{order.itemCount !== 1 ? 's' : ''} · {order.shipmentsCount} box · {order.timelineCount} log
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-white/80">
+                    <td className="px-5 py-5 text-white/90 font-medium tracking-wide">
                       {formatMoney(order.total, order.currency)}
                     </td>
-                    <td className="px-4 py-4 text-white/45">
+                    <td className="px-5 py-5 text-[13px] text-white/40 tracking-wider">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-5 py-5">
                       <Link
                         href={`/admin/shop/orders/${order.id}`}
-                        className="inline-flex items-center gap-2 rounded border border-white/15 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
+                        className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-transparent hover:bg-white/5 px-3 py-2 text-xs font-medium uppercase tracking-widest text-white/70 hover:text-white transition-all duration-300"
                       >
                         Відкрити
-                        <ChevronRight className="h-4 w-4 text-white/40" />
+                        <ChevronRight className="h-3.5 w-3.5 text-white/40" />
                       </Link>
                     </td>
                   </tr>
@@ -519,10 +562,10 @@ type SummaryCardProps = {
 
 function SummaryCard({ label, value, detail }: SummaryCardProps) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-      <div className="text-xs uppercase tracking-[0.18em] text-white/40">{label}</div>
-      <div className="mt-3 text-2xl font-semibold text-white">{value}</div>
-      <div className="mt-1 text-sm text-white/45">{detail}</div>
+    <div className="rounded-2xl border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-5 hover:border-indigo-500/30 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all duration-300 group">
+      <div className="text-[11px] uppercase tracking-[0.2em] font-medium text-white/40 mb-4">{label}</div>
+      <div className="mt-3 text-3xl font-light text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">{value}</div>
+      <div className="mt-2 text-[13px] font-light text-white/40">{detail}</div>
     </div>
   );
 }
@@ -537,11 +580,11 @@ type SelectFieldProps = {
 function SelectField({ label, value, onChange, options }: SelectFieldProps) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
+      <span className="mb-1.5 block text-[11px] uppercase tracking-wider font-medium text-white/40">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+        className="w-full rounded-xl border border-white/[0.08] bg-black/40 px-3 py-2.5 text-[13px] text-white/80 focus:border-indigo-500/50 focus:outline-none transition-colors"
       >
         {options.map((option) => (
           <option key={`${label}-${option.value || option.label}`} value={option.value}>

@@ -7,6 +7,9 @@ declare module 'next-auth' {
       customerId: string;
       group: CustomerGroup;
       b2bDiscountPercent?: number | null;
+      discountTier?: string | null;
+      currencyPref?: string;
+      balance?: number;
       preferredLocale: string;
       companyName?: string | null;
       firstName?: string;
@@ -18,6 +21,9 @@ declare module 'next-auth' {
     customerId: string;
     group: CustomerGroup;
     b2bDiscountPercent?: number | null;
+    discountTier?: string | null;
+    currencyPref?: string;
+    balance?: number;
     preferredLocale: string;
     companyName?: string | null;
     firstName?: string;
@@ -30,6 +36,9 @@ declare module 'next-auth/jwt' {
     customerId?: string;
     group?: CustomerGroup;
     b2bDiscountPercent?: number | null;
+    discountTier?: string | null;
+    currencyPref?: string;
+    balance?: number;
     preferredLocale?: string;
     companyName?: string | null;
     firstName?: string;

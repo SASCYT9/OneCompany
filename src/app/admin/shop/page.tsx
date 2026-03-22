@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Pencil, Trash2, Upload, Package, ShoppingCart, Search, Layers3, Warehouse, Coins, Settings2, FileClock, ImageIcon, FolderTree, Users, Boxes } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, Package, ShoppingCart, Search, Layers3, Warehouse, Coins, Settings2, FileClock, ImageIcon, FolderTree, Users, Boxes, Globe } from 'lucide-react';
 
 type ShopProductListItem = {
   id: string;
@@ -170,6 +170,10 @@ export default function AdminShopPage() {
             <Link href="/admin/shop/import" title="Імпорт товарів з CSV і мапінг колонок" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Upload className="w-4 h-4" />
               Імпорт CSV
+            </Link>
+            <Link href="/admin/shop/turn14" title="Каталог Turn14 (Глобальний постачальник)" className="flex items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-4 py-2 text-sm font-medium text-indigo-300 hover:bg-indigo-500/20">
+              <Globe className="w-4 h-4" />
+              Turn14 Catalog
             </Link>
             <Link href="/admin/shop/new" title="Створити новий товар" className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
               <Plus className="w-4 h-4" />

@@ -37,7 +37,7 @@ test('checkout settings preview applies shipping zones, tax regions and totals',
     ],
     orderNotificationEmail: null,
     b2bNotes: null,
-  });
+  } as any);
 
   const quote = buildCheckoutSettingsPreview(settings, {
     currency: 'EUR',

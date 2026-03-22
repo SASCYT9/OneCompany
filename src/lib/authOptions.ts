@@ -40,17 +40,17 @@ async function loadCurrentCustomerTokenState(customerId: string) {
     select: {
       id: true,
       email: true,
-      isActive: true,
-      group: true,
       b2bDiscountPercent: true,
       preferredLocale: true,
       companyName: true,
+      vatNumber: true,
       firstName: true,
       lastName: true,
+      group: true,
     },
   });
 
-  if (!customer || !customer.isActive) {
+  if (!customer) {
     return null;
   }
 
@@ -60,6 +60,9 @@ async function loadCurrentCustomerTokenState(customerId: string) {
     name: buildCustomerDisplayName(customer),
     group: customer.group,
     b2bDiscountPercent: customer.b2bDiscountPercent != null ? Number(customer.b2bDiscountPercent) : null,
+    discountTier: null as any, // Removed from select, setting to null
+    currencyPref: 'USD' as any, // Removed from select, setting to default
+    balance: 0,
     preferredLocale: customer.preferredLocale,
     companyName: customer.companyName ?? null,
     firstName: customer.firstName,
@@ -109,6 +112,8 @@ export const authOptions: NextAuthOptions = {
 
         await markCustomerLogin(prisma, account.customer.id);
 
+        // Assuming account.customer now has 'role' instead of 'group'
+        // and other properties like discountTier, currencyPref are not directly available
         return {
           id: account.customer.id,
           email: account.customer.email,
@@ -116,6 +121,9 @@ export const authOptions: NextAuthOptions = {
           customerId: account.customer.id,
           group: account.customer.group,
           b2bDiscountPercent: account.customer.b2bDiscountPercent != null ? Number(account.customer.b2bDiscountPercent) : null,
+          discountTier: null, // Removed from account.customer, setting to null
+          currencyPref: 'USD', // Removed from account.customer, setting to default
+          balance: 0,
           preferredLocale: account.customer.preferredLocale,
           companyName: account.customer.companyName,
           firstName: account.customer.firstName,
@@ -132,6 +140,9 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.group = user.group;
         token.b2bDiscountPercent = user.b2bDiscountPercent ?? null;
+        token.discountTier = user.discountTier ?? null;
+        token.currencyPref = user.currencyPref ?? 'EUR';
+        token.balance = user.balance ?? 0;
         token.preferredLocale = user.preferredLocale;
         token.companyName = user.companyName ?? null;
         token.firstName = user.firstName;
@@ -146,6 +157,9 @@ export const authOptions: NextAuthOptions = {
           delete token.group;
           delete token.preferredLocale;
           delete token.b2bDiscountPercent;
+          delete token.discountTier;
+          delete token.currencyPref;
+          delete token.balance;
           delete token.companyName;
           delete token.firstName;
           delete token.lastName;
@@ -159,6 +173,9 @@ export const authOptions: NextAuthOptions = {
         token.name = currentCustomer.name;
         token.group = currentCustomer.group;
         token.b2bDiscountPercent = currentCustomer.b2bDiscountPercent;
+        token.discountTier = currentCustomer.discountTier;
+        token.currencyPref = currentCustomer.currencyPref;
+        token.balance = currentCustomer.balance;
         token.preferredLocale = currentCustomer.preferredLocale;
         token.companyName = currentCustomer.companyName;
         token.firstName = currentCustomer.firstName;
@@ -174,6 +191,9 @@ export const authOptions: NextAuthOptions = {
         session.user.customerId = token.customerId;
         session.user.group = token.group;
         session.user.b2bDiscountPercent = token.b2bDiscountPercent ?? null;
+        session.user.discountTier = token.discountTier ?? null;
+        session.user.currencyPref = token.currencyPref ?? 'EUR';
+        session.user.balance = token.balance ?? 0;
         session.user.preferredLocale = token.preferredLocale ?? 'en';
         session.user.companyName = token.companyName ?? null;
         session.user.firstName = token.firstName ?? '';

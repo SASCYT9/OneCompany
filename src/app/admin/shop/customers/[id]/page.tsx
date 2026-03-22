@@ -18,6 +18,10 @@ type CustomerDetail = {
   vatNumber: string | null;
   group: CustomerGroup;
   b2bDiscountPercent: number | null;
+  discountTier: string | null;
+  region: string | null;
+  currencyPref: string;
+  balance: number;
   isActive: boolean;
   notes: string | null;
   preferredLocale: string;
@@ -84,6 +88,10 @@ type CustomerForm = {
   vatNumber: string;
   notes: string;
   b2bDiscountPercent: string;
+  discountTier: string;
+  region: string;
+  currencyPref: string;
+  balance: string;
   preferredLocale: string;
   isActive: boolean;
   group: CustomerGroup;
@@ -98,6 +106,10 @@ function createForm(customer: CustomerDetail): CustomerForm {
     vatNumber: customer.vatNumber ?? '',
     notes: customer.notes ?? '',
     b2bDiscountPercent: customer.b2bDiscountPercent != null ? String(customer.b2bDiscountPercent) : '',
+    discountTier: customer.discountTier ?? '',
+    region: customer.region ?? '',
+    currencyPref: customer.currencyPref ?? 'EUR',
+    balance: String(customer.balance ?? 0),
     preferredLocale: customer.preferredLocale,
     isActive: customer.isActive,
     group: customer.group,
@@ -271,6 +283,21 @@ export default function AdminShopCustomerDetailPage() {
                 <InputField label="Компанія" value={form.companyName} onChange={(value) => setForm((current) => current ? { ...current, companyName: value } : current)} />
                 <InputField label="ІПН" value={form.vatNumber} onChange={(value) => setForm((current) => current ? { ...current, vatNumber: value } : current)} />
                 <InputField label="Знижка B2B %" value={form.b2bDiscountPercent} onChange={(value) => setForm((current) => current ? { ...current, b2bDiscountPercent: value } : current)} />
+                <InputField label="Рівень знижки (Tier)" value={form.discountTier} onChange={(value) => setForm((current) => current ? { ...current, discountTier: value } : current)} />
+                <InputField label="Баланс (Борг/Кредит)" value={form.balance} onChange={(value) => setForm((current) => current ? { ...current, balance: value } : current)} />
+                <InputField label="Регіон" value={form.region} onChange={(value) => setForm((current) => current ? { ...current, region: value } : current)} />
+                <label className="block">
+                  <span className="mb-1.5 block text-xs text-white/50">Бажана валюта</span>
+                  <select
+                    value={form.currencyPref}
+                    onChange={(event) => setForm((current) => current ? { ...current, currencyPref: event.target.value } : current)}
+                    className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
+                  >
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="UAH">UAH</option>
+                  </select>
+                </label>
                 <label className="block">
                   <span className="mb-1.5 block text-xs text-white/50">Preferred locale</span>
                   <select

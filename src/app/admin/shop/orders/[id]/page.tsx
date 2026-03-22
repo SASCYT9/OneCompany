@@ -61,6 +61,11 @@ type OrderDetail = {
   shippingCost: number;
   taxAmount: number;
   total: number;
+  paymentStatus: string;
+  amountPaid: number;
+  deliveryMethod: string | null;
+  ttnNumber: string | null;
+  shippingCalculatedCost: number | null;
   pricingSnapshot?: unknown;
   shippingZoneId: string | null;
   shippingZoneName: string | null;
@@ -179,6 +184,11 @@ export default function AdminOrderDetailPage() {
   const [success, setSuccess] = useState('');
   const [updating, setUpdating] = useState(false);
   const [newStatus, setNewStatus] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState('');
+  const [amountPaid, setAmountPaid] = useState('');
+  const [deliveryMethod, setDeliveryMethod] = useState('');
+  const [ttnNumber, setTtnNumber] = useState('');
+  const [shippingCalculatedCost, setShippingCalculatedCost] = useState('');
   const [statusNote, setStatusNote] = useState('');
   const [copyState, setCopyState] = useState('');
   const [newShipment, setNewShipment] = useState<ShipmentDraft>(emptyShipmentDraft());
@@ -205,6 +215,11 @@ export default function AdminOrderDetailPage() {
       }
       setOrder(data as OrderDetail);
       setNewStatus((data as OrderDetail).status);
+      setPaymentStatus((data as OrderDetail).paymentStatus);
+      setAmountPaid(String((data as OrderDetail).amountPaid));
+      setDeliveryMethod((data as OrderDetail).deliveryMethod ?? '');
+      setTtnNumber((data as OrderDetail).ttnNumber ?? '');
+      setShippingCalculatedCost((data as OrderDetail).shippingCalculatedCost != null ? String((data as OrderDetail).shippingCalculatedCost) : '');
       setShipmentDrafts(
         Object.fromEntries(
           (data as OrderDetail).shipments.map((shipment) => [
@@ -255,6 +270,35 @@ export default function AdminOrderDetailPage() {
       await load();
       setStatusNote('');
       setSuccess(`Замовлення переведено в статус «${statusLabel(nextStatus)}».`);
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  async function handleLogisticsUpdate() {
+    if (!id || !order) return;
+    setUpdating(true);
+    setError('');
+    setSuccess('');
+    try {
+      const response = await fetch(`/api/admin/shop/orders/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentStatus,
+          amountPaid: parseFloat(amountPaid) || 0,
+          deliveryMethod,
+          ttnNumber,
+          shippingCalculatedCost: shippingCalculatedCost ? parseFloat(shippingCalculatedCost) : null,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data.error || 'Не вдалося оновити логістику/оплату');
+        return;
+      }
+      await load();
+      setSuccess('Дані логістики і оплати збережено.');
     } finally {
       setUpdating(false);
     }
@@ -511,6 +555,97 @@ export default function AdminOrderDetailPage() {
                 {addr.region ? `, ${addr.region}` : ''} {addr.postcode ?? ''}
               </p>
               <p className="text-white/90">{addr.country}</p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-xs uppercase tracking-wider text-white/50">Оплата та Борг</p>
+                <button
+                  type="button"
+                  onClick={() => void handleLogisticsUpdate()}
+                  disabled={updating}
+                  className="rounded-lg bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20 disabled:opacity-50"
+                >
+                  Зберегти
+                </button>
+              </div>
+              <div className="grid gap-3">
+                <label className="text-sm">
+                  <span className="mb-1 block text-white/70">Статус оплати</span>
+                  <select
+                    value={paymentStatus}
+                    onChange={(e) => setPaymentStatus(e.target.value)}
+                    className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
+                  >
+                    <option value="UNPAID">Не оплачено</option>
+                    <option value="PARTIALLY_PAID">Оплачено частково</option>
+                    <option value="PAID">Оплачено повністю</option>
+                  </select>
+                </label>
+                <label className="text-sm">
+                  <span className="mb-1 block text-white/70">Сплачена сума (з можливих {formatMoney(order.total, order.currency)})</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={amountPaid}
+                    onChange={(e) => setAmountPaid(e.target.value)}
+                    className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-xs uppercase tracking-wider text-white/50">Спецдоставка / ТТН</p>
+                <button
+                  type="button"
+                  onClick={() => void handleLogisticsUpdate()}
+                  disabled={updating}
+                  className="rounded-lg bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20 disabled:opacity-50"
+                >
+                  Зберегти
+                </button>
+              </div>
+              <div className="grid gap-3">
+                <label className="text-sm">
+                  <span className="mb-1 block text-white/70">Тип доставки</span>
+                  <select
+                    value={deliveryMethod}
+                    onChange={(e) => setDeliveryMethod(e.target.value)}
+                    className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
+                  >
+                    <option value="">Не обрано</option>
+                    <option value="NOVA_POSHTA">Нова Пошта</option>
+                    <option value="SPECIAL_DELIVERY">Спецдоставка (OneCompany)</option>
+                    <option value="PICKUP">Самовивіз</option>
+                  </select>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="text-sm">
+                    <span className="mb-1 block text-white/70">Номер ТТН</span>
+                    <input
+                      type="text"
+                      value={ttnNumber}
+                      onChange={(e) => setTtnNumber(e.target.value)}
+                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
+                    />
+                  </label>
+                  <label className="text-sm">
+                    <span className="mb-1 block text-white/70">Розрахована вартість</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={shippingCalculatedCost}
+                      onChange={(e) => setShippingCalculatedCost(e.target.value)}
+                      placeholder="Авто/Вручну"
+                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
+                    />
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 

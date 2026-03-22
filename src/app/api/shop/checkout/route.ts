@@ -3,6 +3,11 @@
  * Body: { items, contact, shipping, currency, locale?, paymentMethod?: 'FOP'|'STRIPE'|'WHITEBIT' }
  * FOP: creates order PENDING_REVIEW, sends email, returns { orderNumber, viewToken }.
  * STRIPE: creates order PENDING_PAYMENT, returns { redirectUrl, orderNumber, viewToken }; webhook confirms and sends email.
+/**
+ * POST /api/shop/checkout
+ * Body: { items, contact, shipping, currency, locale?, paymentMethod?: 'FOP'|'STRIPE'|'WHITEBIT' }
+ * FOP: creates order PENDING_REVIEW, sends email, returns { orderNumber, viewToken }.
+ * STRIPE: creates order PENDING_PAYMENT, returns { redirectUrl, orderNumber, viewToken }; webhook confirms and sends email.
  * WHITEBIT: for now same as FOP (coming later).
  */
 
@@ -12,6 +17,7 @@ import { Resend } from 'resend';
 import { generateOrderNumber, generateViewToken } from '@/lib/shopOrder';
 import { createInitialOrderEvent } from '@/lib/shopAdminOrders';
 import { buildCheckoutQuote } from '@/lib/shopCheckout';
+import { dispatchCrmWebhook } from '@/lib/webhookDispatcher';
 import OrderConfirmationEmail from '@/components/emails/OrderConfirmationEmail';
 import { notifyAdminNewShopOrder } from '@/lib/telegramNotifications';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
@@ -194,6 +200,10 @@ export async function POST(req: NextRequest) {
     const order = await prisma.shopOrder.create({
       data: orderData,
     });
+    
+    // CRM Webhook
+    await dispatchCrmWebhook('order.created', order).catch(() => {});
+
     await createInitialOrderEvent(prisma, order.id);
     if (session?.customerId) {
       await upsertCustomerDefaultShippingAddress(prisma, session.customerId, shippingAddress);
@@ -207,7 +217,7 @@ export async function POST(req: NextRequest) {
       customerEmail: email,
       successUrl: `${baseUrl}/${locale}/shop/checkout/success?order=${encodeURIComponent(orderNumber)}&token=${encodeURIComponent(viewToken)}`,
       cancelUrl: `${baseUrl}/${locale}/shop/checkout`,
-      locale,
+      locale
     });
 
     if ('error' in sessionResult) {
@@ -241,7 +251,6 @@ export async function POST(req: NextRequest) {
       total: quote.total,
       currency: quote.currency,
       paymentMethod: 'STRIPE',
-      regionalPricingRule: quote.regionalPricingRule,
       showTaxesIncludedNotice: quote.showTaxesIncludedNotice,
     });
     response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
@@ -257,6 +266,9 @@ export async function POST(req: NextRequest) {
   const order = await prisma.shopOrder.create({
     data: orderData,
   });
+
+  // CRM Webhook
+  await dispatchCrmWebhook('order.created', order).catch(() => {});
 
   await createInitialOrderEvent(prisma, order.id);
   if (session?.customerId) {

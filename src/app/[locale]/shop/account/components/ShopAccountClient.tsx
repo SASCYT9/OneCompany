@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import { formatShopMoney, type ShopCurrencyCode } from '@/lib/shopMoneyFormat';
 import { formatShopOrderStatus, shopOrderStatusBadgeClass } from '@/lib/shopOrderPresentation';
@@ -61,6 +61,15 @@ export default function ShopAccountClient({ locale, profile }: Props) {
   const [submittingB2B, setSubmittingB2B] = useState(false);
   const [b2bMessage, setB2BMessage] = useState('');
   const [profileGroup, setProfileGroup] = useState<Props['profile']['group']>(profile.group);
+
+  // CRM orders from Airtable
+  type CrmOrder = { id: string; number: number; name: string; orderStatus: string; paymentStatus: string; totalAmount: number; clientTotal: number; tag: string; orderDate: string | null; itemCount: number };
+  const [crmOrders, setCrmOrders] = useState<CrmOrder[]>([]);
+  const [crmLoading, setCrmLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/shop/account/crm-orders').then(r => r.json()).then(d => setCrmOrders(d.data || [])).catch(() => {}).finally(() => setCrmLoading(false));
+  }, []);
   const signOutCallbackUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/${locale}/shop/account/login`
@@ -264,6 +273,45 @@ export default function ShopAccountClient({ locale, profile }: Props) {
             ) : (
               <p className="mt-4 text-sm text-white/55">{isUa ? 'Замовлень поки немає.' : 'No orders yet.'}</p>
             )}
+
+            {/* CRM Orders Section */}
+            {crmLoading ? (
+              <div className="mt-6 text-xs text-white/30 uppercase tracking-widest">Завантажую CRM замовлення...</div>
+            ) : crmOrders.length > 0 ? (
+              <div className="mt-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-2 h-2 bg-indigo-400 rounded-full" />
+                  <h3 className="text-[10px] uppercase tracking-widest text-white/40 font-medium">
+                    {isUa ? 'CRM Замовлення (Airtable)' : 'CRM Orders (Airtable)'}
+                  </h3>
+                  <span className="text-[9px] text-white/20">{crmOrders.length}</span>
+                </div>
+                <ul className="space-y-2">
+                  {crmOrders.map(o => (
+                    <li key={o.id} className="rounded-2xl border border-indigo-500/10 bg-indigo-500/[0.03] p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-sm text-white">#{o.number}</span>
+                            <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                              o.orderStatus === 'Выполнен' ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5' :
+                              o.orderStatus === 'Отменен' ? 'border-red-500/20 text-red-400 bg-red-500/5' :
+                              'border-amber-500/20 text-amber-400 bg-amber-500/5'
+                            }`}>{o.orderStatus}</span>
+                          </div>
+                          <p className="mt-1 text-xs text-white/40 truncate">{o.name}</p>
+                          {o.orderDate && <p className="text-[10px] text-white/20 mt-1">{new Date(o.orderDate).toLocaleDateString('uk-UA')}</p>}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-sm font-medium text-white">${o.clientTotal.toLocaleString()}</div>
+                          <div className="text-[10px] text-white/30">{o.itemCount} {isUa ? 'позицій' : 'items'}</div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </section>
         </div>
       </div>

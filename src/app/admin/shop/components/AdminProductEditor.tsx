@@ -1386,7 +1386,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
   return (
     <div className="h-full overflow-auto">
-      <div className="w-full max-w-6xl mx-auto px-4 md:px-8 py-6">
+      <div className="w-full px-4 md:px-12 py-6">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <Link href="/admin/shop" className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm mb-4">

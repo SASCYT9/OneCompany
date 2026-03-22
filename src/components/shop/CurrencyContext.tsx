@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useSession } from "next-auth/react";
 
 type CurrencyCode = "UAH" | "EUR" | "USD";
 type RegionCode = "UA" | "EU" | "US";
@@ -36,6 +37,13 @@ export function ShopCurrencyProvider({ children }: { children: ReactNode }) {
   const [region, setRegionState] = useState<RegionCode>("UA");
   const [currency, setCurrencyState] = useState<CurrencyCode>("UAH");
   const [rates, setRates] = useState<Rates | null>(null);
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.currencyPref) {
+      setCurrencyState(session.user.currencyPref as CurrencyCode);
+    }
+  }, [session, status]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

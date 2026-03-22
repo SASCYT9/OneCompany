@@ -16,7 +16,7 @@ const baseSettings = buildShopSettingsRuntimeFromPayload({
   taxRegions: [],
   orderNotificationEmail: null,
   b2bNotes: null,
-});
+} as any);
 
 test('approved B2B viewer gets discount-derived pricing when explicit B2B prices are absent', () => {
   const context = buildShopViewerPricingContext(baseSettings, 'B2B_APPROVED', true, 12);
@@ -51,7 +51,7 @@ test('public_dual shows B2B band to guests while checkout audience stays B2C', (
   const settings = buildShopSettingsRuntimeFromPayload({
     ...baseSettings,
     b2bVisibilityMode: 'public_dual',
-  });
+  } as any);
   const context = buildShopViewerPricingContext(settings, null, false, null);
   const pricing = resolveShopPriceBands({
     b2cPrice: { eur: 500, usd: 540, uah: 22500 },
@@ -67,7 +67,7 @@ test('request_quote hides B2B numeric band for pending users but keeps quote pro
   const settings = buildShopSettingsRuntimeFromPayload({
     ...baseSettings,
     b2bVisibilityMode: 'request_quote',
-  });
+  } as any);
   const context = buildShopViewerPricingContext(settings, 'B2B_PENDING', true, null);
   const pricing = resolveShopPriceBands({
     b2cPrice: { eur: 500, usd: 540, uah: 22500 },
