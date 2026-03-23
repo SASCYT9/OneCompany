@@ -106,7 +106,27 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
 
           <section>
             <h2 className="text-xl font-normal text-white mb-4 mt-8">
-              {l === "ua" ? "5. Контакти" : "5. Contact Us"}
+              {l === "ua" ? "5. Територіальні обмеження" : "5. Territorial Restrictions"}
+            </h2>
+            <p>
+              {l === "ua"
+                ? "З мотивів дотримання національного та міжнародного законодавства, а також власних корпоративних принципів:"
+                : "In order to comply with national and international legislation, as well as our corporate principles:"}
+            </p>
+            <ul className="list-disc pl-5 mt-4 space-y-2">
+              <li>
+                <strong className="text-white">
+                  {l === "ua" 
+                    ? "Ми не продаємо товари і не надаємо послуги жителям росії та білорусі." 
+                    : "We do not sell goods or provide services to residents of Russia and Belarus."}
+                </strong>
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-normal text-white mb-4 mt-8">
+              {l === "ua" ? "6. Контакти" : "6. Contact Us"}
             </h2>
             <p>
               {l === "ua"

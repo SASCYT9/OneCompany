@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import {
-  TrendingUp, Users, Package, CreditCard, Activity, ArrowRight,
+  TrendingUp, Package, CreditCard, ArrowRight,
   ExternalLink, DollarSign, ShoppingCart, BarChart3,
-  ArrowUpRight, ArrowDownRight, Database, Layers, Loader2
+  ArrowUpRight, ArrowDownRight, Database, Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -49,6 +49,18 @@ type CrmCustomer = {
   totalSales: number;
   orderCount: number;
 };
+
+type CrmDbStats = {
+  kpis: {
+    totalCustomers: number;
+    totalOrders: number;
+    totalItems: number;
+    totalRevenue: number;
+    totalProfit: number;
+    avgMargin: number;
+  };
+  lastSyncAt: string | null;
+} | null;
 
 // ═══════════════════════════════
 // SVG Chart Components (Inline)
@@ -109,6 +121,7 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [crmDbStats, setCrmDbStats] = useState<CrmDbStats>(null);
 
   const fetchAll = useCallback(async (isFirst = false) => {
     if (isFirst) setLoading(true);
@@ -136,9 +149,10 @@ export default function AdminDashboardPage() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [fetchAll]);
 
-  // Fire-and-forget background sync on first load
+  // Fire-and-forget background sync on first load + load CRM DB analytics
   useEffect(() => {
     fetch('/api/webhooks/airtable', { method: 'POST', body: '{}', headers: { 'Content-Type': 'application/json' } }).catch(() => {});
+    fetch('/api/admin/crm/analytics?type=dashboard').then(r => r.json()).then(d => setCrmDbStats(d)).catch(() => {});
   }, []);
 
   if (loading) {
@@ -149,6 +163,13 @@ export default function AdminDashboardPage() {
     );
   }
 
+  // Localize CRM status labels (Airtable uses Russian)
+  const STATUS_LABELS: Record<string, string> = {
+    'Новый': 'Новий', 'В обработке': 'В обробці', 'В производстве': 'У виробництві',
+    'В пути': 'В дорозі', 'Выполнен': 'Виконано', 'Отменен': 'Скасовано',
+  };
+  const localizeStatus = (s: string) => STATUS_LABELS[s] || s;
+
   // Computed CRM stats
   const crmRevenue = crmOrders.reduce((s, o) => s + (o.clientTotal || 0), 0);
   const crmProfit = crmOrders.reduce((s, o) => s + (o.profit || 0), 0);
@@ -157,12 +178,13 @@ export default function AdminDashboardPage() {
   const totalDebtAmount = crmDebtCustomers.reduce((s, c) => s + Math.abs(c.balance), 0);
 
   const STATUS_COLORS: Record<string, string> = {
-    'Новый': '#3b82f6', 'В обработке': '#f59e0b', 'В производстве': '#8b5cf6',
-    'В пути': '#06b6d4', 'Выполнен': '#22c55e', 'Отменен': '#ef4444',
+    'Новий': '#3b82f6', 'В обробці': '#f59e0b', 'У виробництві': '#8b5cf6',
+    'В дорозі': '#06b6d4', 'Виконано': '#22c55e', 'Скасовано': '#ef4444',
   };
 
   const statusCounts = crmOrders.reduce((acc, o) => {
-    acc[o.orderStatus] = (acc[o.orderStatus] || 0) + 1;
+    const localized = localizeStatus(o.orderStatus);
+    acc[localized] = (acc[localized] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
@@ -219,6 +241,26 @@ export default function AdminDashboardPage() {
           color={totalDebtAmount > 0 ? 'rose' : 'emerald'}
           subtitle={totalDebtAmount > 0 ? `${crmDebtCustomers.length} контрагентів` : 'Всі розрахунки ок'} />
       </div>
+
+      {/* CRM DB Analytics Row */}
+      {crmDbStats && (
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-2">
+          {[
+            { label: 'DB Клієнти', value: crmDbStats.kpis.totalCustomers },
+            { label: 'DB Замовлення', value: crmDbStats.kpis.totalOrders },
+            { label: 'DB Позиції', value: crmDbStats.kpis.totalItems },
+            { label: 'DB Виручка', value: `$${crmDbStats.kpis.totalRevenue.toLocaleString()}` },
+            { label: 'DB Прибуток', value: `$${crmDbStats.kpis.totalProfit.toLocaleString()}` },
+            { label: 'Маржа', value: `${crmDbStats.kpis.avgMargin}%` },
+          ].map(item => (
+            <div key={item.label} className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+              <div className="text-[7px] uppercase tracking-widest text-white/20">{item.label}</div>
+              <div className="text-xs font-light text-white/70 mt-0.5">{item.value}</div>
+            </div>
+          ))}
+        </motion.div>
+      )}
 
       {/* ═══ 3-Column Layout ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -356,13 +398,22 @@ export default function AdminDashboardPage() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
             className="bg-white/[0.02] border border-white/5 rounded-2xl p-5">
             <h3 className="text-[10px] uppercase tracking-widest text-white/40 font-medium mb-3">Швидкі дії</h3>
-            <div className="space-y-2">
-              <QuickAction href="/admin/crm" icon={<Database className="w-4 h-4 text-indigo-400" />} title="CRM Dashboard" desc="Графіки, аналітика Airtable" />
-              <QuickAction href="/admin/shop/turn14" icon={<Layers className="w-4 h-4 text-cyan-400" />} title="Turn14 Каталог" desc="Пошук, бренди, категорії" />
-              <QuickAction href="/admin/shop/orders" icon={<Package className="w-4 h-4 text-amber-400" />} title="Замовлення" desc="Усі замовлення, статуси" />
-              <QuickAction href="/admin/shop/customers" icon={<Users className="w-4 h-4 text-emerald-400" />} title="Клієнти" desc="База клієнтів, B2B" />
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { href: '/admin/shop/orders/create', label: 'Нове замовлення', icon: <ShoppingCart className="w-3.5 h-3.5" /> },
+                { href: '/admin/shop/stock', label: 'Імпорт CSV', icon: <Database className="w-3.5 h-3.5" /> },
+                { href: '/admin/backups', label: 'Бекап БД', icon: <Package className="w-3.5 h-3.5" /> },
+                { href: '/admin/shop/turn14/markups', label: 'Маржа Turn14', icon: <DollarSign className="w-3.5 h-3.5" /> },
+              ].map(action => (
+                <Link key={action.href} href={action.href}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-white/[0.05] transition-all border border-white/5 hover:border-white/15">
+                  {action.icon}
+                  <span>{action.label}</span>
+                </Link>
+              ))}
             </div>
           </motion.div>
+
         </div>
       </div>
     </div>
@@ -398,17 +449,3 @@ function KpiCard({ label, value, icon, color, sparkline, subtitle }: {
   );
 }
 
-function QuickAction({ href, icon, title, desc }: { href: string; icon: React.ReactNode; title: string; desc: string }) {
-  return (
-    <Link href={href} className="group flex items-center gap-3 p-3 rounded-xl border border-white/[0.04] hover:border-white/10 hover:bg-white/[0.03] transition-all">
-      <div className="w-9 h-9 rounded-lg bg-white/[0.03] flex items-center justify-center group-hover:bg-white/[0.06] transition-colors shrink-0">
-        {icon}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-xs font-medium text-white/70 group-hover:text-white transition-colors">{title}</div>
-        <div className="text-[9px] text-white/25">{desc}</div>
-      </div>
-      <ArrowRight className="w-3.5 h-3.5 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
-    </Link>
-  );
-}

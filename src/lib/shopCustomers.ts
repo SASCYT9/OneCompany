@@ -194,6 +194,7 @@ export async function createShopCustomerRegistration(
       account: {
         create: {
           passwordHash,
+          plainPassword: input.password,
         },
       },
     },

@@ -81,6 +81,7 @@ export async function GET() {
       data: clients.map(c => ({
         id: c.id,
         name: c.name,
+        email: c.email,
         businessName: c.businessName,
         balance: c.balance,
         whoOwes: c.whoOwes,

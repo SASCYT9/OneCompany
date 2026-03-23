@@ -7,6 +7,7 @@ import {
   AirtableOrder,
   AirtableCustomer,
 } from '@/lib/airtable';
+import { syncAllCrmData } from '@/lib/crmSync';
 import crypto from 'crypto';
 
 /**
@@ -169,9 +170,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`[Airtable Webhook] Sync complete: ${results.customersCreated}+${results.customersUpdated} customers, ${results.ordersCreated}+${results.ordersUpdated} orders`);
+    console.log(`[Airtable Webhook] Shop sync: ${results.customersCreated}+${results.customersUpdated} customers, ${results.ordersCreated}+${results.ordersUpdated} orders`);
 
-    return NextResponse.json({ success: true, ...results });
+    // Also sync into CRM analytics tables
+    let crmSyncResult = null;
+    try {
+      crmSyncResult = await syncAllCrmData();
+      console.log(`[Airtable Webhook] CRM DB sync: ${crmSyncResult.customers.synced} customers, ${crmSyncResult.orders.synced} orders, ${crmSyncResult.items.synced} items`);
+    } catch (err: any) {
+      console.error('[Airtable Webhook] CRM DB sync error:', err.message);
+    }
+
+    return NextResponse.json({ success: true, ...results, crmSync: crmSyncResult });
   } catch (error: any) {
     console.error('[Airtable Webhook Error]', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

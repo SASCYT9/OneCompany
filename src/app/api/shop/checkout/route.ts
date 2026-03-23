@@ -28,6 +28,7 @@ import {
   createStripeCheckoutSession,
   stripeSupportedCurrency,
 } from '@/lib/shopStripe';
+import { createHutkoCheckout, isHutkoEnabled } from '@/lib/shopHutko';
 import { prisma } from '@/lib/prisma';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
@@ -35,13 +36,14 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 const CURRENCIES = ['EUR', 'USD', 'UAH'] as const;
 
-const PAYMENT_METHODS = ['FOP', 'STRIPE', 'WHITEBIT'] as const;
+const PAYMENT_METHODS = ['FOP', 'STRIPE', 'WHITEBIT', 'HUTKO'] as const;
 type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 function normalizePaymentMethod(value: unknown, settings: { stripeEnabled: boolean }): PaymentMethod {
   const v = String(value ?? 'FOP').trim().toUpperCase();
   if (v === 'STRIPE' && !settings.stripeEnabled) return 'FOP';
   if (v === 'WHITEBIT') return 'FOP'; // not implemented yet
+  if (v === 'HUTKO' && !isHutkoEnabled()) return 'FOP';
   return PAYMENT_METHODS.includes(v as PaymentMethod) ? (v as PaymentMethod) : 'FOP';
 }
 
@@ -251,6 +253,75 @@ export async function POST(req: NextRequest) {
       total: quote.total,
       currency: quote.currency,
       paymentMethod: 'STRIPE',
+      showTaxesIncludedNotice: quote.showTaxesIncludedNotice,
+    });
+    response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
+      path: '/',
+      maxAge: COOKIE_MAX_AGE,
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+    return response;
+  }
+
+  // ─── HUTKO payment flow ───
+  if (paymentMethod === 'HUTKO') {
+    const order = await prisma.shopOrder.create({
+      data: { ...orderData, paymentMethod: 'HUTKO', status: 'PENDING_PAYMENT' },
+    });
+
+    await dispatchCrmWebhook('order.created', order).catch(() => {});
+    await createInitialOrderEvent(prisma, order.id);
+    if (session?.customerId) {
+      await upsertCustomerDefaultShippingAddress(prisma, session.customerId, shippingAddress);
+    }
+
+    // Hutko amount: integer in smallest currency unit (kopecks/cents)
+    const amountKopecks = String(Math.round(Number(quote.total) * 100));
+
+    const hutkoResult = await createHutkoCheckout({
+      orderId: orderNumber,
+      orderDescription: `One Company #${orderNumber}`,
+      amount: amountKopecks,
+      currency: quote.currency as 'UAH' | 'USD' | 'EUR',
+      responseUrl: `${baseUrl}/${locale}/shop/checkout/success?order=${encodeURIComponent(orderNumber)}&token=${encodeURIComponent(viewToken)}`,
+      serverCallbackUrl: `${baseUrl}/api/shop/hutko/callback`,
+      senderEmail: email,
+      lang: locale === 'ua' ? 'uk' : 'en',
+    });
+
+    if (!hutkoResult.success) {
+      await prisma.shopOrder.update({
+        where: { id: order.id },
+        data: { status: 'CANCELLED' },
+      });
+      return NextResponse.json({ error: hutkoResult.error }, { status: 502 });
+    }
+
+    await prisma.shopOrder.update({
+      where: { id: order.id },
+      data: { hutkoPaymentId: hutkoResult.paymentId || null },
+    });
+
+    await clearShopCart(prisma, {
+      cartToken: activeCart.token,
+      customerId: session?.customerId ?? null,
+      locale: session?.preferredLocale ?? 'en',
+      currency: quote.currency,
+    });
+
+    const response = NextResponse.json({
+      redirectUrl: hutkoResult.checkoutUrl,
+      orderNumber,
+      viewToken,
+      subtotal: quote.subtotal,
+      regionalAdjustmentAmount: quote.regionalAdjustmentAmount,
+      shippingCost: quote.shippingCost,
+      taxAmount: quote.taxAmount,
+      total: quote.total,
+      currency: quote.currency,
+      paymentMethod: 'HUTKO',
       showTaxesIncludedNotice: quote.showTaxesIncludedNotice,
     });
     response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {

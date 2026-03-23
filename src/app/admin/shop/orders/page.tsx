@@ -297,8 +297,14 @@ export default function AdminOrdersPage() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              href="/admin/shop/orders/new"
+              href="/admin/shop/orders/create"
               className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300"
+            >
+              + B2B замовлення
+            </Link>
+            <Link
+              href="/admin/shop/orders/new"
+              className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 hover:bg-white/10 transition-all duration-300"
             >
               Створити власноруч
             </Link>
@@ -440,11 +446,11 @@ export default function AdminOrdersPage() {
                 ]}
               />
               <label className="block">
-                <span className="mb-1.5 block text-xs text-white/50">Timeline note</span>
+                <span className="mb-1.5 block text-xs text-white/50">Нотатка до масового оновлення</span>
                 <input
                   value={bulkNote}
                   onChange={(event) => setBulkNote(event.target.value)}
-                  placeholder="Optional note for all selected orders"
+                  placeholder="Необов'язкова нотатка для обраних замовлень"
                   className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                 />
               </label>
@@ -502,10 +508,10 @@ export default function AdminOrdersPage() {
                         className="h-4 w-4 rounded border-white/20 bg-zinc-950"
                       />
                     </td>
-                    <td className="px-5 py-5">
+                    <td className="px-5 py-5 max-w-[220px]">
                       <div className="font-mono text-xs font-semibold tracking-wide text-white drop-shadow-sm">{order.orderNumber}</div>
-                      <div className="mt-1 text-sm font-medium text-white/80">{order.customerName}</div>
-                      <div className="mt-1 text-xs text-white/40">{order.email}</div>
+                      <div className="mt-1 text-sm font-medium text-white/80 truncate">{order.customerName}</div>
+                      <div className="mt-1 text-xs text-white/40 truncate">{order.email}</div>
                     </td>
                     <td className="px-5 py-5">
                       <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs capitalize ${statusBadgeClass(order.status)}`}>
@@ -519,13 +525,13 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-white/80">
-                        {order.shippingZoneName || 'No shipping zone'}
+                        {order.shippingZoneName || 'Без зони'}
                       </div>
                       <div className="mt-1 text-xs text-white/45">
-                        {order.taxRegionName || 'No tax rule'}
+                        {order.taxRegionName || 'Без правила'}
                       </div>
                       <div className="mt-1.5 text-[11px] text-white/30 uppercase tracking-widest font-medium">
-                        {order.itemCount} item{order.itemCount !== 1 ? 's' : ''} · {order.shipmentsCount} box · {order.timelineCount} log
+                        {order.itemCount} поз. · {order.shipmentsCount} відпр. · {order.timelineCount} лог
                       </div>
                     </td>
                     <td className="px-5 py-5 text-white/90 font-medium tracking-wide">

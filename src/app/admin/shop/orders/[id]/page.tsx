@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Copy, ExternalLink, PackageCheck, Truck } from 'lucide-react';
+import { ArrowLeft, Copy, ExternalLink, PackageCheck, Truck, Plus, Pencil, Trash2, Save, X } from 'lucide-react';
 
 type OrderStatus =
   | 'PENDING_PAYMENT'
@@ -196,6 +196,17 @@ export default function AdminOrderDetailPage() {
   const [shipmentSavingId, setShipmentSavingId] = useState<string | null>(null);
   const [shipmentDeletingId, setShipmentDeletingId] = useState<string | null>(null);
 
+  // Item editing state
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [newItemTitle, setNewItemTitle] = useState('');
+  const [newItemPrice, setNewItemPrice] = useState('');
+  const [newItemQty, setNewItemQty] = useState('1');
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editPrice, setEditPrice] = useState('');
+  const [editQty, setEditQty] = useState('');
+  const [itemSaving, setItemSaving] = useState(false);
+
   const load = useCallback(async () => {
     if (!id) return;
 
@@ -270,6 +281,59 @@ export default function AdminOrderDetailPage() {
       await load();
       setStatusNote('');
       setSuccess(`Замовлення переведено в статус «${statusLabel(nextStatus)}».`);
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  // Payment modal state
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [payModalAmount, setPayModalAmount] = useState('');
+  const [payModalMode, setPayModalMode] = useState<'add' | 'set'>('add');
+
+  async function handleRecordPayment() {
+    if (!id || !order) return;
+    const inputAmount = parseFloat(payModalAmount);
+    if (isNaN(inputAmount) || inputAmount === 0) { setError('Введіть коректну суму'); return; }
+
+    let newAmountPaid: number;
+    if (payModalMode === 'add') {
+      newAmountPaid = (order.amountPaid || 0) + inputAmount;
+    } else {
+      newAmountPaid = inputAmount;
+    }
+
+    // Determine payment status
+    let newPaymentStatus = 'UNPAID';
+    if (newAmountPaid >= order.total) newPaymentStatus = 'PAID';
+    else if (newAmountPaid > 0) newPaymentStatus = 'PARTIALLY_PAID';
+
+    setUpdating(true);
+    setError('');
+    setSuccess('');
+    try {
+      const response = await fetch(`/api/admin/shop/orders/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentStatus: newPaymentStatus,
+          amountPaid: Math.max(0, newAmountPaid),
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data.error || 'Не вдалося записати оплату');
+        return;
+      }
+      setAmountPaid(String(Math.max(0, newAmountPaid)));
+      setPaymentStatus(newPaymentStatus);
+      await load();
+      setShowPayModal(false);
+      setPayModalAmount('');
+      if (newPaymentStatus === 'PAID') setSuccess('Борг повністю погашено!');
+      else if (payModalMode === 'add' && inputAmount > 0) setSuccess(`Записано оплату ${formatMoney(inputAmount, order.currency)}`);
+      else if (payModalMode === 'add' && inputAmount < 0) setSuccess(`Додано борг ${formatMoney(Math.abs(inputAmount), order.currency)}`);
+      else setSuccess('Суму оплати оновлено');
     } finally {
       setUpdating(false);
     }
@@ -437,11 +501,39 @@ export default function AdminOrderDetailPage() {
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="font-mono text-xl font-semibold text-white">{order.orderNumber}</div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(order.orderNumber);
+                    setSuccess('Номер замовлення скопійовано!');
+                    setTimeout(() => setSuccess(''), 2000);
+                  }}
+                  className="font-mono text-xl font-semibold text-white hover:text-blue-300 transition-colors cursor-pointer"
+                  title="Натисніть щоб скопіювати"
+                >
+                  {order.orderNumber}
+                </button>
+                <Copy className="h-3.5 w-3.5 text-white/20" />
+              </div>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs capitalize ${statusBadgeClass(order.status)}`}>
                   {statusLabel(order.status)}
                 </span>
+                {order.amountPaid != null && (
+                  order.amountPaid >= order.total
+                    ? <span className="inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300">Оплачено</span>
+                    : <span className="inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-300">
+                        Борг: {formatMoney(order.total - order.amountPaid, order.currency)}
+                      </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => { setPayModalAmount(''); setPayModalMode('add'); setShowPayModal(true); }}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-300 hover:bg-blue-500/20 transition-colors"
+                >
+                  💰 Записати оплату
+                </button>
                 <span className="text-sm text-white/45">
                   Створено {new Date(order.createdAt).toLocaleString()}
                 </span>
@@ -471,10 +563,27 @@ export default function AdminOrderDetailPage() {
           {error ? <div className="mt-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
           {success ? <div className="mt-4 rounded-lg bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
 
+          <PaymentModal
+            order={order}
+            show={showPayModal}
+            onClose={() => setShowPayModal(false)}
+            amount={payModalAmount}
+            setAmount={setPayModalAmount}
+            mode={payModalMode}
+            setMode={setPayModalMode}
+            onSubmit={() => void handleRecordPayment()}
+            updating={updating}
+          />
+
+
           <div className="mt-6 grid gap-4 md:grid-cols-4">
             <SummaryCard label="Клієнт" value={order.customerName} detail={order.email} />
             <SummaryCard label="Зона доставки" value={order.shippingZoneName || 'Не визначено'} detail={order.shippingZoneId || '—'} />
-            <SummaryCard label="Правило податку" value={order.taxRegionName || 'Не визначено'} detail={order.taxRegionId || '—'} />
+            <SummaryCard
+              label="Оплата"
+              value={order.amountPaid != null ? formatMoney(order.amountPaid, order.currency) : '—'}
+              detail={order.amountPaid != null && order.amountPaid < order.total ? `Залишок: ${formatMoney(order.total - order.amountPaid, order.currency)}` : 'Повна сума'}
+            />
             <SummaryCard label="Відправлення" value={String(order.shipments.length)} detail={`${order.events.length} подій у історії`} />
           </div>
 
@@ -650,21 +759,224 @@ export default function AdminOrderDetailPage() {
           </div>
 
           <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-4">
-            <p className="mb-3 text-xs uppercase tracking-wider text-white/50">Позиції</p>
-            <div className="space-y-3">
-              {order.items.map((item) => (
-                <div key={item.id} className="flex flex-wrap items-start justify-between gap-3 border-b border-white/5 pb-3 last:border-b-0 last:pb-0">
-                  <div>
-                    <div className="text-white">{item.title}</div>
-                    <div className="mt-1 text-xs text-white/45">
-                      {item.productSlug} · {item.quantity} × {formatMoney(item.price, order.currency)}
-                    </div>
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-xs uppercase tracking-wider text-white/50">Позиції ({order.items.length})</p>
+              <button
+                type="button"
+                onClick={() => setShowAddItem(!showAddItem)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white hover:bg-white/10 transition-colors"
+              >
+                <Plus className="h-3 w-3" /> Додати позицію
+              </button>
+            </div>
+
+            {/* Add Item Form */}
+            {showAddItem && (
+              <div className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-4">
+                <p className="mb-3 text-xs uppercase tracking-wider text-emerald-400/70">Нова позиція</p>
+                <div className="grid gap-3 sm:grid-cols-[1fr_100px_80px_auto]">
+                  <input
+                    type="text" placeholder="Назва товару" value={newItemTitle}
+                    onChange={e => setNewItemTitle(e.target.value)}
+                    className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                  />
+                  <input
+                    type="number" step="0.01" placeholder="Ціна" value={newItemPrice}
+                    onChange={e => setNewItemPrice(e.target.value)}
+                    className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                  />
+                  <input
+                    type="number" min="1" placeholder="К-ть" value={newItemQty}
+                    onChange={e => setNewItemQty(e.target.value)}
+                    className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={itemSaving || !newItemTitle || !newItemPrice}
+                      onClick={async () => {
+                        setItemSaving(true);
+                        setError('');
+                        try {
+                          const res = await fetch(`/api/admin/shop/orders/${id}/items`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ title: newItemTitle, price: parseFloat(newItemPrice), quantity: parseInt(newItemQty) || 1 }),
+                          });
+                          if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+                          setNewItemTitle(''); setNewItemPrice(''); setNewItemQty('1'); setShowAddItem(false);
+                          await load();
+                          setSuccess('Позицію додано.');
+                        } catch (e: any) { setError(e.message); }
+                        finally { setItemSaving(false); }
+                      }}
+                      className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                    </button>
+                    <button type="button" onClick={() => setShowAddItem(false)} className="rounded-lg bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
                   </div>
-                  <div className="text-white/85">{formatMoney(item.total, order.currency)}</div>
                 </div>
-              ))}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {order.items.map((item) => {
+                const snap = order.pricingSnapshot as any;
+                const itemDetails = snap?.itemDetails as any[] | undefined;
+                const detail = itemDetails?.find((d: any) => d.partNumber === item.productSlug?.replace(/^(admin-|turn14-|draft-)/, '') || d.title === item.title?.replace(/\s*\(.*\)\s*$/, ''));
+                const isEditing = editingItemId === item.id;
+
+                return (
+                  <div key={item.id} className="rounded-xl border border-white/5 bg-white/[0.02] p-3">
+                    {isEditing ? (
+                      <div className="grid gap-3 sm:grid-cols-[1fr_100px_80px_auto]">
+                        <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
+                          className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none" />
+                        <input type="number" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)}
+                          className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none" />
+                        <input type="number" min="1" value={editQty} onChange={e => setEditQty(e.target.value)}
+                          className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none" />
+                        <div className="flex gap-2">
+                          <button type="button" disabled={itemSaving}
+                            onClick={async () => {
+                              setItemSaving(true); setError('');
+                              try {
+                                const res = await fetch(`/api/admin/shop/orders/${id}/items`, {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ itemId: item.id, title: editTitle, price: parseFloat(editPrice), quantity: parseInt(editQty) }),
+                                });
+                                if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+                                setEditingItemId(null); await load(); setSuccess('Позицію оновлено.');
+                              } catch (e: any) { setError(e.message); }
+                              finally { setItemSaving(false); }
+                            }}
+                            className="rounded-lg bg-blue-600 px-3 py-2 text-xs text-white hover:bg-blue-500 disabled:opacity-50"
+                          ><Save className="h-3.5 w-3.5" /></button>
+                          <button type="button" onClick={() => setEditingItemId(null)} className="rounded-lg bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20">
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-white font-medium">{item.title}</div>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/45">
+                            {detail?.partNumber ? (
+                              <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white/60">SKU: {detail.partNumber}</span>
+                            ) : item.productSlug && (
+                              <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white/60">
+                                {item.productSlug.replace(/^(admin-|turn14-|draft-|crm-)\d*-?/, '').replace(/-[a-z0-9]{6,}$/, '') || item.productSlug}
+                              </span>
+                            )}
+                            {detail?.brand && <span className="text-white/40">{detail.brand}</span>}
+                            <span>{item.quantity} × {formatMoney(item.price, order.currency)}</span>
+                            {detail?.turn14Id && <span className="text-white/25">T14: {detail.turn14Id}</span>}
+                          </div>
+                          {detail && (
+                            <div className="mt-2 flex flex-wrap gap-3 text-[10px] uppercase tracking-wider">
+                              {detail.baseCostUsd != null && (
+                                <span className="rounded border border-blue-500/15 bg-blue-500/5 px-2 py-0.5 text-blue-300">Закупка: ${detail.baseCostUsd}</span>
+                              )}
+                              {detail.markupPct != null && (
+                                <span className="rounded border border-amber-500/15 bg-amber-500/5 px-2 py-0.5 text-amber-300">Націнка: {detail.markupPct}%</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <div className="text-white font-medium">{formatMoney(item.total, order.currency)}</div>
+                          </div>
+                          <div className="flex gap-1">
+                            <button type="button" title="Редагувати"
+                              onClick={() => { setEditingItemId(item.id); setEditTitle(item.title); setEditPrice(String(item.price)); setEditQty(String(item.quantity)); }}
+                              className="rounded-lg border border-white/10 bg-white/5 p-1.5 text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+                            ><Pencil className="h-3 w-3" /></button>
+                            <button type="button" title="Видалити"
+                              onClick={async () => {
+                                if (!confirm('Видалити цю позицію?')) return;
+                                setItemSaving(true); setError('');
+                                try {
+                                  const res = await fetch(`/api/admin/shop/orders/${id}/items`, {
+                                    method: 'DELETE',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ itemId: item.id }),
+                                  });
+                                  if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+                                  await load(); setSuccess('Позицію видалено.');
+                                } catch (e: any) { setError(e.message); }
+                                finally { setItemSaving(false); }
+                              }}
+                              className="rounded-lg border border-red-500/20 bg-red-500/5 p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            ><Trash2 className="h-3 w-3" /></button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {order.items.length === 0 && (
+                <div className="py-8 text-center text-sm text-white/30">
+                  Немає позицій. Натисніть «Додати позицію» щоб внести товари.
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Pricing breakdown from snapshot */}
+          {order.pricingSnapshot ? (() => {
+            const snap = order.pricingSnapshot as Record<string, any>;
+            const shippingCalc = snap?.shippingCalc;
+            return (
+            <div className="mt-4 rounded-xl border border-indigo-500/10 bg-indigo-500/[0.02] p-4">
+              <p className="mb-3 text-xs uppercase tracking-wider text-indigo-400/60">Розрахунок ціни (Pricing Snapshot)</p>
+                <div className="grid gap-3 md:grid-cols-2 text-xs">
+                    {snap?.source && (
+                      <div className="rounded-lg border border-white/10 bg-black/30 p-3">
+                        <div className="text-white/40 mb-1">Джерело</div>
+                        <div className="text-white/80">{snap.source === 'admin_manual' ? 'Створено адміном' : snap.source === 'turn14_catalog' ? 'Turn14 каталог' : String(snap.source)}</div>
+                        {snap.zone && <div className="text-white/50 mt-1">Зона: {String(snap.zone)}</div>}
+                        {snap.customerDiscount != null && Number(snap.customerDiscount) > 0 && (
+                          <div className="text-emerald-400/70 mt-1">Знижка клієнта: {String(snap.customerDiscount)}%</div>
+                        )}
+                      </div>
+                    )}
+                    {shippingCalc && (
+                      <div className="rounded-lg border border-white/10 bg-black/30 p-3">
+                        <div className="text-white/40 mb-1">Доставка (розрахунок)</div>
+                        <div className="space-y-0.5 text-white/70">
+                          {shippingCalc.totalWeightKg != null && <div>Факт. вага: {Number(shippingCalc.totalWeightKg).toFixed(2)} кг</div>}
+                          {shippingCalc.totalVolWeightKg != null && <div>Об&apos;ємна вага: {Number(shippingCalc.totalVolWeightKg).toFixed(2)} кг</div>}
+                          {shippingCalc.volSurchargeKg != null && Number(shippingCalc.volSurchargeKg) > 0 && (
+                            <div>Об&apos;ємна доплата: {Number(shippingCalc.volSurchargeKg).toFixed(2)} кг</div>
+                          )}
+                          {shippingCalc.ratePerKg != null && <div>Ставка: ${String(shippingCalc.ratePerKg)}/кг</div>}
+                          {shippingCalc.volSurchargePerKg != null && <div>Об&apos;ємна ставка: ${String(shippingCalc.volSurchargePerKg)}/кг</div>}
+                          {shippingCalc.autoShippingTotal != null && (
+                            <div className="pt-1 border-t border-white/10 font-medium text-white/90">
+                              Авто-розрахунок: ${Number(shippingCalc.autoShippingTotal).toFixed(2)}
+                              {shippingCalc.overridden && <span className="text-amber-400/70 ml-2">(перевизначено)</span>}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {snap?.notes && (
+                      <div className="rounded-lg border border-white/10 bg-black/30 p-3 md:col-span-2">
+                        <div className="text-white/40 mb-1">Примітки</div>
+                        <div className="text-white/70">{String(snap.notes)}</div>
+                      </div>
+                    )}
+                  </div>
+            </div>
+            );
+          })() : null}
 
           <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-4">
             <div className="grid gap-3 text-sm">
@@ -1016,6 +1328,160 @@ type SummaryCardProps = {
   value: string;
   detail: string;
 };
+
+function PaymentModal({ order, show, onClose, amount, setAmount, mode, setMode, onSubmit, updating }: {
+  order: OrderDetail;
+  show: boolean;
+  onClose: () => void;
+  amount: string;
+  setAmount: (v: string) => void;
+  mode: 'add' | 'set';
+  setMode: (v: 'add' | 'set') => void;
+  onSubmit: () => void;
+  updating: boolean;
+}) {
+  if (!show) return null;
+  const currentPaid = order.amountPaid || 0;
+  const debt = order.total - currentPaid;
+  const paidPct = order.total > 0 ? Math.min(100, Math.round((currentPaid / order.total) * 100)) : 0;
+
+  const presets = [
+    { label: '25%', value: Math.round(debt * 0.25 * 100) / 100 },
+    { label: '50%', value: Math.round(debt * 0.5 * 100) / 100 },
+    { label: '100%', value: Math.round(debt * 100) / 100 },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="relative w-full max-w-md mx-4 rounded-2xl border border-white/10 bg-zinc-950 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute right-4 top-4 text-white/40 hover:text-white transition-colors">✕</button>
+
+        <h3 className="text-lg font-medium text-white mb-1">Записати оплату</h3>
+        <p className="text-sm text-white/50 mb-5">
+          Замовлення {order.orderNumber} · {formatMoney(order.total, order.currency)}
+        </p>
+
+        {/* Progress bar */}
+        <div className="mb-5">
+          <div className="flex items-center justify-between text-xs text-white/50 mb-2">
+            <span>Оплачено: {formatMoney(currentPaid, order.currency)}</span>
+            <span>{paidPct}%</span>
+          </div>
+          <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{
+                width: paidPct + '%',
+                background: paidPct >= 100
+                  ? 'linear-gradient(90deg, #22c55e, #10b981)'
+                  : paidPct > 0
+                    ? 'linear-gradient(90deg, #3b82f6, #6366f1)'
+                    : 'transparent',
+              }}
+            />
+          </div>
+          {debt > 0 && (
+            <p className="text-xs text-amber-400 mt-1.5">Залишок боргу: {formatMoney(debt, order.currency)}</p>
+          )}
+        </div>
+
+        {/* Mode selector */}
+        <div className="flex gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => setMode('add')}
+            className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${mode === 'add' ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-white/10 bg-white/5 text-white/50 hover:bg-white/10'}`}
+          >
+            + Додати суму
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('set')}
+            className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${mode === 'set' ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-white/10 bg-white/5 text-white/50 hover:bg-white/10'}`}
+          >
+            = Встановити суму
+          </button>
+        </div>
+
+        {/* Amount input */}
+        <div className="mb-4">
+          <label className="block text-xs text-white/60 mb-1.5">
+            {mode === 'add' ? 'Сума платежу (+ додати / − зняти)' : 'Нова загальна сплачена сума'}
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder={mode === 'add' ? 'Наприклад: 5000' : String(order.total)}
+            className="w-full rounded-xl border border-white/15 bg-black/60 px-4 py-3 text-lg text-white placeholder-white/20 focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-colors"
+            autoFocus
+          />
+        </div>
+
+        {/* Quick presets (only in add mode and with debt) */}
+        {mode === 'add' && debt > 0 && (
+          <div className="flex gap-2 mb-4">
+            {presets.map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => setAmount(String(p.value))}
+                className="flex-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                {p.label} ({formatMoney(p.value, order.currency)})
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Preview */}
+        {amount && !isNaN(parseFloat(amount)) && (
+          <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs text-white/60">
+            {(() => {
+              const val = parseFloat(amount);
+              const newPaid = mode === 'add' ? currentPaid + val : val;
+              const newDebt = order.total - Math.max(0, newPaid);
+              return (
+                <>
+                  <div className="flex justify-between mb-1">
+                    <span>Нова сплачена сума:</span>
+                    <span className="text-white font-medium">{formatMoney(Math.max(0, newPaid), order.currency)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Залишок боргу:</span>
+                    <span className={newDebt <= 0 ? 'text-emerald-400 font-medium' : 'text-amber-400 font-medium'}>
+                      {newDebt <= 0 ? 'Погашено' : formatMoney(newDebt, order.currency)}
+                    </span>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/70 hover:bg-white/10 transition-colors"
+          >
+            Скасувати
+          </button>
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={updating || !amount || isNaN(parseFloat(amount))}
+            className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-40 disabled:hover:bg-blue-600 transition-colors"
+          >
+            {updating ? 'Зберігаю…' : 'Записати'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function SummaryCard({ label, value, detail }: SummaryCardProps) {
   return (

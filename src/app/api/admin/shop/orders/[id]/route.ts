@@ -1,10 +1,15 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { type OrderStatus } from '@prisma/client';
+import { render } from '@react-email/render';
+import { Resend } from 'resend';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import { adminOrderInclude, canTransitionOrderStatus, serializeAdminOrder } from '@/lib/shopAdminOrders';
 import { prisma } from '@/lib/prisma';
+import OrderStatusEmail from '@/components/emails/OrderStatusEmail';
+
+const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 
 const ALLOWED_STATUSES: OrderStatus[] = ['PENDING_REVIEW', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
 
@@ -107,6 +112,55 @@ export async function PATCH(
         updates: updateData,
       },
     });
+
+    // ── Send status-change email for SHIPPED / DELIVERED ──
+    if (
+      updateData.status &&
+      (updateData.status === 'SHIPPED' || updateData.status === 'DELIVERED') &&
+      process.env.RESEND_API_KEY &&
+      process.env.EMAIL_FROM
+    ) {
+      try {
+        const fullOrder = await prisma.shopOrder.findUnique({
+          where: { id },
+          include: { shipments: { orderBy: { createdAt: 'desc' }, take: 1 } },
+        });
+        if (fullOrder?.email) {
+          const b = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://onecompany.global');
+          const latestShipment = fullOrder.shipments[0];
+          const locale = 'ua';
+          const viewOrderUrl = `${b}/${locale}/shop/checkout/success?order=${encodeURIComponent(fullOrder.orderNumber)}&token=${encodeURIComponent(fullOrder.viewToken)}`;
+
+          const emailHtml = await render(
+            OrderStatusEmail({
+              orderNumber: fullOrder.orderNumber,
+              customerName: fullOrder.customerName,
+              newStatus: updateData.status as 'SHIPPED' | 'DELIVERED',
+              locale,
+              viewOrderUrl,
+              trackingNumber: (fullOrder as any).ttnNumber || latestShipment?.trackingNumber || null,
+              carrier: latestShipment?.carrier || (fullOrder as any).deliveryMethod || null,
+              trackingUrl: latestShipment?.trackingUrl || null,
+            })
+          );
+
+          const subjectMap: Record<string, string> = {
+            SHIPPED: `Замовлення ${fullOrder.orderNumber} відправлено 🚚`,
+            DELIVERED: `Замовлення ${fullOrder.orderNumber} доставлено ✅`,
+          };
+
+          await resend.emails.send({
+            from: `One Company <${process.env.EMAIL_FROM}>`,
+            to: [fullOrder.email],
+            subject: subjectMap[updateData.status] || `Оновлення замовлення ${fullOrder.orderNumber}`,
+            html: emailHtml,
+          });
+          console.log(`[Order ${fullOrder.orderNumber}] Status email sent: ${updateData.status}`);
+        }
+      } catch (emailErr) {
+        console.error('[Order status email] Failed:', emailErr);
+      }
+    }
 
     return NextResponse.json({ id: order.id, status: order.status });
   } catch (e) {

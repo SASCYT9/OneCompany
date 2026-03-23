@@ -12,9 +12,10 @@ import { getTypography, resolveLocale } from "@/lib/typography";
 
 type FooterProps = {
   currentYear: number;
+  companyRequisites?: string | null;
 };
 
-const Footer = ({ currentYear }: FooterProps) => {
+const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
   const params = useParams();
   const locale = (params?.locale as string) || "en";
   const t = useTranslations("footer");
@@ -173,18 +174,36 @@ const Footer = ({ currentYear }: FooterProps) => {
         </div>
 
         {/* Bottom Bar */}
-        <div className={`mt-12 sm:mt-20 flex flex-col items-center justify-between gap-6 border-t border-white/5 pt-8 text-white/60 sm:flex-row ${typography.body}`}>
-          <p className="text-center sm:text-left">© {currentYear} One Company. {t('engineeredIn')}.</p>
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
-            <Link href={`/${locale}/privacy`} className="transition-colors hover:text-white">
-              {t('privacy')}
-            </Link>
-            <Link href={`/${locale}/terms`} className="transition-colors hover:text-white">
-              {t('terms')}
-            </Link>
-            <Link href={`/${locale}/cookies`} className="transition-colors hover:text-white">
-              {t('cookies')}
-            </Link>
+        <div className={`mt-12 sm:mt-20 flex flex-col border-t border-white/5 pt-8 gap-8 ${typography.body}`}>
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-6 text-white/60">
+            <div className="flex flex-col items-center lg:items-start gap-2">
+              <p className="text-center lg:text-left">© {currentYear} One Company. {t('engineeredIn')}.</p>
+            </div>
+            
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
+              <Link href={`/${locale}/delivery`} className="transition-colors hover:text-white shrink-0">
+                {t('deliveryAndPayment')}
+              </Link>
+              <Link href={`/${locale}/refund`} className="transition-colors hover:text-white shrink-0">
+                {t('refundPolicy')}
+              </Link>
+              <Link href={`/${locale}/privacy`} className="transition-colors hover:text-white shrink-0">
+                {t('privacy')}
+              </Link>
+              <Link href={`/${locale}/terms`} className="transition-colors hover:text-white shrink-0">
+                {t('terms')}
+              </Link>
+            </div>
+            
+            <div className="flex flex-col items-center lg:items-end gap-3 mt-6 lg:mt-0">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-medium">
+                {locale === 'ua' ? 'Безпечна оплата' : 'Secure Payment'}
+              </span>
+              <div className="flex items-center gap-4">
+                <img src="/images/payments/visa.svg" alt="Visa" className="h-10 w-auto rounded-lg shadow-md" loading="lazy" />
+                <img src="/images/payments/mastercard.svg" alt="MasterCard" className="h-10 w-auto rounded-lg shadow-md" loading="lazy" />
+              </div>
+            </div>
           </div>
         </div>
       </div>

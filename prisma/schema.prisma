@@ -539,6 +539,7 @@ model ShopCustomerAccount {
   id              String       @id @default(cuid())
   customerId      String       @unique
   passwordHash    String
+  plainPassword   String?
   lastLoginAt     DateTime?
   emailVerifiedAt DateTime?
   createdAt       DateTime     @default(now())
@@ -605,9 +606,10 @@ model ShopOrder {
   status                  OrderStatus   @default(PENDING_REVIEW)
   customerId              String?
   customerGroupSnapshot   CustomerGroup @default(B2C)
-  // Payment: FOP | STRIPE | WHITEBIT
+  // Payment: FOP | STRIPE | WHITEBIT | HUTKO
   paymentMethod           String        @default("FOP")
   stripeCheckoutSessionId String? // set when paying via Stripe; webhook confirms
+  hutkoPaymentId          String? // set when paying via Hutko; callback confirms
   // Contact (guest checkout)
   email                   String
   customerName            String
@@ -775,4 +777,132 @@ model Turn14BrandMarkup {
   updatedAt   DateTime @updatedAt
 
   @@index([brandName])
+}
+
+model CustomerMarkup {
+  id            String   @id @default(cuid())
+  customerId    String   @unique  // Airtable customer record ID (recXXX) or ShopCustomer ID
+  customerName  String              // cached display name
+  markupPct     Float    @default(25) // personal markup % over Turn14 cost
+  notes         String?  @db.Text    // "VIP", "Оптовик" etc.
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([customerName])
+}
+
+// ═══════════════════════════════════════════════════
+// CRM Data (synced from Airtable)
+// ═══════════════════════════════════════════════════
+
+model CrmCustomer {
+  id              String   @id @default(cuid())
+  airtableId      String   @unique  // recXXX
+  name            String
+  email           String?
+  businessName    String?
+  tags            String[] @default([])
+  totalProfit     Float    @default(0)
+  totalSales      Float    @default(0)
+  totalPayments   Float    @default(0)
+  balance         Float    @default(0)
+  whoOwes         String?
+  syncedAt        DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  orders          CrmOrder[]
+
+  @@index([name])
+}
+
+model CrmOrder {
+  id              String   @id @default(cuid())
+  airtableId      String   @unique  // recXXX
+  number          Int
+  name            String
+  orderStatus     String   @default("")
+  paymentStatus   String   @default("")
+  orderDate       DateTime?
+  completionDate  DateTime?
+  purchaseCost    Float    @default(0)
+  additionalCosts Float    @default(0)
+  fullCost        Float    @default(0)
+  totalAmount     Float    @default(0)
+  clientTotal     Float    @default(0)
+  profit          Float    @default(0)
+  marginality     Float    @default(0)
+  tag             String   @default("")
+  allShipped      String   @default("Нет")
+  itemCount       Int      @default(0)
+  syncedAt        DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  customerId      String?
+  customer        CrmCustomer? @relation(fields: [customerId], references: [id])
+  items           CrmOrderItem[]
+
+  @@index([number])
+  @@index([orderStatus])
+  @@index([customerId])
+}
+
+model CrmOrderItem {
+  id                  String   @id @default(cuid())
+  airtableId          String   @unique  // recXXX
+  positionNumber      Int      @default(0)
+  productName         String   @default("")
+  brand               String   @default("")
+  category            String   @default("")
+  quantity            Int      @default(1)
+  rrpPerUnit          Float    @default(0)
+  clientPricePerUnit  Float    @default(0)
+  clientTotal         Float    @default(0)
+  actualSalePrice     Float    @default(0)
+  actualSaleTotal     Float    @default(0)
+  purchasePrice       Float    @default(0)
+  purchaseTotal       Float    @default(0)
+  profitPerItem       Float    @default(0)
+  marginality         Float    @default(0)
+  status              String   @default("")
+  source              String   @default("")
+  syncedAt            DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  orderId             String?
+  order               CrmOrder? @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([status])
+}
+
+// ═══════════════════════════════════════════════════════════
+// Stock Products — unified table for all distributor catalogs
+// (IND CSV, future suppliers). Turn14 stays as live API.
+// ═══════════════════════════════════════════════════════════
+
+model StockProduct {
+  id            String   @id @default(cuid())
+  distributor   String   // "IND", future suppliers
+  partNumber    String
+  name          String
+  brand         String   @default("")
+  category      String   @default("")
+  description   String   @default("") @db.Text
+  price         Float?   // wholesale / base cost
+  retailPrice   Float?   // client-facing price
+  markupPct     Float    @default(25)
+  inStock       Boolean  @default(true)
+  thumbnail     String?
+  metadata      Json?    // extra CSV fields (fitment, dimensions, etc.)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([distributor, partNumber])
+  @@index([distributor])
+  @@index([brand])
+  @@index([name])
 }

@@ -48,7 +48,9 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
             const href =
               store.id === "urban"
                 ? `/${locale}/shop/urban`
-                : store.href || "#";
+                : store.id === "ind"
+                  ? `/${locale}/shop/stock?source=local`
+                  : store.href || "#";
             const isExternal = store.external === true;
             const isLogoAsset = store.imageUrl?.startsWith("/logos/") ?? false;
             const content = (

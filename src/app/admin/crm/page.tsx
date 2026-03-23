@@ -11,6 +11,7 @@ import {
 type CrmCustomer = {
   id: string;
   name: string;
+  email: string | null;
   businessName: string | null;
   balance: number;
   whoOwes: string;
@@ -31,9 +32,15 @@ type CrmOrder = {
   orderDate: string | null;
   tag: string;
   itemCount: number;
+  customerIds: string[];
 };
 
 const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
+
+// Standardized USD formatting: $XX,XXX.XX
+function fmtUsd(value: number): string {
+  return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 // ═══════════════════════════════════════
 // SVG Mini-Chart Components
@@ -138,6 +145,18 @@ function BarChartSvg({ data, height = 120, width = 280 }: { data: { label: strin
 // Main CRM Dashboard
 // ═══════════════════════════════════════
 
+type CrmDbAnalytics = {
+  kpis: {
+    totalCustomers: number;
+    totalOrders: number;
+    totalItems: number;
+    totalRevenue: number;
+    totalProfit: number;
+    avgMargin: number;
+  };
+  lastSyncAt: string | null;
+} | null;
+
 export default function CrmDashboardPage() {
   const [customers, setCustomers] = useState<CrmCustomer[]>([]);
   const [orders, setOrders] = useState<CrmOrder[]>([]);
@@ -147,6 +166,9 @@ export default function CrmDashboardPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isLive, setIsLive] = useState(true);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+  const [dbAnalytics, setDbAnalytics] = useState<CrmDbAnalytics>(null);
 
   const fetchData = useCallback(async (isFirstLoad = false) => {
     if (isFirstLoad) setLoading(true);
@@ -155,8 +177,18 @@ export default function CrmDashboardPage() {
         fetch('/api/admin/crm/link-customer').then(r => r.json()),
         fetch('/api/admin/crm?type=orders&maxRecords=100').then(r => r.json()),
       ]);
-      setCustomers(custRes.data || []);
-      setOrders(ordRes.data || []);
+      const clientList: CrmCustomer[] = custRes.data || [];
+      setCustomers(clientList);
+
+      // Filter orders: only show orders from actual clients (not suppliers)
+      // Cross-reference order customerIds with known client IDs
+      const clientIds = new Set(clientList.map(c => c.id));
+      const allOrders: CrmOrder[] = ordRes.data || [];
+      const clientOrders = allOrders.filter(o => {
+        if (!o.customerIds || o.customerIds.length === 0) return false;
+        return o.customerIds.some(cid => clientIds.has(cid));
+      });
+      setOrders(clientOrders);
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Failed to fetch CRM data:', err);
@@ -178,16 +210,38 @@ export default function CrmDashboardPage() {
     };
   }, [fetchData]);
 
-  // Also trigger background DB sync on first load
+  // Also trigger background DB sync on first load + load DB analytics
   useEffect(() => {
     fetch('/api/webhooks/airtable', { method: 'POST', body: '{}', headers: { 'Content-Type': 'application/json' } })
       .catch(() => {}); // fire-and-forget
+    fetch('/api/admin/crm/analytics?type=dashboard')
+      .then(r => r.json())
+      .then(data => setDbAnalytics(data))
+      .catch(() => {});
   }, []);
+
+  const handleFullSync = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch('/api/admin/crm/full-sync', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Sync failed');
+      setSyncResult(`✓ Синхронізовано: ${data.customers?.synced || 0} клієнтів, ${data.orders?.synced || 0} замовлень`);
+      // Reload analytics
+      fetch('/api/admin/crm/analytics?type=dashboard').then(r => r.json()).then(setDbAnalytics).catch(() => {});
+      await fetchData(false);
+    } catch (err: any) {
+      setSyncResult(`✗ ${err.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   // Computed stats
   const totalRevenue = orders.reduce((s, o) => s + (o.clientTotal || 0), 0);
   const totalProfit = orders.reduce((s, o) => s + (o.profit || 0), 0);
-  const avgMargin = orders.length ? orders.reduce((s, o) => s + (o.marginality || 0), 0) / orders.length * 100 : 0;
+  const avgMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
   const paidOrders = orders.filter(o => o.paymentStatus === 'Оплачено').length;
   const unpaidOrders = orders.filter(o => o.paymentStatus !== 'Оплачено').length;
   const activeOrders = orders.filter(o => !['Выполнен', 'Отменен'].includes(o.orderStatus)).length;
@@ -245,7 +299,16 @@ export default function CrmDashboardPage() {
             Airtable · Tuning Delivery Database · {customers.length} клієнтів · {orders.length} замовлень
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Full Sync */}
+          <button
+            onClick={handleFullSync}
+            disabled={syncing}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-indigo-500/20 bg-indigo-500/5 text-sm text-indigo-400 hover:bg-indigo-500/10 transition-all disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Синхронізація...' : 'Повна синхронізація'}
+          </button>
           {/* Live indicator */}
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
             <div className="relative">
@@ -262,6 +325,43 @@ export default function CrmDashboardPage() {
           <span className="text-[9px] text-white/15">auto-refresh 30s</span>
         </div>
       </div>
+
+      {/* Sync Result */}
+      {syncResult && (
+        <div className={`mb-4 rounded-xl px-4 py-3 text-sm ${syncResult.startsWith('✓') ? 'bg-emerald-900/20 text-emerald-300' : 'bg-red-900/20 text-red-300'}`}>
+          {syncResult}
+        </div>
+      )}
+
+      {/* DB Analytics Row */}
+      {dbAnalytics && (
+        <div className="mb-6 grid grid-cols-2 md:grid-cols-6 gap-2">
+          <div className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+            <div className="text-[8px] uppercase tracking-widest text-white/25">DB Клієнти</div>
+            <div className="text-sm font-light text-white mt-0.5">{dbAnalytics.kpis.totalCustomers}</div>
+          </div>
+          <div className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+            <div className="text-[8px] uppercase tracking-widest text-white/25">DB Замовлення</div>
+            <div className="text-sm font-light text-white mt-0.5">{dbAnalytics.kpis.totalOrders}</div>
+          </div>
+          <div className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+            <div className="text-[8px] uppercase tracking-widest text-white/25">DB Позицій</div>
+            <div className="text-sm font-light text-white mt-0.5">{dbAnalytics.kpis.totalItems}</div>
+          </div>
+          <div className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+            <div className="text-[8px] uppercase tracking-widest text-white/25">DB Виручка</div>
+            <div className="text-sm font-light text-white mt-0.5">${dbAnalytics.kpis.totalRevenue.toLocaleString()}</div>
+          </div>
+          <div className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+            <div className="text-[8px] uppercase tracking-widest text-white/25">DB Прибуток</div>
+            <div className="text-sm font-light text-emerald-400 mt-0.5">${dbAnalytics.kpis.totalProfit.toLocaleString()}</div>
+          </div>
+          <div className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+            <div className="text-[8px] uppercase tracking-widest text-white/25">Остання синхр.</div>
+            <div className="text-[10px] font-light text-white/50 mt-0.5">{dbAnalytics.lastSyncAt ? new Date(dbAnalytics.lastSyncAt).toLocaleString('uk-UA') : 'Ніколи'}</div>
+          </div>
+        </div>
+      )}
 
       {/* Tab Navigation */}
       <div className="flex items-center gap-1 bg-white/[0.02] rounded-xl p-1 mb-8 border border-white/5">
@@ -293,14 +393,14 @@ export default function CrmDashboardPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <KpiCard
                   label="Виручка"
-                  value={`$${totalRevenue.toLocaleString('en', { minimumFractionDigits: 0 })}`}
+                  value={`$${fmtUsd(totalRevenue)}`}
                   icon={<DollarSign className="w-4 h-4" />}
                   color="indigo"
                   sparkline={<SparklineChart data={revenueSparkline} color="#6366f1" />}
                 />
                 <KpiCard
                   label="Прибуток"
-                  value={`$${totalProfit.toLocaleString('en', { minimumFractionDigits: 0 })}`}
+                  value={`$${fmtUsd(totalProfit)}`}
                   icon={<TrendingUp className="w-4 h-4" />}
                   color="emerald"
                   sparkline={<SparklineChart data={profitSparkline} color="#22c55e" />}
@@ -369,7 +469,7 @@ export default function CrmDashboardPage() {
                     {topCustomers.slice(0, 4).map((c, i) => (
                       <div key={i} className="flex items-center justify-between text-xs">
                         <span className="text-white/50 truncate max-w-[120px]">{c.name}</span>
-                        <span className="text-white/70 font-medium">${c.totalSales.toLocaleString()}</span>
+                        <span className="text-white/70 font-medium">${fmtUsd(c.totalSales)}</span>
                       </div>
                     ))}
                   </div>
@@ -394,7 +494,7 @@ export default function CrmDashboardPage() {
                             <ArrowUpRight className="w-3 h-3 text-emerald-400" />
                           )}
                           <span className={`text-xs font-medium ${c.balance < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                            ${Math.abs(c.balance).toLocaleString()}
+                            ${fmtUsd(Math.abs(c.balance))}
                           </span>
                         </div>
                       </div>
@@ -445,10 +545,10 @@ export default function CrmDashboardPage() {
                               {o.paymentStatus === 'Оплачено' ? '✓ Paid' : '○ Pending'}
                             </span>
                           </td>
-                          <td className="py-3 pr-4 text-right text-xs text-white/70 font-medium">${o.clientTotal.toLocaleString()}</td>
+                          <td className="py-3 pr-4 text-right text-xs text-white/70 font-medium">${fmtUsd(o.clientTotal)}</td>
                           <td className="py-3 text-right">
                             <span className={`text-xs font-medium ${o.profit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                              {o.profit > 0 ? '+' : ''}${o.profit.toFixed(0)}
+                              {o.profit > 0 ? '+' : ''}${fmtUsd(o.profit)}
                             </span>
                           </td>
                         </motion.tr>
@@ -488,15 +588,16 @@ export default function CrmDashboardPage() {
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h4 className="text-sm font-medium text-white">{c.name}</h4>
+                        {c.email && <p className="text-[10px] text-indigo-400/60 font-mono">{c.email}</p>}
                         {c.businessName && <p className="text-[10px] text-white/30">{c.businessName}</p>}
                       </div>
                       <div className={`text-[9px] uppercase tracking-widest font-bold px-2 py-1 rounded ${c.balance < 0 ? 'bg-red-500/10 text-red-400' : c.balance > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/5 text-white/30'}`}>
-                        ${Math.abs(c.balance).toFixed(0)}
+                        ${fmtUsd(Math.abs(c.balance))}
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-3 text-center border-t border-white/5 pt-3">
                       <div>
-                        <div className="text-xs font-medium text-white/70">${c.totalSales.toLocaleString()}</div>
+                        <div className="text-xs font-medium text-white/70">${fmtUsd(c.totalSales)}</div>
                         <div className="text-[8px] uppercase tracking-widest text-white/30 mt-0.5">Продажі</div>
                       </div>
                       <div>
@@ -556,9 +657,9 @@ export default function CrmDashboardPage() {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-sm font-medium text-white/70">${o.clientTotal.toLocaleString()}</div>
+                      <div className="text-sm font-medium text-white/70">${fmtUsd(o.clientTotal)}</div>
                       <div className={`text-[10px] font-medium ${o.profit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {o.profit > 0 ? '+' : ''}${o.profit.toFixed(0)} ({(o.marginality * 100).toFixed(0)}%)
+                        {o.profit > 0 ? '+' : ''}${fmtUsd(o.profit)} ({(o.marginality * 100).toFixed(0)}%)
                       </div>
                     </div>
                     <div className="shrink-0">

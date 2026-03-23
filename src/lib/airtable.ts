@@ -82,6 +82,7 @@ async function airtableFetch(
 export type AirtableCustomer = {
   id: string;
   name: string;
+  email: string | null;
   businessName: string | null;
   tags: string[];
   totalProfit: number;
@@ -105,6 +106,7 @@ export async function fetchAirtableCustomers(
   const records: AirtableCustomer[] = data.records.map((rec: any) => ({
     id: rec.id,
     name: rec.fields['Название'] || '',
+    email: rec.fields['Email'] || null,
     businessName: rec.fields['Название бизнеса'] || null,
     tags: rec.fields['Тэг'] || [],
     totalProfit: rec.fields['Общая прибыль'] || 0,
@@ -124,6 +126,7 @@ export async function fetchAirtableCustomerById(recordId: string): Promise<Airta
     return {
       id: rec.id,
       name: rec.fields['Название'] || '',
+      email: rec.fields['Email'] || null,
       businessName: rec.fields['Название бизнеса'] || null,
       tags: rec.fields['Тэг'] || [],
       totalProfit: rec.fields['Общая прибыль'] || 0,

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, CheckCircle2, RotateCcw, Save, UserRound } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, RotateCcw, Save, UserRound, Database, DollarSign, Eye, EyeOff, Copy } from 'lucide-react';
 
 type CustomerGroup = 'B2C' | 'B2B_PENDING' | 'B2B_APPROVED';
 
@@ -30,6 +30,7 @@ type CustomerDetail = {
   account: {
     lastLoginAt: string | null;
     emailVerifiedAt: string | null;
+    plainPassword: string | null;
   } | null;
   defaultShippingAddress: {
     line1: string;
@@ -126,6 +127,12 @@ export default function AdminShopCustomerDetailPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // CRM data
+  type CrmOrder = { id: string; number: number; name: string; orderStatus: string; paymentStatus: string; totalAmount: number; clientTotal: number; tag: string; orderDate: string | null; itemCount: number };
+  const [crmOrders, setCrmOrders] = useState<CrmOrder[]>([]);
+  const [crmLoading, setCrmLoading] = useState(false);
+  const [customerMarkup, setCustomerMarkup] = useState<{ markupPct: number; notes: string | null } | null>(null);
+
   const load = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -148,6 +155,32 @@ export default function AdminShopCustomerDetailPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Fetch CRM data when customer loads
+  useEffect(() => {
+    if (!customer?.notes) return;
+    const match = customer.notes.match(/\[Airtable:(rec[a-zA-Z0-9]+)\]/);
+    if (!match) return;
+    const airtableId = match[1];
+
+    setCrmLoading(true);
+    // Fetch CRM orders
+    fetch(`/api/admin/crm?type=orders&maxRecords=50&filter=${encodeURIComponent(`FIND("${airtableId}", ARRAYJOIN({Клиент}))`)}`)
+      .then(r => r.json()).then(d => setCrmOrders((d.records || []).map((rec: any) => ({
+        id: rec.id, number: rec.fields?.['Номер'] || 0, name: rec.fields?.['Название'] || '',
+        orderStatus: rec.fields?.['Статус заказа'] || '', paymentStatus: rec.fields?.['Статус оплаты'] || '',
+        totalAmount: rec.fields?.['Сумма позиций (точная)'] || 0, clientTotal: rec.fields?.['Итого к оплате клиентом'] || 0,
+        tag: rec.fields?.['Тэг'] || '', orderDate: rec.fields?.['Дата заказа'] || null,
+        itemCount: rec.fields?.['Кол-во позиций'] || 0,
+      })))).catch(() => {}).finally(() => setCrmLoading(false));
+
+    // Fetch customer markup
+    fetch('/api/admin/shop/pricing/customer-markups')
+      .then(r => r.json()).then(d => {
+        const mk = (d.markups || []).find((m: any) => m.customerId === airtableId);
+        if (mk) setCustomerMarkup({ markupPct: mk.markupPct, notes: mk.notes });
+      }).catch(() => {});
+  }, [customer?.notes]);
 
   async function save() {
     if (!customer || !form) return;
@@ -336,6 +369,14 @@ export default function AdminShopCustomerDetailPage() {
                     Last login {customer.account?.lastLoginAt ? new Date(customer.account.lastLoginAt).toLocaleString() : '—'}
                   </div>
                 </div>
+                {customer.account?.plainPassword ? (
+                  <PasswordCard password={customer.account.plainPassword} />
+                ) : (
+                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-200/70">
+                    <div className="text-[11px] uppercase tracking-[0.2em] text-amber-400/50 mb-1">Пароль</div>
+                    Немає збереженого пароля (зареєстровано до оновлення)
+                  </div>
+                )}
                 <div className="md:col-span-2">
                   <label className="block">
                     <span className="mb-1.5 block text-xs text-white/50">Internal notes</span>
@@ -351,29 +392,108 @@ export default function AdminShopCustomerDetailPage() {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-              <h3 className="mb-4 text-lg font-medium text-white">Order history</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-white">Історія замовлень</h3>
+                <Link
+                  href={`/admin/shop/orders/create?customerId=${customer.id}`}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-black hover:bg-white/90 transition-all"
+                >
+                  + Створити замовлення
+                </Link>
+              </div>
               <div className="space-y-3">
                 {customer.orders.length ? customer.orders.map((order) => (
                   <div key={order.id} className="rounded-xl border border-white/10 bg-black/30 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <div className="font-medium text-white">{order.orderNumber}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-white">{order.orderNumber}</span>
+                          <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wider ${
+                            order.status === 'DELIVERED' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' :
+                            order.status === 'SHIPPED' ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300' :
+                            order.status === 'PROCESSING' ? 'border-violet-500/30 bg-violet-500/10 text-violet-300' :
+                            order.status === 'CONFIRMED' ? 'border-sky-500/30 bg-sky-500/10 text-sky-300' :
+                            order.status === 'CANCELLED' ? 'border-rose-500/30 bg-rose-500/10 text-rose-300' :
+                            'border-amber-500/30 bg-amber-500/10 text-amber-300'
+                          }`}>
+                            {order.status.replace(/_/g, ' ')}
+                          </span>
+                        </div>
                         <div className="mt-1 text-xs text-white/45">
-                          {new Date(order.createdAt).toLocaleString()} · {order.itemCount} items
+                          {new Date(order.createdAt).toLocaleString()} · {order.itemCount} поз.
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm text-white">{order.currency} {order.total.toFixed(2)}</div>
+                        <div className="text-sm font-mono text-white">{order.currency} {order.total.toFixed(2)}</div>
                         <Link href={`/admin/shop/orders/${order.id}`} className="mt-1 inline-block text-xs text-white/60 hover:text-white">
-                          Open order
+                          Відкрити →
                         </Link>
                       </div>
                     </div>
                   </div>
                 )) : (
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">No orders yet.</div>
+                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">Замовлень поки немає.</div>
                 )}
               </div>
+            </div>
+
+            {/* CRM Orders */}
+            <div className="rounded-2xl border border-indigo-500/10 bg-indigo-500/[0.02] p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                  <Database className="w-4 h-4 text-indigo-400" /> CRM Замовлення
+                </h3>
+                {crmLoading && <span className="text-[10px] text-white/20 animate-pulse">Завантаження...</span>}
+              </div>
+              <div className="space-y-2">
+                {crmOrders.length > 0 ? crmOrders.map(o => (
+                  <div key={o.id} className="rounded-xl border border-white/10 bg-black/30 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-sm text-white">#{o.number}</span>
+                          <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                            o.orderStatus === 'Выполнен' ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5' :
+                            o.orderStatus === 'Отменен' ? 'border-red-500/20 text-red-400 bg-red-500/5' :
+                            'border-amber-500/20 text-amber-400 bg-amber-500/5'
+                          }`}>{o.orderStatus}</span>
+                          <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                            o.paymentStatus === 'Оплачено' ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5' :
+                            'border-white/10 text-white/30 bg-white/[0.02]'
+                          }`}>{o.paymentStatus}</span>
+                        </div>
+                        <p className="mt-1 text-xs text-white/40 truncate">{o.name}</p>
+                        {o.orderDate && <p className="text-[10px] text-white/20 mt-0.5">{new Date(o.orderDate).toLocaleDateString('uk-UA')}</p>}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-white">${o.clientTotal.toLocaleString()}</div>
+                        <div className="text-[10px] text-white/30">{o.itemCount} позицій</div>
+                      </div>
+                    </div>
+                  </div>
+                )) : !crmLoading ? (
+                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">Немає CRM замовлень або клієнт не прив&apos;язаний до Airtable.</div>
+                ) : null}
+              </div>
+            </div>
+
+            {/* Customer Markup */}
+            <div className="rounded-2xl border border-emerald-500/10 bg-emerald-500/[0.02] p-5">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-emerald-400" /> Ціноутворення
+                </h3>
+                <Link href="/admin/shop/pricing" className="text-xs text-emerald-400/60 hover:text-emerald-400">Редагувати →</Link>
+              </div>
+              {customerMarkup ? (
+                <div className="flex items-center gap-4">
+                  <div className="text-2xl font-light text-emerald-400">{customerMarkup.markupPct}%</div>
+                  <div className="text-xs text-white/30">Персональна націнка (×{(1 + customerMarkup.markupPct / 100).toFixed(2)})</div>
+                  {customerMarkup.notes && <span className="text-[10px] px-2 py-0.5 bg-white/[0.03] border border-white/10 rounded-full text-white/40">{customerMarkup.notes}</span>}
+                </div>
+              ) : (
+                <p className="text-sm text-white/40">Використовується стандартна націнка бренду.</p>
+              )}
             </div>
           </section>
 
@@ -459,5 +579,44 @@ function InputField(props: {
         className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
       />
     </label>
+  );
+}
+
+function PasswordCard({ password }: { password: string }) {
+  const [visible, setVisible] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    void navigator.clipboard.writeText(password);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm">
+      <div className="text-[11px] uppercase tracking-[0.2em] text-emerald-400/50 mb-1.5">Пароль клієнта</div>
+      <div className="flex items-center gap-2">
+        <code className="flex-1 text-emerald-200 font-mono text-sm">
+          {visible ? password : '••••••••••'}
+        </code>
+        <button
+          type="button"
+          onClick={() => setVisible(!visible)}
+          className="p-1 rounded text-white/40 hover:text-white transition"
+          title={visible ? 'Сховати' : 'Показати'}
+        >
+          {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="p-1 rounded text-white/40 hover:text-white transition"
+          title="Копіювати"
+        >
+          <Copy className="h-4 w-4" />
+        </button>
+        {copied && <span className="text-[10px] text-emerald-400">Скопійовано!</span>}
+      </div>
+    </div>
   );
 }

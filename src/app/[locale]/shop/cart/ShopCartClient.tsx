@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { ShoppingBag } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import { localizeShopText } from '@/lib/shopText';
@@ -78,6 +79,7 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
     if (!cart) return;
     trackViewCart(items.length, subtotal);
   }, [cart, items.length, subtotal]);
+
   function getPrice(p: { eur: number; usd: number; uah: number }, c: string) {
     if (c === 'USD') return p.usd;
     if (c === 'UAH') return p.uah;
@@ -148,8 +150,8 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-white">{localize(locale, i.title)}</p>
-                    {i.variantTitle ? <p className="mt-1 text-xs text-white/45">{i.variantTitle}</p> : null}
+                    <p className="font-medium text-white truncate">{localize(locale, i.title)}</p>
+                    {i.variantTitle ? <p className="mt-1 text-xs text-white/45 truncate">{i.variantTitle}</p> : null}
                     <p className="mt-1 text-sm text-white/55">
                       {i.price ? formatPrice(locale, getPrice(i.price, currency), currency) : ''} × {i.quantity}
                     </p>

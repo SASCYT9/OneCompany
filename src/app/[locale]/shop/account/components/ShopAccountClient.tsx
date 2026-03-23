@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { ShoppingBag } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
@@ -63,12 +64,23 @@ export default function ShopAccountClient({ locale, profile }: Props) {
   const [profileGroup, setProfileGroup] = useState<Props['profile']['group']>(profile.group);
 
   // CRM orders from Airtable
-  type CrmOrder = { id: string; number: number; name: string; orderStatus: string; paymentStatus: string; totalAmount: number; clientTotal: number; tag: string; orderDate: string | null; itemCount: number };
+  type CrmOrder = { id: string; number: number; name: string; orderStatus: string; paymentStatus: string; totalAmount: number; clientTotal: number; tag: string; orderDate: string | null; itemCount: number; items: Array<{ productName: string; brand: string; quantity: number; price: number; total: number }> };
   const [crmOrders, setCrmOrders] = useState<CrmOrder[]>([]);
+  const [crmBalance, setCrmBalance] = useState<number>(0);
+  const [crmWhoOwes, setCrmWhoOwes] = useState<string>('');
   const [crmLoading, setCrmLoading] = useState(true);
+  const [expandedCrmOrder, setExpandedCrmOrder] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/shop/account/crm-orders').then(r => r.json()).then(d => setCrmOrders(d.data || [])).catch(() => {}).finally(() => setCrmLoading(false));
+    fetch('/api/shop/account/crm-orders')
+      .then(r => r.json())
+      .then(d => {
+        setCrmOrders(d.data || []);
+        setCrmBalance(d.balance || 0);
+        setCrmWhoOwes(d.whoOwes || '');
+      })
+      .catch(() => {})
+      .finally(() => setCrmLoading(false));
   }, []);
   const signOutCallbackUrl =
     typeof window !== 'undefined'
@@ -104,10 +116,10 @@ export default function ShopAccountClient({ locale, profile }: Props) {
             <p className="text-[11px] uppercase tracking-[0.35em] text-white/45">
               {isUa ? 'Акаунт клієнта' : 'Customer account'}
             </p>
-            <h1 className="mt-3 text-3xl font-light tracking-tight sm:text-5xl">
+            <h1 className="mt-3 text-3xl font-light tracking-tight sm:text-5xl truncate">
               {profile.fullName}
             </h1>
-            <p className="mt-2 text-sm text-white/55">{profile.email}</p>
+            <p className="mt-2 text-sm text-white/55 truncate">{profile.email}</p>
           </div>
           <div className="flex items-center gap-3">
             <span className="rounded-full border border-white/15 bg-white/[0.04] px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/70">
@@ -165,6 +177,31 @@ export default function ShopAccountClient({ locale, profile }: Props) {
             </div>
 
             <div>
+              <h2 className="text-lg font-medium text-white">{isUa ? 'Баланс (Airtable)' : 'Balance (Airtable)'}</h2>
+              <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-5 mb-8">
+                {crmLoading ? (
+                  <div className="text-xs text-white/40 uppercase tracking-widest">{isUa ? 'Завантаження...' : 'Loading...'}</div>
+                ) : (
+                  <div className="flex flex-wrap items-end justify-between gap-4">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 mb-1">
+                        {isUa ? 'Поточний стан балансу' : 'Current balance state'}
+                      </p>
+                      <p className={`text-2xl font-light ${crmBalance < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                        {crmBalance === 0 ? '$0' : crmBalance > 0 ? `+$${crmBalance.toLocaleString()}` : `-$${Math.abs(crmBalance).toLocaleString()}`}
+                      </p>
+                    </div>
+                    {crmWhoOwes && (
+                      <div className="text-right">
+                        <span className={`text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full border ${crmWhoOwes.toLowerCase().includes('клиент') || crmWhoOwes.toLowerCase().includes('клієнт') || crmWhoOwes.toLowerCase().includes('должен') ? 'border-red-500/20 text-red-400 bg-red-500/5' : 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5'}`}>
+                          {crmWhoOwes}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <h2 className="text-lg font-medium text-white">{isUa ? 'Адреса доставки' : 'Shipping address'}</h2>
               {profile.defaultShippingAddress ? (
                 <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-white/75">
@@ -288,7 +325,7 @@ export default function ShopAccountClient({ locale, profile }: Props) {
                 </div>
                 <ul className="space-y-2">
                   {crmOrders.map(o => (
-                    <li key={o.id} className="rounded-2xl border border-indigo-500/10 bg-indigo-500/[0.03] p-4">
+                    <li key={o.id} className="rounded-2xl border border-indigo-500/10 bg-indigo-500/[0.03] p-4 cursor-pointer transition hover:bg-indigo-500/[0.06]" onClick={() => setExpandedCrmOrder(expandedCrmOrder === o.id ? null : o.id)}>
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
@@ -305,8 +342,23 @@ export default function ShopAccountClient({ locale, profile }: Props) {
                         <div className="text-right shrink-0">
                           <div className="text-sm font-medium text-white">${o.clientTotal.toLocaleString()}</div>
                           <div className="text-[10px] text-white/30">{o.itemCount} {isUa ? 'позицій' : 'items'}</div>
+                          <div className="text-[9px] text-indigo-400/50 mt-1">{expandedCrmOrder === o.id ? '▲' : '▼'}</div>
                         </div>
                       </div>
+                      {expandedCrmOrder === o.id && o.items && o.items.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-indigo-500/10 space-y-2">
+                          {o.items.map((item, idx) => (
+                            <div key={idx} className="flex items-center justify-between gap-3 text-xs">
+                              <div className="min-w-0 flex-1">
+                                <span className="text-white/70">{item.productName}</span>
+                                {item.brand && <span className="text-white/30 ml-1">({item.brand})</span>}
+                              </div>
+                              <div className="text-white/40 shrink-0">{item.quantity} × ${item.price.toLocaleString()}</div>
+                              <div className="text-white/70 font-medium shrink-0 w-20 text-right">${item.total.toLocaleString()}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -321,9 +373,9 @@ export default function ShopAccountClient({ locale, profile }: Props) {
 
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+    <div className="rounded-2xl border border-white/10 bg-black/25 p-4 overflow-hidden">
       <div className="text-[11px] uppercase tracking-[0.2em] text-white/40">{label}</div>
-      <div className="mt-2 text-sm text-white/80">{value}</div>
+      <div className="mt-2 text-sm text-white/80 truncate" title={value}>{value}</div>
     </div>
   );
 }

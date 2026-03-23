@@ -3,7 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
 import { listShopCustomersAdmin } from '@/lib/shopAdminCustomers';
+import { hashShopCustomerPassword } from '@/lib/shopCustomers';
 import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,11 +35,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    // Assuming SHOP_CUSTOMERS_READ is sufficient or we can just use simple auth
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ);
+    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_WRITE);
 
     const data = await request.json();
-    const { email, firstName, lastName, phone, companyName, group, isActive, preferredLocale, b2bDiscountPercent, preferredCurrency } = data;
+    const { email, firstName, lastName, phone, companyName, group, isActive, preferredLocale, b2bDiscountPercent, password } = data;
 
     if (!email || !firstName || !lastName) {
       return NextResponse.json(
@@ -46,8 +47,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const normalizedEmail = String(email).trim().toLowerCase();
     const existing = await prisma.shopCustomer.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
     if (existing) {
       return NextResponse.json(
@@ -56,24 +58,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Generate password: use provided or generate random 12-char
+    const actualPassword = password ? String(password).trim() : crypto.randomBytes(6).toString('base64url');
+    const passwordHash = await hashShopCustomerPassword(actualPassword);
+
     const customer = await prisma.shopCustomer.create({
       data: {
-        email,
-        firstName,
-        lastName,
-        phone,
-        companyName,
+        email: normalizedEmail,
+        firstName: String(firstName).trim(),
+        lastName: String(lastName).trim(),
+        phone: phone ? String(phone).trim() : null,
+        companyName: companyName ? String(companyName).trim() : null,
         group: group || 'B2C',
-        isActive: isActive !== undefined ? isActive : true,
+        isActive: isActive !== false,
         preferredLocale: preferredLocale || 'en',
-        b2bDiscountPercent: b2bDiscountPercent ? parseFloat(b2bDiscountPercent) : 0,
+        b2bDiscountPercent: b2bDiscountPercent ? parseFloat(b2bDiscountPercent) : null,
+        account: {
+          create: {
+            passwordHash,
+            plainPassword: actualPassword,
+          },
+        },
       },
+      include: { account: true },
     });
 
     return NextResponse.json({
       success: true,
       customerId: customer.id,
-      customer,
+      customer: {
+        id: customer.id,
+        email: customer.email,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        group: customer.group,
+        password: actualPassword,
+      },
     });
   } catch (error: any) {
     if (error.message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

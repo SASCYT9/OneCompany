@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import { trackBeginCheckout } from '@/lib/analytics';
 import { formatShopMoney, type ShopCurrencyCode } from '@/lib/shopMoneyFormat';
+import { ShoppingBag, Loader2 } from 'lucide-react';
 
 type CartItem = {
   id: string;
@@ -48,7 +49,7 @@ type CheckoutQuote = {
 };
 
 type PaymentOptions = {
-  methods: Array<'FOP' | 'STRIPE' | 'WHITEBIT'>;
+  methods: Array<'FOP' | 'STRIPE' | 'WHITEBIT' | 'HUTKO'>;
   fopDetails: {
     companyName: string | null;
     iban: string | null;
@@ -89,7 +90,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
     postcode: '',
     country: isUa ? 'Ukraine' : '',
     currency: isUa ? 'UAH' : 'EUR',
-    paymentMethod: 'FOP' as 'FOP' | 'STRIPE' | 'WHITEBIT',
+    paymentMethod: 'FOP' as 'FOP' | 'STRIPE' | 'WHITEBIT' | 'HUTKO',
   });
   const [paymentOptions, setPaymentOptions] = useState<PaymentOptions | null>(null);
 
@@ -411,7 +412,20 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                   <span className="text-white/90">White Bit</span>
                 </label>
               )}
-              {!paymentOptions?.methods.includes('STRIPE') && !paymentOptions?.methods.includes('WHITEBIT') && (
+              {paymentOptions?.methods.includes('HUTKO') && (
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/25 px-4 py-3 transition hover:bg-white/5 has-[:checked]:border-white/30 has-[:checked]:bg-white/10">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="HUTKO"
+                    checked={form.paymentMethod === 'HUTKO'}
+                    onChange={() => setForm((f) => ({ ...f, paymentMethod: 'HUTKO' }))}
+                    className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50"
+                  />
+                  <span className="text-white/90">{isUa ? 'Картка Visa/MC (hutko)' : 'Card Visa/MC (hutko)'}</span>
+                </label>
+              )}
+              {!paymentOptions?.methods.includes('STRIPE') && !paymentOptions?.methods.includes('WHITEBIT') && !paymentOptions?.methods.includes('HUTKO') && (
                 <p className="text-xs text-white/40">
                   {isUa ? 'Stripe та White Bit будуть доступні після налаштування.' : 'Stripe and White Bit will be available after setup.'}
                 </p>

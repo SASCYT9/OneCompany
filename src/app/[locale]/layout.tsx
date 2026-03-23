@@ -15,6 +15,8 @@ import AutoBreadcrumbs from '@/components/seo/AutoBreadcrumbs';
 
 import { ScrollToTop } from '@/components/ScrollToTop';
 import { ShopCurrencyProvider } from '@/components/shop/CurrencyContext';
+import { prisma } from '@/lib/prisma';
+import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ua' }];
@@ -38,6 +40,19 @@ export default async function LocaleLayout({ children, params }: Props) {
   // Get messages for this locale
   const messages = await getMessages();
   const videoConfig = await readVideoConfig();
+  
+  // Fetch Shop Settings for company requisites
+  let companyRequisites: string | null = null;
+  try {
+    const shopSettingsRecord = await getOrCreateShopSettings(prisma);
+    const shopSettings = getShopSettingsRuntime(shopSettingsRecord);
+    
+    if (shopSettings.fopCompanyName) {
+      companyRequisites = `${shopSettings.fopCompanyName}${shopSettings.fopEdrpou ? `, ЄДРПОУ: ${shopSettings.fopEdrpou}` : ''}`;
+    }
+  } catch (error) {
+    console.warn("Failed to fetch shop settings from DB for footer:", error instanceof Error ? error.message : error);
+  }
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
@@ -61,7 +76,7 @@ export default async function LocaleLayout({ children, params }: Props) {
             </main>
             <AutoBreadcrumbs />
             <ScrollToTop />
-            <Footer currentYear={currentYear} />
+            <Footer currentYear={currentYear} companyRequisites={companyRequisites} />
             <CookieBanner locale={locale} />
           </div>
         </ShopCurrencyProvider>

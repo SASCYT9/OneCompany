@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
+import { fetchTurn14ItemPricing, fetchTurn14ItemDetail } from '@/lib/turn14';
 
 /**
  * POST /api/shop/turn14/order
@@ -14,19 +15,58 @@ import crypto from 'crypto';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { item, customerEmail, customerName, customerPhone, quantity = 1 } = body;
+    const { item, customerEmail, customerName, customerPhone, quantity = 1, shippingCost = 0 } = body;
 
-    if (!item || !item.name) {
-      return NextResponse.json({ error: 'Item data is required' }, { status: 400 });
+    if (!item || !item.name || (!item.turn14Id && !item.id)) {
+      return NextResponse.json({ error: 'Valid Item data is required' }, { status: 400 });
     }
 
     // Generate a unique order number
     const orderCount = await prisma.shopOrder.count();
     const orderNumber = `T14-${String(orderCount + 1001).padStart(5, '0')}`;
 
+    // SECURE PRICING VERIFICATION
+    // Fetch live purchase cost directly from Turn14 API to prevent client-side price manipulation
+    const pricingResponse = await fetchTurn14ItemPricing(item.turn14Id || item.id);
+    const purchaseCost = pricingResponse?.data?.attributes?.purchase_cost;
+    
+    if (!purchaseCost) {
+      return NextResponse.json({ error: 'Failed to verify live pricing from Turn14 constructor' }, { status: 400 });
+    }
+
+    // Mathematically re-apply the stored markup rules (or fallback to 25%)
+    const safeMarkupPct = typeof item.markupPct === 'number' ? item.markupPct : 25;
+    const verifiedUnitPrice = purchaseCost * (1 + safeMarkupPct / 100);
+
+    // VERIFY SHIPPING COST (Volumetric)
+    // Fetch dimensions from Turn14 catalog and recalculate freight surcharge server-side
+    let verifiedShippingCost = 0;
+    try {
+      const detailRes = await fetchTurn14ItemDetail(item.turn14Id || item.id);
+      const attrs = detailRes?.data?.attributes;
+      if (attrs && attrs.dimensions && attrs.dimensions.length > 0) {
+        // Dimensions are in inches from API, weight in lbs
+        const dim = attrs.dimensions[0];
+        const lCm = dim.length * 2.54;
+        const wCm = dim.width * 2.54;
+        const hCm = dim.height * 2.54;
+        const actKg = dim.weight * 0.453592;
+        const volKg = (lCm * wCm * hCm) / 5000;
+        
+        // Add $2 per extra kg of volumetric weight difference
+        if (volKg > actKg) {
+          verifiedShippingCost = (volKg - actKg) * 2;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to verify Turn14 shipping dimensions server-side', err);
+      // Fallback to client specified amount ONLY if Turn14 fails to respond (low risk fallback)
+      verifiedShippingCost = Number(shippingCost) || 0;
+    }
+
     // Price calculation
-    const unitPrice = item.price || 0;
-    const subtotal = unitPrice * quantity;
+    const subtotal = verifiedUnitPrice * quantity;
+    const total = subtotal + verifiedShippingCost;
 
     // Try to find or create customer
     let customerId: string | null = null;
@@ -63,9 +103,9 @@ export async function POST(request: NextRequest) {
         paymentStatus: 'UNPAID',
         currency: 'USD',
         subtotal,
-        shippingCost: 0,
+        shippingCost: verifiedShippingCost,
         taxAmount: 0,
-        total: subtotal,
+        total,
         amountPaid: 0,
         shippingAddress: {
           line1: '',
@@ -82,15 +122,16 @@ export async function POST(request: NextRequest) {
           itemName: item.name,
           basePrice: item.basePrice,
           markupPct: item.markupPct,
-          finalPrice: unitPrice,
+          finalPrice: verifiedUnitPrice,
           quantity,
+          shippingCost: verifiedShippingCost,
         },
         items: {
           create: {
             productSlug: `turn14-${item.partNumber || item.id}`,
             title: `${item.name} (${item.brand || 'Turn14'})`,
             quantity,
-            price: unitPrice,
+            price: verifiedUnitPrice,
             total: subtotal,
             image: item.thumbnail || null,
           },

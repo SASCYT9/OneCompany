@@ -54,21 +54,62 @@ export async function POST(request: NextRequest) {
             },
           });
 
+          // Use real email from Airtable if available, otherwise generate unique one
+          const airtableEmail = atCustomer.email?.trim();
+          const generateEmail = () => {
+            // Transliterate Cyrillic → Latin for email-safe slug
+            const cyMap: Record<string,string> = {
+              'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh',
+              'з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o',
+              'п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts',
+              'ч':'ch','ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya',
+              'і':'i','ї':'yi','є':'ye','ґ':'g',
+            };
+            const slug = customerName.toLowerCase().split('').map(c => cyMap[c] || c).join('')
+              .replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '') || 'customer';
+            // Add short Airtable ID suffix for uniqueness
+            const suffix = airtableId.replace(/^rec/, '').slice(0, 6).toLowerCase();
+            return `${slug}.${suffix}@crm.onecompany.local`;
+          };
+          const email = airtableEmail || generateEmail();
+
+          // Detect region from customer name for notes
+          const regionHints: Record<string, string> = {
+            'казахстан': 'KZ', 'kz': 'KZ', 'kazakhstan': 'KZ',
+            'україна': 'UA', 'украина': 'UA', 'ua': 'UA', 'ukraine': 'UA',
+            'сша': 'US', 'usa': 'US', 'us': 'US',
+            'eu': 'EU', 'europe': 'EU', 'європа': 'EU',
+          };
+          let region = '';
+          const lowerName = customerName.toLowerCase();
+          for (const [hint, code] of Object.entries(regionHints)) {
+            if (lowerName.includes(hint)) { region = code; break; }
+          }
+
           if (existing) {
+            // Update existing customer — also sync email from Airtable
+            const updateData: any = {
+              companyName: customerName,
+              notes: `[Airtable:${airtableId}]${region ? ` [Region:${region}]` : ''} Balance: $${atCustomer.balance.toFixed(2)} | ${atCustomer.whoOwes}`,
+            };
+            // If Airtable has a real email, update local email to match
+            if (airtableEmail && existing.email.endsWith('@crm.onecompany.local')) {
+              updateData.email = airtableEmail;
+            }
+
             await prisma.shopCustomer.update({
               where: { id: existing.id },
-              data: {
-                companyName: customerName,
-                notes: `[Airtable:${airtableId}] Balance: $${atCustomer.balance.toFixed(2)} | ${atCustomer.whoOwes}`,
-              },
+              data: updateData,
             });
             results.customersUpdated++;
           } else {
-            const email = `${customerName.toLowerCase().replace(/[^a-z0-9]+/g, '.')}@crm.onecompany.local`;
+            // Check email collision before create
+            const emailConflict = await prisma.shopCustomer.findUnique({ where: { email } });
+            const finalEmail = emailConflict ? generateEmail() : email;
 
             await prisma.shopCustomer.create({
               data: {
-                email,
+                email: finalEmail,
                 firstName: customerName.split(' ')[0] || customerName,
                 lastName: customerName.split(' ').slice(1).join(' ') || '',
                 companyName: customerName,
@@ -127,11 +168,12 @@ export async function POST(request: NextRequest) {
           const orderStatus = statusMap[atOrder.orderStatus] || 'PENDING_REVIEW';
 
           if (existing) {
-            // Update status only
+            // Update status AND re-link customer (in case customer was created after order)
             await prisma.shopOrder.update({
               where: { id: existing.id },
               data: {
                 status: orderStatus as any,
+                customerId: customerId || existing.customerId,
                 paymentStatus: atOrder.paymentStatus === 'Оплачено' ? 'PAID' :
                                atOrder.paymentStatus === 'Частично оплачено' ? 'PARTIALLY_PAID' : 'UNPAID',
                 pricingSnapshot: {

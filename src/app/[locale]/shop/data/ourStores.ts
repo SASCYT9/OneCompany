@@ -31,6 +31,17 @@ export const OUR_STORES: OurStore[] = [
     imageUrl: "/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp",
   },
   {
+    id: "ind",
+    name: "IND Distribution",
+    nameUk: "IND Distribution",
+    description:
+      "Premium BMW parts and accessories. Curated catalog of performance upgrades.",
+    descriptionUk:
+      "Преміальні запчастини та аксесуари BMW. Каталог продуктів для покращення продуктивності.",
+    href: "/shop/stock?source=local",
+    imageUrl: "/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp",
+  },
+  {
     id: "kw",
     name: "KW Suspension",
     nameUk: "KW Suspension",

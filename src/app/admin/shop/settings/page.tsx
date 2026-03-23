@@ -1645,6 +1645,34 @@ export default function AdminShopSettingsPage() {
             </button>
           </div>
         </form>
+
+        {/* Product Feed Links */}
+        <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <h3 className="text-lg font-medium text-white mb-1">Product Feed (Google Merchant)</h3>
+          <p className="text-sm text-white/45 mb-4">
+            XML-фід для Google Merchant Center, Facebook та маркетплейсів.
+          </p>
+          <div className="grid gap-3 md:grid-cols-2">
+            {[
+              { label: '🇺🇦 UA · EUR', url: '/api/shop/feed/products?locale=ua&currency=EUR' },
+              { label: '🇺🇦 UA · USD', url: '/api/shop/feed/products?locale=ua&currency=USD' },
+              { label: '🇬🇧 EN · EUR', url: '/api/shop/feed/products?locale=en&currency=EUR' },
+              { label: '🇬🇧 EN · USD', url: '/api/shop/feed/products?locale=en&currency=USD' },
+            ].map(feed => (
+              <div key={feed.url} className="flex items-center gap-3 rounded-xl border border-white/10 bg-zinc-950/40 p-3">
+                <span className="text-xs text-white/60 shrink-0">{feed.label}</span>
+                <code className="flex-1 text-[10px] text-white/40 truncate font-mono">{feed.url}</code>
+                <button
+                  type="button"
+                  onClick={() => { navigator.clipboard.writeText(window.location.origin + feed.url).catch(() => {}); }}
+                  className="shrink-0 rounded-lg border border-white/10 px-2 py-1 text-[10px] text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+                >
+                  Копіювати
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -96,6 +96,7 @@ export function serializeShopCustomerAdminDetail(
       ? {
           lastLoginAt: record.account.lastLoginAt?.toISOString() ?? null,
           emailVerifiedAt: record.account.emailVerifiedAt?.toISOString() ?? null,
+          plainPassword: (record.account as any).plainPassword ?? null,
         }
       : null,
     defaultShippingAddress: defaultShippingAddress

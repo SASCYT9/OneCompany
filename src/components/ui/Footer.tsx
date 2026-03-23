@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useLanguage } from '@/lib/LanguageContext';
 
-export function Footer() {
+export function Footer({ companyRequisites }: { companyRequisites?: string | null } = {}) {
   const currentYear = new Date().getFullYear();
   const { t } = useLanguage();
 
@@ -111,22 +111,39 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/10">
+        <div className="pt-8 flex flex-col gap-6 border-t border-white/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-xs text-white/50 font-light">
-              © onecompany - {currentYear} | {t.footer.allRights}
-            </p>
+            <div className="flex flex-col items-center md:items-start gap-1">
+              <p className="text-xs text-white/50 font-light text-center md:text-left">
+                © onecompany - {currentYear} | {t.footer.allRights}
+              </p>
+            </div>
             
-            <div className="flex gap-6 text-xs text-white/50 font-light">
-              <Link href="/privacy" className="hover:text-white transition-colors">
+            <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-xs text-white/50 font-light">
+              <Link href="/delivery" className="hover:text-white transition-colors shrink-0">
+                {t.footer.deliveryAndPayment}
+              </Link>
+              <Link href="/refund" className="hover:text-white transition-colors shrink-0">
+                {t.footer.refundPolicy}
+              </Link>
+              <Link href="/privacy" className="hover:text-white transition-colors shrink-0">
                 {t.footer.privacy}
               </Link>
-              <Link href="/terms" className="hover:text-white transition-colors">
+              <Link href="/terms" className="hover:text-white transition-colors shrink-0">
                 {t.footer.terms}
               </Link>
-              <Link href="/cookies" className="hover:text-white transition-colors">
+              <Link href="/cookies" className="hover:text-white transition-colors shrink-0">
                 {t.footer.cookies}
               </Link>
+            </div>
+            <div className="flex flex-col items-center md:items-end gap-3 mt-8 md:mt-0">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-medium">
+                Secure Payment
+              </span>
+              <div className="flex items-center gap-4">
+                <img src="/images/payments/visa.svg" alt="Visa" className="h-10 w-auto rounded-lg shadow-md" loading="lazy" />
+                <img src="/images/payments/mastercard.svg" alt="MasterCard" className="h-10 w-auto rounded-lg shadow-md" loading="lazy" />
+              </div>
             </div>
           </div>
         </div>

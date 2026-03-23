@@ -29,31 +29,34 @@ export function Header() {
   const isUa = locale === "ua";
   const tNav = useTranslations("nav");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isUrbanStorefront =
-    segments[0] === "shop" &&
-    (segments[1] === "urban" || segments[1] === "cart" || segments[1] === "checkout");
+  const isShopRoute = segments[0] === "shop";
 
-  const urbanNavItems = [
-    {
-      key: "collections",
-      href: `/${locale}/shop/urban/collections`,
-      label: isUa ? "Колекції" : "Collections",
-    },
+  const shopNavItems = [
     {
       key: "stores",
       href: `/${locale}/shop`,
-      label: isUa ? "Усі магазини" : "All stores",
+      label: isUa ? "Магазини" : "Stores",
+    },
+    {
+      key: "stock",
+      href: `/${locale}/shop/stock`,
+      label: isUa ? "Каталог" : "Catalog",
+    },
+    {
+      key: "account",
+      href: `/${locale}/shop/account`,
+      label: isUa ? "Акаунт" : "Account",
     },
   ];
 
-  const renderedNavItems = isUrbanStorefront
-    ? urbanNavItems
+  const renderedNavItems = isShopRoute
+    ? shopNavItems
     : navItems.map((item) => ({
         key: item.key,
         href: `/${locale}${item.href}`,
         label: tNav(item.key),
       }));
-  const logoHref = isUrbanStorefront ? `/${locale}/shop/urban` : `/${locale}`;
+  const logoHref = isShopRoute ? `/${locale}/shop` : `/${locale}`;
   const { currency, region, setRegion, setCurrency } = useShopCurrency();
 
   return (
@@ -63,7 +66,7 @@ export function Header() {
       <div
         className={cn(
           "relative mx-2 flex items-center rounded-2xl border backdrop-blur-xl px-3 py-2.5 sm:mx-auto sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8",
-          isUrbanStorefront
+          isShopRoute
             ? "max-w-7xl border-white/15 bg-black/75"
             : "max-w-6xl border-white/10 bg-black/80"
         )}
@@ -72,7 +75,7 @@ export function Header() {
           href={logoHref}
           suppressHydrationWarning
           className="absolute left-1/2 -translate-x-1/2 md:relative md:left-auto md:translate-x-0 z-10 inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-          aria-label={isUrbanStorefront ? "Urban home" : "ONE COMPANY home"}
+          aria-label={isShopRoute ? "Urban home" : "ONE COMPANY home"}
         >
           <Logo className="w-20 sm:w-28 md:w-32" priority tone="light" size="compact" />
           <span className="absolute -bottom-1 left-0 h-px w-8 bg-gradient-to-r from-white to-transparent sm:-bottom-2 sm:w-10" />
@@ -102,15 +105,6 @@ export function Header() {
           })}
         </nav>
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
-          {segments[0] === "shop" ? (
-            <Link
-              href={`/${locale}/shop/account`}
-              suppressHydrationWarning
-              className="hidden rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-white/70 transition hover:border-white hover:text-white md:inline-flex"
-            >
-              {isUa ? "Акаунт" : "Account"}
-            </Link>
-          ) : null}
           {segments[0] === "shop" ? <CartIconLink locale={locale} /> : null}
           {segments[0] === "shop" ? (
             <div className="hidden items-center gap-1 rounded-full border border-white/20 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-white/70 md:flex">
@@ -147,7 +141,7 @@ export function Header() {
             </div>
           ) : null}
           <LocaleSwitcher className="hidden shrink-0 md:ml-2 md:flex" />
-          {!isUrbanStorefront ? (
+          {!isShopRoute ? (
             <Link
               href={`/${locale}/partnership`}
               className="group hidden items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 font-display text-[10px] font-semibold uppercase tracking-[0.25em] text-white transition hover:border-white hover:bg-white hover:text-black sm:inline-flex sm:gap-2 sm:px-4 sm:py-1.5 sm:text-[11px] sm:tracking-[0.28em]"
@@ -178,7 +172,7 @@ export function Header() {
             transition={{ duration: 0.2 }}
             className={cn(
               "fixed inset-x-0 top-16 z-40 mx-2 rounded-2xl border bg-black/90 backdrop-blur-xl p-6 sm:top-20 sm:mx-auto sm:max-w-md",
-              isUrbanStorefront ? "border-white/15" : "border-white/10"
+              isShopRoute ? "border-white/15" : "border-white/10"
             )}
           >
             <nav className="flex flex-col gap-4 text-center">
