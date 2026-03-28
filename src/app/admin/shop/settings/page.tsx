@@ -820,7 +820,7 @@ export default function AdminShopSettingsPage() {
               Назад до каталогу
             </Link>
             <h2 className="mt-3 text-2xl font-semibold text-white">Налаштування магазину</h2>
-            <p className="mt-2 max-w-3xl text-sm text-white/45">
+            <p className="mt-2 max-w-[1920px] text-sm text-white/45">
               Валюти вітрини, правила доставки та податків, видимість B2B та знижка B2B за замовчуванням. Порядок правил важливий: застосовується перша збіжна зона доставки або податкове правило.
             </p>
           </div>
@@ -912,7 +912,7 @@ export default function AdminShopSettingsPage() {
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-medium text-white">EN переклад каталогу</h3>
-                <p className="mt-1 max-w-3xl text-sm text-white/45">
+                <p className="mt-1 max-w-[1920px] text-sm text-white/45">
                   DeepL backfill для товарів, де англійські назви чи описи порожні, дублюють українську або ще містять кирилицю.
                 </p>
               </div>

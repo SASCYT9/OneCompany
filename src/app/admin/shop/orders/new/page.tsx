@@ -61,7 +61,7 @@ export default function AdminNewOrderPage() {
 
   return (
     <div className="h-full overflow-auto">
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1920px] px-4 py-8 sm:px-6 lg:px-8">
         <Link
           href="/admin/shop/orders"
           className="mb-8 inline-flex items-center gap-2 text-[13px] font-medium tracking-wide text-white/40 hover:text-white transition-colors"

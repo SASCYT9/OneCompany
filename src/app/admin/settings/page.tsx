@@ -109,7 +109,7 @@ export default function SettingsPage() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 text-white pb-20">
+      <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-8 text-white pb-20">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>

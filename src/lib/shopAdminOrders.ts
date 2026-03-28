@@ -24,6 +24,7 @@ export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 };
 
 export const adminOrderInclude = {
+  customer: true,
   items: true,
   shipments: {
     orderBy: [{ createdAt: 'desc' }],
@@ -112,6 +113,9 @@ export function serializeAdminOrder(record: AdminShopOrderRecord) {
     email: record.email,
     customerName: record.customerName,
     phone: record.phone,
+    customerGroupSnapshot: record.customerGroupSnapshot,
+    b2bDiscountPercent: record.customer?.b2bDiscountPercent || null,
+    discountNotes: record.customer?.notes || null,
     shippingAddress: record.shippingAddress,
     currency: record.currency,
     subtotal: decimalToNumber(record.subtotal) ?? 0,
@@ -131,15 +135,54 @@ export function serializeAdminOrder(record: AdminShopOrderRecord) {
     viewToken: record.viewToken,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
-    items: record.items.map((item) => ({
-      id: item.id,
-      productSlug: item.productSlug,
-      title: item.title,
-      quantity: item.quantity,
-      price: decimalToNumber(item.price) ?? 0,
-      total: decimalToNumber(item.total) ?? 0,
-      image: item.image,
-    })),
+    items: record.items.map((item) => {
+      let sku: string | null = null;
+      let brand: string | null = null;
+      let turn14Id: string | null = null;
+      let baseCostUsd: number | null = null;
+      let markupPct: number | null = null;
+
+      const snap = record.pricingSnapshot as any;
+      if (snap?.source === 'turn14_catalog') {
+        sku = snap.partNumber || null;
+        brand = snap.brandName || null;
+        turn14Id = snap.turn14Id || null;
+        baseCostUsd = snap.basePrice || null;
+        markupPct = snap.markupPct || null;
+      } else if (snap?.items) {
+        const d = (snap.items as any[]).find((i) => i.slug === item.productSlug);
+        if (d?.slug?.startsWith('turn14-')) {
+          sku = d.slug.replace('turn14-', '');
+          const brandMatch = item.title.match(/\((.*?)\)$/);
+          if (brandMatch) brand = brandMatch[1];
+        }
+      }
+
+      if (!sku && item.productSlug?.startsWith('turn14-')) {
+        sku = item.productSlug.replace('turn14-', '');
+        const brandMatch = item.title.match(/\((.*?)\)$/);
+        if (brandMatch) brand = brandMatch[1];
+      }
+      
+      if (!sku && item.productSlug?.startsWith('crm-')) {
+        sku = item.productSlug.replace('crm-', '');
+      }
+
+      return {
+        id: item.id,
+        productSlug: item.productSlug,
+        title: item.title,
+        quantity: item.quantity,
+        price: decimalToNumber(item.price) ?? 0,
+        total: decimalToNumber(item.total) ?? 0,
+        image: item.image,
+        sku,
+        brand,
+        turn14Id,
+        baseCostUsd,
+        markupPct,
+      };
+    }),
     shipments: record.shipments.map(serializeAdminShipment),
     events: record.events.map((event) => ({
       id: event.id,

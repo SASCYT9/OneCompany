@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -19,93 +13,68 @@ model Message {
   updatedAt     DateTime       @updatedAt
   userName      String
   userEmail     String
-  userPhone     String?
-  contactMethod ContactMethod?
-  messageText   String         @db.Text
+  messageText   String
   status        Status         @default(NEW)
   category      Category?
   metadata      Json?
+  contactMethod ContactMethod?
+  userPhone     String?
   replies       Reply[]
 
   @@index([createdAt])
 }
 
-enum ContactMethod {
-  TELEGRAM
-  WHATSAPP
-}
-
 model Reply {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-  replyText String   @db.Text
-  sentVia   String?  @default("email") // email, telegram
-  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  replyText String
   messageId String
+  sentVia   String?  @default("email")
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@index([messageId])
 }
 
-enum Status {
-  NEW
-  READ
-  IN_PROGRESS
-  REPLIED
-  COMPLETED
-  ARCHIVED
-}
-
-enum Category {
-  AUTO
-  MOTO
-  GENERAL
-  PARTNERSHIP
-}
-
-// Telegram Bot Models
 model TelegramUser {
-  id           String   @id @default(cuid())
-  telegramId   BigInt   @unique
-  username     String?
-  firstName    String?
-  lastName     String?
-  languageCode String   @default("uk")
-  isAdmin      Boolean  @default(false)
-  isBlocked    Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  lastActiveAt DateTime @default(now())
-
-  sessions      TelegramSession[]
+  id            String                 @id @default(cuid())
+  telegramId    BigInt                 @unique
+  username      String?
+  firstName     String?
+  lastName      String?
+  languageCode  String                 @default("uk")
+  isAdmin       Boolean                @default(false)
+  isBlocked     Boolean                @default(false)
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  lastActiveAt  DateTime               @default(now())
   conversations TelegramConversation[]
+  sessions      TelegramSession?
 
   @@index([telegramId])
 }
 
 model TelegramSession {
-  id         String   @id @default(cuid())
-  telegramId BigInt   @unique
-  data       Json     @default("{}")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user TelegramUser? @relation(fields: [telegramId], references: [telegramId], onDelete: Cascade)
+  id         String       @id @default(cuid())
+  telegramId BigInt       @unique
+  data       Json         @default("{}")
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  user       TelegramUser @relation(fields: [telegramId], references: [telegramId], onDelete: Cascade)
 
   @@index([telegramId])
 }
 
 model TelegramConversation {
-  id               String   @id @default(cuid())
+  id               String       @id @default(cuid())
   telegramId       BigInt
   chatId           BigInt
   messageId        Int?
-  conversationType String   @default("general")
-  state            Json     @default("{}")
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  user TelegramUser @relation(fields: [telegramId], references: [telegramId], onDelete: Cascade)
+  conversationType String       @default("general")
+  state            Json         @default("{}")
+  isActive         Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  user             TelegramUser @relation(fields: [telegramId], references: [telegramId], onDelete: Cascade)
 
   @@index([telegramId])
   @@index([chatId])
@@ -116,8 +85,8 @@ model TelegramAdmin {
   telegramId  BigInt   @unique
   username    String?
   name        String
-  role        String   @default("admin") // admin, superadmin
-  permissions Json     @default("[]") // ["messages", "users", "settings"]
+  role        String   @default("admin")
+  permissions Json     @default("[]")
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -126,16 +95,16 @@ model TelegramAdmin {
 }
 
 model AdminUser {
-  id          String          @id @default(cuid())
-  email       String          @unique
-  name        String?
+  id           String          @id @default(cuid())
+  email        String          @unique
+  name         String?
+  isActive     Boolean         @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
   passwordHash String?
-  isActive    Boolean         @default(true)
-  lastLoginAt DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  roles       AdminUserRole[]
-  auditLogs   AdminAuditLog[]
+  auditLogs    AdminAuditLog[]
+  roles        AdminUserRole[]
 
   @@index([isActive])
 }
@@ -156,8 +125,8 @@ model AdminUserRole {
   userId     String
   roleId     String
   assignedAt DateTime  @default(now())
-  user       AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
   role       AdminRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user       AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, roleId])
   @@index([roleId])
@@ -174,35 +143,27 @@ model AdminAuditLog {
   entityId   String?
   metadata   Json?
   createdAt  DateTime   @default(now())
-  actor      AdminUser? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actor      AdminUser? @relation(fields: [actorId], references: [id])
 
   @@index([actorId])
   @@index([scope, createdAt])
   @@index([entityType, entityId])
 }
 
-// Shop (Urban / One Company store — no Shopify)
 model ShopProduct {
   id                   String                  @id @default(cuid())
   slug                 String                  @unique
   sku                  String?
   scope                String                  @default("auto")
   brand                String?
-  vendor               String?
-  productType          String?
-  productCategory      String?
-  tags                 String[]                @default([])
-  status               ShopCatalogStatus       @default(ACTIVE)
   titleUa              String
   titleEn              String
   categoryUa           String?
   categoryEn           String?
-  shortDescUa          String?                 @db.Text
-  shortDescEn          String?                 @db.Text
-  longDescUa           String?                 @db.Text
-  longDescEn           String?                 @db.Text
-  bodyHtmlUa           String?                 @db.Text
-  bodyHtmlEn           String?                 @db.Text
+  shortDescUa          String?
+  shortDescEn          String?
+  longDescUa           String?
+  longDescEn           String?
   leadTimeUa           String?
   leadTimeEn           String?
   stock                String                  @default("inStock")
@@ -211,37 +172,44 @@ model ShopProduct {
   priceEur             Decimal?                @db.Decimal(12, 2)
   priceUsd             Decimal?                @db.Decimal(12, 2)
   priceUah             Decimal?                @db.Decimal(12, 2)
-  priceEurB2b          Decimal?                @db.Decimal(12, 2)
-  priceUsdB2b          Decimal?                @db.Decimal(12, 2)
-  priceUahB2b          Decimal?                @db.Decimal(12, 2)
   compareAtEur         Decimal?                @db.Decimal(12, 2)
   compareAtUsd         Decimal?                @db.Decimal(12, 2)
   compareAtUah         Decimal?                @db.Decimal(12, 2)
-  compareAtEurB2b      Decimal?                @db.Decimal(12, 2)
-  compareAtUsdB2b      Decimal?                @db.Decimal(12, 2)
-  compareAtUahB2b      Decimal?                @db.Decimal(12, 2)
   image                String?
   gallery              Json?
   highlights           Json?
-  seoTitleUa           String?
-  seoTitleEn           String?
-  seoDescriptionUa     String?                 @db.Text
-  seoDescriptionEn     String?                 @db.Text
-  categoryId           String?
   isPublished          Boolean                 @default(true)
-  publishedAt          DateTime?
   createdAt            DateTime                @default(now())
   updatedAt            DateTime                @updatedAt
-  category             ShopCategory?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  media                ShopProductMedia[]
-  options              ShopProductOption[]
-  variants             ShopProductVariant[]
-  metafields           ShopProductMetafield[]
-  collections          ShopProductCollection[]
+  bodyHtmlEn           String?
+  bodyHtmlUa           String?
+  categoryId           String?
+  compareAtEurB2b      Decimal?                @db.Decimal(12, 2)
+  compareAtUahB2b      Decimal?                @db.Decimal(12, 2)
+  compareAtUsdB2b      Decimal?                @db.Decimal(12, 2)
+  priceEurB2b          Decimal?                @db.Decimal(12, 2)
+  priceUahB2b          Decimal?                @db.Decimal(12, 2)
+  priceUsdB2b          Decimal?                @db.Decimal(12, 2)
+  productCategory      String?
+  productType          String?
+  publishedAt          DateTime?
+  seoDescriptionEn     String?
+  seoDescriptionUa     String?
+  seoTitleEn           String?
+  seoTitleUa           String?
+  status               ShopCatalogStatus       @default(ACTIVE)
+  tags                 String[]                @default([])
+  vendor               String?
   bundle               ShopBundle?
   bundleComponentItems ShopBundleItem[]        @relation("ShopBundleComponentProduct")
   cartItems            ShopCartItem[]
   orderItems           ShopOrderItem[]
+  category             ShopCategory?           @relation(fields: [categoryId], references: [id])
+  collections          ShopProductCollection[]
+  media                ShopProductMedia[]
+  metafields           ShopProductMetafield[]
+  options              ShopProductOption[]
+  variants             ShopProductVariant[]
 
   @@index([slug])
   @@index([scope])
@@ -256,8 +224,8 @@ model ShopCollection {
   titleUa       String
   titleEn       String
   brand         String?
-  descriptionUa String?                 @db.Text
-  descriptionEn String?                 @db.Text
+  descriptionUa String?
+  descriptionEn String?
   heroImage     String?
   isPublished   Boolean                 @default(true)
   isUrban       Boolean                 @default(false)
@@ -276,14 +244,14 @@ model ShopCategory {
   slug          String         @unique
   titleUa       String
   titleEn       String
-  descriptionUa String?        @db.Text
-  descriptionEn String?        @db.Text
+  descriptionUa String?
+  descriptionEn String?
   parentId      String?
   isPublished   Boolean        @default(true)
   sortOrder     Int            @default(0)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  parent        ShopCategory?  @relation("ShopCategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  parent        ShopCategory?  @relation("ShopCategoryTree", fields: [parentId], references: [id])
   children      ShopCategory[] @relation("ShopCategoryTree")
   products      ShopProduct[]
 
@@ -298,46 +266,23 @@ model ShopProductCollection {
   sortOrder    Int            @default(0)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
-  product      ShopProduct    @relation(fields: [productId], references: [id], onDelete: Cascade)
   collection   ShopCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  product      ShopProduct    @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@id([productId, collectionId])
   @@index([collectionId, sortOrder])
 }
 
-enum ShopCatalogStatus {
-  DRAFT
-  ACTIVE
-  ARCHIVED
-}
-
-enum CustomerGroup {
-  B2C
-  B2B_PENDING
-  B2B_APPROVED
-}
-
-enum ShopMediaType {
-  IMAGE
-  VIDEO
-  EXTERNAL_VIDEO
-}
-
-enum ShopInventoryPolicy {
-  DENY
-  CONTINUE
-}
-
 model ShopProductMedia {
   id        String        @id @default(cuid())
   productId String
-  product   ShopProduct   @relation(fields: [productId], references: [id], onDelete: Cascade)
   mediaType ShopMediaType @default(IMAGE)
   src       String
   altText   String?
   position  Int           @default(1)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
+  product   ShopProduct   @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
   @@index([productId, position])
@@ -346,12 +291,12 @@ model ShopProductMedia {
 model ShopProductOption {
   id        String      @id @default(cuid())
   productId String
-  product   ShopProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
   name      String
   position  Int
   values    String[]    @default([])
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  product   ShopProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, position])
   @@index([productId])
@@ -360,7 +305,6 @@ model ShopProductOption {
 model ShopProductVariant {
   id                   String              @id @default(cuid())
   productId            String
-  product              ShopProduct         @relation(fields: [productId], references: [id], onDelete: Cascade)
   title                String?
   sku                  String?
   position             Int                 @default(1)
@@ -399,6 +343,7 @@ model ShopProductVariant {
   updatedAt            DateTime            @updatedAt
   bundleComponentItems ShopBundleItem[]
   cartItems            ShopCartItem[]
+  product              ShopProduct         @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, position])
   @@index([productId])
@@ -426,8 +371,8 @@ model ShopBundleItem {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   bundle             ShopBundle          @relation(fields: [bundleId], references: [id], onDelete: Cascade)
-  componentProduct   ShopProduct         @relation("ShopBundleComponentProduct", fields: [componentProductId], references: [id], onDelete: Restrict)
-  componentVariant   ShopProductVariant? @relation(fields: [componentVariantId], references: [id], onDelete: SetNull)
+  componentProduct   ShopProduct         @relation("ShopBundleComponentProduct", fields: [componentProductId], references: [id])
+  componentVariant   ShopProductVariant? @relation(fields: [componentVariantId], references: [id])
 
   @@unique([bundleId, position])
   @@index([bundleId, position])
@@ -438,52 +383,16 @@ model ShopBundleItem {
 model ShopProductMetafield {
   id        String      @id @default(cuid())
   productId String
-  product   ShopProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
   namespace String
   key       String
-  value     String      @db.Text
+  value     String
   valueType String      @default("single_line_text_field")
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  product   ShopProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, namespace, key])
   @@index([productId])
-}
-
-// Order status per AGENTS.md Phase C/D
-enum OrderStatus {
-  PENDING_PAYMENT // awaiting Stripe (or other) payment
-  PENDING_REVIEW
-  CONFIRMED
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  REFUNDED
-}
-
-enum ShipmentStatus {
-  LABEL_CREATED
-  IN_TRANSIT
-  DELIVERED
-  CANCELLED
-  RETURNED
-}
-
-enum ShopImportAction {
-  DRY_RUN
-  COMMIT
-}
-
-enum ShopImportStatus {
-  COMPLETED
-  FAILED
-}
-
-enum ShopImportConflictMode {
-  SKIP
-  UPDATE
-  CREATE
 }
 
 model ShopSettings {
@@ -492,23 +401,22 @@ model ShopSettings {
   defaultB2bDiscountPercent Decimal? @db.Decimal(5, 2)
   defaultCurrency           String   @default("EUR")
   enabledCurrencies         String[] @default(["EUR", "USD", "UAH"])
-  currencyRates             Json     @default("{\"EUR\":1,\"USD\":1,\"UAH\":1}")
+  currencyRates             Json     @default("{\"EUR\": 1, \"UAH\": 1, \"USD\": 1}")
   shippingZones             Json     @default("[]")
   taxRegions                Json     @default("[]")
-  regionalPricingRules      Json     @default("[]")
   orderNotificationEmail    String?
-  b2bNotes                  String?  @db.Text
-  showTaxesIncludedNotice   Boolean  @default(false)
-  // Payment: FOP (оплата на ФОП)
+  b2bNotes                  String?
   fopCompanyName            String?
   fopIban                   String?
   fopBankName               String?
   fopEdrpou                 String?
-  fopDetails                String?  @db.Text
+  fopDetails                String?
   stripeEnabled             Boolean  @default(false)
   whiteBitEnabled           Boolean  @default(false)
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
+  regionalPricingRules      Json     @default("[]")
+  showTaxesIncludedNotice   Boolean  @default(false)
 }
 
 model ShopCustomer {
@@ -522,13 +430,13 @@ model ShopCustomer {
   group              CustomerGroup         @default(B2C)
   b2bDiscountPercent Decimal?              @db.Decimal(5, 2)
   isActive           Boolean               @default(true)
-  notes              String?               @db.Text
+  notes              String?
   preferredLocale    String                @default("en")
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
+  carts              ShopCart[]
   account            ShopCustomerAccount?
   addresses          ShopCustomerAddress[]
-  carts              ShopCart[]
   orders             ShopOrder[]
 
   @@index([group, isActive])
@@ -539,11 +447,11 @@ model ShopCustomerAccount {
   id              String       @id @default(cuid())
   customerId      String       @unique
   passwordHash    String
-  plainPassword   String?
   lastLoginAt     DateTime?
   emailVerifiedAt DateTime?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
+  plainPassword   String?
   customer        ShopCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
@@ -575,7 +483,7 @@ model ShopCart {
   expiresAt  DateTime
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
-  customer   ShopCustomer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customer   ShopCustomer?  @relation(fields: [customerId], references: [id])
   items      ShopCartItem[]
 
   @@index([customerId])
@@ -592,8 +500,8 @@ model ShopCartItem {
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
   cart        ShopCart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product     ShopProduct?        @relation(fields: [productId], references: [id], onDelete: SetNull)
-  variant     ShopProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  product     ShopProduct?        @relation(fields: [productId], references: [id])
+  variant     ShopProductVariant? @relation(fields: [variantId], references: [id])
 
   @@index([cartId])
   @@index([productId])
@@ -601,47 +509,38 @@ model ShopCartItem {
 }
 
 model ShopOrder {
-  id                      String        @id @default(cuid())
-  orderNumber             String        @unique // human-readable, e.g. OC-2024-00001
-  status                  OrderStatus   @default(PENDING_REVIEW)
-  customerId              String?
-  customerGroupSnapshot   CustomerGroup @default(B2C)
-  // Payment: FOP | STRIPE | WHITEBIT | HUTKO
-  paymentMethod           String        @default("FOP")
-  stripeCheckoutSessionId String? // set when paying via Stripe; webhook confirms
-  hutkoPaymentId          String? // set when paying via Hutko; callback confirms
-  // Contact (guest checkout)
+  id                      String                 @id @default(cuid())
+  orderNumber             String                 @unique
+  status                  OrderStatus            @default(PENDING_REVIEW)
   email                   String
   customerName            String
   phone                   String?
-  // Shipping snapshot
-  shippingAddress         Json // { line1, line2?, city, region?, postcode?, country }
-  // Totals snapshot at checkout (same currency for whole order)
-  currency                String // EUR | USD | UAH
-  subtotal                Decimal       @db.Decimal(12, 2)
-  shippingCost            Decimal       @db.Decimal(12, 2)
-  taxAmount               Decimal       @db.Decimal(12, 2)
-  total                   Decimal       @db.Decimal(12, 2)
+  shippingAddress         Json
+  currency                String
+  subtotal                Decimal                @db.Decimal(12, 2)
+  shippingCost            Decimal                @db.Decimal(12, 2)
+  taxAmount               Decimal                @db.Decimal(12, 2)
+  total                   Decimal                @db.Decimal(12, 2)
+  viewToken               String                 @unique
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  customerGroupSnapshot   CustomerGroup          @default(B2C)
+  customerId              String?
+  paymentMethod           String                 @default("FOP")
   pricingSnapshot         Json?
-  // Token for guest order view (e.g. in confirmation email)
-  viewToken               String        @unique
-
-  deliveryMethod         String? // "NOVA_POSHTA", "SPECIAL_DELIVERY", "PICKUP"
-  ttnNumber              String?
-  shippingCalculatedCost Float?
-
-  invoiceGenerated Boolean @default(false)
-  invoiceUrl       String?
-
-  paymentStatus String @default("UNPAID") // "PAID", "PARTIALLY_PAID", "UNPAID"
-  amountPaid    Float  @default(0)
-
-  createdAt DateTime               @default(now())
-  updatedAt DateTime               @updatedAt
-  customer  ShopCustomer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  items     ShopOrderItem[]
-  events    ShopOrderStatusEvent[]
-  shipments ShopShipment[]
+  stripeCheckoutSessionId String?
+  amountPaid              Float                  @default(0)
+  deliveryMethod          String?
+  invoiceGenerated        Boolean                @default(false)
+  invoiceUrl              String?
+  paymentStatus           String                 @default("UNPAID")
+  shippingCalculatedCost  Float?
+  ttnNumber               String?
+  hutkoPaymentId          String?
+  customer                ShopCustomer?          @relation(fields: [customerId], references: [id])
+  items                   ShopOrderItem[]
+  events                  ShopOrderStatusEvent[]
+  shipments               ShopShipment[]
 
   @@index([orderNumber])
   @@index([status])
@@ -652,17 +551,17 @@ model ShopOrder {
 model ShopOrderItem {
   id          String       @id @default(cuid())
   orderId     String
-  order       ShopOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productSlug String
-  productId   String? // optional FK; product may be deleted later
-  variantId   String?
-  title       String // snapshot
+  productId   String?
+  title       String
   quantity    Int          @default(1)
-  price       Decimal      @db.Decimal(12, 2) // unit price in order currency
-  total       Decimal      @db.Decimal(12, 2) // price * quantity
+  price       Decimal      @db.Decimal(12, 2)
+  total       Decimal      @db.Decimal(12, 2)
   image       String?
   createdAt   DateTime     @default(now())
-  product     ShopProduct? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variantId   String?
+  order       ShopOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     ShopProduct? @relation(fields: [productId], references: [id])
 
   @@index([orderId])
 }
@@ -670,13 +569,13 @@ model ShopOrderItem {
 model ShopOrderStatusEvent {
   id         String       @id @default(cuid())
   orderId    String
-  order      ShopOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   fromStatus OrderStatus?
   toStatus   OrderStatus
   actorType  String       @default("admin")
   actorName  String?
-  note       String?      @db.Text
+  note       String?
   createdAt  DateTime     @default(now())
+  order      ShopOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId, createdAt])
   @@index([toStatus])
@@ -690,7 +589,7 @@ model ShopShipment {
   trackingNumber String
   trackingUrl    String?
   status         ShipmentStatus @default(LABEL_CREATED)
-  notes          String?        @db.Text
+  notes          String?
   shippedAt      DateTime?
   deliveredAt    DateTime?
   createdAt      DateTime       @default(now())
@@ -707,7 +606,7 @@ model ShopImportTemplate {
   name                String
   supplierName        String?
   sourceType          String                 @default("shopify_csv")
-  notes               String?                @db.Text
+  notes               String?
   fieldMapping        Json?
   defaultConflictMode ShopImportConflictMode @default(UPDATE)
   createdAt           DateTime               @default(now())
@@ -741,7 +640,7 @@ model ShopImportJob {
   summary          Json?
   createdAt        DateTime               @default(now())
   updatedAt        DateTime               @updatedAt
-  template         ShopImportTemplate?    @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  template         ShopImportTemplate?    @relation(fields: [templateId], references: [id])
   rowErrors        ShopImportRowError[]
 
   @@index([action, createdAt])
@@ -755,7 +654,7 @@ model ShopImportRowError {
   jobId     String
   rowNumber Int
   handle    String?
-  message   String        @db.Text
+  message   String
   payload   Json?
   createdAt DateTime      @default(now())
   job       ShopImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
@@ -763,85 +662,116 @@ model ShopImportRowError {
   @@index([jobId, rowNumber])
 }
 
-// ═══════════════════════════════════════════════════
-// Turn14 Integration
-// ═══════════════════════════════════════════════════
-
 model Turn14BrandMarkup {
-  id          String   @id @default(cuid())
-  brandId     String   @unique  // Turn14 brand numeric ID
-  brandName   String
-  markupPct   Float    @default(20)  // percentage markup (20 = +20%)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String    @id @default(cuid())
+  brandId      String    @unique
+  brandName    String
+  markupPct    Float     @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastSyncAt   DateTime?
+  syncMessage  String?
+  syncProgress Int       @default(0)
+  syncStatus   String    @default("idle")
+  syncTotal    Int       @default(0)
 
   @@index([brandName])
 }
 
+model Turn14Item {
+  id          String          @id
+  partNumber  String
+  brand       String
+  brandId     String?
+  name        String
+  category    String?
+  subcategory String?
+  price       Float
+  inStock     Boolean         @default(false)
+  thumbnail   String?
+  attributes  Json
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  fitments    Turn14Fitment[]
+
+  @@index([brand])
+  @@index([category])
+  @@index([partNumber])
+  @@index([name])
+}
+
+model Turn14Fitment {
+  id       String     @id @default(cuid())
+  itemId   String
+  year     String
+  make     String
+  model    String
+  submodel String?
+  item     Turn14Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+  @@index([make])
+  @@index([year, make, model])
+}
+
 model CustomerMarkup {
-  id            String   @id @default(cuid())
-  customerId    String   @unique  // Airtable customer record ID (recXXX) or ShopCustomer ID
-  customerName  String              // cached display name
-  markupPct     Float    @default(25) // personal markup % over Turn14 cost
-  notes         String?  @db.Text    // "VIP", "Оптовик" etc.
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String   @id @default(cuid())
+  customerId   String   @unique
+  customerName String
+  markupPct    Float    @default(25)
+  notes        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([customerName])
 }
 
-// ═══════════════════════════════════════════════════
-// CRM Data (synced from Airtable)
-// ═══════════════════════════════════════════════════
-
 model CrmCustomer {
-  id              String   @id @default(cuid())
-  airtableId      String   @unique  // recXXX
-  name            String
-  email           String?
-  businessName    String?
-  tags            String[] @default([])
-  totalProfit     Float    @default(0)
-  totalSales      Float    @default(0)
-  totalPayments   Float    @default(0)
-  balance         Float    @default(0)
-  whoOwes         String?
-  syncedAt        DateTime @default(now())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  orders          CrmOrder[]
+  id            String     @id @default(cuid())
+  airtableId    String     @unique
+  name          String
+  businessName  String?
+  tags          String[]   @default([])
+  totalProfit   Float      @default(0)
+  totalSales    Float      @default(0)
+  totalPayments Float      @default(0)
+  balance       Float      @default(0)
+  whoOwes       String?
+  syncedAt      DateTime   @default(now())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  email         String?
+  orders        CrmOrder[]
 
   @@index([name])
 }
 
 model CrmOrder {
-  id              String   @id @default(cuid())
-  airtableId      String   @unique  // recXXX
+  id              String         @id @default(cuid())
+  airtableId      String         @unique
   number          Int
   name            String
-  orderStatus     String   @default("")
-  paymentStatus   String   @default("")
+  orderStatus     String         @default("")
+  paymentStatus   String         @default("")
   orderDate       DateTime?
   completionDate  DateTime?
-  purchaseCost    Float    @default(0)
-  additionalCosts Float    @default(0)
-  fullCost        Float    @default(0)
-  totalAmount     Float    @default(0)
-  clientTotal     Float    @default(0)
-  profit          Float    @default(0)
-  marginality     Float    @default(0)
-  tag             String   @default("")
-  allShipped      String   @default("Нет")
-  itemCount       Int      @default(0)
-  syncedAt        DateTime @default(now())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
+  purchaseCost    Float          @default(0)
+  additionalCosts Float          @default(0)
+  fullCost        Float          @default(0)
+  totalAmount     Float          @default(0)
+  clientTotal     Float          @default(0)
+  profit          Float          @default(0)
+  marginality     Float          @default(0)
+  tag             String         @default("")
+  allShipped      String         @default("Нет")
+  itemCount       Int            @default(0)
+  syncedAt        DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   customerId      String?
-  customer        CrmCustomer? @relation(fields: [customerId], references: [id])
+  customer        CrmCustomer?   @relation(fields: [customerId], references: [id])
   items           CrmOrderItem[]
 
   @@index([number])
@@ -850,59 +780,135 @@ model CrmOrder {
 }
 
 model CrmOrderItem {
-  id                  String   @id @default(cuid())
-  airtableId          String   @unique  // recXXX
-  positionNumber      Int      @default(0)
-  productName         String   @default("")
-  brand               String   @default("")
-  category            String   @default("")
-  quantity            Int      @default(1)
-  rrpPerUnit          Float    @default(0)
-  clientPricePerUnit  Float    @default(0)
-  clientTotal         Float    @default(0)
-  actualSalePrice     Float    @default(0)
-  actualSaleTotal     Float    @default(0)
-  purchasePrice       Float    @default(0)
-  purchaseTotal       Float    @default(0)
-  profitPerItem       Float    @default(0)
-  marginality         Float    @default(0)
-  status              String   @default("")
-  source              String   @default("")
-  syncedAt            DateTime @default(now())
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  orderId             String?
-  order               CrmOrder? @relation(fields: [orderId], references: [id])
+  id                 String    @id @default(cuid())
+  airtableId         String    @unique
+  positionNumber     Int       @default(0)
+  productName        String    @default("")
+  brand              String    @default("")
+  category           String    @default("")
+  quantity           Int       @default(1)
+  rrpPerUnit         Float     @default(0)
+  clientPricePerUnit Float     @default(0)
+  clientTotal        Float     @default(0)
+  actualSalePrice    Float     @default(0)
+  actualSaleTotal    Float     @default(0)
+  purchasePrice      Float     @default(0)
+  purchaseTotal      Float     @default(0)
+  profitPerItem      Float     @default(0)
+  marginality        Float     @default(0)
+  status             String    @default("")
+  source             String    @default("")
+  productId          String?
+  sku                String?
+  imageUrl           String?
+  syncedAt           DateTime  @default(now())
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  orderId            String?
+  order              CrmOrder? @relation(fields: [orderId], references: [id])
 
   @@index([orderId])
   @@index([status])
 }
 
-// ═══════════════════════════════════════════════════════════
-// Stock Products — unified table for all distributor catalogs
-// (IND CSV, future suppliers). Turn14 stays as live API.
-// ═══════════════════════════════════════════════════════════
-
 model StockProduct {
-  id            String   @id @default(cuid())
-  distributor   String   // "IND", future suppliers
-  partNumber    String
-  name          String
-  brand         String   @default("")
-  category      String   @default("")
-  description   String   @default("") @db.Text
-  price         Float?   // wholesale / base cost
-  retailPrice   Float?   // client-facing price
-  markupPct     Float    @default(25)
-  inStock       Boolean  @default(true)
-  thumbnail     String?
-  metadata      Json?    // extra CSV fields (fitment, dimensions, etc.)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String   @id @default(cuid())
+  distributor String
+  partNumber  String
+  name        String
+  brand       String   @default("")
+  category    String   @default("")
+  description String   @default("")
+  price       Float?
+  retailPrice Float?
+  markupPct   Float    @default(25)
+  inStock     Boolean  @default(true)
+  thumbnail   String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@unique([distributor, partNumber])
   @@index([distributor])
   @@index([brand])
   @@index([name])
+}
+
+enum ContactMethod {
+  TELEGRAM
+  WHATSAPP
+}
+
+enum Status {
+  NEW
+  READ
+  REPLIED
+  ARCHIVED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum Category {
+  AUTO
+  MOTO
+  GENERAL
+  PARTNERSHIP
+}
+
+enum ShopCatalogStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum CustomerGroup {
+  B2C
+  B2B_PENDING
+  B2B_APPROVED
+}
+
+enum ShopMediaType {
+  IMAGE
+  VIDEO
+  EXTERNAL_VIDEO
+}
+
+enum ShopInventoryPolicy {
+  DENY
+  CONTINUE
+}
+
+enum OrderStatus {
+  PENDING_REVIEW
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+  PENDING_PAYMENT
+}
+
+enum ShipmentStatus {
+  LABEL_CREATED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum ShopImportAction {
+  DRY_RUN
+  COMMIT
+}
+
+enum ShopImportStatus {
+  COMPLETED
+  FAILED
+}
+
+enum ShopImportConflictMode {
+  SKIP
+  UPDATE
+  CREATE
 }

@@ -1,7 +1,11 @@
 import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
 import { absoluteUrl, buildPageMetadata, resolveLocale } from '@/lib/seo';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getProductsForUrbanCollection } from '@/lib/urbanCollectionMatcher';
+import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
+import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
+import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { URBAN_COLLECTION_CARDS } from '../../../data/urbanCollectionsList';
 import { getUrbanCollectionPageConfig, getUrbanCollectionTemplateHandles } from '../../../data/urbanCollectionPages.server';
 import {
@@ -67,6 +71,18 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
     );
   }
 
+  const [session, settingsRecord] = await Promise.all([
+    getCurrentShopCustomerSession(),
+    getOrCreateShopSettings(prisma),
+  ]);
+
+  const viewerContext = buildShopViewerPricingContext(
+    getShopSettingsRuntime(settingsRecord),
+    session?.group ?? null,
+    Boolean(session),
+    session?.b2bDiscountPercent ?? null
+  );
+
   const collectionProducts = getProductsForUrbanCollection(products, handle, card?.title, card?.brand).slice(
     0,
     config.productGrid.productsPerPage
@@ -113,6 +129,7 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
         brand={card?.brand ?? ''}
         products={collectionProducts}
         settings={config.productGrid}
+        viewerContext={viewerContext}
       />
     </>
   );

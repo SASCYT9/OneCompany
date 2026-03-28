@@ -11,6 +11,7 @@ import {
   fetchAirtableCustomers,
   fetchAirtableOrders,
   fetchAirtableOrderItems,
+  fetchAirtableProductsByIds,
   type AirtableCustomer,
   type AirtableOrder,
   type AirtableOrderItem,
@@ -169,10 +170,38 @@ export async function syncAllCrmData(): Promise<SyncResult> {
       orderMap.set(lo.airtableId, lo.id);
     }
 
+    // --- NEW: Fetch SKUs and Image URLs ---
+    const uniqueProductIds = Array.from(new Set(items.map(i => i.productId).filter(Boolean))) as string[];
+    
+    // Chunk requests if large, but fetchAirtableProductsByIds handles batching locally
+    const productsLite = await fetchAirtableProductsByIds(uniqueProductIds);
+    const skuMap = new Map<string, string>();
+    for (const p of productsLite) {
+      if (p.sku) skuMap.set(p.id, p.sku);
+    }
+
+    // Lookup images from Turn14/DO88 catalog based on extracted SKUs
+    const allSkus = Array.from(skuMap.values());
+    const turn14Items = await prisma.turn14Item.findMany({
+      where: { partNumber: { in: allSkus } },
+      select: { partNumber: true, attributes: true }
+    });
+    const imageMap = new Map<string, string>();
+    for (const t14 of turn14Items) {
+      if (t14.attributes) {
+        const attrs = t14.attributes as any;
+        const img = attrs.product_images?.[0] || attrs.thumbnail;
+        if (img) imageMap.set(t14.partNumber, img);
+      }
+    }
+
     for (const item of items) {
       try {
         const orderAirtableId = item.orderIds?.[0];
         const localOrderId = orderAirtableId ? orderMap.get(orderAirtableId) : null;
+        
+        const sku = item.productId ? skuMap.get(item.productId) : null;
+        const imageUrl = sku ? imageMap.get(sku) : null;
 
         await prisma.crmOrderItem.upsert({
           where: { airtableId: item.id },
@@ -193,6 +222,9 @@ export async function syncAllCrmData(): Promise<SyncResult> {
             marginality: item.marginality,
             status: item.status,
             source: item.source,
+            productId: item.productId || null,
+            sku: sku || null,
+            imageUrl: imageUrl || null,
             orderId: localOrderId || null,
             syncedAt: new Date(),
           },
@@ -214,6 +246,9 @@ export async function syncAllCrmData(): Promise<SyncResult> {
             marginality: item.marginality,
             status: item.status,
             source: item.source,
+            productId: item.productId || null,
+            sku: sku || null,
+            imageUrl: imageUrl || null,
             orderId: localOrderId || null,
           },
         });
@@ -223,8 +258,9 @@ export async function syncAllCrmData(): Promise<SyncResult> {
         result.items.errors++;
       }
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('[CRM Sync] Items fetch error:', err);
+    throw new Error(`Items fetch error: ${err.message}`);
   }
 
   result.duration = Date.now() - start;
@@ -275,6 +311,8 @@ export async function bridgeCrmItemsToShopOrders(): Promise<{ bridged: number; s
       // Check which items already exist (by productSlug pattern)
       const existingSlugs = new Set(shopOrder.items.map(i => i.productSlug));
 
+      let bridgedInThisOrder = 0;
+
       for (const crmItem of crmOrder.items) {
         const slug = `crm-${crmItem.airtableId}`;
         if (existingSlugs.has(slug)) continue; // already bridged
@@ -297,7 +335,25 @@ export async function bridgeCrmItemsToShopOrders(): Promise<{ bridged: number; s
             image: null,
           },
         });
+        bridgedInThisOrder++;
         result.bridged++;
+      }
+
+      // If we added new items, or if the order was imported with a $0 total but has items now, recalculate the total
+      if (bridgedInThisOrder > 0 || (shopOrder.items.length > 0 && Number(shopOrder.total) === 0)) {
+        const updatedOrder = await prisma.shopOrder.findUnique({
+          where: { id: shopOrder.id },
+          include: { items: true }
+        });
+        if (updatedOrder && updatedOrder.items.length > 0) {
+          const subtotal = updatedOrder.items.reduce((acc, item) => acc + Number(item.total || 0), 0);
+          const total = subtotal + Number(updatedOrder.shippingCost || 0) + Number(updatedOrder.taxAmount || 0);
+          
+          await prisma.shopOrder.update({
+            where: { id: shopOrder.id },
+            data: { subtotal, total }
+          });
+        }
       }
     } catch (err) {
       console.error(`[CRM Bridge] ShopOrder ${shopOrder.orderNumber} error:`, err);

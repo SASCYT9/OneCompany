@@ -9,6 +9,8 @@ import type { SupportedLocale } from '@/lib/seo';
 import type { ShopProduct } from '@/lib/shopCatalog';
 import { localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopProductPath } from '@/lib/urbanCollectionMatcher';
+import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
+import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import type { UrbanProductGridConfig } from '../data/urbanCollectionPages';
 
 type UrbanCollectionProductGridProps = {
@@ -18,6 +20,7 @@ type UrbanCollectionProductGridProps = {
   brand: string;
   products: ShopProduct[];
   settings: UrbanProductGridConfig;
+  viewerContext?: ShopViewerPricingContext;
 };
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 'USD' | 'UAH') {
@@ -34,15 +37,39 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 
 
 function computePricesFromUah(
   price: ShopProduct['price'],
-  rates: { EUR: number; USD: number } | null,
+  rates: { EUR: number; USD: number; UAH?: number } | null,
 ) {
   const baseUah = price.uah;
+  const baseEur = price.eur;
+  const baseUsd = price.usd;
+  const eurToUah = rates?.UAH ?? (rates?.EUR ? rates.EUR : 0);
 
+  // EUR-origin products
+  if (baseEur > 0 && baseUah === 0 && rates) {
+    const usdRate = rates.USD || 1;
+    return {
+      eur: baseEur,
+      uah: Math.round(baseEur * eurToUah),
+      usd: Math.round(baseEur / usdRate),
+    };
+  }
+
+  // USD-origin products
+  if (baseUsd > 0 && baseUah === 0 && baseEur === 0 && rates) {
+    const usdToUah = eurToUah / (rates.USD || 1);
+    return {
+      usd: baseUsd,
+      uah: Math.round(baseUsd * usdToUah),
+      eur: Math.round(baseUsd / (rates.USD || 1)),
+    };
+  }
+
+  // UAH-origin products
   if (rates && baseUah > 0) {
     return {
       uah: baseUah,
-      eur: baseUah / rates.EUR,
-      usd: baseUah / rates.USD,
+      eur: Math.round(baseUah / eurToUah),
+      usd: Math.round((baseUah / eurToUah) * (rates.USD || 1)),
     };
   }
 
@@ -60,6 +87,7 @@ export default function UrbanCollectionProductGrid({
   brand,
   products,
   settings,
+  viewerContext,
 }: UrbanCollectionProductGridProps) {
   const isUa = locale === 'ua';
   const { currency, rates } = useShopCurrency();
@@ -107,12 +135,27 @@ export default function UrbanCollectionProductGrid({
         {products.length > 0 ? (
           <div className="urban-product-grid__cards">
             {products.map((product) => {
+              const pricing = viewerContext
+                ? resolveShopProductPricing(product, viewerContext)
+                : { effectivePrice: product.price, effectiveCompareAt: product.compareAt, audience: 'b2c', b2bVisible: false };
+              
+              const isB2B = pricing.audience === 'b2b' && (pricing as any).b2bVisible;
+
               const computed = computePricesFromUah(
-                product.price,
-                rates && { EUR: rates.EUR, USD: rates.USD },
+                pricing.effectivePrice,
+                rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH },
               );
+
+              const computedCompare = pricing.effectiveCompareAt
+                ? computePricesFromUah(pricing.effectiveCompareAt, rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH })
+                : null;
               const productTitle = localizeShopProductTitle(locale, product);
               const productCollection = localizeShopText(locale, product.collection);
+              
+              const rawImg = product.image ? product.image.replace(/^["']|["']$/g, '').trim() : '';
+              const safeImageUrl = rawImg.startsWith('//') 
+                ? `https:${rawImg}` 
+                : (rawImg || '/images/placeholders/product-fallback.jpg');
 
               return (
               <article key={product.slug} className="urban-product-grid__card">
@@ -123,7 +166,7 @@ export default function UrbanCollectionProductGrid({
                 />
                 <div className="urban-product-grid__media">
                   <Image
-                    src={product.image}
+                    src={safeImageUrl}
                     alt={productTitle}
                     fill
                     sizes="(max-width: 768px) 100vw, 25vw"
@@ -149,14 +192,20 @@ export default function UrbanCollectionProductGrid({
                       label={isUa ? 'Додати в кошик' : 'Add to cart'}
                       labelAdded={isUa ? 'Додано' : 'Added'}
                     />
-                    <span className="urban-product-grid__price">
-                      {currency === 'USD' &&
-                        formatPrice(locale, computed.usd, 'USD')}
-                      {currency === 'EUR' &&
-                        formatPrice(locale, computed.eur, 'EUR')}
-                      {currency === 'UAH' &&
-                        formatPrice(locale, computed.uah, 'UAH')}
-                    </span>
+                    <div className="urban-product-grid__price-stack flex flex-col items-end gap-1">
+                      {isB2B && computedCompare ? (
+                        <span className="urban-product-grid__price-retail text-[10px] text-white/40 line-through">
+                          {currency === 'USD' && formatPrice(locale, computedCompare.usd, 'USD')}
+                          {currency === 'EUR' && formatPrice(locale, computedCompare.eur, 'EUR')}
+                          {currency === 'UAH' && formatPrice(locale, computedCompare.uah, 'UAH')}
+                        </span>
+                      ) : null}
+                      <span className={`urban-product-grid__price ${isB2B ? 'text-emerald-400 font-medium' : ''}`}>
+                        {currency === 'USD' && formatPrice(locale, computed.usd, 'USD')}
+                        {currency === 'EUR' && formatPrice(locale, computed.eur, 'EUR')}
+                        {currency === 'UAH' && formatPrice(locale, computed.uah, 'UAH')}
+                      </span>
+                    </div>
                     <Link
                       href={buildShopProductPath(locale, product)}
                       className="urban-product-grid__details"
@@ -167,7 +216,7 @@ export default function UrbanCollectionProductGrid({
                 </div>
               </article>
             );
-})}
+          })}
           </div>
         ) : (
           <div className="urban-product-grid__empty">

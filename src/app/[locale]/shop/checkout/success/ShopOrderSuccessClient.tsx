@@ -22,7 +22,17 @@ type OrderData = {
   total: number;
   showTaxesIncludedNotice: boolean;
   createdAt: string;
-  items: Array<{ productSlug: string; title: string; quantity: number; price: number; total: number; image: string | null }>;
+  items: Array<{
+    productSlug: string;
+    title: string;
+    quantity: number;
+    price: number;
+    total: number;
+    image: string | null;
+    originalPrice?: number | null;
+    pricingSource?: string | null;
+    discountPercent?: number | null;
+  }>;
 };
 
 type FopDetails = {
@@ -84,8 +94,8 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
       <main className="min-h-screen bg-black px-4 py-24">
         <div className="mx-auto max-w-lg text-center">
           <p className="text-white/60">{error}</p>
-          <Link href={`/${locale}/shop/urban/collections`} className="mt-4 inline-block text-white underline">
-            {isUa ? 'До колекцій Urban' : 'Back to Urban collections'}
+          <Link href={`/${locale}/shop`} className="mt-4 inline-block text-white underline">
+            {isUa ? 'Повернутися до каталогу' : 'Return to catalog'}
           </Link>
         </div>
       </main>
@@ -105,10 +115,10 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
             </svg>
           </div>
           <p className="text-[11px] uppercase tracking-[0.35em] text-white/45">
-            Urban Automotive
+            One Company
           </p>
           <h1 className="mt-3 text-2xl font-light tracking-tight sm:text-4xl">
-            {isUa ? 'Замовлення прийнято' : 'Urban order confirmed'}
+            {isUa ? 'Замовлення прийнято' : 'Order confirmed'}
           </h1>
           <p className="mt-2 font-mono text-lg text-white/80">{order.orderNumber}</p>
           <div className={`mt-4 inline-flex rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.18em] ${shopOrderStatusBadgeClass(order.status)}`}>
@@ -133,15 +143,29 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
                   </div>
                   <div className="min-w-0 flex-1">
                     {i.productSlug ? (
-                      <Link href={`/${locale}/shop/urban/products/${i.productSlug}`} className="line-clamp-2 text-sm text-white/85 transition hover:text-white">
+                      <Link href={`/${locale}/shop/products/${i.productSlug}`} className="line-clamp-2 text-sm text-white/85 transition hover:text-white">
                         {i.title}
                       </Link>
                     ) : (
                       <div className="line-clamp-2 text-sm text-white/85">{i.title}</div>
                     )}
-                    <div className="mt-1 text-xs text-white/45">
-                      {i.quantity} × {formatShopMoney(locale, i.price, order.currency as ShopCurrencyCode)}
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/45">
+                      {(i as any).sku && <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white/60">SKU: {(i as any).sku}</span>}
+                      {(i as any).brand && <span className="text-white/40">{(i as any).brand}</span>}
+                      <span>
+                        {i.quantity} × {formatShopMoney(locale, i.price, order.currency as ShopCurrencyCode)}
+                      </span>
                     </div>
+                    {i.pricingSource?.includes('b2b-discount') && i.discountPercent && i.discountPercent > 0 && i.originalPrice && (
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <span className="inline-flex items-center rounded-sm bg-cyan-950/40 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-cyan-400 border border-cyan-500/20">
+                          B2B -{i.discountPercent}%
+                        </span>
+                        <span className="text-[10px] text-white/30 line-through">
+                          {formatShopMoney(locale, i.originalPrice, order.currency as ShopCurrencyCode)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="text-right text-sm font-medium text-white">
                     {formatShopMoney(locale, i.total, order.currency as ShopCurrencyCode)}
@@ -177,10 +201,10 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
             </div>
           )}
           <Link
-            href={`/${locale}/shop/urban/collections`}
+            href={`/${locale}/shop`}
             className="mt-8 inline-block rounded-full border border-white/20 bg-white px-6 py-2 text-sm text-black transition hover:bg-white/90"
           >
-            {isUa ? 'Продовжити в колекціях' : 'Continue with collections'}
+            {isUa ? 'Повернутися до каталогу' : 'Return to catalog'}
           </Link>
         </div>
       </div>

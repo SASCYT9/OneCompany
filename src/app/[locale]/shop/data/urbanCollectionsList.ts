@@ -33,6 +33,7 @@ export const URBAN_COLLECTION_CARDS: UrbanCollectionCard[] = [
   { title: 'Defender Octa', brand: 'Land Rover', collectionHandle: 'land-rover-defender-110-octa', externalImageUrl: '/images/shop/urban/carousel/models/defenderOcta/webp/urban-automotive-defender-octa-1-2560.webp' },
   { title: 'Urus S', brand: 'Lamborghini', collectionHandle: 'lamborghini-urus-s', externalImageUrl: '/images/shop/urban/hero/models/urusS/hero-1-1920.jpg' },
   { title: 'Urus Performante', brand: 'Lamborghini', collectionHandle: 'lamborghini-urus-performante', externalImageUrl: '/images/shop/urban/hero/models/urusPerformante/hero-1-1920.jpg' },
+  { title: 'Urus SE', brand: 'Lamborghini', collectionHandle: 'lamborghini-urus-se', externalImageUrl: '/images/shop/urban/hero/models/urusPerformante/hero-1-1920.jpg' },
   { title: 'Aventador S', brand: 'Lamborghini', collectionHandle: 'lamborghini-aventador-s', externalImageUrl: '/images/shop/urban/carousel/models/aventador/carousel-1-1920.jpg' },
   { title: 'RSQ8 Facelift', brand: 'Audi', collectionHandle: 'audi-rsq8-facelift', externalImageUrl: '/images/shop/urban/carousel/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-1-2560.webp' },
   { title: 'RSQ8', brand: 'Audi', collectionHandle: 'audi-rsq8', externalImageUrl: '/images/shop/urban/carousel/models/rsq8/carousel-1-1920.jpg' },

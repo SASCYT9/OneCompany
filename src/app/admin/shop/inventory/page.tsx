@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, Boxes, CheckSquare, RefreshCcw, Search, Warehouse } from 'lucide-react';
 
 type InventoryRow = {
@@ -51,7 +52,10 @@ function createEmptyBulkState(): BulkInventoryState {
   };
 }
 
-export default function AdminInventoryPage() {
+function AdminInventoryPageContent() {
+  const searchParams = useSearchParams();
+  const initialBrand = searchParams.get('brand') || 'ALL';
+
   const [variants, setVariants] = useState<InventoryRow[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,16 +63,27 @@ export default function AdminInventoryPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [query, setQuery] = useState('');
+  const [brandFilter, setBrandFilter] = useState<string>(initialBrand);
   const [bulk, setBulk] = useState<BulkInventoryState>(createEmptyBulkState());
+
+  useEffect(() => {
+    if (searchParams.get('brand')) {
+      setBrandFilter(searchParams.get('brand') as string);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     void load();
   }, []);
 
   const filteredVariants = useMemo(() => {
+    let list = variants;
+    if (brandFilter !== 'ALL') {
+      list = list.filter((v) => v.product.brand && v.product.brand.toLowerCase() === brandFilter.toLowerCase());
+    }
     const needle = query.trim().toLowerCase();
-    if (!needle) return variants;
-    return variants.filter((variant) =>
+    if (!needle) return list;
+    return list.filter((variant) =>
       [
         variant.product.slug,
         variant.product.titleEn,
@@ -82,7 +97,12 @@ export default function AdminInventoryPage() {
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(needle))
     );
-  }, [variants, query]);
+  }, [variants, query, brandFilter]);
+
+  const uniqueBrands = useMemo(() => {
+    const brands = new Set(variants.map(v => v.product.brand).filter(Boolean) as string[]);
+    return Array.from(brands).sort();
+  }, [variants]);
 
   const visibleIds = filteredVariants.map((variant) => variant.id);
   const selectedVisibleCount = visibleIds.filter((id) => selectedIds.includes(id)).length;
@@ -209,15 +229,27 @@ export default function AdminInventoryPage() {
               <div>{variants.filter((variant) => variant.inventoryQty <= 0).length} zero/negative</div>
               <div>{variants.filter((variant) => variant.inventoryTracker).length} tracked</div>
             </div>
-            <label className="mt-4 flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
-              <Search className="h-4 w-4 text-white/35" />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by product, variant, SKU, collection"
-                className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
-              />
-            </label>
+            <div className="mt-4 flex flex-col sm:flex-row gap-2">
+              <select
+                value={brandFilter}
+                onChange={(e) => setBrandFilter(e.target.value)}
+                className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
+              >
+                <option value="ALL">Всі Бренди</option>
+                {uniqueBrands.map(b => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+              <label className="flex flex-1 items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
+                <Search className="h-4 w-4 text-white/35" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search by product, variant, SKU, collection"
+                  className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
+                />
+              </label>
+            </div>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
@@ -398,5 +430,13 @@ function SelectField({ label, value, onChange, options }: SelectFieldProps) {
         ))}
       </select>
     </label>
+  );
+}
+
+export default function AdminInventoryPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-white/50">Завантаження складу...</div>}>
+      <AdminInventoryPageContent />
+    </Suspense>
   );
 }

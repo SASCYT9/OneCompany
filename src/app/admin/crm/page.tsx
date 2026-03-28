@@ -33,6 +33,7 @@ type CrmOrder = {
   tag: string;
   itemCount: number;
   customerIds: string[];
+  calculatedB2bTotal?: number;
 };
 
 const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
@@ -545,7 +546,14 @@ export default function CrmDashboardPage() {
                               {o.paymentStatus === 'Оплачено' ? '✓ Paid' : '○ Pending'}
                             </span>
                           </td>
-                          <td className="py-3 pr-4 text-right text-xs text-white/70 font-medium">${fmtUsd(o.clientTotal)}</td>
+                          <td className="py-3 pr-4 text-right">
+                            <div className="text-xs text-white/70 font-medium">${fmtUsd(o.clientTotal)}</div>
+                            {o.calculatedB2bTotal !== undefined && o.calculatedB2bTotal > 0 && (
+                              <div className="text-[9px] text-indigo-400/80 mt-0.5 tracking-wide">
+                                calc: ${fmtUsd(o.calculatedB2bTotal)}
+                              </div>
+                            )}
+                          </td>
                           <td className="py-3 text-right">
                             <span className={`text-xs font-medium ${o.profit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                               {o.profit > 0 ? '+' : ''}${fmtUsd(o.profit)}

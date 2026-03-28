@@ -1,8 +1,3 @@
-/**
- * GET /api/shop/orders/[orderNumber]?token=xxx
- * Returns order for guest confirmation view. Token required.
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { prisma } from '@/lib/prisma';
@@ -36,6 +31,63 @@ export async function GET(
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
 
+  const itemsList = order.items.map((i) => {
+    let sku: string | null = null;
+    let brand: string | null = null;
+    const snap = order.pricingSnapshot as any;
+    let pricingSource: string | null = null;
+    let discountPercent: number | null = null;
+    let originalPrice: number | null = null;
+
+    if (snap?.source === 'turn14_catalog') {
+      sku = snap.partNumber || null;
+      brand = snap.brandName || null;
+    } else if (snap?.items) {
+      const d = (snap.items as any[]).find((item) => item.slug === i.productSlug);
+      if (d?.slug?.startsWith('turn14-')) {
+        sku = d.slug.replace('turn14-', '');
+        const brandMatch = i.title.match(/\((.*?)\)$/);
+        if (brandMatch) brand = brandMatch[1];
+      }
+      if (d) {
+        pricingSource = d.pricingSource || null;
+        discountPercent = d.discountPercent || null;
+        originalPrice = d.originalPrice || d.unitPrice || null;
+      }
+    }
+
+    if (!sku && i.productSlug?.startsWith('turn14-')) {
+      sku = i.productSlug.replace('turn14-', '');
+      const brandMatch = i.title.match(/\((.*?)\)$/);
+      if (brandMatch) brand = brandMatch[1];
+    }
+    
+    if (!sku && i.productSlug?.startsWith('crm-')) {
+      sku = i.productSlug.replace('crm-', '');
+    }
+
+    return {
+      productSlug: i.productSlug,
+      title: i.title,
+      quantity: i.quantity,
+      price: Number(i.price),
+      originalPrice,
+      pricingSource,
+      discountPercent,
+      total: Number(i.total),
+      image: i.image,
+      sku,
+      brand,
+    };
+  });
+
+  for (const item of itemsList) {
+    if (!item.image && item.sku) {
+      const t14 = await prisma.turn14Item.findFirst({ where: { partNumber: item.sku } });
+      if (t14?.thumbnail) item.image = t14.thumbnail;
+    }
+  }
+
   return NextResponse.json({
     orderNumber: order.orderNumber,
     status: order.status,
@@ -55,14 +107,7 @@ export async function GET(
     regionalPricingRule: ((order.pricingSnapshot as Record<string, unknown> | null)?.regionalPricingRule as object | undefined) ?? null,
     showTaxesIncludedNotice: Boolean((order.pricingSnapshot as Record<string, unknown> | null)?.showTaxesIncludedNotice),
     createdAt: order.createdAt.toISOString(),
-    items: order.items.map((i) => ({
-      productSlug: i.productSlug,
-      title: i.title,
-      quantity: i.quantity,
-      price: Number(i.price),
-      total: Number(i.total),
-      image: i.image,
-    })),
+    items: itemsList,
     shipments: order.shipments.map((shipment) => ({
       id: shipment.id,
       carrier: shipment.carrier,

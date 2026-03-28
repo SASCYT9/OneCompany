@@ -1,4 +1,4 @@
-import { CustomerGroup } from '@prisma/client';
+import type { CustomerGroup } from '@prisma/client';
 import type { ShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import type { ShopProduct } from '@/lib/shopCatalog';
 

@@ -16,7 +16,8 @@ export async function GET() {
     const methods: Array<'FOP' | 'STRIPE' | 'WHITEBIT' | 'HUTKO'> = ['FOP'];
     if (settings.stripeEnabled) methods.push('STRIPE');
     if (settings.whiteBitEnabled) methods.push('WHITEBIT');
-    if (isHutkoEnabled()) methods.push('HUTKO');
+    // Temporarily forcing Hutko to be visible for UI testing regardless of env vars:
+    methods.push('HUTKO');
 
     const fopDetails =
       settings.fopCompanyName ||

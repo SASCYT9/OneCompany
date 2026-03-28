@@ -64,14 +64,38 @@ function getScopeLabel(locale: SupportedLocale, scope: CatalogScope) {
   return 'All';
 }
 
-function computePricesFromUah(price: ShopMoneySet, rates: { EUR: number; USD: number } | null) {
+function computePricesFromUah(price: ShopMoneySet, rates: { EUR: number; USD: number; UAH?: number } | null) {
   const baseUah = price.uah;
+  const baseEur = price.eur;
+  const baseUsd = price.usd;
+  const eurToUah = rates?.UAH ?? (rates?.EUR ? rates.EUR : 0);
 
+  // EUR-origin products
+  if (baseEur > 0 && baseUah === 0 && rates) {
+    const usdRate = rates.USD || 1;
+    return {
+      eur: baseEur,
+      uah: Math.round(baseEur * eurToUah),
+      usd: Math.round(baseEur / usdRate),
+    };
+  }
+
+  // USD-origin products
+  if (baseUsd > 0 && baseUah === 0 && baseEur === 0 && rates) {
+    const usdToUah = eurToUah / (rates.USD || 1);
+    return {
+      usd: baseUsd,
+      uah: Math.round(baseUsd * usdToUah),
+      eur: Math.round(baseUsd / (rates.USD || 1)),
+    };
+  }
+
+  // UAH-origin products
   if (rates && baseUah > 0) {
     return {
       uah: baseUah,
-      eur: baseUah / rates.EUR,
-      usd: baseUah / rates.USD,
+      eur: Math.round(baseUah / eurToUah),
+      usd: Math.round((baseUah / eurToUah) * (rates.USD || 1)),
     };
   }
 
@@ -171,8 +195,8 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
     });
 
                 return filtered.sort((a, b) => {
-      const priceA = computePricesFromUah(a.price, rates && { EUR: rates.EUR, USD: rates.USD });
-      const priceB = computePricesFromUah(b.price, rates && { EUR: rates.EUR, USD: rates.USD });
+      const priceA = computePricesFromUah(a.price, rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH });
+      const priceB = computePricesFromUah(b.price, rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH });
 
       if (sortMode === 'priceLow') return priceA.eur - priceB.eur;
       if (sortMode === 'priceHigh') return priceB.eur - priceA.eur;
@@ -522,7 +546,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
                         {(() => {
                           const computed = computePricesFromUah(
                             product.price,
-                            rates && { EUR: rates.EUR, USD: rates.USD },
+                            rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH },
                           );
 
                           const primaryAmount =

@@ -13,6 +13,7 @@ const HANDLE_TO_ALIASES: Record<string, string[]> = {
   'range-rover-sport-l461': ['Range Rover Sport L461', 'Land Rover Range Rover Sport L461', 'Sport L461'],
   'range-rover-sport-l494': ['Range Rover Sport L494', 'Land Rover Range Rover Sport L494', 'Sport L494 SVR'],
   'lamborghini-urus': ['Lamborghini Urus', 'Urus'],
+  'lamborghini-urus-se': ['Lamborghini Urus SE', 'Urus SE'],
   'lamborghini-urus-s': ['Lamborghini Urus S', 'Urus S'],
   'lamborghini-urus-performante': ['Lamborghini Urus Performante', 'Urus Performante'],
   'lamborghini-aventador-s': ['Lamborghini Aventador S', 'Aventador S'],
@@ -46,6 +47,7 @@ const EXACT_COLLECTION_TO_HANDLE: Record<string, string> = {
   'range rover sport l494': 'range-rover-sport-l494',
   'land rover range rover sport l494': 'range-rover-sport-l494',
   'lamborghini urus': 'lamborghini-urus',
+  'lamborghini urus se': 'lamborghini-urus-se',
   'lamborghini urus s': 'lamborghini-urus-s',
   'lamborghini urus performante': 'lamborghini-urus-performante',
   'lamborghini aventador s': 'lamborghini-aventador-s',
@@ -204,6 +206,12 @@ export function getUrbanCollectionHandleForProduct(product: UrbanMatcherProduct)
 }
 
 export function buildShopProductPath(locale: string, product: ShopProduct, preferUrban = true) {
+  // Try DO88 first
+  if (product.brand.toLowerCase() === 'do88') {
+    return `/${locale}/shop/do88/products/${product.slug}`;
+  }
+
+  // Try Urban
   const urbanHandle = getUrbanCollectionHandleForProduct(product);
 
   if (preferUrban && urbanHandle) {

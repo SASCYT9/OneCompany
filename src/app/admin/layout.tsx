@@ -41,24 +41,47 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    title: 'Магазин',
+    title: 'Інтернет Магазин',
     collapsible: true,
     defaultOpen: true,
     items: [
-      { href: '/admin/shop', label: 'Каталог', icon: <ShoppingBag className="w-[18px] h-[18px]" />, exactMatch: true },
       { href: '/admin/shop/orders', label: 'Замовлення', icon: <Package className="w-[18px] h-[18px]" /> },
-      { href: '/admin/shop/customers', label: 'Клієнти', icon: <Users className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/pricing', label: 'Ціноутворення', icon: <DollarSign className="w-[18px] h-[18px]" /> },
-      { href: '/admin/shop/inventory', label: 'Склад', icon: <Box className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/categories', label: 'Категорії', icon: <FolderTree className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/collections', label: 'Колекції', icon: <Tag className="w-[18px] h-[18px]" /> },
-      { href: '/admin/shop/turn14', label: 'Turn14', icon: <Layers className="w-[18px] h-[18px]" /> },
-      { href: '/admin/shop/stock', label: "Дистриб'ютори", icon: <Database className="w-[18px] h-[18px]" /> },
     ],
   },
   {
-    title: 'Робота',
+    title: 'Urban Automotive',
+    collapsible: true,
+    defaultOpen: false, // collapsed by default as it's just brand catalog
     items: [
+      { href: '/admin/shop?brand=Urban+Automotive', label: 'Urban Каталог', icon: <ShoppingBag className="w-[18px] h-[18px]" />, exactMatch: true },
+      { href: '/admin/shop/inventory?brand=Urban+Automotive', label: 'Склад Urban', icon: <Box className="w-[18px] h-[18px]" /> },
+    ],
+  },
+  {
+    title: 'DO88 Performance',
+    collapsible: true,
+    defaultOpen: false, // collapsed by default
+    items: [
+      { href: '/admin/shop?brand=DO88', label: 'DO88 Каталог', icon: <ShoppingBag className="w-[18px] h-[18px]" />, exactMatch: true },
+      { href: '/admin/shop/inventory?brand=DO88', label: 'Склад DO88', icon: <Box className="w-[18px] h-[18px]" /> },
+    ],
+  },
+  {
+    title: 'Зовнішні Каталоги (API)',
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { href: '/admin/shop/turn14', label: 'Інтеграція Turn14', icon: <Layers className="w-[18px] h-[18px]" /> },
+      { href: '/admin/shop/stock', label: 'База дистриб\'юторів', icon: <Database className="w-[18px] h-[18px]" /> },
+    ],
+  },
+  {
+    title: 'Клієнти та CRM',
+    items: [
+      { href: '/admin/shop/customers', label: 'База Клієнтів', icon: <Users className="w-[18px] h-[18px]" /> },
       { href: '/admin/crm', label: 'CRM', icon: <Database className="w-[18px] h-[18px]" /> },
       { href: '/admin/messages', label: 'Запити', icon: <MessageSquare className="w-[18px] h-[18px]" /> },
       { href: '/admin/blog', label: 'Блог', icon: <ImagePlus className="w-[18px] h-[18px]" /> },
@@ -211,13 +234,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   // ─── Authenticated Layout ───
   return (
-    <div className="h-[100dvh] flex bg-black bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-950 via-black to-black font-sans text-sm tracking-normal overflow-hidden">
+    <div className="h-[100dvh] flex bg-[#030303] text-white font-sans text-sm tracking-normal overflow-hidden relative">
+      
+      {/* ═══ Global Background Ambience ═══ */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[150px] mix-blend-screen" />
+        <div className="absolute bottom-0 left-1/4 w-[800px] h-[800px] bg-emerald-600/5 rounded-full blur-[150px] mix-blend-screen" />
+      </div>
 
       {/* ═══ Sidebar ═══ */}
       <motion.aside
         animate={{ width: collapsed ? 64 : 260 }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className="flex-none h-full flex flex-col border-r border-white/[0.06] bg-black/40 backdrop-blur-2xl z-30 overflow-hidden"
+        className="flex-none relative h-full flex flex-col border-r border-white/[0.08] bg-black/40 backdrop-blur-3xl z-30 overflow-hidden shadow-[4px_0_24px_rgba(0,0,0,0.5)]"
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between px-4 h-[56px] border-b border-white/[0.06] shrink-0">
@@ -281,7 +310,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </motion.aside>
 
       {/* ═══ Main Content ═══ */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative z-10 overflow-hidden">
         <div className="absolute inset-0 overflow-auto">
           {children}
         </div>
@@ -380,19 +409,19 @@ function SidebarItem({ item, pathname, collapsed }: {
       href={item.href}
       title={collapsed ? item.label : undefined}
       className={`
-        relative flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group
+        relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group
         ${collapsed ? 'justify-center mx-0.5' : ''}
         ${isActive
-          ? 'bg-indigo-500/[0.08] text-white'
-          : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'
+          ? 'bg-indigo-500/[0.08] text-indigo-300 border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
+          : 'text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
         }
       `}
     >
-      {/* Active indicator */}
+      {/* Active Indicator Glow */}
       {isActive && (
         <motion.div
           layoutId="sidebar-active"
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-indigo-500 rounded-r-full"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full shadow-[0_0_10px_rgba(99,102,241,0.8)]"
           transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         />
       )}

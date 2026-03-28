@@ -1,12 +1,12 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingBag } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import { localizeShopText } from '@/lib/shopText';
 import { trackViewCart } from '@/lib/analytics';
+import { useShopCurrency } from '@/components/shop/CurrencyContext';
 
 type CartItem = {
   id: string;
@@ -17,6 +17,7 @@ type CartItem = {
   title?: { ua: string; en: string };
   price?: { eur: number; usd: number; uah: number };
   image?: string;
+  fallbackImage?: string | null;
 };
 
 type CartResponse = { items: CartItem[]; totalItems: number };
@@ -36,6 +37,35 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const isUa = locale === 'ua';
+  const { currency: selectedCurrency } = useShopCurrency();
+
+  const CartItemImage = ({ src, fallbackSrc, alt }: { src: string; fallbackSrc?: string | null; alt: string }) => {
+    const [failedCount, setFailedCount] = useState(0);
+    
+    // Attempt 1: src
+    // Attempt 2: fallbackSrc (if different)
+    // Attempt 3: ShoppingBag icon
+    
+    const currentSrc = failedCount === 0 ? src : fallbackSrc;
+    const hasValidSrc = currentSrc && currentSrc.trim().length > 0;
+
+    if (failedCount >= 2 || !hasValidSrc) {
+      return (
+        <div className="h-full w-full bg-white/5 flex items-center justify-center text-white/20">
+          <ShoppingBag className="w-8 h-8 opacity-50" />
+        </div>
+      );
+    }
+    
+    return (
+      <img
+        src={currentSrc!.replace(/^["']|["']$/g, '').trim()}
+        alt={alt}
+        className="h-full w-full object-contain p-1.5 mix-blend-screen"
+        onError={() => setFailedCount(c => c + 1)}
+      />
+    );
+  };
 
   const loadCart = async () => {
     try {
@@ -72,19 +102,48 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
   };
 
   const items = cart?.items ?? [];
-  const currency: 'EUR' | 'USD' | 'UAH' = isUa ? 'UAH' : 'EUR';
+  const currency = selectedCurrency as 'EUR' | 'USD' | 'UAH';
+  const { rates } = useShopCurrency();
+
+  // Smart cross-currency conversion using live NBU rates
+  // If the requested currency column is 0, convert from whichever currency IS available
+  function getPrice(p: { eur: number; usd: number; uah: number }, c: string): number {
+    const direct = c === 'USD' ? p.usd : c === 'UAH' ? p.uah : p.eur;
+    if (direct > 0) return direct;
+
+    // No direct price — try to convert from another currency using NBU rates
+    if (!rates) {
+      // No rates loaded yet, use any available value as rough fallback
+      return p.uah || p.usd || p.eur || 0;
+    }
+
+    // rates.USD = how many UAH per 1 USD (e.g. 41.5)
+    // rates.EUR = how many UAH per 1 EUR (e.g. 45.5)
+    // Find a source price that has a value
+    let sourceUah = 0;
+    if (p.uah > 0) {
+      sourceUah = p.uah;
+    } else if (p.usd > 0 && rates.USD > 0) {
+      sourceUah = p.usd * rates.USD; // USD → UAH
+    } else if (p.eur > 0 && rates.EUR > 0) {
+      sourceUah = p.eur * rates.EUR; // EUR → UAH
+    }
+
+    if (sourceUah <= 0) return 0;
+
+    // Convert from UAH to target currency
+    if (c === 'UAH') return Math.round(sourceUah);
+    if (c === 'USD' && rates.USD > 0) return Math.round((sourceUah / rates.USD) * 100) / 100;
+    if (c === 'EUR' && rates.EUR > 0) return Math.round((sourceUah / rates.EUR) * 100) / 100;
+    return Math.round(sourceUah);
+  }
+
   const subtotal = items.reduce((s, i) => s + (i.price ? getPrice(i.price, currency) * i.quantity : 0), 0);
 
   useEffect(() => {
     if (!cart) return;
     trackViewCart(items.length, subtotal);
   }, [cart, items.length, subtotal]);
-
-  function getPrice(p: { eur: number; usd: number; uah: number }, c: string) {
-    if (c === 'USD') return p.usd;
-    if (c === 'UAH') return p.uah;
-    return p.eur;
-  }
 
   if (loading) {
     return (
@@ -101,17 +160,14 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
     >
       <div className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6">
         <Link
-          href={`/${locale}/shop/urban/collections`}
+          href={`/${locale}/shop`}
           className="mb-6 inline-flex items-center gap-2 text-sm text-white/55 transition hover:text-white"
         >
-          ← {isUa ? 'До колекцій Urban' : 'Back to Urban collections'}
+          ← {isUa ? 'До каталогу' : 'Back to catalog'}
         </Link>
         <header>
-          <p className="text-[11px] uppercase tracking-[0.35em] text-white/45">
-            Urban Automotive
-          </p>
           <h1 className="mt-3 text-3xl font-light tracking-tight sm:text-5xl">
-            {isUa ? 'Кошик Urban' : 'Urban cart'}
+            {isUa ? 'Мій Кошик' : 'My Cart'}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-white/55">
             {items.length > 0
@@ -119,8 +175,8 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
                 ? `${items.length} ${items.length === 1 ? 'позиція' : 'позиції'}`
                 : `${items.length} ${items.length === 1 ? 'item' : 'items'}`
               : isUa
-                ? 'Додайте товари з колекцій Urban'
-                : 'Add items from the Urban collections'}
+                ? 'Додайте товари з нашого каталогу'
+                : 'Add items from our catalog'}
           </p>
         </header>
 
@@ -128,10 +184,10 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
           <div className="mt-8 rounded-[28px] border border-white/10 bg-white/[0.04] p-10 text-center text-white/60 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
             <p>{isUa ? 'Кошик порожній.' : 'Your cart is empty.'}</p>
             <Link
-              href={`/${locale}/shop/urban/collections`}
+              href={`/${locale}/shop`}
               className="mt-4 inline-block rounded-full border border-white/20 bg-white px-5 py-2 text-sm text-black transition hover:bg-white/90"
             >
-              {isUa ? 'Перейти до колекцій' : 'Go to collections'}
+              {isUa ? 'Перейти до каталогу' : 'Go to catalog'}
             </Link>
           </div>
         ) : (
@@ -143,11 +199,7 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
                   className="flex flex-col gap-3 rounded-[26px] border border-white/10 bg-white/[0.05] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.25)] sm:flex-row sm:items-center sm:gap-4"
                 >
                   <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-xl sm:h-24 sm:w-24">
-                    {i.image ? (
-                      <Image src={i.image} alt={localize(locale, i.title)} fill className="object-cover" sizes="(max-width: 640px) 100vw, 96px" />
-                    ) : (
-                      <div className="h-full w-full bg-white/5" />
-                    )}
+                    <CartItemImage src={i.image || ''} fallbackSrc={i.fallbackImage} alt={localize(locale, i.title)} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-white truncate">{localize(locale, i.title)}</p>

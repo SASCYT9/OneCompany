@@ -31,15 +31,26 @@ export const OUR_STORES: OurStore[] = [
     imageUrl: "/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp",
   },
   {
-    id: "ind",
-    name: "IND Distribution",
-    nameUk: "IND Distribution",
+    id: "do88",
+    name: "DO88 Performance",
+    nameUk: "DO88 Performance",
     description:
-      "Premium BMW parts and accessories. Curated catalog of performance upgrades.",
+      "Premium cooling systems, intercoolers, and silicone hoses engineered in Sweden.",
     descriptionUk:
-      "Преміальні запчастини та аксесуари BMW. Каталог продуктів для покращення продуктивності.",
-    href: "/shop/stock?source=local",
-    imageUrl: "/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp",
+      "Преміальні системи охолодження, інтеркулери та силіконові патрубки розроблені у Швеції.",
+    href: "/shop/do88",
+    imageUrl: "/branding/do88/do88_car_hero_m4_drift_1774441428540.png",
+  },
+  {
+    id: "brabus",
+    name: "Brabus",
+    nameUk: "Brabus",
+    description:
+      "Premium tuning and lifestyle. Official Brabus supplier in Ukraine.",
+    descriptionUk:
+      "Преміальний тюнінг та стиль життя. Офіційний постачальник Brabus в Україні.",
+    href: "/shop/brabus",
+    imageUrl: "/images/shop/brabus/hq/brabus-supercars-29.jpg",
   },
   {
     id: "kw",
@@ -52,7 +63,7 @@ export const OUR_STORES: OurStore[] = [
     href: "https://kwsuspension.shop",
     external: true,
     // Один продукт — KW V4 Clubsport, чистий кадр без композиту
-    imageUrl: "/images/shop/products/kw-v4-clubsport.jpg",
+    imageUrl: "/images/shop/stores/kw-suspension-coilovers.png",
   },
   {
     id: "fi",

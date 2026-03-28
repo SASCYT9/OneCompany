@@ -1,6 +1,15 @@
 import { PrismaClient } from '@prisma/client';
 import { fetchTurn14ItemPricing } from './turn14';
 
+// Approximate exchange rates for auto-conversion from USD
+// These serve as reasonable defaults for display pricing
+const USD_TO_EUR = 0.92;
+const USD_TO_UAH = 41.5;
+
+function roundMoney(value: number) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
 /**
  * Maps and imports (upserts) a raw Turn14 Item JSON payload into the Prisma DB.
  * Creates ShopProduct + ShopProductVariant + ShopProductMedia.
@@ -30,11 +39,32 @@ export async function importTurn14ItemToDb(
       const pricingData = await fetchTurn14ItemPricing(turn14Data.id);
       if (pricingData?.data?.attributes) {
         const pa = pricingData.data.attributes;
-        retailPrice = parseFloat(pa.retail || pa.list || '0') || 0;
-        jobberPrice = parseFloat(pa.jobber || pa.dealer || '0') || 0;
+        const pricelists = pa.pricelists || [];
+        const retailPl = pricelists.find((p: any) => p.name === 'Retail') || pricelists.find((p: any) => p.name === 'MAP');
+        const listPl = pricelists.find((p: any) => p.name === 'List');
+        
+        retailPrice = parseFloat(retailPl?.price || listPl?.price || '0') || 0;
+        jobberPrice = parseFloat(pa.purchase_cost || '0') || 0;
       }
     } catch {
       // Pricing endpoint may not be available — continue without
+    }
+  }
+
+  // Fallback to cache prices if API is offline
+  // Force-coerce Prisma Decimal / string / object to plain number
+  if (!retailPrice && attributes.price) {
+    retailPrice = parseFloat(String(attributes.price)) || 0;
+  }
+  if (!jobberPrice && attributes.purchase_cost) {
+    jobberPrice = parseFloat(String(attributes.purchase_cost)) || 0;
+  }
+
+  // Extract total weight in metric grams (Turn14 weight is in pounds)
+  let totalGrams = 0;
+  if (Array.isArray(attributes.dimensions)) {
+    for (const d of attributes.dimensions) {
+      if (d.weight) totalGrams += Math.round(parseFloat(String(d.weight)) * 453.592);
     }
   }
 
@@ -51,9 +81,19 @@ export async function importTurn14ItemToDb(
 
   if (existingProduct) {
     // === UPDATE existing product ===
-    const updates: any = {};
-    if (retailPrice > 0 && !existingProduct.priceUsd) {
+    const updates: any = {
+      isPublished: true,
+      status: 'ACTIVE'
+    };
+    // ALWAYS overwrite price if we have a valid one (fixes 0-price hydration bug)
+    if (retailPrice > 0) {
       updates.priceUsd = retailPrice;
+      updates.priceEur = roundMoney(retailPrice * USD_TO_EUR);
+      updates.priceUah = roundMoney(retailPrice * USD_TO_UAH);
+    }
+    if (existingProduct.titleEn === 'Auto Part' && productName && productName !== 'Auto Part') {
+      updates.titleEn = productName;
+      updates.titleUa = productName; // Auto-migrate placeholder title
     }
     if (description && !existingProduct.longDescEn) {
       updates.longDescEn = description;
@@ -70,18 +110,26 @@ export async function importTurn14ItemToDb(
       });
     }
 
-    // Update default variant pricing if not set
+    // ALWAYS update default variant pricing when we have valid data
     const defaultVariant = existingProduct.variants[0];
     if (defaultVariant && retailPrice > 0) {
-      const vUpdates: any = {};
-      if (!defaultVariant.priceUsd) vUpdates.priceUsd = retailPrice;
-      if (!defaultVariant.priceUsdB2b && jobberPrice > 0) vUpdates.priceUsdB2b = jobberPrice;
-      if (Object.keys(vUpdates).length > 0) {
-        await prisma.shopProductVariant.update({
-          where: { id: defaultVariant.id },
-          data: vUpdates
-        });
+      const vUpdates: any = {
+        priceUsd: retailPrice,
+        priceEur: roundMoney(retailPrice * USD_TO_EUR),
+        priceUah: roundMoney(retailPrice * USD_TO_UAH),
+      };
+      if (jobberPrice > 0) {
+        vUpdates.priceUsdB2b = jobberPrice;
+        vUpdates.priceEurB2b = roundMoney(jobberPrice * USD_TO_EUR);
+        vUpdates.priceUahB2b = roundMoney(jobberPrice * USD_TO_UAH);
       }
+      if (totalGrams > 0) {
+        vUpdates.grams = totalGrams;
+      }
+      await prisma.shopProductVariant.update({
+        where: { id: defaultVariant.id },
+        data: vUpdates
+      });
     }
 
     // Add thumbnail as media if not already present
@@ -109,8 +157,8 @@ export async function importTurn14ItemToDb(
       vendor: 'Turn14',
       scope: 'auto',
       productType: 'Auto Part',
-      status: 'DRAFT',
-      isPublished: false,
+      status: 'ACTIVE',
+      isPublished: true,
       titleEn: productName,
       titleUa: productName, // We can auto-translate later
       shortDescEn: description.substring(0, 250) || null,
@@ -123,6 +171,8 @@ export async function importTurn14ItemToDb(
       seoDescriptionUa: description.substring(0, 160) || null,
       image: thumbnail,
       priceUsd: retailPrice > 0 ? retailPrice : null,
+      priceEur: retailPrice > 0 ? roundMoney(retailPrice * USD_TO_EUR) : null,
+      priceUah: retailPrice > 0 ? roundMoney(retailPrice * USD_TO_UAH) : null,
       tags: ['turn14', brand.toLowerCase()],
       variants: {
         create: [
@@ -132,11 +182,16 @@ export async function importTurn14ItemToDb(
             position: 1,
             isDefault: true,
             priceUsd: retailPrice > 0 ? retailPrice : null,
+            priceEur: retailPrice > 0 ? roundMoney(retailPrice * USD_TO_EUR) : null,
+            priceUah: retailPrice > 0 ? roundMoney(retailPrice * USD_TO_UAH) : null,
             priceUsdB2b: jobberPrice > 0 ? jobberPrice : null,
+            priceEurB2b: jobberPrice > 0 ? roundMoney(jobberPrice * USD_TO_EUR) : null,
+            priceUahB2b: jobberPrice > 0 ? roundMoney(jobberPrice * USD_TO_UAH) : null,
             inventoryQty: 0,
             inventoryPolicy: 'CONTINUE',
             requiresShipping: true,
             taxable: true,
+            grams: totalGrams > 0 ? totalGrams : null,
           }
         ]
       },

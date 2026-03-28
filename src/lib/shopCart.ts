@@ -424,6 +424,7 @@ export async function serializeResolvedShopCart(
         bands: pricing.bands,
       },
       image: variant?.image || product.image,
+      fallbackImage: product.image,
       stock: product.stock,
     });
   }

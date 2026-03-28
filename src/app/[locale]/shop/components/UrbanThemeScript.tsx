@@ -2,10 +2,9 @@
 
 import { useEffect } from 'react';
 
-const HOME_ID = 'UrbanHomeV7';
-
-export default function UrbanThemeScript() {
+export default function UrbanThemeScript({ homeId }: { homeId?: string }) {
   useEffect(() => {
+    const HOME_ID = homeId || 'UrbanHomeV7';
     const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const loader = document.getElementById(HOME_ID + '-loader');

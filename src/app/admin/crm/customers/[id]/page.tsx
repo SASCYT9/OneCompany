@@ -77,7 +77,7 @@ export default function CrmCustomerDetailPage() {
     <div className="relative h-full w-full overflow-auto bg-black text-white">
       <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/8 blur-[120px]" />
 
-      <div className="w-full px-4 py-8 md:px-8 lg:px-12 max-w-7xl mx-auto">
+      <div className="w-full px-4 py-8 md:px-8 lg:px-12 max-w-[1920px] mx-auto">
         <Link href="/admin/crm" className="group mb-6 inline-flex items-center gap-2 text-[13px] font-medium tracking-wide text-white/40 hover:text-white transition-all">
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" /> CRM Dashboard
         </Link>

@@ -28,7 +28,14 @@ export async function GET(
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
-    return NextResponse.json(serializeAdminOrder(order));
+        const serialized = serializeAdminOrder(order);
+    for (const item of serialized.items) {
+      if (!item.image && item.sku) {
+        const t14 = await prisma.turn14Item.findFirst({ where: { partNumber: item.sku } });
+        if (t14?.thumbnail) item.image = t14.thumbnail;
+      }
+    }
+    return NextResponse.json(serialized);
   } catch (e) {
     if ((e as Error).message === 'UNAUTHORIZED') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

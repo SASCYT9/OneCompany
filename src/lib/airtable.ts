@@ -250,6 +250,7 @@ export async function fetchAirtableOrderById(recordId: string): Promise<Airtable
 export type AirtableOrderItem = {
   id: string;
   positionNumber: number;
+  productId: string | null;
   productIds: string[];
   productName: string[];
   brand: string[];
@@ -281,6 +282,7 @@ export async function fetchAirtableOrderItems(
   const records: AirtableOrderItem[] = data.records.map((rec: any) => ({
     id: rec.id,
     positionNumber: rec.fields['Номер позиции в заказе'] || 0,
+    productId: rec.fields['Товар/Услуга']?.[0] || null,
     productIds: rec.fields['Товар/Услуга'] || [],
     productName: rec.fields['Название товара/услуги'] || [],
     brand: rec.fields['Бренд (from Товар)'] || [],
@@ -324,6 +326,50 @@ export async function fetchAirtableShipments(
     records: data.records.map((r: any) => ({ id: r.id, fields: r.fields })),
     offset: data.offset,
   };
+}
+
+// ═══════════════════════════════════════
+// Products (Товары/Услуги)
+// ═══════════════════════════════════════
+
+export type AirtableProductLite = {
+  id: string;
+  sku: string;
+};
+
+/**
+ * Fetch a batch of Products by their Record IDs to extract their SKUs
+ */
+export async function fetchAirtableProductsByIds(recordIds: string[]): Promise<AirtableProductLite[]> {
+  if (recordIds.length === 0) return [];
+  
+  const uniqueIds = Array.from(new Set(recordIds));
+  const CHUNK_SIZE = 50; // Keep formula string within Airtable's safe URL limits
+  let allProducts: AirtableProductLite[] = [];
+
+  for (let i = 0; i < uniqueIds.length; i += CHUNK_SIZE) {
+    const chunk = uniqueIds.slice(i, i + CHUNK_SIZE);
+    const formula = `OR(${chunk.map(id => `RECORD_ID()="${id}"`).join(',')})`;
+    
+    const chunkResult = await fetchAllAirtableRecords<AirtableProductLite>((opts) => {
+      const params: Record<string, string> = {
+        filterByFormula: formula
+      };
+      if (opts.offset) params.offset = opts.offset;
+      
+      return airtableFetch(AIRTABLE_TABLES.PRODUCTS, { params }).then(data => ({
+        records: data.records.map((r: any) => ({
+          id: r.id,
+          sku: r.fields['Парт-номер производителя'] || ''
+        })),
+        offset: data.offset
+      }));
+    });
+    
+    allProducts = allProducts.concat(chunkResult);
+  }
+  
+  return allProducts;
 }
 
 // ═══════════════════════════════════════

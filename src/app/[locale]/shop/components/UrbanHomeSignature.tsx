@@ -207,7 +207,7 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
           </div>
         </div>
 
-        <div className="uh7-showcases" id={`${HOME_ID}-showcases`}>
+        <div className="uh7-showcases" id="catalog">
           {URBAN_SHOWCASES.map((s) => (
             <div key={s.num} className="uh7-sc uh7-rv-s" data-uh7-reveal>
               <div className="uh7-sc__media">

@@ -133,17 +133,28 @@ export async function fetchTurn14ItemPricing(itemId: string): Promise<any> {
   return response.json();
 }
 
-export async function searchTurn14Items(keyword: string, page = 1, filters: { brand?: string, make?: string, model?: string, year?: string } = {}) {
+export async function searchTurn14Items(keyword: string, page = 1, filters: { brand?: string, brandId?: string, make?: string, model?: string, year?: string, submodel?: string } = {}) {
   const token = await getTurn14AccessToken();
   const url = new URL(`${TURN14_API_BASE}/items`);
-  
-  if (keyword) url.searchParams.set('keyword', keyword);
-  if (page > 1) url.searchParams.set('page', page.toString());
-  
-  if (filters.brand) url.searchParams.set('brand', filters.brand);
+
+  // Page
+  url.searchParams.set('page', page.toString());
+
+  // Vehicle fitment filters (these are the params Turn14 items API actually uses)
+  if (filters.year) url.searchParams.set('year', filters.year);
   if (filters.make) url.searchParams.set('make', filters.make);
   if (filters.model) url.searchParams.set('model', filters.model);
-  if (filters.year) url.searchParams.set('year', filters.year);
+  if (filters.submodel) url.searchParams.set('submodel', filters.submodel);
+
+  // Brand filter — Turn14 uses brand_id (numeric), not brand name
+  if (filters.brandId) {
+    url.searchParams.set('brand_id', filters.brandId);
+  }
+
+  // Keyword search — only add if present
+  if (keyword) url.searchParams.set('keyword', keyword);
+
+  console.log('[Turn14 Search]', url.toString().replace(TURN14_API_BASE, ''));
 
   const response = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${token}` },
@@ -152,9 +163,11 @@ export async function searchTurn14Items(keyword: string, page = 1, filters: { br
 
   if (!response.ok) {
     const text = await response.text();
-    console.error(`TURN14 ERROR: ${response.status} ${text}`);
-    throw new Error('Failed to search Turn14 items: ' + text);
+    throw new Error(`Turn14 search failed: ${response.status} ${text}`);
   }
 
   return response.json();
 }
+
+
+

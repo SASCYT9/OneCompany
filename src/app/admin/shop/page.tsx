@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Plus, Pencil, Trash2, Upload, Package, ShoppingCart, Search, Layers3, Warehouse, Coins, Settings2, FileClock, ImageIcon, FolderTree, Users, Boxes, Globe } from 'lucide-react';
 
 type ShopProductListItem = {
@@ -35,13 +36,23 @@ function priceLabel(product: ShopProductListItem) {
   return '—';
 }
 
-export default function AdminShopPage() {
+function AdminShopPageContent() {
+  const searchParams = useSearchParams();
+  const initialBrand = searchParams.get('brand') || 'ALL';
+
   const [products, setProducts] = useState<ShopProductListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'DRAFT' | 'ACTIVE' | 'ARCHIVED'>('ALL');
+  const [brandFilter, setBrandFilter] = useState<string>(initialBrand);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get('brand')) {
+      setBrandFilter(searchParams.get('brand') as string);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     void load();
@@ -52,6 +63,9 @@ export default function AdminShopPage() {
     if (statusFilter !== 'ALL') {
       list = list.filter((p) => p.status === statusFilter);
     }
+    if (brandFilter !== 'ALL') {
+      list = list.filter((p) => p.brand && p.brand.toLowerCase() === brandFilter.toLowerCase());
+    }
     const needle = query.trim().toLowerCase();
     if (!needle) return list;
     return list.filter((product) =>
@@ -59,7 +73,12 @@ export default function AdminShopPage() {
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(needle))
     );
-  }, [products, query, statusFilter]);
+  }, [products, query, statusFilter, brandFilter]);
+
+  const uniqueBrands = useMemo(() => {
+    const brands = new Set(products.map(p => p.brand).filter(Boolean) as string[]);
+    return Array.from(brands).sort();
+  }, [products]);
 
   async function load() {
     setLoading(true);
@@ -122,7 +141,38 @@ export default function AdminShopPage() {
               Усі товари, варіанти та колекції. Тут додаємо / редагуємо товари, а детальне ціноутворення — у розділі
               <span className="font-medium text-white"> Ціни (B2C/B2B)</span>.
             </p>
-            <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-2 text-xs text-white/55">
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button 
+                onClick={() => { setBrandFilter('Urban Automotive'); setQuery(''); }}
+                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium tracking-wide transition-all font-mono ${brandFilter === 'Urban Automotive' ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'}`}
+              >
+                <Package className="w-4 h-4" />
+                Urban
+              </button>
+              <button 
+                onClick={() => { setBrandFilter('DO88'); setQuery(''); }}
+                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium tracking-wide transition-all font-mono ${brandFilter === 'DO88' ? 'border-amber-500 bg-amber-500/20 text-amber-400' : 'border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'}`}
+              >
+                <Package className="w-4 h-4" />
+                DO88
+              </button>
+              <button 
+                onClick={() => { setBrandFilter('Eventuri'); setQuery(''); }}
+                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium tracking-wide transition-all font-mono ${brandFilter === 'Eventuri' ? 'border-purple-500 bg-purple-500/20 text-purple-400' : 'border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'}`}
+              >
+                <Package className="w-4 h-4" />
+                Eventuri
+              </button>
+              <Link 
+                href="/admin/shop/turn14"
+                className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-5 py-2.5 text-sm font-medium tracking-wide text-indigo-400 hover:bg-indigo-500/20 transition-all font-mono ml-auto"
+              >
+                <Globe className="w-4 h-4" />
+                Turn14 Database
+              </Link>
+            </div>
+            
+            <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-2 text-xs text-white/55">
               <span className="font-medium text-white/75">Що робить кожен модуль:</span> Замовлення — перегляд і обробка замовлень; Клієнти — база B2B/B2C; Склад — залишки по варіантах; Ціни — масове ціноутворення; Налаштування — валюти, доставка, податки; Аудит — журнал дій; Категорії — дерево категорій; Колекції — підбірки товарів; Комплекти — збирання комплектів; Медіа — бібліотека зображень; Імпорт CSV — імпорт з мапінгом колонок.
             </div>
           </div>
@@ -171,10 +221,6 @@ export default function AdminShopPage() {
               <Upload className="w-4 h-4" />
               Імпорт CSV
             </Link>
-            <Link href="/admin/shop/turn14" title="Каталог Turn14 (Глобальний постачальник)" className="flex items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-4 py-2 text-sm font-medium text-indigo-300 hover:bg-indigo-500/20">
-              <Globe className="w-4 h-4" />
-              Turn14 Catalog
-            </Link>
             <Link href="/admin/shop/new" title="Створити новий товар" className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
               <Plus className="w-4 h-4" />
               Новий товар
@@ -198,6 +244,16 @@ export default function AdminShopPage() {
               <option value="ACTIVE">Активні</option>
               <option value="DRAFT">Чернетки</option>
               <option value="ARCHIVED">Архів</option>
+            </select>
+            <select
+              value={brandFilter}
+              onChange={(e) => setBrandFilter(e.target.value)}
+              className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white"
+            >
+              <option value="ALL">Всі Бренди</option>
+              {uniqueBrands.map(b => (
+                <option key={b} value={b}>{b}</option>
+              ))}
             </select>
             <label className="flex min-w-[260px] items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
             <Search className="h-4 w-4 text-white/35" />
@@ -306,5 +362,13 @@ export default function AdminShopPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminShopPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-white/50">Завантаження каталогу...</div>}>
+      <AdminShopPageContent />
+    </Suspense>
   );
 }

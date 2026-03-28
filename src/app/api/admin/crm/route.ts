@@ -5,6 +5,7 @@ import {
   fetchAllAirtableRecords,
   fetchAirtableOrderItems,
 } from '@/lib/airtable';
+import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/admin/crm
@@ -43,7 +44,42 @@ export async function GET(request: NextRequest) {
           filterFormula,
           sort: [{ field: 'Номер', direction: 'desc' }],
         });
-        return NextResponse.json({ data: result.records, hasMore: !!result.offset });
+
+        // --- INJECT DYNAMIC B2B CALCULATION ---
+        const uniqueAirtableCustomerIds = Array.from(new Set(result.records.flatMap(o => o.customerIds || [])));
+        const b2bDiscountMap = new Map<string, number>();
+
+        if (uniqueAirtableCustomerIds.length > 0) {
+          const shopCustomers = await prisma.shopCustomer.findMany({
+            where: {
+              OR: uniqueAirtableCustomerIds.map(id => ({ notes: { contains: `[Airtable:${id}]` } }))
+            },
+            select: { notes: true, b2bDiscountPercent: true }
+          });
+
+          for (const cid of uniqueAirtableCustomerIds) {
+            const sc = shopCustomers.find(c => c.notes?.includes(`[Airtable:${cid}]`));
+            if (sc && sc.b2bDiscountPercent !== null) {
+              b2bDiscountMap.set(cid, Number(sc.b2bDiscountPercent));
+            }
+          }
+        }
+
+        const enhancedRecords = result.records.map(order => {
+          let calculatedB2bTotal: number | undefined;
+          if (order.customerIds && order.customerIds.length > 0) {
+            const discount = b2bDiscountMap.get(order.customerIds[0]) || 0;
+            if (discount > 0 && order.totalAmount > 0) {
+              calculatedB2bTotal = order.totalAmount * (1 - discount / 100);
+            }
+          }
+          return {
+            ...order,
+            calculatedB2bTotal,
+          };
+        });
+
+        return NextResponse.json({ data: enhancedRecords, hasMore: !!result.offset });
       }
 
       case 'order-items': {

@@ -42,6 +42,8 @@ type OrderDetail = {
     marginality: number;
     status: string;
     source: string;
+    sku: string | null;
+    imageUrl: string | null;
   }>;
 };
 
@@ -102,7 +104,7 @@ export default function CrmOrderDetailPage() {
     <div className="relative h-full w-full overflow-auto bg-black text-white">
       <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-600/8 blur-[120px]" />
 
-      <div className="w-full px-4 py-8 md:px-8 lg:px-12 max-w-7xl mx-auto">
+      <div className="w-full px-4 py-8 md:px-8 lg:px-12 max-w-[1920px] mx-auto">
         <Link href="/admin/crm" className="group mb-6 inline-flex items-center gap-2 text-[13px] font-medium tracking-wide text-white/40 hover:text-white transition-all">
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" /> CRM Dashboard
         </Link>
@@ -175,8 +177,22 @@ export default function CrmOrderDetailPage() {
                   <tr key={item.id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="px-4 py-3 text-white/30 font-mono text-xs">{item.positionNumber}</td>
                     <td className="px-4 py-3">
-                      <div className="text-sm text-white font-medium truncate max-w-[300px]">{item.productName}</div>
-                      {item.brand && <div className="text-[10px] text-white/20 mt-0.5">{item.brand}</div>}
+                      <div className="flex items-center gap-3">
+                        {item.imageUrl ? (
+                          <div className="w-10 h-10 rounded bg-white/5 border border-white/10 overflow-hidden flex-shrink-0">
+                            <img src={item.imageUrl} alt={item.productName} className="object-cover w-full h-full" />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                            <Package className="w-4 h-4 text-white/20" />
+                          </div>
+                        )}
+                        <div>
+                          <div className="text-sm text-white font-medium truncate max-w-[250px]">{item.productName}</div>
+                          {item.sku && <div className="text-[10px] text-indigo-400 font-mono tracking-wider mt-0.5">{item.sku}</div>}
+                          {!item.sku && item.brand && <div className="text-[10px] text-white/20 mt-0.5">{item.brand}</div>}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">

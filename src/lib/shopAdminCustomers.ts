@@ -82,6 +82,7 @@ export function serializeShopCustomerAdminDetail(
     companyName: record.companyName,
     vatNumber: record.vatNumber,
     group: record.group,
+    b2bDiscountPercent: record.b2bDiscountPercent != null ? Number(record.b2bDiscountPercent) : null,
     discountTier: (record as any).discountTier || 'none',
     region: (record as any).region || 'Unknown',
     currencyPref: (record as any).currencyPref || 'USD',

@@ -1,0 +1,79 @@
+/* DO88 Shop Aesthetics - Black & White Glassmorphism */
+
+.do88-glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border-radius: 24px;
+}
+
+.do88-glass-button {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.do88-glass-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px 0 rgba(255, 255, 255, 0.1);
+}
+
+.do88-text-glow {
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.4);
+}
+
+.do88-gradient-text {
+  background: linear-gradient(180deg, #FFF 0%, rgba(255, 255, 255, 0.5) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Vehicle Filter Specific overrides */
+.do88-filter-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Animations */
+@keyframes do88FadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.do88-animate-up {
+  animation: do88FadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.do88-bg-mesh {
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(255,255,255,0.03) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(255,255,255,0.05) 0px, transparent 50%);
+}
+
+@keyframes do88KenBurns {
+  0% { transform: scale(1.0) translate(0, 0); }
+  50% { transform: scale(1.08) translate(-1%, -1%); }
+  100% { transform: scale(1.0) translate(0, 0); }
+}
+
+.do88-ken-burns {
+  animation: do88KenBurns 25s ease-in-out infinite alternate;
+  will-change: transform;
+}

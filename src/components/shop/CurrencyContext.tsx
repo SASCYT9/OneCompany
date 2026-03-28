@@ -82,10 +82,10 @@ export function ShopCurrencyProvider({ children }: { children: ReactNode }) {
         const usdRate = typeof usdJson?.[0]?.rate === "number" ? usdJson[0].rate : Number(usdJson?.[0]?.rate);
         if (!Number.isFinite(eurRate) || !Number.isFinite(usdRate)) return;
         setRates({
-          base: "UAH",
-          UAH: 1,
-          EUR: eurRate,
-          USD: usdRate,
+          base: "EUR",
+          UAH: eurRate,
+          EUR: 1,
+          USD: eurRate / usdRate,
         });
       } catch {
         // fail silently – використовуємо вбудовані прайси

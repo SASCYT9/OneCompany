@@ -13,6 +13,10 @@
     {
       "path": "/api/telegram/cron?task=all",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/admin/turn14-sync",
+      "schedule": "0 0 * * *"
     }
   ]
 }

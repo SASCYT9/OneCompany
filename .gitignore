@@ -48,3 +48,6 @@ next-env.d.ts
 /src/generated/prisma
 
 public/videos/originals/
+public/videos/shop/
+public/brabus-images/
+*.mp4.part

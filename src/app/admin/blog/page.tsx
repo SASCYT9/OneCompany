@@ -386,7 +386,7 @@ export default function AdminBlogPage() {
           {!draft ? (
             <div className="p-10 text-white/40 text-sm">Select or create a post.</div>
           ) : (
-            <div className="max-w-3xl px-6 py-8 space-y-8">
+            <div className="max-w-[1920px] px-6 py-8 space-y-8">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-white/40">Post editor</p>

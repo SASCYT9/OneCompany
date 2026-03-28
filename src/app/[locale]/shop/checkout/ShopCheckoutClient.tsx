@@ -481,13 +481,17 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
               </div>
               <div className="flex items-center justify-between">
                 <span>{isUa ? 'Доставка' : 'Shipping'}</span>
-                <span>{formatShopMoney(locale, quote?.shippingCost ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
+                <span>
+                  {quote?.shippingCost === 0 
+                    ? (isUa ? 'За тарифами перевізника' : 'Calculated by carrier')
+                    : formatShopMoney(locale, quote?.shippingCost ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span>{isUa ? 'Податок' : 'Tax'}</span>
                 <span>
-                  {quote && quote.taxAmount <= 0 && quote.showTaxesIncludedNotice
-                    ? (isUa ? 'Податки включено' : 'Taxes included')
+                  {quote && quote.taxAmount <= 0
+                    ? (isUa ? 'Податки включено у вартість' : 'Taxes included in price')
                     : formatShopMoney(locale, quote?.taxAmount ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}
                 </span>
               </div>

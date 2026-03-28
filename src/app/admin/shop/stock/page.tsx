@@ -212,7 +212,7 @@ export default function AdminStockPage() {
 
   return (
     <div className="w-full h-full overflow-auto text-white">
-      <div className="w-full px-4 py-8 md:px-8 lg:px-12 max-w-5xl">
+      <div className="w-full px-4 py-8 md:px-8 lg:px-12 max-w-[1920px]">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold text-white">Управління каталогом Stock</h2>
@@ -240,7 +240,7 @@ export default function AdminStockPage() {
             <p className="text-[10px] tracking-[0.15em] uppercase text-white/40 font-medium">Усього товарів</p>
             <p className="mt-2 text-2xl font-light text-white">{loading ? '...' : stats?.total || 0}</p>
           </div>
-          {stats?.distributors.map(d => (
+          {stats?.distributors?.map(d => (
             <div key={d.name} className="rounded-2xl border border-white/[0.08] bg-black/40 p-5 backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] tracking-[0.15em] uppercase text-white/40 font-medium">{d.name}</p>

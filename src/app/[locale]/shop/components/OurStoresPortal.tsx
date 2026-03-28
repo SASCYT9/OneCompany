@@ -8,6 +8,7 @@ import styles from "./OurStoresPortal.module.css";
 
 type OurStoresPortalProps = {
   locale: SupportedLocale;
+  activeStore?: string;
 };
 
 function localize(isUa: boolean, en: string, ua: string) {
@@ -43,14 +44,46 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
           </p>
         </div>
 
+        <Link href={`/${locale}/shop/stock`} className={styles.fullCard} suppressHydrationWarning>
+          <Image
+            src="/images/shop/stores/one-company-stock-porsche.png"
+            alt="One Company Stock"
+            fill
+            sizes="100vw"
+            className={styles.fullCardBg}
+          />
+          <div className={styles.fullCardGradient} aria-hidden />
+          <div className={styles.fullCardContent}>
+            <span className={styles.badge} style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.1)' }}>
+              {isUa ? "Глобальний Каталог" : "Global Catalog"}
+            </span>
+            <h3 className={styles.cardTitle}>
+              One Company Stock
+            </h3>
+            <p className={styles.cardSubtitle} style={{ color: 'rgba(255,255,255,0.85)', fontSize: '16px', maxWidth: '60ch' }}>
+              {isUa 
+                ? "Доступ до мільйонів преміальних деталей від провідних виробників усього світу напряму з нашого складу."
+                : "Access millions of premium parts from the world's leading manufacturers directly from our stock."}
+            </p>
+          </div>
+          <div className={styles.cardArrow} aria-hidden>
+            <svg viewBox="0 0 24 24">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </div>
+        </Link>
+
         <div className={styles.grid}>
           {OUR_STORES.map((store) => {
             const href =
               store.id === "urban"
                 ? `/${locale}/shop/urban`
-                : store.id === "ind"
-                  ? `/${locale}/shop/stock?source=local`
-                  : store.href || "#";
+                : store.id === "do88"
+                  ? `/${locale}/shop/do88`
+                  : store.id === "brabus"
+                    ? `/${locale}/shop/brabus`
+                    : store.href || "#";
             const isExternal = store.external === true;
             const isLogoAsset = store.imageUrl?.startsWith("/logos/") ?? false;
             const content = (
@@ -123,38 +156,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
               </Link>
             );
           })}
-        </div>
-        
-        <Link href={`/${locale}/shop/stock`} className={styles.fullCard} suppressHydrationWarning>
-          <Image
-            src="/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp"
-            alt="One Company Stock"
-            fill
-            sizes="100vw"
-            className={styles.fullCardBg}
-          />
-          <div className={styles.fullCardGradient} aria-hidden />
-          <div className={styles.fullCardContent}>
-            <span className={styles.badge} style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.1)' }}>
-              {isUa ? "Глобальний Каталог" : "Global Catalog"}
-            </span>
-            <h3 className={styles.cardTitle}>
-              One Company Stock
-            </h3>
-            <p className={styles.cardSubtitle} style={{ color: 'rgba(255,255,255,0.85)', fontSize: '16px', maxWidth: '60ch' }}>
-              {isUa 
-                ? "Доступ до мільйонів преміальних деталей від провідних виробників усього світу напряму з нашого складу."
-                : "Access millions of premium parts from the world's leading manufacturers directly from our stock."}
-            </p>
-          </div>
-          <div className={styles.cardArrow} aria-hidden>
-            <svg viewBox="0 0 24 24">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </div>
-        </Link>
-      </div>
+        </div>\n\n      </div>
     </section>
   );
 }

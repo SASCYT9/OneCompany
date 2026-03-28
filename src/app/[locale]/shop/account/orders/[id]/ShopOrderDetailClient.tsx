@@ -86,9 +86,13 @@ export default function ShopOrderDetailClient({ locale, order }: { locale: Suppo
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="truncate text-sm font-medium text-white/90">{item.title}</p>
-                      <p className="mt-1 text-xs text-white/45">
-                        {item.quantity} × {formatShopMoney(locale, item.price, order.currency as ShopCurrencyCode)}
-                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/45">
+                        {(item as any).sku && <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white/60">SKU: {(item as any).sku}</span>}
+                        {(item as any).brand && <span className="text-white/40">{(item as any).brand}</span>}
+                        <span>
+                          {item.quantity} × {formatShopMoney(locale, item.price, order.currency as ShopCurrencyCode)}
+                        </span>
+                      </div>
                     </div>
                     <div className="text-right text-sm font-medium text-white">
                       {formatShopMoney(locale, item.total, order.currency as ShopCurrencyCode)}

@@ -17,25 +17,10 @@ import {
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
+import { calcItemPrice, calcShipping, lbsToKg, SHIPPING_ZONES, type ShippingZone } from '@/lib/shippingCalc';
 
 // ─── Types ────────────────────────────────────────────────────
 
-type ShippingZone = 'UA' | 'KZ' | 'EU' | 'US' | 'OTHER';
-
-interface ZoneProfile {
-  label: string;
-  ratePerKg: number;
-  volSurchargePerKg: number;
-  baseFee: number;
-}
-
-const ZONES: Record<ShippingZone, ZoneProfile> = {
-  KZ: { label: 'Казахстан', ratePerKg: 14, volSurchargePerKg: 2, baseFee: 0 },
-  UA: { label: 'Україна', ratePerKg: 1.5, volSurchargePerKg: 0.5, baseFee: 3 },
-  EU: { label: 'Європа', ratePerKg: 8, volSurchargePerKg: 1.5, baseFee: 10 },
-  US: { label: 'США', ratePerKg: 5, volSurchargePerKg: 1, baseFee: 8 },
-  OTHER: { label: 'Інший регіон', ratePerKg: 16, volSurchargePerKg: 3, baseFee: 15 },
-};
 
 interface CustomerOption {
   id: string;
@@ -68,16 +53,8 @@ interface OrderItem {
 
 // ─── Helpers ──────────────────────────────────────────────────
 
-const LBS_TO_KG = 0.453592;
-function lbsToKg(lbs: number) { return Math.round(lbs * LBS_TO_KG * 1000) / 1000; }
-function r2(n: number) { return Math.round(n * 100) / 100; }
+const r2 = (n: number) => Math.round(n * 100) / 100;
 function fmtUsd(v: number) { return v.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }); }
-
-function calcUnitPrice(baseCost: number, markupPct: number, discountPct: number) {
-  const markedUp = r2(baseCost * (1 + markupPct / 100));
-  const discounted = r2(markedUp * (1 - discountPct / 100));
-  return discounted;
-}
 
 function newItem(): OrderItem {
   return {
@@ -185,7 +162,7 @@ export default function AdminCreateOrderPage() {
   // ─── When zone changes, update rates ───────────────────────
 
   useEffect(() => {
-    const profile = ZONES[zone];
+    const profile = SHIPPING_ZONES[zone];
     setRatePerKg(profile.ratePerKg);
     setVolSurchargePerKg(profile.volSurchargePerKg);
     setBaseFee(profile.baseFee);
@@ -219,8 +196,14 @@ export default function AdminCreateOrderPage() {
         item.weightKg = lbsToKg(patch.weightLbs);
       }
       // Recalculate price
-      item.unitPrice = calcUnitPrice(item.baseCostUsd, item.markupPct, item.discountPct);
-      item.lineTotal = r2(item.unitPrice * item.quantity);
+      const priceParams = calcItemPrice({
+        baseCostUsd: item.baseCostUsd,
+        markupPct: item.markupPct,
+        discountPct: item.discountPct,
+        quantity: item.quantity,
+      });
+      item.unitPrice = priceParams.unitPrice;
+      item.lineTotal = priceParams.lineTotal;
       next[index] = item;
       return next;
     });
@@ -279,7 +262,20 @@ export default function AdminCreateOrderPage() {
   }, 0);
   const volSurchargeKg = Math.max(0, totalVolWeightKg - totalWeightKg);
 
-  const autoShippingBase = r2(totalWeightKg * ratePerKg);
+  const autoShippingRes = calcShipping({
+    actualWeightKg: totalWeightKg,
+    lengthCm: 0, // Volumetric is aggregated
+    widthCm: 0,
+    heightCm: 0,
+    zone,
+    ratePerKg,
+    volSurchargePerKg,
+    baseFee,
+  });
+  
+  // Since we aggregate totalVolWeightKg above across multiple items manually 
+  // without sending individual dimensions to calcShipping, we inject the pre-calculated diff
+  const autoShippingBase = autoShippingRes.baseCost;
   const autoShippingVol = r2(volSurchargeKg * volSurchargePerKg);
   const autoShippingTotal = r2(baseFee + autoShippingBase + autoShippingVol);
   const finalShipping = shippingOverride !== '' ? Number(shippingOverride) : autoShippingTotal;
@@ -360,7 +356,7 @@ export default function AdminCreateOrderPage() {
 
   return (
     <div className="h-full overflow-auto">
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="mx-auto max-w-[1920px] p-6">
         <Link href="/admin/shop/orders" className="mb-6 inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
           <ArrowLeft className="h-4 w-4" /> Назад до замовлень
         </Link>
@@ -556,8 +552,8 @@ export default function AdminCreateOrderPage() {
                 <span className="mb-1 block text-xs text-white/50">Зона доставки</span>
                 <select value={zone} onChange={e => setZone(e.target.value as ShippingZone)}
                   className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
-                  {(Object.keys(ZONES) as ShippingZone[]).map(z => (
-                    <option key={z} value={z}>{ZONES[z].label} ({z})</option>
+                  {(Object.keys(SHIPPING_ZONES) as ShippingZone[]).map(z => (
+                    <option key={z} value={z}>{SHIPPING_ZONES[z].label} ({z})</option>
                   ))}
                 </select>
               </label>

@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { trackAddToCart } from '@/lib/analytics';
 
 type Props = {
-  slug: string;
+  slug?: string;
+  turn14Id?: string;
   locale: string;
   variantId?: string | null;
   variant?: 'default' | 'minimal' | 'inline';
@@ -21,6 +22,7 @@ type Props = {
 
 export function AddToCartButton({
   slug,
+  turn14Id,
   locale,
   variantId,
   variant = 'default',
@@ -43,16 +45,20 @@ export function AddToCartButton({
     if (adding || added) return;
     setAdding(true);
     try {
+      const payload: any = { quantity: 1, variantId };
+      if (slug) payload.slug = slug;
+      if (turn14Id) payload.turn14Id = turn14Id;
+      
       const response = await fetch('/api/shop/cart/items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, quantity: 1, variantId }),
+        body: JSON.stringify(payload),
       });
       if (!response.ok) {
         throw new Error('Add to cart failed');
       }
       setAdded(true);
-      trackAddToCart(slug, 1, productName);
+      if (slug) trackAddToCart(slug, 1, productName);
       if (redirect) router.push(`/${locale}/shop/cart`);
     } catch {
       setAdding(false);

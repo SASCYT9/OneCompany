@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   TrendingUp, Package, CreditCard, ArrowRight,
   ExternalLink, DollarSign, ShoppingCart, BarChart3,
-  ArrowUpRight, ArrowDownRight, Database, Loader2
+  ArrowUpRight, ArrowDownRight, Database, Loader2, Activity
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -74,38 +74,38 @@ function SparklineChart({ data, color = '#6366f1', height = 36, width = 110 }: {
   const step = width / (data.length - 1);
   const points = data.map((v, i) => `${i * step},${height - ((v - min) / range) * (height - 4) - 2}`).join(' ');
   return (
-    <svg width={width} height={height} className="opacity-60">
+    <svg width={width} height={height} className="opacity-80">
       <defs>
         <linearGradient id={`sp-${color.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="0%" stopColor={color} stopOpacity="0.4" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <polyline fill="none" stroke={color} strokeWidth="1.5" points={points} />
+      <polyline fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} />
       <polygon fill={`url(#sp-${color.replace('#', '')})`} points={`0,${height} ${points} ${width},${height}`} />
     </svg>
   );
 }
 
-function MiniDonut({ segments, size = 80 }: { segments: { value: number; color: string }[]; size?: number }) {
+function MiniDonut({ segments, size = 100 }: { segments: { value: number; color: string }[]; size?: number }) {
   const total = segments.reduce((s, seg) => s + seg.value, 0);
   if (total === 0) return null;
-  const cx = size / 2, cy = size / 2, r = size / 2 - 6;
+  const cx = size / 2, cy = size / 2, r = size / 2 - 8;
   const circumference = 2 * Math.PI * r;
   let cumul = 0;
   return (
-    <svg width={size} height={size}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={8} />
+    <svg width={size} height={size} className="drop-shadow-xl">
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={12} />
       {segments.map((seg, i) => {
         const pct = seg.value / total;
         const offset = circumference * cumul;
         const dash = circumference * pct;
         cumul += pct;
-        return <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={seg.color} strokeWidth={8}
+        return <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={seg.color} strokeWidth={12}
           strokeDasharray={`${dash} ${circumference - dash}`} strokeDashoffset={-offset}
           strokeLinecap="round" transform={`rotate(-90 ${cx} ${cy})`} className="transition-all duration-700" />;
       })}
-      <text x={cx} y={cy + 1} textAnchor="middle" fill="white" fontSize="14" fontWeight="300">{total}</text>
+      <text x={cx} y={cy + 5} textAnchor="middle" fill="white" fontSize="18" fontWeight="300" className="opacity-80">{total}</text>
     </svg>
   );
 }
@@ -149,7 +149,6 @@ export default function AdminDashboardPage() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [fetchAll]);
 
-  // Fire-and-forget background sync on first load + load CRM DB analytics
   useEffect(() => {
     fetch('/api/webhooks/airtable', { method: 'POST', body: '{}', headers: { 'Content-Type': 'application/json' } }).catch(() => {});
     fetch('/api/admin/crm/analytics?type=dashboard').then(r => r.json()).then(d => setCrmDbStats(d)).catch(() => {});
@@ -157,20 +156,19 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-400/40" />
+      <div className="w-full h-full flex flex-col items-center justify-center relative z-20">
+        <div className="w-12 h-12 rounded-full border-2 border-white/10 border-t-indigo-500 animate-spin mb-6 shadow-[0_0_20px_rgba(99,102,241,0.4)]"></div>
+        <p className="text-indigo-400 uppercase tracking-widest text-sm font-bold animate-pulse">Збір Телеметрії...</p>
       </div>
     );
   }
 
-  // Localize CRM status labels (Airtable uses Russian)
   const STATUS_LABELS: Record<string, string> = {
     'Новый': 'Новий', 'В обработке': 'В обробці', 'В производстве': 'У виробництві',
     'В пути': 'В дорозі', 'Выполнен': 'Виконано', 'Отменен': 'Скасовано',
   };
   const localizeStatus = (s: string) => STATUS_LABELS[s] || s;
 
-  // Computed CRM stats
   const crmRevenue = crmOrders.reduce((s, o) => s + (o.clientTotal || 0), 0);
   const crmProfit = crmOrders.reduce((s, o) => s + (o.profit || 0), 0);
   const crmActiveOrders = crmOrders.filter(o => !['Выполнен', 'Отменен'].includes(o.orderStatus)).length;
@@ -178,8 +176,8 @@ export default function AdminDashboardPage() {
   const totalDebtAmount = crmDebtCustomers.reduce((s, c) => s + Math.abs(c.balance), 0);
 
   const STATUS_COLORS: Record<string, string> = {
-    'Новий': '#3b82f6', 'В обробці': '#f59e0b', 'У виробництві': '#8b5cf6',
-    'В дорозі': '#06b6d4', 'Виконано': '#22c55e', 'Скасовано': '#ef4444',
+    'Новий': '#60a5fa', 'В обробці': '#fbbf24', 'У виробництві': '#818cf8',
+    'В дорозі': '#22d3ee', 'Виконано': '#34d399', 'Скасовано': '#f87171',
   };
 
   const statusCounts = crmOrders.reduce((acc, o) => {
@@ -189,113 +187,127 @@ export default function AdminDashboardPage() {
   }, {} as Record<string, number>);
 
   const donutSegments = Object.entries(statusCounts).map(([label, value]) => ({
-    value, color: STATUS_COLORS[label] || '#6b7280',
+    value, color: STATUS_COLORS[label] || '#9ca3af',
   }));
 
   const revSparkline = crmOrders.slice(0, 15).reverse().map(o => o.clientTotal || 0);
   const profSparkline = crmOrders.slice(0, 15).reverse().map(o => o.profit || 0);
-
   const topClients = [...crmCustomers].sort((a, b) => b.totalSales - a.totalSales).slice(0, 5);
 
   return (
-    <div className="w-full px-4 md:px-8 py-6 h-full overflow-auto text-white max-w-[1600px] mx-auto">
+    <div className="w-full px-6 md:px-10 py-8 h-full overflow-auto text-white max-w-[1600px] mx-auto z-20 relative">
+      
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-10 gap-6">
         <div>
-          <h1 className="text-2xl font-light tracking-tight flex items-center gap-3">
-            Огляд бізнесу
+          <div className="inline-flex items-center gap-2 px-3 py-1 mb-4 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-[10px] uppercase font-bold tracking-widest text-indigo-400">
+            <Activity className="w-3 h-3" /> One Company Live
+          </div>
+          <h1 className="text-4xl lg:text-5xl font-light tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500">
+            Огляд Бізнесу
           </h1>
-          <p className="text-xs text-white/30 mt-1">
-            One Company · Shop + CRM · Airtable Live
+          <p className="text-sm text-zinc-400 mt-3 max-w-xl leading-relaxed">
+            Глобальні фінансові показники інтегровані з Shop + CRM (Airtable Live).
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/5 border border-emerald-500/20 rounded-lg">
-            <div className="relative">
-              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
-              <div className="absolute inset-0 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping opacity-50" />
+        
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-black/40 border border-white/[0.08] backdrop-blur-md">
+            <div className="relative flex items-center justify-center">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full" />
+              <div className="absolute inset-0 w-2 h-2 bg-emerald-400 rounded-full animate-ping opacity-70" />
             </div>
-            <span className="text-[9px] uppercase tracking-widest text-emerald-400 font-medium">LIVE</span>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-emerald-400 font-bold">Синхронізовано</span>
+            {lastUpdated && (
+              <span className="text-[10px] text-zinc-500 ml-2 font-mono">{lastUpdated.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+            )}
           </div>
-          {lastUpdated && (
-            <span className="text-[9px] text-white/20">{lastUpdated.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-          )}
         </div>
       </div>
 
       {/* ═══ KPI Row ═══ */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-        <KpiCard label="Дохід (Shop)" value={data ? `€${Number(data.totalRevenue).toLocaleString('en', { minimumFractionDigits: 0 })}` : '—'}
-          icon={<DollarSign className="w-4 h-4" />} color="indigo" />
-        <KpiCard label="CRM Виручка" value={`$${crmRevenue.toLocaleString()}`}
-          icon={<TrendingUp className="w-4 h-4" />} color="emerald"
-          sparkline={<SparklineChart data={revSparkline} color="#22c55e" />} />
-        <KpiCard label="CRM Прибуток" value={`$${crmProfit.toLocaleString()}`}
-          icon={<BarChart3 className="w-4 h-4" />} color="cyan"
-          sparkline={<SparklineChart data={profSparkline} color="#06b6d4" />} />
-        <KpiCard label="Активні" value={`${(data?.activeOrders || 0) + crmActiveOrders}`}
-          icon={<Package className="w-4 h-4" />} color="amber"
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <KpiCard title="Дохід (Shop)" value={data ? `€${Number(data.totalRevenue).toLocaleString('en', { minimumFractionDigits: 0 })}` : '—'}
+          icon={<DollarSign className="w-5 h-5" />} color="indigo" />
+          
+        <KpiCard title="CRM Виручка" value={`$${crmRevenue.toLocaleString()}`}
+          icon={<TrendingUp className="w-5 h-5" />} color="emerald"
+          sparkline={<SparklineChart data={revSparkline} color="#34d399" />} />
+          
+        <KpiCard title="CRM Прибуток" value={`$${crmProfit.toLocaleString()}`}
+          icon={<BarChart3 className="w-5 h-5" />} color="cyan"
+          sparkline={<SparklineChart data={profSparkline} color="#22d3ee" />} />
+          
+        <KpiCard title="Активні" value={`${(data?.activeOrders || 0) + crmActiveOrders}`}
+          icon={<Package className="w-5 h-5" />} color="amber"
           subtitle={`Shop: ${data?.activeOrders || 0} · CRM: ${crmActiveOrders}`} />
-        <KpiCard label="Борги" value={totalDebtAmount > 0 ? `$${totalDebtAmount.toLocaleString()}` : '✓ $0'}
-          icon={<CreditCard className="w-4 h-4" />}
+          
+        <KpiCard title="Борги" value={totalDebtAmount > 0 ? `$${totalDebtAmount.toLocaleString()}` : '✓ $0'}
+          icon={<CreditCard className="w-5 h-5" />}
           color={totalDebtAmount > 0 ? 'rose' : 'emerald'}
           subtitle={totalDebtAmount > 0 ? `${crmDebtCustomers.length} контрагентів` : 'Всі розрахунки ок'} />
       </div>
 
       {/* CRM DB Analytics Row */}
       {crmDbStats && (
-        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-2">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-10 p-5 rounded-3xl bg-black/30 border border-white/[0.06] backdrop-blur-xl">
           {[
             { label: 'DB Клієнти', value: crmDbStats.kpis.totalCustomers },
             { label: 'DB Замовлення', value: crmDbStats.kpis.totalOrders },
             { label: 'DB Позиції', value: crmDbStats.kpis.totalItems },
             { label: 'DB Виручка', value: `$${crmDbStats.kpis.totalRevenue.toLocaleString()}` },
             { label: 'DB Прибуток', value: `$${crmDbStats.kpis.totalProfit.toLocaleString()}` },
-            { label: 'Маржа', value: `${crmDbStats.kpis.avgMargin}%` },
+            { label: 'Маржа', value: `${crmDbStats.kpis.avgMargin}%`, isHighlight: true },
           ].map(item => (
-            <div key={item.label} className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
-              <div className="text-[7px] uppercase tracking-widest text-white/20">{item.label}</div>
-              <div className="text-xs font-light text-white/70 mt-0.5">{item.value}</div>
+            <div key={item.label} className={`rounded-2xl border px-4 py-3 bg-white/[0.02] transition-colors hover:bg-white/[0.05] flex flex-col justify-center ${
+              item.isHighlight ? 'border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.1)]' : 'border-white/[0.04]'
+            }`}>
+              <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">{item.label}</div>
+              <div className={`text-xl font-light ${item.isHighlight ? 'text-indigo-400' : 'text-zinc-200'}`}>
+                {item.value}
+              </div>
             </div>
           ))}
         </motion.div>
       )}
 
       {/* ═══ 3-Column Layout ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
 
         {/* ──── Left Column: Orders + CRM orders ──── */}
-        <div className="lg:col-span-7 space-y-4">
-          {/* Recent Shop Orders */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
-              <h2 className="text-[10px] uppercase tracking-widest text-white/40 font-medium">Останні замовлення (Shop)</h2>
-              <Link href="/admin/shop/orders" className="text-[9px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 uppercase tracking-widest">
-                Всі <ArrowRight className="w-3 h-3" />
+        <div className="xl:col-span-8 space-y-6">
+          {/* CRM Orders */}
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="rounded-3xl border border-white/[0.08] bg-black/40 shadow-2xl backdrop-blur-2xl overflow-hidden hover:border-indigo-500/20 transition-all">
+            <div className="flex items-center justify-between px-8 py-5 border-b border-white/[0.05] bg-white/[0.01]">
+              <h2 className="text-xs uppercase tracking-widest text-zinc-400 font-bold flex items-center gap-2">
+                <Database className="w-4 h-4 text-indigo-400" /> Airtable CRM · Останні Угоди
+              </h2>
+              <Link href="/admin/crm" className="text-[10px] text-white hover:text-indigo-400 px-3 py-1.5 rounded-lg border border-white/10 hover:border-indigo-500/30 bg-black/50 transition-all flex items-center gap-1.5 uppercase font-bold tracking-widest">
+                Всі Угоди <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-left">
                 <tbody>
-                  {(data?.recentOrders || []).slice(0, 6).map((order, i) => (
-                    <motion.tr key={order.id}
+                  {crmOrders.slice(0, 6).map((o, i) => (
+                    <motion.tr key={o.id}
                       initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.03 * i }}
-                      className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                      <td className="px-5 py-3 text-xs text-white/50 font-mono">{order.displayId}</td>
-                      <td className="px-3 py-3 text-xs text-white/80 font-medium truncate max-w-[140px]">{order.customerName}</td>
-                      <td className="px-3 py-3 text-xs text-white/60">{Number(order.total).toFixed(0)} {order.currency}</td>
-                      <td className="px-3 py-3">
-                        <span className={`inline-flex items-center gap-1.5 text-[9px] uppercase tracking-widest font-medium ${order.paymentStatus === 'UNPAID' ? 'text-red-400' : 'text-emerald-400'}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${order.paymentStatus === 'UNPAID' ? 'bg-red-500' : 'bg-emerald-500'}`} />
-                          {order.paymentStatus === 'UNPAID' ? 'БОРГ' : 'PAID'}
+                      className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors group">
+                      <td className="px-8 py-4 text-xs text-zinc-500 font-mono">#{o.number}</td>
+                      <td className="px-4 py-4 text-sm text-zinc-200 font-medium truncate max-w-[180px]">{o.name}</td>
+                      <td className="px-4 py-4">
+                        <span className="flex items-center gap-2 px-2.5 py-1 w-fit rounded-full border border-white/5 bg-black/50">
+                          <span className="w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: STATUS_COLORS[o.orderStatus] || '#9ca3af', color: STATUS_COLORS[o.orderStatus] || '#9ca3af' }} />
+                          <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">{o.orderStatus}</span>
                         </span>
                       </td>
-                      <td className="px-3 py-3 text-right">
-                        <Link href={`/admin/shop/orders/${order.id}`} className="p-1.5 hover:bg-white/10 rounded text-white/30 hover:text-white inline-flex transition-colors">
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </Link>
+                      <td className="px-4 py-4 text-sm text-zinc-300 font-mono text-right">${o.clientTotal.toLocaleString()}</td>
+                      <td className="px-8 py-4 text-right">
+                        <span className={`inline-flex px-2 py-1 rounded bg-black/50 text-xs font-mono font-bold border ${o.profit > 0 ? 'text-emerald-400 border-emerald-500/20' : 'text-rose-400 border-rose-500/20'}`}>
+                          {o.profit > 0 ? '+' : ''}${o.profit.toFixed(0)}
+                        </span>
                       </td>
                     </motion.tr>
                   ))}
@@ -304,37 +316,37 @@ export default function AdminDashboardPage() {
             </div>
           </motion.div>
 
-          {/* CRM Orders */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
-              <h2 className="text-[10px] uppercase tracking-widest text-white/40 font-medium flex items-center gap-2">
-                <Database className="w-3.5 h-3.5 text-indigo-400" /> CRM Замовлення (Airtable)
+          {/* Recent Shop Orders */}
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-3xl border border-white/[0.08] bg-black/40 shadow-2xl backdrop-blur-2xl overflow-hidden hover:border-emerald-500/20 transition-all">
+            <div className="flex items-center justify-between px-8 py-5 border-b border-white/[0.05] bg-white/[0.01]">
+              <h2 className="text-xs uppercase tracking-widest text-zinc-400 font-bold flex items-center gap-2">
+                <ShoppingCart className="w-4 h-4 text-emerald-400" /> Сайт · Останні Кошики
               </h2>
-              <Link href="/admin/crm" className="text-[9px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 uppercase tracking-widest">
-                CRM <ArrowRight className="w-3 h-3" />
+              <Link href="/admin/shop/orders" className="text-[10px] text-white hover:text-emerald-400 px-3 py-1.5 rounded-lg border border-white/10 hover:border-emerald-500/30 bg-black/50 transition-all flex items-center gap-1.5 uppercase font-bold tracking-widest">
+                Всі Замовлення <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-left">
                 <tbody>
-                  {crmOrders.slice(0, 6).map((o, i) => (
-                    <motion.tr key={o.id}
+                  {(data?.recentOrders || []).slice(0, 6).map((order, i) => (
+                    <motion.tr key={order.id}
                       initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.03 * i }}
-                      className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                      <td className="px-5 py-3 text-xs text-white/50 font-mono">#{o.number}</td>
-                      <td className="px-3 py-3 text-xs text-white/80 truncate max-w-[160px]">{o.name}</td>
-                      <td className="px-3 py-3">
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[o.orderStatus] || '#6b7280' }} />
-                          <span className="text-[9px] text-white/40">{o.orderStatus}</span>
+                      className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors group">
+                      <td className="px-8 py-4 text-xs text-zinc-500 font-mono">{order.displayId}</td>
+                      <td className="px-4 py-4 text-sm text-zinc-200 font-medium truncate max-w-[160px]">{order.customerName}</td>
+                      <td className="px-4 py-4 text-sm text-zinc-300 font-mono">{Number(order.total).toFixed(0)} {order.currency}</td>
+                      <td className="px-4 py-4">
+                        <span className={`inline-flex items-center gap-2 px-2.5 py-1 w-fit rounded-full border border-white/5 bg-black/50 text-[10px] uppercase font-bold tracking-wider ${order.paymentStatus === 'UNPAID' ? 'text-rose-400' : 'text-emerald-400'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor] ${order.paymentStatus === 'UNPAID' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                          {order.paymentStatus === 'UNPAID' ? 'БОРГ' : 'ОПЛАЧЕНО'}
                         </span>
                       </td>
-                      <td className="px-3 py-3 text-xs text-white/60 text-right">${o.clientTotal.toLocaleString()}</td>
-                      <td className="px-3 py-3 text-right">
-                        <span className={`text-[10px] font-medium ${o.profit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {o.profit > 0 ? '+' : ''}${o.profit.toFixed(0)}
-                        </span>
+                      <td className="px-8 py-4 text-right">
+                        <Link href={`/admin/shop/orders/${order.id}`} className="p-2 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-white/50 hover:text-white inline-flex transition-all">
+                          <ExternalLink className="w-4 h-4" />
+                        </Link>
                       </td>
                     </motion.tr>
                   ))}
@@ -345,68 +357,70 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* ──── Right Column: Charts + QuickActions ──── */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="xl:col-span-4 space-y-6">
           {/* Status Distribution Mini */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            className="bg-white/[0.02] border border-white/5 rounded-2xl p-5">
-            <h3 className="text-[10px] uppercase tracking-widest text-white/40 font-medium mb-4">Статуси CRM</h3>
-            <div className="flex items-center gap-6">
-              <MiniDonut segments={donutSegments} size={90} />
-              <div className="flex-1 space-y-1.5">
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+            className="rounded-3xl border border-white/[0.08] bg-black/40 shadow-2xl backdrop-blur-2xl p-6">
+            <h3 className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-bold mb-6">Pipeline Аналітика</h3>
+            <div className="flex flex-col items-center gap-6">
+              <MiniDonut segments={donutSegments} size={140} />
+              <div className="w-full space-y-2">
                 {Object.entries(statusCounts).map(([label, count]) => (
-                  <div key={label} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS[label] || '#6b7280' }} />
-                      <span className="text-white/40">{label}</span>
+                  <div key={label} className="flex items-center justify-between p-2 rounded-xl bg-white/[0.02] border border-white/[0.03]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2.5 h-2.5 rounded shadow-[0_0_8px_currentColor]" style={{ backgroundColor: STATUS_COLORS[label] || '#9ca3af', color: STATUS_COLORS[label] || '#9ca3af' }} />
+                      <span className="text-zinc-300 text-xs font-semibold uppercase tracking-wider">{label}</span>
                     </div>
-                    <span className="text-white/60 font-medium">{count}</span>
+                    <span className="text-white font-mono">{count}</span>
                   </div>
                 ))}
               </div>
             </div>
           </motion.div>
 
-          {/* Balances / Top клієнти */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            className="bg-white/[0.02] border border-white/5 rounded-2xl p-5">
-            <h3 className="text-[10px] uppercase tracking-widest text-white/40 font-medium mb-3">Топ клієнти (CRM)</h3>
-            <div className="space-y-2.5">
+          {/* Top Clients */}
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+            className="rounded-3xl border border-white/[0.08] bg-black/40 shadow-2xl backdrop-blur-2xl p-6">
+            <h3 className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-bold mb-5">VIP Акаунти</h3>
+            <div className="space-y-3">
               {topClients.map((c, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center text-[9px] font-medium text-white/30">{i + 1}</div>
-                    <span className="text-xs text-white/60 truncate max-w-[120px]">{c.name}</span>
+                <div key={i} className="flex flex-col p-3 rounded-2xl bg-white/[0.02] border border-white/[0.03] hover:bg-white/[0.05] transition-colors">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-[10px] font-bold text-indigo-400">{i + 1}</div>
+                      <span className="text-sm text-zinc-200 font-medium truncate max-w-[150px]">{c.name}</span>
+                    </div>
+                    <span className="text-sm text-white font-mono">${c.totalSales.toLocaleString()}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-white/40">${c.totalSales.toLocaleString()}</span>
-                    {c.balance !== 0 && (
-                      <span className={`text-[10px] font-medium flex items-center gap-0.5 ${c.balance < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {c.balance !== 0 && (
+                    <div className="flex justify-end">
+                      <span className={`inline-flex px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest flex items-center gap-1 ${c.balance < 0 ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
                         {c.balance < 0 ? <ArrowDownRight className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
-                        ${Math.abs(c.balance).toFixed(0)}
+                        БОРГ ${Math.abs(c.balance).toFixed(0)}
                       </span>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               ))}
               {topClients.length === 0 && (
-                <p className="text-xs text-white/20 text-center py-4">Немає даних CRM</p>
+                <p className="text-xs text-zinc-500 text-center py-6 font-medium uppercase tracking-widest">Немає даних CRM</p>
               )}
             </div>
           </motion.div>
 
           {/* Quick Actions */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-            className="bg-white/[0.02] border border-white/5 rounded-2xl p-5">
-            <h3 className="text-[10px] uppercase tracking-widest text-white/40 font-medium mb-3">Швидкі дії</h3>
-            <div className="grid grid-cols-2 gap-2">
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+            className="rounded-3xl border border-amber-500/20 bg-amber-500/5 shadow-2xl backdrop-blur-2xl p-6">
+            <h3 className="text-[10px] uppercase tracking-[0.2em] text-amber-500/70 font-bold mb-4">Навігатор Дій</h3>
+            <div className="grid grid-cols-2 gap-3">
               {[
-                { href: '/admin/shop/orders/create', label: 'Нове замовлення', icon: <ShoppingCart className="w-3.5 h-3.5" /> },
-                { href: '/admin/shop/stock', label: 'Імпорт CSV', icon: <Database className="w-3.5 h-3.5" /> },
-                { href: '/admin/backups', label: 'Бекап БД', icon: <Package className="w-3.5 h-3.5" /> },
-                { href: '/admin/shop/turn14/markups', label: 'Маржа Turn14', icon: <DollarSign className="w-3.5 h-3.5" /> },
+                { href: '/admin/shop/orders/create', label: 'Новий Чек', icon: <ShoppingCart className="w-4 h-4" /> },
+                { href: '/admin/shop/stock', label: 'CSV Імпорт', icon: <Database className="w-4 h-4" /> },
+                { href: '/admin/backups', label: 'Створити БД Бекап', icon: <Package className="w-4 h-4" /> },
+                { href: '/admin/shop/turn14/markups', label: 'ROI (Націнки)', icon: <DollarSign className="w-4 h-4" /> },
               ].map(action => (
                 <Link key={action.href} href={action.href}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-white/[0.05] transition-all border border-white/5 hover:border-white/15">
+                  className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-black/40 border border-white/[0.06] text-zinc-400 hover:text-amber-400 hover:border-amber-500/40 hover:bg-black/60 transition-all font-semibold uppercase tracking-widest text-[9px] text-center shadow-[0_0_15px_rgba(0,0,0,0.5)]">
                   {action.icon}
                   <span>{action.label}</span>
                 </Link>
@@ -424,27 +438,43 @@ export default function AdminDashboardPage() {
 // Components
 // ═══════════════════════════════
 
-function KpiCard({ label, value, icon, color, sparkline, subtitle }: {
-  label: string; value: string; icon: React.ReactNode; color: string;
+function KpiCard({ title, value, icon, color, sparkline, subtitle }: {
+  title: string; value: string; icon: React.ReactNode; color: string;
   sparkline?: React.ReactNode; subtitle?: string;
 }) {
-  const colors: Record<string, string> = {
-    indigo: 'bg-indigo-500/8 text-indigo-400 border-indigo-500/15',
-    emerald: 'bg-emerald-500/8 text-emerald-400 border-emerald-500/15',
-    cyan: 'bg-cyan-500/8 text-cyan-400 border-cyan-500/15',
-    amber: 'bg-amber-500/8 text-amber-400 border-amber-500/15',
-    rose: 'bg-red-500/8 text-red-400 border-red-500/15',
+  const colors: Record<string, { bg: string, border: string, text: string, iconBg: string }> = {
+    indigo: { bg: 'bg-black/40', border: 'border-indigo-500/20 hover:border-indigo-500/40', text: 'text-indigo-400', iconBg: 'bg-indigo-500/10 border-indigo-500/20' },
+    emerald: { bg: 'bg-black/40', border: 'border-emerald-500/20 hover:border-emerald-500/40', text: 'text-emerald-400', iconBg: 'bg-emerald-500/10 border-emerald-500/20' },
+    cyan: { bg: 'bg-black/40', border: 'border-cyan-500/20 hover:border-cyan-500/40', text: 'text-cyan-400', iconBg: 'bg-cyan-500/10 border-cyan-500/20' },
+    amber: { bg: 'bg-black/40', border: 'border-amber-500/20 hover:border-amber-500/40', text: 'text-amber-400', iconBg: 'bg-amber-500/10 border-amber-500/20' },
+    rose: { bg: 'bg-black/40', border: 'border-rose-500/20 hover:border-rose-500/40', text: 'text-rose-400', iconBg: 'bg-rose-500/10 border-rose-500/20' },
   };
+
+  const scheme = colors[color] || colors.indigo;
+
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-      className={`${colors[color] || colors.indigo} border rounded-2xl p-4`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[8px] uppercase tracking-widest font-medium opacity-60">{label}</span>
-        {icon}
+    <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+      className={`relative group overflow-hidden rounded-3xl border border-white/[0.08] backdrop-blur-xl p-5 md:p-6 transition-all shadow-2xl ${scheme.bg} ${scheme.border}`}>
+      
+      {/* Subtle background glow */}
+      <div className={`absolute inset-0 bg-gradient-to-br from-${color}-500/5 to-transparent pointer-events-none`} />
+      
+      <div className="relative flex items-center justify-between mb-4">
+        <div className={`w-10 h-10 rounded-xl border flex items-center justify-center ${scheme.iconBg}`}>
+          <div className={scheme.text}>{icon}</div>
+        </div>
       </div>
-      <div className="text-xl font-light tracking-tight">{value}</div>
-      {subtitle && <p className="text-[8px] text-white/25 mt-0.5">{subtitle}</p>}
-      {sparkline && <div className="mt-2">{sparkline}</div>}
+      
+      <h3 className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold mb-1">{title}</h3>
+      <div className="text-3xl font-light text-white tracking-tight mb-1">{value}</div>
+      
+      {subtitle && <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mt-2">{subtitle}</p>}
+      
+      {sparkline && (
+        <div className="mt-4 -mx-2 -mb-2 overflow-hidden flex justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+          {sparkline}
+        </div>
+      )}
     </motion.div>
   );
 }

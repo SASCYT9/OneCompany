@@ -374,7 +374,7 @@ export default function AdminShopImportPage() {
         <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-3xl font-semibold text-white">Центр імпорту CSV</h2>
-            <p className="mt-2 max-w-3xl text-sm text-white/45">
+            <p className="mt-2 max-w-[1920px] text-sm text-white/45">
               Пробний прогон та імпорт з CSV (формат Shopify), збереження мапінгу колонок по постачальниках,
               перегляд минулих імпортів та помилок по рядках.
             </p>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { ShoppingBag } from 'lucide-react';
 import { PrismaClient } from '@prisma/client';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { ShopPrimaryPriceBox } from '@/components/shop/ShopPrimaryPriceBox';
@@ -22,6 +23,12 @@ import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCat
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { localizeShopDescription, localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopViewerPricingContext, resolveShopProductPricing } from '@/lib/shopPricingAudience';
+import { BrabusShopProductDetailLayout } from './BrabusShopProductDetailLayout';
+import {
+  getProductsForDo88Collection,
+  getDo88CollectionHandleForProduct,
+} from '@/lib/do88CollectionMatcher';
+import { DO88_COLLECTION_CARDS } from '../data/do88CollectionsList';
 import {
   buildShopProductPath,
   getProductsForUrbanCollection,
@@ -29,9 +36,11 @@ import {
 } from '@/lib/urbanCollectionMatcher';
 import { URBAN_COLLECTION_CARDS } from '../data/urbanCollectionsList';
 
+import type { ShopProduct } from '@/lib/shopCatalog';
+
 const prisma = new PrismaClient();
 
-type ProductPageMode = 'default' | 'urban';
+type ProductPageMode = 'default' | 'urban' | 'do88' | 'brabus';
 
 type Props = {
   locale: string;
@@ -62,7 +71,10 @@ export async function getShopProductPageMetadata({
 }: Props): Promise<Metadata> {
   const resolvedLocale = resolveLocale(locale);
   const product = await getShopProductBySlugServer(slug);
-  const pageSlug = mode === 'urban' ? `shop/urban/products/${slug}` : `shop/${slug}`;
+  
+  let pageSlug = `shop/${slug}`;
+  if (mode === 'urban') pageSlug = `shop/urban/products/${slug}`;
+  if (mode === 'do88') pageSlug = `shop/do88/products/${slug}`;
 
   if (!product) {
     return buildPageMetadata(resolvedLocale, pageSlug, {
@@ -86,10 +98,12 @@ export default async function ShopProductDetailPage({
 }: Props) {
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === 'ua';
+
   const [product, allProducts] = await Promise.all([
     getShopProductBySlugServer(slug),
     getShopProductsServer(),
   ]);
+
   const [session, settingsRecord] = await Promise.all([
     getCurrentShopCustomerSession(),
     getOrCreateShopSettings(prisma),
@@ -99,8 +113,11 @@ export default async function ShopProductDetailPage({
     notFound();
   }
 
+  const settingsRuntime = getShopSettingsRuntime(settingsRecord);
+  const rates = settingsRuntime.currencyRates;
+
   const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
+    settingsRuntime,
     session?.group ?? null,
     Boolean(session),
     session?.b2bDiscountPercent ?? null
@@ -108,11 +125,39 @@ export default async function ShopProductDetailPage({
   const pricing = resolveShopProductPricing(product, viewerContext);
   const defaultVariant = product.variants?.find((item) => item.isDefault) ?? product.variants?.[0] ?? null;
 
+  const computeCrossPrices = (priceObj: { eur: number; usd: number; uah: number }) => {
+    let computedUah = priceObj.uah || 0;
+    let computedEur = priceObj.eur || 0;
+    let computedUsd = priceObj.usd || 0;
+
+    const hasValid = (v?: number) => typeof v === 'number' && v > 0;
+
+    if (hasValid(priceObj.uah) && rates) {
+      if (!hasValid(computedEur)) computedEur = (priceObj.uah / rates.UAH) * rates.EUR;
+      if (!hasValid(computedUsd)) computedUsd = (priceObj.uah / rates.UAH) * rates.USD;
+    } else if (hasValid(priceObj.eur) && rates) {
+      if (!hasValid(computedUah)) computedUah = (priceObj.eur / rates.EUR) * rates.UAH;
+      if (!hasValid(computedUsd)) computedUsd = (priceObj.eur / rates.EUR) * rates.USD;
+    } else if (hasValid(priceObj.usd) && rates) {
+      if (!hasValid(computedUah)) computedUah = (priceObj.usd / rates.USD) * rates.UAH;
+      if (!hasValid(computedEur)) computedEur = (priceObj.usd / rates.USD) * rates.EUR;
+    }
+
+    return { uah: computedUah, eur: computedEur, usd: computedUsd };
+  };
+
   const urbanCollectionHandle = getUrbanCollectionHandleForProduct(product);
+  const do88CollectionHandle = getDo88CollectionHandleForProduct(product);
+  
   const urbanCollectionCard = urbanCollectionHandle
     ? URBAN_COLLECTION_CARDS.find((item) => item.collectionHandle === urbanCollectionHandle)
     : null;
+  const do88CollectionCard = do88CollectionHandle
+    ? DO88_COLLECTION_CARDS.find((item) => item.categoryHandle === do88CollectionHandle)
+    : null;
+    
   const isUrbanMode = mode === 'urban' || Boolean(urbanCollectionHandle);
+  const isDo88Mode = mode === 'do88' || Boolean(do88CollectionHandle);
 
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
   const productCategory = localizeShopText(resolvedLocale, product.category);
@@ -126,30 +171,49 @@ export default async function ShopProductDetailPage({
   const country = brandMeta ? getLocalizedCountry(brandMeta.country, resolvedLocale) : null;
   const subcategory = brandMeta ? getLocalizedSubcategory(brandMeta.subcategory, resolvedLocale) : null;
 
-  const gallery = product.gallery?.length ? product.gallery : [product.image];
-  const urbanRelatedProducts =
-    urbanCollectionHandle && urbanCollectionCard
-      ? getProductsForUrbanCollection(
-          allProducts.filter((item) => item.slug !== product.slug),
-          urbanCollectionHandle,
-          urbanCollectionCard.title,
-          urbanCollectionCard.brand
-        )
-      : [];
+  const gallery = (product.gallery?.length ? product.gallery : [product.image]).map(g => {
+    if (!g) return '';
+    const raw = g.replace(/^["']|["']$/g, '').trim();
+    return raw.startsWith('//') ? `https:${raw}` : raw;
+  });
+  let categoryRelatedProducts: ShopProduct[] = [];
+  
+  if (isUrbanMode && urbanCollectionHandle && urbanCollectionCard) {
+    categoryRelatedProducts = getProductsForUrbanCollection(
+      allProducts.filter((item) => item.slug !== product.slug),
+      urbanCollectionHandle,
+      urbanCollectionCard.title,
+      urbanCollectionCard.brand
+    );
+  } else if (isDo88Mode && do88CollectionHandle && do88CollectionCard) {
+    categoryRelatedProducts = getProductsForDo88Collection(
+      allProducts.filter((item) => item.slug !== product.slug),
+      do88CollectionHandle,
+      do88CollectionCard.title
+    );
+  }
+
   const relatedProducts = (
-    urbanRelatedProducts.length
-      ? urbanRelatedProducts
+    categoryRelatedProducts.length
+      ? categoryRelatedProducts
       : allProducts.filter((item) => item.slug !== product.slug && item.scope === product.scope)
   ).slice(0, 3);
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://onecompany.global');
-  const productPath = mode === 'urban'
-    ? `/${resolvedLocale}/shop/urban/products/${product.slug}`
-    : buildShopProductPath(resolvedLocale, product, isUrbanMode);
+    
+  let productPath = `/${resolvedLocale}/shop/${product.slug}`;
+  if (isUrbanMode) productPath = `/${resolvedLocale}/shop/urban/products/${product.slug}`;
+  if (isDo88Mode) productPath = `/${resolvedLocale}/shop/do88/products/${product.slug}`;
+  
   const productUrl = `${baseUrl}${productPath}`;
-  const imageUrl = product.image.startsWith('http') ? product.image : `${baseUrl}${product.image}`;
+  
+  const rawImageStr = product.image ? product.image.replace(/^["']|["']$/g, '').trim() : '';
+  const safeImageUrl = rawImageStr.startsWith('//') 
+    ? `https:${rawImageStr}` 
+    : (rawImageStr.startsWith('http') ? rawImageStr : `${baseUrl}${rawImageStr}`);
+  
   const priceValidUntil = new Date();
   priceValidUntil.setDate(priceValidUntil.getDate() + 30);
   const structuredData = {
@@ -157,7 +221,7 @@ export default async function ShopProductDetailPage({
     '@type': 'Product',
     name: productTitle,
     description: shortDescription,
-    image: imageUrl,
+    image: safeImageUrl,
     url: productUrl,
     ...(product.sku && { sku: product.sku }),
     brand: {
@@ -173,30 +237,40 @@ export default async function ShopProductDetailPage({
       priceValidUntil: priceValidUntil.toISOString().slice(0, 10),
     },
   };
-  const backLinkHref =
-    isUrbanMode && urbanCollectionHandle
-      ? `/${resolvedLocale}/shop/urban/collections/${urbanCollectionHandle}`
-      : `/${resolvedLocale}/shop`;
-  const backLinkLabel =
-    isUrbanMode && urbanCollectionCard
-      ? `← ${isUa ? `До ${urbanCollectionCard.title}` : `Back to ${urbanCollectionCard.title}`}`
-      : `← ${isUa ? 'До магазину' : 'Back to shop'}`;
-  const continueShoppingHref =
-    isUrbanMode
-      ? `/${resolvedLocale}/shop/urban/collections`
-      : `/${resolvedLocale}/shop`;
+  let backLinkHref = `/${resolvedLocale}/shop`;
+  let backLinkLabel = `← ${isUa ? 'До магазину' : 'Back to shop'}`;
+  let continueShoppingHref = `/${resolvedLocale}/shop`;
+  
+  if (isUrbanMode) {
+    backLinkHref = urbanCollectionHandle ? `/${resolvedLocale}/shop/urban/collections/${urbanCollectionHandle}` : `/${resolvedLocale}/shop/urban/collections`;
+    backLinkLabel = urbanCollectionCard ? `← ${isUa ? `До ${urbanCollectionCard.title}` : `Back to ${urbanCollectionCard.title}`}` : `← ${isUa ? 'Всі колекції' : 'All collections'}`;
+    continueShoppingHref = `/${resolvedLocale}/shop/urban/collections`;
+  } else if (isDo88Mode) {
+    backLinkHref = do88CollectionHandle ? `/${resolvedLocale}/shop/do88/collections/${do88CollectionHandle}` : `/${resolvedLocale}/shop/do88/collections`;
+    backLinkLabel = do88CollectionCard ? `← ${isUa ? `До ${do88CollectionCard.title}` : `Back to ${do88CollectionCard.title}`}` : `← ${isUa ? 'Всі категорії' : 'All categories'}`;
+    continueShoppingHref = `/${resolvedLocale}/shop/do88/collections`;
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
       <ShopProductViewTracker
         slug={product.slug}
         name={productTitle}
         priceEur={pricing.effectivePrice.eur}
       />
+      
+      {product.brand === 'Brabus' || mode === 'brabus' ? (
+        <BrabusShopProductDetailLayout
+          locale={locale}
+          resolvedLocale={resolvedLocale}
+          product={product}
+          pricing={pricing}
+          viewerContext={viewerContext}
+          rates={rates}
+          defaultVariant={defaultVariant}
+          relatedProducts={relatedProducts}
+        />
+      ) : (
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
         <div className="flex flex-wrap items-center gap-3">
           <Link
@@ -214,6 +288,15 @@ export default async function ShopProductDetailPage({
               {isUa ? 'Urban Home' : 'Urban home'}
             </Link>
           ) : null}
+          
+          {isDo88Mode ? (
+            <Link
+              href={`/${resolvedLocale}/shop/do88`}
+              className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-900/[0.04] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-cyan-400 transition hover:border-cyan-400/40 hover:text-cyan-300"
+            >
+              {isUa ? 'DO88 Home' : 'DO88 home'}
+            </Link>
+          ) : null}
 
           <span className="rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-white/65">
             {product.scope === 'auto' ? (isUa ? 'Авто' : 'Auto') : (isUa ? 'Мото' : 'Moto')}
@@ -223,14 +306,20 @@ export default async function ShopProductDetailPage({
         <section className="grid gap-8 lg:grid-cols-[1.2fr_1fr]">
           <div className="space-y-4">
             <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-white/15 bg-black/40">
-              <Image
-                src={product.image}
-                alt={productTitle}
-                fill
-                sizes="(max-width: 1280px) 100vw, 58vw"
-                className="object-cover"
-                priority
-              />
+              {safeImageUrl && safeImageUrl.length > 0 ? (
+                <Image
+                  src={safeImageUrl}
+                  alt={productTitle}
+                  fill
+                  sizes="(max-width: 1280px) 100vw, 58vw"
+                  className="object-contain p-4"
+                  priority
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-white/10">
+                  <ShoppingBag className="h-20 w-20 opacity-30" />
+                </div>
+              )}
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/15 to-black/65" />
               <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-3">
                 <span className="rounded-full border border-white/25 bg-black/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/75">
@@ -249,17 +338,21 @@ export default async function ShopProductDetailPage({
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {gallery.slice(0, 6).map((image, index) => (
-                <div key={`${product.slug}-${index}`} className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/15">
-                  <Image
-                    src={image}
-                    alt={`${productTitle} ${index + 1}`}
-                    fill
-                    sizes="(max-width: 1280px) 50vw, 16vw"
-                    className="object-cover"
-                  />
-                </div>
-              ))}
+              {gallery.slice(0, 6).map((image, index) => {
+                const cleanImage = image ? image.replace(/^["']|["']$/g, '').trim() : '';
+                if (!cleanImage) return null;
+                return (
+                  <div key={`${product.slug}-${index}`} className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/15 bg-black/40">
+                    <Image
+                      src={cleanImage}
+                      alt={`${productTitle} ${index + 1}`}
+                      fill
+                      sizes="(max-width: 1280px) 50vw, 16vw"
+                      className="object-contain p-3"
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -280,49 +373,77 @@ export default async function ShopProductDetailPage({
             </div>
 
             <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">{productTitle}</h1>
-            <p className="text-sm leading-relaxed text-white/75 sm:text-base">
-              {longDescription || shortDescription}
-            </p>
+            <div 
+              className="text-sm leading-relaxed text-white/75 sm:text-base prose prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: longDescription || shortDescription || '' }}
+            />
 
-            <div className="rounded-2xl border border-white/15 bg-black/40 p-4">
-              <ShopPrimaryPriceBox
-                locale={resolvedLocale}
-                isUa={isUa}
-                price={pricing.effectivePrice}
-              />
-              {pricing.effectiveCompareAt ? (
-                <p className="mt-2 text-xs text-white/45 line-through">
-                  {formatPrice(resolvedLocale, pricing.effectiveCompareAt.eur, 'EUR')}
-                </p>
-              ) : null}
+            <div className="rounded-2xl border border-white/15 bg-black/40 p-5 space-y-4">
+              <div className="flex flex-col">
+                <ShopPrimaryPriceBox
+                  locale={resolvedLocale}
+                  isUa={isUa}
+                  price={pricing.effectivePrice}
+                />
+                {pricing.effectiveCompareAt ? (
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="text-xs uppercase tracking-[0.2em] text-white/40">{isUa ? 'Стара ціна' : 'Was'}</span>
+                    <span className="text-sm text-red-400/80 line-through">
+                      {formatPrice(resolvedLocale, computeCrossPrices(pricing.effectiveCompareAt).eur, 'EUR')}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+
               {pricing.b2bVisible ? (
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-emerald-200/80">
-                  {isUa ? 'B2B band visible' : 'B2B band visible'}
-                </p>
-              ) : null}
-              {pricing.audience === 'b2b' && pricing.source === 'b2b-discount' && pricing.discountPercent != null ? (
-                <p className="mt-2 text-xs text-emerald-100/80">
-                  {isUa
-                    ? `Персональна B2B знижка ${pricing.discountPercent}% застосована`
-                    : `Personal B2B discount ${pricing.discountPercent}% applied`}
-                </p>
-              ) : null}
-              {pricing.requestQuote ? (
-                <p className="mt-2 text-xs text-white/45">
-                  {isUa ? 'B2B ціни доступні після погодження акаунта або запиту.' : 'B2B pricing becomes available after approval or quote request.'}
-                </p>
-              ) : null}
-              {pricing.b2bVisible && pricing.bands.b2b?.price ? (
-                <p className="mt-2 text-sm text-white/65">
-                  B2B: {formatPrice(resolvedLocale, pricing.bands.b2b.price.eur, 'EUR')} / {formatPrice(resolvedLocale, pricing.bands.b2b.price.usd, 'USD')} / {formatPrice(resolvedLocale, pricing.bands.b2b.price.uah, 'UAH')}
-                </p>
-              ) : null}
-              {pricing.b2bVisible && pricing.bands.b2b?.source === 'b2b-discount' && pricing.bands.b2b.discountPercent != null ? (
-                <p className="text-xs text-white/45">
-                  {isUa
-                    ? `B2B band побудований від базової ціни зі знижкою ${pricing.bands.b2b.discountPercent}%`
-                    : `B2B band is derived from base pricing with a ${pricing.bands.b2b.discountPercent}% discount`}
-                </p>
+                <div className="rounded-xl bg-cyan-950/30 border border-cyan-500/20 p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500/20 text-[10px] text-cyan-300">✓</span>
+                    <p className="text-xs uppercase tracking-[0.14em] text-cyan-200">
+                      {isUa ? 'B2B Ціноутворення' : 'B2B Pricing'}
+                    </p>
+                  </div>
+                  
+                  {pricing.bands.b2b?.price ? (
+                    (() => {
+                      const b2bPrices = computeCrossPrices(pricing.bands.b2b.price);
+                      return (
+                        <div className="pl-7">
+                          <p className="text-2xl font-light text-white">
+                            {formatPrice(resolvedLocale, b2bPrices.eur, 'EUR')}
+                          </p>
+                          <p className="text-[11px] text-cyan-100/50 mt-1">
+                            {formatPrice(resolvedLocale, b2bPrices.usd, 'USD')} / {formatPrice(resolvedLocale, b2bPrices.uah, 'UAH')}
+                          </p>
+                        </div>
+                      );
+                    })()
+                  ) : null}
+
+                  {pricing.audience === 'b2b' && pricing.source === 'b2b-discount' && pricing.discountPercent != null ? (
+                    <div className="pl-7">
+                       <span className="inline-block px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] uppercase text-emerald-300 tracking-wider">
+                         {isUa
+                          ? `Знижка -${pricing.discountPercent}%`
+                          : `Discount -${pricing.discountPercent}%`}
+                       </span>
+                    </div>
+                  ) : pricing.bands.b2b?.source === 'b2b-discount' && pricing.bands.b2b.discountPercent != null ? (
+                    <div className="pl-7">
+                       <span className="inline-block px-2 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded text-[10px] uppercase text-cyan-300 tracking-wider">
+                         {isUa
+                          ? `Базова B2B знижка -${pricing.bands.b2b.discountPercent}%`
+                          : `Base B2B discount -${pricing.bands.b2b.discountPercent}%`}
+                       </span>
+                    </div>
+                  ) : null}
+
+                  {pricing.requestQuote ? (
+                    <p className="pl-7 text-[11px] text-cyan-200/50 leading-relaxed uppercase tracking-[0.1em]">
+                      {isUa ? 'Очікує верифікації акаунта' : 'Pending account verification'}
+                    </p>
+                  ) : null}
+                </div>
               ) : null}
             </div>
 
@@ -388,7 +509,9 @@ export default async function ShopProductDetailPage({
                     <Link
                       key={item.id}
                       href={
-                        isUrbanMode
+                        isDo88Mode
+                          ? `/${resolvedLocale}/shop/do88/products/${item.product.slug}`
+                          : isUrbanMode
                           ? `/${resolvedLocale}/shop/urban/products/${item.product.slug}`
                           : `/${resolvedLocale}/shop/${item.product.slug}`
                       }
@@ -443,17 +566,23 @@ export default async function ShopProductDetailPage({
             {relatedProducts.map((item) => (
               <Link
                 key={item.slug}
-                href={buildShopProductPath(resolvedLocale, item, isUrbanMode)}
+                href={isDo88Mode ? `/${resolvedLocale}/shop/do88/products/${item.slug}` : (isUrbanMode ? `/${resolvedLocale}/shop/urban/products/${item.slug}` : `/${resolvedLocale}/shop/${item.slug}`)}
                 className="group overflow-hidden rounded-2xl border border-white/15 bg-white/[0.03] transition hover:border-white/35"
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
-                  <Image
-                    src={item.image}
-                    alt={localizeShopProductTitle(resolvedLocale, item)}
-                    fill
-                    sizes="(max-width: 1280px) 100vw, 30vw"
-                    className="object-cover transition duration-500 group-hover:scale-105"
-                  />
+                  {item.image && item.image.replace(/^[\"']|[\"']$/g, '').trim().length > 0 ? (
+                    <Image
+                      src={item.image.replace(/^[\"']|[\"']$/g, '').trim()}
+                      alt={localizeShopProductTitle(resolvedLocale, item)}
+                      fill
+                      sizes="(max-width: 1280px) 100vw, 30vw"
+                      className="object-cover transition duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-black/40 text-white/10">
+                      <ShoppingBag className="h-12 w-12 opacity-30" />
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/70" />
                 </div>
                 <div className="space-y-2 p-4">
@@ -467,7 +596,7 @@ export default async function ShopProductDetailPage({
             ))}
           </div>
         </section>
-      </div>
-    </main>
+      </div>)}
+</main>
   );
 }

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Copy, ExternalLink, PackageCheck, Truck, Plus, Pencil, Trash2, Save, X } from 'lucide-react';
+import { ArrowLeft, Copy, ExternalLink, PackageCheck, Truck, Plus, Pencil, Trash2, Save, X, Package, DollarSign, AlertCircle } from 'lucide-react';
 
 type OrderStatus =
   | 'PENDING_PAYMENT'
@@ -55,6 +55,9 @@ type OrderDetail = {
   email: string;
   customerName: string;
   phone: string | null;
+  customerGroupSnapshot?: string;
+  b2bDiscountPercent?: number | null;
+  discountNotes?: string | null;
   shippingAddress: Record<string, unknown>;
   currency: string;
   subtotal: number;
@@ -488,8 +491,9 @@ export default function AdminOrderDetailPage() {
   const addr = order.shippingAddress as Record<string, string>;
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="mx-auto max-w-5xl p-6">
+    <div className="relative min-h-full overflow-auto pb-20">
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-600/8 blur-[120px]" />
+      <div className="mx-auto max-w-[1920px] p-6 lg:p-10">
         <Link
           href="/admin/shop/orders"
           className="mb-6 inline-flex items-center gap-2 text-sm text-white/60 hover:text-white"
@@ -498,8 +502,8 @@ export default function AdminOrderDetailPage() {
           Назад до замовлень
         </Link>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 backdrop-blur-md">
+          <div className="flex flex-wrap items-start justify-between gap-6">
             <div>
               <div className="flex items-center gap-2">
                 <button
@@ -523,18 +527,19 @@ export default function AdminOrderDetailPage() {
                 {order.amountPaid != null && (
                   order.amountPaid >= order.total
                     ? <span className="inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300">Оплачено</span>
-                    : <span className="inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-300">
+                    : <span className="inline-flex rounded-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs text-rose-300">
                         Борг: {formatMoney(order.total - order.amountPaid, order.currency)}
                       </span>
                 )}
                 <button
                   type="button"
                   onClick={() => { setPayModalAmount(''); setPayModalMode('add'); setShowPayModal(true); }}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-300 hover:bg-blue-500/20 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-medium text-indigo-300 shadow-[0_0_15px_-3px_rgba(99,102,241,0.2)] transition-all hover:border-indigo-500/50 hover:bg-indigo-500/20"
                 >
-                  💰 Записати оплату
+                  <DollarSign className="h-3.5 w-3.5" />
+                  Внести платіж
                 </button>
-                <span className="text-sm text-white/45">
+                <span className="text-sm font-light text-white/40">
                   Створено {new Date(order.createdAt).toLocaleString()}
                 </span>
               </div>
@@ -579,16 +584,32 @@ export default function AdminOrderDetailPage() {
           <div className="mt-6 grid gap-4 md:grid-cols-4">
             <SummaryCard label="Клієнт" value={order.customerName} detail={order.email} />
             <SummaryCard label="Зона доставки" value={order.shippingZoneName || 'Не визначено'} detail={order.shippingZoneId || '—'} />
-            <SummaryCard
-              label="Оплата"
-              value={order.amountPaid != null ? formatMoney(order.amountPaid, order.currency) : '—'}
-              detail={order.amountPaid != null && order.amountPaid < order.total ? `Залишок: ${formatMoney(order.total - order.amountPaid, order.currency)}` : 'Повна сума'}
-            />
+            {order.amountPaid != null && order.amountPaid < order.total ? (
+              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 shadow-[0_0_20px_-5px_rgba(244,63,94,0.15)]">
+                <div className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-rose-400">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  Неоплачений борг
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-2">
+                  <div className="text-xl font-bold text-rose-300">{formatMoney(order.total - order.amountPaid, order.currency)}</div>
+                  <div className="text-xs text-rose-300/50">з {formatMoney(order.total, order.currency)}</div>
+                </div>
+                <div className="mt-1 text-xs text-rose-300/60">
+                  Сплачено: {formatMoney(order.amountPaid, order.currency)}
+                </div>
+              </div>
+            ) : (
+              <SummaryCard
+                label="Оплата"
+                value={order.amountPaid != null ? formatMoney(order.amountPaid, order.currency) : '—'}
+                detail={'Оплачено повністю'}
+              />
+            )}
             <SummaryCard label="Відправлення" value={String(order.shipments.length)} detail={`${order.events.length} подій у історії`} />
           </div>
 
-          <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-4">
-            <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
+          <div className="mt-6 rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
+            <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
               <div>
                 <span className="mb-1.5 block text-xs uppercase tracking-wider text-white/50">Примітка до статусу</span>
                 <textarea
@@ -596,16 +617,16 @@ export default function AdminOrderDetailPage() {
                   onChange={(event) => setStatusNote(event.target.value)}
                   rows={3}
                   placeholder="Необов'язкова примітка до історії замовлення"
-                  className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+                  className="box-border w-full resize-none rounded-lg border border-white/10 bg-zinc-950/50 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20"
                 />
               </div>
               <div>
                 <span className="mb-1.5 block text-xs uppercase tracking-wider text-white/50">Зміна статусу вручну</span>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <select
                     value={newStatus}
                     onChange={(event) => setNewStatus(event.target.value)}
-                    className="w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-sm text-white"
+                    className="flex-1 rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-sm text-white"
                   >
                     {[order.status, ...order.allowedTransitions].map((status) => (
                       <option key={status} value={status}>
@@ -649,13 +670,30 @@ export default function AdminOrderDetailPage() {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
               <p className="mb-2 text-xs uppercase tracking-wider text-white/50">Контакт</p>
-              <p className="text-white">{order.customerName}</p>
+              <p className="text-white text-lg font-medium">{order.customerName}</p>
               <p className="mt-1 text-white/80">{order.email}</p>
               {order.phone ? <p className="mt-1 text-white/70">{order.phone}</p> : null}
+              {order.customerGroupSnapshot && order.customerGroupSnapshot !== 'B2C' && (
+                <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 py-2 text-xs font-medium text-indigo-300">
+                  <span>💎 Група: {order.customerGroupSnapshot}</span>
+                  {order.b2bDiscountPercent ? (
+                    <>
+                      <span className="text-white/20">•</span>
+                      <span>Знижка: {order.b2bDiscountPercent}%</span>
+                    </>
+                  ) : null}
+                  {order.discountNotes && (
+                    <>
+                      <span className="text-white/20">•</span>
+                      <span className="text-indigo-400/60 font-mono truncate max-w-[200px]" title={order.discountNotes}>{order.discountNotes}</span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
-            <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
               <p className="mb-2 text-xs uppercase tracking-wider text-white/50">Адреса доставки</p>
               <p className="text-white/90">{addr.line1}</p>
               {addr.line2 ? <p className="text-white/80">{addr.line2}</p> : null}
@@ -668,7 +706,7 @@ export default function AdminOrderDetailPage() {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-xs uppercase tracking-wider text-white/50">Оплата та Борг</p>
                 <button
@@ -706,7 +744,7 @@ export default function AdminOrderDetailPage() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-xs uppercase tracking-wider text-white/50">Спецдоставка / ТТН</p>
                 <button
@@ -758,7 +796,7 @@ export default function AdminOrderDetailPage() {
             </div>
           </div>
 
-          <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-4">
+          <div className="mt-6 rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-xs uppercase tracking-wider text-white/50">Позиції ({order.items.length})</p>
               <button
@@ -862,31 +900,43 @@ export default function AdminOrderDetailPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="text-white font-medium">{item.title}</div>
-                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/45">
-                            {detail?.partNumber ? (
-                              <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white/60">SKU: {detail.partNumber}</span>
-                            ) : item.productSlug && (
-                              <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white/60">
-                                {item.productSlug.replace(/^(admin-|turn14-|draft-|crm-)\d*-?/, '').replace(/-[a-z0-9]{6,}$/, '') || item.productSlug}
-                              </span>
-                            )}
-                            {detail?.brand && <span className="text-white/40">{detail.brand}</span>}
-                            <span>{item.quantity} × {formatMoney(item.price, order.currency)}</span>
-                            {detail?.turn14Id && <span className="text-white/25">T14: {detail.turn14Id}</span>}
-                          </div>
-                          {detail && (
-                            <div className="mt-2 flex flex-wrap gap-3 text-[10px] uppercase tracking-wider">
-                              {detail.baseCostUsd != null && (
-                                <span className="rounded border border-blue-500/15 bg-blue-500/5 px-2 py-0.5 text-blue-300">Закупка: ${detail.baseCostUsd}</span>
-                              )}
-                              {detail.markupPct != null && (
-                                <span className="rounded border border-amber-500/15 bg-amber-500/5 px-2 py-0.5 text-amber-300">Націнка: {detail.markupPct}%</span>
-                              )}
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div className="flex min-w-0 flex-1 items-start gap-4">
+                          {item.image ? (
+                            <div className="w-12 h-12 rounded bg-white/5 border border-white/10 overflow-hidden flex-shrink-0 relative">
+                              <img src={item.image} alt={item.title} className="object-cover w-full h-full" />
+                            </div>
+                          ) : (
+                            <div className="w-12 h-12 rounded bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                              <Package className="w-5 h-5 text-white/20" />
                             </div>
                           )}
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm text-white font-medium truncate max-w-[400px]">{item.title}</div>
+                            <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-white/45">
+                              {detail?.partNumber ? (
+                                <span className="text-indigo-400 font-mono tracking-wider">{detail.partNumber}</span>
+                              ) : item.productSlug && (
+                                <span className="text-indigo-400 font-mono tracking-wider">
+                                  {item.productSlug.replace(/^(admin-|turn14-|draft-|crm-)\d*-?/, '').replace(/-[a-z0-9]{6,}$/, '') || item.productSlug}
+                                </span>
+                              )}
+                              {detail?.brand && <span className="text-white/40">{detail.brand}</span>}
+                              <span className="text-white/30 px-1">•</span>
+                              <span className="text-white/60">{item.quantity} × {formatMoney(item.price, order.currency)}</span>
+                              {detail?.turn14Id && <span className="text-white/25">T14: {detail.turn14Id}</span>}
+                            </div>
+                            {detail && (
+                              <div className="mt-2 flex flex-wrap gap-3 text-[10px] uppercase tracking-wider">
+                                {detail.baseCostUsd != null && (
+                                  <span className="rounded border border-blue-500/15 bg-blue-500/5 px-2 py-0.5 text-blue-300">Закупка: ${detail.baseCostUsd}</span>
+                                )}
+                                {detail.markupPct != null && (
+                                  <span className="rounded border border-amber-500/15 bg-amber-500/5 px-2 py-0.5 text-amber-300">Націнка: {detail.markupPct}%</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="text-right">
@@ -978,7 +1028,7 @@ export default function AdminOrderDetailPage() {
             );
           })() : null}
 
-          <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-4">
+          <div className="mt-6 rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
             <div className="grid gap-3 text-sm">
               <SummaryRow label="Підсумок" value={formatMoney(order.subtotal, order.currency)} />
               <SummaryRow label="Доставка" value={formatMoney(order.shippingCost, order.currency)} />
@@ -1485,7 +1535,7 @@ function PaymentModal({ order, show, onClose, amount, setAmount, mode, setMode, 
 
 function SummaryCard({ label, value, detail }: SummaryCardProps) {
   return (
-    <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+    <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
       <div className="text-xs uppercase tracking-[0.18em] text-white/40">{label}</div>
       <div className="mt-3 text-lg font-semibold text-white">{value}</div>
       <div className="mt-1 text-sm text-white/45">{detail}</div>

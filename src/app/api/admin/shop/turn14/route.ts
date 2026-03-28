@@ -20,7 +20,28 @@ export async function GET(request: Request) {
   }
 
   try {
-    const results = await searchTurn14Items(keyword, page);
+    let brandId: string | undefined = undefined;
+    
+    // Turn14's /items API doesn't support raw text search, only brand_id filtering.
+    // Try to resolve the keyword into a brand ID first.
+    if (keyword) {
+      const matchId = await findTurn14BrandIdByName(keyword);
+      if (matchId) {
+        brandId = matchId;
+      } else {
+        // Keyword was typed, but it's not a valid Turn14 brand.
+        // If we proceed without brandId, Turn14 will just return the whole catalog (starting with Radium).
+        // Therefore, we must return empty data.
+        return NextResponse.json({ data: [], meta: { current_page: 1, total_pages: 1 } });
+      }
+    }
+
+    const results = await searchTurn14Items(
+      // We still pass keyword but it might be ignored by Turn14 API if brandId is the only valid param
+      keyword, 
+      page, 
+      { brandId }
+    );
     const rawItems = results.data || [];
 
     // Flatten JSON:API attributes for frontend convenience

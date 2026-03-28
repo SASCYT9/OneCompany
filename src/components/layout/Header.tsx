@@ -31,16 +31,33 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isShopRoute = segments[0] === "shop";
 
+  const currentBrand = segments[1];
+  const isBrandPortal = currentBrand && !['stock', 'account', 'cart', 'checkout'].includes(currentBrand);
+
+  const formatBrandName = (brand: string) => {
+    if (brand.toLowerCase() === 'do88') return 'do88';
+    if (brand.toLowerCase() === 'vf-engineering') return 'VF Engineering';
+    if (brand.toLowerCase() === 'kw-suspension') return 'KW Suspension';
+    return brand.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  };
+
   const shopNavItems = [
     {
       key: "stores",
       href: `/${locale}/shop`,
       label: isUa ? "Магазини" : "Stores",
     },
+    ...(isBrandPortal ? [{
+      key: "brand-catalog",
+      href: `/${locale}/shop/${currentBrand}#catalog`,
+      label: isUa ? `Каталог ${formatBrandName(currentBrand)}` : `${formatBrandName(currentBrand)} Catalog`,
+    }] : []),
     {
       key: "stock",
       href: `/${locale}/shop/stock`,
-      label: isUa ? "Каталог" : "Catalog",
+      label: isUa 
+        ? (isBrandPortal ? "Усі Товари" : "Каталог") 
+        : (isBrandPortal ? "All Stock" : "Catalog"),
     },
     {
       key: "account",

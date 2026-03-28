@@ -1,0 +1,44 @@
+import { Suspense } from 'react';
+import { buildPageMetadata, resolveLocale } from '@/lib/seo';
+import Do88HomeSignature from '../components/Do88HomeSignature';
+import Do88CollectionsGrid from '../components/Do88CollectionsGrid';
+import Do88FeaturedModels from '../components/Do88FeaturedModels';
+import OurStoresPortal from '../components/OurStoresPortal';
+import '@/styles/urban-collections.css';
+
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const resolvedLocale = resolveLocale(locale);
+  return buildPageMetadata(resolvedLocale, 'shop/do88', {
+    title: resolvedLocale === 'ua' ? 'DO88 Performance | One Company' : 'DO88 Performance | One Company',
+    description:
+      resolvedLocale === 'ua'
+        ? 'Преміальні системи охолодження DO88 зі Швеції. Офіційний постачальник в Україні.'
+        : 'Premium DO88 performance cooling systems from Sweden. Official supplier in Ukraine.',
+  });
+}
+
+export default async function ShopDo88Page({ params }: Props) {
+  const { locale } = await params;
+  const resolvedLocale = resolveLocale(locale);
+
+  return (
+    <>
+      <Do88HomeSignature locale={resolvedLocale} />
+      
+      <Suspense fallback={<div className="h-64 bg-black" />}>
+        <Do88CollectionsGrid locale={resolvedLocale} />
+      </Suspense>
+      
+      <Do88FeaturedModels locale={resolvedLocale} />
+    </>
+  );
+}

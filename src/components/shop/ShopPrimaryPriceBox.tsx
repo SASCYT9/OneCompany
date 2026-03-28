@@ -28,30 +28,44 @@ export function ShopPrimaryPriceBox({ locale, isUa, price }: Props) {
 
   const hasValid = (value?: number | null) => typeof value === "number" && value > 0;
 
-  const amountEur = price.eur;
-  const amountUah = price.uah;
-  const amountUsd = price.usd;
+  const amountEur = price.eur || 0;
+  const amountUah = price.uah || 0;
+  const amountUsd = price.usd || 0;
 
-  const computedUsd =
-    !hasValid(amountUsd) && rates && hasValid(amountUah)
-      ? amountUah / rates.USD
-      : amountUsd;
+  let computedUah = amountUah;
+  let computedEur = amountEur;
+  let computedUsd = amountUsd;
 
-  const computedEur =
-    !hasValid(amountEur) && rates && hasValid(amountUah)
-      ? amountUah / rates.EUR
-      : amountEur;
+  if (hasValid(amountUah) && rates) {
+    if (!hasValid(computedEur)) computedEur = (amountUah / rates.UAH) * rates.EUR;
+    if (!hasValid(computedUsd)) computedUsd = (amountUah / rates.UAH) * rates.USD;
+  } else if (hasValid(amountEur) && rates) {
+    if (!hasValid(computedUah)) computedUah = (amountEur / rates.EUR) * rates.UAH;
+    if (!hasValid(computedUsd)) computedUsd = (amountEur / rates.EUR) * rates.USD;
+  } else if (hasValid(amountUsd) && rates) {
+    if (!hasValid(computedUah)) computedUah = (amountUsd / rates.USD) * rates.UAH;
+    if (!hasValid(computedEur)) computedEur = (amountUsd / rates.USD) * rates.EUR;
+  }
 
   const displayAmount =
     currency === "USD"
-      ? computedUsd && computedUsd > 0
-        ? computedUsd
-        : computedEur
+      ? computedUsd
       : currency === "EUR"
-        ? computedEur && computedEur > 0
-          ? computedEur
-          : amountUah
-        : amountUah;
+        ? computedEur
+        : computedUah;
+
+  if (amountEur === 0) {
+    return (
+      <>
+        <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
+          {isUa ? "Ціна" : "Pricing"}
+        </p>
+        <p className="mt-2 text-2xl font-light text-zinc-300">
+          {isUa ? "Ціна за запитом" : "Price on Request"}
+        </p>
+      </>
+    );
+  }
 
   return (
     <>
@@ -67,9 +81,9 @@ export function ShopPrimaryPriceBox({ locale, isUa, price }: Props) {
           formatPrice(locale, displayAmount, "UAH")}
       </p>
       <p className="text-sm text-white/60">
-        {formatPrice(locale, computedUsd && computedUsd > 0 ? computedUsd : price.usd || 0, "USD")}{" "}
-        / {formatPrice(locale, computedEur && computedEur > 0 ? computedEur : price.eur, "EUR")}{" "}
-        / {formatPrice(locale, amountUah, "UAH")}
+        {formatPrice(locale, computedUsd, "USD")}{" "}
+        / {formatPrice(locale, computedEur, "EUR")}{" "}
+        / {formatPrice(locale, computedUah, "UAH")}
       </p>
     </>
   );

@@ -171,9 +171,8 @@ export default function Turn14AdminPage() {
   }).length;
 
   return (
-    <div className="relative h-full w-full overflow-auto bg-black text-white">
-      {/* Subtle ambient neon glow in the background */}
-      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-600/10 blur-[120px]"></div>
+    <div className="relative h-full w-full overflow-auto text-white z-20">
+      {/* Orbs removed: using global layout ambient background */}
 
       <div className="w-full px-4 py-8 md:px-8 lg:px-12">
         <Link
@@ -184,9 +183,9 @@ export default function Turn14AdminPage() {
           Назад в магазин
         </Link>
         
-        <h1 className="mb-2 flex items-center gap-3 text-3xl font-light tracking-tight text-white drop-shadow-lg">
-          <Globe className="h-8 w-8 text-indigo-500/80 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)]" /> 
-          Turn14 Global Catalog Live Search
+        <h1 className="mb-4 flex flex-col md:flex-row md:items-center gap-4 text-4xl lg:text-5xl font-light tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500">
+          <Globe className="h-10 w-10 text-indigo-400 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)] flex-shrink-0" /> 
+          Turn14 Global Catalog
         </h1>
           <p className="mb-6 max-w-2xl text-sm leading-relaxed text-white/40">
           Пошук оригінальних деталей безпосередньо у постачальника Turn14 Distribution.
@@ -233,7 +232,7 @@ export default function Turn14AdminPage() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Введіть артикул, бренд або назву деталі (напр. 'exhaust')"
+            placeholder="Введіть назву бренду (напр. 'Eventuri', 'Urban Automotive', 'DO88')"
             className="w-full bg-transparent text-white placeholder:text-white/30 focus:outline-none tracking-wide"
           />
         </label>
