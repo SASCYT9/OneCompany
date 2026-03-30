@@ -23,6 +23,7 @@ import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCat
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { localizeShopDescription, localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopViewerPricingContext, resolveShopProductPricing } from '@/lib/shopPricingAudience';
+import { BurgerShopProductDetailLayout } from './BurgerShopProductDetailLayout';
 import { BrabusShopProductDetailLayout } from './BrabusShopProductDetailLayout';
 import {
   getProductsForDo88Collection,
@@ -40,7 +41,7 @@ import type { ShopProduct } from '@/lib/shopCatalog';
 
 const prisma = new PrismaClient();
 
-type ProductPageMode = 'default' | 'urban' | 'do88' | 'brabus';
+type ProductPageMode = 'default' | 'urban' | 'do88' | 'brabus' | 'burger';
 
 type Props = {
   locale: string;
@@ -75,6 +76,7 @@ export async function getShopProductPageMetadata({
   let pageSlug = `shop/${slug}`;
   if (mode === 'urban') pageSlug = `shop/urban/products/${slug}`;
   if (mode === 'do88') pageSlug = `shop/do88/products/${slug}`;
+  if (mode === 'burger') pageSlug = `shop/burger/products/${slug}`;
 
   if (!product) {
     return buildPageMetadata(resolvedLocale, pageSlug, {
@@ -206,6 +208,7 @@ export default async function ShopProductDetailPage({
   let productPath = `/${resolvedLocale}/shop/${product.slug}`;
   if (isUrbanMode) productPath = `/${resolvedLocale}/shop/urban/products/${product.slug}`;
   if (isDo88Mode) productPath = `/${resolvedLocale}/shop/do88/products/${product.slug}`;
+  if (mode === 'burger') productPath = `/${resolvedLocale}/shop/burger/products/${product.slug}`;
   
   const productUrl = `${baseUrl}${productPath}`;
   
@@ -261,6 +264,17 @@ export default async function ShopProductDetailPage({
       
       {product.brand === 'Brabus' || mode === 'brabus' ? (
         <BrabusShopProductDetailLayout
+          locale={locale}
+          resolvedLocale={resolvedLocale}
+          product={product}
+          pricing={pricing}
+          viewerContext={viewerContext}
+          rates={rates}
+          defaultVariant={defaultVariant}
+          relatedProducts={relatedProducts}
+        />
+      ) : mode === 'burger' || product.brand === 'Burger Motorsports' ? (
+        <BurgerShopProductDetailLayout
           locale={locale}
           resolvedLocale={resolvedLocale}
           product={product}

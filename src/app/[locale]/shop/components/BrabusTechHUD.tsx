@@ -38,9 +38,9 @@ export default function BrabusTechHUD({ locale }: Props) {
       {/* Left-Aligned Content */}
       <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-16 lg:px-24 max-w-4xl pt-24">
         <h1 className="text-6xl md:text-8xl lg:text-[100px] font-bold uppercase leading-[1.0] tracking-tight mb-6">
-          {isUa ? "Шедевр" : "Masterpiece"}
+          {isUa ? "За межами" : "Beyond"}
           <br />
-          {isUa ? "Потужності" : "Unleashed"}
+          {isUa ? "досконалості" : "Perfection"}
         </h1>
 
         <p className="text-lg md:text-xl font-normal text-white/80 max-w-xl mb-12 uppercase tracking-wide leading-relaxed">

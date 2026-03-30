@@ -24,13 +24,13 @@ export const BRABUS_SHOWCASES: BrabusShowcase[] = [
     nameUk: 'Потужні\nМотори',
     subtitle: 'Unleash pure adrenaline. Handbuilt V8 Biturbo engines, expanded displacement, and mind-bending torque figures.',
     subtitleUk: 'Вивільніть чистий адреналін. Ексклюзивні двигуни V8 Biturbo ручної збірки, збільшений об\'єм та неймовірний крутний момент.',
-    exploreLink: '/shop/brabus/collections/g-class-w465',
-    shopLink: '/shop/brabus/collections/g-class-w465',
+    exploreLink: '/shop/brabus/products',
+    shopLink: '/shop/brabus/products',
     avail: 'Available for order',
     availUk: 'Доступно для замовлення',
     /** Carbon Engine Bay Masterpiece */
     imageUrl: '/images/shop/brabus/hq/brabus_carbon_engine.png',
-    imageAlt: 'Brabus Widetrack Programme',
+    imageAlt: 'Brabus Performance Engines',
     vimeoUrl: '',
   },
   {
@@ -41,13 +41,13 @@ export const BRABUS_SHOWCASES: BrabusShowcase[] = [
     nameUk: 'Інтер\'єр\nMasterpiece',
     subtitle: 'Exquisite handcrafted leather, refined carbon styling, and unparalleled comfort. Designed for absolute luxury.',
     subtitleUk: 'Вишукана шкіра ручної роботи, витончений карбон та неперевершений комфорт. Створено для абсолютного рівня розкоші.',
-    exploreLink: '/shop/brabus/collections/porsche',
-    shopLink: '/shop/brabus/collections/porsche',
+    exploreLink: '/shop/brabus/products',
+    shopLink: '/shop/brabus/products',
     avail: 'Worldwide Shipping',
     availUk: 'Доставка по всьому світу',
     /** Stealth Quilted Leather Interior */
     imageUrl: '/images/shop/brabus/hq/brabus_stealth_interior.png',
-    imageAlt: 'Brabus Performance Supercars',
+    imageAlt: 'Brabus Masterpiece Interior',
     vimeoUrl: '',
   },
   {
@@ -58,13 +58,13 @@ export const BRABUS_SHOWCASES: BrabusShowcase[] = [
     nameUk: 'Диски та\nОбвіс',
     subtitle: 'The ultimate presence. Carbon-fibre Widetrack body styling perfectly matched with Monoblock forged wheels.',
     subtitleUk: 'Абсолютна домінація. Карбоновий аеродинамічний обвіс Widetrack у поєднанні з ідеальними кованими дисками Monoblock.',
-    exploreLink: '/shop/brabus/collections',
-    shopLink: '/shop/brabus/collections',
+    exploreLink: '/shop/brabus/products',
+    shopLink: '/shop/brabus/products',
     avail: 'Bespoke Commission',
     availUk: 'Індивідуальне замовлення',
     /** Stealth Black Masterpiece Studio Render (Replaced scary red) */
     imageUrl: '/images/shop/brabus/hq/brabus_stealth_masterpiece.png',
-    imageAlt: 'Brabus Monoblock Wheels',
+    imageAlt: 'Brabus Monoblock Wheels & Widetrack',
     vimeoUrl: '',
   }
 ];

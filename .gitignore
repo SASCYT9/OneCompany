@@ -51,3 +51,5 @@ public/videos/originals/
 public/videos/shop/
 public/brabus-images/
 *.mp4.part
+
+data/.chrome-scraper-profile/

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const INPUT_FILE = path.join(process.cwd(), 'brabus-products.json');
+const INPUT_FILE = path.join(process.cwd(), 'brabus-seo-catalog-cleaned.json');
 
 async function main() {
   console.log('🚀 Starting Fast Brabus DB Import via API Proxy');

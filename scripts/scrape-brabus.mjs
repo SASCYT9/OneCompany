@@ -106,9 +106,22 @@ function extractProductData(htmlDe, htmlEn, urlDe) {
   const $de = cheerio.load(htmlDe);
   const $en = cheerio.load(htmlEn);
   
-  // Extract Price from German
-  const priceText = $de('.price').first().text().trim() || $de('.price-wrapper').first().text().trim();
-  const priceEUR = parsePrice(priceText);
+  // Extract Price from German JSON-LD as primary source
+  let priceEUR = 0;
+  $de('script[type="application/ld+json"]').each((i, el) => {
+    try {
+      const data = JSON.parse($de(el).html() || '{}');
+      if (data['@type'] === 'Product' && data.offers && data.offers.price) {
+        priceEUR = parseFloat(data.offers.price);
+      }
+    } catch(e) {}
+  });
+
+  // Fallback to text if JSON-LD fails
+  if (!priceEUR || priceEUR === 0) {
+    const priceText = $de('.price').first().text().trim() || $de('.price-wrapper').first().text().trim();
+    priceEUR = parsePrice(priceText);
+  }
   
   // Extract Title, Desc, Images from English
   const title = $en('h1').text().trim();
@@ -210,23 +223,20 @@ import pLimit from 'p-limit';
 
 async function main() {
   const args = process.argv.slice(2);
-  const limitIndex = args.indexOf('--limit');
-  let urlLimit = limitIndex !== -1 ? parseInt(args[limitIndex + 1], 10) : 0;
-
+  const limitArgIndex = args.indexOf('--limit');
+  const urlLimit = limitArgIndex > -1 ? parseInt(args[limitArgIndex + 1], 10) : 0;
+  
   console.log('🔧 Brabus dual-lang Product Scraper (DE prices, EN desc)');
-  console.log('========================================================');
   
   try {
     const urlsDe = await getTuningUrls();
-    console.log(`🎯 Found ${urlsDe.length} potential product URLs\n`);
-
     const targetUrls = urlLimit > 0 ? urlsDe.slice(0, urlLimit) : urlsDe;
     
     const allProducts = [];
     let processed = 0;
-    const limit = pLimit(30); // 30 concurrent connections for high speed bulk extraction
+    const limit = pLimit(15); // 15 concurrent connections to respect Cloudflare limits (2 reqs per item)
 
-    console.log(`⏳ Starting fast concurrent extraction of ${targetUrls.length} vehicle components...`);
+    console.log(`⏳ Starting fast concurrent extraction of ${targetUrls.length} vehicle components (Dual-Lang)...`);
 
     const promises = targetUrls.map((urlDe) =>
       limit(async () => {
@@ -237,15 +247,29 @@ async function main() {
             return null; // 404
           }
 
-          // Single-pass optimization: Parse directly from German HTML to bypass Cloudflare Tarpit
-          const product = extractProductData(htmlDe, htmlDe, urlDe);
+          // Fetch official English catalog for pristine titles and descriptions
+          let urlEn = urlDe.replace('/de-de/', '/en-int/');
+          urlEn = urlEn.replace('/auf-basis-mercedes/', '/based-on-mercedes/');
+          urlEn = urlEn.replace('/auf-basis-porsche/', '/based-on-porsche/');
+          urlEn = urlEn.replace('/auf-basis-rolls-royce/', '/based-on-rolls-royce/');
+          urlEn = urlEn.replace('/uebersicht/', '/overview/');
+          urlEn = urlEn.replace('/artikel/', '/article/');
+          
+          const htmlEn = await fetchPage(urlEn);
+          if (!htmlEn) { console.log('404 EN URL:', urlEn);
+            processed++;
+            return null;
+          }
+
+          // Extract Price from DE, Titles/Desc from EN
+          const product = extractProductData(htmlDe, htmlEn, urlDe);
           
           // KEEP ALL PRODUCTS with title, even if price is 0 (Preis auf Anfrage)
           if (product.title) {
             allProducts.push(product);
           }
         } catch (err) {
-            // silent fail on individual items to keep mass scrape going
+            console.error(urlDe, err.message);
         }
         processed++;
         if (processed % 50 === 0) {

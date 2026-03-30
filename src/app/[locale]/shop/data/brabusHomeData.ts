@@ -17,8 +17,8 @@ export type BrabusFeaturedModel = {
 export const BRABUS_HERO = {
   eyebrow: 'One Company × Brabus',
   eyebrowUk: 'One Company × Brabus',
-  title: 'Masterpiece of Power.',
-  titleUk: 'Шедевр Потужності.',
+  title: 'Beyond Perfection.',
+  titleUk: 'За межами досконалості.',
   subtitle:
     'Official Brabus supplier in Ukraine. Aerodynamic kits, forged wheels, performance upgrades — the legendary 1-Second-Wow effect.',
   subtitleUk:
@@ -26,10 +26,10 @@ export const BRABUS_HERO = {
   primaryButtonLabel: 'Explore Range',
   primaryButtonLabelUk: 'Модельний ряд',
   primaryButtonLink: '/shop/brabus/collections',
-  secondaryButtonLabel: 'About One Company',
-  secondaryButtonLabelUk: 'Про One Company',
-  secondaryButtonLink: 'https://onecompany.global/ua',
-  secondaryButtonNewTab: true,
+  secondaryButtonLabel: 'About Us',
+  secondaryButtonLabelUk: 'Про нас',
+  secondaryButtonLink: '/about',
+  secondaryButtonNewTab: false,
   /** Rocket Edition G-Class dark studio shot with red neon & wet reflections — largest HQ image */
   heroImageUrl: '/images/shop/brabus/hq/brabus-supercars-27.jpg',
 } as const;
@@ -51,23 +51,23 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/g-class',
-    /** W465 Rocket Edition — on location, dark dramatic, front 3/4 */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-22.jpg',
+    /** W465 Rocket Edition — AI generated dark cinematic */
+    imageUrl: '/images/shop/brabus/hq/brabus_gclass_stealth.png',
   },
   {
-    title: 'G-Class 800 4x4²',
-    titleUk: 'G-Class 800 4x4²',
-    subtitle: 'Stealth Green',
-    subtitleUk: 'Stealth Green',
-    badge: 'Signature',
-    badgeUk: 'Signature',
+    title: 'Porsche 911 Turbo S',
+    titleUk: 'Porsche 911 Turbo S',
+    subtitle: 'Brabus 900 Rocket R',
+    subtitleUk: 'Brabus 900 Rocket R',
+    badge: 'Limited',
+    badgeUk: 'Лімітований',
     tagOne: 'Carbon',
-    tagTwo: '800 HP',
+    tagTwo: '900 HP',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: '/shop/brabus/collections/g-class',
-    /** G-Class 800 4x4² Stealth Green — dark studio exterior */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-178.jpg',
+    link: '/shop/brabus/collections/porsche',
+    /** 900 Rocket R — AI generated stealth dark cinematic */
+    imageUrl: '/images/shop/brabus/hq/brabus_porsche_rocket_stealth.png',
   },
   {
     title: 'Brabus 930',
@@ -82,7 +82,7 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/s-class',
     /** S63 E Performance 930 — studio sky shot — completely different car */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-180.jpg',
+    imageUrl: '/images/shop/brabus/hq/brabus_s63_stealth.png',
   },
   {
     title: 'Brabus 820',
@@ -97,7 +97,7 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/rolls-royce',
     /** Bentley GTC copper — large studio shot */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-39.jpg',
+    imageUrl: '/images/shop/brabus/hq/brabus_bentley_stealth.png',
   },
   {
     title: 'Brabus 900',
@@ -110,9 +110,9 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     tagTwo: '900 HP',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: '/shop/brabus/collections/porsche',
-    /** Lamborghini Urus 900 — on location, dramatic outdoor shot */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-16.jpg',
+    link: '/shop/brabus/collections/lamborghini',
+    /** Lamborghini Urus 900 — AI generated dark cinematic */
+    imageUrl: '/images/shop/brabus/hq/brabus_urus_stealth.png',
   },
   {
     title: 'Range Rover 600',
@@ -127,6 +127,6 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/wheels',
     /** Range Rover 600 — studio shot, unique vehicle */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-176.jpg',
+    imageUrl: '/images/shop/brabus/hq/brabus_range_rover_stealth.png',
   },
 ];

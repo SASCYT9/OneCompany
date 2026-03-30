@@ -1,0 +1,647 @@
+/* ═══════════════════════════════════════════
+   Burger Motorsports Store — Yellow/Black Theme
+   ═══════════════════════════════════════════ */
+
+/* ── Variables ── */
+:root {
+  --burger-yellow: #FFD700;
+  --burger-gold: #F5A623;
+  --burger-amber: #E8A317;
+  --burger-dark: #0a0a0a;
+  --burger-card: #111111;
+  --burger-border: #1e1e1e;
+  --burger-text: #ffffff;
+  --burger-muted: #888888;
+  --burger-glow: rgba(255, 215, 0, 0.15);
+}
+
+/* ── Layout ── */
+.burger-shop {
+  background: var(--burger-dark);
+  color: var(--burger-text);
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Hero Section ── */
+.burger-hero {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.burger-hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.burger-hero__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.burger-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.92) 0%,
+    rgba(0, 0, 0, 0.7) 50%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  z-index: 1;
+}
+
+.burger-hero__content {
+  position: relative;
+  z-index: 2;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 140px 48px 80px;
+  width: 100%;
+}
+
+.burger-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--burger-yellow);
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+.burger-hero__eyebrow::before {
+  content: '';
+  width: 32px;
+  height: 1px;
+  background: var(--burger-yellow);
+}
+
+.burger-hero__title {
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  margin-bottom: 20px;
+}
+
+.burger-hero__title span {
+  display: block;
+  background: linear-gradient(135deg, var(--burger-yellow) 0%, var(--burger-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.burger-hero__subtitle {
+  font-size: clamp(14px, 1.4vw, 18px);
+  color: var(--burger-muted);
+  max-width: 520px;
+  line-height: 1.6;
+  margin-bottom: 36px;
+}
+
+.burger-hero__buttons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Buttons ── */
+.burger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 0;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.burger-btn--primary {
+  background: var(--burger-yellow);
+  color: #000;
+  border: 1px solid var(--burger-yellow);
+}
+
+.burger-btn--primary:hover {
+  background: var(--burger-gold);
+  border-color: var(--burger-gold);
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+}
+
+.burger-btn--ghost {
+  background: transparent;
+  color: var(--burger-text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.burger-btn--ghost:hover {
+  border-color: var(--burger-yellow);
+  color: var(--burger-yellow);
+  box-shadow: 0 0 20px var(--burger-glow);
+}
+
+.burger-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+/* ── Stats Bar ── */
+.burger-stats {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  border-top: 1px solid var(--burger-border);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px);
+}
+
+.burger-stats__item {
+  flex: 1;
+  padding: 28px 24px;
+  text-align: center;
+  border-right: 1px solid var(--burger-border);
+}
+
+.burger-stats__item:last-child {
+  border-right: none;
+}
+
+.burger-stats__num {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--burger-yellow);
+  letter-spacing: -0.02em;
+}
+
+.burger-stats__label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--burger-muted);
+  margin-top: 4px;
+}
+
+/* ── Showcase Section ── */
+.burger-showcase {
+  padding: 100px 48px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.burger-showcase__title {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--burger-yellow);
+  margin-bottom: 48px;
+}
+
+.burger-showcase__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.burger-showcase__card {
+  position: relative;
+  aspect-ratio: 4/5;
+  overflow: hidden;
+  background: var(--burger-card);
+  border: 1px solid var(--burger-border);
+  transition: all 0.4s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.burger-showcase__card:hover {
+  border-color: var(--burger-yellow);
+  box-shadow: 0 0 40px var(--burger-glow);
+  transform: translateY(-4px);
+}
+
+.burger-showcase__card-img {
+  width: 100%;
+  height: 60%;
+  object-fit: cover;
+}
+
+.burger-showcase__card-body {
+  padding: 24px;
+}
+
+.burger-showcase__card-badge {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--burger-yellow);
+  margin-bottom: 8px;
+}
+
+.burger-showcase__card-name {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.burger-showcase__card-desc {
+  font-size: 13px;
+  color: var(--burger-muted);
+  line-height: 1.5;
+}
+
+.burger-showcase__card-cta {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--burger-yellow);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.burger-showcase__card-cta::after {
+  content: '→';
+}
+
+/* ── Brand Grid ── */
+.burger-brands {
+  padding: 80px 48px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.burger-brands__title {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--burger-yellow);
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.burger-brands__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.burger-brands__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+  background: var(--burger-card);
+  border: 1px solid var(--burger-border);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  color: var(--burger-muted);
+  transition: all 0.3s ease;
+}
+
+.burger-brands__item:hover,
+.burger-brands__item--active {
+  border-color: var(--burger-yellow);
+  color: var(--burger-yellow);
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.burger-brands__count {
+  font-size: 11px;
+  color: var(--burger-muted);
+  margin-left: 6px;
+  opacity: 0.6;
+}
+
+/* ── Legacy Section ── */
+.burger-legacy {
+  padding: 100px 48px;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+}
+
+.burger-legacy__eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--burger-yellow);
+  margin-bottom: 16px;
+}
+
+.burger-legacy__title {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.burger-legacy__text {
+  font-size: 15px;
+  color: var(--burger-muted);
+  line-height: 1.7;
+  margin-bottom: 32px;
+}
+
+.burger-legacy__img {
+  width: 100%;
+  aspect-ratio: 16/10;
+  object-fit: cover;
+  border: 1px solid var(--burger-border);
+}
+
+/* ── CTA Footer ── */
+.burger-cta {
+  text-align: center;
+  padding: 100px 48px;
+  border-top: 1px solid var(--burger-border);
+}
+
+.burger-cta__title {
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.burger-cta__title span {
+  color: var(--burger-yellow);
+}
+
+.burger-cta__sub {
+  color: var(--burger-muted);
+  font-size: 15px;
+  margin-bottom: 32px;
+}
+
+/* ── Product Grid (catalog) ── */
+.burger-filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--burger-border);
+  margin-bottom: 24px;
+}
+
+.burger-chip {
+  padding: 8px 16px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid var(--burger-border);
+  background: transparent;
+  color: var(--burger-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.burger-chip:hover,
+.burger-chip--active {
+  border-color: var(--burger-yellow);
+  color: var(--burger-yellow);
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.burger-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  padding: 24px 0;
+}
+
+.burger-product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 0;
+}
+
+.burger-product-card {
+  background: var(--burger-card);
+  border: 1px solid var(--burger-border);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.burger-product-card:hover {
+  border-color: rgba(255, 215, 0, 0.4);
+  box-shadow: 0 0 30px var(--burger-glow);
+  transform: translateY(-2px);
+}
+
+.burger-product-card__img-wrapper {
+  background: #080808;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.burger-product-card__img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.burger-product-card__content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.burger-product-card__body {
+  padding: 20px 20px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.burger-product-card__type {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--burger-yellow);
+  margin-bottom: 8px;
+}
+
+.burger-product-card__title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.burger-product-card__desc {
+  font-size: 13px;
+  color: var(--burger-muted);
+  line-height: 1.5;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.burger-product-card__price {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--burger-yellow);
+  margin-top: auto;
+}
+
+.burger-product-card__cart-btn {
+  margin-top: auto;
+}
+
+.burger-product-card__cart-btn-inner {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: 1px solid var(--burger-border);
+  border-top: none;
+  color: var(--burger-muted);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+}
+
+.burger-product-card__cart-btn:hover .burger-product-card__cart-btn-inner {
+  background: var(--burger-yellow);
+  color: #000;
+  border-color: var(--burger-yellow);
+}
+
+/* ── List Layout modifiers ── */
+.burger-product-card--list {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.burger-product-card--list .burger-product-card__img-wrapper {
+  width: 280px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--burger-border);
+}
+
+.burger-product-card--list .burger-product-card__content-wrapper {
+  flex-direction: row;
+}
+
+.burger-product-card--list .burger-product-card__body {
+  padding: 24px 32px;
+}
+
+.burger-product-card--list .burger-product-card__title {
+  font-size: 18px;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.burger-product-card--list .burger-product-card__desc {
+  font-size: 14px;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.burger-product-card--list .burger-product-card__cart-btn {
+  width: 160px;
+  border-left: 1px solid var(--burger-border);
+}
+
+.burger-product-card--list .burger-product-card__cart-btn-inner {
+  height: 100%;
+  border: none;
+}
+
+/* ── Back link ── */
+.burger-back {
+  padding: 100px 48px 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.burger-back__link {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.burger-back__link:hover {
+  color: var(--burger-yellow);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .burger-showcase__grid { grid-template-columns: repeat(2, 1fr); }
+  .burger-legacy { grid-template-columns: 1fr; gap: 40px; }
+  .burger-hero__content { padding: 120px 32px 80px; }
+  .burger-stats { flex-wrap: wrap; }
+  .burger-stats__item { flex: 1 1 50%; border-bottom: 1px solid var(--burger-border); }
+}
+
+@media (max-width: 640px) {
+  .burger-showcase__grid { grid-template-columns: 1fr; }
+  .burger-hero__content { padding: 100px 20px 80px; }
+  .burger-showcase, .burger-brands, .burger-legacy, .burger-cta { padding-left: 20px; padding-right: 20px; }
+  .burger-hero__buttons { flex-direction: column; }
+  .burger-btn { width: 100%; justify-content: center; }
+  .burger-stats__item { flex: 1 1 50%; }
+  .burger-product-grid { grid-template-columns: 1fr; }
+  
+  .burger-product-card--list { flex-direction: column; }
+  .burger-product-card--list .burger-product-card__img-wrapper { width: 100%; border-right: none; border-bottom: 1px solid var(--burger-border); }
+  .burger-product-card--list .burger-product-card__content-wrapper { flex-direction: column; }
+  .burger-product-card--list .burger-product-card__cart-btn { width: 100%; border-left: none; }
+  .burger-product-card--list .burger-product-card__cart-btn-inner { padding: 14px; border-top: 1px solid var(--burger-border); }
+}

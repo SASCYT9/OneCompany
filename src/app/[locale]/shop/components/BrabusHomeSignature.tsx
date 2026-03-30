@@ -7,6 +7,7 @@ import { BRABUS_HERO, BRABUS_FEATURED_MODELS } from '../data/brabusHomeData';
 import { BRABUS_SHOWCASES } from '../data/brabusShowcasesData';
 import BrabusThemeScript from './BrabusThemeScript';
 import BrabusVideoBackground from './BrabusVideoBackground';
+import BrabusQuickSelector from './BrabusQuickSelector';
 
 /* ── Image references ──────────────────────────────── */
 const BRABUS_ROCKET_IMG = '/images/shop/brabus/hq/brabus-supercars-26.jpg';
@@ -59,8 +60,8 @@ export default function BrabusHomeSignature({ locale }: Props) {
             <div className="br-hero__divider" aria-hidden />
 
             <h1 className="br-hero__title">
-              {L(isUa, 'Masterpiece', 'Шедевр')}<br />
-              {L(isUa, 'of Power', 'Потужності')}
+              {L(isUa, 'Beyond', 'За межами')}<br />
+              {L(isUa, 'Perfection', 'досконалості')}
             </h1>
 
             <p className="br-hero__eyebrow">
@@ -81,14 +82,12 @@ export default function BrabusHomeSignature({ locale }: Props) {
               >
                 {L(isUa, BRABUS_HERO.primaryButtonLabel, BRABUS_HERO.primaryButtonLabelUk)}
               </Link>
-              <a
-                href={BRABUS_HERO.secondaryButtonLink}
-                target={BRABUS_HERO.secondaryButtonNewTab ? '_blank' : undefined}
-                rel={BRABUS_HERO.secondaryButtonNewTab ? 'noopener noreferrer' : undefined}
+              <Link
+                href={locHref(locale, BRABUS_HERO.secondaryButtonLink)}
                 className="br-btn br-btn--ghost"
               >
                 {L(isUa, BRABUS_HERO.secondaryButtonLabel, BRABUS_HERO.secondaryButtonLabelUk)}
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -113,7 +112,12 @@ export default function BrabusHomeSignature({ locale }: Props) {
         </section>
 
         {/* ════════════════════════════════════════════════════════════════════
-            SECTION 2 — HORIZONTAL SHOWCASES (snap-scroll carousel)
+            SECTION 2 — QUICK SELECTOR
+        ════════════════════════════════════════════════════════════════════ */}
+        <BrabusQuickSelector locale={locale} />
+
+        {/* ════════════════════════════════════════════════════════════════════
+            SECTION 3 — HORIZONTAL SHOWCASES (snap-scroll carousel)
         ════════════════════════════════════════════════════════════════════ */}
         <section className="br-showcases" data-br-reveal>
           <div className="br-showcases__header">
@@ -123,6 +127,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
             <h2 className="br-section-title">
               {L(isUa, 'Engineering Perfection', 'Інженерна досконалість')}
             </h2>
+            <div className="br-header-line" />
           </div>
 
           <div className="br-showcases__track" data-br-hscroll>
@@ -181,6 +186,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
             <h2 className="br-section-title">
               {L(isUa, '1-Second-Wow Effect', '1-Second-Wow Ефект')}
             </h2>
+            <div className="br-header-line" />
             <p className="br-section-sub">
               {L(isUa,
                 'Every model, engineered to perfection. Choose your masterpiece.',
@@ -226,7 +232,33 @@ export default function BrabusHomeSignature({ locale }: Props) {
         </section>
 
         {/* ════════════════════════════════════════════════════════════════════
-            SECTION 4 — ROCKET 1000 HERO BANNER
+            SECTION 5 — THE BRABUS LEGACY (VIDEO)
+        ════════════════════════════════════════════════════════════════════ */}
+        <section className="br-rocket" data-br-reveal>
+          <BrabusVideoBackground 
+            videoSrc="/videos/shop/brabus/brabus-hero-new.mp4"
+            fallbackImage={BRABUS_ROCKET_IMG} 
+            overlayStyle="hero" 
+          />
+
+          <div className="br-rocket__content">
+            <h2 className="br-hero__title" style={{ marginTop: '4rem', marginBottom: '1.5rem', fontSize: 'clamp(2rem, 4vw, 3rem)' }}>
+              {isUa ? 'The Brabus Legacy' : 'The Brabus Legacy'}
+            </h2>
+            <p className="br-hero__subtitle" style={{ maxWidth: '600px', fontSize: '1rem', marginBottom: '3rem' }}>
+              {isUa
+                ? 'Понад 45 років інженерної досконалості. Від розробки двигунів до виробництва розкішних суперкарів світового рівня у Ботропі. Кожна деталь створюється з метою перевершити очікування.'
+                : 'Over 45 years of engineering perfection. From engine development to manufacturing world-class luxury supercars in Bottrop. Every detail is created to exceed expectations.'}
+            </p>
+            <a href="https://www.brabus.com" target="_blank" rel="noopener noreferrer" className="br-btn">
+              {isUa ? 'Офіційний Brabus' : 'Official Brabus'}
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+            </a>
+          </div>
+        </section>
+
+        {/* ════════════════════════════════════════════════════════════════════
+            SECTION 6 — ROCKET 1000 HERO BANNER
         ════════════════════════════════════════════════════════════════════ */}
         <section className="br-rocket" data-br-reveal>
           <BrabusVideoBackground 
@@ -312,26 +344,31 @@ export default function BrabusHomeSignature({ locale }: Props) {
 
         /* ── Shared typography ──────────────────────── */
         .br-label {
-          display: block;
+          display: inline-block;
           font-size: .65rem; font-weight: 500; text-transform: uppercase;
           letter-spacing: .2em; color: var(--br-red);
-          margin-bottom: .75rem;
+          margin-bottom: 1rem;
           opacity: 0; transform: translateY(20px);
           transition: transform .6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity .6s ease;
         }
         .br-section-title {
-          font-size: clamp(1.4rem, 3vw, 2.2rem); font-weight: 200;
+          font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 200;
           text-transform: uppercase; letter-spacing: .08em;
           line-height: 1.15; margin: 0;
           opacity: 0; transform: translateY(30px);
           transition: transform .8s cubic-bezier(0.2, 0.8, 0.2, 1) .15s, opacity .8s ease .15s;
         }
+        .br-header-line {
+          width: 0; height: 1px; background: var(--br-red); margin: 1.5rem auto 0;
+          transition: width .8s ease .3s;
+        }
+        .br-vis .br-header-line { width: 60px; }
         .br-vis .br-label, .br-vis .br-section-title, .br-vis .br-section-sub {
           opacity: 1; transform: translateY(0);
         }
         .br-section-sub {
-          font-size: .85rem; font-weight: 300; color: var(--br-muted);
-          letter-spacing: .02em; margin-top: .75rem; max-width: 440px;
+          font-size: .9rem; font-weight: 300; color: var(--br-muted);
+          letter-spacing: .02em; margin-top: 1.5rem; max-width: 500px;
         }
 
         /* ── Buttons ───────────────────────────────── */
@@ -398,7 +435,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
           background: linear-gradient(90deg, transparent, var(--br-red) 15%, var(--br-red) 85%, transparent);
         }
         .br-hero__content {
-          position: relative; z-index: 3;
+          position: relative; z-index: 20;
           padding: 0 clamp(2rem, 6vw, 8rem);
           max-width: 680px;
         }
@@ -434,7 +471,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
         /* Hero bottom stats */
         .br-hero__stats {
           position: absolute; bottom: 0; left: 0; right: 0;
-          z-index: 4;
+          z-index: 20;
           display: flex; justify-content: center; gap: 0;
           border-top: 1px solid var(--br-faint);
           background: rgba(0,0,0,.6);
@@ -459,7 +496,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
 
         /* Scroll indicator */
         .br-hero__scroll {
-          position: absolute; bottom: 80px; left: 50%; z-index: 4;
+          position: absolute; bottom: 80px; left: 50%; z-index: 20;
           transform: translateX(-50%);
         }
         .br-hero__scroll-line {
@@ -479,7 +516,8 @@ export default function BrabusHomeSignature({ locale }: Props) {
         }
         .br-showcases__header {
           padding: 0 clamp(2rem, 6vw, 8rem);
-          margin-bottom: 3rem;
+          margin-bottom: 4rem;
+          display: flex; flex-direction: column; align-items: center; text-align: center;
         }
         .br-showcases__track {
           display: flex; gap: 1.5rem;
@@ -597,7 +635,8 @@ export default function BrabusHomeSignature({ locale }: Props) {
           background: transparent;
         }
         .br-fleet__header {
-          margin-bottom: 3.5rem;
+          margin-bottom: 4rem;
+          display: flex; flex-direction: column; align-items: center; text-align: center;
         }
         .br-fleet__grid {
           display: grid;
@@ -690,7 +729,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
           background: linear-gradient(105deg, rgba(0,0,0,.9) 0%, rgba(0,0,0,.5) 50%, transparent 70%);
         }
         .br-rocket__content {
-          position: relative; z-index: 2;
+          position: relative; z-index: 20;
           padding: 4rem clamp(2rem, 6vw, 8rem);
           max-width: 640px;
         }

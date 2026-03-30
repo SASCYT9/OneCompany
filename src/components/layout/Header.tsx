@@ -38,6 +38,8 @@ export function Header() {
     if (brand.toLowerCase() === 'do88') return 'do88';
     if (brand.toLowerCase() === 'vf-engineering') return 'VF Engineering';
     if (brand.toLowerCase() === 'kw-suspension') return 'KW Suspension';
+    if (brand.toLowerCase() === 'burger') return 'Burger Motorsports';
+    if (brand.toLowerCase() === 'racechip') return 'RaceChip';
     return brand.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
 
@@ -49,7 +51,11 @@ export function Header() {
     },
     ...(isBrandPortal ? [{
       key: "brand-catalog",
-      href: `/${locale}/shop/${currentBrand}#catalog`,
+      href: currentBrand === 'racechip' 
+        ? `/${locale}/shop/racechip/catalog` 
+        : ['brabus', 'burger'].includes(currentBrand) 
+          ? `/${locale}/shop/${currentBrand}/products` 
+          : `/${locale}/shop/${currentBrand}#catalog`,
       label: isUa ? `Каталог ${formatBrandName(currentBrand)}` : `${formatBrandName(currentBrand)} Catalog`,
     }] : []),
     {

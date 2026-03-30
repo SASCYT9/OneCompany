@@ -83,7 +83,11 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
                   ? `/${locale}/shop/do88`
                   : store.id === "brabus"
                     ? `/${locale}/shop/brabus`
-                    : store.href || "#";
+                    : store.id === "burger"
+                      ? `/${locale}/shop/burger`
+                      : store.id === "racechip"
+                        ? `/${locale}/shop/racechip`
+                        : store.href || "#";
             const isExternal = store.external === true;
             const isLogoAsset = store.imageUrl?.startsWith("/logos/") ?? false;
             const content = (
