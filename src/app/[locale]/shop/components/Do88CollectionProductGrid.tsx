@@ -17,6 +17,7 @@ type Do88CollectionProductGridProps = {
   locale: SupportedLocale;
   handle: string;
   title: string;
+  titleUk?: string;
   products: ShopProduct[];
   viewerContext?: ShopViewerPricingContext;
 };
@@ -62,10 +63,12 @@ export default function Do88CollectionProductGrid({
   locale,
   handle,
   title,
+  titleUk,
   products,
   viewerContext,
 }: Do88CollectionProductGridProps) {
   const isUa = locale === 'ua';
+  const displayTitle = isUa && titleUk ? titleUk : title;
   const { currency, rates } = useShopCurrency();
   const [sortOrder, setSortOrder] = useState<'price-desc' | 'price-asc' | 'title-asc' | 'title-desc'>('price-desc');
 
@@ -99,12 +102,12 @@ export default function Do88CollectionProductGrid({
               DO88 Performance
             </p>
             <h2 className="urban-product-grid__title text-3xl md:text-5xl font-light uppercase tracking-tight mb-4">
-              {isUa ? `Товари для ${title}` : `${title} Parts`}
+              {isUa ? `Товари для ${displayTitle}` : `${title} Parts`}
             </h2>
             <p className="urban-product-grid__sub text-white/50 text-sm max-w-xl">
               {products.length > 0
                 ? isUa
-                  ? `Оригінальні запчастини DO88 з категорії ${title}. Меню сортування дозволяє обрати найбажаніші деталі.`
+                  ? `Оригінальні запчастини DO88 з категорії ${displayTitle}. Меню сортування дозволяє обрати найбажаніші деталі.`
                   : `Curated DO88 parts mapped to the ${title} category. Use the filter to sort components.`
                 : isUa
                   ? 'Найближчим часом товари будуть доступні в каталозі.'

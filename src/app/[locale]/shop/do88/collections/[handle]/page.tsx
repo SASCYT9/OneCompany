@@ -199,6 +199,7 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
               locale={resolvedLocale}
               handle={handle}
               title={card.title}
+              titleUk={card.titleUk}
               products={collectionProducts}
               viewerContext={viewerContext}
             />
