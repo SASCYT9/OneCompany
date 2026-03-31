@@ -83,7 +83,8 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
   const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const model = e.target.value;
     setSelectedModel(model);
-    if (isSidebar) {
+    // Auto-navigate when a model is selected, or if we are in sidebar and model was cleared
+    if (model || isSidebar) {
       pushLiveUpdate(selectedMake, model);
     }
   };
@@ -171,20 +172,6 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
           </div>
         </div>
       </div>
-
-      {/* Search button for non-sidebar versions */}
-      {!isSidebar && (
-        <div className={`mt-4 flex w-full justify-center ${compact ? 'md:mt-0 md:ml-2 md:w-auto md:shrink-0' : ''}`}>
-          <button
-            onClick={() => pushLiveUpdate(selectedMake, selectedModel)}
-            className="w-full md:w-auto h-[46px] px-8 bg-white text-black rounded-xl uppercase tracking-widest text-sm font-bold hover:bg-zinc-200 transition shadow-lg flex items-center justify-center gap-2"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            {isUa ? 'Шукати' : 'Search'}
-          </button>
-        </div>
-      )}
-
     </div>
   );
 }

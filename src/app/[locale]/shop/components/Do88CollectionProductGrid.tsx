@@ -36,20 +36,20 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 
 
 function computePrices(
   price: ShopProduct['price'],
-  rates: { EUR: number; USD: number } | null,
+  rates: { UAH: number; EUR: number; USD: number } | null,
 ) {
   if (price.uah > 0) {
     return {
       uah: price.uah,
-      eur: rates ? price.uah / rates.EUR : price.eur,
-      usd: rates ? price.uah / rates.USD : price.usd,
+      eur: rates ? price.uah / rates.UAH : price.eur,
+      usd: rates ? (price.uah / rates.UAH) * rates.USD : price.usd,
     };
   }
   if (price.eur > 0) {
     return {
        eur: price.eur,
-       uah: rates ? price.eur * rates.EUR : price.uah,
-       usd: rates ? (price.eur * rates.EUR) / rates.USD : price.usd,
+       uah: rates ? price.eur * rates.UAH : price.uah,
+       usd: rates ? price.eur * rates.USD : price.usd,
     };
   }
   return {
@@ -102,17 +102,8 @@ export default function Do88CollectionProductGrid({
               DO88 Performance
             </p>
             <h2 className="urban-product-grid__title text-3xl md:text-5xl font-light uppercase tracking-tight mb-4">
-              {isUa ? `Товари для ${displayTitle}` : `${title} Parts`}
+              {displayTitle}
             </h2>
-            <p className="urban-product-grid__sub text-white/50 text-sm max-w-xl">
-              {products.length > 0
-                ? isUa
-                  ? `Оригінальні запчастини DO88 з категорії ${displayTitle}. Меню сортування дозволяє обрати найбажаніші деталі.`
-                  : `Curated DO88 parts mapped to the ${title} category. Use the filter to sort components.`
-                : isUa
-                  ? 'Найближчим часом товари будуть доступні в каталозі.'
-                  : 'This category will be populated shortly.'}
-            </p>
           </div>
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
@@ -154,11 +145,11 @@ export default function Do88CollectionProductGrid({
 
               const computed = computePrices(
                 pricing.effectivePrice,
-                rates && { EUR: rates.EUR, USD: rates.USD },
+                rates
               );
 
               const computedCompare = pricing.effectiveCompareAt
-                ? computePrices(pricing.effectiveCompareAt, rates && { EUR: rates.EUR, USD: rates.USD })
+                ? computePrices(pricing.effectiveCompareAt, rates)
                 : null;
               
               const productTitle = localizeShopProductTitle(locale, product);
