@@ -471,6 +471,31 @@ export default function AdminOrderDetailPage() {
     }
   }
 
+  async function handleGenerateHutkoLink() {
+    if (!id || !order) return;
+    setUpdating(true);
+    setError('');
+    setSuccess('');
+    try {
+      const response = await fetch(`/api/admin/shop/orders/${id}/hutko`, {
+        method: 'POST',
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data.error || 'Не вдалося згенерувати посилання');
+        return;
+      }
+      await load();
+      setSuccess('Посилання на оплату Hutko успішно згенеровано та СКОПІЙОВАНО в буфер обміну!');
+      if (data.url) {
+        navigator.clipboard.writeText(data.url).catch(() => {});
+        window.open(data.url, '_blank');
+      }
+    } finally {
+      setUpdating(false);
+    }
+  }
+
   if (loading) {
     return <div className="p-6 text-white/60">Завантаження замовлення…</div>;
   }
@@ -707,16 +732,26 @@ export default function AdminOrderDetailPage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs uppercase tracking-wider text-white/50">Оплата та Борг</p>
-                <button
-                  type="button"
-                  onClick={() => void handleLogisticsUpdate()}
-                  disabled={updating}
-                  className="rounded-lg bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20 disabled:opacity-50"
-                >
-                  Зберегти
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void handleGenerateHutkoLink()}
+                    disabled={updating}
+                    className="rounded-lg bg-indigo-500/20 px-3 py-1 text-xs text-indigo-300 hover:bg-indigo-500/30 disabled:opacity-50 transition-colors shadow-[0_0_10px_-2px_rgba(99,102,241,0.2)]"
+                  >
+                    Whitepay Лінк
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleLogisticsUpdate()}
+                    disabled={updating}
+                    className="rounded-lg bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20 disabled:opacity-50 transition-colors"
+                  >
+                    Зберегти
+                  </button>
+                </div>
               </div>
               <div className="grid gap-3">
                 <label className="text-sm">

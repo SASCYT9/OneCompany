@@ -152,8 +152,8 @@ export async function POST(req: NextRequest) {
 
   const orderData = {
     orderNumber,
-    status: paymentMethod === 'STRIPE' ? ('PENDING_PAYMENT' as const) : ('PENDING_REVIEW' as const),
-    paymentMethod: paymentMethod === 'STRIPE' ? 'STRIPE' : paymentMethod === 'WHITEBIT' ? 'WHITEBIT' : 'FOP',
+    status: 'PENDING_REVIEW' as const,
+    paymentMethod,
     customerId: session?.customerId ?? null,
     customerGroupSnapshot: session?.group ?? 'B2C',
     email,
@@ -181,153 +181,9 @@ export async function POST(req: NextRequest) {
     },
   };
 
-  if (paymentMethod === 'STRIPE') {
-    const stripeCurrency = stripeSupportedCurrency(quote.currency);
-    if (!stripeCurrency) {
-      return NextResponse.json(
-        { error: 'Stripe supports only EUR or USD for this order. Use FOP or change currency.' },
-        { status: 400 }
-      );
-    }
-    const amountTotalCents = Math.round(Number(quote.total) * 100);
-    if (amountTotalCents < 50) {
-      return NextResponse.json({ error: 'Minimum amount for card payment is 0.50' }, { status: 400 });
-    }
-
-    const order = await prisma.shopOrder.create({
-      data: orderData,
-    });
-    
-    // CRM Webhook
-    await dispatchCrmWebhook('order.created', order).catch(() => {});
-
-    await createInitialOrderEvent(prisma, order.id);
-    if (session?.customerId) {
-      await upsertCustomerDefaultShippingAddress(prisma, session.customerId, shippingAddress);
-    }
-
-    const sessionResult = await createStripeCheckoutSession({
-      orderId: order.id,
-      orderNumber,
-      amountTotalCents,
-      currency: stripeCurrency,
-      customerEmail: email,
-      successUrl: `${baseUrl}/${locale}/shop/checkout/success?order=${encodeURIComponent(orderNumber)}&token=${encodeURIComponent(viewToken)}`,
-      cancelUrl: `${baseUrl}/${locale}/shop/checkout`,
-      locale
-    });
-
-    if ('error' in sessionResult) {
-      await prisma.shopOrder.update({
-        where: { id: order.id },
-        data: { status: 'CANCELLED' },
-      });
-      return NextResponse.json({ error: sessionResult.error }, { status: 502 });
-    }
-
-    await prisma.shopOrder.update({
-      where: { id: order.id },
-      data: { stripeCheckoutSessionId: sessionResult.sessionId },
-    });
-
-    await clearShopCart(prisma, {
-      cartToken: activeCart.token,
-      customerId: session?.customerId ?? null,
-      locale: session?.preferredLocale ?? 'en',
-      currency: quote.currency,
-    });
-
-    const response = NextResponse.json({
-      redirectUrl: sessionResult.url,
-      orderNumber,
-      viewToken,
-      subtotal: quote.subtotal,
-      regionalAdjustmentAmount: quote.regionalAdjustmentAmount,
-      shippingCost: quote.shippingCost,
-      taxAmount: quote.taxAmount,
-      total: quote.total,
-      currency: quote.currency,
-      paymentMethod: 'STRIPE',
-      showTaxesIncludedNotice: quote.showTaxesIncludedNotice,
-    });
-    response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
-      path: '/',
-      maxAge: COOKIE_MAX_AGE,
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-    });
-    return response;
-  }
-
-  // ─── HUTKO payment flow ───
-  if (paymentMethod === 'HUTKO') {
-    const order = await prisma.shopOrder.create({
-      data: { ...orderData, paymentMethod: 'HUTKO', status: 'PENDING_PAYMENT' },
-    });
-
-    await dispatchCrmWebhook('order.created', order).catch(() => {});
-    await createInitialOrderEvent(prisma, order.id);
-    if (session?.customerId) {
-      await upsertCustomerDefaultShippingAddress(prisma, session.customerId, shippingAddress);
-    }
-
-    // Hutko amount: integer in smallest currency unit (kopecks/cents)
-    const amountKopecks = String(Math.round(Number(quote.total) * 100));
-
-    const hutkoResult = await createHutkoCheckout({
-      orderId: orderNumber,
-      orderDescription: `One Company #${orderNumber}`,
-      amount: amountKopecks,
-      currency: quote.currency as 'UAH' | 'USD' | 'EUR',
-      responseUrl: `${baseUrl}/${locale}/shop/checkout/success?order=${encodeURIComponent(orderNumber)}&token=${encodeURIComponent(viewToken)}`,
-      serverCallbackUrl: `${baseUrl}/api/shop/hutko/callback`,
-      senderEmail: email,
-      lang: locale === 'ua' ? 'uk' : 'en',
-    });
-
-    if (!hutkoResult.success) {
-      await prisma.shopOrder.update({
-        where: { id: order.id },
-        data: { status: 'CANCELLED' },
-      });
-      return NextResponse.json({ error: hutkoResult.error }, { status: 502 });
-    }
-
-    await prisma.shopOrder.update({
-      where: { id: order.id },
-      data: { hutkoPaymentId: hutkoResult.paymentId || null },
-    });
-
-    await clearShopCart(prisma, {
-      cartToken: activeCart.token,
-      customerId: session?.customerId ?? null,
-      locale: session?.preferredLocale ?? 'en',
-      currency: quote.currency,
-    });
-
-    const response = NextResponse.json({
-      redirectUrl: hutkoResult.checkoutUrl,
-      orderNumber,
-      viewToken,
-      subtotal: quote.subtotal,
-      regionalAdjustmentAmount: quote.regionalAdjustmentAmount,
-      shippingCost: quote.shippingCost,
-      taxAmount: quote.taxAmount,
-      total: quote.total,
-      currency: quote.currency,
-      paymentMethod: 'HUTKO',
-      showTaxesIncludedNotice: quote.showTaxesIncludedNotice,
-    });
-    response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
-      path: '/',
-      maxAge: COOKIE_MAX_AGE,
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-    });
-    return response;
-  }
+  // ── HYBRID CHECKOUT MODE ──
+  // Do not redirect to Stripe or Hutko yet. We only save the intended paymentMethod.
+  // The Admin will evaluate shipping and generate the payment link later.
 
   const order = await prisma.shopOrder.create({
     data: orderData,
@@ -335,6 +191,12 @@ export async function POST(req: NextRequest) {
 
   // CRM Webhook
   await dispatchCrmWebhook('order.created', order).catch(() => {});
+
+  // Native Airtable Direct Export (Disabled by default / Dry Run)
+  if (process.env.ENABLE_AIRTABLE_EXPORT === 'true') {
+      const { exportShopOrderToAirtable } = require('@/lib/airtableExport');
+      exportShopOrderToAirtable(order.id).catch((e: any) => console.error('[Airtable Export Failed]', e));
+  }
 
   await createInitialOrderEvent(prisma, order.id);
   if (session?.customerId) {

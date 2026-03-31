@@ -70,7 +70,20 @@ export async function PATCH(
     if (body.amountPaid !== undefined) updateData.amountPaid = Number(body.amountPaid);
     if (body.deliveryMethod !== undefined) updateData.deliveryMethod = body.deliveryMethod || null;
     if (body.ttnNumber !== undefined) updateData.ttnNumber = body.ttnNumber || null;
-    if (body.shippingCalculatedCost !== undefined) updateData.shippingCalculatedCost = body.shippingCalculatedCost ? Number(body.shippingCalculatedCost) : null;
+    if (body.shippingCalculatedCost !== undefined) {
+      updateData.shippingCalculatedCost = body.shippingCalculatedCost ? Number(body.shippingCalculatedCost) : null;
+      updateData.shippingCost = updateData.shippingCalculatedCost || 0;
+      
+      const currentOrder = await prisma.shopOrder.findUnique({
+        where: { id },
+        select: { id: true, subtotal: true, taxAmount: true },
+      });
+      if (currentOrder) {
+        updateData.total = Number(
+          (currentOrder.subtotal.toNumber() + currentOrder.taxAmount.toNumber() + (updateData.shippingCost || 0)).toFixed(2)
+        );
+      }
+    }
     
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No valid fields provided' }, { status: 400 });
