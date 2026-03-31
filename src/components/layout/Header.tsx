@@ -55,7 +55,9 @@ export function Header() {
         ? `/${locale}/shop/racechip/catalog` 
         : ['brabus', 'burger'].includes(currentBrand) 
           ? `/${locale}/shop/${currentBrand}/products` 
-          : `/${locale}/shop/${currentBrand}#catalog`,
+          : currentBrand === 'do88'
+            ? `/${locale}/shop/do88/collections`
+            : `/${locale}/shop/${currentBrand}#catalog`,
       label: isUa ? `Каталог ${formatBrandName(currentBrand)}` : `${formatBrandName(currentBrand)} Catalog`,
     }] : []),
     {
