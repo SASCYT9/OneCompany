@@ -48,7 +48,10 @@ next-env.d.ts
 /src/generated/prisma
 
 public/videos/originals/
-public/videos/shop/
+# Large video files that exceed GitHub 100MB limit — host on CDN instead
+public/videos/shop/racechip/app-control.mp4
+public/videos/shop/urban/urban-hero-new.mp4
+public/videos/shop/brabus/brabus-hero-new2.mp4
 public/brabus-images/
 *.mp4.part
 
