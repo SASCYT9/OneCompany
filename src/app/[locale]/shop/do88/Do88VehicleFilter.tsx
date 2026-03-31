@@ -12,16 +12,24 @@ interface Do88VehicleFilterProps {
 }
 
 const CAR_DATA = {
-  BMW: ['M2', 'M3', 'M4', 'M5', '135i', '335i', '435i', 'E30', 'E36', 'E46', 'E90', 'F80', 'F82', 'F87', 'G80', 'G87', 'N54', 'N55', 'B58', 'S55', 'S58'],
-  Audi: ['RS3', 'RS6', 'RS7', 'S1', 'S2', 'RS2', 'S3', 'S4', 'A3', 'A4', 'TT', 'UrQuattro'],
-  Porsche: ['911 (930)', '911 (964)', '911 (993)', '911 (996)', '911 (997)', '911 (991)', '911 (992)', '968'],
-  Volkswagen: ['Golf GTI Mk5/6', 'Golf GTI Mk7', 'Golf R Mk8', 'Polo GTI'],
-  Volvo: ['240', '740', '850', '940', 'S60', 'V60', 'V70', 'XC60', 'XC70', 'XC90', 'S80', 'C30', 'V40', 'S70'],
-  Saab: ['900', '9-3', '9-5', '9000'],
-  Toyota: ['GR Supra', 'GR Yaris'],
+  BMW: [
+    'M2 (F87)', 'M2 (G87)', 
+    'M3 / M4 (F80/F82)', 'M3 / M4 (G80/G82)', 
+    'M5 (F10)', 'M5 (F90)',
+    '1 Series / 2 Series (F20/F22)',
+    '3 Series / 4 Series (E90/E92)',
+    '3 Series / 4 Series (F30/F32)', 
+    'Supra / Z4 (B58)'
+  ],
+  Audi: ['RS3 / TTRS (8V/8S)', 'RS6 / RS7 (C7)', 'RS6 / RS7 (C8)', 'S3 / Golf R (8V/Mk7)', 'A4 / S4 (B8/B9)', 'UrQuattro'],
+  Porsche: ['911 (930)', '911 (964)', '911 (993)', '911 (996)', '911 (997)', '911 (991)', '911 (992)', 'Cayman / Boxster (987/981)'],
+  Volkswagen: ['Golf GTI (Mk5/Mk6)', 'Golf GTI / R (Mk7/Mk7.5)', 'Golf R (Mk8)', 'Polo GTI'],
+  Volvo: ['240 / 740 / 940', '850', 'S60 / V60', 'V70 / XC70', 'XC60 / XC90'],
+  Saab: ['900 Classic', '9-3 (OG/NG)', '9-5', '9000'],
+  Toyota: ['GR Supra (A90)', 'GR Yaris'],
   Ford: ['Focus RS', 'Focus ST', 'Fiesta ST'],
   Opel: ['Astra', 'Corsa'],
-  Seat: ['Ibiza Cupra', 'Leon'],
+  Seat: ['Ibiza', 'Leon Cupra'],
   CUPRA: ['Formentor', 'Leon'],
   Mazda: ['MX-5'],
 } as const;
