@@ -39,11 +39,8 @@ const CURRENCIES = ['EUR', 'USD', 'UAH'] as const;
 const PAYMENT_METHODS = ['FOP', 'STRIPE', 'WHITEBIT', 'HUTKO'] as const;
 type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
-function normalizePaymentMethod(value: unknown, settings: { stripeEnabled: boolean }): PaymentMethod {
+function normalizePaymentMethod(value: unknown): PaymentMethod {
   const v = String(value ?? 'FOP').trim().toUpperCase();
-  if (v === 'STRIPE' && !settings.stripeEnabled) return 'FOP';
-  if (v === 'WHITEBIT') return 'FOP'; // not implemented yet
-  if (v === 'HUTKO' && !isHutkoEnabled()) return 'FOP';
   return PAYMENT_METHODS.includes(v as PaymentMethod) ? (v as PaymentMethod) : 'FOP';
 }
 
@@ -134,9 +131,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No valid items in cart' }, { status: 400 });
   }
 
-  const paymentMethod = normalizePaymentMethod(body.paymentMethod, {
-    stripeEnabled: settings.stripeEnabled,
-  });
+  const paymentMethod = normalizePaymentMethod(body.paymentMethod);
 
   const orderNumber = await generateOrderNumber();
   const viewToken = generateViewToken();

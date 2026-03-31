@@ -1,21 +1,7 @@
 node_modules
 .next
-.env*.local
-*.log
-.DS_Store
+.git
 .vscode
-public/videos/*
-!public/videos/hero-main.mp4
-!public/videos/hero-smoke.mp4
-!public/videos/rollsbg-v3.mp4
-!public/videos/MotoBG-web.mp4
-!public/videos/blog
-!public/videos/blog/**
-public/models
-public/images/eventuri
-public/images/fi
-public/images/kw
-*.glb
-*.gltf
-bmw_7-series_m_short.glb
-Fi exhaust video.mp4
+data/
+scripts/
+*.log

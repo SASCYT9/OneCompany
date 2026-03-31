@@ -371,66 +371,95 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           </div>
 
           <div>
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-white/55">
+            <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-white/60 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               {isUa ? 'Спосіб оплати' : 'Payment method'}
             </h2>
-            <div className="space-y-2">
-              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/25 px-4 py-3 transition hover:bg-white/5 has-[:checked]:border-white/30 has-[:checked]:bg-white/10">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="FOP"
-                  checked={form.paymentMethod === 'FOP'}
-                  onChange={() => setForm((f) => ({ ...f, paymentMethod: 'FOP' }))}
-                  className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50"
-                />
-                <span className="text-white/90">{isUa ? 'Оплата на ФОП (реквізити)' : 'Payment to company (bank details)'}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-4 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-white/40 has-[:checked]:bg-white/[0.08] has-[:checked]:shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden group">
+                <div className="flex items-center gap-3 relative z-10">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="FOP"
+                    checked={form.paymentMethod === 'FOP'}
+                    onChange={() => setForm((f) => ({ ...f, paymentMethod: 'FOP' }))}
+                    className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50 accent-white"
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-white/90 group-hover:text-white transition-colors">
+                      {isUa ? 'Оплата на ФОП' : 'Bank Transfer'}
+                    </span>
+                    <span className="text-[11px] text-white/50">
+                      {isUa ? 'За реквізитами (IBAN)' : 'Direct invoice payment'}
+                    </span>
+                  </div>
+                </div>
               </label>
-              {paymentOptions?.methods.includes('STRIPE') && (
-                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/25 px-4 py-3 transition hover:bg-white/5 has-[:checked]:border-white/30 has-[:checked]:bg-white/10">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="STRIPE"
-                    checked={form.paymentMethod === 'STRIPE'}
-                    onChange={() => setForm((f) => ({ ...f, paymentMethod: 'STRIPE' }))}
-                    className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50"
-                  />
-                  <span className="text-white/90">Stripe (картка)</span>
-                </label>
-              )}
-              {paymentOptions?.methods.includes('WHITEBIT') && (
-                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/25 px-4 py-3 transition hover:bg-white/5 has-[:checked]:border-white/30 has-[:checked]:bg-white/10">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="WHITEBIT"
-                    checked={form.paymentMethod === 'WHITEBIT'}
-                    onChange={() => setForm((f) => ({ ...f, paymentMethod: 'WHITEBIT' }))}
-                    className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50"
-                  />
-                  <span className="text-white/90">White Bit</span>
-                </label>
-              )}
+              
               {paymentOptions?.methods.includes('HUTKO') && (
-                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/25 px-4 py-3 transition hover:bg-white/5 has-[:checked]:border-white/30 has-[:checked]:bg-white/10">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="HUTKO"
-                    checked={form.paymentMethod === 'HUTKO'}
-                    onChange={() => setForm((f) => ({ ...f, paymentMethod: 'HUTKO' }))}
-                    className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50"
-                  />
-                  <span className="text-white/90">{isUa ? 'Картка Visa/MC (hutko)' : 'Card Visa/MC (hutko)'}</span>
+                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-4 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-white/40 has-[:checked]:bg-white/[0.08] has-[:checked]:shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden group">
+                  <div className="flex items-center gap-3 relative z-10">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="HUTKO"
+                      checked={form.paymentMethod === 'HUTKO'}
+                      onChange={() => setForm((f) => ({ ...f, paymentMethod: 'HUTKO' }))}
+                      className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50 accent-white"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-white/90 group-hover:text-white transition-colors">Apple Pay / Google Pay</span>
+                      <span className="text-[11px] text-white/50">{isUa ? 'Онлайн оплата карткою' : 'Card acquiring (Hutko)'}</span>
+                    </div>
+                  </div>
                 </label>
               )}
-              {!paymentOptions?.methods.includes('STRIPE') && !paymentOptions?.methods.includes('WHITEBIT') && !paymentOptions?.methods.includes('HUTKO') && (
-                <p className="text-xs text-white/40">
-                  {isUa ? 'Stripe та White Bit будуть доступні після налаштування.' : 'Stripe and White Bit will be available after setup.'}
-                </p>
+
+              {paymentOptions?.methods.includes('STRIPE') && (
+                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-4 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-white/40 has-[:checked]:bg-white/[0.08] has-[:checked]:shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden group">
+                  <div className="flex items-center gap-3 relative z-10">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="STRIPE"
+                      checked={form.paymentMethod === 'STRIPE'}
+                      onChange={() => setForm((f) => ({ ...f, paymentMethod: 'STRIPE' }))}
+                      className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50 accent-white"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-white/90 group-hover:text-white transition-colors">Stripe Checkout</span>
+                      <span className="text-[11px] text-white/50">{isUa ? 'Міжнародна картка / USD EUR' : 'International Cards'}</span>
+                    </div>
+                  </div>
+                </label>
+              )}
+
+              {paymentOptions?.methods.includes('WHITEBIT') && (
+                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-4 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-white/40 has-[:checked]:bg-white/[0.08] has-[:checked]:shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden group">
+                  <div className="flex items-center gap-3 relative z-10">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="WHITEBIT"
+                      checked={form.paymentMethod === 'WHITEBIT'}
+                      onChange={() => setForm((f) => ({ ...f, paymentMethod: 'WHITEBIT' }))}
+                      className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50 accent-white"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-white/90 group-hover:text-white transition-colors">WhiteBIT Crypto</span>
+                      <span className="text-[11px] text-white/50">{isUa ? 'USDT, BTC, ETH' : 'Crypto checkout'}</span>
+                    </div>
+                  </div>
+                </label>
               )}
             </div>
+            
+            <p className="mt-3 text-[11px] text-white/30 leading-relaxed max-w-lg">
+              {isUa 
+                ? 'Вибір способу оплати формує тип інвойсу в кінці. Зверніть увагу: замовлення не буде відправлено без підтвердження оплати або зв\'язку з менеджером (Payment Security).'
+                : 'Payment choice determines the final invoice type. No items are shipped without payment clearance (Payment Security).'}
+            </p>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-black/25 p-5">

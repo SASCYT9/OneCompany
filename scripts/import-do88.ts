@@ -20,11 +20,11 @@ import path from 'path';
 
 const prisma = new PrismaClient();
 
-const INPUT_FILE = path.join(process.cwd(), 'do88-products-translated.json');
+const INPUT_FILE = path.join(process.cwd(), 'do88-products-v4.json');
 
 // ─── Extract vehicle info from category ─────────────────────────────
-function extractVehicleInfo(categoryOriginal: string): { carBrand: string; carModel: string; carPlatform: string } | null {
-  if (!categoryOriginal.includes('Modellanpassat')) return null;
+function extractVehicleInfo(categoryOriginal: string | undefined | null): { carBrand: string; carModel: string; carPlatform: string } | null {
+  if (!categoryOriginal || !categoryOriginal.includes('Modellanpassat')) return null;
   
   const parts = categoryOriginal.split(' > ').map(s => s.trim());
   // Modellanpassat > BMW > E90, S65 (M3)

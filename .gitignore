@@ -53,3 +53,5 @@ public/brabus-images/
 *.mp4.part
 
 data/.chrome-scraper-profile/
+temp_pgsql/
+*.sql
