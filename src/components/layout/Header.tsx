@@ -5,6 +5,7 @@ import { useParams, usePathname, useSelectedLayoutSegments } from "next/navigati
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
 import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
@@ -43,6 +44,9 @@ export function Header() {
     return brand.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
 
+  const { data: sessionData } = useSession();
+  const isB2bApproved = sessionData?.user?.group === 'B2B_APPROVED';
+
   const shopNavItems = [
     {
       key: "stores",
@@ -60,13 +64,13 @@ export function Header() {
             : `/${locale}/shop/${currentBrand}#catalog`,
       label: isUa ? `Каталог ${formatBrandName(currentBrand)}` : `${formatBrandName(currentBrand)} Catalog`,
     }] : []),
-    {
+    ...(isB2bApproved ? [{
       key: "stock",
       href: `/${locale}/shop/stock`,
       label: isUa 
-        ? (isBrandPortal ? "Усі Товари" : "Каталог") 
-        : (isBrandPortal ? "All Stock" : "Catalog"),
-    },
+        ? (isBrandPortal ? "B2B Склад" : "B2B Каталог") 
+        : (isBrandPortal ? "B2B Stock" : "B2B Catalog"),
+    }] : []),
     {
       key: "account",
       href: `/${locale}/shop/account`,
