@@ -380,7 +380,7 @@ export default function RacechipVehicleFilter({
                           slug={product.slug}
                           variantId={null}
                           locale={locale}
-                          redirect={false}
+                          redirect={true}
                           productName={productTitle}
                           label={isUa ? "ДО КОШИКА" : "ADD TO CART"}
                           labelAdded={isUa ? "В КОШИКУ" : "ADDED"}

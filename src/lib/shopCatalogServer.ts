@@ -154,6 +154,14 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
             uah: num(row.compareAtUah ?? primaryVariant?.compareAtUah),
           }
         : undefined,
+    weightKg:
+      (row as any).weight != null ? Number((row as any).weight) : (primaryVariant as any)?.weight != null ? Number((primaryVariant as any).weight) : null,
+    length:
+      (row as any).length != null ? Number((row as any).length) : (primaryVariant as any)?.length != null ? Number((primaryVariant as any).length) : null,
+    width:
+      (row as any).width != null ? Number((row as any).width) : (primaryVariant as any)?.width != null ? Number((primaryVariant as any).width) : null,
+    height:
+      (row as any).height != null ? Number((row as any).height) : (primaryVariant as any)?.height != null ? Number((primaryVariant as any).height) : null,
     b2bCompareAt:
       productB2BCompareAt.eur > 0 || productB2BCompareAt.usd > 0 || productB2BCompareAt.uah > 0
         ? productB2BCompareAt
@@ -189,6 +197,10 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
           usd: num(variant.priceUsd),
           uah: num(variant.priceUah),
         }),
+        weightKg: (variant as any).weight != null ? Number((variant as any).weight) : null,
+        length: (variant as any).length != null ? Number((variant as any).length) : null,
+        width: (variant as any).width != null ? Number((variant as any).width) : null,
+        height: (variant as any).height != null ? Number((variant as any).height) : null,
         b2bPrice:
           variantB2BPrice.eur > 0 || variantB2BPrice.usd > 0 || variantB2BPrice.uah > 0
             ? variantB2BPrice

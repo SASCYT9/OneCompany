@@ -105,7 +105,7 @@ export async function exportShopOrderToAirtable(shopOrderId: string) {
         where: { slug: item.productSlug }
     });
     if (itemData) {
-        brand = itemData.brand;
+        brand = itemData.brand || '';
     }
 
     const itemParams = {

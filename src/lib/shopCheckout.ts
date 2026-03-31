@@ -44,6 +44,11 @@ type ResolvedCheckoutItem = {
   priceSourceCurrency: ShopCurrencyCode;
   pricingSource: 'b2c' | 'b2b-explicit' | 'b2b-discount';
   discountPercent: number | null;
+  brandName: string | null;
+  weightKg: number | null;
+  length: number | null;
+  width: number | null;
+  height: number | null;
 };
 
 type CheckoutRuleSnapshot = {
@@ -222,15 +227,65 @@ function calculateShippingCost(
   currency: ShopCurrencyCode,
   settings: ShopSettingsRuntime,
   subtotal: number,
-  itemCount: number
+  items: ResolvedCheckoutItem[]
 ) {
   if (!zone) return 0;
   if (zone.freeOver != null && subtotal >= zone.freeOver) {
     return 0;
   }
 
-  const base = zone.baseRate + zone.perItemRate * itemCount;
-  return convertAmount(base, zone.currency, currency, settings.currencyRates);
+  let totalCost = zone.baseRate;
+
+  if (zone.calcMode === 'volumetric') {
+    for (const item of items) {
+      let itemCost = 0;
+      let handledByRule = false;
+
+      // Primary dimensions and fallback logic
+      const w = item.weightKg ?? zone.fallbackWeightKg;
+      const l = item.length ?? zone.fallbackLength;
+      const wd = item.width ?? zone.fallbackWidth;
+      const h = item.height ?? zone.fallbackHeight;
+
+      // Calculate Volumetric Weight Formula: Volume / Divisor
+      const volumeWeight = (l * wd * h) / zone.volumetricDivisor;
+      const actualWeight = w;
+
+      const physicalDeliveryCost = actualWeight * zone.ratePerKg;
+      const volumeSurcharge = Math.max(0, volumeWeight - actualWeight) * zone.volSurchargePerKg;
+      
+      const standardCostForOne = physicalDeliveryCost + volumeSurcharge;
+
+      if (item.brandName) {
+        const rule = settings.brandShippingRules.find((r) => r.enabled && r.brandName.toLowerCase() === item.brandName?.toLowerCase());
+        if (rule) {
+          handledByRule = true;
+          // Warehouse delivery is calculated anyway (unless it is 'free' rule)
+          const warehouseDeliveryCostForOne = actualWeight * rule.warehouseRatePerKg;
+          
+          if (rule.mode === 'free') {
+            itemCost = 0;
+          } else if (rule.mode === 'fixed') {
+            const fixedFee = convertAmount(rule.value, rule.currency, zone.currency, settings.currencyRates);
+            itemCost = (fixedFee + warehouseDeliveryCostForOne) * item.quantity;
+          } else if (rule.mode === 'multiplier') {
+            itemCost = (standardCostForOne * rule.value + warehouseDeliveryCostForOne) * item.quantity;
+          }
+        }
+      }
+
+      if (!handledByRule) {
+        itemCost = standardCostForOne * item.quantity;
+      }
+      
+      totalCost += itemCost;
+    }
+  } else {
+    const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+    totalCost += zone.perItemRate * itemCount;
+  }
+
+  return convertAmount(totalCost, zone.currency, currency, settings.currencyRates);
 }
 
 function calculateTaxAmount(
@@ -356,7 +411,7 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
   const adjustedSubtotal = roundMoney(Math.max(0, subtotal + rawRegionalAdjustmentAmount));
   const regionalAdjustmentAmount = roundMoney(adjustedSubtotal - subtotal);
   const shippingZone = resolveShippingZone(input.settings, input.shippingAddress, adjustedSubtotal);
-  const shippingCost = calculateShippingCost(shippingZone, currency, input.settings, adjustedSubtotal, itemCount);
+  const shippingCost = calculateShippingCost(shippingZone, currency, input.settings, subtotal, input.items);
   const taxRegion = resolveTaxRegion(input.settings, input.shippingAddress);
   const taxAmount = calculateTaxAmount(taxRegion, adjustedSubtotal, shippingCost);
   const total = roundMoney(adjustedSubtotal + shippingCost + taxAmount);
@@ -513,6 +568,11 @@ export async function buildCheckoutQuote(
       priceSourceCurrency: sourceCurrency,
       pricingSource: pricing.source,
       discountPercent: pricing.discountPercent,
+      brandName: product.brand,
+      weightKg: variant?.weightKg ?? product.weightKg ?? null,
+      length: variant?.length ?? product.length ?? null,
+      width: variant?.width ?? product.width ?? null,
+      height: variant?.height ?? product.height ?? null,
     });
     subtotal = roundMoney(subtotal + total);
     itemCount += quantity;

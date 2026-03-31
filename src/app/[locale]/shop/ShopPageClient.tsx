@@ -605,7 +605,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
                           slug={product.slug}
                           locale={locale}
                           variant="inline"
-                          redirect={false}
+                          redirect={true}
                           productName={localizeShopProductTitle(locale, product)}
                           className="rounded-full border border-black/20 bg-[#f8f6f2] px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-black/80 hover:bg-black/10 transition"
                         />

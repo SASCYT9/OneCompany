@@ -372,9 +372,17 @@ export default function AdminShopCustomerDetailPage() {
                 {customer.account?.plainPassword ? (
                   <PasswordCard password={customer.account.plainPassword} />
                 ) : (
-                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-200/70">
-                    <div className="text-[11px] uppercase tracking-[0.2em] text-amber-400/50 mb-1">Пароль</div>
-                    Немає збереженого пароля (зареєстровано до оновлення)
+                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-3 text-sm flex flex-col items-start gap-2">
+                    <div className="text-[11px] uppercase tracking-[0.2em] text-amber-400/50">Пароль</div>
+                    <div className="text-amber-200/70">Немає збереженого пароля (зареєстровано до оновлення)</div>
+                    <button
+                      type="button"
+                      onClick={() => void runAction('generate_password' as any)}
+                      disabled={saving}
+                      className="mt-1 inline-flex items-center gap-1.5 rounded bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-400 border border-amber-400/20 hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                    >
+                      Згенерувати доступ
+                    </button>
                   </div>
                 )}
                 <div className="md:col-span-2">

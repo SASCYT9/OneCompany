@@ -24,8 +24,26 @@ type ShopShippingZone = {
   regions: string[];
   baseRate: number;
   perItemRate: number;
+  ratePerKg: number;
+  volSurchargePerKg: number;
+  volumetricDivisor: number;
+  fallbackWeightKg: number;
+  fallbackLength: number;
+  fallbackWidth: number;
+  fallbackHeight: number;
+  calcMode: 'flat' | 'volumetric';
   freeOver: number | null;
   minimumSubtotal: number | null;
+  currency: ShopCurrencyCode;
+  enabled: boolean;
+};
+
+type ShopBrandShippingRule = {
+  id: string;
+  brandName: string;
+  mode: 'fixed' | 'multiplier' | 'free';
+  value: number;
+  warehouseRatePerKg: number;
   currency: ShopCurrencyCode;
   enabled: boolean;
 };
@@ -59,6 +77,7 @@ type ShopSettingsResponse = {
   enabledCurrencies: ShopCurrencyCode[];
   currencyRates: Record<ShopCurrencyCode, number>;
   shippingZones: ShopShippingZone[];
+  brandShippingRules: ShopBrandShippingRule[];
   taxRegions: ShopTaxRegion[];
   regionalPricingRules: ShopRegionalPricingRule[];
   orderNotificationEmail: string | null;
@@ -82,8 +101,26 @@ type ShippingZoneForm = {
   regionsText: string;
   baseRate: string;
   perItemRate: string;
+  ratePerKg: string;
+  volSurchargePerKg: string;
+  volumetricDivisor: string;
+  fallbackWeightKg: string;
+  fallbackLength: string;
+  fallbackWidth: string;
+  fallbackHeight: string;
+  calcMode: 'flat' | 'volumetric';
   freeOver: string;
   minimumSubtotal: string;
+  currency: ShopCurrencyCode;
+  enabled: boolean;
+};
+
+type BrandShippingRuleForm = {
+  id: string;
+  brandName: string;
+  mode: 'fixed' | 'multiplier' | 'free';
+  value: string;
+  warehouseRatePerKg: string;
   currency: ShopCurrencyCode;
   enabled: boolean;
 };
@@ -105,6 +142,7 @@ type ShopSettingsFormState = {
   enabledCurrencies: ShopCurrencyCode[];
   currencyRates: Record<ShopCurrencyCode, string>;
   shippingZones: ShippingZoneForm[];
+  brandShippingRules: BrandShippingRuleForm[];
   taxRegions: TaxRegionForm[];
   regionalPricingRules: RegionalPricingRuleForm[];
   orderNotificationEmail: string;
@@ -245,8 +283,28 @@ function createShippingZoneForm(seed: number): ShippingZoneForm {
     regionsText: '',
     baseRate: '0',
     perItemRate: '0',
+    ratePerKg: '1.5',
+    volSurchargePerKg: '0.5',
+    volumetricDivisor: '5000',
+    fallbackWeightKg: '2',
+    fallbackLength: '30',
+    fallbackWidth: '20',
+    fallbackHeight: '15',
+    calcMode: 'volumetric',
     freeOver: '',
     minimumSubtotal: '',
+    currency: 'EUR',
+    enabled: true,
+  };
+}
+
+function createBrandShippingRuleForm(seed: number): BrandShippingRuleForm {
+  return {
+    id: `brand-rule-${seed}`,
+    brandName: '',
+    mode: 'free',
+    value: '0',
+    warehouseRatePerKg: '0',
     currency: 'EUR',
     enabled: true,
   };
@@ -289,6 +347,7 @@ function createEmptyForm(): ShopSettingsFormState {
       UAH: '45',
     },
     shippingZones: [createShippingZoneForm(1)],
+    brandShippingRules: [],
     taxRegions: [createTaxRegionForm(1)],
     regionalPricingRules: [],
     orderNotificationEmail: '',
@@ -334,11 +393,28 @@ function settingsToForm(settings: ShopSettingsResponse): ShopSettingsFormState {
       regionsText: joinCommaList(zone.regions),
       baseRate: formatNumber(zone.baseRate),
       perItemRate: formatNumber(zone.perItemRate),
+      ratePerKg: formatNumber(zone.ratePerKg),
+      volSurchargePerKg: formatNumber(zone.volSurchargePerKg),
+      volumetricDivisor: formatNumber(zone.volumetricDivisor),
+      fallbackWeightKg: formatNumber(zone.fallbackWeightKg),
+      fallbackLength: formatNumber(zone.fallbackLength),
+      fallbackWidth: formatNumber(zone.fallbackWidth),
+      fallbackHeight: formatNumber(zone.fallbackHeight),
+      calcMode: zone.calcMode,
       freeOver: formatNumber(zone.freeOver),
       minimumSubtotal: formatNumber(zone.minimumSubtotal),
       currency: zone.currency,
       enabled: zone.enabled,
     })),
+    brandShippingRules: settings.brandShippingRules?.map((rule) => ({
+      id: rule.id,
+      brandName: rule.brandName,
+      mode: rule.mode,
+      value: formatNumber(rule.value),
+      warehouseRatePerKg: formatNumber(rule.warehouseRatePerKg),
+      currency: rule.currency,
+      enabled: rule.enabled,
+    })) || [],
     taxRegions: settings.taxRegions.map((region) => ({
       id: region.id,
       name: region.name,
@@ -389,10 +465,27 @@ function formToPayload(form: ShopSettingsFormState) {
       regions: splitCommaList(zone.regionsText),
       baseRate: parseNumber(zone.baseRate),
       perItemRate: parseNumber(zone.perItemRate),
+      ratePerKg: parseNumber(zone.ratePerKg, 1.5),
+      volSurchargePerKg: parseNumber(zone.volSurchargePerKg, 0.5),
+      volumetricDivisor: parseNumber(zone.volumetricDivisor, 5000),
+      fallbackWeightKg: parseNumber(zone.fallbackWeightKg, 2),
+      fallbackLength: parseNumber(zone.fallbackLength, 30),
+      fallbackWidth: parseNumber(zone.fallbackWidth, 20),
+      fallbackHeight: parseNumber(zone.fallbackHeight, 15),
+      calcMode: zone.calcMode,
       freeOver: parseNullableNumber(zone.freeOver),
       minimumSubtotal: parseNullableNumber(zone.minimumSubtotal),
       currency: zone.currency,
       enabled: zone.enabled,
+    })),
+    brandShippingRules: form.brandShippingRules.map((rule) => ({
+      id: rule.id.trim(),
+      brandName: rule.brandName.trim(),
+      mode: rule.mode,
+      value: parseNumber(rule.value),
+      warehouseRatePerKg: parseNumber(rule.warehouseRatePerKg),
+      currency: rule.currency,
+      enabled: rule.enabled,
     })),
     taxRegions: form.taxRegions.map((region) => ({
       id: region.id.trim(),
@@ -611,6 +704,15 @@ export default function AdminShopSettingsPage() {
     }));
   }
 
+  function updateBrandShippingRule(index: number, field: keyof BrandShippingRuleForm, value: BrandShippingRuleForm[keyof BrandShippingRuleForm]) {
+    setForm((current) => ({
+      ...current,
+      brandShippingRules: current.brandShippingRules.map((rule, ruleIndex) =>
+        ruleIndex === index ? { ...rule, [field]: value } : rule
+      ),
+    }));
+  }
+
   function updateTaxRegion(index: number, field: keyof TaxRegionForm, value: TaxRegionForm[keyof TaxRegionForm]) {
     setForm((current) => ({
       ...current,
@@ -640,6 +742,13 @@ export default function AdminShopSettingsPage() {
     }));
   }
 
+  function addBrandShippingRule() {
+    setForm((current) => ({
+      ...current,
+      brandShippingRules: [...current.brandShippingRules, createBrandShippingRuleForm(current.brandShippingRules.length + 1)],
+    }));
+  }
+
   function addTaxRegion() {
     setForm((current) => ({
       ...current,
@@ -661,6 +770,13 @@ export default function AdminShopSettingsPage() {
     }));
   }
 
+  function removeBrandShippingRule(index: number) {
+    setForm((current) => ({
+      ...current,
+      brandShippingRules: current.brandShippingRules.filter((_, ruleIndex) => ruleIndex !== index),
+    }));
+  }
+
   function removeTaxRegion(index: number) {
     setForm((current) => ({
       ...current,
@@ -679,6 +795,13 @@ export default function AdminShopSettingsPage() {
     setForm((current) => ({
       ...current,
       shippingZones: moveItem(current.shippingZones, index, direction),
+    }));
+  }
+
+  function moveBrandShippingRule(index: number, direction: -1 | 1) {
+    setForm((current) => ({
+      ...current,
+      brandShippingRules: moveItem(current.brandShippingRules, index, direction),
     }));
   }
 
@@ -1248,6 +1371,15 @@ export default function AdminShopSettingsPage() {
                       onChange={(value) => updateShippingZone(index, 'currency', value as ShopCurrencyCode)}
                       options={SHOP_CURRENCIES.map((currency) => ({ value: currency, label: currency }))}
                     />
+                    <SelectField
+                      label="Модель розрахунку"
+                      value={zone.calcMode}
+                      onChange={(value) => updateShippingZone(index, 'calcMode', value as 'flat' | 'volumetric')}
+                      options={[
+                        { value: 'flat', label: 'За кількість (Flat)' },
+                        { value: 'volumetric', label: 'За вагою (Volumetric)' },
+                      ]}
+                    />
                     <InputField
                       label="Базовий тариф"
                       value={zone.baseRate}
@@ -1255,11 +1387,63 @@ export default function AdminShopSettingsPage() {
                       placeholder="95"
                     />
                     <InputField
-                      label="Тариф за одиницю"
+                      label={zone.calcMode === 'volumetric' ? 'Тариф за одиницю (ігнорується)' : 'Тариф за одиницю'}
                       value={zone.perItemRate}
                       onChange={(value) => updateShippingZone(index, 'perItemRate', value)}
                       placeholder="0"
+                      disabled={zone.calcMode === 'volumetric'}
                     />
+                    <InputField
+                      label={zone.calcMode === 'flat' ? 'Тариф за КГ (ігнорується)' : 'Тариф за КГ'}
+                      value={zone.ratePerKg}
+                      onChange={(value) => updateShippingZone(index, 'ratePerKg', value)}
+                      placeholder="1.5"
+                      disabled={zone.calcMode === 'flat'}
+                    />
+                    <InputField
+                      label={zone.calcMode === 'flat' ? 'Об\'ємна вага за КГ (ігнорується)' : 'Об\'ємна вага за КГ'}
+                      value={zone.volSurchargePerKg}
+                      onChange={(value) => updateShippingZone(index, 'volSurchargePerKg', value)}
+                      placeholder="0.5"
+                      disabled={zone.calcMode === 'flat'}
+                    />
+                    <InputField
+                      label={zone.calcMode === 'flat' ? 'Ділитель (ігнорується)' : 'Ділитель габаритів (напр. 5000)'}
+                      value={zone.volumetricDivisor}
+                      onChange={(value) => updateShippingZone(index, 'volumetricDivisor', value)}
+                      placeholder="5000"
+                      disabled={zone.calcMode === 'flat'}
+                    />
+                    <InputField
+                      label={zone.calcMode === 'flat' ? 'Вага за замовч. (ігнорується)' : 'Вага за замовч. (КГ)'}
+                      value={zone.fallbackWeightKg}
+                      onChange={(value) => updateShippingZone(index, 'fallbackWeightKg', value)}
+                      placeholder="2"
+                      disabled={zone.calcMode === 'flat'}
+                    />
+                    <div className="flex gap-4 col-span-1 md:col-span-2">
+                       <InputField
+                         label={zone.calcMode === 'flat' ? 'Довжина замовч. (ігн)' : 'Довжина замовч. (см)'}
+                         value={zone.fallbackLength}
+                         onChange={(value) => updateShippingZone(index, 'fallbackLength', value)}
+                         placeholder="30"
+                         disabled={zone.calcMode === 'flat'}
+                       />
+                       <InputField
+                         label={zone.calcMode === 'flat' ? 'Ширина замовч. (ігн)' : 'Ширина замовч. (см)'}
+                         value={zone.fallbackWidth}
+                         onChange={(value) => updateShippingZone(index, 'fallbackWidth', value)}
+                         placeholder="20"
+                         disabled={zone.calcMode === 'flat'}
+                       />
+                       <InputField
+                         label={zone.calcMode === 'flat' ? 'Висота замовч. (ігн)' : 'Висота замовч. (см)'}
+                         value={zone.fallbackHeight}
+                         onChange={(value) => updateShippingZone(index, 'fallbackHeight', value)}
+                         placeholder="15"
+                         disabled={zone.calcMode === 'flat'}
+                       />
+                    </div>
                     <InputField
                       label="Безкоштовна доставка від"
                       value={zone.freeOver}
@@ -1276,6 +1460,116 @@ export default function AdminShopSettingsPage() {
                       label="Увімкнено"
                       checked={zone.enabled}
                       onChange={(checked) => updateShippingZone(index, 'enabled', checked)}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-medium text-white">Правила доставки брендів</h3>
+                <p className="mt-1 text-sm text-white/45">
+                  Спеціальні умови для окремих брендів. Працюють тільки якщо Модель розрахунку обрана як 'Volumetric' у зоні.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={addBrandShippingRule}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+              >
+                <Plus className="h-4 w-4" />
+                Додати правило бренду
+              </button>
+            </div>
+            <div className="space-y-4">
+              {form.brandShippingRules.map((rule, index) => (
+                <div key={`${rule.id}-${index}`} className="rounded-xl border border-white/10 bg-zinc-950/70 p-4">
+                  <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 text-sm font-medium text-white">
+                        <Globe2 className="h-4 w-4 text-white/55" />
+                        {rule.brandName || `Правило бренду ${index + 1}`}
+                      </div>
+                      <div className="mt-1 text-xs font-mono text-white/40">{rule.id || 'missing-id'}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => moveBrandShippingRule(index, -1)}
+                        disabled={index === 0}
+                        className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                        title="Вгору"
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveBrandShippingRule(index, 1)}
+                        disabled={index === form.brandShippingRules.length - 1}
+                        className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                        title="Вниз"
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeBrandShippingRule(index)}
+                        className="rounded border border-red-500/25 p-2 text-red-300 hover:bg-red-500/10"
+                        title="Видалити"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <InputField
+                      label="ID правила"
+                      value={rule.id}
+                      onChange={(value) => updateBrandShippingRule(index, 'id', value)}
+                      placeholder="do88-free"
+                    />
+                    <InputField
+                      label="Бренд"
+                      value={rule.brandName}
+                      onChange={(value) => updateBrandShippingRule(index, 'brandName', value)}
+                      placeholder="DO88"
+                    />
+                    <SelectField
+                      label="Тип правила"
+                      value={rule.mode}
+                      onChange={(value) => updateBrandShippingRule(index, 'mode', value as 'free' | 'multiplier' | 'fixed')}
+                      options={[
+                        { value: 'free', label: 'Безкоштовно (Free)' },
+                        { value: 'multiplier', label: 'Множник ваги (Multiplier)' },
+                        { value: 'fixed', label: 'Фіксована ставка (Fixed)' },
+                      ]}
+                    />
+                    <InputField
+                      label={rule.mode === 'free' ? 'Значення (ігнорується)' : 'Значення'}
+                      value={rule.value}
+                      onChange={(value) => updateBrandShippingRule(index, 'value', value)}
+                      placeholder={rule.mode === 'multiplier' ? '1.25' : '150'}
+                      disabled={rule.mode === 'free'}
+                    />
+                    <InputField
+                      label="Доставка: Виробник → Склад (за 1 КГ)"
+                      value={rule.warehouseRatePerKg}
+                      onChange={(value) => updateBrandShippingRule(index, 'warehouseRatePerKg', value)}
+                      placeholder="Напр. 5"
+                    />
+                    <SelectField
+                      label="Валюта (тільки Fixed)"
+                      value={rule.currency}
+                      onChange={(value) => updateBrandShippingRule(index, 'currency', value as ShopCurrencyCode)}
+                      options={SHOP_CURRENCIES.map((currency) => ({ value: currency, label: currency }))}
+                    />
+                    <CheckboxField
+                      label="Увімкнено"
+                      checked={rule.enabled}
+                      onChange={(checked) => updateBrandShippingRule(index, 'enabled', checked)}
                     />
                   </div>
                 </div>
@@ -1698,18 +1992,20 @@ type InputFieldProps = {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 };
 
-function InputField({ label, value, onChange, placeholder }: InputFieldProps) {
+function InputField({ label, value, onChange, placeholder, disabled }: InputFieldProps) {
   return (
-    <label className="block">
+    <label className={`block ${disabled ? 'opacity-50 grayscale' : ''}`}>
       <span className="mb-1.5 block text-xs text-white/50">{label}</span>
       <input
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+        disabled={disabled}
+        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none disabled:bg-zinc-950/50 disabled:cursor-not-allowed"
       />
     </label>
   );

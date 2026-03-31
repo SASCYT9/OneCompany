@@ -87,6 +87,39 @@ export async function PATCH(request: NextRequest, context: Params) {
 
       return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
     }
+    
+    if (action === 'generate_password') {
+      const { hashPassword } = await import('@/lib/hashPassword');
+      const crypto = await import('crypto');
+      const newPassword = crypto.randomBytes(4).toString('hex'); // 8 characters
+      
+      const payload = {
+        passwordHash: hashPassword(newPassword),
+        plainPassword: newPassword,
+        emailVerifiedAt: new Date()
+      };
+
+      await prisma.shopCustomerAccount.upsert({
+        where: { customerId: id },
+        create: {
+          customerId: id,
+          ...payload
+        },
+        update: payload
+      });
+
+      await writeAdminAuditLog(prisma, session, {
+        scope: 'shop',
+        action: 'customer.password.generate',
+        entityType: 'shop.customer',
+        entityId: id,
+        metadata: {
+          email: existing.email,
+        },
+      });
+
+      return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
+    }
 
     const payload = normalizeShopCustomerAdminPayload(body);
     const updated = await prisma.shopCustomer.update({

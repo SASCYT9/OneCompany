@@ -34,6 +34,10 @@ export type ShopProductVariantSummary = {
   b2bPrice?: ShopMoneySet;
   compareAt?: ShopMoneySet;
   b2bCompareAt?: ShopMoneySet;
+  weightKg?: number | null;
+  length?: number | null;
+  width?: number | null;
+  height?: number | null;
 };
 
 export type ShopBundleComponentSummary = {
@@ -82,6 +86,10 @@ export interface ShopProduct {
   b2bPrice?: ShopMoneySet;
   compareAt?: ShopMoneySet;
   b2bCompareAt?: ShopMoneySet;
+  weightKg?: number | null;
+  length?: number | null;
+  width?: number | null;
+  height?: number | null;
   image: string;
   gallery?: string[];
   highlights: LocalizedText[];

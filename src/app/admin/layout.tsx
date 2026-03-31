@@ -41,49 +41,40 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    title: 'Інтернет Магазин',
+    title: 'Продажі',
     collapsible: true,
     defaultOpen: true,
     items: [
       { href: '/admin/shop/orders', label: 'Замовлення', icon: <Package className="w-[18px] h-[18px]" /> },
-      { href: '/admin/shop/pricing', label: 'Ціноутворення', icon: <DollarSign className="w-[18px] h-[18px]" /> },
+      { href: '/admin/shop/customers', label: 'Покупці', icon: <Users className="w-[18px] h-[18px]" /> },
+    ],
+  },
+  {
+    title: 'Каталог',
+    collapsible: true,
+    defaultOpen: true,
+    items: [
+      { href: '/admin/shop', label: 'Усі товари', icon: <ShoppingBag className="w-[18px] h-[18px]" />, exactMatch: true },
+      { href: '/admin/shop/inventory', label: 'Склад', icon: <Box className="w-[18px] h-[18px]" /> },
+      { href: '/admin/shop/pricing', label: 'Ціни та Знижки', icon: <DollarSign className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/categories', label: 'Категорії', icon: <FolderTree className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/collections', label: 'Колекції', icon: <Tag className="w-[18px] h-[18px]" /> },
     ],
   },
   {
-    title: 'Urban Automotive',
-    collapsible: true,
-    defaultOpen: false, // collapsed by default as it's just brand catalog
-    items: [
-      { href: '/admin/shop?brand=Urban+Automotive', label: 'Urban Каталог', icon: <ShoppingBag className="w-[18px] h-[18px]" />, exactMatch: true },
-      { href: '/admin/shop/inventory?brand=Urban+Automotive', label: 'Склад Urban', icon: <Box className="w-[18px] h-[18px]" /> },
-    ],
-  },
-  {
-    title: 'DO88 Performance',
-    collapsible: true,
-    defaultOpen: false, // collapsed by default
-    items: [
-      { href: '/admin/shop?brand=DO88', label: 'DO88 Каталог', icon: <ShoppingBag className="w-[18px] h-[18px]" />, exactMatch: true },
-      { href: '/admin/shop/inventory?brand=DO88', label: 'Склад DO88', icon: <Box className="w-[18px] h-[18px]" /> },
-    ],
-  },
-  {
-    title: 'Зовнішні Каталоги (API)',
+    title: 'Інтеграції',
     collapsible: true,
     defaultOpen: false,
     items: [
-      { href: '/admin/shop/turn14', label: 'Інтеграція Turn14', icon: <Layers className="w-[18px] h-[18px]" /> },
-      { href: '/admin/shop/stock', label: 'База дистриб\'юторів', icon: <Database className="w-[18px] h-[18px]" /> },
+      { href: '/admin/crm', label: 'Airtable CRM', icon: <Database className="w-[18px] h-[18px]" /> },
+      { href: '/admin/shop/turn14', label: 'Turn14 Proxy', icon: <Layers className="w-[18px] h-[18px]" /> },
+      { href: '/admin/shop/stock', label: 'CSV Імпорт', icon: <Archive className="w-[18px] h-[18px]" /> },
     ],
   },
   {
-    title: 'Клієнти та CRM',
+    title: 'Контент',
     items: [
-      { href: '/admin/shop/customers', label: 'База Клієнтів', icon: <Users className="w-[18px] h-[18px]" /> },
-      { href: '/admin/crm', label: 'CRM', icon: <Database className="w-[18px] h-[18px]" /> },
-      { href: '/admin/messages', label: 'Запити', icon: <MessageSquare className="w-[18px] h-[18px]" /> },
+      { href: '/admin/messages', label: 'Запити з форми', icon: <MessageSquare className="w-[18px] h-[18px]" /> },
       { href: '/admin/blog', label: 'Блог', icon: <ImagePlus className="w-[18px] h-[18px]" /> },
     ],
   },

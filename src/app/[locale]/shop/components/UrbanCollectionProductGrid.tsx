@@ -185,7 +185,7 @@ export default function UrbanCollectionProductGrid({
                     <AddToCartButton
                       slug={product.slug}
                       locale={locale}
-                      redirect={false}
+                      redirect={true}
                       variant="inline"
                       productName={productTitle}
                       className="urban-product-grid__add"

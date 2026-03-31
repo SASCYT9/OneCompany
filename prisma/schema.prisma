@@ -419,6 +419,7 @@ model ShopSettings {
   enabledCurrencies         String[] @default(["EUR", "USD", "UAH"])
   currencyRates             Json     @default("{\"EUR\": 1, \"UAH\": 1, \"USD\": 1}")
   shippingZones             Json     @default("[]")
+  brandShippingRules        Json?    @default("[]")
   taxRegions                Json     @default("[]")
   orderNotificationEmail    String?
   b2bNotes                  String?

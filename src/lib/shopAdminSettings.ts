@@ -8,10 +8,28 @@ export type ShopShippingZone = {
   name: string;
   countries: string[];
   regions: string[];
+  calcMode: 'flat' | 'volumetric';
   baseRate: number;
   perItemRate: number;
+  ratePerKg: number;
+  volSurchargePerKg: number;
+  volumetricDivisor: number;
+  fallbackWeightKg: number;
+  fallbackLength: number;
+  fallbackWidth: number;
+  fallbackHeight: number;
   freeOver: number | null;
   minimumSubtotal: number | null;
+  currency: ShopCurrencyCode;
+  enabled: boolean;
+};
+
+export type ShopBrandShippingRule = {
+  id: string;
+  brandName: string;
+  mode: 'fixed' | 'multiplier' | 'free';
+  value: number;
+  warehouseRatePerKg: number;
   currency: ShopCurrencyCode;
   enabled: boolean;
 };
@@ -45,6 +63,7 @@ export type ShopSettingsRuntime = {
   enabledCurrencies: ShopCurrencyCode[];
   currencyRates: Record<ShopCurrencyCode, number>;
   shippingZones: ShopShippingZone[];
+  brandShippingRules: ShopBrandShippingRule[];
   taxRegions: ShopTaxRegion[];
   regionalPricingRules: ShopRegionalPricingRule[];
   orderNotificationEmail: string | null;
@@ -71,6 +90,7 @@ export type ShopSettingsRecord = {
   shippingZones: Prisma.JsonValue;
   taxRegions: Prisma.JsonValue;
   regionalPricingRules: Prisma.JsonValue;
+  brandShippingRules?: Prisma.JsonValue;
   orderNotificationEmail: string | null;
   b2bNotes: string | null;
   showTaxesIncludedNotice: boolean;
@@ -92,6 +112,7 @@ export type ShopSettingsPayload = {
   enabledCurrencies: string[];
   currencyRates: Record<string, number>;
   shippingZones: Array<Record<string, unknown>>;
+  brandShippingRules: Array<Record<string, unknown>>;
   taxRegions: Array<Record<string, unknown>>;
   regionalPricingRules: Array<Record<string, unknown>>;
   orderNotificationEmail: string | null;
@@ -118,8 +139,16 @@ export const DEFAULT_SHIPPING_ZONES: ShopShippingZone[] = [
     name: 'Ukraine',
     countries: ['Ukraine', 'UA'],
     regions: [],
+    calcMode: 'flat',
     baseRate: 0,
     perItemRate: 0,
+    ratePerKg: 1.5,
+    volSurchargePerKg: 0.5,
+    volumetricDivisor: 5000,
+    fallbackWeightKg: 2,
+    fallbackLength: 30,
+    fallbackWidth: 20,
+    fallbackHeight: 15,
     freeOver: 0,
     minimumSubtotal: null,
     currency: 'UAH',
@@ -130,14 +159,24 @@ export const DEFAULT_SHIPPING_ZONES: ShopShippingZone[] = [
     name: 'Worldwide',
     countries: ['*'],
     regions: [],
-    baseRate: 95,
+    calcMode: 'flat',
+    baseRate: 0,
     perItemRate: 0,
-    freeOver: 2500,
+    ratePerKg: 10,
+    volSurchargePerKg: 2,
+    volumetricDivisor: 5000,
+    fallbackWeightKg: 0.5,
+    fallbackLength: 10,
+    fallbackWidth: 10,
+    fallbackHeight: 10,
+    freeOver: null,
     minimumSubtotal: null,
     currency: 'EUR',
     enabled: true,
   },
 ];
+
+export const DEFAULT_BRAND_SHIPPING_RULES: ShopBrandShippingRule[] = [];
 
 export const DEFAULT_TAX_REGIONS: ShopTaxRegion[] = [
   {
@@ -224,6 +263,15 @@ function normalizeShopShippingZones(value: unknown): ShopShippingZone[] {
     const regions = stringArray(entry.regions);
     const baseRate = Number(entry.baseRate ?? 0);
     const perItemRate = Number(entry.perItemRate ?? 0);
+    const ratePerKg = Number(entry.ratePerKg ?? 1.5);
+    const volSurchargePerKg = Number(entry.volSurchargePerKg ?? 0.5);
+    const volumetricDivisor = Number(entry.volumetricDivisor ?? 5000);
+    const fallbackWeightKg = Number(entry.fallbackWeightKg ?? 2);
+    const fallbackLength = Number(entry.fallbackLength ?? 30);
+    const fallbackWidth = Number(entry.fallbackWidth ?? 20);
+    const fallbackHeight = Number(entry.fallbackHeight ?? 15);
+    const calcMode = entry.calcMode === 'volumetric' ? 'volumetric' : 'flat';
+    
     const freeOverRaw = entry.freeOver;
     const minimumSubtotalRaw = entry.minimumSubtotal;
     const freeOver = freeOverRaw == null || freeOverRaw === '' ? null : Number(freeOverRaw);
@@ -234,8 +282,16 @@ function normalizeShopShippingZones(value: unknown): ShopShippingZone[] {
       name: stringValue(entry.name, `Zone ${index + 1}`) || `Zone ${index + 1}`,
       countries: countries.length ? countries : ['*'],
       regions,
+      calcMode,
       baseRate: Number.isFinite(baseRate) ? baseRate : 0,
       perItemRate: Number.isFinite(perItemRate) ? perItemRate : 0,
+      ratePerKg: Number.isFinite(ratePerKg) ? ratePerKg : 1.5,
+      volSurchargePerKg: Number.isFinite(volSurchargePerKg) ? volSurchargePerKg : 0.5,
+      volumetricDivisor: Number.isFinite(volumetricDivisor) ? volumetricDivisor : 5000,
+      fallbackWeightKg: Number.isFinite(fallbackWeightKg) ? fallbackWeightKg : 2,
+      fallbackLength: Number.isFinite(fallbackLength) ? fallbackLength : 30,
+      fallbackWidth: Number.isFinite(fallbackWidth) ? fallbackWidth : 20,
+      fallbackHeight: Number.isFinite(fallbackHeight) ? fallbackHeight : 15,
       freeOver: freeOver != null && Number.isFinite(freeOver) ? freeOver : null,
       minimumSubtotal: minimumSubtotal != null && Number.isFinite(minimumSubtotal) ? minimumSubtotal : null,
       currency: normalizeCurrencyCode(entry.currency, 'EUR'),
@@ -244,6 +300,28 @@ function normalizeShopShippingZones(value: unknown): ShopShippingZone[] {
   });
 
   return zones.length ? zones : DEFAULT_SHIPPING_ZONES.map((zone) => ({ ...zone }));
+}
+
+function normalizeShopBrandShippingRules(value: unknown): ShopBrandShippingRule[] {
+  const rules = asObjectArray(value).map((entry, index) => {
+    const modeRaw = stringValue(entry.mode, 'fixed');
+    const mode = ['fixed', 'multiplier', 'free'].includes(modeRaw) ? (modeRaw as 'fixed' | 'multiplier' | 'free') : 'fixed';
+    const valueNum = Number(entry.value ?? 0);
+
+    const warehouseRatePerKgNum = Number(entry.warehouseRatePerKg ?? 0);
+
+    return {
+      id: stringValue(entry.id, `brand-rule-${index + 1}`) || `brand-rule-${index + 1}`,
+      brandName: stringValue(entry.brandName, ''),
+      mode,
+      value: Number.isFinite(valueNum) ? valueNum : 0,
+      warehouseRatePerKg: Number.isFinite(warehouseRatePerKgNum) ? warehouseRatePerKgNum : 0,
+      currency: normalizeCurrencyCode(entry.currency, 'EUR'),
+      enabled: entry.enabled !== false,
+    } satisfies ShopBrandShippingRule;
+  });
+
+  return rules.filter((r) => r.brandName);
 }
 
 function normalizeShopTaxRegions(value: unknown): ShopTaxRegion[] {
@@ -302,21 +380,18 @@ export function normalizeShopSettingsPayload(input: unknown) {
   const source = (input && typeof input === 'object' ? input : {}) as Record<string, unknown>;
   const defaultCurrency = normalizeCurrencyCode(source.defaultCurrency, 'EUR');
 
+  const b2bVis = stringValue(source.b2bVisibilityMode, 'approved_only');
+
   const payload: ShopSettingsPayload = {
-    b2bVisibilityMode: ['approved_only', 'public_dual', 'request_quote'].includes(stringValue(source.b2bVisibilityMode, 'approved_only'))
-      ? stringValue(source.b2bVisibilityMode, 'approved_only')
-      : 'approved_only',
-    defaultB2bDiscountPercent: (() => {
-      const parsed = nullableNumber(source.defaultB2bDiscountPercent);
-      if (parsed == null) return null;
-      return parsed >= 0 ? Math.min(parsed, 100) : 0;
-    })(),
+    b2bVisibilityMode: ['approved_only', 'public_dual', 'request_quote'].includes(b2bVis) ? b2bVis : 'approved_only',
+    defaultB2bDiscountPercent: nullableNumber(source.defaultB2bDiscountPercent),
     defaultCurrency,
-    enabledCurrencies: normalizeEnabledCurrencies(source.enabledCurrencies, defaultCurrency),
-    currencyRates: normalizeShopCurrencyRates(source.currencyRates),
-    shippingZones: normalizeShopShippingZones(source.shippingZones),
-    taxRegions: normalizeShopTaxRegions(source.taxRegions),
-    regionalPricingRules: normalizeShopRegionalPricingRules(source.regionalPricingRules),
+    enabledCurrencies: stringArray(source.enabledCurrencies).map((c) => normalizeCurrencyCode(c, 'EUR')),
+    currencyRates: asNumberRecord(source.currencyRates),
+    shippingZones: asObjectArray(source.shippingZones),
+    brandShippingRules: asObjectArray(source.brandShippingRules),
+    taxRegions: asObjectArray(source.taxRegions),
+    regionalPricingRules: asObjectArray(source.regionalPricingRules),
     orderNotificationEmail: nullableString(source.orderNotificationEmail),
     b2bNotes: nullableString(source.b2bNotes),
     showTaxesIncludedNotice: source.showTaxesIncludedNotice === true,
@@ -373,6 +448,7 @@ export function buildShopSettingsRuntimeFromPayload(
     enabledCurrencies,
     currencyRates: normalizeShopCurrencyRates(payload.currencyRates),
     shippingZones: normalizeShopShippingZones(payload.shippingZones),
+    brandShippingRules: normalizeShopBrandShippingRules(payload.brandShippingRules),
     taxRegions: normalizeShopTaxRegions(payload.taxRegions),
     regionalPricingRules: normalizeShopRegionalPricingRules(payload.regionalPricingRules),
     orderNotificationEmail: payload.orderNotificationEmail,
@@ -399,6 +475,7 @@ export function getShopSettingsRuntime(record: ShopSettingsRecord): ShopSettings
       enabledCurrencies: record.enabledCurrencies,
       currencyRates: record.currencyRates,
       shippingZones: record.shippingZones,
+      brandShippingRules: record.brandShippingRules,
       taxRegions: record.taxRegions,
       regionalPricingRules: record.regionalPricingRules,
       orderNotificationEmail: record.orderNotificationEmail,
@@ -430,6 +507,7 @@ export function serializeShopSettings(record: ShopSettingsRecord) {
     enabledCurrencies: runtime.enabledCurrencies,
     currencyRates: runtime.currencyRates,
     shippingZones: runtime.shippingZones,
+    brandShippingRules: runtime.brandShippingRules,
     taxRegions: runtime.taxRegions,
     regionalPricingRules: runtime.regionalPricingRules,
     orderNotificationEmail: runtime.orderNotificationEmail,
@@ -458,6 +536,7 @@ export async function getOrCreateShopSettings(prisma: PrismaClient) {
       enabledCurrencies: ['EUR', 'USD', 'UAH'],
       currencyRates: DEFAULT_CURRENCY_RATES,
       shippingZones: DEFAULT_SHIPPING_ZONES,
+      brandShippingRules: DEFAULT_BRAND_SHIPPING_RULES as unknown as Prisma.InputJsonValue,
       taxRegions: DEFAULT_TAX_REGIONS,
       regionalPricingRules: DEFAULT_REGIONAL_PRICING_RULES,
       showTaxesIncludedNotice: false,
