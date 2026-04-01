@@ -1,69 +1,119 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Truck, Save, RefreshCw, AlertCircle, Search, Earth, MapPin } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import {
+  Truck, Save, RefreshCw, AlertCircle, Search, Earth, MapPin, Plus,
+  Warehouse as WarehouseIcon, X, Trash2, ChevronRight, Globe, Package, Receipt
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SHIPPING_ZONES, ShippingZone } from '@/lib/shippingCalc';
 
 // ─── Interfaces ───
 
+interface WarehouseData {
+  id: string;
+  code: string;
+  name: string;
+  nameUa: string;
+  country: string;
+  city: string | null;
+  isActive: boolean;
+  sortOrder: number;
+  _count?: { zones: number; brands: number };
+}
+
 interface BrandConfig {
   id?: string;
   brandName: string;
+  warehouseId: string | null;
   originZone: string;
   ratePerKg: number;
   volumetricDivisor: number;
   volSurchargePerKg: number;
   baseFee: number;
   isActive: boolean;
+  warehouse?: { id: string; code: string; name: string } | null;
 }
 
 interface ZoneConfig {
   id?: string;
+  warehouseId: string | null;
   zoneCode: string;
   label: string;
   labelUa: string;
   ratePerKg: number;
   volSurchargePerKg: number;
   baseFee: number;
+  etaMinDays: number;
+  etaMaxDays: number;
+  warehouse?: { code: string; name: string } | null;
 }
 
 // ─── Component ───
 
 export default function LogisticsPage() {
-  const [activeTab, setActiveTab] = useState<'inbound' | 'outbound'>('outbound');
-  
+  const [activeTab, setActiveTab] = useState<'outbound' | 'inbound'>('outbound');
+  const [selectedWarehouse, setSelectedWarehouse] = useState<string | null>(null); // warehouseId
+
+  // Warehouse State
+  const [warehouses, setWarehouses] = useState<WarehouseData[]>([]);
+  const [showAddWarehouse, setShowAddWarehouse] = useState(false);
+  const [newWarehouse, setNewWarehouse] = useState({ code: '', name: '', nameUa: '', country: '', city: '' });
+
   // Inbound State
   const [configs, setConfigs] = useState<BrandConfig[]>([]);
   const [knownBrands, setKnownBrands] = useState<string[]>([]);
+  const [brandWarehouses, setBrandWarehouses] = useState<{ id: string; code: string; name: string; nameUa: string }[]>([]);
   const [filter, setFilter] = useState('');
   const [savingKey, setSavingKey] = useState<string | null>(null);
 
   // Outbound State
   const [zones, setZones] = useState<ZoneConfig[]>([]);
+  const [showAddZone, setShowAddZone] = useState(false);
+  const [newZone, setNewZone] = useState({ zoneCode: '', label: '', labelUa: '', ratePerKg: 14, volSurchargePerKg: 2, baseFee: 0, etaMinDays: 7, etaMaxDays: 14 });
 
   // Shared
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData();
-  }, [activeTab]);
+  useEffect(() => { fetchWarehouses(); }, []);
 
-  async function fetchData() {
+  useEffect(() => {
+    if (warehouses.length > 0 && !selectedWarehouse) {
+      setSelectedWarehouse(warehouses[0].id);
+    }
+  }, [warehouses]);
+
+  useEffect(() => {
+    if (selectedWarehouse) fetchTabData();
+  }, [activeTab, selectedWarehouse]);
+
+  async function fetchWarehouses() {
+    try {
+      const res = await fetch('/api/admin/shop/logistics/warehouses');
+      const data = await res.json();
+      setWarehouses(data.warehouses || []);
+    } catch (e) { console.error(e); }
+  }
+
+  async function fetchTabData() {
     setLoading(true);
     try {
       if (activeTab === 'inbound') {
-        const res = await fetch('/api/admin/shop/logistics/brands');
+        const params = selectedWarehouse ? `?warehouseId=${selectedWarehouse}` : '';
+        const res = await fetch(`/api/admin/shop/logistics/brands${params}`);
         const data = await res.json();
-        
+
         const dbConfigs: BrandConfig[] = data.configs || [];
         const dbKnown: string[] = data.knownBrands || [];
-        
+        setBrandWarehouses(data.warehouses || []);
+
         const merged = [...dbConfigs];
         dbKnown.forEach(kb => {
           if (!merged.find(m => m.brandName === kb)) {
             merged.push({
               brandName: kb,
+              warehouseId: selectedWarehouse,
               originZone: 'USA',
               ratePerKg: 14,
               volumetricDivisor: 5000,
@@ -73,37 +123,60 @@ export default function LogisticsPage() {
             });
           }
         });
-        
+
         merged.sort((a, b) => a.brandName.localeCompare(b.brandName));
         setConfigs(merged);
         setKnownBrands(dbKnown);
       } else {
-        const res = await fetch('/api/admin/shop/logistics/zones');
+        const params = selectedWarehouse ? `?warehouseId=${selectedWarehouse}` : '';
+        const res = await fetch(`/api/admin/shop/logistics/zones${params}`);
         const data = await res.json();
-        
+
         const dbZones: ZoneConfig[] = data.zones || [];
-        const staticZoneCodes = Object.keys(SHIPPING_ZONES) as ShippingZone[];
-        
-        const merged = [...dbZones];
-        staticZoneCodes.forEach(zc => {
-           if (!merged.find(m => m.zoneCode === zc)) {
-             const def = SHIPPING_ZONES[zc];
-             merged.push({
-               zoneCode: zc,
-               label: def.label,
-               labelUa: def.labelUa,
-               ratePerKg: def.ratePerKg,
-               volSurchargePerKg: def.volSurchargePerKg,
-               baseFee: def.baseFee,
-             });
-           }
-        });
-        setZones(merged);
+
+        // Only merge defaults if warehouse has no zones yet
+        if (dbZones.length === 0) {
+          const staticZoneCodes = Object.keys(SHIPPING_ZONES) as ShippingZone[];
+          staticZoneCodes.forEach(zc => {
+            const def = SHIPPING_ZONES[zc];
+            dbZones.push({
+              warehouseId: selectedWarehouse,
+              zoneCode: zc,
+              label: def.label,
+              labelUa: def.labelUa,
+              ratePerKg: def.ratePerKg,
+              volSurchargePerKg: def.volSurchargePerKg,
+              baseFee: def.baseFee,
+              etaMinDays: 7,
+              etaMaxDays: 14,
+            });
+          });
+        }
+        setZones(dbZones);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
     setLoading(false);
+  }
+
+  async function saveWarehouse() {
+    if (!newWarehouse.code || !newWarehouse.name) return;
+    try {
+      await fetch('/api/admin/shop/logistics/warehouses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newWarehouse),
+      });
+      setShowAddWarehouse(false);
+      setNewWarehouse({ code: '', name: '', nameUa: '', country: '', city: '' });
+      await fetchWarehouses();
+    } catch (e) { console.error(e); }
+  }
+
+  async function deleteWarehouse(id: string) {
+    if (!confirm('Деактивувати цей склад?')) return;
+    await fetch(`/api/admin/shop/logistics/warehouses?id=${id}`, { method: 'DELETE' });
+    if (selectedWarehouse === id) setSelectedWarehouse(null);
+    await fetchWarehouses();
   }
 
   async function saveBrandConfig(cfg: BrandConfig) {
@@ -112,9 +185,9 @@ export default function LogisticsPage() {
       await fetch('/api/admin/shop/logistics/brands', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cfg)
+        body: JSON.stringify({ ...cfg, warehouseId: cfg.warehouseId || selectedWarehouse }),
       });
-    } catch(e) { console.error(e); }
+    } catch (e) { console.error(e); }
     setSavingKey(null);
   }
 
@@ -124,10 +197,34 @@ export default function LogisticsPage() {
       await fetch('/api/admin/shop/logistics/zones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cfg)
+        body: JSON.stringify({ ...cfg, warehouseId: cfg.warehouseId || selectedWarehouse }),
       });
-    } catch(e) { console.error(e); }
+      await fetchTabData();
+    } catch (e) { console.error(e); }
     setSavingKey(null);
+  }
+
+  async function deleteZone(id: string) {
+    if (!confirm('Видалити цю зону доставки?')) return;
+    await fetch(`/api/admin/shop/logistics/zones?id=${id}`, { method: 'DELETE' });
+    await fetchTabData();
+  }
+
+  async function addNewZone() {
+    if (!newZone.zoneCode) return;
+    await saveZoneConfig({
+      warehouseId: selectedWarehouse,
+      zoneCode: newZone.zoneCode.toUpperCase(),
+      label: newZone.label || newZone.zoneCode,
+      labelUa: newZone.labelUa || newZone.label || newZone.zoneCode,
+      ratePerKg: newZone.ratePerKg,
+      volSurchargePerKg: newZone.volSurchargePerKg,
+      baseFee: newZone.baseFee,
+      etaMinDays: newZone.etaMinDays,
+      etaMaxDays: newZone.etaMaxDays,
+    });
+    setShowAddZone(false);
+    setNewZone({ zoneCode: '', label: '', labelUa: '', ratePerKg: 14, volSurchargePerKg: 2, baseFee: 0, etaMinDays: 7, etaMaxDays: 14 });
   }
 
   const updateBrandField = (idx: number, field: keyof BrandConfig, val: any) => {
@@ -144,191 +241,500 @@ export default function LogisticsPage() {
 
   const filteredBrands = configs.filter(c => c.brandName.toLowerCase().includes(filter.toLowerCase()));
 
+  const selectedWh = warehouses.find(w => w.id === selectedWarehouse);
+
   return (
-    <div className="p-8 max-w-7xl mx-auto h-full overflow-y-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-3">
-          <Truck className="w-8 h-8 text-indigo-400" />
-          Налаштування Логістики 
-        </h1>
-        <p className="mt-2 text-white/50 text-sm">
-          Управління тарифами на двох етапах: від заводів до нашого транзитного складу, та зі складу до кінцевих клієнтів.
-        </p>
-      </div>
+    <div className="relative h-full w-full overflow-auto bg-black text-white">
+      {/* Ambient glow */}
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-600/8 blur-[120px]" />
 
-      <div className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
-        <button
-          onClick={() => setActiveTab('outbound')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all ${activeTab === 'outbound' ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' : 'bg-zinc-900 text-white/50 hover:bg-zinc-800'}`}
-        >
-          <Earth className="w-4 h-4" />
-          Вихідна: до Клієнта (Наші Зони)
-        </button>
-        <button
-          onClick={() => setActiveTab('inbound')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all ${activeTab === 'inbound' ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' : 'bg-zinc-900 text-white/50 hover:bg-zinc-800'}`}
-        >
-          <MapPin className="w-4 h-4" />
-          Вхідна: до Складу (По Брендах)
-        </button>
-      </div>
+      <div className="w-full px-4 py-8 md:px-8 lg:px-12">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-3">
+            <Truck className="w-8 h-8 text-indigo-400 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
+            Логістика & Склади
+          </h1>
+          <p className="mt-2 text-white/40 text-sm max-w-2xl">
+            Управління складами, зонами доставки та логістичними тарифами. Кожен склад має власний набір зон з незалежними тарифами.
+          </p>
+          <Link href="/admin/shop/logistics/taxes"
+            className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-rose-500/20 bg-rose-500/5 text-rose-400 text-[11px] uppercase tracking-widest font-medium hover:bg-rose-500/10 transition-all">
+            <Receipt className="w-3.5 h-3.5" /> Регіональні Податки
+          </Link>
+        </div>
 
-      {loading ? (
-        <div className="py-20 flex justify-center"><RefreshCw className="w-6 h-6 animate-spin text-white/20" /></div>
-      ) : activeTab === 'inbound' ? (
-        // INBOUND LOGISTICS TAB
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-              <input 
-                type="text" 
-                placeholder="Пошук бренду..." 
-                value={filter}
-                onChange={e => setFilter(e.target.value)}
-                className="w-full min-w-[300px] pl-10 pr-4 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500/50"
-              />
+        {/* ─── Warehouse Cards ─── */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-medium flex items-center gap-2">
+              <WarehouseIcon className="w-3.5 h-3.5" /> Склади
+            </h2>
+            <button
+              onClick={() => setShowAddWarehouse(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[11px] uppercase tracking-wider font-medium hover:bg-indigo-500/20 transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" /> Додати Склад
+            </button>
+          </div>
+
+          {warehouses.length === 0 ? (
+            <div className="text-center py-12 text-white/20 text-sm border border-dashed border-white/10 rounded-2xl">
+              <WarehouseIcon className="w-10 h-10 mx-auto mb-3 text-white/10" />
+              Ще немає складів. Додайте перший склад для налаштування логістики.
             </div>
-            <div className="text-sm text-white/40">Логістика етапу "Завод ➡️ Мій Транзитний Склад NY"</div>
-          </div>
-          
-          <div className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-white/5 bg-black/20 text-[10px] uppercase tracking-widest text-white/40">
-                  <th className="font-medium px-4 py-4 w-1/4">Бренд</th>
-                  <th className="font-medium px-4 py-4">Зона Заводу</th>
-                  <th className="font-medium px-4 py-4" title="Тариф ($/кг)">Тариф ($/кг)</th>
-                  <th className="font-medium px-4 py-4" title="Об'ємний Дільник">Дільник (Vol)</th>
-                  <th className="font-medium px-4 py-4" title="Штраф за кожен кг перевищення об'єму над фактичною вагою">Штраф (Vol/кг)</th>
-                  <th className="font-medium px-4 py-4 text-center">Кастомний</th>
-                  <th className="font-medium px-4 py-4">Дія</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 text-sm">
-                {filteredBrands.map((c, i) => {
-                   const realIdx = configs.findIndex(x => x.brandName === c.brandName);
-                   return (
-                    <tr key={c.brandName} className="hover:bg-white/[0.02] transition">
-                      <td className="px-4 py-3 font-medium text-white/90">
-                        {c.brandName}
-                        {!c.id && <span className="ml-2 text-[10px] text-yellow-500/70 uppercase">New</span>}
-                      </td>
-                      <td className="px-4 py-3">
-                        <select 
-                          value={c.originZone} 
-                          onChange={e => updateBrandField(realIdx, 'originZone', e.target.value)}
-                          className="bg-black/40 border border-white/10 rounded items-center px-2 py-1 outline-none focus:border-indigo-500 text-xs"
-                        >
-                          <option value="USA">США</option>
-                          <option value="EU">Європа</option>
-                          <option value="ASIA">Азія</option>
-                        </select>
-                      </td>
-                      <td className="px-4 py-3">
-                        <input type="number" step="0.1" value={c.ratePerKg} onChange={e => updateBrandField(realIdx, 'ratePerKg', parseFloat(e.target.value))} className="w-16 bg-black/40 border border-white/10 rounded px-2 py-1 outline-none text-right" />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input type="number" value={c.volumetricDivisor} onChange={e => updateBrandField(realIdx, 'volumetricDivisor', parseFloat(e.target.value))} className="w-16 bg-black/40 border border-white/10 rounded px-2 py-1 outline-none text-right" />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input type="number" step="0.1" value={c.volSurchargePerKg} onChange={e => updateBrandField(realIdx, 'volSurchargePerKg', parseFloat(e.target.value))} className="w-16 bg-black/40 border border-white/10 rounded px-2 py-1 outline-none text-right" />
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <input type="checkbox" checked={c.isActive} onChange={e => updateBrandField(realIdx, 'isActive', e.target.checked)} className="w-4 h-4 cursor-pointer accent-indigo-500" />
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => saveBrandConfig(c)}
-                          disabled={savingKey === c.brandName}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-300 rounded-lg text-[11px] uppercase tracking-wider font-semibold transition disabled:opacity-50"
-                        >
-                          {savingKey === c.brandName ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                          Зберегти
-                        </button>
-                      </td>
-                    </tr>
-                   );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        // OUTBOUND LOGISTICS TAB
-        <div className="space-y-6">
-          <div className="flex justify-end items-center">
-            <div className="text-sm text-white/40">Логістика етапу "Мій Транзитний Склад NY ➡️ Клієнт"</div>
-          </div>
-          <div className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-white/5 bg-black/20 text-[10px] uppercase tracking-widest text-white/40">
-                  <th className="font-medium px-4 py-4 w-1/4">Країна / Регіон</th>
-                  <th className="font-medium px-4 py-4" title="Базовий тариф за 1 фізичний кг">Фактична Вага ($/кг)</th>
-                  <th className="font-medium px-4 py-4" title="Податок/Коефіцієнт об'ємної ваги. Формула: (Об'єм - Фактична) * Штраф">Штраф за Об'єм ($/кг)</th>
-                  <th className="font-medium px-4 py-4" title="Фіксована ціна просто за оформлення замовлення (відправки)">Базова Комісія ($)</th>
-                  <th className="font-medium px-4 py-4 text-right">Дія</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 text-sm">
-                {zones.map((c, i) => (
-                  <tr key={c.zoneCode} className="hover:bg-white/[0.02] transition">
-                    <td className="px-4 py-4">
-                      <div className="font-medium text-white/90 flex flex-col">
-                        <span>{c.labelUa}</span>
-                        <span className="text-[10px] text-white/30 uppercase mt-0.5">{c.zoneCode} · {c.label}</span>
-                      </div>
-                      {!c.id && <span className="mt-1 text-[10px] text-yellow-500/70 uppercase">Defaults</span>}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-white/30">$</span>
-                        <input type="number" step="0.1" value={c.ratePerKg} onChange={e => updateZoneField(i, 'ratePerKg', parseFloat(e.target.value))} className="w-20 bg-black/40 border border-white/10 rounded px-2 py-1 outline-none focus:border-indigo-500" />
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-white/30">$</span>
-                        <input type="number" step="0.1" value={c.volSurchargePerKg} onChange={e => updateZoneField(i, 'volSurchargePerKg', parseFloat(e.target.value))} className="w-20 bg-black/40 border border-white/10 rounded px-2 py-1 outline-none focus:border-indigo-500" />
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-white/30">$</span>
-                        <input type="number" step="1" value={c.baseFee} onChange={e => updateZoneField(i, 'baseFee', parseFloat(e.target.value))} className="w-20 bg-black/40 border border-white/10 rounded px-2 py-1 outline-none focus:border-indigo-500" />
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right">
+          ) : (
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+              {warehouses.filter(w => w.isActive).map(w => (
+                <motion.button
+                  key={w.id}
+                  onClick={() => setSelectedWarehouse(w.id)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`
+                    relative flex-shrink-0 min-w-[200px] p-4 rounded-2xl border transition-all duration-300 text-left group
+                    ${selectedWarehouse === w.id
+                      ? 'bg-indigo-500/10 border-indigo-500/40 shadow-[0_0_25px_rgba(99,102,241,0.15)]'
+                      : 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04]'
+                    }
+                  `}
+                >
+                  {selectedWarehouse === w.id && (
+                    <motion.div
+                      layoutId="warehouse-indicator"
+                      className="absolute inset-0 rounded-2xl border-2 border-indigo-500/50"
+                    />
+                  )}
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-white/30">{w.code}</span>
                       <button
-                        onClick={() => saveZoneConfig(c)}
-                        disabled={savingKey === c.zoneCode}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-300 rounded-lg text-[11px] uppercase tracking-wider font-semibold transition disabled:opacity-50"
+                        onClick={(e) => { e.stopPropagation(); deleteWarehouse(w.id); }}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-all"
                       >
-                        {savingKey === c.zoneCode ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                        Зберегти Зону
+                        <Trash2 className="w-3 h-3" />
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl flex gap-3 text-sm text-indigo-200 mt-4">
-             <AlertCircle className="shrink-0 w-5 h-5 text-indigo-400" />
-             <div>
-               <p className="font-semibold mb-1">Як працює формула Вихідної Зони?</p>
-               <p className="text-indigo-200/70">
-                 Якщо клієнт купує деталь (Фактична вага = 10 кг, Об'ємна = 15 кг). <br/>
-                 І Зона встановлена так: `Тариф: $14/кг`, `Штраф за об'єм: $2/кг`, `Комісія: $5`.<br/>
-                 Розрахунок: `$5 + (10кг * $14) + ((15кг - 10кг) * $2)`.<br/>
-                 Окремо до цієї суми завжди додається Базова Вхідна Логістика бренду.
-               </p>
-             </div>
-          </div>
+                    </div>
+                    <div className="font-medium text-white/90 text-sm mb-1">{w.nameUa || w.name}</div>
+                    <div className="text-[11px] text-white/30">
+                      {w.city ? `${w.city}, ` : ''}{w.country}
+                    </div>
+                    <div className="flex gap-3 mt-3">
+                      <span className="text-[10px] text-indigo-400/80">
+                        <Globe className="w-3 h-3 inline mr-1" />{w._count?.zones || 0} зон
+                      </span>
+                      <span className="text-[10px] text-amber-400/80">
+                        <Package className="w-3 h-3 inline mr-1" />{w._count?.brands || 0} брендів
+                      </span>
+                    </div>
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+
+        {/* ─── Tab Switcher ─── */}
+        {selectedWarehouse && (
+          <>
+            <div className="flex items-center gap-4 mb-6 border-b border-white/[0.06] pb-4">
+              <button
+                onClick={() => setActiveTab('outbound')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  activeTab === 'outbound'
+                    ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.35)]'
+                    : 'bg-white/[0.03] text-white/40 hover:bg-white/[0.06] hover:text-white/60'
+                }`}
+              >
+                <Earth className="w-4 h-4" />
+                Вихідна: до Клієнта
+              </button>
+              <button
+                onClick={() => setActiveTab('inbound')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  activeTab === 'inbound'
+                    ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.35)]'
+                    : 'bg-white/[0.03] text-white/40 hover:bg-white/[0.06] hover:text-white/60'
+                }`}
+              >
+                <MapPin className="w-4 h-4" />
+                Вхідна: до Складу
+              </button>
+              <div className="ml-auto flex items-center gap-2 text-[11px] text-white/30">
+                <ChevronRight className="w-3 h-3" />
+                <span className="font-mono">{selectedWh?.code}</span>
+                <span className="text-white/15">·</span>
+                <span>{selectedWh?.nameUa || selectedWh?.name}</span>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="py-20 flex justify-center"><RefreshCw className="w-6 h-6 animate-spin text-white/20" /></div>
+            ) : activeTab === 'inbound' ? (
+              /* ─── INBOUND LOGISTICS TAB ─── */
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                    <input
+                      type="text"
+                      placeholder="Пошук бренду..."
+                      value={filter}
+                      onChange={e => setFilter(e.target.value)}
+                      className="w-full min-w-[300px] pl-10 pr-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500/50 placeholder-white/20 transition-colors"
+                    />
+                  </div>
+                  <div className="text-sm text-white/30">
+                    Завод <ChevronRight className="w-3 h-3 inline mx-1" /> {selectedWh?.nameUa || 'Склад'}
+                  </div>
+                </div>
+
+                <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-black/60 backdrop-blur-2xl shadow-2xl">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-white/[0.06] bg-white/[0.02] text-[10px] uppercase tracking-[0.15em] text-white/40">
+                        <th className="font-medium px-5 py-4 w-1/4">Бренд</th>
+                        <th className="font-medium px-5 py-4">Склад</th>
+                        <th className="font-medium px-5 py-4">Зона Заводу</th>
+                        <th className="font-medium px-5 py-4" title="Тариф ($/кг)">Тариф ($/кг)</th>
+                        <th className="font-medium px-5 py-4" title="Об'ємний Дільник">Дільник</th>
+                        <th className="font-medium px-5 py-4" title="Штраф за кожен кг перевищення">Штраф (Vol/кг)</th>
+                        <th className="font-medium px-5 py-4 text-center">Кастомний</th>
+                        <th className="font-medium px-5 py-4">Дія</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.04] text-sm">
+                      {filteredBrands.map((c, i) => {
+                        const realIdx = configs.findIndex(x => x.brandName === c.brandName);
+                        return (
+                          <tr key={c.brandName} className="hover:bg-white/[0.02] transition-colors">
+                            <td className="px-5 py-3 font-medium text-white/90">
+                              {c.brandName}
+                              {!c.id && <span className="ml-2 text-[10px] text-yellow-500/70 uppercase">New</span>}
+                            </td>
+                            <td className="px-5 py-3">
+                              <select
+                                value={c.warehouseId || ''}
+                                onChange={e => updateBrandField(realIdx, 'warehouseId', e.target.value || null)}
+                                className="bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 text-xs text-white/70"
+                              >
+                                <option value="">Не вказано</option>
+                                {brandWarehouses.map(w => (
+                                  <option key={w.id} value={w.id}>{w.nameUa || w.name}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="px-5 py-3">
+                              <select
+                                value={c.originZone}
+                                onChange={e => updateBrandField(realIdx, 'originZone', e.target.value)}
+                                className="bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 text-xs text-white/70"
+                              >
+                                <option value="USA">США</option>
+                                <option value="EU">Європа</option>
+                                <option value="ASIA">Азія</option>
+                              </select>
+                            </td>
+                            <td className="px-5 py-3">
+                              <input type="number" step="0.1" value={c.ratePerKg} onChange={e => updateBrandField(realIdx, 'ratePerKg', parseFloat(e.target.value))} className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none text-right text-white/70 focus:border-indigo-500" />
+                            </td>
+                            <td className="px-5 py-3">
+                              <input type="number" value={c.volumetricDivisor} onChange={e => updateBrandField(realIdx, 'volumetricDivisor', parseFloat(e.target.value))} className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none text-right text-white/70 focus:border-indigo-500" />
+                            </td>
+                            <td className="px-5 py-3">
+                              <input type="number" step="0.1" value={c.volSurchargePerKg} onChange={e => updateBrandField(realIdx, 'volSurchargePerKg', parseFloat(e.target.value))} className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none text-right text-white/70 focus:border-indigo-500" />
+                            </td>
+                            <td className="px-5 py-3 text-center">
+                              <input type="checkbox" checked={c.isActive} onChange={e => updateBrandField(realIdx, 'isActive', e.target.checked)} className="w-4 h-4 cursor-pointer accent-indigo-500" />
+                            </td>
+                            <td className="px-5 py-3">
+                              <button
+                                onClick={() => saveBrandConfig(c)}
+                                disabled={savingKey === c.brandName}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 rounded-lg text-[11px] uppercase tracking-wider font-semibold transition disabled:opacity-50"
+                              >
+                                {savingKey === c.brandName ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                                Зберегти
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              /* ─── OUTBOUND LOGISTICS TAB ─── */
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <button
+                    onClick={() => setShowAddZone(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[11px] uppercase tracking-wider font-medium hover:bg-indigo-500/20 transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Додати Зону
+                  </button>
+                  <div className="text-sm text-white/30">
+                    {selectedWh?.nameUa || 'Склад'} <ChevronRight className="w-3 h-3 inline mx-1" /> Клієнт
+                  </div>
+                </div>
+
+                <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-black/60 backdrop-blur-2xl shadow-2xl">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-white/[0.06] bg-white/[0.02] text-[10px] uppercase tracking-[0.15em] text-white/40">
+                        <th className="font-medium px-5 py-4 w-1/4">Країна / Регіон</th>
+                        <th className="font-medium px-5 py-4" title="Базовий тариф за 1 фізичний кг">Факт. вага ($/кг)</th>
+                        <th className="font-medium px-5 py-4" title="Штраф за об'ємну перевагу">Штраф об'єм ($/кг)</th>
+                        <th className="font-medium px-5 py-4" title="Фіксована комісія за оформлення">Базова комісія ($)</th>
+                        <th className="font-medium px-5 py-4" title="Орієнтовний час доставки">ETA (днів)</th>
+                        <th className="font-medium px-5 py-4 text-right">Дії</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.04] text-sm">
+                      {zones.map((c, i) => (
+                        <tr key={c.id || c.zoneCode} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="px-5 py-4">
+                            <div className="font-medium text-white/90 flex flex-col">
+                              <span>{c.labelUa}</span>
+                              <span className="text-[10px] text-white/25 uppercase mt-0.5 font-mono">{c.zoneCode} · {c.label}</span>
+                            </div>
+                            {!c.id && <span className="text-[10px] text-yellow-500/70 uppercase">Defaults</span>}
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-white/25">$</span>
+                              <input type="number" step="0.1" value={c.ratePerKg} onChange={e => updateZoneField(i, 'ratePerKg', parseFloat(e.target.value))} className="w-20 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 text-white/70" />
+                            </div>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-white/25">$</span>
+                              <input type="number" step="0.1" value={c.volSurchargePerKg} onChange={e => updateZoneField(i, 'volSurchargePerKg', parseFloat(e.target.value))} className="w-20 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 text-white/70" />
+                            </div>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-white/25">$</span>
+                              <input type="number" step="1" value={c.baseFee} onChange={e => updateZoneField(i, 'baseFee', parseFloat(e.target.value))} className="w-20 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 text-white/70" />
+                            </div>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-1">
+                              <input type="number" min="1" max="90" value={c.etaMinDays} onChange={e => updateZoneField(i, 'etaMinDays', parseInt(e.target.value) || 1)} className="w-12 bg-black/40 border border-white/10 rounded-lg px-1.5 py-1.5 outline-none text-center focus:border-indigo-500 text-white/70 text-xs" />
+                              <span className="text-white/20 text-[10px]">—</span>
+                              <input type="number" min="1" max="90" value={c.etaMaxDays} onChange={e => updateZoneField(i, 'etaMaxDays', parseInt(e.target.value) || 1)} className="w-12 bg-black/40 border border-white/10 rounded-lg px-1.5 py-1.5 outline-none text-center focus:border-indigo-500 text-white/70 text-xs" />
+                            </div>
+                          </td>
+                          <td className="px-5 py-3 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => saveZoneConfig(c)}
+                                disabled={savingKey === c.zoneCode}
+                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 rounded-lg text-[11px] uppercase tracking-wider font-semibold transition disabled:opacity-50"
+                              >
+                                {savingKey === c.zoneCode ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                                Зберегти
+                              </button>
+                              {c.id && (
+                                <button
+                                  onClick={() => deleteZone(c.id!)}
+                                  className="p-1.5 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-colors"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="p-4 bg-indigo-500/[0.04] border border-indigo-500/10 rounded-2xl flex gap-3 text-sm text-indigo-200/80">
+                  <AlertCircle className="shrink-0 w-5 h-5 text-indigo-400/60" />
+                  <div>
+                    <p className="font-semibold mb-1 text-indigo-200/90">Як працює формула Вихідної Зони?</p>
+                    <p className="text-indigo-200/50">
+                      Якщо клієнт купує деталь (Фактична вага = 10 кг, Об&apos;ємна = 15 кг). <br />
+                      І Зона встановлена так: <code className="text-indigo-300/60">Тариф: $14/кг</code>, <code className="text-indigo-300/60">Штраф: $2/кг</code>, <code className="text-indigo-300/60">Комісія: $5</code>.<br />
+                      Розрахунок: <code className="text-indigo-300/60">$5 + (10кг × $14) + ((15кг − 10кг) × $2)</code>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ─── Add Warehouse Modal ─── */}
+      <AnimatePresence>
+        {showAddWarehouse && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowAddWarehouse(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#0a0a0a] border border-white/[0.08] w-full max-w-lg p-6 rounded-2xl shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-sm font-medium text-white flex items-center gap-2">
+                  <WarehouseIcon className="w-4 h-4 text-indigo-400" /> Додати Склад
+                </h3>
+                <button onClick={() => setShowAddWarehouse(false)} className="p-1 rounded hover:bg-white/5 text-white/30">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Код *</label>
+                  <input value={newWarehouse.code} onChange={e => setNewWarehouse(p => ({ ...p, code: e.target.value.toUpperCase() }))}
+                    placeholder="US_NY"
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15 font-mono" />
+                </div>
+                <div>
+                  <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Країна *</label>
+                  <input value={newWarehouse.country} onChange={e => setNewWarehouse(p => ({ ...p, country: e.target.value }))}
+                    placeholder="US"
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Назва (EN) *</label>
+                  <input value={newWarehouse.name} onChange={e => setNewWarehouse(p => ({ ...p, name: e.target.value }))}
+                    placeholder="USA Transit (New York)"
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Назва (UA)</label>
+                  <input value={newWarehouse.nameUa} onChange={e => setNewWarehouse(p => ({ ...p, nameUa: e.target.value }))}
+                    placeholder="Транзитний Склад США (Нью-Йорк)"
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Місто</label>
+                  <input value={newWarehouse.city} onChange={e => setNewWarehouse(p => ({ ...p, city: e.target.value }))}
+                    placeholder="New York"
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => setShowAddWarehouse(false)}
+                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest text-white/40 border border-white/10 rounded-xl hover:bg-white/5 transition-colors">
+                  Скасувати
+                </button>
+                <button onClick={saveWarehouse} disabled={!newWarehouse.code || !newWarehouse.name}
+                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest font-bold bg-indigo-500 text-white rounded-xl hover:bg-indigo-400 disabled:opacity-30 transition-all">
+                  Створити
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Add Zone Modal ─── */}
+      <AnimatePresence>
+        {showAddZone && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowAddZone(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#0a0a0a] border border-white/[0.08] w-full max-w-lg p-6 rounded-2xl shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-sm font-medium text-white flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-indigo-400" /> Додати Зону Доставки
+                </h3>
+                <button onClick={() => setShowAddZone(false)} className="p-1 rounded hover:bg-white/5 text-white/30">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Код Зони *</label>
+                    <input value={newZone.zoneCode} onChange={e => setNewZone(p => ({ ...p, zoneCode: e.target.value.toUpperCase() }))}
+                      placeholder="AE"
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15 font-mono" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Базова Комісія ($)</label>
+                    <input type="number" step="1" value={newZone.baseFee} onChange={e => setNewZone(p => ({ ...p, baseFee: Number(e.target.value) }))}
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Назва (EN) *</label>
+                  <input value={newZone.label} onChange={e => setNewZone(p => ({ ...p, label: e.target.value }))}
+                    placeholder="United Arab Emirates"
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                </div>
+                <div>
+                  <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Назва (UA)</label>
+                  <input value={newZone.labelUa} onChange={e => setNewZone(p => ({ ...p, labelUa: e.target.value }))}
+                    placeholder="Об'єднані Арабські Емірати"
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Тариф ($/кг)</label>
+                    <input type="number" step="0.1" value={newZone.ratePerKg} onChange={e => setNewZone(p => ({ ...p, ratePerKg: Number(e.target.value) }))}
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Штраф Об&apos;єму ($/кг)</label>
+                    <input type="number" step="0.1" value={newZone.volSurchargePerKg} onChange={e => setNewZone(p => ({ ...p, volSurchargePerKg: Number(e.target.value) }))}
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">ETA мін. (днів)</label>
+                    <input type="number" min="1" max="90" value={newZone.etaMinDays} onChange={e => setNewZone(p => ({ ...p, etaMinDays: Number(e.target.value) }))}
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">ETA макс. (днів)</label>
+                    <input type="number" min="1" max="90" value={newZone.etaMaxDays} onChange={e => setNewZone(p => ({ ...p, etaMaxDays: Number(e.target.value) }))}
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => setShowAddZone(false)}
+                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest text-white/40 border border-white/10 rounded-xl hover:bg-white/5 transition-colors">
+                  Скасувати
+                </button>
+                <button onClick={addNewZone} disabled={!newZone.zoneCode || !newZone.label}
+                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest font-bold bg-indigo-500 text-white rounded-xl hover:bg-indigo-400 disabled:opacity-30 transition-all">
+                  Створити Зону
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

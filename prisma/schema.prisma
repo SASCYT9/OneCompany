@@ -228,32 +228,81 @@ model ShopProduct {
   @@index([categoryId])
 }
 
+model ShopWarehouse {
+  id          String   @id @default(cuid())
+  code        String   @unique       // e.g. "US_NY", "EU_PL", "UA_KYIV"
+  name        String                 // "USA Transit (New York)"
+  nameUa      String                 // "Транзитний Склад США (Нью-Йорк)"
+  country     String                 // "US"
+  city        String?                // "New York"
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  zones       ShopShippingZone[]
+  brands      ShopBrandLogistics[]
+
+  @@index([isActive, sortOrder])
+}
+
 model ShopBrandLogistics {
-  id                 String   @id @default(cuid())
-  brandName          String   @unique
-  originZone         String   @default("USA") // Where does this brand ship from? (USA, EU, etc)
-  ratePerKg          Float    @default(0)     // Base cost per kg
-  volumetricDivisor  Float    @default(5000)  // 5000 for air, 4000 for ground maybe
-  volSurchargePerKg  Float    @default(0)     // Penalty for volumetric vs actual difference
-  baseFee            Float    @default(0)     // Flat handling fee per brand item
-  isActive           Boolean  @default(true) // Should custom rule apply?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  
+  id                 String         @id @default(cuid())
+  brandName          String         @unique
+  warehouseId        String?
+  originZone         String         @default("USA") // Where does this brand ship from? (USA, EU, etc)
+  ratePerKg          Float          @default(0)     // Base cost per kg
+  volumetricDivisor  Float          @default(5000)  // 5000 for air, 4000 for ground maybe
+  volSurchargePerKg  Float          @default(0)     // Penalty for volumetric vs actual difference
+  baseFee            Float          @default(0)     // Flat handling fee per brand item
+  isActive           Boolean        @default(true)  // Should custom rule apply?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  warehouse          ShopWarehouse? @relation(fields: [warehouseId], references: [id])
+
   @@index([brandName])
   @@index([isActive])
+  @@index([warehouseId])
 }
 
 model ShopShippingZone {
-  id                 String   @id @default(cuid())
-  zoneCode           String   @unique // e.g. "KZ", "UA", "EU", "US", "OTHER"
-  label              String   // e.g. "Kazakhstan"
-  labelUa            String   // e.g. "Казахстан"
-  ratePerKg          Float    @default(14)
-  volSurchargePerKg  Float    @default(2)
-  baseFee            Float    @default(0)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                 String         @id @default(cuid())
+  warehouseId        String?
+  zoneCode           String         // e.g. "KZ", "UA", "EU", "US", "OTHER"
+  label              String         // e.g. "Kazakhstan"
+  labelUa            String         // e.g. "Казахстан"
+  ratePerKg          Float          @default(14)
+  volSurchargePerKg  Float          @default(2)
+  baseFee            Float          @default(0)
+  etaMinDays         Int            @default(7)    // Estimated delivery: minimum days
+  etaMaxDays         Int            @default(14)   // Estimated delivery: maximum days
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  warehouse          ShopWarehouse? @relation(fields: [warehouseId], references: [id])
+
+  @@unique([warehouseId, zoneCode])
+  @@index([warehouseId])
+}
+
+model ShopTaxRegionRule {
+  id            String   @id @default(cuid())
+  regionCode    String   @unique       // e.g. "UA", "DE", "EU", "US_CA"
+  regionName    String                 // "Ukraine"
+  regionNameUa  String                 // "Україна"
+  taxType       String   @default("VAT") // VAT, GST, SALES_TAX, CUSTOMS_DUTY, NONE
+  taxRate       Float    @default(0)   // Percentage, e.g. 20 for 20%
+  taxLabel      String?                // Display label, e.g. "ПДВ 20%"
+  taxLabelUa    String?                // "ПДВ 20%"
+  customsDutyPct Float   @default(0)   // Import duty percentage
+  isInclusive   Boolean  @default(false) // Tax included in price (EU style) vs added on top (US style)
+  isActive      Boolean  @default(true)
+  notes         String?                // Admin notes, e.g. "Exempt for B2B with VAT ID"
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@index([regionCode])
 }
 
 model ShopCollection {
