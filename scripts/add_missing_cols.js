@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 
 async function fix() {
   const prisma = new PrismaClient({
-    datasources: { db: { url: "postgresql://postgres.zllvamstmtpjdbwtsfod:bFeNqSlYFSO3NnD1@aws-1-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require" } }
+    datasources: { db: { url: process.env.DATABASE_URL } }
   });
   
   try {

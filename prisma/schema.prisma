@@ -205,6 +205,7 @@ model ShopProduct {
   length               Float?
   width                Float?
   height               Float?
+  isDimensionsEstimated Boolean @default(false)
   supplier             String?
   originCountry        String?
   airtableRecordId     String?
@@ -352,6 +353,7 @@ model ShopProductVariant {
   length               Float?
   width                Float?
   height               Float?
+  isDimensionsEstimated Boolean @default(false)
   originCountry        String?
   airtableRecordId     String?
   airtableSyncedAt     DateTime?

@@ -60,6 +60,11 @@ type VariantFormItem = {
   taxCode: string;
   costPerItem: string;
   isDefault: boolean;
+  weight: string;
+  length: string;
+  width: string;
+  height: string;
+  isDimensionsEstimated: boolean;
 };
 
 type MetafieldFormItem = {
@@ -184,6 +189,11 @@ type ProductFormState = {
   options: OptionFormItem[];
   variants: VariantFormItem[];
   metafields: MetafieldFormItem[];
+  weight: string;
+  length: string;
+  width: string;
+  height: string;
+  isDimensionsEstimated: boolean;
 };
 
 type ProductResponse = {
@@ -228,6 +238,11 @@ type ProductResponse = {
   compareAtEurB2b: number | null;
   compareAtUsdB2b: number | null;
   compareAtUahB2b: number | null;
+  weight: number | null;
+  length: number | null;
+  width: number | null;
+  height: number | null;
+  isDimensionsEstimated: boolean;
   image: string | null;
   seoTitleUa: string | null;
   seoTitleEn: string | null;
@@ -267,6 +282,11 @@ type ProductResponse = {
     compareAtEurB2b: number | null;
     compareAtUsdB2b: number | null;
     compareAtUahB2b: number | null;
+    weight: number | null;
+    length: number | null;
+    width: number | null;
+    height: number | null;
+    isDimensionsEstimated: boolean;
     requiresShipping: boolean;
     taxable: boolean;
     barcode: string | null;
@@ -345,6 +365,11 @@ function emptyVariant(position = 1): VariantFormItem {
     taxCode: '',
     costPerItem: '',
     isDefault: position === 1,
+    weight: '',
+    length: '',
+    width: '',
+    height: '',
+    isDimensionsEstimated: false,
   };
 }
 
@@ -481,6 +506,11 @@ function createEmptyForm(): ProductFormState {
     options: [],
     variants: [emptyVariant()],
     metafields: [],
+    weight: '',
+    length: '',
+    width: '',
+    height: '',
+    isDimensionsEstimated: false,
   };
 }
 
@@ -524,6 +554,11 @@ function productToForm(product: ProductResponse): ProductFormState {
     compareAtEurB2b: stringNumber(product.compareAtEurB2b),
     compareAtUsdB2b: stringNumber(product.compareAtUsdB2b),
     compareAtUahB2b: stringNumber(product.compareAtUahB2b),
+    weight: stringNumber(product.weight),
+    length: stringNumber(product.length),
+    width: stringNumber(product.width),
+    height: stringNumber(product.height),
+    isDimensionsEstimated: Boolean(product.isDimensionsEstimated),
     image: product.image ?? '',
     seoTitleUa: product.seoTitleUa ?? '',
     seoTitleEn: product.seoTitleEn ?? '',
@@ -579,6 +614,11 @@ function productToForm(product: ProductResponse): ProductFormState {
           compareAtUahB2b: stringNumber(item.compareAtUahB2b),
           requiresShipping: item.requiresShipping,
           taxable: item.taxable,
+          weight: stringNumber(item.weight),
+          length: stringNumber(item.length),
+          width: stringNumber(item.width),
+          height: stringNumber(item.height),
+          isDimensionsEstimated: Boolean(item.isDimensionsEstimated),
           barcode: item.barcode ?? '',
           image: item.image ?? '',
           weightUnit: item.weightUnit ?? '',
@@ -649,6 +689,11 @@ function buildPayload(form: ProductFormState) {
     compareAtEurB2b: decimalOrNull(form.compareAtEurB2b),
     compareAtUsdB2b: decimalOrNull(form.compareAtUsdB2b),
     compareAtUahB2b: decimalOrNull(form.compareAtUahB2b),
+    weight: decimalOrNull(form.weight),
+    length: decimalOrNull(form.length),
+    width: decimalOrNull(form.width),
+    height: decimalOrNull(form.height),
+    isDimensionsEstimated: Boolean(form.isDimensionsEstimated),
     image: form.image || null,
     seoTitleUa: form.seoTitleUa || null,
     seoTitleEn: form.seoTitleEn || null,
@@ -709,6 +754,11 @@ function buildPayload(form: ProductFormState) {
         compareAtEurB2b: decimalOrNull(item.compareAtEurB2b),
         compareAtUsdB2b: decimalOrNull(item.compareAtUsdB2b),
         compareAtUahB2b: decimalOrNull(item.compareAtUahB2b),
+        weight: decimalOrNull(item.weight),
+        length: decimalOrNull(item.length),
+        width: decimalOrNull(item.width),
+        height: decimalOrNull(item.height),
+        isDimensionsEstimated: Boolean(item.isDimensionsEstimated),
         requiresShipping: item.requiresShipping,
         taxable: item.taxable,
         barcode: item.barcode.trim() || null,
@@ -1346,6 +1396,48 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
     setSuccess(`Generated ${nextVariants.length} variants from ${definitions.length} option groups.`);
   };
 
+  const handleEstimateDimensionsAI = async () => {
+    try {
+      const targetTitle = form.titleEn || form.titleUa;
+      if (!targetTitle) {
+        setError('Необхідно вказати хоча б одну назву товару (En/Ua) для ШІ');
+        return;
+      }
+      setSaving(true);
+      setError('');
+      setSuccess('Генерація габаритів через ШІ...');
+      const res = await fetch('/api/admin/shop/ai/estimate-dimensions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: targetTitle,
+          brand: form.brand,
+          sku: form.sku,
+          categoryName: availableCategories.find(c => c.id === form.categoryId)?.titleEn
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Помилка при генерації габаритів');
+      }
+      const e = data.estimate;
+      setForm(prev => ({
+        ...prev,
+        weight: e.weight != null ? String(e.weight) : prev.weight,
+        length: e.length != null ? String(e.length) : prev.length,
+        width: e.width != null ? String(e.width) : prev.width,
+        height: e.height != null ? String(e.height) : prev.height,
+        isDimensionsEstimated: true
+      }));
+      setSuccess(`Габарити успішно згенеровано! (Модель: ${e.model || 'AI'})`);
+      setTimeout(() => setSuccess(''), 4000);
+    } catch(err: any) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
@@ -1621,6 +1713,31 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 <InputField label="B2B порівн. USD" type="number" step="0.01" value={form.compareAtUsdB2b} onChange={(value) => updateField('compareAtUsdB2b', value)} />
                 <InputField label="B2B порівн. UAH" type="number" step="0.01" value={form.compareAtUahB2b} onChange={(value) => updateField('compareAtUahB2b', value)} />
               </div>
+            </div>
+          </EditorCard>
+
+          <EditorCard
+            title="Габарити та Вага (Базові)"
+            description="Використовуються для розрахунку об'ємної ваги та доставки, якщо поточний варіант не має власних значень."
+          >
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={handleEstimateDimensionsAI}
+                disabled={saving}
+                className="flex items-center gap-2 rounded-lg bg-indigo-500/20 px-3 py-2 text-sm font-medium text-indigo-400 hover:bg-indigo-500/30 disabled:opacity-50 transition-colors"
+              >
+                <Wand2 className="size-4" /> 🪄 Згенерувати габарити через ШІ
+              </button>
+            </div>
+            <div className="grid gap-4 md:grid-cols-4">
+              <InputField label="Вага (кг)" type="number" step="0.01" value={form.weight} onChange={(value) => updateField('weight', value)} />
+              <InputField label="Довжина (см)" type="number" step="0.1" value={form.length} onChange={(value) => updateField('length', value)} />
+              <InputField label="Ширина (см)" type="number" step="0.1" value={form.width} onChange={(value) => updateField('width', value)} />
+              <InputField label="Висота (см)" type="number" step="0.1" value={form.height} onChange={(value) => updateField('height', value)} />
+            </div>
+            <div className="mt-4 flex items-center">
+              <CheckboxField label="Орієнтовні габарити (згенеровано ШІ / потребують перевірки)" checked={form.isDimensionsEstimated} onChange={(value) => updateField('isDimensionsEstimated', value)} />
             </div>
           </EditorCard>
 
@@ -2081,6 +2198,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <InputField label="Служба виконання" value={item.fulfillmentService} onChange={(value) => updateListItem('variants', index, { fulfillmentService: value })} />
                     <InputField label="Штрихкод" value={item.barcode} onChange={(value) => updateListItem('variants', index, { barcode: value })} />
                     <InputField label="Одиниця ваги" value={item.weightUnit} onChange={(value) => updateListItem('variants', index, { weightUnit: value })} />
+                    <InputField label="Вага (кг)" type="number" step="0.01" value={item.weight} onChange={(value) => updateListItem('variants', index, { weight: value })} />
+                    <InputField label="Довжина (см)" type="number" step="0.1" value={item.length} onChange={(value) => updateListItem('variants', index, { length: value })} />
+                    <InputField label="Ширина (см)" type="number" step="0.1" value={item.width} onChange={(value) => updateListItem('variants', index, { width: value })} />
+                    <InputField label="Висота (см)" type="number" step="0.1" value={item.height} onChange={(value) => updateListItem('variants', index, { height: value })} />
                     <InputField label="Грами" type="number" value={item.grams} onChange={(value) => updateListItem('variants', index, { grams: value })} />
                     <InputField label="Податковий код" value={item.taxCode} onChange={(value) => updateListItem('variants', index, { taxCode: value })} />
                     <InputField label="Собівартість" type="number" step="0.01" value={item.costPerItem} onChange={(value) => updateListItem('variants', index, { costPerItem: value })} />
