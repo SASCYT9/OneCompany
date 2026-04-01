@@ -668,7 +668,19 @@ export default function AdminCreateOrderPage() {
                       </div>
 
                       <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3 mb-2">
-                        <span className="text-xs text-white/50">Логістичні габарити</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-white/50">Логістичні габарити</span>
+                          {item.title && !item.isAILoading && (
+                            <button
+                              type="button"
+                              onClick={() => triggerAIEstimation(idx, item.title, item.brand, item.partNumber)}
+                              className="text-[9px] uppercase tracking-wider text-amber-500/50 hover:text-amber-400 font-mono transition-colors flex items-center gap-1"
+                              title="Вгадати габарити за допомогою ШІ"
+                            >
+                              <RefreshCw className="h-2.5 w-2.5" /> Авто-ШІ
+                            </button>
+                          )}
+                        </div>
                         {item.isAILoading && (
                           <span className="flex items-center gap-1 text-[10px] text-amber-400 shadow-amber-400 drop-shadow-md animate-pulse font-mono tracking-wider">
                             <RefreshCw className="h-3 w-3 animate-spin"/> ШІ ФОРМУЄ ГАБАРИТИ...
