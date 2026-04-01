@@ -526,8 +526,16 @@ export function serializeShopSettings(record: ShopSettingsRecord) {
 }
 
 export async function getOrCreateShopSettings(prisma: PrismaClient) {
+  // FAST PATH: Prevent massive transactional upserts during Vercel static build
+  const existing = await prisma.shopSettings.findUnique({
+    where: { key: 'shop' }
+  });
+  if (existing) return existing;
+
+  // FALLBACK: create if it completely doesn't exist
   return prisma.shopSettings.upsert({
     where: { key: 'shop' },
+    update: {},
     create: {
       key: 'shop',
       b2bVisibilityMode: 'approved_only',
@@ -543,6 +551,5 @@ export async function getOrCreateShopSettings(prisma: PrismaClient) {
       stripeEnabled: false,
       whiteBitEnabled: false,
     },
-    update: {},
   });
 }
