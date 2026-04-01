@@ -7,7 +7,7 @@ import {
   Lock, LogOut, MessageSquare, Settings, ImagePlus, ShoppingBag,
   Package, Shield, LayoutDashboard, Database, Layers, DollarSign,
   ChevronLeft, ChevronRight, Users, Archive, Box, Tag, FolderTree,
-  ChevronDown, Truck
+  ChevronDown, Truck, Receipt, Warehouse
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -50,13 +50,22 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    title: 'Логістика',
+    collapsible: true,
+    defaultOpen: true,
+    items: [
+      { href: '/admin/shop/logistics', label: 'Склади & Зони', icon: <Warehouse className="w-[18px] h-[18px]" />, exactMatch: true },
+      { href: '/admin/shop/logistics/taxes', label: 'Регіональні Податки', icon: <Receipt className="w-[18px] h-[18px]" /> },
+      { href: '/admin/shop/pricing', label: 'Ціни та Знижки', icon: <DollarSign className="w-[18px] h-[18px]" /> },
+    ],
+  },
+  {
     title: 'Каталог',
     collapsible: true,
     defaultOpen: true,
     items: [
       { href: '/admin/shop', label: 'Усі товари', icon: <ShoppingBag className="w-[18px] h-[18px]" />, exactMatch: true },
       { href: '/admin/shop/inventory', label: 'Склад', icon: <Box className="w-[18px] h-[18px]" /> },
-      { href: '/admin/shop/pricing', label: 'Ціни та Знижки', icon: <DollarSign className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/categories', label: 'Категорії', icon: <FolderTree className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/collections', label: 'Колекції', icon: <Tag className="w-[18px] h-[18px]" /> },
     ],
@@ -69,7 +78,6 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/crm', label: 'Airtable CRM', icon: <Database className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/turn14', label: 'Turn14 Proxy', icon: <Layers className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/stock', label: 'CSV Імпорт', icon: <Archive className="w-[18px] h-[18px]" /> },
-      { href: '/admin/shop/logistics', label: 'Логістика Брендів', icon: <Truck className="w-[18px] h-[18px]" /> },
     ],
   },
   {
