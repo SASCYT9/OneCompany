@@ -239,8 +239,17 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
   };
 }
 
+let globalProductsCache: ShopProduct[] | null = null;
+let lastCacheTime = 0;
+
 /** All products: from DB (published) then static catalog (by slug, DB wins). */
 export async function getShopProductsServer(): Promise<ShopProduct[]> {
+  const now = Date.now();
+  // Cache for 45 seconds to drastically prevent Vercel out-of-memory (OOM) during heavy static build
+  if (globalProductsCache && (now - lastCacheTime < 45000)) {
+    return globalProductsCache;
+  }
+
   let dbRows: AdminShopProductRecord[] = [];
   try {
     dbRows = await prisma.shopProduct.findMany({
@@ -258,7 +267,11 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
   SHOP_PRODUCTS.forEach((p) => {
     if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
   });
-  return Array.from(bySlug.values());
+  
+  globalProductsCache = Array.from(bySlug.values());
+  lastCacheTime = Date.now();
+  
+  return globalProductsCache;
 }
 
 /** One product by slug: DB first, then static. */
