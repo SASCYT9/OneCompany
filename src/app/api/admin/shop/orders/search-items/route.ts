@@ -79,7 +79,19 @@ export async function GET(request: Request) {
 
     if (!shouldSkipTurn14) {
       try {
-        const results = await searchTurn14Items(query, 1, {});
+        // Try to see if the user is searching for a Brand (e.g. "CSF")
+        // Because Turn14 wholesale API ignores "keyword" parameter most of the time!
+        const { findTurn14BrandIdByName } = await import('@/lib/turn14');
+        const brandId = await findTurn14BrandIdByName(query);
+        
+        let results;
+        if (brandId) {
+            results = await searchTurn14Items('', 1, { brandId });
+        } else {
+            // Fallback (might return random items due to Turn14 weird rules)
+            results = await searchTurn14Items(query, 1, {});
+        }
+        
         const rawItems = results.data || [];
         
         turn14Items = rawItems
@@ -87,7 +99,7 @@ export async function GET(request: Request) {
             const b = (item.attributes?.brand_short_description || item.attributes?.brand || '').toLowerCase();
             return !EXCLUDED_BRANDS.includes(b);
           })
-          .slice(0, 5).map((item: any) => {
+          .slice(0, 15).map((item: any) => { // Increased to 15 to give more Turn14 results
             const attrs = item.attributes || {};
             return {
               source: 'turn14',
