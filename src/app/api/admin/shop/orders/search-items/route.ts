@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { searchTurn14Items, findTurn14BrandIdByName } from '@/lib/turn14';
+import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -14,6 +15,11 @@ export async function GET(request: Request) {
   const lowerQuery = query.toLowerCase();
 
   try {
+    // 0. Fetch live NBU exchange rates from Global Settings
+    const settingsRec = await getOrCreateShopSettings(prisma);
+    const settings = getShopSettingsRuntime(settingsRec);
+    const EUR_TO_USD = settings.currencyRates.USD || 1.08;
+
     // 1. Search Local Database (`ShopProductVariant` + `ShopProduct`)
     // We search across SKU, Variant Title, Product Title, and Product Brand
     const localVariants = await prisma.shopProductVariant.findMany({
@@ -36,9 +42,6 @@ export async function GET(request: Request) {
       const priceUsd = v.priceUsd ? Number(v.priceUsd) : 0;
       const priceEur = v.priceEur ? Number(v.priceEur) : 0;
       const costPerItem = v.costPerItem ? Number(v.costPerItem) : 0;
-      
-      // Rough EUR to USD conversion rate if USD is missing
-      const EUR_TO_USD = 1.08;
 
       let retailPrice = priceUsd;
       if (retailPrice === 0 && priceEur > 0) retailPrice = priceEur * EUR_TO_USD;
