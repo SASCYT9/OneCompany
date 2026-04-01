@@ -33,9 +33,20 @@ export async function GET(request: Request) {
     });
 
     const localItems = localVariants.map(v => {
-      // Local items usually have retail prices mapped to `priceUsd`.
-      // If none is set, default to 0.
-      const retailPrice = v.priceUsd ? Number(v.priceUsd) : 0;
+      const priceUsd = v.priceUsd ? Number(v.priceUsd) : 0;
+      const priceEur = v.priceEur ? Number(v.priceEur) : 0;
+      const costPerItem = v.costPerItem ? Number(v.costPerItem) : 0;
+      
+      // Rough EUR to USD conversion rate if USD is missing
+      const EUR_TO_USD = 1.08;
+
+      let retailPrice = priceUsd;
+      if (retailPrice === 0 && priceEur > 0) retailPrice = priceEur * EUR_TO_USD;
+      if (retailPrice === 0 && costPerItem > 0) retailPrice = costPerItem * EUR_TO_USD;
+      if (retailPrice === 0) retailPrice = 0;
+      
+      // Round to 2 decimals
+      retailPrice = Math.round(retailPrice * 100) / 100;
       
       return {
         source: 'local',
