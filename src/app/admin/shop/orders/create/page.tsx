@@ -363,33 +363,48 @@ export default function AdminCreateOrderPage() {
   let volSurchargeKgAgg = 0;
 
   items.forEach(item => {
-     let itemRate = ratePerKg;
-     let itemDivisor = 5000;
-     let itemVolSurcharge = volSurchargePerKg;
+     const w = item.weightKg * item.quantity;
+     totalWeightKg += w;
+
+     // ─── 1. INBOUND LEG (Brand to Factory) ───
+     let inRate = 0;       // By default, inbound is $0 (USA domestic assumption)
+     let inDivisor = 5000;
+     let inVolSurcharge = 0;
      
      if (item.brand) {
          const cfg = brandConfigs.find(c => c.brandName.toLowerCase() === item.brand.toLowerCase());
          if (cfg) {
-             itemRate = cfg.ratePerKg;
-             itemDivisor = cfg.volumetricDivisor;
-             itemVolSurcharge = cfg.volSurchargePerKg;
+             inRate = cfg.ratePerKg;
+             inDivisor = cfg.volumetricDivisor || 5000;
+             inVolSurcharge = cfg.volSurchargePerKg;
          }
      }
 
-     const w = item.weightKg * item.quantity;
-     totalWeightKg += w;
-
-     let vw = 0;
+     let inVw = 0;
      if (item.lengthCm > 0 && item.widthCm > 0 && item.heightCm > 0) {
-        vw = (item.lengthCm * item.widthCm * item.heightCm / itemDivisor) * item.quantity;
+        inVw = (item.lengthCm * item.widthCm * item.heightCm / inDivisor) * item.quantity;
      }
-     totalVolWeightKg += vw;
+     const inSurchargeKg = Math.max(0, inVw - w);
+     const inboundCostBase = w * inRate;
+     const inboundCostVol = inSurchargeKg * inVolSurcharge;
 
-     const surcharge = Math.max(0, vw - w);
-     volSurchargeKgAgg += surcharge;
+     // ─── 2. OUTBOUND LEG (Factory to Client Zone) ───
+     // Uses baseline zone metrics configured for this order: ratePerKg, volSurchargePerKg
+     let outVw = 0;
+     if (item.lengthCm > 0 && item.widthCm > 0 && item.heightCm > 0) {
+        outVw = (item.lengthCm * item.widthCm * item.heightCm / 5000) * item.quantity; // Standard 5000 divisor for Air Freight out of NY
+     }
+     totalVolWeightKg += outVw;
 
-     autoShippingBase += (w * itemRate);
-     autoShippingVol += (surcharge * itemVolSurcharge);
+     const outSurchargeKg = Math.max(0, outVw - w);
+     volSurchargeKgAgg += outSurchargeKg;
+     
+     const outboundCostBase = w * ratePerKg;
+     const outboundCostVol = outSurchargeKg * volSurchargePerKg;
+
+     // ─── AGGREGATE ───
+     autoShippingBase += inboundCostBase + outboundCostBase;
+     autoShippingVol += inboundCostVol + outboundCostVol;
   });
   
   autoShippingBase = r2(autoShippingBase);
