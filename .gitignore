@@ -58,3 +58,4 @@ public/brabus-images/
 data/.chrome-scraper-profile/
 temp_pgsql/
 *.sql
+.env*.local

@@ -79,42 +79,33 @@ export async function GET(request: Request) {
 
     if (!shouldSkipTurn14) {
       try {
-        // Try to see if the user is searching for a Brand (e.g. "CSF")
-        // Because Turn14 wholesale API ignores "keyword" parameter most of the time!
-        const { findTurn14BrandIdByName } = await import('@/lib/turn14');
-        const brandId = await findTurn14BrandIdByName(query);
-        
-        let results;
-        if (brandId) {
-            results = await searchTurn14Items('', 1, { brandId });
-        } else {
-            // Fallback (might return random items due to Turn14 weird rules)
-            results = await searchTurn14Items(query, 1, {});
-        }
-        
-        const rawItems = results.data || [];
-        
-        turn14Items = rawItems
-          .filter((item: any) => {
-            const b = (item.attributes?.brand_short_description || item.attributes?.brand || '').toLowerCase();
-            return !EXCLUDED_BRANDS.includes(b);
-          })
-          .slice(0, 15).map((item: any) => { // Increased to 15 to give more Turn14 results
-            const attrs = item.attributes || {};
+        const rawItems = await prisma.turn14CatalogItem.findMany({
+          where: {
+            OR: [
+              { partNumber: { contains: query, mode: 'insensitive' } },
+              { productName: { contains: query, mode: 'insensitive' } },
+              { brand: { contains: query, mode: 'insensitive' } },
+            ]
+          },
+          take: 15
+        });
+
+        turn14Items = rawItems.map((item: any) => {
+            const attrs = item.rawAttributes as any || {};
             return {
               source: 'turn14',
               id: item.id,
-              product_name: attrs.product_name || attrs.item_name || '',
-              part_number: attrs.internal_part_number || attrs.mfr_part_number || attrs.part_number || '',
-              brand: attrs.brand_short_description || attrs.brand || '',
-              weight: attrs.weight || (attrs.dimensions?.[0]?.weight) || 0,
+              product_name: item.productName,
+              part_number: item.partNumber,
+              brand: item.brand,
+              weight: item.weight || attrs.weight || (attrs.dimensions?.[0]?.weight) || 0,
               primary_image: attrs.thumbnail || attrs.primary_image || '',
-              dealer_price: attrs.dealer_price || attrs.jobber_price || 0,
+              dealer_price: item.retailPrice || item.dealerPrice || attrs.jobber_price || attrs.dealer_price || 0,
               attributes: attrs,
             };
-          });
+        });
       } catch (e) {
-        console.error('[API] Turn14 Background Search Error:', e);
+        console.error('[API] Local Turn14 Search Error:', e);
       }
     }
 

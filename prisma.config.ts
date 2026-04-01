@@ -11,6 +11,6 @@ export default defineConfig({
   },
   engine: "classic",
   datasource: {
-    url: process.env.DATABASE_URL ? env("DATABASE_URL") : "postgresql://dummy:dummy@localhost:5432/dummy",
+    url: process.env.DIRECT_URL ? env("DIRECT_URL") : (process.env.DATABASE_URL ? env("DATABASE_URL") : "postgresql://dummy:dummy@localhost:5432/dummy"),
   },
 });

@@ -961,3 +961,27 @@ enum ShopImportConflictMode {
   UPDATE
   CREATE
 }
+
+/// A local mirror of the Turn14 complete catalog to bypass their lack of search functionality.
+/// Everything is stored heavily relying on JsonB for complete data retention.
+model Turn14CatalogItem {
+  id             String   @id // Turn14 item ID, e.g. "49392"
+  partNumber     String   @unique
+  mfrPartNumber  String?
+  productName    String
+  brandId        Int
+  brand          String
+  category       String?
+  subcategory    String?
+  weight         Float?   // Pre-extracted weight in lbs
+  dealerPrice    Float?   // Wholesale / Group price
+  retailPrice    Float?   // Jobber / Retail price
+  rawAttributes  Json     // Full Turn14 /items payload
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([brandId])
+  @@index([partNumber])
+  @@index([mfrPartNumber])
+  @@map("turn14_catalog_items")
+}
