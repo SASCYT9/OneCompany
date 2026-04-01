@@ -51,6 +51,7 @@ interface OrderItem {
   thumbnail: string;
   turn14Id: string;
   isAILoading: boolean;
+  aiReasoning?: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -284,6 +285,7 @@ export default function AdminCreateOrderPage() {
         if (est.length && est.length > 0) aiPatch.lengthCm = est.length;
         if (est.width && est.width > 0) aiPatch.widthCm = est.width;
         if (est.height && est.height > 0) aiPatch.heightCm = est.height;
+        if (est.reasoning) aiPatch.aiReasoning = est.reasoning;
         
         if (Object.keys(aiPatch).length > 0) {
            updateItem(idx, aiPatch);

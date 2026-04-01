@@ -28,9 +28,10 @@ Required JSON format:
   "weight": number,
   "length": number,
   "width": number,
-  "height": number
+  "height": number,
+  "reasoning": string // Briefly explain in Ukrainian why these dimensions were chosen (e.g., "Стандартні габарити для інтеркулера BMW" or "Це дрібна деталь, тому вага до 1 кг")
 }
-For example, for a "do88 Intercooler BMW F80", return {"weight": 14, "length": 80, "width": 40, "height": 30}`
+For example, for a "do88 Intercooler BMW F80", return {"weight": 14, "length": 80, "width": 40, "height": 30, "reasoning": "Інтеркулер зазвичай поставляється у великій коробці 80х40х30 та важить близько 14 кг"}`
         },
         {
           role: 'user',
