@@ -16,6 +16,7 @@ import {
   Save,
   CheckCircle2,
   AlertCircle,
+  Database,
 } from 'lucide-react';
 import { calcItemPrice, calcShipping, lbsToKg, SHIPPING_ZONES, type ShippingZone } from '@/lib/shippingCalc';
 
@@ -101,6 +102,9 @@ export default function AdminCreateOrderPage() {
   const [turn14Results, setTurn14Results] = useState<any[]>([]);
   const [turn14Loading, setTurn14Loading] = useState(false);
   const [addingToItemIdx, setAddingToItemIdx] = useState<number | null>(null);
+  
+  // Airtable Sync
+  const [syncingItemKey, setSyncingItemKey] = useState<string | null>(null);
 
   // Shipping
   const [zone, setZone] = useState<ShippingZone>('KZ');
@@ -301,6 +305,31 @@ export default function AdminCreateOrderPage() {
     }
   }
 
+  // ─── Airtable Sync ─────────────────────────────────────────
+
+  async function syncToAirtable(item: OrderItem) {
+    if (!item.title) return;
+    setSyncingItemKey(item.key);
+    try {
+      const res = await fetch('/api/admin/shop/airtable/sync-item', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sku: item.partNumber,
+          title: item.title,
+          price: item.baseCostUsd,
+          brand: item.brand,
+          source: item.turn14Id ? 'Turn14' : 'Local'
+        })
+      });
+      if (!res.ok) console.error('Airtable sync failed');
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSyncingItemKey(null);
+    }
+  }
+
   // ─── Shipping calculations ─────────────────────────────────
 
   const totalWeightKg = items.reduce((sum, item) => sum + item.weightKg * item.quantity, 0);
@@ -464,9 +493,23 @@ export default function AdminCreateOrderPage() {
                 <div key={item.key} className="rounded-xl border border-white/10 bg-black/20 p-4 mb-4">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <span className="text-xs text-white/30 uppercase tracking-wider">#{idx + 1}</span>
-                    {items.length > 1 && (
-                      <button type="button" onClick={() => removeItem(idx)} className="text-white/20 hover:text-red-400"><Trash2 className="h-3.5 w-3.5" /></button>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {item.title && (
+                        <button 
+                          type="button" 
+                          onClick={() => syncToAirtable(item)}
+                          disabled={syncingItemKey === item.key}
+                          className="text-emerald-400/50 hover:text-emerald-400 transition-colors disabled:opacity-50 flex items-center gap-1 text-[10px] uppercase font-mono"
+                          title="Зберегти позицію в Airtable"
+                        >
+                          {syncingItemKey === item.key ? <RefreshCw className="h-3.5 w-3.5 animate-spin"/> : <Database className="h-3.5 w-3.5"/>}
+                          <span className="hidden sm:inline">В AIRTABLE</span>
+                        </button>
+                      )}
+                      {items.length > 1 && (
+                        <button type="button" onClick={() => removeItem(idx)} className="text-white/20 hover:text-red-400 transition-colors"><Trash2 className="h-4 w-4" /></button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Inline Turn14 search / autocomplete */}
