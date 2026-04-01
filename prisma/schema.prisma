@@ -244,6 +244,18 @@ model ShopBrandLogistics {
   @@index([isActive])
 }
 
+model ShopShippingZone {
+  id                 String   @id @default(cuid())
+  zoneCode           String   @unique // e.g. "KZ", "UA", "EU", "US", "OTHER"
+  label              String   // e.g. "Kazakhstan"
+  labelUa            String   // e.g. "Казахстан"
+  ratePerKg          Float    @default(14)
+  volSurchargePerKg  Float    @default(2)
+  baseFee            Float    @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
 model ShopCollection {
   id            String                  @id @default(cuid())
   handle        String                  @unique

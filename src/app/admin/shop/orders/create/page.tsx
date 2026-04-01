@@ -113,14 +113,22 @@ export default function AdminCreateOrderPage() {
   const [baseFee, setBaseFee] = useState(0);
   const [shippingOverride, setShippingOverride] = useState<string>('');
   const [brandConfigs, setBrandConfigs] = useState<any[]>([]);
+  const [zoneConfigs, setZoneConfigs] = useState<any[]>([]);
 
   useEffect(() => {
+    // Fetch Inbound (Brands)
     fetch('/api/admin/shop/logistics/brands')
       .then(r => r.json())
       .then(d => {
-        if (d.configs) {
-           setBrandConfigs(d.configs.filter((c: any) => c.isActive));
-        }
+        if (d.configs) setBrandConfigs(d.configs.filter((c: any) => c.isActive));
+      })
+      .catch();
+      
+    // Fetch Outbound (Zones)
+    fetch('/api/admin/shop/logistics/zones')
+      .then(r => r.json())
+      .then(d => {
+        if (d.zones) setZoneConfigs(d.zones);
       })
       .catch();
   }, []);
@@ -180,11 +188,15 @@ export default function AdminCreateOrderPage() {
   // ─── When zone changes, update rates ───────────────────────
 
   useEffect(() => {
-    const profile = SHIPPING_ZONES[zone];
+    // Find custom override in DB
+    const customZone = zoneConfigs.find(z => z.zoneCode === zone);
+    
+    // Fallback to coded default if missing
+    const profile = customZone || SHIPPING_ZONES[zone] || SHIPPING_ZONES.OTHER;
     setRatePerKg(profile.ratePerKg);
     setVolSurchargePerKg(profile.volSurchargePerKg);
     setBaseFee(profile.baseFee);
-  }, [zone]);
+  }, [zone, zoneConfigs]);
 
   // ─── When customer changes, apply discount + auto-zone ─────
 
