@@ -35,14 +35,14 @@ async function run() {
   // Extract brand names from our brands.ts catalog
   const OUR_BRANDS = [
     // USA brands
-    'Airlift Performance', 'AMS', 'Borla', 'Burger Motorsport', 'Burger Motorsports',
+    'Airlift Performance', 'AMS', 'Borla', 
     'Cobb tuning', 'COBB', 'CSF', 'Deatschwerks', 'DeatschWerks', 'Dinan',
     'Fabspeed', 'Girodisc', 'GiroDisc', 'Injector Dynamics', 'Kooks Headers',
     'Lingenfelter', 'Mickey Thompson', 'Mountune', 'Renntech', 'Seibon Carbon', 'Seibon',
     'SPL Parts', 'Stoptech', 'StopTech', 'Stillen', 'Vorsteiner', 'Whipple Superchargers',
     // Europe brands
-    'Akrapovic', 'Akrapovič', 'BC Racing', 'Brembo', 'do88', 'DO88',
-    'Eventuri', 'KW Suspension', 'KW', 'Milltek', 'Mishimoto',
+    'BC Racing', 'Brembo',
+    'Eventuri', 'KW Suspension', 'KW', 'Milltek',
     'Remus', 'Wagner Tuning', 'Ohlins', 'Öhlins',
     // Racing brands  
     'Samsonas Motorsport',

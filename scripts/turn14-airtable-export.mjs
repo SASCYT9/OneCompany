@@ -26,7 +26,7 @@ async function fetchAirtableExistingSkus() {
   let count = 0;
   
   do {
-    let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(TABLE_NAME)}?fields%5B%5D=SKU`;
+    let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(TABLE_NAME)}?fields%5B%5D=Парт-номер производителя`;
     if (offset) url += `&offset=${offset}`;
 
     const res = await fetch(url, { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } });
@@ -36,7 +36,7 @@ async function fetchAirtableExistingSkus() {
     }
     const data = await res.json();
     for (const r of data.records) {
-       const sku = r.fields?.['SKU'];
+       const sku = r.fields?.['Парт-номер производителя'];
        if (sku) airtableSkuMap[sku] = r.id;
     }
     count += data.records.length;
@@ -52,19 +52,22 @@ async function pushToAirtableBatch(records) {
 
   for (const r of records) {
     const payloadFields = {
-      "SKU": r.sku || '',
-      "Title": r.title || 'No Title',
-      "Brand": r.brand || '',
-      "Category": r.category || 'Uncategorized',
+      "Парт-номер производителя": r.sku || '',
+      "Название": r.title || 'No Title',
+      // Temporarily omitting Linked Records for the test run
+      // "Бренд": r.brand ? [r.brand] : [],
+      // "Категория": r.category ? [r.category] : [],
     };
     
-    // Fitment is multiple select, needs array of strings
-    if (r.fitment) {
-      payloadFields["Fitment"] = r.fitment.split(',').map(s => s.trim()).filter(Boolean);
-    }
+    // Fitment is multipleRecordLinks, needs array of strings
+    // if (r.fitment) {
+    //  payloadFields["Модели авто/мото"] = r.fitment.split(',').map(s => s.trim()).filter(Boolean);
+    // }
     
-    if (r.weight) payloadFields["Weight (lbs)"] = Number(r.weight);
-    if (r.length) payloadFields["Length (in)"] = Number(r.length);
+    // Note: 'Weight' and 'Length' columns do not currently exist in the Airtable grid view,
+    // so we omit them here to prevent UNKNOWN_FIELD_NAME errors.
+    // if (r.weight) payloadFields["Weight (lbs)"] = Number(r.weight);
+    // if (r.length) payloadFields["Length (in)"] = Number(r.length);
 
     const mappedId = airtableSkuMap[r.sku];
     if (mappedId) {
@@ -185,8 +188,9 @@ async function fetchTargetTurn14Items(token) {
     if (page % 10 === 0) process.stdout.write(`\r  Scanned ${page}/${body.meta?.total_pages || '?'} pages... Found ${targetItems.length} target items`);
     if (page >= (body.meta?.total_pages || 1)) break;
     
-    // Fast demonstration cutoff for dry runs
+    // Fast demonstration cutoff for dry runs or testing
     if (isDryRun && page >= 10) break;
+    if (targetItems.length >= 50) break; // TEMPORARY: fast exit for initial push
     
     page++;
   }
@@ -208,11 +212,15 @@ async function run() {
   }
 
   const t14Token = await getTurn14AccessToken();
-  const rawItems = await fetchTargetTurn14Items(t14Token);
+  let rawItems = await fetchTargetTurn14Items(t14Token);
   
   if (rawItems.length === 0) return;
 
   console.log(`\n✅ Located ${rawItems.length} active matching products from Turn14.`);
+
+  // TEMPORARY: Prevent crashing Airtable limits by slicing the array to 50 items for this initial push
+  rawItems = rawItems.slice(0, 50);
+  console.log(`🕒 Slicing data to 50 items to prevent Airtable limits exhaust during testing.`);
 
   if (rawItems.length === 0) return;
 
