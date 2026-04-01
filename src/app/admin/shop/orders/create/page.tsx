@@ -49,6 +49,7 @@ interface OrderItem {
   lineTotal: number;
   thumbnail: string;
   turn14Id: string;
+  isAILoading: boolean;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -75,6 +76,7 @@ function newItem(): OrderItem {
     lineTotal: 0,
     thumbnail: '',
     turn14Id: '',
+    isAILoading: false,
   };
 }
 
@@ -232,6 +234,40 @@ export default function AdminCreateOrderPage() {
     setTurn14Loading(false);
   }
 
+  // ─── AI Dimensional Estimation ─────────────────────────────
+
+  async function triggerAIEstimation(idx: number, title: string, brand: string, sku: string) {
+    updateItem(idx, { isAILoading: true });
+    try {
+      const res = await fetch('/api/admin/shop/ai/estimate-dimensions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, brand, sku })
+      });
+      const data = await res.json();
+      if (res.ok && data.estimate) {
+        const est = data.estimate;
+        // Proceed safely: only patch if AI guessed it
+        const aiPatch: Partial<OrderItem> = {};
+        if (est.weight && est.weight > 0) {
+           aiPatch.weightKg = est.weight;
+           aiPatch.weightLbs = est.weight * 2.20462;
+        }
+        if (est.length && est.length > 0) aiPatch.lengthCm = est.length;
+        if (est.width && est.width > 0) aiPatch.widthCm = est.width;
+        if (est.height && est.height > 0) aiPatch.heightCm = est.height;
+        
+        if (Object.keys(aiPatch).length > 0) {
+           updateItem(idx, aiPatch);
+        }
+      }
+    } catch {
+      // Ignored silently, user can still manually set it
+    } finally {
+      updateItem(idx, { isAILoading: false });
+    }
+  }
+
   function addTurn14Item(t14Item: any, targetIdx: number) {
     // Our enriched API returns flattened fields at top level + raw attributes backup
     const a = t14Item.attributes || {};
@@ -257,6 +293,12 @@ export default function AdminCreateOrderPage() {
     setTurn14Results([]);
     setTurn14Query(patch.title || '');
     setAddingToItemIdx(null);
+
+    // After setting the basic item details, if this item lacks dimensions, prompt the AI.
+    const hasDimensions = a.length && a.width && a.height;
+    if (!hasDimensions && patch.title) {
+       triggerAIEstimation(targetIdx, patch.title, patch.brand || '', patch.partNumber || '');
+    }
   }
 
   // ─── Shipping calculations ─────────────────────────────────
@@ -526,11 +568,23 @@ export default function AdminCreateOrderPage() {
                         <NumField label="Кількість" value={item.quantity} onChange={v => updateItem(idx, { quantity: Math.max(1, Math.round(v)) })} step={1} />
                       </div>
 
-                      <div className="mt-3 grid gap-3 md:grid-cols-4">
+                      <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3 mb-2">
+                        <span className="text-xs text-white/50">Логістичні габарити</span>
+                        {item.isAILoading && (
+                          <span className="flex items-center gap-1 text-[10px] text-amber-400 shadow-amber-400 drop-shadow-md animate-pulse font-mono tracking-wider">
+                            <RefreshCw className="h-3 w-3 animate-spin"/> ШІ ФОРМУЄ ГАБАРИТИ...
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="relative grid gap-3 md:grid-cols-4">
+                        {item.isAILoading && (
+                          <div className="absolute inset-0 z-10 rounded-lg bg-black/40 backdrop-blur-[1px] rounded-lg pointer-events-none" />
+                        )}
                         <NumField label="Вага (LBS)" value={item.weightLbs} onChange={v => updateItem(idx, { weightLbs: v })} />
-                        <div className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2">
+                        <div className={`rounded-lg border px-3 py-2 transition-colors ${item.isAILoading ? 'border-amber-500/20' : 'border-white/10 bg-zinc-950'}`}>
                           <div className="text-[10px] text-white/40 uppercase tracking-wider mb-1">Вага (KG)</div>
-                          <div className="text-sm text-white">{item.weightKg.toFixed(2)}</div>
+                          <div className={`text-sm ${item.isAILoading ? 'text-amber-400' : 'text-white'}`}>{item.weightKg.toFixed(2)}</div>
                         </div>
                         <NumField label="Д × В × Г (см)" value={item.lengthCm}
                           onChange={v => updateItem(idx, { lengthCm: v })} placeholder="Довжина" />
