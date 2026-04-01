@@ -207,9 +207,12 @@ const nextConfig: NextConfig = {
   // Experimental features
   experimental: {
     optimizeCss: true,
+    // Fix Prisma Out Of Memory (OOM) during Vercel static build
+    cpus: 1,
+    workerThreads: false,
+    memoryBasedWorkersCount: true,
   },
   // redirects removed to allow middleware to handle routing dynamically
-
 };
 
 export default withNextIntl(nextConfig);
