@@ -225,7 +225,7 @@ export default function AdminCreateOrderPage() {
     if (!turn14Query.trim()) return;
     setTurn14Loading(true);
     try {
-      const res = await fetch(`/api/admin/shop/turn14?q=${encodeURIComponent(turn14Query.trim())}`);
+      const res = await fetch(`/api/admin/shop/orders/search-items?q=${encodeURIComponent(turn14Query.trim())}`);
       const data = await res.json();
       setTurn14Results(data.items || data.data || []);
     } catch { setTurn14Results([]); }
@@ -235,6 +235,7 @@ export default function AdminCreateOrderPage() {
   function addTurn14Item(t14Item: any, targetIdx: number) {
     // Our enriched API returns flattened fields at top level + raw attributes backup
     const a = t14Item.attributes || {};
+    const isLocal = t14Item.source === 'local';
     const patch: Partial<OrderItem> = {
       title: t14Item.product_name || a.product_name || a.item_name || '',
       partNumber: t14Item.internal_part_number || a.internal_part_number || t14Item.part_number || a.part_number || '',
@@ -243,8 +244,15 @@ export default function AdminCreateOrderPage() {
       weightLbs: t14Item.weight || a.weight || 0,
       weightKg: lbsToKg(t14Item.weight || a.weight || 0),
       thumbnail: t14Item.primary_image || a.primary_image || '',
-      turn14Id: String(t14Item.id || ''),
+      turn14Id: isLocal ? '' : String(t14Item.id || ''),
     };
+    
+    // For local items that already have a retail price in baseCostUsd, 
+    // we want to lock the markup to 0% so it sells at exactly that retail price.
+    if (isLocal) {
+      patch.markupPct = 0;
+    }
+    
     updateItem(targetIdx, patch);
     setTurn14Results([]);
     setTurn14Query(patch.title || '');
@@ -422,8 +430,8 @@ export default function AdminCreateOrderPage() {
                   {/* Inline Turn14 search / autocomplete */}
                   <div className="mb-3 relative">
                     <label className="block">
-                      <span className="mb-1 block text-[10px] text-blue-400/60 uppercase tracking-wider flex items-center gap-1">
-                        <Search className="h-3 w-3" /> SKU / Назва (пошук Turn14)
+                      <span className="mb-1 flex items-center gap-1 text-[10px] text-emerald-400/70 uppercase tracking-wider">
+                        <Search className="h-3 w-3" /> Глобальний пошук (Local + Turn14)
                       </span>
                       <input
                         value={addingToItemIdx === idx ? turn14Query : item.title}
@@ -464,14 +472,21 @@ export default function AdminCreateOrderPage() {
                           const weight = t14.weight || a.weight;
                           return (
                           <button key={i} type="button" onClick={() => addTurn14Item(t14, idx)}
-                            className="w-full border-b border-white/5 p-3 text-left transition hover:bg-blue-500/10 last:border-b-0">
+                            className="w-full border-b border-white/5 p-3 text-left transition hover:bg-white/5 last:border-b-0">
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0 flex-1">
-                                <div className="text-sm text-white truncate">{name}</div>
+                                <div className="text-sm text-white truncate flex items-center gap-2">
+                                  {t14.source === 'local' ? (
+                                    <span className="rounded bg-emerald-500/20 text-emerald-300 font-mono text-[9px] px-1.5 py-0.5 border border-emerald-500/30">LOCAL</span>
+                                  ) : (
+                                    <span className="rounded bg-blue-500/20 text-blue-300 font-mono text-[9px] px-1.5 py-0.5 border border-blue-500/30">TURN14</span>
+                                  )}
+                                  {name}
+                                </div>
                                 <div className="mt-0.5 flex flex-wrap gap-2 text-[10px] text-white/40">
                                   {pn && <span className="rounded bg-white/10 px-1 py-0.5 font-mono">{pn}</span>}
                                   {brand && <span>{brand}</span>}
-                                  {weight ? <span>{weight} lbs</span> : null}
+                                  {weight ? <span>{weight} {t14.source === 'local' ? 'кг' : 'lbs'}</span> : null}
                                 </div>
                               </div>
                               <div className="text-right shrink-0">
@@ -485,7 +500,7 @@ export default function AdminCreateOrderPage() {
                     )}
                     {addingToItemIdx === idx && turn14Loading && turn14Results.length === 0 && (
                       <div className="absolute top-full left-0 right-0 z-20 mt-1 rounded-xl border border-blue-500/20 bg-zinc-900 p-3 text-xs text-center text-blue-400/70">
-                        Пошук в Turn14 каталозі...
+                        Пошук у каталогах...
                       </div>
                     )}
                   </div>
