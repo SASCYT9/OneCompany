@@ -57,6 +57,8 @@ export async function GET(request: Request) {
 
     // 2. Search Turn14 Database
     let turn14Items: any[] = [];
+    const EXCLUDED_BRANDS = ['burger motorsports', 'brabus', 'racechip', 'bms', 'race chip'];
+
     try {
       let brandId: string | undefined = undefined;
       const matchId = await findTurn14BrandIdByName(query);
@@ -65,7 +67,12 @@ export async function GET(request: Request) {
         const results = await searchTurn14Items(query, 1, { brandId });
         const rawItems = results.data || [];
         
-        turn14Items = rawItems.slice(0, 10).map((item: any) => {
+        turn14Items = rawItems
+          .filter((item: any) => {
+            const b = (item.attributes?.brand_short_description || item.attributes?.brand || '').toLowerCase();
+            return !EXCLUDED_BRANDS.includes(b);
+          })
+          .slice(0, 10).map((item: any) => {
           const attrs = item.attributes || {};
           return {
             source: 'turn14',
