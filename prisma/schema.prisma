@@ -235,6 +235,12 @@ model ShopWarehouse {
   nameUa      String                 // "Транзитний Склад США (Нью-Йорк)"
   country     String                 // "US"
   city        String?                // "New York"
+  address     String?                // "123 Main St"
+  address2    String?                // "Suite 100"
+  state       String?                // "NY"
+  postalCode  String?                // "10001"
+  phone       String?                // "+1-555-123-4567"
+  contactName String?                // "John Doe" — recipient name for shipping labels
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())

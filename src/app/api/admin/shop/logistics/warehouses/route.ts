@@ -28,11 +28,20 @@ export async function POST(req: Request) {
 
   try {
     const data = await req.json();
-    const { id, code, name, nameUa, country, city, isActive, sortOrder } = data;
+    const { id, code, name, nameUa, country, city, address, address2, state, postalCode, phone, contactName, isActive, sortOrder } = data;
 
     if (!code || !name) {
       return NextResponse.json({ error: 'Code and name are required' }, { status: 400 });
     }
+
+    const addressFields = {
+      address: address ? String(address) : null,
+      address2: address2 ? String(address2) : null,
+      state: state ? String(state) : null,
+      postalCode: postalCode ? String(postalCode) : null,
+      phone: phone ? String(phone) : null,
+      contactName: contactName ? String(contactName) : null,
+    };
 
     const upserted = await prisma.shopWarehouse.upsert({
       where: { code: String(code) },
@@ -41,6 +50,7 @@ export async function POST(req: Request) {
         nameUa: String(nameUa || name),
         country: String(country || ''),
         city: city ? String(city) : null,
+        ...addressFields,
         isActive: isActive !== undefined ? Boolean(isActive) : true,
         sortOrder: sortOrder !== undefined ? Number(sortOrder) : 0,
       },
@@ -50,6 +60,7 @@ export async function POST(req: Request) {
         nameUa: String(nameUa || name),
         country: String(country || ''),
         city: city ? String(city) : null,
+        ...addressFields,
         isActive: isActive !== undefined ? Boolean(isActive) : true,
         sortOrder: sortOrder !== undefined ? Number(sortOrder) : 0,
       },

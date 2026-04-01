@@ -59,7 +59,7 @@ export default function LogisticsPage() {
   // Warehouse State
   const [warehouses, setWarehouses] = useState<WarehouseData[]>([]);
   const [showAddWarehouse, setShowAddWarehouse] = useState(false);
-  const [newWarehouse, setNewWarehouse] = useState({ code: '', name: '', nameUa: '', country: '', city: '' });
+  const [newWarehouse, setNewWarehouse] = useState({ code: '', name: '', nameUa: '', country: '', city: '', address: '', address2: '', state: '', postalCode: '', phone: '', contactName: '' });
 
   // Inbound State
   const [configs, setConfigs] = useState<BrandConfig[]>([]);
@@ -167,7 +167,7 @@ export default function LogisticsPage() {
         body: JSON.stringify(newWarehouse),
       });
       setShowAddWarehouse(false);
-      setNewWarehouse({ code: '', name: '', nameUa: '', country: '', city: '' });
+      setNewWarehouse({ code: '', name: '', nameUa: '', country: '', city: '', address: '', address2: '', state: '', postalCode: '', phone: '', contactName: '' });
       await fetchWarehouses();
     } catch (e) { console.error(e); }
   }
@@ -625,6 +625,49 @@ export default function LogisticsPage() {
                   <input value={newWarehouse.city} onChange={e => setNewWarehouse(p => ({ ...p, city: e.target.value }))}
                     placeholder="New York"
                     className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                </div>
+              </div>
+
+              {/* Address Section */}
+              <div className="mt-4 pt-4 border-t border-white/[0.06]">
+                <p className="text-[9px] uppercase tracking-widest text-white/25 mb-3 font-semibold">Адреса складу (для розрахунку доставки)</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1">Адреса</label>
+                    <input value={newWarehouse.address} onChange={e => setNewWarehouse(p => ({ ...p, address: e.target.value }))}
+                      placeholder="123 Main Street"
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1">Адреса 2</label>
+                    <input value={newWarehouse.address2} onChange={e => setNewWarehouse(p => ({ ...p, address2: e.target.value }))}
+                      placeholder="Suite 100"
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1">Штат/Область</label>
+                    <input value={newWarehouse.state} onChange={e => setNewWarehouse(p => ({ ...p, state: e.target.value }))}
+                      placeholder="NY"
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1">Поштовий індекс</label>
+                    <input value={newWarehouse.postalCode} onChange={e => setNewWarehouse(p => ({ ...p, postalCode: e.target.value }))}
+                      placeholder="10001"
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1">Телефон</label>
+                    <input value={newWarehouse.phone} onChange={e => setNewWarehouse(p => ({ ...p, phone: e.target.value }))}
+                      placeholder="+1-555-123-4567"
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1">Контактна особа</label>
+                    <input value={newWarehouse.contactName} onChange={e => setNewWarehouse(p => ({ ...p, contactName: e.target.value }))}
+                      placeholder="John Doe"
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                  </div>
                 </div>
               </div>
 
