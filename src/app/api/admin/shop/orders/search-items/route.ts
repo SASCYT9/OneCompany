@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { searchTurn14Items, findTurn14BrandIdByName } from '@/lib/turn14';
+import { searchTurn14Items } from '@/lib/turn14';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 
 export async function GET(request: Request) {
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
       include: {
         product: true
       },
-      take: 8 // limit to top 8 local results
+      take: 20 // limit to top 20 local results
     });
 
     const localItems = localVariants.map(v => {
@@ -71,36 +71,31 @@ export async function GET(request: Request) {
 
     // 2. Search Turn14 Database
     let turn14Items: any[] = [];
-    const EXCLUDED_BRANDS = ['burger motorsports', 'brabus', 'racechip', 'bms', 'race chip'];
+    const EXCLUDED_BRANDS = ['burger motorsports', 'brabus', 'racechip', 'bms', 'race chip', 'do88', 'urban'];
 
     try {
-      let brandId: string | undefined = undefined;
-      const matchId = await findTurn14BrandIdByName(query);
-      if (matchId) {
-        brandId = matchId;
-        const results = await searchTurn14Items(query, 1, { brandId });
-        const rawItems = results.data || [];
-        
-        turn14Items = rawItems
-          .filter((item: any) => {
-            const b = (item.attributes?.brand_short_description || item.attributes?.brand || '').toLowerCase();
-            return !EXCLUDED_BRANDS.includes(b);
-          })
-          .slice(0, 10).map((item: any) => {
-          const attrs = item.attributes || {};
-          return {
-            source: 'turn14',
-            id: item.id,
-            product_name: attrs.product_name || attrs.item_name || '',
-            part_number: attrs.internal_part_number || attrs.mfr_part_number || attrs.part_number || '',
-            brand: attrs.brand_short_description || attrs.brand || '',
-            weight: attrs.weight || (attrs.dimensions?.[0]?.weight) || 0,
-            primary_image: attrs.thumbnail || attrs.primary_image || '',
-            dealer_price: attrs.dealer_price || attrs.jobber_price || 0,
-            attributes: attrs,
-          };
-        });
-      }
+      const results = await searchTurn14Items(query, 1, {});
+      const rawItems = results.data || [];
+      
+      turn14Items = rawItems
+        .filter((item: any) => {
+          const b = (item.attributes?.brand_short_description || item.attributes?.brand || '').toLowerCase();
+          return !EXCLUDED_BRANDS.includes(b);
+        })
+        .slice(0, 10).map((item: any) => {
+        const attrs = item.attributes || {};
+        return {
+          source: 'turn14',
+          id: item.id,
+          product_name: attrs.product_name || attrs.item_name || '',
+          part_number: attrs.internal_part_number || attrs.mfr_part_number || attrs.part_number || '',
+          brand: attrs.brand_short_description || attrs.brand || '',
+          weight: attrs.weight || (attrs.dimensions?.[0]?.weight) || 0,
+          primary_image: attrs.thumbnail || attrs.primary_image || '',
+          dealer_price: attrs.dealer_price || attrs.jobber_price || 0,
+          attributes: attrs,
+        };
+      });
     } catch (e) {
       console.error('[API] Turn14 Background Search Error:', e);
       // We don't fail the whole request if Turn14 throws an error (e.g., rate limits)
