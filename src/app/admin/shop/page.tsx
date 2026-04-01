@@ -36,65 +36,67 @@ function priceLabel(product: ShopProductListItem) {
   return '—';
 }
 
+import { useRouter } from 'next/navigation';
+
 function AdminShopPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const initialBrand = searchParams.get('brand') || 'ALL';
+  
+  const pageParam = parseInt(searchParams.get('page') || '1', 10);
+  const limitParam = parseInt(searchParams.get('limit') || '50', 10);
+  const searchParam = searchParams.get('search') || '';
+  const brandParam = searchParams.get('brand') || 'ALL';
+  const statusParam = searchParams.get('status') || 'ALL';
 
   const [products, setProducts] = useState<ShopProductListItem[]>([]);
+  const [metadata, setMetadata] = useState({ totalCount: 0, totalPages: 1, currentPage: 1, limit: 50 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'DRAFT' | 'ACTIVE' | 'ARCHIVED'>('ALL');
-  const [brandFilter, setBrandFilter] = useState<string>(initialBrand);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (searchParams.get('brand')) {
-      setBrandFilter(searchParams.get('brand') as string);
+  // Local state for debounced inputs
+  const [searchInput, setSearchInput] = useState(searchParam);
+
+  function updateParams(newParams: Record<string, string | number | null>) {
+    const params = new URLSearchParams(searchParams.toString());
+    for (const [key, value] of Object.entries(newParams)) {
+      if (value === null || value === '' || value === 'ALL') {
+        params.delete(key);
+      } else {
+        params.set(key, String(value));
+      }
     }
-  }, [searchParams]);
+    // Reset to page 1 on filter change
+    if (!newParams.page && (newParams.search !== undefined || newParams.brand !== undefined || newParams.status !== undefined)) {
+      params.set('page', '1');
+    }
+    router.push(`/admin/shop?${params.toString()}`);
+  }
 
   useEffect(() => {
     void load();
-  }, []);
-
-  const filteredProducts = useMemo(() => {
-    let list = products;
-    if (statusFilter !== 'ALL') {
-      list = list.filter((p) => p.status === statusFilter);
-    }
-    if (brandFilter !== 'ALL') {
-      list = list.filter((p) => p.brand && p.brand.toLowerCase() === brandFilter.toLowerCase());
-    }
-    const needle = query.trim().toLowerCase();
-    if (!needle) return list;
-    return list.filter((product) =>
-      [product.slug, product.titleEn, product.titleUa, product.brand, product.vendor, product.sku]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(needle))
-    );
-  }, [products, query, statusFilter, brandFilter]);
-
-  const uniqueBrands = useMemo(() => {
-    const brands = new Set(products.map(p => p.brand).filter(Boolean) as string[]);
-    return Array.from(brands).sort();
-  }, [products]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   async function load() {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('/api/admin/shop/products');
+      const q = new URLSearchParams(searchParams.toString());
+      const response = await fetch(`/api/admin/shop/products?${q.toString()}`);
       if (response.status === 401) {
         setError('Unauthorized');
         return;
       }
-      const data = await response.json().catch(() => []);
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         setError(data.error || 'Failed to load');
         return;
       }
-      setProducts(data as ShopProductListItem[]);
+      setProducts(data.products || []);
+      if (data.metadata) {
+        setMetadata(data.metadata);
+      }
     } finally {
       setLoading(false);
     }
@@ -122,7 +124,10 @@ function AdminShopPageContent() {
     }
   }
 
-  if (loading) {
+  // Common brands to display in dropdown since we don't load all products anymore
+  const commonBrands = [ 'Akrapovic', 'Burger Motorsports', 'CSF', 'DO88', 'Eventuri', 'MHT', 'Mishimoto', 'RaceChip', 'Urban Automotive' ];
+
+  if (loading && products.length === 0) {
     return (
       <div className="p-6 text-white/60 flex items-center gap-2">
         <Package className="w-5 h-5 animate-pulse" />
@@ -143,22 +148,22 @@ function AdminShopPageContent() {
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <button 
-                onClick={() => { setBrandFilter('Urban Automotive'); setQuery(''); }}
-                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium tracking-wide transition-all font-mono ${brandFilter === 'Urban Automotive' ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'}`}
+                onClick={() => updateParams({ brand: 'Urban Automotive', search: '' })}
+                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium tracking-wide transition-all font-mono ${brandParam === 'Urban Automotive' ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'}`}
               >
                 <Package className="w-4 h-4" />
                 Urban
               </button>
               <button 
-                onClick={() => { setBrandFilter('DO88'); setQuery(''); }}
-                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium tracking-wide transition-all font-mono ${brandFilter === 'DO88' ? 'border-amber-500 bg-amber-500/20 text-amber-400' : 'border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'}`}
+                onClick={() => updateParams({ brand: 'DO88', search: '' })}
+                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium tracking-wide transition-all font-mono ${brandParam === 'DO88' ? 'border-amber-500 bg-amber-500/20 text-amber-400' : 'border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'}`}
               >
                 <Package className="w-4 h-4" />
                 DO88
               </button>
               <button 
-                onClick={() => { setBrandFilter('Eventuri'); setQuery(''); }}
-                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium tracking-wide transition-all font-mono ${brandFilter === 'Eventuri' ? 'border-purple-500 bg-purple-500/20 text-purple-400' : 'border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'}`}
+                onClick={() => updateParams({ brand: 'Eventuri', search: '' })}
+                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium tracking-wide transition-all font-mono ${brandParam === 'Eventuri' ? 'border-purple-500 bg-purple-500/20 text-purple-400' : 'border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'}`}
               >
                 <Package className="w-4 h-4" />
                 Eventuri
@@ -230,14 +235,14 @@ function AdminShopPageContent() {
 
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <div className="grid gap-1 text-sm text-white/70 md:grid-cols-3 md:gap-8">
-            <div>{products.length} товарів</div>
-            <div>{products.reduce((sum, item) => sum + item.variantsCount, 0)} варіантів</div>
-            <div>{products.filter((item) => item.isPublished).length} опубліковано</div>
+            <div>Всього знайдено: {metadata.totalCount}</div>
+            <div>Сторінка {metadata.currentPage} із {metadata.totalPages}</div>
+            <div>Показано: {products.length} на сторінці</div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as 'ALL' | 'DRAFT' | 'ACTIVE' | 'ARCHIVED')}
+              value={statusParam}
+              onChange={(e) => updateParams({ status: e.target.value })}
               className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white"
             >
               <option value="ALL">Усі статуси</option>
@@ -246,21 +251,26 @@ function AdminShopPageContent() {
               <option value="ARCHIVED">Архів</option>
             </select>
             <select
-              value={brandFilter}
-              onChange={(e) => setBrandFilter(e.target.value)}
+              value={brandParam}
+              onChange={(e) => updateParams({ brand: e.target.value })}
               className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white"
             >
               <option value="ALL">Всі Бренди</option>
-              {uniqueBrands.map(b => (
+              {commonBrands.map(b => (
                 <option key={b} value={b}>{b}</option>
               ))}
             </select>
             <label className="flex min-w-[260px] items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
             <Search className="h-4 w-4 text-white/35" />
             <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Пошук за slug, назвою, брендом, SKU"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  updateParams({ search: searchInput });
+                }
+              }}
+              placeholder="Введіть пошук та натисніть Enter..."
               className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
             />
             </label>
@@ -276,7 +286,7 @@ function AdminShopPageContent() {
           <p>• <span className="font-semibold text-white">Видалення</span> — іконка кошика. Перед повним видаленням бажано мати актуальний бекап БД.</p>
         </div>
 
-        {filteredProducts.length === 0 ? (
+        {products.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
             Товарів не знайдено. Імпортуйте CSV або додайте товар вручну.
           </div>
@@ -295,7 +305,7 @@ function AdminShopPageContent() {
                 </tr>
               </thead>
               <tbody>
-                {filteredProducts.map((product) => (
+                {products.map((product) => (
                   <tr key={product.id} className="border-b border-white/5 align-top hover:bg-white/[0.03]">
                     <td className="px-4 py-4">
                       <div className="font-medium text-white">{product.titleEn || product.titleUa}</div>
@@ -358,6 +368,32 @@ function AdminShopPageContent() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {metadata.totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 text-sm text-white/60">
+            <div>
+              Показано {(metadata.currentPage - 1) * metadata.limit + 1} - {Math.min(metadata.currentPage * metadata.limit, metadata.totalCount)} з {metadata.totalCount}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                disabled={metadata.currentPage <= 1}
+                onClick={() => updateParams({ page: metadata.currentPage - 1 })}
+                className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50"
+              >
+                Попередня
+              </button>
+              <div className="px-4 text-white">{metadata.currentPage}</div>
+              <button
+                disabled={metadata.currentPage >= metadata.totalPages}
+                onClick={() => updateParams({ page: metadata.currentPage + 1 })}
+                className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50"
+              >
+                Наступна
+              </button>
+            </div>
           </div>
         )}
       </div>
