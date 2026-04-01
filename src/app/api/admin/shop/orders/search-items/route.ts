@@ -69,44 +69,37 @@ export async function GET(request: Request) {
       };
     });
 
-    // 2. Search Turn14 Database
+    // 2. Search Turn14 Database (Local Postgres Cache)
     let turn14Items: any[] = [];
-    const EXCLUDED_BRANDS = ['burger motorsports', 'brabus', 'racechip', 'bms', 'race chip', 'do88', 'urban', 'eventuri'];
     
-    // Turn14 wholesale API often ignores query filters if the brand isn't authorized for the dealer
-    const qLower = query.toLowerCase();
-    const shouldSkipTurn14 = EXCLUDED_BRANDS.some(b => qLower.includes(b));
+    try {
+      const rawItems = await prisma.turn14CatalogItem.findMany({
+        where: {
+          OR: [
+            { partNumber: { contains: query, mode: 'insensitive' } },
+            { productName: { contains: query, mode: 'insensitive' } },
+            { brand: { contains: query, mode: 'insensitive' } },
+          ]
+        },
+        take: 15
+      });
 
-    if (!shouldSkipTurn14) {
-      try {
-        const rawItems = await prisma.turn14CatalogItem.findMany({
-          where: {
-            OR: [
-              { partNumber: { contains: query, mode: 'insensitive' } },
-              { productName: { contains: query, mode: 'insensitive' } },
-              { brand: { contains: query, mode: 'insensitive' } },
-            ]
-          },
-          take: 15
-        });
-
-        turn14Items = rawItems.map((item: any) => {
-            const attrs = item.rawAttributes as any || {};
-            return {
-              source: 'turn14',
-              id: item.id,
-              product_name: item.productName,
-              part_number: item.partNumber,
-              brand: item.brand,
-              weight: item.weight || attrs.weight || (attrs.dimensions?.[0]?.weight) || 0,
-              primary_image: attrs.thumbnail || attrs.primary_image || '',
-              dealer_price: item.retailPrice || item.dealerPrice || attrs.jobber_price || attrs.dealer_price || 0,
-              attributes: attrs,
-            };
-        });
-      } catch (e) {
-        console.error('[API] Local Turn14 Search Error:', e);
-      }
+      turn14Items = rawItems.map((item: any) => {
+          const attrs = item.rawAttributes as any || {};
+          return {
+            source: 'turn14',
+            id: item.id,
+            product_name: item.productName,
+            part_number: item.partNumber,
+            brand: item.brand,
+            weight: item.weight || attrs.weight || (attrs.dimensions?.[0]?.weight) || 0,
+            primary_image: attrs.thumbnail || attrs.primary_image || '',
+            dealer_price: item.retailPrice || item.dealerPrice || attrs.jobber_price || attrs.dealer_price || 0,
+            attributes: attrs,
+          };
+      });
+    } catch (e) {
+      console.error('[API] Local Turn14 Search Error:', e);
     }
 
     // Combine results (Local first, then Turn14)
