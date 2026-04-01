@@ -31,11 +31,32 @@ async function run() {
      console.log('⚠️ DRY RUN MODE. Data will NOT be pushed to PostgreSQL.');
   }
 
+  // STEP 0: Only download brands that exist on our One Company website
+  // Extract brand names from our brands.ts catalog
+  const OUR_BRANDS = [
+    // USA brands
+    'Airlift Performance', 'AMS', 'Borla', 'Burger Motorsport', 'Burger Motorsports',
+    'Cobb tuning', 'COBB', 'CSF', 'Deatschwerks', 'DeatschWerks', 'Dinan',
+    'Fabspeed', 'Girodisc', 'GiroDisc', 'Injector Dynamics', 'Kooks Headers',
+    'Lingenfelter', 'Mickey Thompson', 'Mountune', 'Renntech', 'Seibon Carbon', 'Seibon',
+    'SPL Parts', 'Stoptech', 'StopTech', 'Stillen', 'Vorsteiner', 'Whipple Superchargers',
+    // Europe brands
+    'Akrapovic', 'Akrapovič', 'BC Racing', 'Brembo', 'do88', 'DO88',
+    'Eventuri', 'KW Suspension', 'KW', 'Milltek', 'Mishimoto',
+    'Remus', 'Wagner Tuning', 'Ohlins', 'Öhlins',
+    // Racing brands  
+    'Samsonas Motorsport',
+  ];
+  const includeBrands = new Set(OUR_BRANDS.map(b => b.toLowerCase()));
+  console.log(`✅ INCLUDE filter: Only downloading ${includeBrands.size} brand names from Turn14`);
+  console.log(`   Brands: ${OUR_BRANDS.join(', ')}\n`);
+
   const token = await getTurn14AccessToken();
   console.log('🔄 Connected to Turn14 API. Scanning Turn14 Wholesale Catalog...');
   
   let page = 1;
   let totalSaved = 0;
+  let totalSkipped = 0;
 
   while(true) {
     const res = await fetch(`https://api.turn14.com/v1/items?page=${page}`, {
@@ -51,7 +72,17 @@ async function run() {
     const items = body.data || [];
     if (items.length === 0) break;
     
-    const upsertBatch = items.map((item) => {
+    // Only keep items whose brand is on our One Company website
+    const newItems = items.filter((item) => {
+      const brand = (item.attributes?.brand || '').toLowerCase();
+      if (!includeBrands.has(brand)) {
+        totalSkipped++;
+        return false;
+      }
+      return true;
+    });
+
+    const upsertBatch = newItems.map((item) => {
       const attrs = item.attributes || {};
       const tBrand = attrs.brand || '';
       
@@ -67,7 +98,7 @@ async function run() {
           category: attrs.category || null,
           subcategory: attrs.subcategory || null,
           weight: Number(weight) || 0,
-          dealerPrice: null, // Will require pricing endpoint if needed
+          dealerPrice: null,
           retailPrice: null,
           rawAttributes: attrs,
         },
@@ -88,7 +119,7 @@ async function run() {
       });
     });
 
-    if (!isDryRun) {
+    if (!isDryRun && upsertBatch.length > 0) {
         // Run Prisma calls in chunks of 20 to prevent pool exhaustion
         for (let i = 0; i < upsertBatch.length; i += 20) {
             await Promise.all(upsertBatch.slice(i, i + 20));
@@ -103,7 +134,7 @@ async function run() {
     }
     
     const totalPages = body.meta?.total_pages || '?';
-    process.stdout.write(`\r  Scanned & Saved ${page}/${totalPages} pages... Processed ${totalSaved} items`);
+    process.stdout.write(`\r  Page ${page}/${totalPages} | Saved: ${totalSaved} | Skipped (local brands): ${totalSkipped}`);
     
     if (page >= (body.meta?.total_pages || 1)) break;
     
