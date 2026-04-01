@@ -228,6 +228,22 @@ model ShopProduct {
   @@index([categoryId])
 }
 
+model ShopBrandLogistics {
+  id                 String   @id @default(cuid())
+  brandName          String   @unique
+  originZone         String   @default("USA") // Where does this brand ship from? (USA, EU, etc)
+  ratePerKg          Float    @default(0)     // Base cost per kg
+  volumetricDivisor  Float    @default(5000)  // 5000 for air, 4000 for ground maybe
+  volSurchargePerKg  Float    @default(0)     // Penalty for volumetric vs actual difference
+  baseFee            Float    @default(0)     // Flat handling fee per brand item
+  isActive           Boolean  @default(true) // Should custom rule apply?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  
+  @@index([brandName])
+  @@index([isActive])
+}
+
 model ShopCollection {
   id            String                  @id @default(cuid())
   handle        String                  @unique

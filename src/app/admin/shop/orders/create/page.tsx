@@ -112,6 +112,18 @@ export default function AdminCreateOrderPage() {
   const [volSurchargePerKg, setVolSurchargePerKg] = useState(2);
   const [baseFee, setBaseFee] = useState(0);
   const [shippingOverride, setShippingOverride] = useState<string>('');
+  const [brandConfigs, setBrandConfigs] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/admin/shop/logistics/brands')
+      .then(r => r.json())
+      .then(d => {
+        if (d.configs) {
+           setBrandConfigs(d.configs.filter((c: any) => c.isActive));
+        }
+      })
+      .catch();
+  }, []);
 
   // Order
   const [orderNotes, setOrderNotes] = useState('');
@@ -332,31 +344,47 @@ export default function AdminCreateOrderPage() {
 
   // ─── Shipping calculations ─────────────────────────────────
 
-  const totalWeightKg = items.reduce((sum, item) => sum + item.weightKg * item.quantity, 0);
-  const totalVolWeightKg = items.reduce((sum, item) => {
-    if (item.lengthCm > 0 && item.widthCm > 0 && item.heightCm > 0) {
-      return sum + (item.lengthCm * item.widthCm * item.heightCm / 5000) * item.quantity;
-    }
-    return sum;
-  }, 0);
-  const volSurchargeKg = Math.max(0, totalVolWeightKg - totalWeightKg);
+  let autoShippingBase = 0;
+  let autoShippingVol = 0;
+  let totalWeightKg = 0;
+  let totalVolWeightKg = 0;
+  let volSurchargeKgAgg = 0;
 
-  const autoShippingRes = calcShipping({
-    actualWeightKg: totalWeightKg,
-    lengthCm: 0, // Volumetric is aggregated
-    widthCm: 0,
-    heightCm: 0,
-    zone,
-    ratePerKg,
-    volSurchargePerKg,
-    baseFee,
+  items.forEach(item => {
+     let itemRate = ratePerKg;
+     let itemDivisor = 5000;
+     let itemVolSurcharge = volSurchargePerKg;
+     
+     if (item.brand) {
+         const cfg = brandConfigs.find(c => c.brandName.toLowerCase() === item.brand.toLowerCase());
+         if (cfg) {
+             itemRate = cfg.ratePerKg;
+             itemDivisor = cfg.volumetricDivisor;
+             itemVolSurcharge = cfg.volSurchargePerKg;
+         }
+     }
+
+     const w = item.weightKg * item.quantity;
+     totalWeightKg += w;
+
+     let vw = 0;
+     if (item.lengthCm > 0 && item.widthCm > 0 && item.heightCm > 0) {
+        vw = (item.lengthCm * item.widthCm * item.heightCm / itemDivisor) * item.quantity;
+     }
+     totalVolWeightKg += vw;
+
+     const surcharge = Math.max(0, vw - w);
+     volSurchargeKgAgg += surcharge;
+
+     autoShippingBase += (w * itemRate);
+     autoShippingVol += (surcharge * itemVolSurcharge);
   });
   
-  // Since we aggregate totalVolWeightKg above across multiple items manually 
-  // without sending individual dimensions to calcShipping, we inject the pre-calculated diff
-  const autoShippingBase = autoShippingRes.baseCost;
-  const autoShippingVol = r2(volSurchargeKg * volSurchargePerKg);
+  autoShippingBase = r2(autoShippingBase);
+  autoShippingVol = r2(autoShippingVol);
+  const volSurchargeKg = r2(volSurchargeKgAgg);
   const autoShippingTotal = r2(baseFee + autoShippingBase + autoShippingVol);
+  
   const finalShipping = shippingOverride !== '' ? Number(shippingOverride) : autoShippingTotal;
 
   // ─── Order totals ──────────────────────────────────────────

@@ -7,7 +7,7 @@ import {
   Lock, LogOut, MessageSquare, Settings, ImagePlus, ShoppingBag,
   Package, Shield, LayoutDashboard, Database, Layers, DollarSign,
   ChevronLeft, ChevronRight, Users, Archive, Box, Tag, FolderTree,
-  ChevronDown
+  ChevronDown, Truck
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -69,6 +69,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/crm', label: 'Airtable CRM', icon: <Database className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/turn14', label: 'Turn14 Proxy', icon: <Layers className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/stock', label: 'CSV Імпорт', icon: <Archive className="w-[18px] h-[18px]" /> },
+      { href: '/admin/shop/logistics', label: 'Логістика Брендів', icon: <Truck className="w-[18px] h-[18px]" /> },
     ],
   },
   {

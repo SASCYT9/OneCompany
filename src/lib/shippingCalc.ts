@@ -79,9 +79,10 @@ export function volumetricWeightKg(
   lengthCm: number,
   widthCm: number,
   heightCm: number,
+  divisor: number = 5000
 ): number {
-  if (lengthCm <= 0 || widthCm <= 0 || heightCm <= 0) return 0;
-  return Math.round((lengthCm * widthCm * heightCm) / 5000 * 1000) / 1000;
+  if (lengthCm <= 0 || widthCm <= 0 || heightCm <= 0 || divisor <= 0) return 0;
+  return Math.round(((lengthCm * widthCm * heightCm) / divisor) * 1000) / 1000;
 }
 
 // ─── Shipping cost calculation ───────────────────────────────
@@ -101,6 +102,8 @@ export interface ShippingCalcInput {
   volSurchargePerKg?: number;
   /** Override base fee (defaults to zone profile). */
   baseFee?: number;
+  /** Override volumetric divisor (defaults to 5000). */
+  volumetricDivisor?: number;
 }
 
 export interface ShippingCalcResult {
@@ -126,9 +129,10 @@ export function calcShipping(input: ShippingCalcInput): ShippingCalcResult {
   const ratePerKg = input.ratePerKg ?? profile.ratePerKg;
   const volSurchargePerKg = input.volSurchargePerKg ?? profile.volSurchargePerKg;
   const baseFee = input.baseFee ?? profile.baseFee;
+  const divisor = input.volumetricDivisor ?? 5000;
   const actualWeightKg = Math.max(0, input.actualWeightKg);
 
-  const volWeightKg = volumetricWeightKg(input.lengthCm, input.widthCm, input.heightCm);
+  const volWeightKg = volumetricWeightKg(input.lengthCm, input.widthCm, input.heightCm, divisor);
   const volSurchargeKg = Math.max(0, volWeightKg - actualWeightKg);
 
   const baseCost = round2(actualWeightKg * ratePerKg);
