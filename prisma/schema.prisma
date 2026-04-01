@@ -357,6 +357,8 @@ model ShopProductVariant {
   originCountry        String?
   airtableRecordId     String?
   airtableSyncedAt     DateTime?
+  turn14Id             String?             @unique
+  turn14Hash           String?
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
   bundleComponentItems ShopBundleItem[]
