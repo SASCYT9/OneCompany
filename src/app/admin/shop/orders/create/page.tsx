@@ -309,6 +309,7 @@ export default function AdminCreateOrderPage() {
       weightKg: lbsToKg(t14Item.weight || a.weight || 0),
       thumbnail: t14Item.primary_image || a.primary_image || '',
       turn14Id: isLocal ? '' : String(t14Item.id || ''),
+      discountPct: selectedCustomer?.b2bDiscountPercent ?? 0,
     };
     
     // For local items that already have a retail price in baseCostUsd, 

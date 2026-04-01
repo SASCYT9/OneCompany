@@ -1,23 +1,14 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/authOptions';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 import { AILogisticsService } from '@/lib/services/aiLogisticsService';
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Verify Admin rights
-    const adminUser = await prisma.adminUser.findUnique({
-      where: { email: session.user.email, isActive: true }
-    });
-    if (!adminUser) {
-      return NextResponse.json({ error: 'Access denied. Admins only.' }, { status: 403 });
-    }
+    const cookieStore = await cookies();
+    // 1. Verify standard admin access right via custom admin session
+    assertAdminRequest(cookieStore, 'shop.*');
 
     const { title, brand, sku, categoryName } = await req.json();
 
