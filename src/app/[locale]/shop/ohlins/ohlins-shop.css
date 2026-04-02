@@ -1,446 +1,566 @@
 /* ═══════════════════════════════════════════════════════════
-   ÖHLINS — Motorsport Monument (Pixel-Perfect V1)
-   Design System: design_system_ohlins.md
-   Font: Oswald (condensed) + Inter (body)
+   ÖHLINS — Golden Standard  (v2 — Akrapovic-level quality)
+   Font: Oswald (condensed headings) + Inter (body)
    ═══════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap');
 
+/* ── Variables ── */
 .ohlins-shop {
   --gold: #C8A84E;
   --gold-bright: #E8D48B;
   --gold-dark: #8B7333;
-  --bg: #0D0D0D;
-  --card-bg: #1A1A1A;
-  --card-border: rgba(255,255,255,0.06);
-  --text-primary: #FFFFFF;
-  --text-secondary: rgba(255,255,255,0.5);
-  --text-muted: rgba(255,255,255,0.35);
+  --gold-ember: rgba(200, 168, 78, 0.15);
+  --bg: #0A0A0A;
+  --bg-warm: #0F0F0D;
+  --card-bg: #141414;
+  --card-hover: #1A1A18;
+  --border: #222220;
+  --border-faint: rgba(255, 255, 255, 0.06);
+  --text-primary: #FAFAF9;
+  --text-secondary: #A8A29E;
+  --text-muted: rgba(255, 255, 255, 0.35);
 
   background-color: var(--bg);
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* ──────── Reveal Animation ──────── */
-[data-reveal] {
-  opacity: 0;
-  transform: translateY(32px);
-  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+/* ── Typography ── */
+.oh-label {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--gold);
+  margin-bottom: 1rem;
 }
-[data-reveal].is-visible {
+.oh-section-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  margin: 0;
+}
+.oh-section-sub {
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  max-width: 520px;
+  margin-top: 1.5rem;
+}
+.oh-divider {
+  width: 50px;
+  height: 1px;
+  background: var(--gold);
+  margin: 1.5rem 0;
+}
+.oh-divider--center {
+  margin: 1.5rem auto;
+}
+
+/* ── Back Link ── */
+.oh-back {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  z-index: 90;
+  padding: 1rem 1.5rem;
+}
+.oh-back__link {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.3);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.oh-back__link:hover {
+  color: var(--gold);
+}
+
+/* ── Reveal Animation ── */
+[data-oh-reveal] {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+[data-oh-reveal].oh-vis {
   opacity: 1;
   transform: translateY(0);
 }
 
 /* ═══════════════════════════════════════════════════════════
-   HERO — Title behind product, gold dust cloud
+   HERO — Full viewport, cinematic background, layered text
    ═══════════════════════════════════════════════════════════ */
 .oh-hero {
   position: relative;
-  min-height: 92vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 7rem 1.5rem 2rem;
-  overflow: hidden;
-}
-
-/* Subtle gold ambient glow */
-.oh-hero::before {
-  content: '';
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 800px;
-  height: 600px;
-  background: radial-gradient(
-    ellipse,
-    rgba(200,168,78,0.08) 0%,
-    rgba(200,168,78,0.02) 45%,
-    transparent 70%
-  );
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* TITLE — sits BEHIND the product (z-index: 1) */
-.oh-hero__title {
-  font-family: 'Oswald', 'Bebas Neue', sans-serif;
-  font-size: clamp(3.5rem, 12vw, 11rem);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: -0.03em;
-  line-height: 0.88;
-  text-align: center;
-  color: var(--text-primary);
-  position: relative;
-  z-index: 1;
-  text-shadow: 0 0 120px rgba(200,168,78,0.15);
-}
-
-/* PRODUCT IMAGE — sits ON TOP of the title (z-index: 3) */
-.oh-hero__product {
-  position: relative;
-  z-index: 3;
-  width: 240px;
-  height: 340px;
-  margin-top: -3.5rem;
-  filter: drop-shadow(0 30px 60px rgba(200,168,78,0.25));
-}
-@media (min-width: 640px) {
-  .oh-hero__product {
-    width: 300px;
-    height: 420px;
-    margin-top: -4.5rem;
-  }
-}
-@media (min-width: 1024px) {
-  .oh-hero__product {
-    width: 360px;
-    height: 500px;
-    margin-top: -6rem;
-  }
-}
-
-/* ──────── Gold Dust Cloud ──────── */
-.oh-dust-cloud {
-  position: absolute;
-  z-index: 2;
-  top: 35%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 700px;
-  height: 500px;
-  pointer-events: none;
-}
-@media (min-width: 1024px) {
-  .oh-dust-cloud {
-    width: 950px;
-    height: 650px;
-  }
-}
-
-/* The radial glow behind particles */
-.oh-dust-cloud__glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 70%;
-  height: 50%;
-  background: radial-gradient(
-    ellipse,
-    rgba(200,168,78,0.14) 0%,
-    rgba(200,168,78,0.04) 50%,
-    transparent 75%
-  );
-  filter: blur(20px);
-}
-
-@keyframes dust-rise {
-  0%   { transform: translateY(10px) scale(0.3); opacity: 0; }
-  12%  { opacity: 1; }
-  75%  { opacity: 0.6; }
-  100% { transform: translateY(-90px) scale(0.15); opacity: 0; }
-}
-
-.oh-dust-particle {
-  position: absolute;
-  border-radius: 50%;
-  background: var(--gold-bright);
-  opacity: 0;
-  animation: dust-rise var(--d, 3.5s) ease-out infinite;
-  animation-delay: var(--delay, 0s);
-}
-
-/* Subtitle under product */
-.oh-hero__subtitle {
-  position: relative;
-  z-index: 4;
-  color: var(--text-secondary);
-  font-size: 0.78rem;
-  font-weight: 300;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  margin-top: 2rem;
-  text-align: center;
-  max-width: 480px;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   STATS BAR — 3 columns, gold top border, inline value+label
-   ═══════════════════════════════════════════════════════════ */
-.oh-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  max-width: 950px;
   width: 100%;
-  margin: 0 auto;
-  border-top: 2px solid var(--gold);
-}
-
-.oh-stats__cell {
-  text-align: center;
-  padding: 2.25rem 1rem;
-  position: relative;
-}
-
-.oh-stats__cell:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 22%;
-  height: 56%;
-  width: 1px;
-  background: rgba(255,255,255,0.08);
-}
-
-.oh-stats__value {
-  font-family: 'Oswald', sans-serif;
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: var(--gold);
-  letter-spacing: -0.02em;
-}
-
-.oh-stats__label {
-  font-size: 0.95rem;
-  font-weight: 300;
-  color: var(--text-secondary);
-  margin-left: 0.3rem;
-}
-
-@media (min-width: 768px) {
-  .oh-stats__value { font-size: 3.25rem; }
-  .oh-stats__label { font-size: 1.15rem; }
-  .oh-stats__cell  { padding: 2.5rem 1.5rem; }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   PRODUCT CARDS — 2×2, text left + image right
-   ═══════════════════════════════════════════════════════════ */
-.oh-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-@media (min-width: 640px) {
-  .oh-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-.oh-card {
-  display: flex;
-  align-items: stretch;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
+  height: 100vh;
+  min-height: 700px;
   overflow: hidden;
-  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
-  text-decoration: none;
-  color: var(--text-primary);
-  min-height: 210px;
-}
-
-.oh-card:hover {
-  border-color: rgba(200,168,78,0.5);
-  box-shadow:
-    0 0 0 1px rgba(200,168,78,0.12),
-    0 24px 48px -12px rgba(0,0,0,0.55),
-    inset 0 1px 0 rgba(200,168,78,0.08);
-  transform: translateY(-3px);
-}
-
-/* First card — featured gold border */
-.oh-card--featured {
-  border-color: rgba(200,168,78,0.4);
-}
-
-.oh-card__text {
-  flex: 1;
-  padding: 1.75rem 1.5rem;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Background image */
+.oh-hero__bg {
+  position: absolute;
+  inset: 0;
   z-index: 1;
 }
-@media (min-width: 768px) {
-  .oh-card__text { padding: 2rem; }
-}
-
-.oh-card__title {
-  font-family: 'Oswald', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  margin-bottom: 0.4rem;
-}
-@media (min-width: 768px) {
-  .oh-card__title { font-size: 1.4rem; }
-}
-
-.oh-card__desc {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  line-height: 1.55;
-  margin-bottom: 1.25rem;
-  max-width: 210px;
-}
-
-/* Shop now button — gold outline */
-.oh-card__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 1.1rem;
-  border: 1px solid var(--gold);
-  color: var(--gold);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  border-radius: 4px;
-  transition: background 0.3s ease, color 0.3s ease;
-  width: fit-content;
-  background: transparent;
-}
-.oh-card:hover .oh-card__btn {
-  background: var(--gold);
-  color: var(--bg);
-}
-
-/* Image side */
-.oh-card__img {
-  position: relative;
-  width: 48%;
-  min-width: 140px;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-.oh-card__img img {
+.oh-hero__bg img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.oh-card:hover .oh-card__img img {
-  transform: scale(1.06);
+.oh-hero__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 10, 0.5) 0%,
+    rgba(10, 10, 10, 0.3) 40%,
+    rgba(10, 10, 10, 0.6) 70%,
+    rgba(10, 10, 10, 0.95) 100%
+  );
+  z-index: 2;
+}
+
+/* Hero content */
+.oh-hero__content {
+  position: relative;
+  z-index: 20;
+  max-width: 900px;
+  padding: 0 2rem;
+}
+.oh-hero__overtitle {
+  font-size: 0.6rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  color: var(--gold);
+  margin-bottom: 1.5rem;
+}
+.oh-hero__title {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(3rem, 8vw, 6.5rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 0.95;
+  margin: 0 0 1rem;
+}
+.oh-hero__title em {
+  font-style: normal;
+  font-weight: 300;
+  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 50%, var(--gold-dark) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.oh-hero__subtitle {
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  max-width: 520px;
+  margin: 1.5rem auto 0;
+}
+
+/* Stats bar at bottom of hero */
+.oh-hero__stats {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid var(--border-faint);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+}
+.oh-hero__stat {
+  flex: 1;
+  max-width: 240px;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  border-right: 1px solid var(--border-faint);
+}
+.oh-hero__stat:last-child {
+  border-right: none;
+}
+.oh-hero__stat-num {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.oh-hero__stat-label {
+  display: block;
+  font-size: 0.55rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--text-secondary);
+  margin-top: 0.35rem;
+}
+
+/* Scroll indicator */
+.oh-hero__scroll {
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+}
+.oh-hero__scroll-line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, var(--gold), transparent);
+  animation: oh-pulse 2s ease-in-out infinite;
+}
+@keyframes oh-pulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.3); }
 }
 
 /* ═══════════════════════════════════════════════════════════
-   TECHNOLOGY (zigzag rows)
+   MATERIALS — 50/50 grid, immersive, like Akrapovic
    ═══════════════════════════════════════════════════════════ */
-.oh-tech-row {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+.oh-materials {
+  padding: 6rem 0;
+}
+.oh-material {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 70vh;
   align-items: center;
 }
-@media (min-width: 1024px) {
-  .oh-tech-row { flex-direction: row; gap: 4rem; }
-  .oh-tech-row--rev { flex-direction: row-reverse; }
+.oh-material--reverse {
+  direction: rtl;
 }
-
-.oh-tech-img {
+.oh-material--reverse > * {
+  direction: ltr;
+}
+.oh-material__image {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3;
-  border-radius: 8px;
+  height: 100%;
+  min-height: 450px;
   overflow: hidden;
-  border: 1px solid var(--card-border);
 }
-@media (min-width: 1024px) {
-  .oh-tech-img { width: 55%; flex-shrink: 0; }
+.oh-material__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s ease;
 }
-
-.oh-gold-line {
-  width: 3rem;
-  height: 2px;
-  background: linear-gradient(90deg, var(--gold), transparent);
-  margin-bottom: 1.25rem;
+.oh-material:hover .oh-material__image img {
+  transform: scale(1.03);
+}
+.oh-material__text {
+  padding: 4rem clamp(2rem, 5vw, 6rem);
+  max-width: 560px;
+}
+.oh-material__title {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(2rem, 3.5vw, 3.5rem);
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  margin: 0 0 1rem;
+}
+.oh-material__desc {
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.9;
 }
 
 /* ═══════════════════════════════════════════════════════════
-   CTA
+   PRODUCT LINES — Horizontal scroll cards (like Akrapovic)
    ═══════════════════════════════════════════════════════════ */
-.oh-cta {
-  position: relative;
-  text-align: center;
-  padding: 7rem 1.5rem;
-  overflow: hidden;
+.oh-lines {
+  padding: 6rem 0 4rem;
 }
-.oh-cta::before {
+.oh-lines__header {
+  text-align: center;
+  padding: 0 2rem;
+  margin-bottom: 4rem;
+}
+.oh-lines__track {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 0 clamp(2rem, 6vw, 8rem) 1.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) rgba(255, 255, 255, 0.05);
+}
+.oh-lines__track::-webkit-scrollbar { height: 4px; }
+.oh-lines__track::-webkit-scrollbar-thumb { background: var(--gold); }
+.oh-lines__track::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); }
+
+.oh-line-card {
+  flex: 0 0 min(80vw, 520px);
+  height: clamp(360px, 55vh, 500px);
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  scroll-snap-align: start;
+  text-decoration: none;
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+.oh-line-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px -10px var(--gold-ember);
+}
+.oh-line-card__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s ease;
+}
+.oh-line-card:hover .oh-line-card__img {
+  transform: scale(1.06);
+}
+.oh-line-card__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10, 10, 10, 0.9) 0%, rgba(10, 10, 10, 0.2) 50%, transparent 100%);
+}
+.oh-line-card__badge {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  font-size: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 0.2rem 0.6rem;
+}
+.oh-line-card__content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+}
+.oh-line-card__name {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.5rem;
+}
+.oh-line-card__desc {
+  font-size: 0.75rem;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 360px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HERITAGE CTA — Full background with overlay
+   ═══════════════════════════════════════════════════════════ */
+.oh-heritage {
+  position: relative;
+  width: 100%;
+  min-height: 70vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.oh-heritage__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.oh-heritage__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.12;
+}
+.oh-heritage__bg::after {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, var(--bg) 0%, transparent 30%, transparent 70%, var(--bg) 100%);
-  z-index: 1;
+  z-index: 2;
 }
-
-.oh-cta__title {
+.oh-heritage__content {
+  position: relative;
+  z-index: 20;
+  max-width: 640px;
+  padding: 4rem 2rem;
+}
+.oh-heritage__title {
   font-family: 'Oswald', sans-serif;
-  font-size: clamp(2.5rem, 7vw, 5rem);
-  font-weight: 700;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 300;
   text-transform: uppercase;
-  letter-spacing: -0.03em;
-  line-height: 1;
+  letter-spacing: 0.08em;
+  margin: 0 0 1.5rem;
+}
+.oh-heritage__desc {
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.9;
 }
 
-/* Button with fill animation */
+/* ═══════════════════════════════════════════════════════════
+   BOTTOM CTA
+   ═══════════════════════════════════════════════════════════ */
+.oh-bottom-cta {
+  text-align: center;
+  padding: 5rem 2rem;
+  border-top: 1px solid var(--border-faint);
+}
+
+/* Button */
 .oh-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  background: transparent;
-  color: var(--gold);
+  gap: 0.5rem;
+  padding: 0.85rem 2.5rem;
+  font-size: 0.65rem;
   font-weight: 500;
-  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  transition: color 0.35s ease;
-  padding: 0.9rem 2.2rem;
+  letter-spacing: 0.2em;
+  text-decoration: none;
   border: 1px solid var(--gold);
-  border-radius: 4px;
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
+  color: var(--text-primary);
+  background: transparent;
+  transition: all 0.35s ease;
+  cursor: pointer;
 }
-.oh-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
+.oh-btn:hover {
   background: var(--gold);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: -1;
+  color: var(--bg);
+  box-shadow: 0 0 30px var(--gold-ember);
 }
-.oh-btn:hover { color: var(--bg); }
-.oh-btn:hover::before { transform: scaleX(1); }
+.oh-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
 
-/* ──────── Utilities ──────── */
+/* ── Gradient text ── */
 .oh-gradient-text {
-  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold-dark) 100%);
+  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 50%, var(--gold-dark) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
+/* ── Shimmer line ── */
 .oh-shimmer {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
   background-size: 200% 100%;
-  animation: shimmer 3s linear infinite;
+  animation: oh-shimmer 3s linear infinite;
   opacity: 0.3;
 }
-@keyframes shimmer {
+@keyframes oh-shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+/* ── Gold wave divider ── */
+.oh-wave {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  height: 40px;
+  padding: 2rem 0;
+  overflow: hidden;
+}
+.oh-wave__bar {
+  width: 2px;
+  height: var(--h, 10px);
+  background: var(--gold);
+  opacity: 0.25;
+  animation: oh-wave-pulse 1.5s ease-in-out infinite alternate;
+}
+@keyframes oh-wave-pulse {
+  0%   { transform: scaleY(0.4); opacity: 0.15; }
+  100% { transform: scaleY(1); opacity: 0.4; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 960px) {
+  .oh-material {
+    grid-template-columns: 1fr;
+  }
+  .oh-material--reverse {
+    direction: ltr;
+  }
+  .oh-material__image {
+    min-height: 350px;
+  }
+  .oh-material__text {
+    padding: 3rem 2rem;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .oh-hero__stats {
+    flex-direction: column;
+  }
+  .oh-hero__stat {
+    border-right: none;
+    border-bottom: 1px solid var(--border-faint);
+    padding: 1rem;
+  }
+  .oh-hero__stat:last-child {
+    border-bottom: none;
+  }
+  .oh-hero__scroll {
+    display: none;
+  }
+  .oh-back {
+    display: none;
+  }
+  .oh-line-card {
+    flex: 0 0 88vw;
+  }
+  .oh-hero__title {
+    font-size: clamp(2.5rem, 12vw, 4rem);
+  }
+  .oh-heritage {
+    min-height: 50vh;
+  }
 }

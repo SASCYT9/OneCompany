@@ -231,53 +231,187 @@
 
 /* ═══════════════ MATERIALS ═══════════════ */
 .ak-materials {
-  padding: 6rem 0;
+  padding: 4rem clamp(1.5rem, 4vw, 6rem);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
+.ak-materials__header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* ── Material Card ── */
 .ak-material {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 80vh;
-  align-items: center;
+  grid-template-columns: minmax(320px, 45%) 1fr;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s ease;
+  grid-template-rows: 1fr;
+}
+.ak-material:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 20px 60px -15px rgba(0, 0, 0, 0.5),
+    0 0 40px -10px var(--ak-ember-glow);
+}
+/* Animated gradient border on hover */
+.ak-material::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 17px;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--ak-ember), transparent 40%, transparent 60%, var(--ak-ember));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 2;
+}
+.ak-material:hover::before {
+  opacity: 1;
 }
 .ak-material--reverse {
-  direction: rtl;
+  grid-template-columns: 1fr minmax(320px, 45%);
 }
-.ak-material--reverse > * {
-  direction: ltr;
-}
+
+/* ── Image ── */
 .ak-material__image {
   position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 500px;
   overflow: hidden;
+  min-height: 0;
+  max-height: 380px;
+}
+.ak-material--reverse .ak-material__image {
+  order: 2;
 }
 .ak-material__image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.8s ease;
+  transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.8s ease;
+  filter: brightness(0.85) saturate(1.1);
 }
 .ak-material:hover .ak-material__image img {
-  transform: scale(1.03);
+  transform: scale(1.08);
+  filter: brightness(1) saturate(1.2);
 }
+/* Subtle color overlay on image */
+.ak-material__image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, transparent 60%);
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.ak-material:hover .ak-material__image::after {
+  opacity: 0;
+}
+
+/* ── Text panel ── */
 .ak-material__text {
-  padding: 4rem clamp(2rem, 5vw, 6rem);
-  max-width: 560px;
+  padding: 2.5rem clamp(2rem, 3vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 .ak-material__title {
-  font-size: clamp(2rem, 3.5vw, 3.5rem);
+  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
   font-weight: 100;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  line-height: 1;
-  margin: 0 0 1rem;
+  line-height: 1.1;
+  margin: 0 0 0.75rem;
 }
 .ak-material__desc {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 300;
   color: var(--ak-muted);
-  line-height: 1.9;
+  line-height: 1.85;
+}
+
+/* ── Specs grid (compact, glowing) ── */
+.ak-material__specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-top: 1.5rem;
+}
+.ak-material__spec {
+  padding: 1rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  transition: background 0.3s ease;
+}
+.ak-material__spec:nth-child(odd) {
+  padding-right: 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+.ak-material__spec:nth-child(even) {
+  padding-left: 1rem;
+}
+.ak-material__spec:hover {
+  background: rgba(255, 107, 53, 0.04);
+}
+.ak-material__spec-val {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  color: var(--ak-white);
+  margin-bottom: 0.2rem;
+  transition: color 0.3s ease;
+}
+.ak-material__spec:hover .ak-material__spec-val {
+  color: var(--ak-ember);
+}
+.ak-material__spec-label {
+  display: block;
+  font-size: 0.5rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Staggered reveal for specs ── */
+.ak-material.ak-vis .ak-material__spec {
+  animation: ak-spec-in 0.6s ease forwards;
+  opacity: 0;
+}
+.ak-material.ak-vis .ak-material__spec:nth-child(1) { animation-delay: 0.1s; }
+.ak-material.ak-vis .ak-material__spec:nth-child(2) { animation-delay: 0.2s; }
+.ak-material.ak-vis .ak-material__spec:nth-child(3) { animation-delay: 0.3s; }
+.ak-material.ak-vis .ak-material__spec:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes ak-spec-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Shimmer accent line under title ── */
+.ak-material__shimmer {
+  height: 2px;
+  width: 60px;
+  margin-bottom: 1rem;
+  background: linear-gradient(90deg, var(--ak-ember), rgba(255, 107, 53, 0.2), var(--ak-ember));
+  background-size: 200% 100%;
+  animation: ak-shimmer-flow 3s ease infinite;
+  border-radius: 2px;
+}
+@keyframes ak-shimmer-flow {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 /* ═══════════════ PRODUCT LINES ═══════════════ */
@@ -547,9 +681,10 @@
 @media (max-width: 960px) {
   .ak-sounds__grid { grid-template-columns: repeat(2, 1fr); }
   .ak-material { grid-template-columns: 1fr; }
-  .ak-material--reverse { direction: ltr; }
-  .ak-material__image { min-height: 350px; }
-  .ak-material__text { padding: 3rem 2rem; max-width: 100%; }
+  .ak-material--reverse { grid-template-columns: 1fr; }
+  .ak-material--reverse .ak-material__image { order: 0; }
+  .ak-material__image { min-height: 260px; }
+  .ak-material__text { padding: 2rem 1.5rem; }
 }
 @media (max-width: 640px) {
   .ak-sounds__grid { grid-template-columns: 1fr; }

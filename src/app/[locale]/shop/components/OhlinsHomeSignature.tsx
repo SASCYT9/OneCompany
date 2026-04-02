@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { SupportedLocale } from '@/lib/seo';
@@ -14,77 +14,44 @@ import {
 
 type Props = { locale: SupportedLocale };
 
-const T = (isUa: boolean, en: string, ua: string) => (isUa ? ua : en);
-
-/* ── Product images: use real local photos ── */
-const HERO_PRODUCT = '/images/shop/ohlins/hero-fallback.jpg';
-
-/* ── Dense gold dust cloud (80 particles) ── */
-function GoldDustCloud() {
-  const particles = useMemo(() => {
-    const rng = (min: number, max: number) => min + Math.random() * (max - min);
-    return Array.from({ length: 80 }, (_, i) => ({
-      id: i,
-      left: `${rng(15, 85)}%`,
-      top: `${rng(25, 75)}%`,
-      size: `${rng(1.5, 5)}px`,
-      delay: `${rng(0, 5)}s`,
-      duration: `${rng(2.5, 5.5)}s`,
-    }));
-  }, []);
-
-  return (
-    <div className="oh-dust-cloud">
-      <div className="oh-dust-cloud__glow" />
-      {particles.map((p) => (
-        <span
-          key={p.id}
-          className="oh-dust-particle"
-          style={{
-            left: p.left,
-            top: p.top,
-            width: p.size,
-            height: p.size,
-            ['--delay' as string]: p.delay,
-            ['--d' as string]: p.duration,
-          }}
-        />
-      ))}
-    </div>
-  );
+function L(isUa: boolean, en: string, ua: string) {
+  return isUa ? ua : en;
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 export default function OhlinsHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
 
-  /* Scroll reveal observer */
+  /* ── Scroll reveal observer ── */
   useEffect(() => {
-    const els = document.querySelectorAll('[data-reveal]');
+    const els = document.querySelectorAll('[data-oh-reveal]');
     if (!els.length) return;
     const io = new IntersectionObserver(
-      (entries) =>
+      (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            e.target.classList.add('is-visible');
+            e.target.classList.add('oh-vis');
             io.unobserve(e.target);
           }
-        }),
-      { threshold: 0.1 }
+        });
+      },
+      { threshold: 0.15 }
     );
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
 
-  /* Counter animation */
+  /* ── Counter animation ── */
   useEffect(() => {
-    const counters = document.querySelectorAll('[data-count]');
+    const counters = document.querySelectorAll('[data-oh-count]');
     if (!counters.length) return;
     const io = new IntersectionObserver(
-      (entries) =>
+      (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
           const el = entry.target as HTMLElement;
-          const raw = el.dataset.count || '0';
+          const raw = el.dataset.ohCount || '0';
           io.unobserve(el);
 
           const numStr = raw.replace(/[^0-9]/g, '');
@@ -96,13 +63,14 @@ export default function OhlinsHomeSignature({ locale }: Props) {
           const prefix = raw.slice(0, raw.indexOf(numStr[0]));
           const suffix = raw.slice(raw.lastIndexOf(numStr[numStr.length - 1]) + 1);
           let cur = 0;
-          const step = Math.max(1, Math.floor(target / 50));
+          const step = Math.max(1, Math.floor(target / 60));
           const timer = setInterval(() => {
             cur = Math.min(cur + step, target);
             el.textContent = prefix + cur + suffix;
             if (cur >= target) clearInterval(timer);
-          }, 22);
-        }),
+          }, 20);
+        });
+      },
       { threshold: 0.5 }
     );
     counters.forEach((c) => io.observe(c));
@@ -111,183 +79,237 @@ export default function OhlinsHomeSignature({ locale }: Props) {
 
   return (
     <div className="ohlins-shop" id="OhlinsHome">
-      {/* Back nav */}
-      <div className="fixed top-8 left-8 z-50 mix-blend-difference">
-        <Link
-          href={`/${locale}/shop`}
-          className="text-xs font-medium tracking-[0.2em] text-white/50 hover:text-white uppercase transition-colors"
-        >
-          ← {T(isUa, 'All stores', 'Усі магазини')}
+      {/* ── Back to Stores ── */}
+      <div className="oh-back">
+        <Link href={`/${locale}/shop`} className="oh-back__link">
+          ← {L(isUa, 'All stores', 'Усі магазини')}
         </Link>
       </div>
 
-      {/* ═══════ HERO ═══════ */}
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 1 — CINEMATIC HERO (full viewport)
+      ════════════════════════════════════════════════════════════════ */}
       <section className="oh-hero">
-        <GoldDustCloud />
-
-        {/* Title (z-index: 1 → BEHIND product) */}
-        <h1 className="oh-hero__title" data-reveal>
-          FEEL THE ROAD
-        </h1>
-
-        {/* Product (z-index: 3 → IN FRONT of title) */}
-        <div className="oh-hero__product" data-reveal>
+        <div className="oh-hero__bg">
           <Image
-            src={HERO_PRODUCT}
-            alt="Öhlins Racing Coilover"
+            src="/images/shop/ohlins/hero-bg.png"
+            alt="Motorsport racing"
             fill
-            className="object-contain"
+            className="object-cover"
             priority
           />
         </div>
 
-        <p className="oh-hero__subtitle" data-reveal>
-          {T(
-            isUa,
-            OHLINS_HERO.description,
-            'Öhlins Racing — передові підвіски для найвимогливіших водіїв та гонщиків. Чемпіонська технологія з 1976 року.'
-          )}
-        </p>
-      </section>
+        <div className="oh-hero__content" data-oh-reveal>
+          <p className="oh-hero__overtitle">
+            One Company × Öhlins Racing
+          </p>
 
-      {/* ═══════ STATS BAR ═══════ */}
-      <section className="px-6 pb-12" data-reveal>
-        <div className="oh-stats">
+          <h1 className="oh-hero__title">
+            {L(isUa, 'Feel The', 'Відчуй')}<br />
+            <em>{L(isUa, 'Road', 'Дорогу')}</em>
+          </h1>
+
+          <p className="oh-hero__subtitle">
+            {L(
+              isUa,
+              OHLINS_HERO.description,
+              'Передові підвіски Öhlins Racing для найвимогливіших водіїв. Чемпіонська технологія з 1976 року — від MotoGP до вашого авто.'
+            )}
+          </p>
+        </div>
+
+        {/* Stats bar */}
+        <div className="oh-hero__stats" data-oh-reveal>
           {OHLINS_STATS.map((s, i) => (
-            <div key={i} className="oh-stats__cell">
-              <span className="oh-stats__value" data-count={s.value}>
+            <div key={i} className="oh-hero__stat">
+              <span className="oh-hero__stat-num" data-oh-count={s.value}>
                 0
               </span>
-              <span className="oh-stats__label">{s.label}</span>
+              <span className="oh-hero__stat-label">
+                {L(isUa, s.label, s.label)}
+              </span>
             </div>
           ))}
         </div>
+
+        {/* Scroll indicator */}
+        <div className="oh-hero__scroll" aria-hidden>
+          <div className="oh-hero__scroll-line" />
+        </div>
       </section>
 
-      {/* ═══════ PRODUCT GRID 2×2 ═══════ */}
-      <section className="px-6 pb-24 lg:pb-32" data-reveal>
-        <div className="oh-grid">
-          {OHLINS_PRODUCT_LINES.map((line, idx) => (
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 2 — MATERIAL SHOWCASE (DFV + Gold Materials)
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="oh-materials">
+        {/* DFV Technology */}
+        <div className="oh-material" data-oh-reveal>
+          <div className="oh-material__image">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={OHLINS_MATERIALS[0].image}
+              alt="Dual Flow Valve technology"
+              loading="lazy"
+            />
+          </div>
+          <div className="oh-material__text">
+            <span className="oh-label">
+              {L(isUa, 'Technology', 'Технологія')}
+            </span>
+            <h2 className="oh-material__title">
+              {L(isUa, OHLINS_MATERIALS[0].name, 'Двопотоковий Клапан (DFV)')}
+            </h2>
+            <div className="oh-divider" />
+            <p className="oh-material__desc">
+              {L(
+                isUa,
+                OHLINS_MATERIALS[0].description,
+                'Наша запатентована технологія DFV забезпечує однакові характеристики при стисканні та відбої. Це дозволяє колесу швидко повертатися на дорожнє покриття після нерівності, забезпечуючи максимальне зчеплення без компромісу з комфортом.'
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* Gold Anodized Materials */}
+        <div className="oh-material oh-material--reverse" data-oh-reveal>
+          <div className="oh-material__image">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/shop/ohlins/gold-material.png"
+              alt="Gold anodized aluminum"
+              loading="lazy"
+            />
+          </div>
+          <div className="oh-material__text">
+            <span className="oh-label">
+              {L(isUa, 'Material', 'Матеріал')}
+            </span>
+            <h2 className="oh-material__title">
+              {L(isUa, OHLINS_MATERIALS[1].name, 'Авіаційний Алюміній')}
+            </h2>
+            <div className="oh-divider" />
+            <p className="oh-material__desc">
+              {L(
+                isUa,
+                OHLINS_MATERIALS[1].description,
+                'Виготовлено з авіаційного алюмінію та покрито нашим фірмовим золотим анодуванням. Це забезпечує максимальний тепловідвід, ідеальну корозійну стійкість та впізнавану візуальну ідентичність Öhlins.'
+              )}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 3 — PRODUCT LINES (horizontal scroll cards)
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="oh-lines" data-oh-reveal>
+        <div className="oh-lines__header">
+          <span className="oh-label">
+            {L(isUa, 'Product Lines', 'Лінійки продукції')}
+          </span>
+          <h2 className="oh-section-title">
+            {L(isUa, 'Engineered for Performance', 'Створено для Перемог')}
+          </h2>
+          <div className="oh-divider oh-divider--center" />
+        </div>
+
+        <div className="oh-lines__track">
+          {OHLINS_PRODUCT_LINES.map((line) => (
             <Link
               key={line.id}
               href={`/${locale}${line.link}`}
-              className={`oh-card group ${idx === 0 ? 'oh-card--featured' : ''}`}
+              className="oh-line-card"
             >
-              <div className="oh-card__text">
-                <div>
-                  <h3 className="oh-card__title">{line.name}</h3>
-                  <p className="oh-card__desc">{line.description}</p>
-                </div>
-                <span className="oh-card__btn">
-                  {T(isUa, 'Shop now', 'Переглянути')}
-                </span>
-              </div>
-              <div className="oh-card__img">
-                <Image
-                  src={line.image}
-                  alt={line.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 640px) 48vw, 25vw"
-                />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="oh-line-card__img"
+                src={line.image}
+                alt={line.name}
+                loading="lazy"
+              />
+              <div className="oh-line-card__overlay" />
+              <span className="oh-line-card__badge">
+                {L(isUa, 'Öhlins', 'Öhlins')}
+              </span>
+              <div className="oh-line-card__content">
+                <h3 className="oh-line-card__name">{line.name}</h3>
+                <p className="oh-line-card__desc">{line.description}</p>
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* ═══════ TECHNOLOGY — Golden Standard ═══════ */}
-      <section className="py-20 lg:py-28 px-6 lg:px-12">
-        <div className="oh-shimmer mb-16" />
-        <div className="max-w-[1100px] mx-auto">
-          <div className="text-center mb-16" data-reveal>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-white/25 mb-3">
-              {T(isUa, 'Technology', 'Технології')}
-            </p>
-            <h2 className="oh-cta__title">
-              <span className="oh-gradient-text">
-                {T(isUa, 'Golden Standard', 'Золотий Стандарт')}
-              </span>
-            </h2>
-          </div>
+      {/* ════════════════════════════════════════════════════════════════
+          Gold wave divider
+      ════════════════════════════════════════════════════════════════ */}
+      <div className="oh-wave" aria-hidden>
+        {Array.from({ length: 40 }).map((_, i) => {
+          const h = 6 + Math.cos(i * 0.4) * 14 + Math.random() * 10;
+          return (
+            <div
+              key={i}
+              className="oh-wave__bar"
+              style={{
+                '--h': `${h}px`,
+                animationDelay: `${i * 0.06}s`,
+              } as React.CSSProperties}
+            />
+          );
+        })}
+      </div>
 
-          <div className="space-y-16 lg:space-y-24">
-            {OHLINS_MATERIALS.map((mat, i) => (
-              <div
-                key={i}
-                className={`oh-tech-row ${i % 2 !== 0 ? 'oh-tech-row--rev' : ''}`}
-                data-reveal
-              >
-                <div className="oh-tech-img">
-                  <Image
-                    src={mat.image}
-                    alt={mat.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 100vw, 55vw"
-                  />
-                </div>
-                <div className="flex-1">
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/20 mb-3">
-                    {`0${i + 1}.`}
-                  </p>
-                  <div className="oh-gold-line" />
-                  <h3
-                    className="text-xl lg:text-2xl font-bold uppercase tracking-tight mb-3"
-                    style={{ fontFamily: "'Oswald', sans-serif" }}
-                  >
-                    {mat.name}
-                  </h3>
-                  <p className="text-sm text-white/35 leading-[1.8] font-light">
-                    {mat.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 4 — HERITAGE CTA with background
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="oh-heritage" data-oh-reveal>
+        <div className="oh-heritage__bg">
+          <Image
+            src={OHLINS_HERITAGE.image}
+            alt="Öhlins Heritage"
+            fill
+            className="object-cover"
+          />
         </div>
-      </section>
 
-      {/* ═══════ CTA — Ride With Champions ═══════ */}
-      <section className="oh-cta" data-reveal>
-        <Image
-          src={OHLINS_HERITAGE.image}
-          alt="Öhlins Heritage"
-          fill
-          className="object-cover opacity-[0.06]"
-        />
-        <div className="relative z-10 space-y-5">
-          <p className="text-[10px] uppercase tracking-[0.35em] text-white/25">
-            {T(isUa, 'Born in Sweden, Proven Worldwide', 'Народжено у Швеції, Доведено у Світі')}
-          </p>
-          <h2 className="oh-cta__title">
-            <span className="text-white/90">{T(isUa, 'Ride With', 'Їдь З')}</span>{' '}
-            <span className="oh-gradient-text">{T(isUa, 'Champions', 'Чемпіонами')}</span>
+        <div className="oh-heritage__content">
+          <span className="oh-label">
+            {L(isUa, 'Heritage', 'Спадщина')}
+          </span>
+          <h2 className="oh-heritage__title">
+            {L(isUa, 'Ride With', 'Їдь З')}{' '}
+            <span className="oh-gradient-text">
+              {L(isUa, 'Champions', 'Чемпіонами')}
+            </span>
           </h2>
-          <p className="text-sm text-white/30 max-w-xl mx-auto leading-relaxed font-light">
-            {T(
+          <div className="oh-divider oh-divider--center" />
+          <p className="oh-heritage__desc">
+            {L(
               isUa,
               OHLINS_HERITAGE.description,
               'Кожен продукт Öhlins розроблено та протестовано на нашому шведському заводі. Від MotoGP до Ле-Ман — золоті амортизатори є вибором чемпіонів.'
             )}
           </p>
-          <div className="pt-3">
-            <Link href={`/${locale}/shop/ohlins/collections`} className="oh-btn">
-              {T(isUa, 'View Collections', 'Переглянути Колекції')}
-              <svg
-                viewBox="0 0 24 24"
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </Link>
-          </div>
         </div>
       </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 5 — BOTTOM CTA
+      ════════════════════════════════════════════════════════════════ */}
+      <div className="oh-bottom-cta" data-oh-reveal>
+        <span className="oh-label">
+          {L(isUa, 'Ready to upgrade?', 'Готові до апгрейду?')}
+        </span>
+        <br />
+        <Link href={`/${locale}/shop/ohlins/collections`} className="oh-btn">
+          {L(isUa, 'Explore Catalog', 'Переглянути каталог')}
+          <svg viewBox="0 0 24 24">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </Link>
+      </div>
     </div>
   );
 }

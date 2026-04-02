@@ -185,6 +185,12 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
           SECTION 2 — MATERIAL SHOWCASE (Titanium & Carbon)
       ════════════════════════════════════════════════════════════════ */}
       <section className="ak-materials">
+        <div className="ak-materials__header">
+          <span className="ak-label">
+            {L(isUa, 'What we work with', 'З чим ми працюємо')}
+          </span>
+        </div>
+
         {/* Titanium */}
         <div className="ak-material" data-ak-reveal>
           <div className="ak-material__image">
@@ -202,10 +208,36 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
             <h2 className="ak-material__title">
               {L(isUa, AKRAPOVIC_MATERIALS.titanium.title, AKRAPOVIC_MATERIALS.titanium.titleUk)}
             </h2>
-            <div className="ak-divider" />
+            <div className="ak-material__shimmer" />
             <p className="ak-material__desc">
               {L(isUa, AKRAPOVIC_MATERIALS.titanium.description, AKRAPOVIC_MATERIALS.titanium.descriptionUk)}
             </p>
+            <div className="ak-material__specs">
+              <div className="ak-material__spec">
+                <span className="ak-material__spec-val">600°C</span>
+                <span className="ak-material__spec-label">
+                  {L(isUa, 'Max Temperature', 'Макс. температура')}
+                </span>
+              </div>
+              <div className="ak-material__spec">
+                <span className="ak-material__spec-val">−40%</span>
+                <span className="ak-material__spec-label">
+                  {L(isUa, 'vs Stainless Steel', 'проти нерж. сталі')}
+                </span>
+              </div>
+              <div className="ak-material__spec">
+                <span className="ak-material__spec-val">Grade 1</span>
+                <span className="ak-material__spec-label">
+                  {L(isUa, 'Aerospace Alloy', 'Авіаційний сплав')}
+                </span>
+              </div>
+              <div className="ak-material__spec">
+                <span className="ak-material__spec-val">🇸🇮</span>
+                <span className="ak-material__spec-label">
+                  {L(isUa, 'Made in Slovenia', 'Виготовлено у Словенії')}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -226,10 +258,36 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
             <h2 className="ak-material__title">
               {L(isUa, AKRAPOVIC_MATERIALS.carbon.title, AKRAPOVIC_MATERIALS.carbon.titleUk)}
             </h2>
-            <div className="ak-divider" />
+            <div className="ak-material__shimmer" />
             <p className="ak-material__desc">
               {L(isUa, AKRAPOVIC_MATERIALS.carbon.description, AKRAPOVIC_MATERIALS.carbon.descriptionUk)}
             </p>
+            <div className="ak-material__specs">
+              <div className="ak-material__spec">
+                <span className="ak-material__spec-val">3K</span>
+                <span className="ak-material__spec-label">
+                  {L(isUa, 'Twill Weave', 'Плетіння')}
+                </span>
+              </div>
+              <div className="ak-material__spec">
+                <span className="ak-material__spec-val">−70%</span>
+                <span className="ak-material__spec-label">
+                  {L(isUa, 'vs Aluminum', 'проти алюмінію')}
+                </span>
+              </div>
+              <div className="ak-material__spec">
+                <span className="ak-material__spec-val">120°C</span>
+                <span className="ak-material__spec-label">
+                  {L(isUa, 'Autoclave Cured', 'Автоклавне затвердіння')}
+                </span>
+              </div>
+              <div className="ak-material__spec">
+                <span className="ak-material__spec-val">UV+</span>
+                <span className="ak-material__spec-label">
+                  {L(isUa, 'Stable Clear Coat', 'UV-стійке покриття')}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
