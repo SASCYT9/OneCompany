@@ -1,6 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   ÖHLINS — Motorsport Monument Design System
-   Palette: Pitch-black + Öhlins Gold (#C8A84E)
+   ÖHLINS — Motorsport Monument (Pixel-Perfect V1)
    ═══════════════════════════════════════════════════════════ */
 
 .ohlins-shop {
@@ -8,7 +7,7 @@
   --ohlins-gold-light: #e3c96e;
   --ohlins-gold-dark: #a68a3a;
   --ohlins-black: #0a0a0a;
-  --ohlins-card-bg: #111111;
+  --ohlins-card-bg: #151515;
   --ohlins-card-border: rgba(255,255,255,0.06);
   background-color: var(--ohlins-black);
   color: white;
@@ -16,142 +15,155 @@
   overflow-x: hidden;
 }
 
-/* ── Reveal Animations ── */
+/* ── Scroll Reveal ── */
 [data-ohlins-reveal] {
   opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 [data-ohlins-reveal].ohlins-vis {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* ── Hero ── */
-.ohlins-monument-hero {
+/* ═══════════════════════════════════════
+   HERO — Layered text-behind-product
+   ═══════════════════════════════════════ */
+.ohlins-hero {
   position: relative;
-  min-height: 85vh;
+  min-height: 90vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 6rem 1.5rem 4rem;
+  justify-content: flex-start;
+  padding: 8rem 1.5rem 3rem;
   overflow: hidden;
+  background: radial-gradient(ellipse 60% 50% at 50% 55%, rgba(200,168,78,0.06) 0%, transparent 70%);
 }
 
-.ohlins-monument-hero::before {
-  content: '';
+/* Giant title BEHIND the product */
+.ohlins-hero__title {
+  font-size: clamp(3rem, 11vw, 10rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  text-align: center;
+  color: white;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 0 80px rgba(200,168,78,0.15);
+}
+
+/* Product image overlaps OVER the title */
+.ohlins-hero__product {
+  position: relative;
+  z-index: 2;
+  width: 260px;
+  height: 320px;
+  margin-top: -4rem;
+}
+@media (min-width: 640px) {
+  .ohlins-hero__product {
+    width: 320px;
+    height: 400px;
+    margin-top: -5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .ohlins-hero__product {
+    width: 380px;
+    height: 480px;
+    margin-top: -7rem;
+  }
+}
+
+/* Gold dust cloud behind product */
+.ohlins-hero__dust {
   position: absolute;
-  top: 50%;
+  z-index: 1;
+  top: 35%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(
-    circle,
-    rgba(200, 168, 78, 0.15) 0%,
-    rgba(200, 168, 78, 0.05) 40%,
-    transparent 70%
-  );
-  border-radius: 50%;
+  width: 700px;
+  height: 500px;
   pointer-events: none;
-  z-index: 0;
-}
-
-.ohlins-hero-title {
-  font-size: clamp(3.5rem, 10vw, 8rem);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: -0.03em;
-  line-height: 0.95;
-  background: linear-gradient(180deg, #ffffff 0%, var(--ohlins-gold) 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  position: relative;
-  z-index: 2;
-}
-
-.ohlins-hero-product {
-  position: relative;
-  z-index: 2;
-  width: 280px;
-  height: 380px;
-  margin: -2rem auto 0;
-}
-
-@media (min-width: 768px) {
-  .ohlins-hero-product {
-    width: 340px;
-    height: 460px;
-    margin-top: -3rem;
-  }
 }
 
 @media (min-width: 1024px) {
-  .ohlins-hero-product {
-    width: 400px;
-    height: 540px;
-    margin-top: -4rem;
+  .ohlins-hero__dust {
+    width: 900px;
+    height: 600px;
   }
 }
 
-.ohlins-hero-subtitle {
+.ohlins-hero__subtitle {
   position: relative;
   z-index: 3;
-  color: rgba(255,255,255,0.5);
-  font-size: 0.875rem;
+  color: rgba(255,255,255,0.4);
+  font-size: 0.8rem;
   font-weight: 300;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   margin-top: 1.5rem;
+  text-align: center;
   max-width: 500px;
 }
 
-/* ── Gold Particles Effect ── */
-@keyframes ohlins-particle-float {
-  0%, 100% { transform: translateY(0) scale(1); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  50% { transform: translateY(-80px) scale(0.5); }
+/* ── Gold Particles ── */
+@keyframes ohlins-dust-rise {
+  0%   { transform: translateY(20px) scale(0); opacity: 0; }
+  15%  { opacity: 1; }
+  80%  { opacity: 0.8; }
+  100% { transform: translateY(-100px) scale(0.3); opacity: 0; }
+}
+@keyframes ohlins-dust-drift {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(15px); }
 }
 
-.ohlins-particles {
+.ohlins-dust-particle {
   position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.ohlins-particle {
-  position: absolute;
-  width: 3px;
-  height: 3px;
   border-radius: 50%;
   background: var(--ohlins-gold);
   opacity: 0;
-  animation: ohlins-particle-float 4s ease-in-out infinite;
+  animation: ohlins-dust-rise var(--dur, 3s) ease-out infinite;
+  filter: blur(0.5px);
 }
 
-/* ── Stats Bar ── */
+/* Glow cloud overlay */
+.ohlins-dust-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 60%;
+  background: radial-gradient(
+    ellipse,
+    rgba(200, 168, 78, 0.12) 0%,
+    rgba(200, 168, 78, 0.04) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════
+   STATS BAR
+   ═══════════════════════════════════════ */
 .ohlins-stats-bar {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   max-width: 900px;
+  width: 100%;
   margin: 0 auto;
   border-top: 2px solid var(--ohlins-gold);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  position: relative;
-  z-index: 5;
 }
 
 .ohlins-stat-cell {
   text-align: center;
-  padding: 1.75rem 1rem;
+  padding: 2rem 1rem;
   position: relative;
 }
 
@@ -159,50 +171,46 @@
   content: '';
   position: absolute;
   right: 0;
-  top: 25%;
-  height: 50%;
+  top: 20%;
+  height: 60%;
   width: 1px;
   background: rgba(255,255,255,0.08);
 }
 
 .ohlins-stat-value {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 2.5rem;
+  font-weight: 800;
   color: var(--ohlins-gold);
   letter-spacing: -0.02em;
+  display: inline;
 }
 
 .ohlins-stat-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: rgba(255,255,255,0.4);
-  margin-top: 0.25rem;
+  font-size: 1rem;
+  font-weight: 300;
+  color: rgba(255,255,255,0.6);
+  margin-left: 0.35rem;
+  display: inline;
 }
 
 @media (min-width: 768px) {
-  .ohlins-stat-value {
-    font-size: 2.5rem;
-  }
-  .ohlins-stat-cell {
-    padding: 2rem 1.5rem;
-  }
+  .ohlins-stat-value { font-size: 3.5rem; }
+  .ohlins-stat-label { font-size: 1.2rem; }
+  .ohlins-stat-cell  { padding: 2.5rem 1.5rem; }
 }
 
-/* ── Product Cards Grid ── */
+/* ═══════════════════════════════════════
+   PRODUCT CARDS — 2×2
+   ═══════════════════════════════════════ */
 .ohlins-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
 }
-
-@media (min-width: 768px) {
-  .ohlins-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-  }
+@media (min-width: 640px) {
+  .ohlins-grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
 }
 
 .ohlins-product-card {
@@ -210,68 +218,77 @@
   align-items: stretch;
   background: var(--ohlins-card-bg);
   border: 1px solid var(--ohlins-card-border);
-  border-radius: 6px;
+  border-radius: 12px;
   overflow: hidden;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
   color: white;
-  min-height: 200px;
+  min-height: 220px;
+  position: relative;
 }
 
 .ohlins-product-card:hover {
-  border-color: rgba(200, 168, 78, 0.4);
-  box-shadow: 0 0 0 1px rgba(200, 168, 78, 0.1),
-              0 20px 40px -15px rgba(0,0,0,0.5);
+  border-color: rgba(200, 168, 78, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(200, 168, 78, 0.15),
+    0 20px 50px -15px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(200,168,78,0.1);
   transform: translateY(-3px);
+}
+
+/* Active/first card gold border accent */
+.ohlins-product-card--featured {
+  border-color: rgba(200, 168, 78, 0.35);
 }
 
 .ohlins-product-card__text {
   flex: 1;
-  padding: 1.5rem;
+  padding: 1.75rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   min-width: 0;
+  z-index: 1;
 }
 
 .ohlins-product-card__title {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  text-transform: uppercase;
   letter-spacing: -0.01em;
   margin-bottom: 0.5rem;
-  white-space: nowrap;
 }
 
 .ohlins-product-card__desc {
   font-size: 0.8rem;
-  color: rgba(255,255,255,0.4);
-  line-height: 1.5;
-  margin-bottom: 1rem;
+  color: rgba(255,255,255,0.35);
+  line-height: 1.55;
+  margin-bottom: 1.25rem;
+  max-width: 200px;
 }
 
-.ohlins-product-card__btn {
+/* Shop now button — gold outline like mockup */
+.ohlins-shop-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
+  padding: 0.5rem 1.15rem;
   border: 1px solid var(--ohlins-gold);
   color: var(--ohlins-gold);
   font-size: 0.7rem;
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  border-radius: 3px;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
   transition: all 0.3s ease;
   width: fit-content;
   background: transparent;
 }
 
-.ohlins-product-card:hover .ohlins-product-card__btn {
+.ohlins-product-card:hover .ohlins-shop-btn {
   background: var(--ohlins-gold);
   color: var(--ohlins-black);
 }
 
+/* Image area — right side of card */
 .ohlins-product-card__image {
   position: relative;
   width: 45%;
@@ -280,104 +297,60 @@
 }
 
 @media (min-width: 768px) {
-  .ohlins-product-card__text {
-    padding: 2rem;
-  }
-  .ohlins-product-card__title {
-    font-size: 1.3rem;
-  }
+  .ohlins-product-card__title { font-size: 1.4rem; }
+  .ohlins-product-card__text  { padding: 2rem; }
+  .ohlins-product-card__image { width: 48%; }
 }
 
-/* ── Technology Section ── */
+/* ═══════════════════════════════════════
+   TECHNOLOGY
+   ═══════════════════════════════════════ */
 .ohlins-tech-row {
   display: flex;
   flex-direction: column;
   gap: 2rem;
   align-items: center;
 }
-
 @media (min-width: 1024px) {
-  .ohlins-tech-row {
-    flex-direction: row;
-    gap: 5rem;
-  }
-  .ohlins-tech-row--reverse {
-    flex-direction: row-reverse;
-  }
+  .ohlins-tech-row { flex-direction: row; gap: 4rem; }
+  .ohlins-tech-row--reverse { flex-direction: row-reverse; }
 }
 
 .ohlins-tech-img {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: 4px;
+  border-radius: 8px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.06);
 }
-
 @media (min-width: 1024px) {
-  .ohlins-tech-img {
-    width: 55%;
-    flex-shrink: 0;
-  }
-}
-
-.ohlins-tech-text {
-  flex: 1;
-}
-
-.ohlins-tech-num {
-  font-size: 0.7rem;
-  color: rgba(255,255,255,0.2);
-  text-transform: uppercase;
-  letter-spacing: 0.25em;
-  margin-bottom: 1rem;
-}
-
-.ohlins-tech-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  margin-bottom: 1rem;
-}
-
-.ohlins-tech-desc {
-  font-size: 0.9rem;
-  color: rgba(255,255,255,0.4);
-  line-height: 1.8;
-  font-weight: 300;
+  .ohlins-tech-img { width: 55%; flex-shrink: 0; }
 }
 
 .ohlins-gold-line {
   width: 3rem;
   height: 2px;
   background: linear-gradient(90deg, var(--ohlins-gold), transparent);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
-/* ── CTA Section ── */
+/* ═══════════════════════════════════════
+   CTA
+   ═══════════════════════════════════════ */
 .ohlins-cta {
   position: relative;
   text-align: center;
-  padding: 8rem 1.5rem;
+  padding: 7rem 1.5rem;
   overflow: hidden;
 }
-
 .ohlins-cta::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    var(--ohlins-black) 0%,
-    transparent 30%,
-    transparent 70%,
-    var(--ohlins-black) 100%
-  );
+  background: linear-gradient(180deg, var(--ohlins-black) 0%, transparent 30%, transparent 70%, var(--ohlins-black) 100%);
   z-index: 1;
 }
-
 .ohlins-cta-title {
   font-size: clamp(2.5rem, 7vw, 5rem);
   font-weight: 800;
@@ -386,6 +359,7 @@
   line-height: 1;
 }
 
+/* ── Button ── */
 .ohlins-btn {
   display: inline-flex;
   align-items: center;
@@ -395,15 +369,15 @@
   font-weight: 500;
   font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  padding: 1rem 2.5rem;
+  padding: 1rem 2.25rem;
   border: 1px solid var(--ohlins-gold);
   position: relative;
   overflow: hidden;
   z-index: 1;
+  border-radius: 4px;
 }
-
 .ohlins-btn::before {
   content: '';
   position: absolute;
@@ -414,19 +388,15 @@
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: -1;
 }
+.ohlins-btn:hover { color: var(--ohlins-black); }
+.ohlins-btn:hover::before { transform: scaleX(1); }
 
-.ohlins-btn:hover {
-  color: var(--ohlins-black);
-}
-
-.ohlins-btn:hover::before {
-  transform: scaleX(1);
-}
-
-/* ── Gold Shimmer ── */
-@keyframes ohlins-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+/* ── Utilities ── */
+.ohlins-gradient-text {
+  background: linear-gradient(135deg, var(--ohlins-gold-light) 0%, var(--ohlins-gold-dark) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .ohlins-shimmer-line {
@@ -436,11 +406,7 @@
   animation: ohlins-shimmer 3s linear infinite;
   opacity: 0.3;
 }
-
-/* ── Gradient Text Utility ── */
-.ohlins-gradient-text {
-  background: linear-gradient(135deg, var(--ohlins-gold-light) 0%, var(--ohlins-gold-dark) 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+@keyframes ohlins-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
