@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { SupportedLocale } from '@/lib/seo';
@@ -18,12 +18,45 @@ function L(isUa: boolean, en: string, ua: string = en) {
   return isUa ? ua : en;
 }
 
+/* ── Gold particles generator ── */
+function GoldParticles() {
+  const particles = useMemo(() => {
+    return Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${30 + Math.random() * 40}%`,
+      delay: `${Math.random() * 4}s`,
+      size: `${2 + Math.random() * 3}px`,
+      duration: `${3 + Math.random() * 3}s`,
+    }));
+  }, []);
+
+  return (
+    <div className="ohlins-particles">
+      {particles.map((p) => (
+        <span
+          key={p.id}
+          className="ohlins-particle"
+          style={{
+            left: p.left,
+            top: p.top,
+            width: p.size,
+            height: p.size,
+            animationDelay: p.delay,
+            animationDuration: p.duration,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function OhlinsHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
 
-  /* ── Scroll reveal ── */
+  /* ── Scroll reveal observer ── */
   useEffect(() => {
-    const els = document.querySelectorAll('[data-ohlins-reveal],[data-ohlins-reveal-stagger]');
+    const els = document.querySelectorAll('[data-ohlins-reveal]');
     if (!els.length) return;
     const io = new IntersectionObserver(
       (entries) => {
@@ -92,208 +125,136 @@ export default function OhlinsHomeSignature({ locale }: Props) {
       </div>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 1 — EDITORIAL HERO (full viewport)
+          SECTION 1 — MONUMENT HERO (centered product + huge title)
       ════════════════════════════════════════════════════════════════ */}
-      <section className="relative min-h-screen flex items-end pb-20 overflow-hidden">
-        {/* Background image */}
-        <Image
-          src="/images/shop/ohlins/hero-fallback.jpg"
-          alt="Öhlins Racing"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 ohlins-hero-gradient" />
+      <section className="ohlins-monument-hero">
+        {/* Gold particles background */}
+        <GoldParticles />
 
-        {/* Gold shimmer line at hero bottom */}
-        <div className="absolute bottom-0 left-0 right-0 ohlins-shimmer-line" />
+        {/* Title */}
+        <h1 className="ohlins-hero-title" data-ohlins-reveal>
+          {L(isUa, 'FEEL THE ROAD', 'ВІДЧУЙ ДРАЙВ')}
+        </h1>
 
-        {/* Hero content — bottom-aligned, editorial layout */}
-        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 lg:px-12">
-          <div className="grid lg:grid-cols-[1fr_auto] items-end gap-12" data-ohlins-reveal>
-            {/* Left — Typography */}
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.35em] text-white/40 font-medium mb-6 flex items-center gap-4">
-                <span className="w-10 h-[1px] bg-gradient-to-r from-white/30 to-transparent" />
-                One Company × Öhlins
-              </p>
-
-              <h1 className="ohlins-display text-6xl md:text-8xl lg:text-[9rem] text-white/90 mb-4">
-                {L(isUa, 'Feel', 'Відчуй')}{' '}
-                <span className="ohlins-gradient-text">
-                  {L(isUa, 'The', 'Цей')}
-                </span>
-                <br />
-                <span className="ohlins-gradient-text">
-                  {L(isUa, 'Road', 'Драйв')}
-                </span>
-              </h1>
-
-              <p className="max-w-xl text-sm md:text-base text-white/50 leading-relaxed font-light mb-10">
-                {L(
-                  isUa,
-                  OHLINS_HERO.description,
-                  'Öhlins Racing — передові підвіски для найвимогливіших водіїв та гонщиків. Чемпіонська технологія з 1976 року.'
-                )}
-              </p>
-
-              <Link href={`/${locale}/shop/ohlins/collections`} className="ohlins-btn">
-                {L(isUa, 'Explore catalog', 'Відкрити каталог')}
-                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </Link>
-            </div>
-
-            {/* Right — Stats (vertical, editorial) */}
-            <div className="hidden lg:flex flex-col gap-8 pb-4">
-              {OHLINS_STATS.map((s, i) => (
-                <div key={i} className="text-right">
-                  <span
-                    className="block text-3xl font-extralight ohlins-text-gold tracking-tight"
-                    data-ohlins-count={s.value}
-                  >
-                    0
-                  </span>
-                  <span className="block text-[10px] text-white/35 uppercase tracking-[0.25em] mt-1">
-                    {L(isUa, s.label, s.label)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Central product image */}
+        <div className="ohlins-hero-product" data-ohlins-reveal>
+          <Image
+            src="/images/shop/ohlins/hero-fallback.jpg"
+            alt="Öhlins Coilover"
+            fill
+            className="object-contain drop-shadow-[0_20px_60px_rgba(200,168,78,0.25)]"
+            priority
+          />
         </div>
+
+        {/* Subtitle */}
+        <p className="ohlins-hero-subtitle" data-ohlins-reveal>
+          {L(
+            isUa,
+            OHLINS_HERO.description,
+            'Öhlins Racing — передові підвіски для найвимогливіших водіїв та гонщиків. Чемпіонська технологія з 1976 року.'
+          )}
+        </p>
       </section>
 
-      {/* ── Mobile Stats (visible < lg) ── */}
-      <section className="lg:hidden py-8 px-6" data-ohlins-reveal>
-        <div className="grid grid-cols-3 gap-4 max-w-xl mx-auto">
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 2 — STATS BAR (3-column with gold top border)
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="px-6 pb-16" data-ohlins-reveal>
+        <div className="ohlins-stats-bar">
           {OHLINS_STATS.map((s, i) => (
-            <div key={i} className="ohlins-stat">
-              <span className="block text-xl font-extralight ohlins-text-gold" data-ohlins-count={s.value}>
-                0
-              </span>
-              <span className="block text-[9px] text-white/35 uppercase tracking-[0.2em] mt-1">
-                {L(isUa, s.label, s.label)}
-              </span>
+            <div key={i} className="ohlins-stat-cell">
+              <span className="ohlins-stat-value" data-ohlins-count={s.value}>0</span>
+              <span className="ohlins-stat-label">{L(isUa, s.label, s.label)}</span>
             </div>
           ))}
         </div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 2 — PRODUCT LINES (2×2 Bento Grid)
+          SECTION 3 — PRODUCT LINES (2×2 card grid)
       ════════════════════════════════════════════════════════════════ */}
-      <section className="py-24 lg:py-32 px-6 lg:px-12 relative z-10">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="flex items-end justify-between mb-16" data-ohlins-reveal>
-            <div>
-              <div className="ohlins-divider mb-6" />
-              <p className="text-[10px] uppercase tracking-[0.3em] text-white/30 mb-3">
-                {L(isUa, 'Product Selection', 'Вибір Продукції')}
-              </p>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl ohlins-heading text-white/90">
-                {L(isUa, 'Engineered', 'Інженерна')}
-                <br />
-                <span className="ohlins-gradient-text">
-                  {L(isUa, 'Details', 'Досконалість')}
-                </span>
-              </h2>
-            </div>
+      <section className="px-6 pb-24 lg:pb-32" data-ohlins-reveal>
+        <div className="ohlins-grid">
+          {OHLINS_PRODUCT_LINES.map((line) => (
             <Link
-              href={`/${locale}/shop/ohlins/collections`}
-              className="hidden md:inline-flex items-center gap-2 text-xs text-white/40 uppercase tracking-[0.2em] hover:text-white/70 transition-colors"
+              key={line.id}
+              href={`/${locale}${line.link}`}
+              className="ohlins-product-card group"
             >
-              {L(isUa, 'View All', 'Дивитись Все')}
-              <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </Link>
-          </div>
+              {/* Text side (left) */}
+              <div className="ohlins-product-card__text">
+                <div>
+                  <h3 className="ohlins-product-card__title">{L(isUa, line.name, line.name)}</h3>
+                  <p className="ohlins-product-card__desc">
+                    {L(isUa, line.description, line.description)}
+                  </p>
+                </div>
+                <span className="ohlins-product-card__btn">
+                  {L(isUa, 'Shop now', 'Переглянути')}
+                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </span>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6" data-ohlins-reveal-stagger>
-            {OHLINS_PRODUCT_LINES.map((line) => (
-              <Link
-                key={line.id}
-                href={`/${locale}${line.link}`}
-                className="ohlins-card group relative h-[340px] lg:h-[420px] flex flex-col justify-end"
-              >
+              {/* Image side (right) */}
+              <div className="ohlins-product-card__image">
                 <Image
                   src={line.image}
                   alt={line.name}
                   fill
-                  className="object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04] opacity-40 group-hover:opacity-60"
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 768px) 45vw, 25vw"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-
-                <div className="relative z-10 p-6 lg:p-8">
-                  <div className="w-6 h-[1px] bg-[var(--ohlins-gold)] mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <h3 className="text-lg lg:text-xl ohlins-heading text-white mb-2">
-                    {L(isUa, line.name, line.name)}
-                  </h3>
-                  <p className="text-sm text-white/40 leading-relaxed max-w-sm group-hover:text-white/60 transition-colors duration-500">
-                    {L(isUa, line.description, line.description)}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 3 — THE GOLDEN STANDARD (Technology)
+          SECTION 4 — TECHNOLOGY (DFV + Materials)
       ════════════════════════════════════════════════════════════════ */}
-      <section className="py-24 lg:py-32 px-6 lg:px-12 relative z-10">
-        {/* Full-width shimmer divider */}
-        <div className="ohlins-shimmer-line mb-24" />
+      <section className="py-24 lg:py-32 px-6 lg:px-12">
+        {/* Shimmer divider */}
+        <div className="ohlins-shimmer-line mb-20" />
 
-        <div className="max-w-[1400px] mx-auto">
+        <div className="max-w-[1200px] mx-auto">
           <div className="text-center mb-20" data-ohlins-reveal>
-            <p className="text-[10px] uppercase tracking-[0.35em] text-white/30 mb-4">
+            <p className="text-[10px] uppercase tracking-[0.35em] text-white/25 mb-4">
               {L(isUa, 'Technology', 'Технології')}
             </p>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl ohlins-display text-white/90">
-              {L(isUa, 'The', 'Золотий')}{' '}
+            <h2 className="ohlins-cta-title">
+              <span className="text-white/90">{L(isUa, 'The', '')}</span>{' '}
               <span className="ohlins-gradient-text">
-                {L(isUa, 'Golden Standard', 'Стандарт')}
+                {L(isUa, 'Golden Standard', 'Золотий Стандарт')}
               </span>
             </h2>
           </div>
 
-          <div className="space-y-20 lg:space-y-32">
+          <div className="space-y-20 lg:space-y-28">
             {OHLINS_MATERIALS.map((mat, i) => (
               <div
                 key={i}
-                className={`flex flex-col lg:flex-row gap-10 lg:gap-20 items-center ${i % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}
+                className={`ohlins-tech-row ${i % 2 !== 0 ? 'ohlins-tech-row--reverse' : ''}`}
                 data-ohlins-reveal
               >
-                <div className="w-full lg:w-[55%] ohlins-material-img">
-                  <div className="relative aspect-[16/10] overflow-hidden">
-                    <Image
-                      src={mat.image}
-                      alt={mat.name}
-                      fill
-                      className="object-cover transition-transform duration-[1.4s] ease-out hover:scale-[1.03]"
-                      sizes="(max-width: 1024px) 100vw, 55vw"
-                    />
-                  </div>
+                <div className="ohlins-tech-img">
+                  <Image
+                    src={mat.image}
+                    alt={mat.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 55vw"
+                  />
                 </div>
-
-                <div className="w-full lg:w-[45%] space-y-6 lg:space-y-8">
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/25">
-                    {`0${i + 1}.`}
-                  </p>
-                  <div className="ohlins-divider" />
-                  <h3 className="text-2xl lg:text-3xl ohlins-heading text-white/90">
-                    {L(isUa, mat.name, mat.name)}
-                  </h3>
-                  <p className="text-sm lg:text-base text-white/45 leading-[1.8] font-light max-w-lg">
-                    {L(isUa, mat.description, mat.description)}
-                  </p>
+                <div className="ohlins-tech-text">
+                  <p className="ohlins-tech-num">{`0${i + 1}.`}</p>
+                  <div className="ohlins-gold-line" />
+                  <h3 className="ohlins-tech-title">{L(isUa, mat.name, mat.name)}</h3>
+                  <p className="ohlins-tech-desc">{L(isUa, mat.description, mat.description)}</p>
                 </div>
               </div>
             ))}
@@ -302,35 +263,28 @@ export default function OhlinsHomeSignature({ locale }: Props) {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 4 — HERITAGE CTA
+          SECTION 5 — HERITAGE CTA
       ════════════════════════════════════════════════════════════════ */}
-      <section className="relative py-32 lg:py-44 px-6 overflow-hidden" data-ohlins-reveal>
+      <section className="ohlins-cta" data-ohlins-reveal>
         <Image
           src={OHLINS_HERITAGE.image}
           alt="Öhlins Heritage"
           fill
-          className="object-cover opacity-[0.07]"
+          className="object-cover opacity-[0.06]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--ohlins-black)] via-transparent to-[var(--ohlins-black)]" />
+        <div className="ohlins-cta::before" />
 
-        {/* Top shimmer */}
-        <div className="absolute top-0 left-0 right-0 ohlins-shimmer-line" />
-
-        <div className="relative z-10 max-w-[1400px] mx-auto text-center space-y-8">
-          <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
-            {L(isUa, OHLINS_HERITAGE.title, 'Народжено у Швеції')}
+        <div className="relative z-10 space-y-6">
+          <p className="text-[10px] uppercase tracking-[0.35em] text-white/25">
+            {L(isUa, 'Born in Sweden, Proven Worldwide', 'Народжено у Швеції, Доведено у Світі')}
           </p>
 
-          <h2 className="text-5xl md:text-7xl lg:text-8xl ohlins-display">
-            <span className="text-white/90">{L(isUa, 'Ride', 'З')}</span>{' '}
-            <span className="ohlins-gradient-text">
-              {L(isUa, 'With', 'Чемпіонами')}
-            </span>
-            <br />
-            <span className="text-white/90">{L(isUa, 'Champions', '')}</span>
+          <h2 className="ohlins-cta-title">
+            <span className="text-white/90">{L(isUa, 'Ride With', 'Їдь З')}</span>{' '}
+            <span className="ohlins-gradient-text">{L(isUa, 'Champions', 'Чемпіонами')}</span>
           </h2>
 
-          <p className="text-sm lg:text-base text-white/40 max-w-2xl mx-auto leading-relaxed font-light">
+          <p className="text-sm text-white/35 max-w-2xl mx-auto leading-relaxed font-light">
             {L(
               isUa,
               OHLINS_HERITAGE.description,
@@ -338,7 +292,7 @@ export default function OhlinsHomeSignature({ locale }: Props) {
             )}
           </p>
 
-          <div className="pt-6">
+          <div className="pt-4">
             <Link href={`/${locale}/shop/ohlins/collections`} className="ohlins-btn">
               {L(isUa, 'View Collections', 'Переглянути Колекції')}
               <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">

@@ -1,57 +1,19 @@
 /* ═══════════════════════════════════════════════════════════
-   ÖHLINS SIGNATURE — Premium Motorsport Design System
-   Color: Pitch-black + Öhlins Gold (#C8A84E / #eab308)
+   ÖHLINS — Motorsport Monument Design System
+   Palette: Pitch-black + Öhlins Gold (#C8A84E)
    ═══════════════════════════════════════════════════════════ */
 
 .ohlins-shop {
   --ohlins-gold: #C8A84E;
   --ohlins-gold-light: #e3c96e;
   --ohlins-gold-dark: #a68a3a;
-  --ohlins-black: #050505;
+  --ohlins-black: #0a0a0a;
+  --ohlins-card-bg: #111111;
+  --ohlins-card-border: rgba(255,255,255,0.06);
   background-color: var(--ohlins-black);
   color: white;
   min-height: 100vh;
   overflow-x: hidden;
-}
-
-/* ── Typography ── */
-.ohlins-display {
-  font-weight: 200;
-  text-transform: uppercase;
-  letter-spacing: -0.04em;
-  line-height: 0.9;
-}
-
-.ohlins-heading {
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-}
-
-.ohlins-gradient-text {
-  background: linear-gradient(135deg, var(--ohlins-gold-light) 0%, var(--ohlins-gold-dark) 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.ohlins-text-gold {
-  color: var(--ohlins-gold);
-}
-
-.ohlins-bg-gold {
-  background-color: var(--ohlins-gold);
-}
-
-/* ── Hero ── */
-.ohlins-hero-gradient {
-  background: linear-gradient(
-    180deg,
-    rgba(5,5,5,0) 0%,
-    rgba(5,5,5,0.3) 40%,
-    rgba(5,5,5,0.85) 75%,
-    rgba(5,5,5,1) 100%
-  );
 }
 
 /* ── Reveal Animations ── */
@@ -67,20 +29,363 @@
   transform: translateY(0);
 }
 
-/* Staggered children */
-[data-ohlins-reveal-stagger] > * {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+/* ── Hero ── */
+.ohlins-monument-hero {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6rem 1.5rem 4rem;
+  overflow: hidden;
 }
 
-[data-ohlins-reveal-stagger].ohlins-vis > *:nth-child(1) { transition-delay: 0.05s; opacity: 1; transform: translateY(0); }
-[data-ohlins-reveal-stagger].ohlins-vis > *:nth-child(2) { transition-delay: 0.12s; opacity: 1; transform: translateY(0); }
-[data-ohlins-reveal-stagger].ohlins-vis > *:nth-child(3) { transition-delay: 0.19s; opacity: 1; transform: translateY(0); }
-[data-ohlins-reveal-stagger].ohlins-vis > *:nth-child(4) { transition-delay: 0.26s; opacity: 1; transform: translateY(0); }
+.ohlins-monument-hero::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle,
+    rgba(200, 168, 78, 0.15) 0%,
+    rgba(200, 168, 78, 0.05) 40%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
 
-/* ── Button ── */
+.ohlins-hero-title {
+  font-size: clamp(3.5rem, 10vw, 8rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  background: linear-gradient(180deg, #ffffff 0%, var(--ohlins-gold) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  z-index: 2;
+}
+
+.ohlins-hero-product {
+  position: relative;
+  z-index: 2;
+  width: 280px;
+  height: 380px;
+  margin: -2rem auto 0;
+}
+
+@media (min-width: 768px) {
+  .ohlins-hero-product {
+    width: 340px;
+    height: 460px;
+    margin-top: -3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ohlins-hero-product {
+    width: 400px;
+    height: 540px;
+    margin-top: -4rem;
+  }
+}
+
+.ohlins-hero-subtitle {
+  position: relative;
+  z-index: 3;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.875rem;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 1.5rem;
+  max-width: 500px;
+}
+
+/* ── Gold Particles Effect ── */
+@keyframes ohlins-particle-float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  50% { transform: translateY(-80px) scale(0.5); }
+}
+
+.ohlins-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ohlins-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--ohlins-gold);
+  opacity: 0;
+  animation: ohlins-particle-float 4s ease-in-out infinite;
+}
+
+/* ── Stats Bar ── */
+.ohlins-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 900px;
+  margin: 0 auto;
+  border-top: 2px solid var(--ohlins-gold);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+  z-index: 5;
+}
+
+.ohlins-stat-cell {
+  text-align: center;
+  padding: 1.75rem 1rem;
+  position: relative;
+}
+
+.ohlins-stat-cell:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: rgba(255,255,255,0.08);
+}
+
+.ohlins-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--ohlins-gold);
+  letter-spacing: -0.02em;
+}
+
+.ohlins-stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.4);
+  margin-top: 0.25rem;
+}
+
+@media (min-width: 768px) {
+  .ohlins-stat-value {
+    font-size: 2.5rem;
+  }
+  .ohlins-stat-cell {
+    padding: 2rem 1.5rem;
+  }
+}
+
+/* ── Product Cards Grid ── */
+.ohlins-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .ohlins-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+.ohlins-product-card {
+  display: flex;
+  align-items: stretch;
+  background: var(--ohlins-card-bg);
+  border: 1px solid var(--ohlins-card-border);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  color: white;
+  min-height: 200px;
+}
+
+.ohlins-product-card:hover {
+  border-color: rgba(200, 168, 78, 0.4);
+  box-shadow: 0 0 0 1px rgba(200, 168, 78, 0.1),
+              0 20px 40px -15px rgba(0,0,0,0.5);
+  transform: translateY(-3px);
+}
+
+.ohlins-product-card__text {
+  flex: 1;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.ohlins-product-card__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+}
+
+.ohlins-product-card__desc {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.ohlins-product-card__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  border: 1px solid var(--ohlins-gold);
+  color: var(--ohlins-gold);
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+  width: fit-content;
+  background: transparent;
+}
+
+.ohlins-product-card:hover .ohlins-product-card__btn {
+  background: var(--ohlins-gold);
+  color: var(--ohlins-black);
+}
+
+.ohlins-product-card__image {
+  position: relative;
+  width: 45%;
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .ohlins-product-card__text {
+    padding: 2rem;
+  }
+  .ohlins-product-card__title {
+    font-size: 1.3rem;
+  }
+}
+
+/* ── Technology Section ── */
+.ohlins-tech-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .ohlins-tech-row {
+    flex-direction: row;
+    gap: 5rem;
+  }
+  .ohlins-tech-row--reverse {
+    flex-direction: row-reverse;
+  }
+}
+
+.ohlins-tech-img {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+@media (min-width: 1024px) {
+  .ohlins-tech-img {
+    width: 55%;
+    flex-shrink: 0;
+  }
+}
+
+.ohlins-tech-text {
+  flex: 1;
+}
+
+.ohlins-tech-num {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  margin-bottom: 1rem;
+}
+
+.ohlins-tech-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin-bottom: 1rem;
+}
+
+.ohlins-tech-desc {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+.ohlins-gold-line {
+  width: 3rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ohlins-gold), transparent);
+  margin-bottom: 1.5rem;
+}
+
+/* ── CTA Section ── */
+.ohlins-cta {
+  position: relative;
+  text-align: center;
+  padding: 8rem 1.5rem;
+  overflow: hidden;
+}
+
+.ohlins-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    var(--ohlins-black) 0%,
+    transparent 30%,
+    transparent 70%,
+    var(--ohlins-black) 100%
+  );
+  z-index: 1;
+}
+
+.ohlins-cta-title {
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
 .ohlins-btn {
   display: inline-flex;
   align-items: center;
@@ -88,8 +393,7 @@
   background: transparent;
   color: var(--ohlins-gold);
   font-weight: 500;
-  font-size: 0.8rem;
-  border-radius: 0;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -119,77 +423,7 @@
   transform: scaleX(1);
 }
 
-/* ── Product Card ── */
-.ohlins-card {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 2px;
-  overflow: hidden;
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-}
-
-.ohlins-card:hover {
-  border-color: rgba(200, 168, 78, 0.35);
-  box-shadow:
-    0 0 0 1px rgba(200, 168, 78, 0.1),
-    0 20px 40px -15px rgba(0,0,0,0.6);
-}
-
-.ohlins-card::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--ohlins-gold);
-  transform: scaleX(0);
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.ohlins-card:hover::after {
-  transform: scaleX(1);
-}
-
-/* ── Stat Pill ── */
-.ohlins-stat {
-  text-align: center;
-  padding: 1.5rem 2rem;
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 2px;
-  background: rgba(255,255,255,0.02);
-  transition: border-color 0.4s ease;
-}
-
-.ohlins-stat:hover {
-  border-color: rgba(200, 168, 78, 0.2);
-}
-
-/* ── Divider ── */
-.ohlins-divider {
-  width: 3rem;
-  height: 1px;
-  background: linear-gradient(90deg, var(--ohlins-gold), transparent);
-}
-
-/* ── Material Row ── */
-.ohlins-material-img {
-  position: relative;
-  overflow: hidden;
-  border-radius: 2px;
-}
-
-.ohlins-material-img::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 2px;
-  pointer-events: none;
-}
-
-/* ── Gold Shimmer Keyframe ── */
+/* ── Gold Shimmer ── */
 @keyframes ohlins-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -197,13 +431,16 @@
 
 .ohlins-shimmer-line {
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--ohlins-gold) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, var(--ohlins-gold) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: ohlins-shimmer 3s linear infinite;
-  opacity: 0.4;
+  opacity: 0.3;
+}
+
+/* ── Gradient Text Utility ── */
+.ohlins-gradient-text {
+  background: linear-gradient(135deg, var(--ohlins-gold-light) 0%, var(--ohlins-gold-dark) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
