@@ -41,7 +41,7 @@ import type { ShopProduct } from '@/lib/shopCatalog';
 
 const prisma = new PrismaClient();
 
-type ProductPageMode = 'default' | 'urban' | 'do88' | 'brabus' | 'burger';
+type ProductPageMode = 'default' | 'urban' | 'do88' | 'brabus' | 'burger' | 'akrapovic' | 'racechip' | 'csf' | 'ohlins';
 
 type Props = {
   locale: string;

@@ -42,6 +42,8 @@ export function Header() {
     if (brand.toLowerCase() === 'burger') return 'Burger Motorsports';
     if (brand.toLowerCase() === 'racechip') return 'RaceChip';
     if (brand.toLowerCase() === 'akrapovic') return 'Akrapovič';
+    if (brand.toLowerCase() === 'csf') return 'CSF Racing';
+    if (brand.toLowerCase() === 'ohlins') return 'Öhlins';
     return brand.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
 
