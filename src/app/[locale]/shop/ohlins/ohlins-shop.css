@@ -1,77 +1,209 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ═══════════════════════════════════════════════════════════
+   ÖHLINS SIGNATURE — Premium Motorsport Design System
+   Color: Pitch-black + Öhlins Gold (#C8A84E / #eab308)
+   ═══════════════════════════════════════════════════════════ */
 
 .ohlins-shop {
-  --ohlins-gold: #fde047;
-  --ohlins-gold-dark: #eab308;
+  --ohlins-gold: #C8A84E;
+  --ohlins-gold-light: #e3c96e;
+  --ohlins-gold-dark: #a68a3a;
   --ohlins-black: #050505;
-  --ohlins-gray: #1f2937;
   background-color: var(--ohlins-black);
   color: white;
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
 }
 
-.ohlins-hero-gradient {
-  background: linear-gradient(to bottom, rgba(5,5,5,0) 0%, rgba(5,5,5,0.7) 50%, rgba(5,5,5,1) 100%);
-}
-
-.ohlins-btn {
-  background: var(--ohlins-gold-dark);
-  color: var(--ohlins-black);
-  font-weight: 600;
-  border-radius: 4px;
+/* ── Typography ── */
+.ohlins-display {
+  font-weight: 200;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  transition: all 0.3s ease;
-  padding: 1rem 2rem;
-  border: 1px solid var(--ohlins-gold-dark);
-}
-
-.ohlins-btn:hover {
-  background: transparent;
-  color: var(--ohlins-gold);
-  border-color: var(--ohlins-gold);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px -10px rgba(234, 179, 8, 0.4);
-}
-
-.ohlins-card {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ohlins-card:hover {
-  border-color: rgba(234, 179, 8, 0.3);
-  transform: translateY(-5px);
-  box-shadow: 0 15px 30px -10px rgba(0,0,0,0.5);
+  letter-spacing: -0.04em;
+  line-height: 0.9;
 }
 
 .ohlins-heading {
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: -0.02em;
+}
+
+.ohlins-gradient-text {
+  background: linear-gradient(135deg, var(--ohlins-gold-light) 0%, var(--ohlins-gold-dark) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .ohlins-text-gold {
   color: var(--ohlins-gold);
 }
 
-.ohlins-border-gold {
-  border-color: var(--ohlins-gold-dark);
-}
-
 .ohlins-bg-gold {
-  background-color: var(--ohlins-gold-dark);
+  background-color: var(--ohlins-gold);
 }
 
-.ohlins-gradient-text {
-  background: linear-gradient(135deg, #fde047 0%, #ca8a04 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* ── Hero ── */
+.ohlins-hero-gradient {
+  background: linear-gradient(
+    180deg,
+    rgba(5,5,5,0) 0%,
+    rgba(5,5,5,0.3) 40%,
+    rgba(5,5,5,0.85) 75%,
+    rgba(5,5,5,1) 100%
+  );
+}
+
+/* ── Reveal Animations ── */
+[data-ohlins-reveal] {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-ohlins-reveal].ohlins-vis {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered children */
+[data-ohlins-reveal-stagger] > * {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-ohlins-reveal-stagger].ohlins-vis > *:nth-child(1) { transition-delay: 0.05s; opacity: 1; transform: translateY(0); }
+[data-ohlins-reveal-stagger].ohlins-vis > *:nth-child(2) { transition-delay: 0.12s; opacity: 1; transform: translateY(0); }
+[data-ohlins-reveal-stagger].ohlins-vis > *:nth-child(3) { transition-delay: 0.19s; opacity: 1; transform: translateY(0); }
+[data-ohlins-reveal-stagger].ohlins-vis > *:nth-child(4) { transition-delay: 0.26s; opacity: 1; transform: translateY(0); }
+
+/* ── Button ── */
+.ohlins-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: transparent;
+  color: var(--ohlins-gold);
+  font-weight: 500;
+  font-size: 0.8rem;
+  border-radius: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 1rem 2.5rem;
+  border: 1px solid var(--ohlins-gold);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.ohlins-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ohlins-gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: -1;
+}
+
+.ohlins-btn:hover {
+  color: var(--ohlins-black);
+}
+
+.ohlins-btn:hover::before {
+  transform: scaleX(1);
+}
+
+/* ── Product Card ── */
+.ohlins-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.ohlins-card:hover {
+  border-color: rgba(200, 168, 78, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(200, 168, 78, 0.1),
+    0 20px 40px -15px rgba(0,0,0,0.6);
+}
+
+.ohlins-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--ohlins-gold);
+  transform: scaleX(0);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ohlins-card:hover::after {
+  transform: scaleX(1);
+}
+
+/* ── Stat Pill ── */
+.ohlins-stat {
+  text-align: center;
+  padding: 1.5rem 2rem;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 2px;
+  background: rgba(255,255,255,0.02);
+  transition: border-color 0.4s ease;
+}
+
+.ohlins-stat:hover {
+  border-color: rgba(200, 168, 78, 0.2);
+}
+
+/* ── Divider ── */
+.ohlins-divider {
+  width: 3rem;
+  height: 1px;
+  background: linear-gradient(90deg, var(--ohlins-gold), transparent);
+}
+
+/* ── Material Row ── */
+.ohlins-material-img {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.ohlins-material-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* ── Gold Shimmer Keyframe ── */
+@keyframes ohlins-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.ohlins-shimmer-line {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--ohlins-gold) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: ohlins-shimmer 3s linear infinite;
+  opacity: 0.4;
 }
