@@ -1,0 +1,42 @@
+/* ═══════════════════════════════════════
+   Dataview Plugin — Table Styling
+   ═══════════════════════════════════════ */
+
+.dataview.table-view-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.9em;
+}
+
+.dataview.table-view-table thead tr th {
+  background: rgba(255,255,255,0.04);
+  font-size: 0.75em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.4);
+  font-weight: 500;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.dataview.table-view-table tbody tr td {
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.dataview.table-view-table tbody tr:hover td {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+/* Task list styling */
+.dataview.task-list-basic-item {
+  padding: 4px 0;
+}
+
+/* List styling */
+.dataview.result-group {
+  margin-bottom: 1em;
+}

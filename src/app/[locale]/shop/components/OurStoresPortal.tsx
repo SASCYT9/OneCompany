@@ -22,6 +22,8 @@ const getCardSpan = (id: string) => {
     case 'do88':
     case 'racechip':
       return 'md:col-span-2 md:row-span-1 min-h-[250px] md:min-h-[300px]'; // 2x1 Wide
+    case 'akrapovic':
+      return 'md:col-span-2 md:row-span-1 min-h-[250px] md:min-h-[300px]'; // 2x1 Wide
     case 'burger':
     case 'fi':
     case 'kw':
@@ -116,6 +118,7 @@ export default function OurStoresPortal({ locale, isB2bApproved }: OurStoresPort
               : store.id === "do88" ? `/${locale}/shop/do88`
               : store.id === "brabus" ? `/${locale}/shop/brabus`
               : store.id === "burger" ? `/${locale}/shop/burger`
+              : store.id === "akrapovic" ? `/${locale}/shop/akrapovic`
               : store.id === "racechip" ? `/${locale}/shop/racechip`
               : store.href || "#";
               

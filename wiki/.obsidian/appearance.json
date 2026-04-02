@@ -1,0 +1,8 @@
+{
+  "theme": "obsidian",
+  "baseFontSize": 16,
+  "accentColor": "#818cf8",
+  "enabledCssSnippets": [
+    "one-company-theme"
+  ]
+}

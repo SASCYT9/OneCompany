@@ -62,6 +62,15 @@ export const OUR_STORES: OurStore[] = [
     imageUrl: "/images/shop/burger/hero-engine.jpg",
   },
   {
+    id: "akrapovic",
+    name: "Akrapovič",
+    nameUk: "Akrapovič",
+    description: "Hand-crafted titanium & carbon fibre exhaust systems. The sound of perfection since 1990.",
+    descriptionUk: "Титанові та карбонові вихлопні системи ручної роботи. Звук досконалості з 1990 року.",
+    href: "/shop/akrapovic",
+    imageUrl: "/images/shop/akrapovic/hero-fallback.jpg",
+  },
+  {
     id: "racechip",
     name: "RaceChip",
     nameUk: "RaceChip",

@@ -12,6 +12,8 @@ const staticPageConfig: Record<string, { priority: number; changeFrequency: Meta
   "/shop": { priority: 0.85, changeFrequency: "daily" },
   "/shop/urban": { priority: 0.82, changeFrequency: "weekly" },
   "/shop/urban/collections": { priority: 0.8, changeFrequency: "weekly" },
+  "/shop/akrapovic": { priority: 0.82, changeFrequency: "weekly" },
+  "/shop/akrapovic/collections": { priority: 0.8, changeFrequency: "weekly" },
   "/auto": { priority: 0.9, changeFrequency: "daily" },
   "/moto": { priority: 0.9, changeFrequency: "daily" },
   "/brands": { priority: 0.8, changeFrequency: "weekly" },

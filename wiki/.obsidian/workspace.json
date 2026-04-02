@@ -1,0 +1,266 @@
+{
+  "main": {
+    "id": "957d83b84092d9b8",
+    "type": "split",
+    "children": [
+      {
+        "id": "19d4777c7c8a4de0",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "88e98883b02c2234",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Shop Overview.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Shop Overview"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "b712ada22107e76d",
+    "type": "split",
+    "children": [
+      {
+        "id": "1f6afb2a7387534e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e5a12099f37b62ca",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Файловий менеджер"
+            }
+          },
+          {
+            "id": "32eeef20fe306038",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "tag:#marketing",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Пошук"
+            }
+          },
+          {
+            "id": "fa99c31fcf3c9aa8",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Закладки"
+            }
+          },
+          {
+            "id": "a77b7055afd4f996",
+            "type": "leaf",
+            "state": {
+              "type": "mk-path-view",
+              "state": {},
+              "icon": "layout-grid",
+              "title": "Navigator"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "4a39eed5c6c49606",
+    "type": "split",
+    "children": [
+      {
+        "id": "e134a1b28d4aa87d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0f06c290426b27e7",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Shop Overview.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Зворотні посилання для Shop Overview"
+            }
+          },
+          {
+            "id": "97c4be3b7aff73bd",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Shop Overview.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Вихідні посилання з Shop Overview"
+            }
+          },
+          {
+            "id": "2f598e6d52930e62",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Мітки"
+            }
+          },
+          {
+            "id": "d35cf96d5245c6c4",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Всі властивості"
+            }
+          },
+          {
+            "id": "20d02d51482e534d",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Shop Overview.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Вміст Shop Overview"
+            }
+          },
+          {
+            "id": "165baf63968acacf",
+            "type": "leaf",
+            "state": {
+              "type": "footnotes",
+              "state": {
+                "file": "Shop Overview.md"
+              },
+              "icon": "lucide-file-signature",
+              "title": "Виноски"
+            }
+          },
+          {
+            "id": "0bf7edf5da9eec56",
+            "type": "leaf",
+            "state": {
+              "type": "calendar",
+              "state": {},
+              "icon": "calendar-with-checkmark",
+              "title": "Calendar"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Відкрити провідник файлів": false,
+      "graph:Граф": false,
+      "canvas:Створити нове полотно": false,
+      "command-palette:Відкрити меню команд": false,
+      "markdown-importer:Імпорт Markdown-файлів": false,
+      "bases:Створити нову базу": false,
+      "random-note:Відкрити випадкову нотатку": false,
+      "audio-recorder:Почати/зупинити запис": false,
+      "zk-prefixer:Створити нову унікальну нотатку": false,
+      "workspaces:Керування просторами": false,
+      "publish:Публікація змін": false,
+      "templates:Вставити шаблон": false,
+      "daily-notes:Сьогоднішня нотатка": false,
+      "table-editor-obsidian:Advanced Tables Toolbar": false,
+      "copilot:Open Copilot Chat": false,
+      "obsidian-excalidraw-plugin:New drawing": false,
+      "obsidian-git:Open Git source control": false,
+      "homepage:Open homepage": false,
+      "obsidian-kanban:Create new board": false,
+      "templater-obsidian:Templater": false
+    }
+  },
+  "active": "88e98883b02c2234",
+  "lastOpenFiles": [
+    "Home.md",
+    "Shop Mind Map.md",
+    "Shop Overview.md",
+    "Instagram Strategy.md",
+    "UI Components.md",
+    "B2B Operations.md",
+    "Analytics & Performance.md",
+    "Brand Onboarding Playbook.md",
+    "Competitor Analysis.md",
+    "DevOps.md",
+    "Order Processing Playbook.md",
+    "Architecture.md",
+    "Improvement Strategy.md",
+    "Marketing Mind Map.canvas",
+    "Site Pages.md",
+    "Urban Theme.md",
+    "Team.md",
+    "Portal.md",
+    "Burger Motorsports.md",
+    "Urban Automotive.md",
+    "Content Calendar.md",
+    "Marketing Strategy.md",
+    "SEO Content Strategy.md",
+    "Без назви.base",
+    "Без назви.canvas",
+    "Turn14.md",
+    "TODO.md",
+    "Pricing.md",
+    "Phase F — SEO.md",
+    "Tags",
+    "Shop Mind Map.canvas"
+  ]
+}

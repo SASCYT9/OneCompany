@@ -41,6 +41,7 @@ export function Header() {
     if (brand.toLowerCase() === 'kw-suspension') return 'KW Suspension';
     if (brand.toLowerCase() === 'burger') return 'Burger Motorsports';
     if (brand.toLowerCase() === 'racechip') return 'RaceChip';
+    if (brand.toLowerCase() === 'akrapovic') return 'Akrapovič';
     return brand.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
 
@@ -61,7 +62,9 @@ export function Header() {
           ? `/${locale}/shop/${currentBrand}/products` 
           : currentBrand === 'do88'
             ? `/${locale}/shop/do88/collections`
-            : `/${locale}/shop/${currentBrand}#catalog`,
+            : currentBrand === 'akrapovic'
+              ? `/${locale}/shop/akrapovic/collections`
+              : `/${locale}/shop/${currentBrand}#catalog`,
       label: isUa ? `Каталог ${formatBrandName(currentBrand)}` : `${formatBrandName(currentBrand)} Catalog`,
     }] : []),
     ...(isB2bApproved ? [{

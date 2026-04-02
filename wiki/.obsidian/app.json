@@ -1,0 +1,10 @@
+{
+  "interfaceFontSize": 14,
+  "alwaysUpdateLinks": true,
+  "newLinkFormat": "shortest",
+  "useMarkdownLinks": false,
+  "showLineNumber": true,
+  "strictLineBreaks": false,
+  "readableLineLength": true,
+  "attachmentFolderPath": "Attachments"
+}
