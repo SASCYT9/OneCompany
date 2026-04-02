@@ -182,26 +182,7 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 2 — SOUND WAVE VISUALIZER (decorative divider)
-      ════════════════════════════════════════════════════════════════ */}
-      <div className="ak-wave" aria-hidden>
-        {Array.from({ length: 40 }).map((_, i) => {
-          const h = 8 + Math.sin(i * 0.5) * 16 + Math.random() * 12;
-          return (
-            <div
-              key={i}
-              className="ak-wave__bar"
-              style={{
-                '--h': `${h}px`,
-                animationDelay: `${i * 0.05}s`,
-              } as React.CSSProperties}
-            />
-          );
-        })}
-      </div>
-
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 3 — MATERIAL SHOWCASE (Titanium & Carbon)
+          SECTION 2 — MATERIAL SHOWCASE (Titanium & Carbon)
       ════════════════════════════════════════════════════════════════ */}
       <section className="ak-materials">
         {/* Titanium */}
