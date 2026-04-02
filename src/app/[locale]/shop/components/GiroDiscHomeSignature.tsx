@@ -11,26 +11,39 @@ import {
   GIRODISC_PRODUCT_LINES,
   GIRODISC_HERITAGE,
 } from '../data/girodiscHomeData';
-import AkrapovicVideoBackground from './AkrapovicVideoBackground';
 
 type Props = { locale: SupportedLocale };
 
-function L(isUa: boolean, en: string, ua: string = en) {
+function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
+
+/* ── Material specs ── */
+const IRON_SPECS = [
+  { val: '72', en: 'Curved Vanes', ua: 'Вигнуті ребра' },
+  { val: 'USA', en: 'Cast Iron Origin', ua: 'Виробництво чавуну' },
+  { val: '2-Piece', en: 'Floating Design', ua: 'Плаваюча конструкція' },
+  { val: '800°C', en: 'Operating Temp', ua: 'Робоча температура' },
+];
+const ALUMINUM_SPECS = [
+  { val: '6061-T6', en: 'Alloy Grade', ua: 'Марка сплаву' },
+  { val: '−8 lbs', en: 'Per Corner', ua: 'На кожне колесо' },
+  { val: 'CNC', en: 'Machining', ua: 'Обробка' },
+  { val: 'Anodized', en: 'Surface Finish', ua: 'Покриття' },
+];
 
 export default function GiroDiscHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
 
   /* ── Scroll reveal observer ── */
   useEffect(() => {
-    const els = document.querySelectorAll('[data-girodisc-reveal]');
+    const els = document.querySelectorAll('[data-gd-reveal]');
     if (!els.length) return;
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            e.target.classList.add('girodisc-vis');
+            e.target.classList.add('gd-vis');
             io.unobserve(e.target);
           }
         });
@@ -43,14 +56,14 @@ export default function GiroDiscHomeSignature({ locale }: Props) {
 
   /* ── Counter animation ── */
   useEffect(() => {
-    const counters = document.querySelectorAll('[data-girodisc-count]');
+    const counters = document.querySelectorAll('[data-gd-count]');
     if (!counters.length) return;
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
           const el = entry.target as HTMLElement;
-          const target = el.dataset.girodiscCount || '0';
+          const target = el.dataset.gdCount || '0';
           io.unobserve(el);
 
           if (!/^\d+$/.test(target.replace(/[^0-9]/g, ''))) {
@@ -80,158 +93,247 @@ export default function GiroDiscHomeSignature({ locale }: Props) {
   }, []);
 
   return (
-    <div className="girodisc-shop" id="GiroDiscHome">
+    <div className="gd-home" id="GiroDiscHome">
       {/* ── Back to Stores ── */}
-      <div className="absolute top-8 left-8 z-50">
-        <Link href={`/${locale}/shop`} className="text-xs font-bold tracking-[0.2em] text-white/40 hover:text-red-500 uppercase transition-colors">
+      <div className="gd-back">
+        <Link href={`/${locale}/shop`} className="gd-back__link">
           ← {L(isUa, 'All our stores', 'Усі наші магазини')}
         </Link>
       </div>
 
-      {/* 1. HERO SECTION */}
-      <section className="relative min-h-[90vh] flex flex-col items-center justify-center pt-24 pb-16 overflow-hidden">
-        <AkrapovicVideoBackground
-          videoSrc={GIRODISC_HERO.heroVideoUrl}
-          fallbackImage={GIRODISC_HERO.heroImageFallback}
-          overlayStyle="heritage"
-        />
-        
-        <div className="absolute inset-0 z-[1] pointer-events-none girodisc-hero-gradient" />
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 1 — CINEMATIC HERO
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="gd-hero" id="gd-hero-section">
+        <div className="gd-hero__bg">
+          <Image
+            src={GIRODISC_HERO.heroImageFallback}
+            alt="GiroDisc 2-Piece Brake Rotors"
+            fill
+            priority
+            sizes="100vw"
+            quality={90}
+            style={{ objectFit: 'cover' }}
+          />
+        </div>
+        <div className="gd-hero__overlay" />
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 text-center" data-girodisc-reveal>
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <span className="w-12 h-[2px] bg-red-600"></span>
-            <p className="text-white/60 uppercase tracking-[0.3em] text-xs font-bold">
-              One Company × GiroDisc
-            </p>
-            <span className="w-12 h-[2px] bg-red-600"></span>
-          </div>
+        <div className="gd-hero__content" data-gd-reveal>
+          <p className="gd-hero__overtitle">
+            One Company × GiroDisc
+          </p>
 
-          <h1 className="text-6xl md:text-8xl lg:text-[8rem] girodisc-heading mb-6 tracking-tighter leading-none">
-            {L(isUa, 'BRAKING', 'ГАЛЬМІВНА')}
-            <br />
-            <span className="girodisc-gradient-text">{L(isUa, 'PRECISION', 'ТОЧНІСТЬ')}</span>
+          <h1 className="gd-hero__title">
+            {L(isUa, 'Braking', 'Гальмівна')}<br />
+            <em>{L(isUa, 'Precision', 'Точність')}</em>
           </h1>
 
-          <p className="max-w-2xl mx-auto text-lg md:text-xl text-zinc-400 font-light leading-relaxed mb-12">
+          <p className="gd-hero__subtitle">
             {L(isUa, GIRODISC_HERO.subtitle, GIRODISC_HERO.subtitleUk)}
           </p>
 
-          <Link href={`/${locale}/shop/girodisc/collections`} className="girodisc-btn inline-flex items-center gap-3">
-            {L(isUa, GIRODISC_HERO.ctaText, GIRODISC_HERO.ctaTextUk)}
-            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <Link href={`/${locale}/shop/girodisc/collections`} className="gd-btn" style={{ marginTop: '2.5rem' }}>
+            {L(isUa, 'Explore Catalog', 'Перейти в каталог')}
+            <svg viewBox="0 0 24 24">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
             </svg>
           </Link>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-white/5 bg-black/60 backdrop-blur-md z-20">
-          <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 divide-x divide-white/5" data-girodisc-reveal>
-            {GIRODISC_STATS.map((s, i) => (
-              <div key={i} className="py-8 text-center">
-                <span className="block text-3xl md:text-4xl girodisc-heading text-white mb-2" data-girodisc-count={s.val}>0</span>
-                <span className="block text-[0.65rem] text-zinc-500 uppercase tracking-widest font-bold">{L(isUa, s.en, s.ua)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 2. MATERIALS SHOWCASE */}
-      <section className="py-32 px-6 relative z-10 bg-zinc-950" data-girodisc-reveal>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-24">
-            <h2 className="text-4xl md:text-6xl girodisc-heading">
-              {L(isUa, 'Engineered in the USA', 'Розроблено в США')}
-            </h2>
-            <div className="w-24 h-1 girodisc-bg-red mx-auto mt-8" />
-          </div>
-
-          <div className="space-y-16 lg:space-y-32">
-            {GIRODISC_MATERIALS.map((mat, i) => (
-              <div key={i} className={`flex flex-col lg:flex-row gap-8 lg:gap-20 items-center ${i % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}>
-                <div className="w-full lg:w-1/2 aspect-video relative overflow-hidden bg-black girodisc-card">
-                  <Image src={mat.image} alt={mat.title} fill className="object-cover opacity-80 mix-blend-luminosity hover:mix-blend-normal transition-all duration-700" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
-                </div>
-                <div className="w-full lg:w-1/2 space-y-6">
-                  <span className="text-red-500 font-bold uppercase tracking-[0.2em] text-sm">{`0${i + 1}.`}</span>
-                  <h3 className="text-3xl md:text-4xl girodisc-heading text-white">{L(isUa, mat.title, mat.titleUk)}</h3>
-                  <p className="text-zinc-400 text-lg leading-relaxed font-light">
-                    {L(isUa, mat.description, mat.descriptionUk)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 3. PRODUCT LINES */}
-      <section className="py-32 px-6 relative z-10 bg-zinc-900 border-t border-white/5" data-girodisc-reveal>
-        <div className="max-w-[1400px] mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-            <div>
-              <span className="text-red-500 uppercase tracking-[0.2em] text-sm font-bold block mb-4">
-                {L(isUa, 'Product Selection', 'Вибір Продукції')}
+        {/* Stats bar */}
+        <div className="gd-hero__stats" data-gd-reveal>
+          {GIRODISC_STATS.map((s, i) => (
+            <div key={i} className="gd-hero__stat">
+              <span className="gd-hero__stat-num" data-gd-count={s.val}>
+                0
               </span>
-              <h2 className="text-4xl md:text-5xl girodisc-heading">
-                {L(isUa, 'Track Ready Hardware', 'Обладнання для треку')}
-              </h2>
+              <span className="gd-hero__stat-label">
+                {L(isUa, s.en, s.ua)}
+              </span>
             </div>
-            <Link href={`/${locale}/shop/girodisc/collections`} className="text-sm tracking-widest uppercase font-bold text-zinc-400 hover:text-white transition-colors">
-              {L(isUa, 'View All →', 'Переглянути все →')}
-            </Link>
-          </div>
+          ))}
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {GIRODISC_PRODUCT_LINES.map((line, i) => (
-              <Link key={line.id} href={`/${locale}${line.link}`} className="group flex flex-col h-[480px] relative girodisc-card overflow-hidden">
-                <div className="absolute inset-0">
-                  <Image src={line.image} alt={line.name} fill className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-70 group-hover:opacity-100 mix-blend-luminosity group-hover:mix-blend-normal" sizes="400px" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent opacity-90 transition-opacity" />
-                
-                <div className="absolute top-6 left-6">
-                  <span className="bg-red-600 text-white text-[0.6rem] font-bold uppercase tracking-widest px-3 py-1">
-                    {L(isUa, line.badge, line.badgeUk)}
+        {/* Scroll indicator */}
+        <div className="gd-hero__scroll" aria-hidden>
+          <div className="gd-hero__scroll-line" />
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 2 — MATERIAL SHOWCASE (Cast Iron & Aluminum)
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="gd-materials">
+        <div className="gd-materials__header">
+          <span className="gd-label">
+            {L(isUa, 'Materials & Technology', 'Матеріали та технології')}
+          </span>
+        </div>
+
+        {/* Cast Iron */}
+        <div className="gd-material" data-gd-reveal>
+          <div className="gd-material__image">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={GIRODISC_MATERIALS[0].image}
+              alt="Curved vane cast iron"
+              loading="lazy"
+            />
+          </div>
+          <div className="gd-material__text">
+            <span className="gd-label">
+              {L(isUa, 'Material', 'Матеріал')}
+            </span>
+            <h2 className="gd-material__title">
+              {L(isUa, GIRODISC_MATERIALS[0].title, GIRODISC_MATERIALS[0].titleUk)}
+            </h2>
+            <div className="gd-material__shimmer" />
+            <p className="gd-material__desc">
+              {L(isUa, GIRODISC_MATERIALS[0].description, GIRODISC_MATERIALS[0].descriptionUk)}
+            </p>
+            <div className="gd-material__specs">
+              {IRON_SPECS.map((sp, i) => (
+                <div key={i} className="gd-material__spec">
+                  <span className="gd-material__spec-val">{sp.val}</span>
+                  <span className="gd-material__spec-label">
+                    {L(isUa, sp.en, sp.ua)}
                   </span>
                 </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-                <div className="relative mt-auto p-8 z-10 transform transition-transform duration-500 group-hover:-translate-y-4">
-                  <h3 className="text-2xl girodisc-heading text-white mb-3">{L(isUa, line.name, line.nameUk)}</h3>
-                  <p className="text-sm text-zinc-400 line-clamp-3 font-light leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    {L(isUa, line.description, line.descriptionUk)}
-                  </p>
+        {/* Aluminum */}
+        <div className="gd-material gd-material--reverse" data-gd-reveal>
+          <div className="gd-material__image">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={GIRODISC_MATERIALS[1].image}
+              alt="CNC billet aluminum"
+              loading="lazy"
+            />
+          </div>
+          <div className="gd-material__text">
+            <span className="gd-label">
+              {L(isUa, 'Technology', 'Технологія')}
+            </span>
+            <h2 className="gd-material__title">
+              {L(isUa, GIRODISC_MATERIALS[1].title, GIRODISC_MATERIALS[1].titleUk)}
+            </h2>
+            <div className="gd-material__shimmer" />
+            <p className="gd-material__desc">
+              {L(isUa, GIRODISC_MATERIALS[1].description, GIRODISC_MATERIALS[1].descriptionUk)}
+            </p>
+            <div className="gd-material__specs">
+              {ALUMINUM_SPECS.map((sp, i) => (
+                <div key={i} className="gd-material__spec">
+                  <span className="gd-material__spec-val">{sp.val}</span>
+                  <span className="gd-material__spec-label">
+                    {L(isUa, sp.en, sp.ua)}
+                  </span>
                 </div>
-              </Link>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 4. HERITAGE */}
-      <section className="relative min-h-[70vh] flex items-center justify-center p-6 text-center" data-girodisc-reveal>
-        <div className="absolute inset-0 z-0">
-          <Image src={GIRODISC_HERITAGE.fallbackImage} alt="Heritage" fill className="object-cover opacity-20" />
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-zinc-900" />
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 3 — PRODUCT LINES (horizontal scroll cards)
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="gd-lines" data-gd-reveal>
+        <div className="gd-lines__header">
+          <span className="gd-label">
+            {L(isUa, 'Product Lines', 'Лінійки продукції')}
+          </span>
+          <h2 className="gd-section-title">
+            {L(isUa, 'Track Ready Hardware', 'Обладнання для треку')}
+          </h2>
+          <div className="gd-divider gd-divider--center" />
         </div>
-        <div className="relative z-10 max-w-4xl mx-auto space-y-8">
-          <div className="w-16 h-1 bg-red-600 mx-auto" />
-          <h2 className="text-5xl md:text-7xl girodisc-heading text-white">
+
+        <div className="gd-lines__track">
+          {GIRODISC_PRODUCT_LINES.map((line) => (
+            <Link
+              key={line.id}
+              href={`/${locale}${line.link}`}
+              className="gd-line-card"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="gd-line-card__img"
+                src={line.image}
+                alt={L(isUa, line.name, line.nameUk)}
+                loading="lazy"
+              />
+              <div className="gd-line-card__overlay" />
+              <span className="gd-line-card__badge">
+                {L(isUa, line.badge, line.badgeUk)}
+              </span>
+              <div className="gd-line-card__content">
+                <h3 className="gd-line-card__name">
+                  {L(isUa, line.name, line.nameUk)}
+                </h3>
+                <p className="gd-line-card__desc">
+                  {L(isUa, line.description, line.descriptionUk)}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 4 — HERITAGE (image background + storytelling)
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="gd-heritage" data-gd-reveal>
+        <div className="gd-hero__bg" style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+          <Image
+            src={GIRODISC_HERITAGE.fallbackImage}
+            alt="GiroDisc Heritage"
+            fill
+            sizes="100vw"
+            quality={85}
+            style={{ objectFit: 'cover', filter: 'brightness(0.3) grayscale(0.3)' }}
+          />
+        </div>
+        <div className="gd-hero__overlay" style={{
+          background: 'linear-gradient(to top, var(--gd-bg) 5%, transparent 50%, var(--gd-bg) 95%)',
+          zIndex: 2,
+        }} />
+
+        <div className="gd-heritage__content">
+          <span className="gd-label">
+            {L(isUa, 'Heritage', 'Історія')}
+          </span>
+          <h2 className="gd-heritage__title">
             {L(isUa, GIRODISC_HERITAGE.title, GIRODISC_HERITAGE.titleUk)}
           </h2>
-          <p className="text-lg md:text-xl text-zinc-400 max-w-3xl mx-auto font-light leading-relaxed">
+          <div className="gd-divider gd-divider--center" />
+          <p className="gd-heritage__desc">
             {L(isUa, GIRODISC_HERITAGE.description, GIRODISC_HERITAGE.descriptionUk)}
           </p>
-          <div className="pt-12">
-            <Link href={`/${locale}/shop/girodisc/collections`} className="girodisc-btn inline-block">
-              {L(isUa, 'Explore Products', 'Дослідити Продукцію')}
-            </Link>
-          </div>
         </div>
       </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 5 — BOTTOM CTA
+      ════════════════════════════════════════════════════════════════ */}
+      <div className="gd-bottom-cta" data-gd-reveal>
+        <span className="gd-label">
+          {L(isUa, 'Ready to upgrade?', 'Готові до апгрейду?')}
+        </span>
+        <br />
+        <Link href={`/${locale}/shop/girodisc/collections`} className="gd-btn">
+          {L(isUa, 'Explore Catalog', 'Переглянути каталог')}
+          <svg viewBox="0 0 24 24">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </Link>
+      </div>
     </div>
   );
 }

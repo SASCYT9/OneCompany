@@ -3,7 +3,7 @@
    ────────────────────────────────────────────────── */
 
 export const CSF_HERO = {
-  heroVideoUrl: '/videos/shop/csf/csf-hero.mp4',
+  heroVideoUrl: '', // Removed unfitting video
   heroImageFallback: '/images/shop/csf/hero-fallback.jpg',
   subtitle:
     'High-performance aluminum radiators, intercoolers, and oil coolers engineered for maximum heat dissipation.',
@@ -110,7 +110,7 @@ export const CSF_PRODUCT_LINES: CSFProductLine[] = [
 ];
 
 export const CSF_HERITAGE = {
-  videoUrl: '/videos/shop/csf/csf-hero.mp4',
+  videoUrl: '', // Removed unfitting video
   fallbackImage: '/images/shop/csf/factory-fallback.jpg',
   title: 'Engineering Since 1974',
   titleUk: 'Інженерія з 1974 року',

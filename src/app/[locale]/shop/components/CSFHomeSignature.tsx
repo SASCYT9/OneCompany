@@ -1,17 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { SupportedLocale } from '@/lib/seo';
 import {
   CSF_HERO,
-  CSF_STATS,
   CSF_MATERIALS,
   CSF_PRODUCT_LINES,
   CSF_HERITAGE,
 } from '../data/csfHomeData';
-import AkrapovicVideoBackground from './AkrapovicVideoBackground';
 
 type Props = { locale: SupportedLocale };
 
@@ -19,9 +17,30 @@ function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
 
+/* ── Stats ── */
+const CSF_STATS = [
+  { val: '1974', en: 'Founded', ua: 'Засновано' },
+  { val: '+15%', en: 'B-Tube Efficiency', ua: 'Ефективність B-Tube' },
+  { val: '−40%', en: 'Weight vs OEM', ua: 'Вага vs OEM' },
+  { val: '200+', en: 'Vehicle Apps', ua: 'Моделей авто' },
+];
+
+/* ── Material specs ── */
+const ALUMINUM_SPECS = [
+  { val: '6061-T6', en: 'Alloy Grade', ua: 'Марка сплаву' },
+  { val: '−40%', en: 'Weight vs OEM', ua: 'Вага vs OEM' },
+  { val: 'TIG', en: 'Weld Process', ua: 'Тип зварки' },
+  { val: '100%', en: 'Aluminum Core', ua: 'Алюмінієва серцевина' },
+];
+const BTUBE_SPECS = [
+  { val: '+15%', en: 'Surface Area', ua: 'Площа теплообміну' },
+  { val: 'B-Shape', en: 'Cross Section', ua: 'Поперечний переріз' },
+  { val: 'Patent', en: 'CSF Exclusive', ua: 'Тільки CSF' },
+  { val: '−20%', en: 'Weight Saving', ua: 'Зниження ваги' },
+];
+
 export default function CSFHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
-  const [isMuted, setIsMuted] = useState(true);
 
   /* ── Scroll reveal observer ── */
   useEffect(() => {
@@ -80,18 +99,6 @@ export default function CSFHomeSignature({ locale }: Props) {
     return () => io.disconnect();
   }, []);
 
-  /* ── Sound toggle for hero video ── */
-  const toggleMute = useCallback(() => {
-    setIsMuted((prev) => {
-      const next = !prev;
-      const video = document.querySelector('#csf-hero-section video') as HTMLVideoElement | null;
-      if (video) {
-        video.muted = next;
-      }
-      return next;
-    });
-  }, []);
-
   return (
     <div className="csf-home" id="CSFHome">
       {/* ── Back to Stores ── */}
@@ -101,15 +108,22 @@ export default function CSFHomeSignature({ locale }: Props) {
         </Link>
       </div>
 
-      {/* 1. HERO SECTION */}
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 1 — CINEMATIC HERO (full viewport, center-aligned)
+      ════════════════════════════════════════════════════════════════ */}
       <section className="csf-hero" id="csf-hero-section">
-        <AkrapovicVideoBackground
-          videoSrc={CSF_HERO.heroVideoUrl}
-          fallbackImage={CSF_HERO.heroImageFallback}
-          overlayStyle="heritage" /* reusing dark overlay */
-          withAudio
-          isMuted={isMuted}
-        />
+        <div className="csf-hero__bg">
+          <Image
+            src={CSF_HERO.heroImageFallback}
+            alt="CSF High Performance Cooling"
+            fill
+            priority
+            sizes="100vw"
+            quality={90}
+            style={{ objectFit: 'cover' }}
+          />
+        </div>
+        <div className="csf-hero__overlay" />
 
         <div className="csf-hero__content" data-csf-reveal>
           <p className="csf-hero__overtitle">
@@ -117,129 +131,132 @@ export default function CSFHomeSignature({ locale }: Props) {
           </p>
 
           <h1 className="csf-hero__title">
-            <em>{L(isUa, 'The Science', 'Наука')}</em><br />
-            {L(isUa, 'of Cool', 'Охолодження')}
+            {L(isUa, 'The Science of', 'Наука')}<br />
+            <em>{L(isUa, 'Cool', 'Охолодження')}</em>
           </h1>
 
           <p className="csf-hero__subtitle">
             {L(isUa, CSF_HERO.subtitle, CSF_HERO.subtitleUk)}
           </p>
+
+          <Link href={`/${locale}/shop/csf/collections`} className="csf-btn" style={{ marginTop: '2.5rem' }}>
+            {L(isUa, 'Explore Catalog', 'Перейти в каталог')}
+            <svg viewBox="0 0 24 24">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </Link>
         </div>
 
-        <button
-          className="csf-hero__sound-toggle"
-          onClick={toggleMute}
-          aria-label={isMuted ? 'Unmute video' : 'Mute video'}
-        >
-          {isMuted ? (
-            <>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                <line x1="23" y1="9" x2="17" y2="15" />
-                <line x1="17" y1="9" x2="23" y2="15" />
-              </svg>
-              {L(isUa, 'Turn on sound', 'Увімкнути звук')}
-            </>
-          ) : (
-            <>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-              </svg>
-              {L(isUa, 'Sound on', 'Звук увімкнено')}
-            </>
-          )}
-        </button>
-
+        {/* Stats bar */}
         <div className="csf-hero__stats" data-csf-reveal>
           {CSF_STATS.map((s, i) => (
             <div key={i} className="csf-hero__stat">
-              <span className="csf-hero__stat-num" data-csf-count={s.val}>0</span>
-              <span className="csf-hero__stat-label">{L(isUa, s.en, s.ua)}</span>
+              <span className="csf-hero__stat-num" data-csf-count={s.val}>
+                0
+              </span>
+              <span className="csf-hero__stat-label">
+                {L(isUa, s.en, s.ua)}
+              </span>
             </div>
           ))}
         </div>
 
+        {/* Scroll indicator */}
         <div className="csf-hero__scroll" aria-hidden>
           <div className="csf-hero__scroll-line" />
         </div>
       </section>
 
-      {/* 2. THERMAL WAVE DIVIDER */}
-      <div className="csf-wave" aria-hidden>
-        {Array.from({ length: 40 }).map((_, i) => {
-          const h = 8 + Math.sin(i * 0.4) * 20 + Math.random() * 10;
-          return (
-            <div
-              key={i}
-              className="csf-wave__bar"
-              style={{
-                '--h': `${h}px`,
-                animationDelay: `${i * 0.04}s`,
-              } as React.CSSProperties}
-            />
-          );
-        })}
-      </div>
-
-      {/* 3. MATERIALS SHOWCASE */}
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 2 — MATERIAL SHOWCASE (Aluminum & B-Tube)
+      ════════════════════════════════════════════════════════════════ */}
       <section className="csf-materials">
-        {/* Aerospace Aluminum */}
+        <div className="csf-materials__header">
+          <span className="csf-label">
+            {L(isUa, 'Materials & Technology', 'Матеріали та технології')}
+          </span>
+        </div>
+
+        {/* Aluminum */}
         <div className="csf-material" data-csf-reveal>
           <div className="csf-material__image">
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={CSF_MATERIALS.aluminum.image}
-              alt="Aerospace Aluminum"
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
+              alt="Aerospace aluminum closeup"
+              loading="lazy"
             />
           </div>
           <div className="csf-material__text">
-            <span className="csf-label">{L(isUa, 'Foundation', 'Основа')}</span>
+            <span className="csf-label">
+              {L(isUa, 'Material', 'Матеріал')}
+            </span>
             <h2 className="csf-material__title">
               {L(isUa, CSF_MATERIALS.aluminum.title, CSF_MATERIALS.aluminum.titleUk)}
             </h2>
-            <div className="csf-divider" />
+            <div className="csf-material__shimmer" />
             <p className="csf-material__desc">
               {L(isUa, CSF_MATERIALS.aluminum.description, CSF_MATERIALS.aluminum.descriptionUk)}
             </p>
+            <div className="csf-material__specs">
+              {ALUMINUM_SPECS.map((sp, i) => (
+                <div key={i} className="csf-material__spec">
+                  <span className="csf-material__spec-val">{sp.val}</span>
+                  <span className="csf-material__spec-label">
+                    {L(isUa, sp.en, sp.ua)}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* B-Tube Technology */}
+        {/* B-Tube */}
         <div className="csf-material csf-material--reverse" data-csf-reveal>
           <div className="csf-material__image">
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={CSF_MATERIALS.btube.image}
-              alt="B-Tube Technology"
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
+              alt="B-Tube technology closeup"
+              loading="lazy"
             />
           </div>
           <div className="csf-material__text">
-            <span className="csf-label">{L(isUa, 'Innovation', 'Інновація')}</span>
+            <span className="csf-label">
+              {L(isUa, 'Technology', 'Технологія')}
+            </span>
             <h2 className="csf-material__title">
               {L(isUa, CSF_MATERIALS.btube.title, CSF_MATERIALS.btube.titleUk)}
             </h2>
-            <div className="csf-divider" />
+            <div className="csf-material__shimmer" />
             <p className="csf-material__desc">
               {L(isUa, CSF_MATERIALS.btube.description, CSF_MATERIALS.btube.descriptionUk)}
             </p>
+            <div className="csf-material__specs">
+              {BTUBE_SPECS.map((sp, i) => (
+                <div key={i} className="csf-material__spec">
+                  <span className="csf-material__spec-val">{sp.val}</span>
+                  <span className="csf-material__spec-label">
+                    {L(isUa, sp.en, sp.ua)}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 4. PRODUCT LINES */}
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 3 — PRODUCT LINES (horizontal scroll cards)
+      ════════════════════════════════════════════════════════════════ */}
       <section className="csf-lines" data-csf-reveal>
         <div className="csf-lines__header">
           <span className="csf-label">
             {L(isUa, 'Product Lines', 'Лінійки продукції')}
           </span>
           <h2 className="csf-section-title">
-            {L(isUa, 'Engineered to Outperform', 'Створено перевершувати')}
+            {L(isUa, 'Engineered for Your Machine', 'Інженерія для вашого автомобіля')}
           </h2>
           <div className="csf-divider csf-divider--center" />
         </div>
@@ -251,12 +268,12 @@ export default function CSFHomeSignature({ locale }: Props) {
               href={`/${locale}${line.link}`}
               className="csf-line-card"
             >
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="csf-line-card__img"
                 src={line.image}
                 alt={L(isUa, line.name, line.nameUk)}
-                fill
-                sizes="400px"
-                className="csf-line-card__img"
+                loading="lazy"
               />
               <div className="csf-line-card__overlay" />
               <span className="csf-line-card__badge">
@@ -275,54 +292,28 @@ export default function CSFHomeSignature({ locale }: Props) {
         </div>
       </section>
 
-      {/* 5. TECH GRID (Replaces Audio grid) */}
-      <section className="csf-thermal" data-csf-reveal>
-        <div className="csf-thermal__header">
-          <span className="csf-label">
-            {L(isUa, 'Thermal Dynamics', 'Термодинаміка')}
-          </span>
-          <h2 className="csf-section-title">
-            {L(isUa, 'Proven by Data', 'Доведено даними')}
-          </h2>
-          <p className="csf-section-sub" style={{ margin: '1.5rem auto 0' }}>
-            {L(
-              isUa,
-              'Every CSF cooling system is validated through thousands of hours of track testing, wind tunnel analysis, and CAD/CAM fluid dynamics simulations.',
-              'Кожна система охолодження CSF проходить перевірку через тисячі годин трекових тестів, випробувань в аеродинамічній трубі та симуляцій гідродинаміки CAD/CAM.'
-            )}
-          </p>
-          <div className="csf-divider csf-divider--center" />
-        </div>
-      </section>
-
-      {/* 6. THERMAL WAVE DIVIDER 2 */}
-      <div className="csf-wave" aria-hidden>
-        {Array.from({ length: 40 }).map((_, i) => {
-          const h = 6 + Math.cos(i * 0.5) * 15 + Math.random() * 8;
-          return (
-            <div
-              key={i}
-              className="csf-wave__bar"
-              style={{
-                '--h': `${h}px`,
-                animationDelay: `${i * 0.05}s`,
-              } as React.CSSProperties}
-            />
-          );
-        })}
-      </div>
-
-      {/* 7. HERITAGE */}
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 4 — HERITAGE (image background + storytelling)
+      ════════════════════════════════════════════════════════════════ */}
       <section className="csf-heritage" data-csf-reveal>
-        <AkrapovicVideoBackground
-          videoSrc={CSF_HERITAGE.videoUrl}
-          fallbackImage={CSF_HERITAGE.fallbackImage}
-          overlayStyle="heritage"
-        />
+        <div className="csf-hero__bg" style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+          <Image
+            src={CSF_HERITAGE.fallbackImage}
+            alt="CSF Heritage"
+            fill
+            sizes="100vw"
+            quality={85}
+            style={{ objectFit: 'cover', filter: 'brightness(0.35) grayscale(0.3)' }}
+          />
+        </div>
+        <div className="csf-hero__overlay" style={{
+          background: 'linear-gradient(to top, var(--csf-bg) 5%, transparent 50%, var(--csf-bg) 95%)',
+          zIndex: 2,
+        }} />
 
         <div className="csf-heritage__content">
           <span className="csf-label">
-            {L(isUa, 'Heritage', 'Спадщина')}
+            {L(isUa, 'Heritage', 'Історія')}
           </span>
           <h2 className="csf-heritage__title">
             {L(isUa, CSF_HERITAGE.title, CSF_HERITAGE.titleUk)}
@@ -334,14 +325,16 @@ export default function CSFHomeSignature({ locale }: Props) {
         </div>
       </section>
 
-      {/* 8. BOTTOM CTA */}
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 5 — BOTTOM CTA
+      ════════════════════════════════════════════════════════════════ */}
       <div className="csf-bottom-cta" data-csf-reveal>
         <span className="csf-label">
-          {L(isUa, 'Keep it cool', 'Зберігай холодний розум')}
+          {L(isUa, 'Ready to upgrade?', 'Готові до апгрейду?')}
         </span>
         <br />
         <Link href={`/${locale}/shop/csf/collections`} className="csf-btn">
-          {L(isUa, 'Explore Solutions', 'Оглянути рішення')}
+          {L(isUa, 'Explore Catalog', 'Переглянути каталог')}
           <svg viewBox="0 0 24 24">
             <line x1="5" y1="12" x2="19" y2="12" />
             <polyline points="12 5 19 12 12 19" />
