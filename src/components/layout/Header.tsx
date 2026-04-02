@@ -44,6 +44,7 @@ export function Header() {
     if (brand.toLowerCase() === 'akrapovic') return 'Akrapovič';
     if (brand.toLowerCase() === 'csf') return 'CSF Racing';
     if (brand.toLowerCase() === 'ohlins') return 'Öhlins';
+    if (brand.toLowerCase() === 'girodisc') return 'GiroDisc';
     return brand.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
 

@@ -1,0 +1,80 @@
+/* ═══════════════════════════════════════════
+   GiroDisc Store Theme (Iron Grey & Racing Red)
+   ═══════════════════════════════════════════ */
+
+.girodisc-shop {
+  background: #09090b;
+  color: #f4f4f5;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+.girodisc-heading {
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Gradients & Colors */
+.girodisc-gradient-text {
+  background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.girodisc-text-red {
+  color: #ef4444;
+}
+.girodisc-bg-red {
+  background: #ef4444;
+}
+
+/* Animations */
+@keyframes girodisc-fade-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+[data-girodisc-reveal] {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-girodisc-reveal].girodisc-vis {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Buttons */
+.girodisc-btn {
+  background: #ef4444;
+  color: white;
+  padding: 1rem 2.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  transition: all 0.3s ease;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.girodisc-btn:hover {
+  background: #dc2626;
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+}
+
+/* Cards */
+.girodisc-card {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #18181b;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+.girodisc-card:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 20px 40px rgba(239, 68, 68, 0.1);
+}
+
+/* Hero Background Gradient */
+.girodisc-hero-gradient {
+  background: radial-gradient(circle at center, rgba(9, 9, 11, 0.4) 0%, rgba(9, 9, 11, 0.95) 100%);
+}

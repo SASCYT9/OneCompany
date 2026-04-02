@@ -25,6 +25,8 @@ export const localizedStaticSlugs = [
   "/shop/csf/collections",
   "/shop/ohlins",
   "/shop/ohlins/collections",
+  "/shop/girodisc",
+  "/shop/girodisc/collections",
   "/auto",
   "/moto",
   "/brands",

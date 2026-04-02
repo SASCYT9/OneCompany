@@ -18,6 +18,8 @@ const staticPageConfig: Record<string, { priority: number; changeFrequency: Meta
   "/shop/csf/collections": { priority: 0.8, changeFrequency: "weekly" },
   "/shop/ohlins": { priority: 0.82, changeFrequency: "weekly" },
   "/shop/ohlins/collections": { priority: 0.8, changeFrequency: "weekly" },
+  "/shop/girodisc": { priority: 0.82, changeFrequency: "weekly" },
+  "/shop/girodisc/collections": { priority: 0.8, changeFrequency: "weekly" },
   "/auto": { priority: 0.9, changeFrequency: "daily" },
   "/moto": { priority: 0.9, changeFrequency: "daily" },
   "/brands": { priority: 0.8, changeFrequency: "weekly" },

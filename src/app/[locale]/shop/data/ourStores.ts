@@ -98,6 +98,15 @@ export const OUR_STORES: OurStore[] = [
     imageUrl: "/images/shop/ohlins/hero-fallback.jpg",
   },
   {
+    id: "girodisc",
+    name: "GiroDisc",
+    nameUk: "GiroDisc",
+    description: "High-performance floating 2-piece brake rotors engineered for the track and street.",
+    descriptionUk: "Високопродуктивні плаваючі 2-складові гальмівні диски, розроблені для треку та вулиці.",
+    href: "/shop/girodisc",
+    imageUrl: "/images/shop/girodisc/girodisc-hero.jpg",
+  },
+  {
     id: "kw",
     name: "KW Suspension",
     nameUk: "KW Suspension",

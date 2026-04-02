@@ -26,6 +26,7 @@ const getCardSpan = (id: string) => {
       return 'md:col-span-2 md:row-span-1 min-h-[250px] md:min-h-[300px]'; // 2x1 Wide
     case 'csf':
     case 'ohlins':
+    case 'girodisc':
     case 'burger':
     case 'fi':
     case 'kw':
@@ -124,6 +125,7 @@ export default function OurStoresPortal({ locale, isB2bApproved }: OurStoresPort
               : store.id === "racechip" ? `/${locale}/shop/racechip`
               : store.id === "csf" ? `/${locale}/shop/csf`
               : store.id === "ohlins" ? `/${locale}/shop/ohlins`
+              : store.id === "girodisc" ? `/${locale}/shop/girodisc`
               : store.href || "#";
               
             const isExternal = store.external === true;
