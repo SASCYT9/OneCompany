@@ -45,6 +45,7 @@ export function Header() {
     if (brand.toLowerCase() === 'csf') return 'CSF Racing';
     if (brand.toLowerCase() === 'ohlins') return 'Öhlins';
     if (brand.toLowerCase() === 'girodisc') return 'GiroDisc';
+    if (brand.toLowerCase() === 'ipe') return 'iPE Exhaust';
     return brand.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
 

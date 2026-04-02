@@ -41,7 +41,7 @@ import type { ShopProduct } from '@/lib/shopCatalog';
 
 const prisma = new PrismaClient();
 
-type ProductPageMode = 'default' | 'urban' | 'do88' | 'brabus' | 'burger' | 'akrapovic' | 'racechip' | 'csf' | 'ohlins' | 'girodisc';
+type ProductPageMode = 'default' | 'urban' | 'do88' | 'brabus' | 'burger' | 'akrapovic' | 'racechip' | 'csf' | 'ohlins' | 'girodisc' | 'ipe';
 
 type Props = {
   locale: string;
@@ -77,6 +77,7 @@ export async function getShopProductPageMetadata({
   if (mode === 'urban') pageSlug = `shop/urban/products/${slug}`;
   if (mode === 'do88') pageSlug = `shop/do88/products/${slug}`;
   if (mode === 'burger') pageSlug = `shop/burger/products/${slug}`;
+  if (mode === 'ipe') pageSlug = `shop/ipe/products/${slug}`;
 
   if (!product) {
     return buildPageMetadata(resolvedLocale, pageSlug, {
@@ -209,6 +210,7 @@ export default async function ShopProductDetailPage({
   if (isUrbanMode) productPath = `/${resolvedLocale}/shop/urban/products/${product.slug}`;
   if (isDo88Mode) productPath = `/${resolvedLocale}/shop/do88/products/${product.slug}`;
   if (mode === 'burger') productPath = `/${resolvedLocale}/shop/burger/products/${product.slug}`;
+  if (mode === 'ipe') productPath = `/${resolvedLocale}/shop/ipe/products/${product.slug}`;
   
   const productUrl = `${baseUrl}${productPath}`;
   

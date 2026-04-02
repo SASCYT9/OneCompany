@@ -145,4 +145,15 @@ export const OUR_STORES: OurStore[] = [
     // Карбоновий впуск з каталогу — BMW G8X, виразний продукт
     imageUrl: "/images/shop/products/eventuri-carbon-intake-g8x.webp",
   },
+  {
+    id: "ipe",
+    name: "iPE Exhaust",
+    nameUk: "iPE Exhaust",
+    description:
+      "Innotech Performance Exhaust. Hand-crafted, F1-inspired valvetronic titanium systems.",
+    descriptionUk:
+      "Innotech Performance Exhaust. Вихлопні системи ручної роботи з титану з фірмовим F1-звучанням.",
+    href: "/shop/ipe",
+    imageUrl: "/images/shop/ipe/ipe-hero.png",
+  },
 ];

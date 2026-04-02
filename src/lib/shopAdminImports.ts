@@ -462,6 +462,45 @@ export async function runShopCsvImport(
     };
   });
 
+  // --- TURN14 FALLBACK LOGIC ---
+  const allSkus = productsToUpsert
+    .flatMap((p) => p.data.variants.map((v) => v.sku))
+    .filter(Boolean) as string[];
+
+  if (allSkus.length > 0) {
+    const t14Items = await prisma.turn14CatalogItem.findMany({
+      where: {
+        OR: [{ partNumber: { in: allSkus } }, { mfrPartNumber: { in: allSkus } }],
+      },
+      select: { partNumber: true, mfrPartNumber: true, weight: true },
+    });
+
+    const skuToWeight = new Map<string, number>();
+    for (const item of t14Items) {
+      if (item.weight !== null) {
+        // Turn14 weight is in lbs. Convert to kg.
+        const weightKg = item.weight * 0.453592;
+        skuToWeight.set(item.partNumber.toLowerCase(), weightKg);
+        if (item.mfrPartNumber) {
+          skuToWeight.set(item.mfrPartNumber.toLowerCase(), weightKg);
+        }
+      }
+    }
+
+    for (const p of productsToUpsert) {
+      for (const variant of p.data.variants) {
+        if (!variant.weight && variant.sku) {
+          const w = skuToWeight.get(variant.sku.toLowerCase());
+          if (w) {
+            variant.weight = parseFloat(w.toFixed(3));
+            variant.isDimensionsEstimated = true;
+          }
+        }
+      }
+    }
+  }
+  // -----------------------------
+
   const invalidRows = new Set(validationErrors.map((item) => item.rowNumber));
   const validProducts = productsToUpsert.filter((item) => !invalidRows.has(item.rowIndex)).length;
 

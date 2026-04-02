@@ -27,6 +27,7 @@ const getCardSpan = (id: string) => {
     case 'csf':
     case 'ohlins':
     case 'girodisc':
+    case 'ipe':
     case 'burger':
     case 'fi':
     case 'kw':
@@ -126,6 +127,7 @@ export default function OurStoresPortal({ locale, isB2bApproved }: OurStoresPort
               : store.id === "csf" ? `/${locale}/shop/csf`
               : store.id === "ohlins" ? `/${locale}/shop/ohlins`
               : store.id === "girodisc" ? `/${locale}/shop/girodisc`
+              : store.id === "ipe" ? `/${locale}/shop/ipe`
               : store.href || "#";
               
             const isExternal = store.external === true;

@@ -189,9 +189,11 @@ export type AdminShopProductVariantInput = {
   barcode?: string | null;
   image?: string | null;
   weightUnit?: string | null;
+  weight?: number | null;
   taxCode?: string | null;
   costPerItem?: number | null;
   isDefault?: boolean;
+  isDimensionsEstimated?: boolean;
 };
 
 export type AdminShopProductMetafieldInput = {
@@ -569,9 +571,11 @@ function nestedVariantCreate(variants: AdminShopProductVariantInput[]) {
     barcode: item.barcode ?? null,
     image: item.image ?? null,
     weightUnit: item.weightUnit ?? null,
+    weight: item.weight ?? null,
     taxCode: item.taxCode ?? null,
     costPerItem: item.costPerItem ?? null,
     isDefault: item.isDefault ?? index === 0,
+    isDimensionsEstimated: item.isDimensionsEstimated ?? false,
   }));
 }
 
