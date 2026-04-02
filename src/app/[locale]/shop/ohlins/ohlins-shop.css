@@ -1,88 +1,117 @@
 /* ═══════════════════════════════════════════════════════════
    ÖHLINS — Motorsport Monument (Pixel-Perfect V1)
+   Design System: design_system_ohlins.md
+   Font: Oswald (condensed) + Inter (body)
    ═══════════════════════════════════════════════════════════ */
 
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
+
 .ohlins-shop {
-  --ohlins-gold: #C8A84E;
-  --ohlins-gold-light: #e3c96e;
-  --ohlins-gold-dark: #a68a3a;
-  --ohlins-black: #0a0a0a;
-  --ohlins-card-bg: #151515;
-  --ohlins-card-border: rgba(255,255,255,0.06);
-  background-color: var(--ohlins-black);
-  color: white;
+  --gold: #C8A84E;
+  --gold-bright: #E8D48B;
+  --gold-dark: #8B7333;
+  --bg: #0D0D0D;
+  --card-bg: #1A1A1A;
+  --card-border: rgba(255,255,255,0.06);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255,255,255,0.5);
+  --text-muted: rgba(255,255,255,0.35);
+
+  background-color: var(--bg);
+  color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* ── Scroll Reveal ── */
-[data-ohlins-reveal] {
+/* ──────── Reveal Animation ──────── */
+[data-reveal] {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(32px);
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
 }
-[data-ohlins-reveal].ohlins-vis {
+[data-reveal].is-visible {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* ═══════════════════════════════════════
-   HERO — Layered text-behind-product
-   ═══════════════════════════════════════ */
-.ohlins-hero {
+/* ═══════════════════════════════════════════════════════════
+   HERO — Title behind product, gold dust cloud
+   ═══════════════════════════════════════════════════════════ */
+.oh-hero {
   position: relative;
-  min-height: 90vh;
+  min-height: 92vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 8rem 1.5rem 3rem;
+  padding: 7rem 1.5rem 2rem;
   overflow: hidden;
-  background: radial-gradient(ellipse 60% 50% at 50% 55%, rgba(200,168,78,0.06) 0%, transparent 70%);
 }
 
-/* Giant title BEHIND the product */
-.ohlins-hero__title {
-  font-size: clamp(3rem, 11vw, 10rem);
-  font-weight: 900;
+/* Subtle gold ambient glow */
+.oh-hero::before {
+  content: '';
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px;
+  height: 600px;
+  background: radial-gradient(
+    ellipse,
+    rgba(200,168,78,0.08) 0%,
+    rgba(200,168,78,0.02) 45%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* TITLE — sits BEHIND the product (z-index: 1) */
+.oh-hero__title {
+  font-family: 'Oswald', 'Bebas Neue', sans-serif;
+  font-size: clamp(3.5rem, 12vw, 11rem);
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: -0.04em;
-  line-height: 0.9;
+  letter-spacing: -0.03em;
+  line-height: 0.88;
   text-align: center;
-  color: white;
+  color: var(--text-primary);
   position: relative;
   z-index: 1;
-  text-shadow: 0 0 80px rgba(200,168,78,0.15);
+  text-shadow: 0 0 120px rgba(200,168,78,0.15);
 }
 
-/* Product image overlaps OVER the title */
-.ohlins-hero__product {
+/* PRODUCT IMAGE — sits ON TOP of the title (z-index: 3) */
+.oh-hero__product {
   position: relative;
-  z-index: 2;
-  width: 260px;
-  height: 320px;
-  margin-top: -4rem;
+  z-index: 3;
+  width: 240px;
+  height: 340px;
+  margin-top: -3.5rem;
+  filter: drop-shadow(0 30px 60px rgba(200,168,78,0.25));
 }
 @media (min-width: 640px) {
-  .ohlins-hero__product {
-    width: 320px;
-    height: 400px;
-    margin-top: -5rem;
+  .oh-hero__product {
+    width: 300px;
+    height: 420px;
+    margin-top: -4.5rem;
   }
 }
 @media (min-width: 1024px) {
-  .ohlins-hero__product {
-    width: 380px;
-    height: 480px;
-    margin-top: -7rem;
+  .oh-hero__product {
+    width: 360px;
+    height: 500px;
+    margin-top: -6rem;
   }
 }
 
-/* Gold dust cloud behind product */
-.ohlins-hero__dust {
+/* ──────── Gold Dust Cloud ──────── */
+.oh-dust-cloud {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   top: 35%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -90,323 +119,328 @@
   height: 500px;
   pointer-events: none;
 }
-
 @media (min-width: 1024px) {
-  .ohlins-hero__dust {
-    width: 900px;
-    height: 600px;
+  .oh-dust-cloud {
+    width: 950px;
+    height: 650px;
   }
 }
 
-.ohlins-hero__subtitle {
-  position: relative;
-  z-index: 3;
-  color: rgba(255,255,255,0.4);
-  font-size: 0.8rem;
-  font-weight: 300;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  margin-top: 1.5rem;
-  text-align: center;
-  max-width: 500px;
-}
-
-/* ── Gold Particles ── */
-@keyframes ohlins-dust-rise {
-  0%   { transform: translateY(20px) scale(0); opacity: 0; }
-  15%  { opacity: 1; }
-  80%  { opacity: 0.8; }
-  100% { transform: translateY(-100px) scale(0.3); opacity: 0; }
-}
-@keyframes ohlins-dust-drift {
-  0%, 100% { transform: translateX(0); }
-  50%      { transform: translateX(15px); }
-}
-
-.ohlins-dust-particle {
-  position: absolute;
-  border-radius: 50%;
-  background: var(--ohlins-gold);
-  opacity: 0;
-  animation: ohlins-dust-rise var(--dur, 3s) ease-out infinite;
-  filter: blur(0.5px);
-}
-
-/* Glow cloud overlay */
-.ohlins-dust-glow {
+/* The radial glow behind particles */
+.oh-dust-cloud__glow {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 80%;
-  height: 60%;
+  width: 70%;
+  height: 50%;
   background: radial-gradient(
     ellipse,
-    rgba(200, 168, 78, 0.12) 0%,
-    rgba(200, 168, 78, 0.04) 40%,
-    transparent 70%
+    rgba(200,168,78,0.14) 0%,
+    rgba(200,168,78,0.04) 50%,
+    transparent 75%
   );
-  pointer-events: none;
+  filter: blur(20px);
 }
 
-/* ═══════════════════════════════════════
-   STATS BAR
-   ═══════════════════════════════════════ */
-.ohlins-stats-bar {
+@keyframes dust-rise {
+  0%   { transform: translateY(10px) scale(0.3); opacity: 0; }
+  12%  { opacity: 1; }
+  75%  { opacity: 0.6; }
+  100% { transform: translateY(-90px) scale(0.15); opacity: 0; }
+}
+
+.oh-dust-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--gold-bright);
+  opacity: 0;
+  animation: dust-rise var(--d, 3.5s) ease-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+/* Subtitle under product */
+.oh-hero__subtitle {
+  position: relative;
+  z-index: 4;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 2rem;
+  text-align: center;
+  max-width: 480px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STATS BAR — 3 columns, gold top border, inline value+label
+   ═══════════════════════════════════════════════════════════ */
+.oh-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  max-width: 900px;
+  max-width: 950px;
   width: 100%;
   margin: 0 auto;
-  border-top: 2px solid var(--ohlins-gold);
+  border-top: 2px solid var(--gold);
 }
 
-.ohlins-stat-cell {
+.oh-stats__cell {
   text-align: center;
-  padding: 2rem 1rem;
+  padding: 2.25rem 1rem;
   position: relative;
 }
 
-.ohlins-stat-cell:not(:last-child)::after {
+.oh-stats__cell:not(:last-child)::after {
   content: '';
   position: absolute;
   right: 0;
-  top: 20%;
-  height: 60%;
+  top: 22%;
+  height: 56%;
   width: 1px;
   background: rgba(255,255,255,0.08);
 }
 
-.ohlins-stat-value {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: var(--ohlins-gold);
+.oh-stats__value {
+  font-family: 'Oswald', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--gold);
   letter-spacing: -0.02em;
-  display: inline;
 }
 
-.ohlins-stat-label {
-  font-size: 1rem;
+.oh-stats__label {
+  font-size: 0.95rem;
   font-weight: 300;
-  color: rgba(255,255,255,0.6);
-  margin-left: 0.35rem;
-  display: inline;
+  color: var(--text-secondary);
+  margin-left: 0.3rem;
 }
 
 @media (min-width: 768px) {
-  .ohlins-stat-value { font-size: 3.5rem; }
-  .ohlins-stat-label { font-size: 1.2rem; }
-  .ohlins-stat-cell  { padding: 2.5rem 1.5rem; }
+  .oh-stats__value { font-size: 3.25rem; }
+  .oh-stats__label { font-size: 1.15rem; }
+  .oh-stats__cell  { padding: 2.5rem 1.5rem; }
 }
 
-/* ═══════════════════════════════════════
-   PRODUCT CARDS — 2×2
-   ═══════════════════════════════════════ */
-.ohlins-grid {
+/* ═══════════════════════════════════════════════════════════
+   PRODUCT CARDS — 2×2, text left + image right
+   ═══════════════════════════════════════════════════════════ */
+.oh-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 1.25rem;
   max-width: 1100px;
   margin: 0 auto;
 }
 @media (min-width: 640px) {
-  .ohlins-grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+  .oh-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-.ohlins-product-card {
+.oh-card {
   display: flex;
   align-items: stretch;
-  background: var(--ohlins-card-bg);
-  border: 1px solid var(--ohlins-card-border);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   overflow: hidden;
-  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
   text-decoration: none;
-  color: white;
-  min-height: 220px;
-  position: relative;
+  color: var(--text-primary);
+  min-height: 210px;
 }
 
-.ohlins-product-card:hover {
-  border-color: rgba(200, 168, 78, 0.5);
+.oh-card:hover {
+  border-color: rgba(200,168,78,0.5);
   box-shadow:
-    0 0 0 1px rgba(200, 168, 78, 0.15),
-    0 20px 50px -15px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(200,168,78,0.1);
+    0 0 0 1px rgba(200,168,78,0.12),
+    0 24px 48px -12px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(200,168,78,0.08);
   transform: translateY(-3px);
 }
 
-/* Active/first card gold border accent */
-.ohlins-product-card--featured {
-  border-color: rgba(200, 168, 78, 0.35);
+/* First card — featured gold border */
+.oh-card--featured {
+  border-color: rgba(200,168,78,0.4);
 }
 
-.ohlins-product-card__text {
+.oh-card__text {
   flex: 1;
-  padding: 1.75rem;
+  padding: 1.75rem 1.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   min-width: 0;
   z-index: 1;
 }
+@media (min-width: 768px) {
+  .oh-card__text { padding: 2rem; }
+}
 
-.ohlins-product-card__title {
-  font-size: 1.2rem;
+.oh-card__title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+@media (min-width: 768px) {
+  .oh-card__title { font-size: 1.4rem; }
 }
 
-.ohlins-product-card__desc {
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.35);
+.oh-card__desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
   line-height: 1.55;
   margin-bottom: 1.25rem;
-  max-width: 200px;
+  max-width: 210px;
 }
 
-/* Shop now button — gold outline like mockup */
-.ohlins-shop-btn {
+/* Shop now button — gold outline */
+.oh-card__btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1.15rem;
-  border: 1px solid var(--ohlins-gold);
-  color: var(--ohlins-gold);
+  gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  border: 1px solid var(--gold);
+  color: var(--gold);
   font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.05em;
   border-radius: 4px;
-  transition: all 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease;
   width: fit-content;
   background: transparent;
 }
-
-.ohlins-product-card:hover .ohlins-shop-btn {
-  background: var(--ohlins-gold);
-  color: var(--ohlins-black);
+.oh-card:hover .oh-card__btn {
+  background: var(--gold);
+  color: var(--bg);
 }
 
-/* Image area — right side of card */
-.ohlins-product-card__image {
+/* Image side */
+.oh-card__img {
   position: relative;
-  width: 45%;
+  width: 48%;
   min-width: 140px;
   flex-shrink: 0;
+  overflow: hidden;
+}
+.oh-card__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.oh-card:hover .oh-card__img img {
+  transform: scale(1.06);
 }
 
-@media (min-width: 768px) {
-  .ohlins-product-card__title { font-size: 1.4rem; }
-  .ohlins-product-card__text  { padding: 2rem; }
-  .ohlins-product-card__image { width: 48%; }
-}
-
-/* ═══════════════════════════════════════
-   TECHNOLOGY
-   ═══════════════════════════════════════ */
-.ohlins-tech-row {
+/* ═══════════════════════════════════════════════════════════
+   TECHNOLOGY (zigzag rows)
+   ═══════════════════════════════════════════════════════════ */
+.oh-tech-row {
   display: flex;
   flex-direction: column;
   gap: 2rem;
   align-items: center;
 }
 @media (min-width: 1024px) {
-  .ohlins-tech-row { flex-direction: row; gap: 4rem; }
-  .ohlins-tech-row--reverse { flex-direction: row-reverse; }
+  .oh-tech-row { flex-direction: row; gap: 4rem; }
+  .oh-tech-row--rev { flex-direction: row-reverse; }
 }
 
-.ohlins-tech-img {
+.oh-tech-img {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--card-border);
 }
 @media (min-width: 1024px) {
-  .ohlins-tech-img { width: 55%; flex-shrink: 0; }
+  .oh-tech-img { width: 55%; flex-shrink: 0; }
 }
 
-.ohlins-gold-line {
+.oh-gold-line {
   width: 3rem;
   height: 2px;
-  background: linear-gradient(90deg, var(--ohlins-gold), transparent);
+  background: linear-gradient(90deg, var(--gold), transparent);
   margin-bottom: 1.25rem;
 }
 
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════
    CTA
-   ═══════════════════════════════════════ */
-.ohlins-cta {
+   ═══════════════════════════════════════════════════════════ */
+.oh-cta {
   position: relative;
   text-align: center;
   padding: 7rem 1.5rem;
   overflow: hidden;
 }
-.ohlins-cta::before {
+.oh-cta::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, var(--ohlins-black) 0%, transparent 30%, transparent 70%, var(--ohlins-black) 100%);
+  background: linear-gradient(180deg, var(--bg) 0%, transparent 30%, transparent 70%, var(--bg) 100%);
   z-index: 1;
 }
-.ohlins-cta-title {
+
+.oh-cta__title {
+  font-family: 'Oswald', sans-serif;
   font-size: clamp(2.5rem, 7vw, 5rem);
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: -0.03em;
   line-height: 1;
 }
 
-/* ── Button ── */
-.ohlins-btn {
+/* Button with fill animation */
+.oh-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
   background: transparent;
-  color: var(--ohlins-gold);
+  color: var(--gold);
   font-weight: 500;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  padding: 1rem 2.25rem;
-  border: 1px solid var(--ohlins-gold);
+  transition: color 0.35s ease;
+  padding: 0.9rem 2.2rem;
+  border: 1px solid var(--gold);
+  border-radius: 4px;
   position: relative;
   overflow: hidden;
   z-index: 1;
-  border-radius: 4px;
 }
-.ohlins-btn::before {
+.oh-btn::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--ohlins-gold);
+  background: var(--gold);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: -1;
 }
-.ohlins-btn:hover { color: var(--ohlins-black); }
-.ohlins-btn:hover::before { transform: scaleX(1); }
+.oh-btn:hover { color: var(--bg); }
+.oh-btn:hover::before { transform: scaleX(1); }
 
-/* ── Utilities ── */
-.ohlins-gradient-text {
-  background: linear-gradient(135deg, var(--ohlins-gold-light) 0%, var(--ohlins-gold-dark) 100%);
+/* ──────── Utilities ──────── */
+.oh-gradient-text {
+  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold-dark) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.ohlins-shimmer-line {
+.oh-shimmer {
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, var(--ohlins-gold) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
   background-size: 200% 100%;
-  animation: ohlins-shimmer 3s linear infinite;
+  animation: shimmer 3s linear infinite;
   opacity: 0.3;
 }
-@keyframes ohlins-shimmer {
+@keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
