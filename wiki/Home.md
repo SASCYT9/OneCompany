@@ -61,6 +61,13 @@ aliases: [Dashboard, Головна]
 - [[Site Pages]] — Про нас, контакти, доставка, блог
 - [[UI Components]] — Дизайн-система (Tailwind, Framer Motion)
 
+### 🖥️ Admin Panel (Адмінка)
+- [[Admin Panel]] — Огляд адмін-панелі (37 сторінок, ~780 KB коду)
+- [[Admin — Dashboard]] · [[Admin — Catalog]] · [[Admin — Orders]]
+- [[Admin — Logistics]] · [[Admin — Pricing]] · [[Admin — CSV Import]]
+- [[Admin — Turn14]] · [[Admin — CRM]] · [[Admin — Customers]]
+- [[Admin — Settings]] · [[Admin — Audit]]
+
 ### 🏗 Tech & Architecture
 - [[Architecture]] — System architecture, Database schema, Tech Stack
 - [[DevOps]] — Vercel Serverless, Supabase, Backups, Cron jobs
