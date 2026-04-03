@@ -154,6 +154,17 @@ export const OUR_STORES: OurStore[] = [
     descriptionUk:
       "Innotech Performance Exhaust. Вихлопні системи ручної роботи з титану з фірмовим F1-звучанням.",
     href: "/shop/ipe",
-    imageUrl: "/images/shop/ipe/ipe-hero.png",
+    imageUrl: "/images/shop/ipe/ipe-porsche-gt3.jpg",
+  },
+  {
+    id: "adro",
+    name: "ADRO",
+    nameUk: "ADRO",
+    description:
+      "Premium prepreg carbon fiber aerokits with F1-level CFD engineering. Not for everybody.",
+    descriptionUk:
+      "Преміальні аерокіти з препрег-карбону з CFD-інженерією рівня F1. Не для всіх.",
+    href: "/shop/adro",
+    imageUrl: "/images/shop/adro/adro-hero-m4.jpg",
   },
 ];

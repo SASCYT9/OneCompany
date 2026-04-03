@@ -4,13 +4,13 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
 import {
-  IPE_HERO,
-  IPE_STATS,
-  IPE_VALVETRONIC,
-  IPE_MATERIALS,
-  IPE_PRODUCT_LINES,
-  IPE_HERITAGE,
-} from '../data/ipeHomeData';
+  ADRO_HERO,
+  ADRO_STATS,
+  ADRO_TECHNOLOGY,
+  ADRO_MATERIALS,
+  ADRO_PRODUCT_LINES,
+  ADRO_HERITAGE,
+} from '../data/adroHomeData';
 
 type Props = { locale: SupportedLocale };
 
@@ -20,18 +20,18 @@ function L(isUa: boolean, en: string, ua: string) {
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-export default function IpeHomeSignature({ locale }: Props) {
+export default function AdroHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
 
   /* ── Scroll reveal observer ── */
   useEffect(() => {
-    const els = document.querySelectorAll('[data-ipe-reveal]');
+    const els = document.querySelectorAll('[data-adro-reveal]');
     if (!els.length) return;
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            e.target.classList.add('ipe-vis');
+            e.target.classList.add('adro-vis');
             io.unobserve(e.target);
           }
         });
@@ -44,17 +44,16 @@ export default function IpeHomeSignature({ locale }: Props) {
 
   /* ── Counter animation ── */
   useEffect(() => {
-    const counters = document.querySelectorAll('[data-ipe-count]');
+    const counters = document.querySelectorAll('[data-adro-count]');
     if (!counters.length) return;
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
           const el = entry.target as HTMLElement;
-          const target = el.dataset.ipeCount || '0';
+          const target = el.dataset.adroCount || '0';
           io.unobserve(el);
 
-          // Non-numeric targets (like "−45%" or "100%")
           if (!/^\d+$/.test(target.replace(/[^0-9]/g, ''))) {
             el.textContent = target;
             return;
@@ -82,10 +81,10 @@ export default function IpeHomeSignature({ locale }: Props) {
   }, []);
 
   return (
-    <div className="ipe-home" id="IpeHome">
+    <div className="adro-home" id="AdroHome">
       {/* ── Back to Stores ── */}
-      <div className="ipe-back">
-        <Link href={`/${locale}/shop`} className="ipe-back__link">
+      <div className="adro-back">
+        <Link href={`/${locale}/shop`} className="adro-back__link">
           ← {L(isUa, 'All our stores', 'Усі наші магазини')}
         </Link>
       </div>
@@ -93,44 +92,44 @@ export default function IpeHomeSignature({ locale }: Props) {
       {/* ════════════════════════════════════════════════════════════════
           SECTION 1 — CINEMATIC HERO
       ════════════════════════════════════════════════════════════════ */}
-      <section className="ipe-hero" id="ipe-hero-section">
-        <div className="ipe-hero__bg">
+      <section className="adro-hero" id="adro-hero-section">
+        <div className="adro-hero__bg">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={IPE_HERO.heroImage}
-            alt="iPE Exhaust"
+            src={ADRO_HERO.heroImage}
+            alt="ADRO Carbon Aerokit"
             loading="eager"
           />
         </div>
 
-        <div className="ipe-hero__content" data-ipe-reveal>
-          <p className="ipe-hero__overtitle">
-            One Company × iPE Exhaust
+        <div className="adro-hero__content" data-adro-reveal>
+          <p className="adro-hero__overtitle">
+            One Company × ADRO
           </p>
 
-          <h1 className="ipe-hero__title">
-            {L(isUa, 'Feel The', 'Відчуй')}<br />
-            <em>{L(isUa, 'Power', 'Потужність')}</em>
+          <h1 className="adro-hero__title">
+            {L(isUa, 'Carbon', 'Карбон')}<br />
+            <em>{L(isUa, 'Precision', 'Точність')}</em>
           </h1>
 
-          <p className="ipe-hero__subtitle">
-            {L(isUa, IPE_HERO.subtitle, IPE_HERO.subtitleUk)}
+          <p className="adro-hero__subtitle">
+            {L(isUa, ADRO_HERO.subtitle, ADRO_HERO.subtitleUk)}
           </p>
         </div>
 
         {/* Scroll indicator */}
-        <div className="ipe-hero__scroll" aria-hidden>
-          <div className="ipe-hero__scroll-line" />
+        <div className="adro-hero__scroll" aria-hidden>
+          <div className="adro-hero__scroll-line" />
         </div>
 
         {/* Stats bar */}
-        <div className="ipe-hero__stats" data-ipe-reveal>
-          {IPE_STATS.map((s, i) => (
-            <div key={i} className="ipe-hero__stat">
-              <span className="ipe-hero__stat-num" data-ipe-count={s.val}>
+        <div className="adro-hero__stats" data-adro-reveal>
+          {ADRO_STATS.map((s, i) => (
+            <div key={i} className="adro-hero__stat">
+              <span className="adro-hero__stat-num" data-adro-count={s.val}>
                 0
               </span>
-              <span className="ipe-hero__stat-label">
+              <span className="adro-hero__stat-label">
                 {L(isUa, s.en, s.ua)}
               </span>
             </div>
@@ -139,40 +138,40 @@ export default function IpeHomeSignature({ locale }: Props) {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 2 — VALVETRONIC TECHNOLOGY
+          SECTION 2 — CFD ENGINEERING
       ════════════════════════════════════════════════════════════════ */}
-      <section className="ipe-valve">
-        <div className="ipe-valve__header">
-          <span className="ipe-label">
-            {L(isUa, 'Signature Technology', 'Фірмова технологія')}
+      <section className="adro-tech">
+        <div className="adro-tech__header">
+          <span className="adro-label">
+            {L(isUa, 'Engineering', 'Інженерія')}
           </span>
         </div>
 
-        <div className="ipe-valve-card" data-ipe-reveal>
-          <div className="ipe-valve-card__image">
+        <div className="adro-tech-card" data-adro-reveal>
+          <div className="adro-tech-card__image">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={IPE_VALVETRONIC.image}
-              alt="Valvetronic Technology"
+              src={ADRO_TECHNOLOGY.image}
+              alt="CFD Engineering"
               loading="lazy"
             />
           </div>
-          <div className="ipe-valve-card__text">
-            <span className="ipe-label">
+          <div className="adro-tech-card__text">
+            <span className="adro-label">
               {L(isUa, 'Technology', 'Технологія')}
             </span>
-            <h2 className="ipe-valve-card__title">
-              {L(isUa, IPE_VALVETRONIC.title, IPE_VALVETRONIC.titleUk)}
+            <h2 className="adro-tech-card__title">
+              {L(isUa, ADRO_TECHNOLOGY.title, ADRO_TECHNOLOGY.titleUk)}
             </h2>
-            <div className="ipe-valve-card__shimmer" />
-            <p className="ipe-valve-card__desc">
-              {L(isUa, IPE_VALVETRONIC.description, IPE_VALVETRONIC.descriptionUk)}
+            <div className="adro-tech-card__shimmer" />
+            <p className="adro-tech-card__desc">
+              {L(isUa, ADRO_TECHNOLOGY.description, ADRO_TECHNOLOGY.descriptionUk)}
             </p>
-            <div className="ipe-valve-card__specs">
-              {IPE_VALVETRONIC.specs.map((spec, i) => (
-                <div key={i} className="ipe-valve-card__spec">
-                  <span className="ipe-valve-card__spec-val">{spec.val}</span>
-                  <span className="ipe-valve-card__spec-label">
+            <div className="adro-tech-card__specs">
+              {ADRO_TECHNOLOGY.specs.map((spec, i) => (
+                <div key={i} className="adro-tech-card__spec">
+                  <span className="adro-tech-card__spec-val">{spec.val}</span>
+                  <span className="adro-tech-card__spec-label">
                     {L(isUa, spec.label, spec.labelUk)}
                   </span>
                 </div>
@@ -183,34 +182,34 @@ export default function IpeHomeSignature({ locale }: Props) {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 3 — TITANIUM CRAFTSMANSHIP
+          SECTION 3 — PREPREG CARBON FIBER
       ════════════════════════════════════════════════════════════════ */}
-      <section className="ipe-valve">
-        <div className="ipe-valve-card ipe-valve-card--reverse" data-ipe-reveal>
-          <div className="ipe-valve-card__image">
+      <section className="adro-tech">
+        <div className="adro-tech-card adro-tech-card--reverse" data-adro-reveal>
+          <div className="adro-tech-card__image">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={IPE_MATERIALS.image}
-              alt="Titanium craftsmanship"
+              src={ADRO_MATERIALS.image}
+              alt="Prepreg Carbon Fiber"
               loading="lazy"
             />
           </div>
-          <div className="ipe-valve-card__text">
-            <span className="ipe-label">
+          <div className="adro-tech-card__text">
+            <span className="adro-label">
               {L(isUa, 'Material', 'Матеріал')}
             </span>
-            <h2 className="ipe-valve-card__title">
-              {L(isUa, IPE_MATERIALS.title, IPE_MATERIALS.titleUk)}
+            <h2 className="adro-tech-card__title">
+              {L(isUa, ADRO_MATERIALS.title, ADRO_MATERIALS.titleUk)}
             </h2>
-            <div className="ipe-valve-card__shimmer" />
-            <p className="ipe-valve-card__desc">
-              {L(isUa, IPE_MATERIALS.description, IPE_MATERIALS.descriptionUk)}
+            <div className="adro-tech-card__shimmer" />
+            <p className="adro-tech-card__desc">
+              {L(isUa, ADRO_MATERIALS.description, ADRO_MATERIALS.descriptionUk)}
             </p>
-            <div className="ipe-valve-card__specs">
-              {IPE_MATERIALS.specs.map((spec, i) => (
-                <div key={i} className="ipe-valve-card__spec">
-                  <span className="ipe-valve-card__spec-val">{spec.val}</span>
-                  <span className="ipe-valve-card__spec-label">
+            <div className="adro-tech-card__specs">
+              {ADRO_MATERIALS.specs.map((spec, i) => (
+                <div key={i} className="adro-tech-card__spec">
+                  <span className="adro-tech-card__spec-val">{spec.val}</span>
+                  <span className="adro-tech-card__spec-label">
                     {L(isUa, spec.label, spec.labelUk)}
                   </span>
                 </div>
@@ -223,40 +222,40 @@ export default function IpeHomeSignature({ locale }: Props) {
       {/* ════════════════════════════════════════════════════════════════
           SECTION 4 — PRODUCT LINES (horizontal scroll cards)
       ════════════════════════════════════════════════════════════════ */}
-      <section className="ipe-lines" data-ipe-reveal>
-        <div className="ipe-lines__header">
-          <span className="ipe-label">
-            {L(isUa, 'Shop by Make', 'Каталог за маркою')}
+      <section className="adro-lines" data-adro-reveal>
+        <div className="adro-lines__header">
+          <span className="adro-label">
+            {L(isUa, 'Shop by Vehicle', 'Каталог за автомобілем')}
           </span>
-          <h2 className="ipe-section-title">
-            {L(isUa, 'Engineered for Your Supercar', 'Створено для вашого суперкара')}
+          <h2 className="adro-section-title">
+            {L(isUa, 'Find Your Kit', 'Знайдіть свій кіт')}
           </h2>
-          <div className="ipe-divider ipe-divider--center" />
+          <div className="adro-divider adro-divider--center" />
         </div>
 
-        <div className="ipe-lines__track">
-          {IPE_PRODUCT_LINES.map((line) => (
+        <div className="adro-lines__track">
+          {ADRO_PRODUCT_LINES.map((line) => (
             <Link
               key={line.id}
               href={`/${locale}${line.link}`}
-              className="ipe-line-card"
+              className="adro-line-card"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                className="ipe-line-card__img"
+                className="adro-line-card__img"
                 src={line.image}
                 alt={L(isUa, line.name, line.nameUk)}
                 loading="lazy"
               />
-              <div className="ipe-line-card__overlay" />
-              <span className="ipe-line-card__badge">
+              <div className="adro-line-card__overlay" />
+              <span className="adro-line-card__badge">
                 {L(isUa, line.badge, line.badgeUk)}
               </span>
-              <div className="ipe-line-card__content">
-                <h3 className="ipe-line-card__name">
+              <div className="adro-line-card__content">
+                <h3 className="adro-line-card__name">
                   {L(isUa, line.name, line.nameUk)}
                 </h3>
-                <p className="ipe-line-card__desc">
+                <p className="adro-line-card__desc">
                   {L(isUa, line.description, line.descriptionUk)}
                 </p>
               </div>
@@ -266,15 +265,15 @@ export default function IpeHomeSignature({ locale }: Props) {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 5 — WAVE DIVIDER
+          SECTION 5 — CARBON WEAVE DIVIDER
       ════════════════════════════════════════════════════════════════ */}
-      <div className="ipe-wave" aria-hidden>
+      <div className="adro-weave" aria-hidden>
         {Array.from({ length: 40 }).map((_, i) => {
           const h = 6 + Math.cos(i * 0.4) * 14 + Math.random() * 10;
           return (
             <div
               key={i}
-              className="ipe-wave__bar"
+              className="adro-weave__bar"
               style={{
                 '--h': `${h}px`,
                 animationDelay: `${i * 0.06}s`,
@@ -285,28 +284,28 @@ export default function IpeHomeSignature({ locale }: Props) {
       </div>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 6 — HERITAGE (factory image + storytelling)
+          SECTION 6 — HERITAGE
       ════════════════════════════════════════════════════════════════ */}
-      <section className="ipe-heritage" data-ipe-reveal>
-        <div className="ipe-heritage__bg">
+      <section className="adro-heritage" data-adro-reveal>
+        <div className="adro-heritage__bg">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={IPE_HERITAGE.fallbackImage}
-            alt="iPE Factory"
+            src={ADRO_HERITAGE.fallbackImage}
+            alt="ADRO Heritage"
             loading="lazy"
           />
         </div>
 
-        <div className="ipe-heritage__content">
-          <span className="ipe-label">
+        <div className="adro-heritage__content">
+          <span className="adro-label">
             {L(isUa, 'Heritage', 'Спадщина')}
           </span>
-          <h2 className="ipe-heritage__title">
-            {L(isUa, IPE_HERITAGE.title, IPE_HERITAGE.titleUk)}
+          <h2 className="adro-heritage__title">
+            {L(isUa, ADRO_HERITAGE.title, ADRO_HERITAGE.titleUk)}
           </h2>
-          <div className="ipe-divider ipe-divider--center" />
-          <p className="ipe-heritage__desc">
-            {L(isUa, IPE_HERITAGE.description, IPE_HERITAGE.descriptionUk)}
+          <div className="adro-divider adro-divider--center" />
+          <p className="adro-heritage__desc">
+            {L(isUa, ADRO_HERITAGE.description, ADRO_HERITAGE.descriptionUk)}
           </p>
         </div>
       </section>
@@ -314,12 +313,12 @@ export default function IpeHomeSignature({ locale }: Props) {
       {/* ════════════════════════════════════════════════════════════════
           SECTION 7 — BOTTOM CTA
       ════════════════════════════════════════════════════════════════ */}
-      <div className="ipe-bottom-cta" data-ipe-reveal>
-        <span className="ipe-label">
-          {L(isUa, 'Ready to upgrade?', 'Готові до апгрейду?')}
+      <div className="adro-bottom-cta" data-adro-reveal>
+        <span className="adro-label">
+          {L(isUa, 'Ready to transform?', 'Готові до трансформації?')}
         </span>
         <br />
-        <Link href={`/${locale}/shop/ipe/collections`} className="ipe-btn">
+        <Link href={`/${locale}/shop/adro/collections`} className="adro-btn">
           {L(isUa, 'Explore Catalog', 'Переглянути каталог')}
           <svg viewBox="0 0 24 24">
             <line x1="5" y1="12" x2="19" y2="12" />
