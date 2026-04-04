@@ -91,20 +91,6 @@ export default function BrabusHomeSignature({ locale }: Props) {
             </div>
           </div>
 
-          {/* Bottom stats bar */}
-          <div className="br-hero__stats" data-br-reveal>
-            {[
-              { val: '1977', label: L(isUa, 'Founded', 'Засновано') },
-              { val: '900+', label: L(isUa, 'Maximum HP', 'Макс. к.с.') },
-              { val: '1025', label: L(isUa, 'Components', 'Компонентів') },
-            ].map((s, i) => (
-              <div key={i} className="br-hero__stat">
-                <span className="br-hero__stat-num" data-br-count={s.val}>0</span>
-                <span className="br-hero__stat-label">{s.label}</span>
-              </div>
-            ))}
-          </div>
-
           {/* Scroll indicator */}
           <div className="br-hero__scroll" aria-hidden>
             <div className="br-hero__scroll-line" />
@@ -172,6 +158,132 @@ export default function BrabusHomeSignature({ locale }: Props) {
             {BRABUS_SHOWCASES.map((_, i) => (
               <span key={i} className="br-showcases__dot" data-br-dot />
             ))}
+          </div>
+        </section>
+
+        {/* ════════════════════════════════════════════════════════════════════
+            SECTION 3.5 — WIDESTAR VIDEO SHOWCASE
+            Three cinematic hero cards: G-Class, Porsche, Range Rover
+        ════════════════════════════════════════════════════════════════════ */}
+        <section className="br-widestar" data-br-reveal>
+          <div className="br-widestar__header">
+            <span className="br-label">
+              {L(isUa, 'Brabus Widestar', 'Brabus Widestar')}
+            </span>
+            <h2 className="br-section-title">
+              {L(isUa, 'The Vehicles We Build For', 'Автомобілі, для яких ми створюємо')}
+            </h2>
+            <div className="br-header-line" />
+            <p className="br-section-sub">
+              {L(isUa,
+                'Aerodynamic body kits, forged wheels, and performance upgrades — available for order with worldwide delivery.',
+                'Аеродинамічні обвіси, ковані диски та збільшення потужності — доступні для замовлення з доставкою по всьому світу.'
+              )}
+            </p>
+          </div>
+
+          <div className="br-widestar__grid">
+            {/* ── G-Class Widestar ── */}
+            <Link
+              href={locHref(locale, '/shop/brabus/collections/g-class')}
+              className="br-widestar__card"
+              data-br-reveal
+            >
+              <div className="br-widestar__card-media">
+                <Image
+                  src="/images/shop/brabus/hq/brabus-supercars-27.jpg"
+                  alt="Brabus Widestar G-Class"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="br-widestar__card-img"
+                  unoptimized
+                />
+              </div>
+              <div className="br-widestar__card-overlay" />
+              <div className="br-widestar__card-content">
+                <span className="br-widestar__card-badge">Widestar</span>
+                <h3 className="br-widestar__card-title">G-Class</h3>
+                <p className="br-widestar__card-sub">
+                  {L(isUa,
+                    'W465 · Up to 900 HP · Carbon Widestar body kit',
+                    'W465 · До 900 к.с. · Карбоновий обвіс Widestar'
+                  )}
+                </p>
+                <span className="br-widestar__card-cta">
+                  {L(isUa, 'Shop Components', 'Каталог деталей')}
+                  <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                </span>
+              </div>
+              <div className="br-widestar__card-accent" />
+            </Link>
+
+            {/* ── Porsche 911 ── */}
+            <Link
+              href={locHref(locale, '/shop/brabus/collections/porsche')}
+              className="br-widestar__card"
+              data-br-reveal
+            >
+              <div className="br-widestar__card-media">
+                <Image
+                  src="/images/shop/brabus/hq/brabus-supercars-84.jpg"
+                  alt="Brabus Rocket R Porsche 911"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="br-widestar__card-img"
+                  unoptimized
+                />
+              </div>
+              <div className="br-widestar__card-overlay" />
+              <div className="br-widestar__card-content">
+                <span className="br-widestar__card-badge">Rocket R</span>
+                <h3 className="br-widestar__card-title">Porsche 911</h3>
+                <p className="br-widestar__card-sub">
+                  {L(isUa,
+                    'Turbo S · 900 HP · Full carbon aero programme',
+                    'Turbo S · 900 к.с. · Повна карбонова аеро програма'
+                  )}
+                </p>
+                <span className="br-widestar__card-cta">
+                  {L(isUa, 'Shop Components', 'Каталог деталей')}
+                  <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                </span>
+              </div>
+              <div className="br-widestar__card-accent" />
+            </Link>
+
+            {/* ── Range Rover ── */}
+            <Link
+              href={locHref(locale, '/shop/brabus/collections/range-rover')}
+              className="br-widestar__card"
+              data-br-reveal
+            >
+              <div className="br-widestar__card-media">
+                <Image
+                  src="/images/shop/brabus/hq/brabus-supercars-148.jpg"
+                  alt="Brabus Range Rover 600"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="br-widestar__card-img"
+                  unoptimized
+                />
+              </div>
+              <div className="br-widestar__card-overlay" />
+              <div className="br-widestar__card-content">
+                <span className="br-widestar__card-badge">Signature</span>
+                <h3 className="br-widestar__card-title">Range Rover</h3>
+                <p className="br-widestar__card-sub">
+                  {L(isUa,
+                    '600 HP · Carbon body kit · Bespoke interior',
+                    '600 к.с. · Карбоновий обвіс · Ексклюзивний інтер\'єр'
+                  )}
+                </p>
+                <span className="br-widestar__card-cta">
+                  {L(isUa, 'Shop Components', 'Каталог деталей')}
+                  <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                </span>
+              </div>
+              <div className="br-widestar__card-accent" />
+            </Link>
           </div>
         </section>
 
@@ -468,31 +580,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
           display: flex; gap: 1rem; flex-wrap: wrap;
         }
 
-        /* Hero bottom stats */
-        .br-hero__stats {
-          position: absolute; bottom: 0; left: 0; right: 0;
-          z-index: 20;
-          display: flex; justify-content: center; gap: 0;
-          border-top: 1px solid var(--br-faint);
-          background: rgba(0,0,0,.6);
-          backdrop-filter: blur(12px);
-        }
-        .br-hero__stat {
-          flex: 1; max-width: 240px;
-          padding: 1.5rem 2rem; text-align: center;
-          border-right: 1px solid var(--br-faint);
-        }
-        .br-hero__stat:last-child { border-right: none; }
-        .br-hero__stat-num {
-          display: block; font-size: 1.4rem; font-weight: 200;
-          letter-spacing: .04em; color: var(--br-white);
-          font-variant-numeric: tabular-nums;
-        }
-        .br-hero__stat-label {
-          display: block; font-size: .6rem; font-weight: 500;
-          text-transform: uppercase; letter-spacing: .18em;
-          color: var(--br-muted); margin-top: .35rem;
-        }
+
 
         /* Scroll indicator */
         .br-hero__scroll {
@@ -627,6 +715,100 @@ export default function BrabusHomeSignature({ locale }: Props) {
         }
         .br-showcases__dot.active {
           background: var(--br-red); width: 20px; border-radius: 3px;
+        }
+
+        /* ═══════════════════ WIDESTAR SHOWCASE ═══════════════════ */
+        .br-widestar {
+          padding: 6rem clamp(2rem, 6vw, 8rem) 4rem;
+          background: transparent;
+        }
+        .br-widestar__header {
+          margin-bottom: 3.5rem;
+          display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+        .br-widestar__grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.2rem;
+        }
+        @media (max-width: 960px) {
+          .br-widestar__grid { grid-template-columns: 1fr; gap: 1rem; }
+        }
+        .br-widestar__card {
+          position: relative;
+          overflow: hidden;
+          aspect-ratio: 16 / 10;
+          border-radius: 12px;
+          text-decoration: none;
+          color: var(--br-white);
+          display: block;
+          cursor: pointer;
+        }
+        .br-widestar__card-media {
+          position: absolute; inset: 0;
+        }
+        .br-widestar__card-img {
+          object-fit: cover;
+          filter: brightness(0.45) saturate(0.85);
+          transition: transform .8s cubic-bezier(0.2, 0.8, 0.2, 1), filter .6s ease;
+        }
+        .br-widestar__card:hover .br-widestar__card-img {
+          transform: scale(1.08);
+          filter: brightness(0.55) saturate(1);
+        }
+        .br-widestar__card-overlay {
+          position: absolute; inset: 0; z-index: 2;
+          background: linear-gradient(
+            to top,
+            rgba(0,0,0,.85) 0%,
+            rgba(0,0,0,.3) 40%,
+            rgba(0,0,0,.1) 100%
+          );
+        }
+        .br-widestar__card-content {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          z-index: 3; padding: 2rem;
+        }
+        .br-widestar__card-badge {
+          display: inline-block;
+          font-size: .55rem; font-weight: 600; text-transform: uppercase;
+          letter-spacing: .2em;
+          border: 1px solid var(--br-red); color: var(--br-red);
+          padding: .2rem .55rem; margin-bottom: .6rem;
+        }
+        .br-widestar__card-title {
+          font-size: clamp(1.4rem, 2.5vw, 2rem);
+          font-weight: 200; text-transform: uppercase;
+          letter-spacing: .1em; line-height: 1.1;
+          margin: 0 0 .4rem;
+        }
+        .br-widestar__card-sub {
+          font-size: .72rem; font-weight: 300; color: rgba(255,255,255,.55);
+          line-height: 1.5; margin: 0 0 .8rem;
+        }
+        .br-widestar__card-cta {
+          display: inline-flex; align-items: center; gap: .4rem;
+          font-size: .6rem; font-weight: 500; text-transform: uppercase;
+          letter-spacing: .15em; color: var(--br-red);
+          opacity: 0; transform: translateX(-8px);
+          transition: opacity .4s ease, transform .4s ease;
+        }
+        .br-widestar__card:hover .br-widestar__card-cta {
+          opacity: 1; transform: translateX(0);
+        }
+        .br-widestar__card-cta svg {
+          width: 14px; height: 14px; fill: none;
+          stroke: var(--br-red); stroke-width: 2;
+        }
+        .br-widestar__card-accent {
+          position: absolute; top: 0; left: 0; right: 0;
+          height: 2px; z-index: 4;
+          background: linear-gradient(90deg, transparent, var(--br-red) 20%, var(--br-red) 80%, transparent);
+          transform: scaleX(0); transform-origin: left;
+          transition: transform .5s ease;
+        }
+        .br-widestar__card:hover .br-widestar__card-accent {
+          transform: scaleX(1);
         }
 
         /* ═══════════════════ FLEET GRID ═══════════════════ */
@@ -781,13 +963,6 @@ export default function BrabusHomeSignature({ locale }: Props) {
         /* ── Mobile Responsive ──────────────────────── */
         @media (max-width: 768px) {
           .br-hero__content { padding: 0 1.5rem; }
-          .br-hero__stats { flex-direction: column; }
-          .br-hero__stat {
-            border-right: none;
-            border-bottom: 1px solid var(--br-faint);
-            padding: 1rem;
-          }
-          .br-hero__stat:last-child { border-bottom: none; }
           .br-hero__scroll { display: none; }
           .br-showcases__header { padding: 0 1.5rem; }
           .br-showcases__track { padding: 0 1.5rem; }

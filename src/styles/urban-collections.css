@@ -105,10 +105,23 @@
   max-width: min(1500px, 94vw);
   margin: 0 auto clamp(20px, 3.5vw, 40px);
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
   gap: clamp(6px, 1vw, 12px);
   padding: 0 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.ucg__filters::-webkit-scrollbar { display: none; }
+
+@media (min-width: 800px) {
+  .ucg__filters {
+    justify-content: center;
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
 }
 
 .ucg__filter-btn {
@@ -124,6 +137,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .ucg__filter-btn:hover,
@@ -1319,6 +1333,7 @@
   text-transform: uppercase;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .urban-bp__card-divider {

@@ -17,7 +17,7 @@ export const DO88_COLLECTIONS_GRID_SETTINGS = {
   headingUk: 'Наші Категорії Охолодження',
   subheading: 'Premium Swedish cooling systems, intercoolers, and silicone hoses. Engineered for maximum performance.',
   subheadingUk: 'Преміальні шведські системи охолодження, інтеркулери та силіконові патрубки. Створено для максимальної продуктивності.',
-  heroImage: '/branding/do88/do88_car_hero_mclaren_1774441012700.png',
+  heroImage: '/branding/do88/do88_car_hero_porsche_front_1774441447168.png',
   showFilters: true,
 } as const;
 

@@ -137,7 +137,7 @@ export default function BrabusCollectionsGrid({ locale, cards: cardsProp }: Brab
             )}
             <div className="ucg__card-content">
               {card.brand && <p className="ucg__card-brand" style={{ color: 'var(--accent)' }}>{card.brand}</p>}
-              <h2 className="ucg__card-title">{card.title}</h2>
+              <h2 className="ucg__card-title">{(isUa && card.titleUk) ? card.titleUk : card.title}</h2>
               <div className="ucg__card-arrow">
                 {exploreLabel}
                 <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={1.6}>

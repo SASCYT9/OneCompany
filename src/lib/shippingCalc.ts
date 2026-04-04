@@ -85,6 +85,34 @@ export function volumetricWeightKg(
   return Math.round(((lengthCm * widthCm * heightCm) / divisor) * 1000) / 1000;
 }
 
+// ─── Brand logistics overrides ───────────────────────────────
+
+export interface BrandLogisticsOverride {
+  actualWeightKg: number;
+  lengthCm: number;
+  widthCm: number;
+  heightCm: number;
+}
+
+/** 
+ * Hardcoded dimensions for brands that ship in standard packaging,
+ * ignoring supplier API data which might be missing or incorrect.
+ */
+export const SHOP_BRAND_LOGISTICS: Record<string, BrandLogisticsOverride> = {
+  'Burger Motorsports': { // RaceChip boxes
+    actualWeightKg: 1.5,
+    lengthCm: 30,
+    widthCm: 20,
+    heightCm: 10,
+  },
+  'Burger Tuning': { 
+    actualWeightKg: 1.5,
+    lengthCm: 30,
+    widthCm: 20,
+    heightCm: 10,
+  },
+};
+
 // ─── Shipping cost calculation ───────────────────────────────
 
 export interface ShippingCalcInput {

@@ -52,36 +52,7 @@ export default function BrabusThemeScript() {
       window.addEventListener('scroll', onScroll, { passive: true });
     }
 
-    /* ── 3. Counter animation for stat numbers ──────────── */
-    const counterObs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (!e.isIntersecting) return;
-          const el = e.target as HTMLElement;
-          counterObs.unobserve(el);
-          const target = el.dataset.brCount || '';
-          // If non-numeric (like "1977"), just reveal
-          const num = parseFloat(target.replace(/[^0-9.]/g, ''));
-          if (isNaN(num)) {
-            el.textContent = target;
-            return;
-          }
-          const suffix = target.replace(/[0-9.]/g, '');
-          const duration = 1500;
-          const start = performance.now();
-          const step = (now: number) => {
-            const p = Math.min((now - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - p, 4); // ease-out-quart
-            const val = Math.round(num * eased);
-            el.textContent = val.toLocaleString() + suffix;
-            if (p < 1) requestAnimationFrame(step);
-          };
-          requestAnimationFrame(step);
-        });
-      },
-      { threshold: 0.5 }
-    );
-    document.querySelectorAll('[data-br-count]').forEach((el) => counterObs.observe(el));
+    /* ── 3. Counter animation — removed (stats bar deleted) ── */
 
     /* ── 4. Horizontal scroll progress for showcases ───── */
     const scroller = document.querySelector('[data-br-hscroll]') as HTMLElement | null;

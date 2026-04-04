@@ -1,72 +1,35 @@
 ---
-tags: [todo, status]
-aliases: [Задачі, Tasks]
+tags: [todo, status, kanban]
+aliases: [Задачі, Tasks, Kanban Board]
+kanban-plugin: basic
 ---
 
-# ✅ TODO — Задачі Без Зовнішніх Залежностей
+## 📋 To Do (Sprint 2)
 
-> [!tip] Ці задачі можна виконати прямо зараз, без чекання на команду чи партнерів.
+- [ ] 📄 **CSV Import Wizard (Phase E)** 🔴 Important<br>Повний wizard для імпорту товарів з CSV: Upload → Column mapping → Dry-run → Commit. ^e2a1b1
+- [ ] 💸 **WhitePay API інтеграція**<br>Потрібно спочатку отримати SDK. ^f3b2c2
+- [ ] 💳 **Hutko GPay/APay інтеграція**<br>Чекаємо API ключі. ^a4b5c6
 
----
+## ⏳ In Progress (В роботі)
 
-## 1. 📦 Burger — Фіксовані Розміри Коробки
+- [ ] 🛍️ **Storefront Checkout Flow (Phase C)** 🟡 Medium<br>Pixel-perfect UI для оформлення замовлення, інтеграція доставки. ^d4c3b2
+- [ ] 🛒 **Guest/Customer Cart Logic**<br>Злиття кошиків при логіні. ^g7h8i9
 
-| | |
-|---|---|
-| **Оцінка** | ~15 хвилин |
-| **Пріоритет** | 🟢 Easy win |
-| **Суть** | Всі RaceChip чіпи їдуть в однаковій коробці |
-| **Що зробити** | Захардкодити weight/dimensions для бренду Burger в `ShopBrandLogistics` |
-| **Файл** | `src/lib/shippingCalc.ts` або admin UI |
-| **Вплив** | Точний розрахунок доставки для всіх Burger товарів |
-| **Статус** | ⬜ Не розпочато |
+## ✅ Done (Перший Спринт)
 
-Пов'язано → [[Brands]], [[Logistics]]
+- [x] 📦 **Burger Motorsports Fixed Box Size** 🟢 Easy win<br>Реалізовано в `ShopBrandLogistics` для точного розрахунку. ^x1y2z3
+- [x] 🚚 **Turn14 Shipping Quote API** 🟡 Medium<br>Реалізовано `POST /v1/quote` в `turn14.ts`. ^c4b5a6
+- [x] 🎨 **Storefront Mockups & UI Architecture** 💎<br>Додані візуальні діаграми та екрани `Phase C`. ^u1v2w3
 
----
+***
 
-## 2. 🚚 Turn14 Shipping Quote API
+## 🛑 Blocked (Блокери)
 
-| | |
-|---|---|
-| **Оцінка** | 2-3 години |
-| **Пріоритет** | 🟡 Medium |
-| **Суть** | Endpoint `POST /v1/quote` дає реальну вартість доставки від Turn14 до складу |
-| **Що зробити** | Написати `fetchTurn14ShippingQuote()` в `src/lib/turn14.ts` |
-| **Залежність** | Адреса складу потрібна (✅ вже є в `ShopWarehouse`) |
-| **Вплив** | Реальна вартість inbound shipping замість фіксованих ставок |
-| **Статус** | ⬜ Не розпочато |
+- [ ] 📥 **Atomic CSV імпорт**<br>Чекаємо фінальний файл. ^j1k2l3
+- [ ] 🌬 **Eventuri імпорт прайсу**<br>Чекаємо файл від Вані. ^m4n5o6
 
-Пов'язано → [[Turn14]], [[Logistics]], [[Pricing]]
-
----
-
-## 3. 📄 CSV Import Wizard (Phase E)
-
-| | |
-|---|---|
-| **Оцінка** | ~1 день |
-| **Пріоритет** | 🔴 Important |
-| **Суть** | Повний wizard для імпорту товарів з CSV |
-| **Кроки** | Upload → Column mapping → Dry-run → Commit → Error report |
-| **Фічі** | Шаблони по постачальнику, on conflict: skip/update/create |
-| **Вплив** | Готовність для Atomic CSV, Eventuri та інших постачальників |
-| **Статус** | ⬜ Не розпочато |
-
-Детальніше → [[Phase E — CSV Import]]
-
----
-
-## Черга Після Поточних
-
-> Задачі які стануть доступні після завершення поточних або отримання відповідей:
-
-- [ ] WhitePay API інтеграція (коли отримаємо SDK)
-- [ ] Hutko GPay/APay (коли отримаємо API ключі)
-- [ ] Atomic CSV імпорт (коли отримаємо файл)
-- [ ] Eventuri імпорт (коли отримаємо прайс)
-- [ ] Turn14 auto-order (`POST /v1/order`) — Pro фаза
-
----
-
-← [[Home]]
+%% kanban:settings
+```
+{"kanban-plugin":"basic"}
+```
+%%

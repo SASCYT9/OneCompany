@@ -26,6 +26,8 @@ const COLLECTION_TAG_MAP: Record<string, { tags: string[]; matchAny?: boolean }>
   'v-class': { tags: ['V-Klasse'] },
   'gls-class': { tags: ['GLS-Klasse'] },
   'gle-class': { tags: ['GLE-Klasse'] },
+  'gle-gls': { tags: ['GLE-Klasse', 'GLS-Klasse'], matchAny: true },
+  'amg-gt': { tags: ['GT-Klasse'] },
   'glc-class': { tags: ['GLC-Klasse'] },
   'e-class': { tags: ['E-Klasse'] },
   'c-class': { tags: ['C-Klasse'] },

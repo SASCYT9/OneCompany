@@ -15,6 +15,14 @@ export type BrabusShowcase = {
   vimeoUrl: string;
 };
 
+/**
+ * Showcases — using REAL Brabus press photos from brabus.com.
+ * 
+ * Image mapping from _manifest.json:
+ * - Performance: BRABUS 900 6x6 Superblack Studio (70) — engine bay / powertrain
+ * - Interior: BRABUS GT and GTC Bentley (1) — luxury interior Bentley
+ * - Wheels/Widestar: BRABUS 900 ROCKET EDITION W465 On Location (7) — full exterior with wheels
+ */
 export const BRABUS_SHOWCASES: BrabusShowcase[] = [
   {
     num: '01',
@@ -28,8 +36,8 @@ export const BRABUS_SHOWCASES: BrabusShowcase[] = [
     shopLink: '/shop/brabus/products',
     avail: 'Available for order',
     availUk: 'Доступно для замовлення',
-    /** Carbon Engine Bay Masterpiece */
-    imageUrl: '/images/shop/brabus/hq/brabus_carbon_engine.png',
+    /** BRABUS 900 6x6 Superblack Studio — real press photo, dark studio */
+    imageUrl: '/images/shop/brabus/hq/brabus-supercars-90.jpg',
     imageAlt: 'Brabus Performance Engines',
     vimeoUrl: '',
   },
@@ -45,8 +53,8 @@ export const BRABUS_SHOWCASES: BrabusShowcase[] = [
     shopLink: '/shop/brabus/products',
     avail: 'Worldwide Shipping',
     availUk: 'Доставка по всьому світу',
-    /** Stealth Quilted Leather Interior */
-    imageUrl: '/images/shop/brabus/hq/brabus_stealth_interior.png',
+    /** Bentley GTC interior — real Brabus press photo, luxury interior */
+    imageUrl: '/images/shop/brabus/hq/brabus-supercars-48.jpg',
     imageAlt: 'Brabus Masterpiece Interior',
     vimeoUrl: '',
   },
@@ -54,17 +62,17 @@ export const BRABUS_SHOWCASES: BrabusShowcase[] = [
     num: '03',
     badge: 'Masterpiece',
     badgeUk: 'Masterpiece',
-    name: 'Wheels &\nWidetrack',
+    name: 'Wheels &\nWidestar',
     nameUk: 'Диски та\nОбвіс',
-    subtitle: 'The ultimate presence. Carbon-fibre Widetrack body styling perfectly matched with Monoblock forged wheels.',
-    subtitleUk: 'Абсолютна домінація. Карбоновий аеродинамічний обвіс Widetrack у поєднанні з ідеальними кованими дисками Monoblock.',
-    exploreLink: '/shop/brabus/products',
+    subtitle: 'The ultimate presence. Carbon-fibre Widestar body styling perfectly matched with Monoblock forged wheels.',
+    subtitleUk: 'Абсолютна домінація. Карбоновий аеродинамічний обвіс Widestar у поєднанні з ідеальними кованими дисками Monoblock.',
+    exploreLink: '/shop/brabus/collections/wheels',
     shopLink: '/shop/brabus/products',
     avail: 'Bespoke Commission',
     availUk: 'Індивідуальне замовлення',
-    /** Stealth Black Masterpiece Studio Render (Replaced scary red) */
-    imageUrl: '/images/shop/brabus/hq/brabus_stealth_masterpiece.png',
-    imageAlt: 'Brabus Monoblock Wheels & Widetrack',
+    /** G-Class Rocket Edition on-location — real press photo showing full Widestar + wheels */
+    imageUrl: '/images/shop/brabus/hq/brabus-supercars-28.jpg',
+    imageAlt: 'Brabus Monoblock Wheels & Widestar',
     vimeoUrl: '',
   }
 ];

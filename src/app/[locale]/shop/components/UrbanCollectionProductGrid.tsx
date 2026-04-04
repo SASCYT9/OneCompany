@@ -50,7 +50,7 @@ function computePricesFromUah(
     return {
       eur: baseEur,
       uah: Math.round(baseEur * eurToUah),
-      usd: Math.round(baseEur / usdRate),
+      usd: Math.round(baseEur * usdRate),
     };
   }
 

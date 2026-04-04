@@ -9,34 +9,41 @@ interface Do88VehicleFilterProps {
   locale: Locale;
   compact?: boolean;
   isSidebar?: boolean;
+  currentCategory?: string;
 }
 
 const CAR_DATA = {
   BMW: [
     'M2 (F87)', 'M2 (G87)', 
     'M3 / M4 (F80/F82)', 'M3 / M4 (G80/G82)', 
-    'M5 (F10)', 'M5 (F90)',
     '1 Series / 2 Series (F20/F22)',
     '3 Series / 4 Series (E90/E92)',
     '3 Series / 4 Series (F30/F32)', 
     'Supra / Z4 (B58)'
   ],
-  Audi: ['RS3 / TTRS (8V/8S)', 'RS6 / RS7 (C7)', 'RS6 / RS7 (C8)', 'S3 / Golf R (8V/Mk7)', 'A4 / S4 (B8/B9)', 'UrQuattro'],
+  Audi: ['RS3 / TTRS (8V/8S)', 'RS6 / RS7 (C7)', 'RS6 / RS7 (C8)', 'S3 / Golf R (8V/Mk7)', 'A4 / S4 (B8/B9)'],
   Porsche: ['911 (930)', '911 (964)', '911 (993)', '911 (996)', '911 (997)', '911 (991)', '911 (992)', 'Cayman / Boxster (987/981)'],
-  Volkswagen: ['Golf GTI (Mk5/Mk6)', 'Golf GTI / R (Mk7/Mk7.5)', 'Golf R (Mk8)', 'Polo GTI'],
+  Volkswagen: ['Golf GTI (Mk5/Mk6)', 'Golf GTI / R (Mk7/Mk7.5)', 'Golf R (Mk8)'],
   Volvo: ['240 / 740 / 940', '850', 'S60 / V60', 'V70 / XC70', 'XC60 / XC90'],
   Saab: ['900 Classic', '9-3 (OG/NG)', '9-5', '9000'],
   Toyota: ['GR Supra (A90)', 'GR Yaris'],
-  Ford: ['Focus RS', 'Focus ST', 'Fiesta ST'],
-  Opel: ['Astra', 'Corsa'],
-  Seat: ['Ibiza', 'Leon Cupra'],
-  CUPRA: ['Formentor', 'Leon'],
-  Mazda: ['MX-5'],
 } as const;
+
+export const DO88_CATEGORIES = [
+  { handle: 'all', title: 'All Parts', titleUa: 'Всі деталі' },
+  { handle: 'intercoolers', title: 'Intercoolers', titleUa: 'Інтеркулери' },
+  { handle: 'radiators', title: 'Radiators', titleUa: 'Радіатори' },
+  { handle: 'intake-systems', title: 'Intake Systems', titleUa: 'Системи впуску' },
+  { handle: 'performance-hoses', title: 'Performance Hoses', titleUa: 'Патрубки' },
+  { handle: 'oil-coolers', title: 'Oil Coolers', titleUa: 'Масляні радіатори' },
+  { handle: 'y-pipes-plenums', title: 'Y-Pipes & Plenums', titleUa: 'Y-Пайпи та Пленуми' },
+  { handle: 'carbon-fiber', title: 'Carbon Fiber', titleUa: 'Карбонові деталі' },
+  { handle: 'cooling-accessories', title: 'Fans & Accessories', titleUa: 'Вентилятори та аксесуари' },
+];
 
 type Make = keyof typeof CAR_DATA;
 
-export default function Do88VehicleFilter({ locale, compact = false, isSidebar = false }: Do88VehicleFilterProps) {
+export default function Do88VehicleFilter({ locale, compact = false, isSidebar = false, currentCategory = 'all' }: Do88VehicleFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -46,6 +53,7 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
 
   const [selectedMake, setSelectedMake] = useState<Make | ''>(initialBrand);
   const [selectedModel, setSelectedModel] = useState<string>(initialKeyword);
+  const [selectedCategory, setSelectedCategory] = useState<string>(currentCategory);
 
   const isUa = locale === 'ua';
 
@@ -55,27 +63,17 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
     setSelectedModel(searchParams?.get('keyword') || '');
   }, [searchParams]);
 
-  const pushLiveUpdate = (make: string, model: string) => {
+  const pushLiveUpdate = (make: string, model: string, cat: string) => {
     const params = new URLSearchParams(searchParams?.toString() || '');
-    if (make) {
-      params.set('brand', make);
-    } else {
-      params.delete('brand');
-    }
+    if (make) params.set('brand', make);
+    else params.delete('brand');
     
-    if (model) {
-      params.set('keyword', model);
-    } else {
-      params.delete('keyword');
-    }
-
-    // If we're on the home page or the general collections grid, transport user to the unified catalog
-    let targetPath = pathname;
-    if (pathname === `/${locale}/shop/do88` || pathname === `/${locale}/shop/do88/collections`) {
-      targetPath = `/${locale}/shop/do88/collections/all`;
-    }
+    if (model) params.set('keyword', model);
+    else params.delete('keyword');
 
     const q = params.toString();
+    const targetPath = `/${locale}/shop/do88/collections/${cat || 'all'}`;
+    
     router.push(`${targetPath}${q ? `?${q}` : ''}`);
   };
 
@@ -83,18 +81,23 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
     const make = e.target.value as Make;
     setSelectedMake(make);
     setSelectedModel(''); // Reset model when make changes
-    if (isSidebar) {
-      pushLiveUpdate(make, '');
+    if (isSidebar || compact) {
+      pushLiveUpdate(make, '', selectedCategory);
     }
   };
 
   const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const model = e.target.value;
     setSelectedModel(model);
-    // Auto-navigate when a model is selected, or if we are in sidebar and model was cleared
-    if (model || isSidebar) {
-      pushLiveUpdate(selectedMake, model);
+    if (model || isSidebar || compact) {
+      pushLiveUpdate(selectedMake, model, selectedCategory);
     }
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cat = e.target.value;
+    setSelectedCategory(cat);
+    pushLiveUpdate(selectedMake, selectedModel, cat);
   };
 
   const wrapperClass = isSidebar
@@ -179,6 +182,29 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
         </div>
+
+        {(isSidebar || compact) && (
+          <div className={`relative ${(!isSidebar && compact) ? 'md:flex-1 mt-3 md:mt-0' : ''}`}>
+            {(!compact || isSidebar) && (
+              <label className="block text-[9px] uppercase tracking-[0.2em] text-white/50 mb-2 ml-1">
+                {isUa ? 'Категорія' : 'Category'}
+              </label>
+            )}
+            <select 
+              value={selectedCategory} 
+              onChange={handleCategoryChange}
+              className={`w-full appearance-none rounded-xl px-4 py-3 text-white focus:outline-none transition shadow-inner text-sm tracking-wide ${isSidebar ? 'bg-black/40 border border-white/10 hover:border-white/20' : 'bg-white/5 border border-white/10 hover:border-white/20'}`}
+            >
+              <option value="all" className="text-black bg-white">{isUa ? 'Всі деталі' : 'All Parts'}</option>
+              {DO88_CATEGORIES.filter(c => c.handle !== 'all').map((cat) => (
+                <option key={cat.handle} value={cat.handle} className="text-black bg-white">{isUa ? cat.titleUa : cat.title}</option>
+              ))}
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

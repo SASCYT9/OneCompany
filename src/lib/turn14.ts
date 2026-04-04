@@ -169,5 +169,41 @@ export async function searchTurn14Items(keyword: string, page = 1, filters: { br
   return response.json();
 }
 
+/**
+ * Fetch a shipping quote from Turn14 for a set of items and destination.
+ * Endpoint: POST /v1/quote
+ */
+export async function fetchTurn14ShippingQuote(payload: {
+  location?: string;
+  items: Array<{ item_id: string; quantity: number }>;
+  destination?: {
+    name?: string;
+    address?: string;
+    address_2?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+    phone?: string;
+  };
+  attributes?: any;
+}): Promise<any> {
+  const token = await getTurn14AccessToken();
+  const response = await fetch(`${TURN14_API_BASE}/quote`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}` 
+    },
+    body: JSON.stringify(payload),
+    cache: 'no-store',
+  });
 
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Turn14 quote failed: ${response.status} ${text}`);
+  }
+
+  return response.json();
+}
 

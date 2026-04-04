@@ -2,6 +2,8 @@
  * Brabus Collection Page Configs
  * Each collection (G-Class, S-Class, Porsche, etc.) gets a cinematic hero
  * banner with unique HQ photo, description, and product count badge.
+ * 
+ * All images are REAL Brabus press photos from brabus.com.
  */
 
 export type BrabusCollectionPageConfig = {
@@ -52,11 +54,11 @@ export const BRABUS_COLLECTION_PAGES: Record<string, BrabusCollectionPageConfig>
     handle: 'porsche',
     title: 'Supercar Programme',
     titleUk: 'Програма Суперкарів',
-    subtitle: 'Porsche & Lamborghini by BRABUS',
-    subtitleUk: 'Porsche & Lamborghini від BRABUS',
+    subtitle: 'Porsche by BRABUS',
+    subtitleUk: 'Porsche від BRABUS',
     description: 'BRABUS performance engineering applied to the world\'s most iconic sports cars. Each upgrade is precision-engineered to extract maximum potential.',
     descriptionUk: 'Інженерія продуктивності BRABUS для найкультовіших спортивних автомобілів світу. Кожне оновлення розроблено для максимального потенціалу.',
-    heroImage: '/images/shop/brabus/hq/brabus-supercars-16.jpg',
+    heroImage: '/images/shop/brabus/hq/brabus-supercars-84.jpg',
     specs: [
       { val: '900', label: 'Max HP', labelUk: 'Макс. к.с.' },
       { val: '1000', label: 'Nm Torque', labelUk: 'Нм крутний' },
@@ -76,6 +78,66 @@ export const BRABUS_COLLECTION_PAGES: Record<string, BrabusCollectionPageConfig>
       { val: '820', label: 'Max HP', labelUk: 'Макс. к.с.' },
       { val: '1100', label: 'Nm Torque', labelUk: 'Нм крутний' },
       { val: '3.6', label: 'sec 0-100', labelUk: 'сек 0-100' },
+    ],
+  },
+  'lamborghini': {
+    handle: 'lamborghini',
+    title: 'Lamborghini Urus',
+    titleUk: 'Lamborghini Urus',
+    subtitle: 'BRABUS 900 Superblack',
+    subtitleUk: 'BRABUS 900 Superblack',
+    description: 'The definitive super-SUV elevated to its absolute limits. BRABUS engineering delivers 900 horsepower, bespoke carbon aerodynamics, and a presence that commands every road.',
+    descriptionUk: 'Неперевершений супер-SUV, доведений до абсолютних меж. Інженерія BRABUS забезпечує 900 к.с., карбоновий аеродинамічний пакет та домінуючу присутність.',
+    heroImage: '/images/shop/brabus/hq/brabus-supercars-16.jpg',
+    specs: [
+      { val: '900', label: 'Max HP', labelUk: 'Макс. к.с.' },
+      { val: '1050', label: 'Nm Torque', labelUk: 'Нм крутний' },
+      { val: '3.2', label: 'sec 0-100', labelUk: 'сек 0-100' },
+    ],
+  },
+  'range-rover': {
+    handle: 'range-rover',
+    title: 'Range Rover 600',
+    titleUk: 'Range Rover 600',
+    subtitle: 'Brabus Signature Tuning',
+    subtitleUk: 'Brabus Signature Тюнінг',
+    description: 'Refined power meets British elegance. The BRABUS Range Rover programme delivers substantial performance upgrades, bespoke interior craftsmanship, and distinctive aerodynamic styling.',
+    descriptionUk: 'Витончена потужність зустрічає британську елегантність. Програма BRABUS Range Rover забезпечує значне збільшення потужності, ексклюзивний інтер\'єр та виразний аеродинамічний стиль.',
+    heroImage: '/images/shop/brabus/hq/brabus-supercars-150.jpg',
+    specs: [
+      { val: '600', label: 'Max HP', labelUk: 'Макс. к.с.' },
+      { val: '820', label: 'Nm Torque', labelUk: 'Нм крутний' },
+      { val: '4.4', label: 'sec 0-100', labelUk: 'сек 0-100' },
+    ],
+  },
+  'gle-gls': {
+    handle: 'gle-gls',
+    title: 'GLE & GLS Programme',
+    titleUk: 'Програма GLE & GLS',
+    subtitle: 'Mercedes-Benz GLE / GLS by BRABUS',
+    subtitleUk: 'Mercedes-Benz GLE / GLS від BRABUS',
+    description: 'Premium SUV performance redefined. BRABUS GLE and GLS programmes deliver enhanced engine output, refined aerodynamics, and exclusive interior upgrades for the most demanding drivers.',
+    descriptionUk: 'Продуктивність преміальних SUV на новому рівні. Програми BRABUS GLE та GLS забезпечують збільшену потужність, удосконалену аеродинаміку та ексклюзивні оновлення інтер\'єру.',
+    heroImage: '/images/shop/brabus/hq/brabus-supercars-104.jpg',
+    specs: [
+      { val: '900', label: 'Max HP', labelUk: 'Макс. к.с.' },
+      { val: '1050', label: 'Nm Torque', labelUk: 'Нм крутний' },
+      { val: '3.8', label: 'sec 0-100', labelUk: 'сек 0-100' },
+    ],
+  },
+  'amg-gt': {
+    handle: 'amg-gt',
+    title: 'AMG GT Programme',
+    titleUk: 'Програма AMG GT',
+    subtitle: 'Mercedes-AMG GT by BRABUS',
+    subtitleUk: 'Mercedes-AMG GT від BRABUS',
+    description: 'Track-bred performance taken to the extreme. The BRABUS AMG GT programme delivers enhanced engine output, carbon aerodynamics, and competition-spec handling upgrades.',
+    descriptionUk: 'Гоночна продуктивність, доведена до екстрему. Програма BRABUS AMG GT забезпечує збільшену потужність двигуна, карбонову аеродинаміку та спортивне шасі.',
+    heroImage: '/images/shop/brabus/hq/brabus-supercars-80.jpg',
+    specs: [
+      { val: '900', label: 'Max HP', labelUk: 'Макс. к.с.' },
+      { val: '1050', label: 'Nm Torque', labelUk: 'Нм крутний' },
+      { val: '2.8', label: 'sec 0-100', labelUk: 'сек 0-100' },
     ],
   },
   'wheels': {

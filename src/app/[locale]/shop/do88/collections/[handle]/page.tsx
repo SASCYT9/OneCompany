@@ -146,7 +146,7 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
     },
   };
 
-  const fallbackBanner = "/branding/do88/do88_car_hero_mclaren_1774441012700.png";
+  const fallbackBanner = "/branding/do88/do88_car_hero_porsche_front_1774441447168.png";
   const bannerImage = card.externalImageUrl || fallbackBanner;
 
   return (
@@ -180,12 +180,12 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
           {/* Left Sidebar */}
           <aside className="w-full lg:w-[280px] shrink-0 flex flex-col gap-6">
-            <div className="sticky top-32 lg:top-40">
+            <div className="sticky top-20 lg:top-40 z-20">
               <Suspense fallback={<div className="h-32 bg-white/5 rounded-2xl animate-pulse" />}>
-                <Do88VehicleFilter locale={resolvedLocale} isSidebar={true} />
+                <Do88VehicleFilter locale={resolvedLocale} isSidebar={true} currentCategory={handle} />
               </Suspense>
               
-              <div className="mt-8">
+              <div className="mt-8 hidden lg:block">
                 <Suspense fallback={<div className="h-32 bg-white/5 rounded-xl animate-pulse" />}>
                   <Do88CategoryFilter locale={resolvedLocale} currentHandle={handle} variant="sidebar" />
                 </Suspense>

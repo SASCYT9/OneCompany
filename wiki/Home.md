@@ -10,10 +10,38 @@ aliases: [Dashboard, Головна]
 
 ---
 
-## 🗺 Mind Maps
+## 🗺 Mind Maps & Architecture
 
 - 📌 **[[Shop Mind Map]]** — E-commerce (Canvas)
 - 📌 **[[Marketing Mind Map]]** — Маркетинг (Canvas)
+
+> [!abstract] Архітектура Екосистеми OneCompany
+> ```mermaid
+> graph TD
+>     subgraph Storefront ["🛍️ B2B / B2C Клієнти"]
+>         C[Клієнт / Дилер] -->|Чекаут & Каталог| Next[Next.js 14 App Router]
+>     end
+> 
+>     subgraph CoreSystem ["⚙️ Core System"]
+>         Next -->|Prisma Client| Prisma[Prisma ORM]
+>         Prisma <--> DB[(PostgreSQL DB)]
+>         DB --> Supabase[Supabase Auth & Storage]
+>     end
+> 
+>     subgraph ExternalAPI ["🌍 External Integrations"]
+>         Next <--> Turn14[Turn14 API / Каталог]
+>         Next <--> Payment[Еквайринг]
+>     end
+> 
+>     subgraph AdminPanel ["🛡️ Admin Panel"]
+>         M[Адміністратор] -->|RBAC Доступ| AdminUI[CRM / Адмінка]
+>         AdminUI --> Prisma
+>     end
+>     
+>     style Next fill:#111,stroke:#444,stroke-width:2px,color:#fff
+>     style DB fill:#3182ce,stroke:#2b6cb0,color:#fff
+>     style AdminUI fill:#2b6cb0,stroke:#2c5282,color:#fff
+> ```
 
 ---
 
@@ -33,6 +61,7 @@ aliases: [Dashboard, Головна]
 ## 🧭 Навігація
 
 ### 🏪 E-Commerce (SHOP)
+- **[[✅ Розроблені Магазини (Storefronts)|🚀 Всі Готові Магазини (Візуал та Роути)]]**
 - [[Shop Overview]] — Архітектура магазину (фази A-F)
 - [[Phase A — Security]] · [[Phase B — Catalog]] · [[Phase C — Storefront]]
 - [[Phase D — Orders]] · [[Phase E — CSV Import]] · [[Phase F — SEO]]
@@ -61,7 +90,35 @@ aliases: [Dashboard, Головна]
 - [[Site Pages]] — Про нас, контакти, доставка, блог
 - [[UI Components]] — Дизайн-система (Tailwind, Framer Motion)
 
+### 🛒 Client Storefront (Візуал для Клієнтів)
+
+> [!example] Дизайн Магазину та Чекаут (Stealth Wealth)
+> ![[screenshots/storefront_hero.png]]
+> ![[screenshots/storefront_checkout.png]]
+
+> [!abstract] User Journey (Шлях клієнта)
+> ```mermaid
+> sequenceDiagram
+>     actor C as Клієнт
+>     participant S as Storefront
+>     participant B as База (Prisma)
+>     participant A as Admin
+>     
+>     C->>S: Переглядає Каталог
+>     S->>C: Показує Premium UI
+>     C->>S: Додає в Кошик
+>     S->>B: Зберігає Cart (Session/DB)
+>     C->>S: Checkout (Доставка + Оплата)
+>     S->>B: Створює PENDING_REVIEW Order
+>     B-->>A: Сповіщення Менеджеру
+> ```
+
 ### 🖥️ Admin Panel (Адмінка)
+
+> [!example] Візуал Адмінки
+> ![[screenshots/pres_03_crm.png]]
+> ![[screenshots/pres_04_catalog.png]]
+
 - [[Admin Panel]] — Огляд адмін-панелі (37 сторінок, ~780 KB коду)
 - [[Admin — Dashboard]] · [[Admin — Catalog]] · [[Admin — Orders]]
 - [[Admin — Logistics]] · [[Admin — Pricing]] · [[Admin — CSV Import]]

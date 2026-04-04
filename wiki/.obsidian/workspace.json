@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Phase F — SEO.md",
+                "file": "Marketing Strategy.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Phase F — SEO"
+              "title": "Marketing Strategy"
             }
           }
         ]
@@ -75,7 +75,7 @@
             }
           },
           {
-            "id": "a77b7055afd4f996",
+            "id": "7d25db0cc70ec64c",
             "type": "leaf",
             "state": {
               "type": "mk-path-view",
@@ -85,7 +85,7 @@
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
@@ -209,7 +209,6 @@
       "markdown-importer:Імпорт Markdown-файлів": false,
       "bases:Створити нову базу": false,
       "random-note:Відкрити випадкову нотатку": false,
-      "audio-recorder:Почати/зупинити запис": false,
       "zk-prefixer:Створити нову унікальну нотатку": false,
       "workspaces:Керування просторами": false,
       "publish:Публікація змін": false,
@@ -226,37 +225,44 @@
   },
   "active": "e7a7b303c61786dc",
   "lastOpenFiles": [
-    "Home.md",
-    "TikTok Strategy.md",
-    "Без назви 1.canvas",
-    "Phase D — Orders.md",
-    "Blockers.md",
+    "Instagram Strategy.md",
     "Shop Overview.md",
     "Shop Mind Map.md",
-    "Instagram Strategy.md",
+    "Shop Mind Map.canvas",
+    "Turn14.md",
+    "Urban Theme.md",
+    "YouTube Strategy.md",
+    "Urban Automotive.md",
+    "Без назви 1.canvas",
+    "Home.md",
     "UI Components.md",
+    "Brand Onboarding Playbook.md",
+    "Order Processing Playbook.md",
+    "Phase F — SEO.md",
+    "Blockers.md",
+    "Logistics.md",
+    "✅ Розроблені Магазини (Storefronts).md",
+    "screenshots/real_burger.png",
+    "screenshots/real_urban.png",
+    "screenshots/real_ohlins.png",
+    "screenshots/real_akrapovic.png",
+    "Phase D — Orders.md",
+    "screenshots/akrapovic_storefront.png",
+    "screenshots/ohlins_storefront.png",
+    "Phase C — Storefront.md",
+    "Phase A — Security.md",
+    "Templates/Brand Template.md",
+    "Templates",
+    "Task Master Dashboard.md",
+    "screenshots/storefront_profile.png",
+    "TikTok Strategy.md",
     "B2B Operations.md",
     "Analytics & Performance.md",
-    "Brand Onboarding Playbook.md",
     "Competitor Analysis.md",
     "DevOps.md",
-    "Order Processing Playbook.md",
-    "Architecture.md",
-    "Improvement Strategy.md",
     "Marketing Mind Map.canvas",
-    "Site Pages.md",
-    "Urban Theme.md",
-    "Team.md",
-    "Portal.md",
-    "Burger Motorsports.md",
-    "Urban Automotive.md",
-    "Content Calendar.md",
-    "Marketing Strategy.md",
-    "SEO Content Strategy.md",
     "Без назви.base",
     "Без назви.canvas",
-    "Turn14.md",
-    "Tags",
-    "Shop Mind Map.canvas"
+    "Tags"
   ]
 }

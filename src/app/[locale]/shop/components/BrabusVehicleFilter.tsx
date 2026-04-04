@@ -130,6 +130,7 @@ export default function BrabusVehicleFilter({
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
   const [showSearch, setShowSearch] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   // ─── Extract brands from actual data ───
   const availableBrands = useMemo(() => {
@@ -229,11 +230,39 @@ export default function BrabusVehicleFilter({
     <section id="catalog" className="bg-transparent text-white py-8 min-h-screen relative z-30">
       <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
         
+        {/* ─── Mobile Filter Toggle ─── */}
+        <div className="lg:hidden flex items-center gap-3 mb-4">
+          <button
+            onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+            className="flex items-center gap-2.5 px-5 py-3 bg-[#050505]/80 backdrop-blur-md border border-white/[0.08] rounded-xl text-white text-[10px] uppercase tracking-[0.18em] font-semibold hover:border-[#cc0000]/40 transition-colors shadow-xl"
+          >
+            <SlidersHorizontal size={13} />
+            {isUa ? "Фільтри" : "Filters"}
+            {activeBrand !== "all" && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[#cc0000] ml-1" />
+            )}
+          </button>
+          <p className="text-white/40 text-xs tracking-wide">
+            {filteredProducts.length} {isUa ? "з" : "of"} {totalCount}
+          </p>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
           
-          {/* ─── LEFT: STICKY SIDEBAR ─── */}
-          <aside className="w-full lg:w-[260px] xl:w-[280px] flex-shrink-0">
+          {/* ─── LEFT: SIDEBAR (collapsible on mobile) ─── */}
+          <aside className={`w-full lg:w-[260px] xl:w-[280px] flex-shrink-0 ${
+            mobileFilterOpen ? 'block' : 'hidden lg:block'
+          }`}>
             <div className="lg:sticky lg:top-[120px] pb-10 flex flex-col gap-8 bg-[#050505]/80 backdrop-blur-md border border-white/[0.04] p-6 rounded-2xl shadow-2xl">
+              
+              {/* Mobile close button */}
+              <button
+                onClick={() => setMobileFilterOpen(false)}
+                className="lg:hidden self-end p-1.5 text-white/40 hover:text-white transition-colors"
+                aria-label="Close filters"
+              >
+                <X size={16} />
+              </button>
               
               {/* Header */}
               <div>
@@ -338,6 +367,14 @@ export default function BrabusVehicleFilter({
 
             </div>
           </aside>
+
+          {/* Mobile overlay backdrop */}
+          {mobileFilterOpen && (
+            <div
+              className="lg:hidden fixed inset-0 bg-black/40 z-20"
+              onClick={() => setMobileFilterOpen(false)}
+            />
+          )}
 
           {/* ─── RIGHT: PRODUCT GRID ─── */}
           <main className="flex-1 min-w-0">
