@@ -35,7 +35,7 @@ export default async function AkrapovicCollectionsPage({ params }: Props) {
       style={{
         background: '#0d0d0b',
         color: '#fafaf9',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         fontFamily: "'Inter', system-ui, sans-serif",
       }}
     >

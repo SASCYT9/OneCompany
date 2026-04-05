@@ -1,16 +1,15 @@
-'use client';
-
-import { useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import type { SupportedLocale } from '@/lib/seo';
 import {
   OHLINS_HERO,
   OHLINS_STATS,
-  OHLINS_MATERIALS,
   OHLINS_PRODUCT_LINES,
   OHLINS_HERITAGE,
+  OHLINS_MATERIALS,
 } from '../data/ohlinsHomeData';
+
+import OhlinsCanvas from './canvas/OhlinsCanvas';
+import ScrollRevealClient from './ScrollRevealClient';
 
 type Props = { locale: SupportedLocale };
 
@@ -18,298 +17,130 @@ function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
 export default function OhlinsHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
 
-  /* ── Scroll reveal observer ── */
-  useEffect(() => {
-    const els = document.querySelectorAll('[data-oh-reveal]');
-    if (!els.length) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add('oh-vis');
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, []);
-
-  /* ── Counter animation ── */
-  useEffect(() => {
-    const counters = document.querySelectorAll('[data-oh-count]');
-    if (!counters.length) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const el = entry.target as HTMLElement;
-          const raw = el.dataset.ohCount || '0';
-          io.unobserve(el);
-
-          const numStr = raw.replace(/[^0-9]/g, '');
-          if (!numStr) {
-            el.textContent = raw;
-            return;
-          }
-          const target = parseInt(numStr, 10);
-          const prefix = raw.slice(0, raw.indexOf(numStr[0]));
-          const suffix = raw.slice(raw.lastIndexOf(numStr[numStr.length - 1]) + 1);
-          let cur = 0;
-          const step = Math.max(1, Math.floor(target / 60));
-          const timer = setInterval(() => {
-            cur = Math.min(cur + step, target);
-            el.textContent = prefix + cur + suffix;
-            if (cur >= target) clearInterval(timer);
-          }, 20);
-        });
-      },
-      { threshold: 0.5 }
-    );
-    counters.forEach((c) => io.observe(c));
-    return () => io.disconnect();
-  }, []);
-
   return (
-    <div className="ohlins-shop" id="OhlinsHome">
+    <div className="oh-home" id="OhlinsHome">
+      <ScrollRevealClient selector="[data-oh-reveal]" revealClass="oh-vis" />
+
+      {/* ── Gold Dust Canvas ── */}
+      <OhlinsCanvas />
+
       {/* ── Back to Stores ── */}
       <div className="oh-back">
         <Link href={`/${locale}/shop`} className="oh-back__link">
-          ← {L(isUa, 'All stores', 'Усі магазини')}
+          ← {L(isUa, 'All Stores', 'Усі магазини')}
         </Link>
       </div>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 1 — CINEMATIC HERO (full viewport)
+          SECTION 1 — PRECISION HERO
       ════════════════════════════════════════════════════════════════ */}
-      <section className="oh-hero">
-        <div className="oh-hero__bg">
-          <Image
-            src="/images/shop/ohlins/hero-bg.png"
-            alt="Motorsport racing"
-            fill
-            className="object-cover"
-            priority
-          />
+      <section className="oh-precision-hero">
+        <div className="oh-brand-badge" data-oh-reveal>
+          One Company × Öhlins
         </div>
 
-        <div className="oh-hero__content" data-oh-reveal>
-          <p className="oh-hero__overtitle">
-            One Company × Öhlins Racing
-          </p>
+        <h1 className="sr-only">
+          {L(isUa, 'Öhlins Racing | Premium Suspension Systems & Shock Absorbers', 'Öhlins Racing | Преміальні системи підвіски та амортизатори')}
+        </h1>
+        <p className="oh-hero-title" data-oh-reveal style={{ transitionDelay: '0.1s' }}>
+          {L(isUa, 'Feel The', 'Відчуй')}<br />
+          <em>{L(isUa, 'Road', 'Дорогу')}</em>
+        </p>
 
-          <h1 className="oh-hero__title">
-            {L(isUa, 'Feel The', 'Відчуй')}<br />
-            <em>{L(isUa, 'Road', 'Дорогу')}</em>
-          </h1>
+        <p className="oh-hero-subtitle" data-oh-reveal style={{ transitionDelay: '0.2s' }}>
+          {L(
+            isUa,
+            OHLINS_HERO.description,
+            'Передові підвіски Öhlins Racing для найвимогливіших водіїв. Чемпіонська технологія з 1976 року — від MotoGP до вашого авто.'
+          )}
+        </p>
 
-          <p className="oh-hero__subtitle">
-            {L(
-              isUa,
-              OHLINS_HERO.description,
-              'Передові підвіски Öhlins Racing для найвимогливіших водіїв. Чемпіонська технологія з 1976 року — від MotoGP до вашого авто.'
-            )}
-          </p>
-        </div>
-
-        {/* Stats bar */}
-        <div className="oh-hero__stats" data-oh-reveal>
+        <div className="oh-hero-stats" data-oh-reveal style={{ transitionDelay: '0.3s' }}>
           {OHLINS_STATS.map((s, i) => (
-            <div key={i} className="oh-hero__stat">
-              <span className="oh-hero__stat-num" data-oh-count={s.value}>
-                0
-              </span>
-              <span className="oh-hero__stat-label">
-                {L(isUa, s.label, s.label)}
-              </span>
+            <div key={i} className="oh-stat">
+              <span className="oh-stat-val">{s.value}</span>
+              <span className="oh-stat-label">{L(isUa, s.label, s.label)}</span>
             </div>
           ))}
         </div>
 
-        {/* Scroll indicator */}
-        <div className="oh-hero__scroll" aria-hidden>
-          <div className="oh-hero__scroll-line" />
-        </div>
+        <Link href={`/${locale}/shop/ohlins/collections`} className="oh-btn" data-oh-reveal style={{ transitionDelay: '0.4s' }}>
+          {L(isUa, 'Discover Engineering', 'Відкрити інженерію')}
+        </Link>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 2 — MATERIAL SHOWCASE (DFV + Gold Materials)
+          SECTION 2 — DFV DECODER (MATERIALS)
       ════════════════════════════════════════════════════════════════ */}
-      <section className="oh-materials">
-        {/* DFV Technology */}
-        <div className="oh-material" data-oh-reveal>
-          <div className="oh-material__image">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={OHLINS_MATERIALS[0].image}
-              alt="Dual Flow Valve technology"
-              loading="lazy"
-            />
-          </div>
-          <div className="oh-material__text">
-            <span className="oh-label">
-              {L(isUa, 'Technology', 'Технологія')}
-            </span>
-            <h2 className="oh-material__title">
-              {L(isUa, OHLINS_MATERIALS[0].name, 'Двопотоковий Клапан (DFV)')}
-            </h2>
-            <div className="oh-divider" />
-            <p className="oh-material__desc">
-              {L(
-                isUa,
-                OHLINS_MATERIALS[0].description,
-                'Наша запатентована технологія DFV забезпечує однакові характеристики при стисканні та відбої. Це дозволяє колесу швидко повертатися на дорожнє покриття після нерівності, забезпечуючи максимальне зчеплення без компромісу з комфортом.'
-              )}
-            </p>
-          </div>
-        </div>
-
-        {/* Gold Anodized Materials */}
-        <div className="oh-material oh-material--reverse" data-oh-reveal>
-          <div className="oh-material__image">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/shop/ohlins/gold-material.png"
-              alt="Gold anodized aluminum"
-              loading="lazy"
-            />
-          </div>
-          <div className="oh-material__text">
-            <span className="oh-label">
-              {L(isUa, 'Material', 'Матеріал')}
-            </span>
-            <h2 className="oh-material__title">
-              {L(isUa, OHLINS_MATERIALS[1].name, 'Авіаційний Алюміній')}
-            </h2>
-            <div className="oh-divider" />
-            <p className="oh-material__desc">
-              {L(
-                isUa,
-                OHLINS_MATERIALS[1].description,
-                'Виготовлено з авіаційного алюмінію та покрито нашим фірмовим золотим анодуванням. Це забезпечує максимальний тепловідвід, ідеальну корозійну стійкість та впізнавану візуальну ідентичність Öhlins.'
-              )}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 3 — PRODUCT LINES (horizontal scroll cards)
-      ════════════════════════════════════════════════════════════════ */}
-      <section className="oh-lines" data-oh-reveal>
-        <div className="oh-lines__header">
-          <span className="oh-label">
-            {L(isUa, 'Product Lines', 'Лінійки продукції')}
-          </span>
-          <h2 className="oh-section-title">
-            {L(isUa, 'Engineered for Performance', 'Створено для Перемог')}
-          </h2>
-          <div className="oh-divider oh-divider--center" />
-        </div>
-
-        <div className="oh-lines__track">
-          {OHLINS_PRODUCT_LINES.map((line) => (
-            <Link
-              key={line.id}
-              href={`/${locale}${line.link}`}
-              className="oh-line-card"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                className="oh-line-card__img"
-                src={line.image}
-                alt={line.name}
-                loading="lazy"
-              />
-              <div className="oh-line-card__overlay" />
-              <span className="oh-line-card__badge">
-                {L(isUa, 'Öhlins', 'Öhlins')}
-              </span>
-              <div className="oh-line-card__content">
-                <h3 className="oh-line-card__name">{line.name}</h3>
-                <p className="oh-line-card__desc">{line.description}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════════════
-          Gold wave divider
-      ════════════════════════════════════════════════════════════════ */}
-      <div className="oh-wave" aria-hidden>
-        {Array.from({ length: 40 }).map((_, i) => {
-          const h = 6 + Math.cos(i * 0.4) * 14 + Math.random() * 10;
+      <section className="oh-dfv-decoder">
+        {OHLINS_MATERIALS.map((mat, i) => {
+          const isEven = i % 2 === 0;
           return (
-            <div
-              key={i}
-              className="oh-wave__bar"
-              style={{
-                '--h': `${h}px`,
-                animationDelay: `${i * 0.06}s`,
-              } as React.CSSProperties}
-            />
+            <div key={i} className="oh-dfv-inner" style={{ marginBottom: i !== OHLINS_MATERIALS.length - 1 ? '6rem' : 0 }}>
+              {isEven ? (
+                <>
+                  <div className="oh-decoder-text" data-oh-reveal>
+                    <h2>{L(isUa, mat.name, mat.name)}</h2>
+                    <p>{L(isUa, mat.description, mat.description)}</p>
+                  </div>
+                  <div className="oh-decoder-visual" data-oh-reveal style={{ transitionDelay: '0.2s' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={mat.image} alt={mat.name} loading="lazy" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="oh-decoder-visual" data-oh-reveal style={{ transitionDelay: '0.2s' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={mat.image} alt={mat.name} loading="lazy" />
+                  </div>
+                  <div className="oh-decoder-text" data-oh-reveal>
+                    <h2>{L(isUa, mat.name, mat.name)}</h2>
+                    <p>{L(isUa, mat.description, mat.description)}</p>
+                  </div>
+                </>
+              )}
+            </div>
           );
         })}
-      </div>
+      </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 4 — HERITAGE CTA with background
+          SECTION 3 — APPLICATIONS GRID
       ════════════════════════════════════════════════════════════════ */}
-      <section className="oh-heritage" data-oh-reveal>
-        <div className="oh-heritage__bg">
-          <Image
-            src={OHLINS_HERITAGE.image}
-            alt="Öhlins Heritage"
-            fill
-            className="object-cover"
-          />
-        </div>
-
-        <div className="oh-heritage__content">
-          <span className="oh-label">
-            {L(isUa, 'Heritage', 'Спадщина')}
-          </span>
-          <h2 className="oh-heritage__title">
-            {L(isUa, 'Ride With', 'Їдь З')}{' '}
-            <span className="oh-gradient-text">
-              {L(isUa, 'Champions', 'Чемпіонами')}
-            </span>
-          </h2>
-          <div className="oh-divider oh-divider--center" />
-          <p className="oh-heritage__desc">
-            {L(
-              isUa,
-              OHLINS_HERITAGE.description,
-              'Кожен продукт Öhlins розроблено та протестовано на нашому шведському заводі. Від MotoGP до Ле-Ман — золоті амортизатори є вибором чемпіонів.'
-            )}
-          </p>
+      <section className="oh-applications">
+        <div className="oh-applications-inner">
+          <div className="oh-app-header" data-oh-reveal>
+            <h2>{L(isUa, 'Complete Collections', 'Повні колекції')}</h2>
+          </div>
+          <div className="oh-app-grid">
+            {OHLINS_PRODUCT_LINES.map((line, idx) => (
+              <Link key={line.id} href={line.link} className="oh-app-card" data-oh-reveal style={{ transitionDelay: `${idx * 0.1}s` }}>
+                <h3>{L(isUa, line.name, line.name)}</h3>
+                <p>{L(isUa, line.description, line.description)}</p>
+                <div className="oh-catalog-link">
+                  {L(isUa, 'View Details', 'Детальніше')}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 5 — BOTTOM CTA
+          SECTION 4 — HERITAGE TIMELINE
       ════════════════════════════════════════════════════════════════ */}
-      <div className="oh-bottom-cta" data-oh-reveal>
-        <span className="oh-label">
-          {L(isUa, 'Ready to upgrade?', 'Готові до апгрейду?')}
-        </span>
-        <br />
-        <Link href={`/${locale}/shop/ohlins/collections`} className="oh-btn">
-          {L(isUa, 'Explore Catalog', 'Переглянути каталог')}
-          <svg viewBox="0 0 24 24">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </Link>
-      </div>
+      <section className="oh-heritage-timeline">
+        <div className="oh-heritage-inner" data-oh-reveal>
+          <h2>{L(isUa, OHLINS_HERITAGE.title, OHLINS_HERITAGE.title)}</h2>
+          <p>{L(isUa, OHLINS_HERITAGE.description, OHLINS_HERITAGE.description)}</p>
+        </div>
+      </section>
+
     </div>
   );
 }

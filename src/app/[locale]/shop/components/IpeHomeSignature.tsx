@@ -1,6 +1,3 @@
-'use client';
-
-import { useEffect } from 'react';
 import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
 import {
@@ -9,8 +6,10 @@ import {
   IPE_VALVETRONIC,
   IPE_MATERIALS,
   IPE_PRODUCT_LINES,
-  IPE_HERITAGE,
 } from '../data/ipeHomeData';
+
+import IpeAudioConsole from './IpeAudioConsole';
+import ScrollRevealClient from './ScrollRevealClient';
 
 type Props = { locale: SupportedLocale };
 
@@ -18,163 +17,80 @@ function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
 export default function IpeHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
 
-  /* ── Scroll reveal observer ── */
-  useEffect(() => {
-    const els = document.querySelectorAll('[data-ipe-reveal]');
-    if (!els.length) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add('ipe-vis');
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, []);
-
-  /* ── Counter animation ── */
-  useEffect(() => {
-    const counters = document.querySelectorAll('[data-ipe-count]');
-    if (!counters.length) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const el = entry.target as HTMLElement;
-          const target = el.dataset.ipeCount || '0';
-          io.unobserve(el);
-
-          // Non-numeric targets (like "−45%" or "100%")
-          if (!/^\d+$/.test(target.replace(/[^0-9]/g, ''))) {
-            el.textContent = target;
-            return;
-          }
-
-          const num = parseInt(target.replace(/[^0-9]/g, ''), 10);
-          const prefix = target.replace(/[0-9]/g, '').replace(/[^−+\-]/g, '');
-          const suffix = target.replace(/[0-9]/g, '').replace(/[−+\-]/g, '');
-          let current = 0;
-          const step = Math.max(1, Math.floor(num / 60));
-          const timer = setInterval(() => {
-            current += step;
-            if (current >= num) {
-              current = num;
-              clearInterval(timer);
-            }
-            el.textContent = prefix + current + suffix;
-          }, 20);
-        });
-      },
-      { threshold: 0.5 }
-    );
-    counters.forEach((c) => io.observe(c));
-    return () => io.disconnect();
-  }, []);
-
   return (
     <div className="ipe-home" id="IpeHome">
+      <ScrollRevealClient selector="[data-ipe-reveal]" revealClass="ipe-vis" />
+
       {/* ── Back to Stores ── */}
       <div className="ipe-back">
         <Link href={`/${locale}/shop`} className="ipe-back__link">
-          ← {L(isUa, 'All our stores', 'Усі наші магазини')}
+          ← {L(isUa, 'All Stores', 'Усі магазини')}
         </Link>
       </div>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 1 — CINEMATIC HERO
+          SECTION 1 — ACOUSTIC STUDIO HERO
       ════════════════════════════════════════════════════════════════ */}
-      <section className="ipe-hero" id="ipe-hero-section">
-        <div className="ipe-hero__bg">
+      <section className="ipe-acoustic-hero">
+        <div className="ipe-acoustic-hero__bg">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={IPE_HERO.heroImage}
-            alt="iPE Exhaust"
-            loading="eager"
-          />
+          <img src={IPE_HERO.heroImage} alt="iPE Valvetronic Exhaust Concept" />
         </div>
 
-        <div className="ipe-hero__content" data-ipe-reveal>
-          <p className="ipe-hero__overtitle">
-            One Company × iPE Exhaust
+        <div className="ipe-acoustic-hero__content" data-ipe-reveal>
+          {/* Audio Console & Canvas integrated directly into Hero */}
+          <IpeAudioConsole />
+
+          <h1 className="sr-only">
+            {L(isUa, 'iPE Exhaust | Valvetronic Exhaust Systems', 'iPE Exhaust | Вихлопні системи Valvetronic')}
+          </h1>
+          <p className="ipe-hero-title">
+            {L(isUa, 'Crimson', 'Барвистий')}<br />
+            {L(isUa, 'Velocity', 'Звук')}
           </p>
 
-          <h1 className="ipe-hero__title">
-            {L(isUa, 'Feel The', 'Відчуй')}<br />
-            <em>{L(isUa, 'Power', 'Потужність')}</em>
-          </h1>
-
-          <p className="ipe-hero__subtitle">
+          <p className="ipe-hero-subtitle">
             {L(isUa, IPE_HERO.subtitle, IPE_HERO.subtitleUk)}
           </p>
+
+          <Link href={`/${locale}/shop/ipe/collections`} className="ipe-btn">
+            {L(isUa, 'Discover the Collection', 'Переглянути колекцію')}
+            <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </Link>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="ipe-hero__scroll" aria-hidden>
-          <div className="ipe-hero__scroll-line" />
-        </div>
-
-        {/* Stats bar */}
-        <div className="ipe-hero__stats" data-ipe-reveal>
-          {IPE_STATS.map((s, i) => (
-            <div key={i} className="ipe-hero__stat">
-              <span className="ipe-hero__stat-num" data-ipe-count={s.val}>
-                0
-              </span>
-              <span className="ipe-hero__stat-label">
-                {L(isUa, s.en, s.ua)}
-              </span>
+        {/* Floating Metrics Bar */}
+        <div className="ipe-metrics">
+          {IPE_STATS.map((m, i) => (
+            <div key={i} className="ipe-metric">
+              <span className="ipe-metric-val">{m.val}</span>
+              <span className="ipe-metric-label">{L(isUa, m.en, m.ua)}</span>
             </div>
           ))}
         </div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 2 — VALVETRONIC TECHNOLOGY
+          SECTION 2 — VALVETRONIC DASHBOARD
       ════════════════════════════════════════════════════════════════ */}
-      <section className="ipe-valve">
-        <div className="ipe-valve__header">
-          <span className="ipe-label">
-            {L(isUa, 'Signature Technology', 'Фірмова технологія')}
-          </span>
-        </div>
-
-        <div className="ipe-valve-card" data-ipe-reveal>
-          <div className="ipe-valve-card__image">
+      <section className="ipe-valve-dash">
+        <div className="ipe-dash-inner">
+          <div className="ipe-dash-visual" data-ipe-reveal>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={IPE_VALVETRONIC.image}
-              alt="Valvetronic Technology"
-              loading="lazy"
-            />
+            <img src={IPE_VALVETRONIC.image} alt={L(isUa, IPE_VALVETRONIC.title, IPE_VALVETRONIC.titleUk)} />
           </div>
-          <div className="ipe-valve-card__text">
-            <span className="ipe-label">
-              {L(isUa, 'Technology', 'Технологія')}
-            </span>
-            <h2 className="ipe-valve-card__title">
-              {L(isUa, IPE_VALVETRONIC.title, IPE_VALVETRONIC.titleUk)}
-            </h2>
-            <div className="ipe-valve-card__shimmer" />
-            <p className="ipe-valve-card__desc">
-              {L(isUa, IPE_VALVETRONIC.description, IPE_VALVETRONIC.descriptionUk)}
-            </p>
-            <div className="ipe-valve-card__specs">
-              {IPE_VALVETRONIC.specs.map((spec, i) => (
-                <div key={i} className="ipe-valve-card__spec">
-                  <span className="ipe-valve-card__spec-val">{spec.val}</span>
-                  <span className="ipe-valve-card__spec-label">
-                    {L(isUa, spec.label, spec.labelUk)}
-                  </span>
+          <div className="ipe-dash-content" data-ipe-reveal>
+            <h2>{L(isUa, IPE_VALVETRONIC.title, IPE_VALVETRONIC.titleUk)}</h2>
+            <p>{L(isUa, IPE_VALVETRONIC.description, IPE_VALVETRONIC.descriptionUk)}</p>
+            
+            <div className="ipe-specs-list">
+              {IPE_VALVETRONIC.specs.map((s, i) => (
+                <div key={i} className="ipe-spec-item">
+                  <span className="ipe-spec-v">{s.val}</span>
+                  <span className="ipe-spec-l">{L(isUa, s.label, s.labelUk)}</span>
                 </div>
               ))}
             </div>
@@ -183,150 +99,55 @@ export default function IpeHomeSignature({ locale }: Props) {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 3 — TITANIUM CRAFTSMANSHIP
+          SECTION 3 — THERMAL TITANIUM PROCESS
       ════════════════════════════════════════════════════════════════ */}
-      <section className="ipe-valve">
-        <div className="ipe-valve-card ipe-valve-card--reverse" data-ipe-reveal>
-          <div className="ipe-valve-card__image">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={IPE_MATERIALS.image}
-              alt="Titanium craftsmanship"
-              loading="lazy"
-            />
-          </div>
-          <div className="ipe-valve-card__text">
-            <span className="ipe-label">
-              {L(isUa, 'Material', 'Матеріал')}
-            </span>
-            <h2 className="ipe-valve-card__title">
-              {L(isUa, IPE_MATERIALS.title, IPE_MATERIALS.titleUk)}
-            </h2>
-            <div className="ipe-valve-card__shimmer" />
-            <p className="ipe-valve-card__desc">
-              {L(isUa, IPE_MATERIALS.description, IPE_MATERIALS.descriptionUk)}
-            </p>
-            <div className="ipe-valve-card__specs">
-              {IPE_MATERIALS.specs.map((spec, i) => (
-                <div key={i} className="ipe-valve-card__spec">
-                  <span className="ipe-valve-card__spec-val">{spec.val}</span>
-                  <span className="ipe-valve-card__spec-label">
-                    {L(isUa, spec.label, spec.labelUk)}
-                  </span>
+      <section className="ipe-thermal-process">
+        <div className="ipe-thermal-inner">
+          <div className="ipe-thermal-text" data-ipe-reveal>
+            <h2>{L(isUa, IPE_MATERIALS.title, IPE_MATERIALS.titleUk)}</h2>
+            <p>{L(isUa, IPE_MATERIALS.description, IPE_MATERIALS.descriptionUk)}</p>
+            
+            <div className="ipe-specs-list" style={{ marginTop: '2rem' }}>
+              {IPE_MATERIALS.specs.map((s, i) => (
+                <div key={i} className="ipe-spec-item">
+                  <span className="ipe-spec-v">{s.val}</span>
+                  <span className="ipe-spec-l">{L(isUa, s.label, s.labelUk)}</span>
                 </div>
               ))}
             </div>
           </div>
+          <div className="ipe-thermal-image" data-ipe-reveal>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={IPE_MATERIALS.image} alt={L(isUa, IPE_MATERIALS.title, IPE_MATERIALS.titleUk)} />
+          </div>
         </div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 4 — PRODUCT LINES (horizontal scroll cards)
+          SECTION 4 — DNA TRACKLIST (Modular Lineup)
       ════════════════════════════════════════════════════════════════ */}
-      <section className="ipe-lines" data-ipe-reveal>
-        <div className="ipe-lines__header">
-          <span className="ipe-label">
-            {L(isUa, 'Shop by Make', 'Каталог за маркою')}
-          </span>
-          <h2 className="ipe-section-title">
-            {L(isUa, 'Engineered for Your Supercar', 'Створено для вашого суперкара')}
-          </h2>
-          <div className="ipe-divider ipe-divider--center" />
-        </div>
-
-        <div className="ipe-lines__track">
-          {IPE_PRODUCT_LINES.map((line) => (
-            <Link
-              key={line.id}
-              href={`/${locale}${line.link}`}
-              className="ipe-line-card"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                className="ipe-line-card__img"
-                src={line.image}
-                alt={L(isUa, line.name, line.nameUk)}
-                loading="lazy"
-              />
-              <div className="ipe-line-card__overlay" />
-              <span className="ipe-line-card__badge">
-                {L(isUa, line.badge, line.badgeUk)}
-              </span>
-              <div className="ipe-line-card__content">
-                <h3 className="ipe-line-card__name">
-                  {L(isUa, line.name, line.nameUk)}
-                </h3>
-                <p className="ipe-line-card__desc">
-                  {L(isUa, line.description, line.descriptionUk)}
-                </p>
-              </div>
-            </Link>
-          ))}
+      <section className="ipe-dna-tracklist">
+        <div className="ipe-dna-inner">
+          <div className="ipe-dna-header" data-ipe-reveal>
+            <h2>{L(isUa, 'Vehicle DNA', 'Модельний Ряд')}</h2>
+          </div>
+          <div className="ipe-track-grid">
+            {IPE_PRODUCT_LINES.map((line, idx) => (
+              <Link key={line.id} href={line.link} className="ipe-track" data-ipe-reveal style={{ transitionDelay: `${(idx % 3) * 0.1}s` }}>
+                <div className="ipe-track-no">0{idx + 1}</div>
+                <div className="ipe-track-info">
+                  <span className="ipe-track-name">{L(isUa, line.name, line.nameUk)}</span>
+                  <span className="ipe-track-desc">{L(isUa, line.description, line.descriptionUk)}</span>
+                </div>
+                <div className="ipe-track-action">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 5 — WAVE DIVIDER
-      ════════════════════════════════════════════════════════════════ */}
-      <div className="ipe-wave" aria-hidden>
-        {Array.from({ length: 40 }).map((_, i) => {
-          const h = 6 + Math.cos(i * 0.4) * 14 + Math.random() * 10;
-          return (
-            <div
-              key={i}
-              className="ipe-wave__bar"
-              style={{
-                '--h': `${h}px`,
-                animationDelay: `${i * 0.06}s`,
-              } as React.CSSProperties}
-            />
-          );
-        })}
-      </div>
-
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 6 — HERITAGE (factory image + storytelling)
-      ════════════════════════════════════════════════════════════════ */}
-      <section className="ipe-heritage" data-ipe-reveal>
-        <div className="ipe-heritage__bg">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={IPE_HERITAGE.fallbackImage}
-            alt="iPE Factory"
-            loading="lazy"
-          />
-        </div>
-
-        <div className="ipe-heritage__content">
-          <span className="ipe-label">
-            {L(isUa, 'Heritage', 'Спадщина')}
-          </span>
-          <h2 className="ipe-heritage__title">
-            {L(isUa, IPE_HERITAGE.title, IPE_HERITAGE.titleUk)}
-          </h2>
-          <div className="ipe-divider ipe-divider--center" />
-          <p className="ipe-heritage__desc">
-            {L(isUa, IPE_HERITAGE.description, IPE_HERITAGE.descriptionUk)}
-          </p>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 7 — BOTTOM CTA
-      ════════════════════════════════════════════════════════════════ */}
-      <div className="ipe-bottom-cta" data-ipe-reveal>
-        <span className="ipe-label">
-          {L(isUa, 'Ready to upgrade?', 'Готові до апгрейду?')}
-        </span>
-        <br />
-        <Link href={`/${locale}/shop/ipe/collections`} className="ipe-btn">
-          {L(isUa, 'Explore Catalog', 'Переглянути каталог')}
-          <svg viewBox="0 0 24 24">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </Link>
-      </div>
     </div>
   );
 }

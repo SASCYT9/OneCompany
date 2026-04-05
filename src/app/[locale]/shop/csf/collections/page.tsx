@@ -35,7 +35,7 @@ export default async function CSFCollectionsPage({ params }: Props) {
       style={{
         background: '#050505',
         color: '#f8f8f8',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         fontFamily: "'Inter', system-ui, sans-serif",
       }}
     >

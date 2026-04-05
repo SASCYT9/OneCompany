@@ -1062,7 +1062,7 @@
 .uh7-sc {
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   display: flex;
   align-items: flex-end;
@@ -2122,7 +2122,7 @@
 }
 .uh7-lb img {
   max-width: 90vw;
-  max-height: 90vh;
+  max-height: 90dvh;
   object-fit: contain;
   border-radius: var(--r-md);
   transform: scale(0.85);

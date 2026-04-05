@@ -62,7 +62,7 @@ export function Header() {
       key: "brand-catalog",
       href: currentBrand === 'racechip' 
         ? `/${locale}/shop/racechip/catalog` 
-        : ['brabus', 'burger'].includes(currentBrand) 
+        : ['brabus', 'burger', 'urban'].includes(currentBrand) 
           ? `/${locale}/shop/${currentBrand}/products` 
           : currentBrand === 'do88'
             ? `/${locale}/shop/do88/collections`
@@ -101,10 +101,10 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 pt-2 sm:pt-4">
       <div
         className={cn(
-          "relative mx-2 flex items-center rounded-2xl border backdrop-blur-xl px-3 py-2.5 sm:mx-auto sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8",
+          "relative mx-2 flex items-center rounded-2xl border backdrop-blur-3xl px-3 py-2.5 sm:mx-auto sm:rounded-[32px] sm:px-4 sm:py-3 md:px-8",
           isShopRoute
-            ? "max-w-7xl border-white/15 bg-black/75"
-            : "max-w-6xl border-white/10 bg-black/80"
+            ? "max-w-7xl border-obsidian-border bg-obsidian-panel/80 shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
+            : "max-w-6xl border-obsidian-border bg-obsidian/80 shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
         )}
       >
         <Link
@@ -146,23 +146,13 @@ export function Header() {
             <div className="hidden items-center gap-1 rounded-full border border-white/20 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-white/70 md:flex">
               <button
                 type="button"
-                onClick={() => setRegion("UA")}
-                className={cn(
-                  "px-2 py-1 rounded-full transition",
-                  region === "UA" && "bg-white text-black"
-                )}
-              >
-                UA · UAH
-              </button>
-              <button
-                type="button"
                 onClick={() => setRegion("EU")}
                 className={cn(
                   "px-2 py-1 rounded-full transition",
                   region === "EU" && "bg-white text-black"
                 )}
               >
-                EU · EUR
+                € EUR
               </button>
               <button
                 type="button"
@@ -172,7 +162,17 @@ export function Header() {
                   region === "US" && "bg-white text-black"
                 )}
               >
-                US · USD
+                $ USD
+              </button>
+              <button
+                type="button"
+                onClick={() => setRegion("UA")}
+                className={cn(
+                  "px-2 py-1 rounded-full transition",
+                  region === "UA" && "bg-white text-black"
+                )}
+              >
+                ₴ UAH
               </button>
             </div>
           ) : null}

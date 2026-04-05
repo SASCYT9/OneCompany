@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { prisma } from '@/lib/prisma';
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
@@ -68,13 +69,19 @@ export default async function RaceChipProductsCatalogPage({ params }: Props) {
           </Link>
         </div>
 
-        {/* Live Filter Catalog */}
+        {/* Live Filter Catalog — wrapped in Suspense for useSearchParams */}
         <div className="-mx-6 md:mx-0">
-          <RacechipVehicleFilter
-              locale={resolvedLocale}
-              products={racechipProducts}
-              viewerContext={viewerContext}
-          />
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-32">
+              <div className="w-8 h-8 border-2 border-[#ff4a00]/30 border-t-[#ff4a00] rounded-full animate-spin" />
+            </div>
+          }>
+            <RacechipVehicleFilter
+                locale={resolvedLocale}
+                products={racechipProducts}
+                viewerContext={viewerContext}
+            />
+          </Suspense>
         </div>
 
       </div>

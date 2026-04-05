@@ -99,7 +99,7 @@ export default function BurgerStoreHome({ locale }: Props) {
   return (
     <div ref={container} className="burger-store-home bg-black font-sans selection:bg-[var(--burger-yellow)] selection:text-black">
       {/* ═════ HERO SECTION (PREMIUM VIDEO / IMG) ═════ */}
-      <section className="relative flex min-h-[90vh] w-full items-center pt-20 overflow-hidden">
+      <section className="relative flex min-h-[90dvh] w-full items-center pt-20 overflow-hidden">
         {/* High-Fidelity Static Background */}
         <Image
           src="/images/shop/burger/hero_burger_real.jpg"

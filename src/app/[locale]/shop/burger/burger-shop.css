@@ -19,7 +19,7 @@
 .burger-shop {
   background: var(--burger-dark);
   color: var(--burger-text);
-  min-height: 100vh;
+  min-height: 100dvh;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
@@ -27,7 +27,7 @@
 .burger-hero {
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   overflow: hidden;

@@ -521,7 +521,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
 
         /* ═══════════════════ HERO ═══════════════════ */
         .br-hero {
-          position: relative; width: 100%; height: 100vh; min-height: 700px;
+          position: relative; width: 100%; height: 100dvh; min-height: 700px;
           overflow: hidden; display: flex; align-items: center;
         }
         .br-hero__media {

@@ -187,7 +187,7 @@ export default function MessagesPanel() {
               </button>
             ))}
           </div>
-          <div className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: 'calc(100vh - 320px)' }}>
+          <div className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: 'calc(100dvh - 320px)' }}>
             {filteredMessages.length === 0 && (
               <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-white/40">
                 Немає повідомлень

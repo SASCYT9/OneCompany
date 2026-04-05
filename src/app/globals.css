@@ -4,38 +4,43 @@
  
 @layer base {
   :root {
-    --background: 222 59% 2%;
-    --foreground: 210 40% 98%;
+    /* OBSIDIAN BASE */
+    --background: 240 5% 2%; /* Extremely dark slate/black #050505 */
+    --foreground: 0 0% 98%;
     --font-body: var(--font-sans);
 
-    --surface: 220 44% 5%;
-    --surface-elevated: 220 55% 9%;
-    --surface-muted: 223 32% 12%;
+    /* SURFACE: obsidian panels */
+    --surface: 240 5% 4%;
+    --surface-elevated: 240 5% 7%;
+    --surface-muted: 240 5% 10%;
 
-    --card: 220 44% 5%;
-    --card-foreground: 210 36% 96%;
+    --card: 240 5% 4%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 220 44% 5%;
-    --popover-foreground: 210 36% 96%;
+    --popover: 240 5% 4%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 36 96% 56%;
-    --primary-foreground: 222 59% 2%;
+    /* BRONZE primary */
+    --primary: 43 45% 55%; /* #c29d59 */
+    --primary-foreground: 240 5% 2%;
 
-    --secondary: 209 94% 60%;
-    --secondary-foreground: 222 59% 2%;
+    /* SECONDARY: muted obsidian */
+    --secondary: 240 5% 15%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 216 14% 45%;
-    --muted-foreground: 216 16% 72%;
+    --muted: 240 5% 20%;
+    --muted-foreground: 240 5% 65%;
 
-    --accent: 245 73% 67%;
-    --accent-foreground: 222 60% 3%;
+    --accent: 43 45% 55%;
+    --accent-foreground: 240 5% 2%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 222 59% 2%;
+    --destructive-foreground: 240 5% 2%;
 
-    --border: 220 18% 25%;
-    --input: 220 18% 25%;
-    --ring: 210 92% 72%;
+    /* Ultra fine glass border */
+    --border: 240 5% 12%;
+    --input: 240 5% 12%;
+    --ring: 43 45% 55%;
 
     --radius: 999px;
 
@@ -109,7 +114,7 @@
     font-family: var(--font-stack-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   h1,

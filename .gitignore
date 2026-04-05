@@ -59,3 +59,4 @@ data/.chrome-scraper-profile/
 temp_pgsql/
 *.sql
 .env*.local
+.shop-products-dev-cache.json

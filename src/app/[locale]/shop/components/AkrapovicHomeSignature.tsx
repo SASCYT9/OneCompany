@@ -46,44 +46,7 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
     return () => io.disconnect();
   }, []);
 
-  /* ── Counter animation ── */
-  useEffect(() => {
-    const counters = document.querySelectorAll('[data-ak-count]');
-    if (!counters.length) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const el = entry.target as HTMLElement;
-          const target = el.dataset.akCount || '0';
-          io.unobserve(el);
 
-          // Non-numeric targets (like "−40%" or "600°")
-          if (!/^\d+$/.test(target.replace(/[^0-9]/g, ''))) {
-            el.textContent = target;
-            return;
-          }
-
-          const num = parseInt(target.replace(/[^0-9]/g, ''), 10);
-          const prefix = target.replace(/[0-9]/g, '').replace(/[^−+\-]/g, '');
-          const suffix = target.replace(/[0-9]/g, '').replace(/[−+\-]/g, '');
-          let current = 0;
-          const step = Math.max(1, Math.floor(num / 60));
-          const timer = setInterval(() => {
-            current += step;
-            if (current >= num) {
-              current = num;
-              clearInterval(timer);
-            }
-            el.textContent = prefix + current + suffix;
-          }, 20);
-        });
-      },
-      { threshold: 0.5 }
-    );
-    counters.forEach((c) => io.observe(c));
-    return () => io.disconnect();
-  }, []);
 
   /* ── Sound toggle for hero video ── */
   const toggleMute = useCallback(() => {
@@ -124,10 +87,13 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
             One Company × Akrapovič
           </p>
 
-          <h1 className="ak-hero__title">
+          <h1 className="sr-only">
+            {L(isUa, 'Akrapovič Exhaust Systems | Titanium & Carbon', 'Автомобільні вихлопні системи Akrapovič | Титан і Карбон')}
+          </h1>
+          <p className="ak-hero__title">
             {L(isUa, 'The Sound of', 'Звук')}<br />
             <em>{L(isUa, 'Perfection', 'Досконалості')}</em>
-          </h1>
+          </p>
 
           <p className="ak-hero__subtitle">
             {L(isUa, AKRAPOVIC_HERO.subtitle, AKRAPOVIC_HERO.subtitleUk)}
@@ -165,8 +131,8 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
         <div className="ak-hero__stats" data-ak-reveal>
           {AKRAPOVIC_STATS.map((s, i) => (
             <div key={i} className="ak-hero__stat">
-              <span className="ak-hero__stat-num" data-ak-count={s.val}>
-                0
+              <span className="ak-hero__stat-num">
+                {s.val}
               </span>
               <span className="ak-hero__stat-label">
                 {L(isUa, s.en, s.ua)}

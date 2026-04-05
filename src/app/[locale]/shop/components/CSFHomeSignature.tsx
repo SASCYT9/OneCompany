@@ -1,8 +1,4 @@
-'use client';
-
-import { useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import type { SupportedLocale } from '@/lib/seo';
 import {
   CSF_HERO,
@@ -11,25 +7,29 @@ import {
   CSF_HERITAGE,
 } from '../data/csfHomeData';
 
+// Extracted client logic
+import CSFCanvas from './canvas/CSFCanvas';
+import ScrollRevealClient from './ScrollRevealClient';
+
 type Props = { locale: SupportedLocale };
 
 function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
 
-/* ── Stats ── */
-const CSF_STATS = [
-  { val: '1974', en: 'Founded', ua: 'Засновано' },
-  { val: '+15%', en: 'B-Tube Efficiency', ua: 'Ефективність B-Tube' },
-  { val: '−40%', en: 'Weight vs OEM', ua: 'Вага vs OEM' },
-  { val: '200+', en: 'Vehicle Apps', ua: 'Моделей авто' },
+/* ── Contextual Metrics — Cooling Performance specific ── */
+const CSF_METRICS = [
+  { val: '50+', en: 'Years Eng.', ua: 'Років досвіду' },
+  { val: '−40%', en: 'Weight vs OEM', ua: 'Вага vs заводу' },
+  { val: '+15%', en: 'B-Tube Trans.', ua: 'Теплообмін' },
+  { val: '6061', en: 'Alloy Grade', ua: 'Марка сплаву' },
 ];
 
-/* ── Material specs ── */
+/* ── Material specs — more data-driven ── */
 const ALUMINUM_SPECS = [
   { val: '6061-T6', en: 'Alloy Grade', ua: 'Марка сплаву' },
   { val: '−40%', en: 'Weight vs OEM', ua: 'Вага vs OEM' },
-  { val: 'TIG', en: 'Weld Process', ua: 'Тип зварки' },
+  { val: 'TIG', en: 'Weld Method', ua: 'Тип зварки' },
   { val: '100%', en: 'Aluminum Core', ua: 'Алюмінієва серцевина' },
 ];
 const BTUBE_SPECS = [
@@ -42,250 +42,127 @@ const BTUBE_SPECS = [
 export default function CSFHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
 
-  /* ── Scroll reveal observer ── */
-  useEffect(() => {
-    const els = document.querySelectorAll('[data-csf-reveal]');
-    if (!els.length) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add('csf-vis');
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, []);
-
-  /* ── Counter animation ── */
-  useEffect(() => {
-    const counters = document.querySelectorAll('[data-csf-count]');
-    if (!counters.length) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const el = entry.target as HTMLElement;
-          const target = el.dataset.csfCount || '0';
-          io.unobserve(el);
-
-          if (!/^\d+$/.test(target.replace(/[^0-9]/g, ''))) {
-            el.textContent = target;
-            return;
-          }
-
-          const num = parseInt(target.replace(/[^0-9]/g, ''), 10);
-          const prefix = target.replace(/[0-9]/g, '').replace(/[^−+\-]/g, '');
-          const suffix = target.replace(/[0-9]/g, '').replace(/[−+\-]/g, '');
-          let current = 0;
-          const step = Math.max(1, Math.floor(num / 60));
-          const timer = setInterval(() => {
-            current += step;
-            if (current >= num) {
-              current = num;
-              clearInterval(timer);
-            }
-            el.textContent = prefix + current + suffix;
-          }, 20);
-        });
-      },
-      { threshold: 0.5 }
-    );
-    counters.forEach((c) => io.observe(c));
-    return () => io.disconnect();
-  }, []);
-
   return (
     <div className="csf-home" id="CSFHome">
+      <ScrollRevealClient selector="[data-csf-reveal]" revealClass="csf-vis" />
+
+      {/* ── Blueprint Grid & Canvas ── */}
+      <CSFCanvas />
+
       {/* ── Back to Stores ── */}
       <div className="csf-back">
         <Link href={`/${locale}/shop`} className="csf-back__link">
-          ← {L(isUa, 'All our stores', 'Усі наші магазини')}
+          ← {L(isUa, 'All Stores', 'Усі магазини')}
         </Link>
       </div>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 1 — CINEMATIC HERO (full viewport, center-aligned)
+          SECTION 1 — THERMAL LAB BLUEPRINT HERO
       ════════════════════════════════════════════════════════════════ */}
-      <section className="csf-hero" id="csf-hero-section">
-        <div className="csf-hero__bg">
-          <Image
-            src={CSF_HERO.heroImageFallback}
-            alt="CSF High Performance Cooling"
-            fill
-            priority
-            sizes="100vw"
-            quality={90}
-            style={{ objectFit: 'cover' }}
-          />
+      <section className="csf-blueprint-hero">
+        <div className="csf-hud">
+          [SYS_OK] THERMAL DYNAMICS V.4.1<br/>
+          {new Date().toISOString().split('T')[0]} 
         </div>
-        <div className="csf-hero__overlay" />
 
-        <div className="csf-hero__content" data-csf-reveal>
-          <p className="csf-hero__overtitle">
-            One Company × CSF Racing
+        <div className="csf-blueprint-hero__inner" data-csf-reveal>
+          <h1 className="sr-only">
+            {L(isUa, 'CSF Racing | Cooling Systems & Radiators', 'CSF Racing | Системи охолодження та радіатори')}
+          </h1>
+          <p className="csf-hero-title">
+            {L(isUa, 'Thermal', 'Термальна')}<br />
+            {L(isUa, 'Supremacy', 'Перевага')}
           </p>
 
-          <h1 className="csf-hero__title">
-            {L(isUa, 'The Science of', 'Наука')}<br />
-            <em>{L(isUa, 'Cool', 'Охолодження')}</em>
-          </h1>
-
-          <p className="csf-hero__subtitle">
+          <p className="csf-hero-subtitle">
             {L(isUa, CSF_HERO.subtitle, CSF_HERO.subtitleUk)}
           </p>
 
-          <Link href={`/${locale}/shop/csf/collections`} className="csf-btn" style={{ marginTop: '2.5rem' }}>
-            {L(isUa, 'Explore Catalog', 'Перейти в каталог')}
-            <svg viewBox="0 0 24 24">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
+          {/* HUD Stats Row */}
+          <div className="csf-hud-stats">
+            {CSF_METRICS.map((s, i) => (
+              <div key={i} className="csf-stat-box">
+                <span className="csf-stat-val">{s.val}</span>
+                <span className="csf-stat-label">{L(isUa, s.en, s.ua)}</span>
+              </div>
+            ))}
+          </div>
+
+          <Link href={`/${locale}/shop/csf/collections`} className="csf-btn">
+            {L(isUa, 'Initialize Cooling', 'Активувати Охолодження')}
+            <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </Link>
         </div>
-
-        {/* Stats bar */}
-        <div className="csf-hero__stats" data-csf-reveal>
-          {CSF_STATS.map((s, i) => (
-            <div key={i} className="csf-hero__stat">
-              <span className="csf-hero__stat-num" data-csf-count={s.val}>
-                0
-              </span>
-              <span className="csf-hero__stat-label">
-                {L(isUa, s.en, s.ua)}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="csf-hero__scroll" aria-hidden>
-          <div className="csf-hero__scroll-line" />
-        </div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 2 — MATERIAL SHOWCASE (Aluminum & B-Tube)
+          SECTION 2 — TECHNICAL SPECIFICATIONS
       ════════════════════════════════════════════════════════════════ */}
-      <section className="csf-materials">
-        <div className="csf-materials__header">
-          <span className="csf-label">
-            {L(isUa, 'Materials & Technology', 'Матеріали та технології')}
-          </span>
-        </div>
-
-        {/* Aluminum */}
-        <div className="csf-material" data-csf-reveal>
-          <div className="csf-material__image">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={CSF_MATERIALS.aluminum.image}
-              alt="Aerospace aluminum closeup"
-              loading="lazy"
-            />
-          </div>
-          <div className="csf-material__text">
-            <span className="csf-label">
-              {L(isUa, 'Material', 'Матеріал')}
-            </span>
-            <h2 className="csf-material__title">
-              {L(isUa, CSF_MATERIALS.aluminum.title, CSF_MATERIALS.aluminum.titleUk)}
-            </h2>
-            <div className="csf-material__shimmer" />
-            <p className="csf-material__desc">
-              {L(isUa, CSF_MATERIALS.aluminum.description, CSF_MATERIALS.aluminum.descriptionUk)}
-            </p>
-            <div className="csf-material__specs">
-              {ALUMINUM_SPECS.map((sp, i) => (
-                <div key={i} className="csf-material__spec">
-                  <span className="csf-material__spec-val">{sp.val}</span>
-                  <span className="csf-material__spec-label">
-                    {L(isUa, sp.en, sp.ua)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* B-Tube */}
-        <div className="csf-material csf-material--reverse" data-csf-reveal>
-          <div className="csf-material__image">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={CSF_MATERIALS.btube.image}
-              alt="B-Tube technology closeup"
-              loading="lazy"
-            />
-          </div>
-          <div className="csf-material__text">
-            <span className="csf-label">
-              {L(isUa, 'Technology', 'Технологія')}
-            </span>
-            <h2 className="csf-material__title">
-              {L(isUa, CSF_MATERIALS.btube.title, CSF_MATERIALS.btube.titleUk)}
-            </h2>
-            <div className="csf-material__shimmer" />
-            <p className="csf-material__desc">
-              {L(isUa, CSF_MATERIALS.btube.description, CSF_MATERIALS.btube.descriptionUk)}
-            </p>
-            <div className="csf-material__specs">
-              {BTUBE_SPECS.map((sp, i) => (
-                <div key={i} className="csf-material__spec">
-                  <span className="csf-material__spec-val">{sp.val}</span>
-                  <span className="csf-material__spec-label">
-                    {L(isUa, sp.en, sp.ua)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 3 — PRODUCT LINES (horizontal scroll cards)
-      ════════════════════════════════════════════════════════════════ */}
-      <section className="csf-lines" data-csf-reveal>
-        <div className="csf-lines__header">
-          <span className="csf-label">
-            {L(isUa, 'Product Lines', 'Лінійки продукції')}
-          </span>
-          <h2 className="csf-section-title">
-            {L(isUa, 'Engineered for Your Machine', 'Інженерія для вашого автомобіля')}
-          </h2>
-          <div className="csf-divider csf-divider--center" />
-        </div>
-
-        <div className="csf-lines__track">
-          {CSF_PRODUCT_LINES.map((line) => (
-            <Link
-              key={line.id}
-              href={`/${locale}${line.link}`}
-              className="csf-line-card"
-            >
+      <section className="csf-tech-specs">
+        <div className="csf-tech-grid">
+          
+          {/* B-Tube */}
+          <div className="csf-spec-card" data-csf-reveal>
+            <div className="csf-spec-image-wrapper">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                className="csf-line-card__img"
-                src={line.image}
-                alt={L(isUa, line.name, line.nameUk)}
-                loading="lazy"
-              />
-              <div className="csf-line-card__overlay" />
-              <span className="csf-line-card__badge">
-                {L(isUa, line.badge, line.badgeUk)}
-              </span>
-              <div className="csf-line-card__content">
-                <h3 className="csf-line-card__name">
-                  {L(isUa, line.name, line.nameUk)}
-                </h3>
-                <p className="csf-line-card__desc">
-                  {L(isUa, line.description, line.descriptionUk)}
-                </p>
+              <img src={CSF_MATERIALS.btube.image} alt={L(isUa, CSF_MATERIALS.btube.title, CSF_MATERIALS.btube.titleUk)} />
+            </div>
+            <div className="csf-spec-content">
+              <h3 className="csf-spec-title">{L(isUa, CSF_MATERIALS.btube.title, CSF_MATERIALS.btube.titleUk)}</h3>
+              <p className="csf-spec-desc">{L(isUa, CSF_MATERIALS.btube.description, CSF_MATERIALS.btube.descriptionUk)}</p>
+              
+              <div className="csf-data-grid">
+                {BTUBE_SPECS.map((s, idx) => (
+                  <div key={idx} className="csf-data-cell">
+                    <span className="csf-data-val">{s.val}</span>
+                    <span className="csf-data-label">{L(isUa, s.en, s.ua)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Aluminum */}
+          <div className="csf-spec-card" data-csf-reveal style={{ transitionDelay: '0.2s' }}>
+            <div className="csf-spec-image-wrapper">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={CSF_MATERIALS.aluminum.image} alt={L(isUa, CSF_MATERIALS.aluminum.title, CSF_MATERIALS.aluminum.titleUk)} />
+            </div>
+            <div className="csf-spec-content">
+              <h3 className="csf-spec-title">{L(isUa, CSF_MATERIALS.aluminum.title, CSF_MATERIALS.aluminum.titleUk)}</h3>
+              <p className="csf-spec-desc">{L(isUa, CSF_MATERIALS.aluminum.description, CSF_MATERIALS.aluminum.descriptionUk)}</p>
+              
+              <div className="csf-data-grid">
+                {ALUMINUM_SPECS.map((s, idx) => (
+                  <div key={idx} className="csf-data-cell">
+                    <span className="csf-data-val">{s.val}</span>
+                    <span className="csf-data-label">{L(isUa, s.en, s.ua)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 3 — MODULAR PLATFORM GRID
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="csf-modular-section">
+        <div className="csf-section-header" data-csf-reveal>
+          <h2>{L(isUa, 'Cooling Network', 'Мережа Обладнання')}</h2>
+        </div>
+
+        <div className="csf-platform-grid">
+          {CSF_PRODUCT_LINES.map((line, idx) => (
+            <Link key={line.id} href={line.link} className="csf-platform-card" data-csf-reveal style={{ transitionDelay: `${idx * 0.1}s` }}>
+              <span className="csf-platform-badge">{L(isUa, line.badge, line.badgeUk)}</span>
+              <h3 className="csf-platform-title">{L(isUa, line.name, line.nameUk)}</h3>
+              <p className="csf-platform-desc">{L(isUa, line.description, line.descriptionUk)}</p>
+              <div className="csf-platform-link">
+                {L(isUa, 'View Details', 'Переглянути')}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </div>
             </Link>
           ))}
@@ -293,54 +170,27 @@ export default function CSFHomeSignature({ locale }: Props) {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 4 — HERITAGE (image background + storytelling)
+          SECTION 4 — HERITAGE TERMINAL
       ════════════════════════════════════════════════════════════════ */}
-      <section className="csf-heritage" data-csf-reveal>
-        <div className="csf-hero__bg" style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-          <Image
-            src={CSF_HERITAGE.fallbackImage}
-            alt="CSF Heritage"
-            fill
-            sizes="100vw"
-            quality={85}
-            style={{ objectFit: 'cover', filter: 'brightness(0.35) grayscale(0.3)' }}
-          />
-        </div>
-        <div className="csf-hero__overlay" style={{
-          background: 'linear-gradient(to top, var(--csf-bg) 5%, transparent 50%, var(--csf-bg) 95%)',
-          zIndex: 2,
-        }} />
-
-        <div className="csf-heritage__content">
-          <span className="csf-label">
-            {L(isUa, 'Heritage', 'Історія')}
-          </span>
-          <h2 className="csf-heritage__title">
-            {L(isUa, CSF_HERITAGE.title, CSF_HERITAGE.titleUk)}
-          </h2>
-          <div className="csf-divider csf-divider--center" />
-          <p className="csf-heritage__desc">
-            {L(isUa, CSF_HERITAGE.description, CSF_HERITAGE.descriptionUk)}
-          </p>
+      <section className="csf-terminal-section" data-csf-reveal>
+        <div className="csf-terminal-window">
+          <div className="csf-terminal-header">
+            <div className="csf-terminal-dot"></div>
+            <div className="csf-terminal-dot"></div>
+            <div className="csf-terminal-dot"></div>
+          </div>
+          <div className="csf-terminal-body">
+            <p><span>&gt;</span> INIT CSF_HISTORY_MODULE</p>
+            <p><span>&gt;</span> {L(isUa, CSF_HERITAGE.title, CSF_HERITAGE.titleUk)}</p>
+            <br />
+            <p>{L(isUa, CSF_HERITAGE.description, CSF_HERITAGE.descriptionUk)}</p>
+            <br />
+            <p><span>&gt;</span> PORT STATUS: READY</p>
+            <p className="animate-pulse">_</p>
+          </div>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 5 — BOTTOM CTA
-      ════════════════════════════════════════════════════════════════ */}
-      <div className="csf-bottom-cta" data-csf-reveal>
-        <span className="csf-label">
-          {L(isUa, 'Ready to upgrade?', 'Готові до апгрейду?')}
-        </span>
-        <br />
-        <Link href={`/${locale}/shop/csf/collections`} className="csf-btn">
-          {L(isUa, 'Explore Catalog', 'Переглянути каталог')}
-          <svg viewBox="0 0 24 24">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </Link>
-      </div>
     </div>
   );
 }

@@ -60,6 +60,17 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        obsidian: {
+          DEFAULT: '#030303',
+          light: '#0a0a0c',
+          panel: '#0d0d12',
+          border: 'rgba(255, 255, 255, 0.06)',
+        },
+        bronze: {
+          DEFAULT: '#c29d59',
+          light: '#d4b77e',
+          glow: 'rgba(194, 157, 89, 0.15)',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

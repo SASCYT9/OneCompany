@@ -39,7 +39,7 @@
   font-family: var(--urban-ff-body);
   background: var(--urban-c-black);
   color: var(--urban-c-white);
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Hero */

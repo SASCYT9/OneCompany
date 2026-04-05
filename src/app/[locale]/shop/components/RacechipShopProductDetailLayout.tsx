@@ -50,8 +50,8 @@ export default function RacechipShopProductDetailLayout({
   const formattedMake = makeTag ? makeTag.charAt(0).toUpperCase() + makeTag.slice(1) : "RaceChip";
   const formattedModel = modelTag ? modelTag.toUpperCase().replace('-', ' ') : "";
 
-  // Pricing Logic
-  const getVariantPrice = () => {
+  // Pricing Logic — compute all 3 currencies
+  const getPricing = () => {
     let basePriceEur = 0;
     if (variant) {
       basePriceEur = variant.priceEur ? Number(variant.priceEur) : 0;
@@ -59,13 +59,25 @@ export default function RacechipShopProductDetailLayout({
       const pPricing = resolveShopProductPricing(product as any, viewerContext);
       basePriceEur = pPricing.effectivePrice.eur ?? (product.priceEur ? Number(product.priceEur) : 0);
     }
+    if (basePriceEur <= 0) return null;
 
-    if (currency === "USD" && rates?.USD) return basePriceEur > 0 ? formatPrice(locale, basePriceEur * rates.USD, "USD") : null;
-    if (currency === "UAH" && rates?.UAH) return basePriceEur > 0 ? formatPrice(locale, basePriceEur * rates.UAH, "UAH") : null;
-    return basePriceEur > 0 ? formatPrice(locale, basePriceEur, "EUR") : null;
+    const priceUsd = product.priceUsd ? Number(product.priceUsd) : (rates?.USD ? Math.round(basePriceEur * rates.USD) : 0);
+    const priceUah = product.priceUah ? Number(product.priceUah) : (rates?.UAH ? Math.round(basePriceEur * rates.UAH) : 0);
+
+    return {
+      eur: formatPrice(locale, basePriceEur, "EUR"),
+      usd: priceUsd > 0 ? formatPrice(locale, priceUsd, "USD") : null,
+      uah: priceUah > 0 ? formatPrice(locale, priceUah, "UAH") : null,
+      primary: currency === "USD" && priceUsd > 0
+        ? formatPrice(locale, priceUsd, "USD")
+        : currency === "UAH" && priceUah > 0
+          ? formatPrice(locale, priceUah, "UAH")
+          : formatPrice(locale, basePriceEur, "EUR"),
+    };
   };
 
-  const finalPriceLabel = getVariantPrice();
+  const pricing = getPricing();
+  const finalPriceLabel = pricing?.primary ?? null;
   
   const handleAddToCart = async () => {
     if (!variant || isAdding || inCart) return;
@@ -177,21 +189,35 @@ export default function RacechipShopProductDetailLayout({
                <div className="absolute inset-x-0 bottom-0 h-1 bg-[#ff4a00]/80 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
 
                <div className="flex items-end justify-between mb-8">
-                  <div>
-                    <span className="block text-[11px] uppercase tracking-[0.15em] text-zinc-500 mb-2 font-bold">
-                      {isUa ? "Ціна з урахуванням ПДВ" : "Price (VAT Incl.)"}
-                    </span>
-                    <div className="text-4xl font-black text-white tracking-tight">
-                      {finalPriceLabel || (isUa ? "Під замовлення" : "On Request")}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="block text-xs text-[#00e676] font-bold uppercase tracking-widest flex items-center justify-end gap-1.5">
-                       <Check size={14} strokeWidth={3} />
-                       {isUa ? "У наявності" : "In Stock"}
-                    </span>
-                  </div>
-               </div>
+                   <div>
+                     <span className="block text-[11px] uppercase tracking-[0.15em] text-zinc-500 mb-2 font-bold">
+                       {isUa ? "Ціна" : "Price"}
+                     </span>
+                     <div className="text-4xl font-black text-white tracking-tight">
+                       {finalPriceLabel || (isUa ? "Під замовлення" : "On Request")}
+                     </div>
+                     {/* All 3 currencies row */}
+                     {pricing && (
+                       <div className="flex items-center gap-3 mt-3 text-[11px] tracking-widest font-light text-zinc-500">
+                         <span className={currency === "EUR" ? "text-white font-bold" : ""}>{pricing.eur}</span>
+                         {pricing.usd && (
+                           <><span className="text-zinc-700">·</span>
+                           <span className={currency === "USD" ? "text-white font-bold" : ""}>{pricing.usd}</span></>
+                         )}
+                         {pricing.uah && (
+                           <><span className="text-zinc-700">·</span>
+                           <span className={currency === "UAH" ? "text-white font-bold" : ""}>{pricing.uah}</span></>
+                         )}
+                       </div>
+                     )}
+                   </div>
+                   <div className="text-right">
+                     <span className="block text-xs text-[#00e676] font-bold uppercase tracking-widest flex items-center justify-end gap-1.5">
+                        <Check size={14} strokeWidth={3} />
+                        {isUa ? "У наявності" : "In Stock"}
+                     </span>
+                   </div>
+                </div>
 
                {finalPriceLabel ? (
                  <button

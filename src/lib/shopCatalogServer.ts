@@ -4,6 +4,9 @@
  * products from admin appear; otherwise only static catalog is used.
  */
 
+import fs from 'fs';
+import path from 'path';
+
 import {
   SHOP_PRODUCTS,
   getShopProductBySlug as getStaticBySlug,
@@ -245,9 +248,28 @@ let lastCacheTime = 0;
 /** All products: from DB (published) then static catalog (by slug, DB wins). */
 export async function getShopProductsServer(): Promise<ShopProduct[]> {
   const now = Date.now();
-  // Cache for 45 seconds to drastically prevent Vercel out-of-memory (OOM) during heavy static build
+  // Memory cache for 45 seconds (prevents Vercel OOM during heavy static build)
   if (globalProductsCache && (now - lastCacheTime < 45000)) {
     return globalProductsCache;
+  }
+
+  // File cache for local development to prevent massive Supabase egress
+  const isDev = process.env.NODE_ENV === 'development';
+  const cachePath = isDev ? path.join(process.cwd(), '.shop-products-dev-cache.json') : '';
+  
+  if (isDev && fs.existsSync(cachePath)) {
+    try {
+      const stat = fs.statSync(cachePath);
+      // Use file cache if it's less than 3 hours old
+      if (now - stat.mtimeMs < 1000 * 60 * 60 * 3) {
+        const fileContent = fs.readFileSync(cachePath, 'utf8');
+        globalProductsCache = JSON.parse(fileContent);
+        lastCacheTime = stat.mtimeMs;
+        return globalProductsCache as ShopProduct[];
+      }
+    } catch {
+      // ignore parse errors and fetch fresh
+    }
   }
 
   let dbRows: AdminShopProductRecord[] = [];
@@ -270,6 +292,12 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
   
   globalProductsCache = Array.from(bySlug.values());
   lastCacheTime = Date.now();
+  
+  if (isDev && cachePath) {
+    try {
+      fs.writeFileSync(cachePath, JSON.stringify(globalProductsCache), 'utf8');
+    } catch {}
+  }
   
   return globalProductsCache;
 }

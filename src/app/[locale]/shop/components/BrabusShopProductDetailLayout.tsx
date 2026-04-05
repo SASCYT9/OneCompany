@@ -114,7 +114,7 @@ export function BrabusShopProductDetailLayout({
           background: var(--b-bg);
           color: #fff;
           font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-          min-height: 100vh;
+          min-height: 100dvh;
           position: relative;
         }
 

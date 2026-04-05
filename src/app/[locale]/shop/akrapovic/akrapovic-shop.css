@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════
-   Akrapovič Store — Titanium & Carbon Theme
-   "The Sound of Perfection"
+   Akrapovič Store — THE SOUND OF PERFECTION
+   Unique identity: Titanium & Carbon + audio heritage
+   Video BG + Sound Player = exclusively Akrapovič
    ═══════════════════════════════════════════ */
 
 /* ── Variables ── */
@@ -27,10 +28,19 @@
   overflow-x: hidden;
 }
 
+/* ── Focus-visible (a11y) ── */
+.ak-btn:focus-visible,
+.ak-line-card:focus-visible,
+.ak-back__link:focus-visible,
+.ak-hero__sound-toggle:focus-visible {
+  outline: 2px solid var(--ak-ember);
+  outline-offset: 3px;
+}
+
 /* ── Back Link ── */
 .ak-back {
   position: fixed;
-  top: 60px;
+  top: 70px;
   left: 0;
   z-index: 90;
   padding: 1rem 1.5rem;
@@ -98,7 +108,7 @@
 .ak-hero {
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: 100dvh;
   min-height: 700px;
   overflow: hidden;
   display: flex;
@@ -197,23 +207,41 @@
   left: 0;
   right: 0;
   z-index: 20;
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   border-top: 1px solid var(--ak-faint);
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
 }
 .ak-hero__stat {
-  flex: 1;
-  max-width: 240px;
-  padding: 1.5rem 2rem;
+  padding: 1.8rem 2rem;
   text-align: center;
   border-right: 1px solid var(--ak-faint);
+  position: relative;
+  transition: background 0.3s;
 }
 .ak-hero__stat:last-child { border-right: none; }
+.ak-hero__stat:hover {
+  background: rgba(192, 0, 32, 0.03);
+}
+.ak-hero__stat::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: var(--ak-ember);
+  transition: width 0.4s ease;
+}
+.ak-hero__stat:hover::before {
+  width: 40px;
+}
 .ak-hero__stat-num {
   display: block;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 200;
   letter-spacing: 0.04em;
   color: var(--ak-white);
@@ -221,12 +249,12 @@
 }
 .ak-hero__stat-label {
   display: block;
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   color: var(--ak-muted);
-  margin-top: 0.35rem;
+  margin-top: 0.4rem;
 }
 
 /* ═══════════════ MATERIALS ═══════════════ */
@@ -641,21 +669,26 @@
 .ak-heritage__content {
   position: relative;
   z-index: 20;
-  max-width: 640px;
-  padding: 4rem 2rem;
+  max-width: 600px;
+  padding: 5rem 2rem;
+  background: rgba(13, 13, 11, 0.5);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid var(--ak-faint);
+  border-radius: 20px;
 }
 .ak-heritage__title {
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
   font-weight: 100;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.2rem;
 }
 .ak-heritage__desc {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 300;
   color: var(--ak-muted);
-  line-height: 1.9;
+  line-height: 2;
 }
 
 /* ═══════════════ BOTTOM CTA ═══════════════ */
@@ -667,21 +700,39 @@
 .ak-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.85rem 2.5rem;
-  font-size: 0.65rem;
+  gap: 0.6rem;
+  padding: 0.9rem 2.8rem;
+  font-size: 0.6rem;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.25em;
   text-decoration: none;
-  border: 1px solid var(--ak-ember);
+  border: 1px solid rgba(192, 0, 32, 0.3);
   color: var(--ak-white);
   background: transparent;
-  transition: all 0.35s ease;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.ak-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #e00025, var(--ak-ember));
+  opacity: 0;
+  transition: opacity 0.4s;
+  z-index: -1;
 }
 .ak-btn:hover {
-  background: var(--ak-ember);
-  box-shadow: 0 0 30px var(--ak-ember-glow);
+  border-color: var(--ak-ember);
+  color: #fff;
+  box-shadow: 0 0 40px var(--ak-ember-glow), 0 8px 30px -10px rgba(192, 0, 32, 0.3);
+  transform: translateY(-2px);
+}
+.ak-btn:hover::before {
+  opacity: 1;
 }
 .ak-btn svg {
   width: 14px;
@@ -702,14 +753,17 @@
 }
 @media (max-width: 640px) {
   .ak-sounds__grid { grid-template-columns: 1fr; }
-  .ak-hero__stats { flex-direction: column; }
-  .ak-hero__stat {
-    border-right: none;
-    border-bottom: 1px solid var(--ak-faint);
-    padding: 1rem;
+  .ak-hero__stats {
+    grid-template-columns: repeat(2, 1fr);
   }
-  .ak-hero__stat:last-child { border-bottom: none; }
+  .ak-hero__stat {
+    padding: 1.2rem;
+  }
   .ak-hero__scroll { display: none; }
   .ak-back { display: none; }
   .ak-line-card { flex: 0 0 88vw; }
+  .ak-heritage__content {
+    padding: 3rem 1.5rem;
+    border-radius: 12px;
+  }
 }

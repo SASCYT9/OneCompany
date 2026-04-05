@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, X, ChevronDown, SlidersHorizontal, Settings2 } from "lucide-react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight, Zap } from "lucide-react";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
@@ -50,13 +51,43 @@ export default function RacechipVehicleFilter({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const [activeMake, setActiveMake] = useState<string>("all");
-  const [activeModel, setActiveModel] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Restore filter state from URL params on mount
+  const initialMake = searchParams?.get("make") || "all";
+  const initialModel = searchParams?.get("model") || "all";
+  const initialSort = (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
+  const initialSearch = searchParams?.get("q") || "";
+
+  const [activeMake, setActiveMake] = useState<string>(initialMake);
+  const [activeModel, setActiveModel] = useState<string>(initialModel);
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
 
   // Pagination to restrict the number of visible DOM elements
   const [visibleCount, setVisibleCount] = useState(30);
+
+  // Sync filter state to URL search params (shallow, no re-render of server component)
+  const syncToUrl = useCallback((make: string, model: string, sort: string, q: string) => {
+    const params = new URLSearchParams();
+    if (make !== "all") params.set("make", make);
+    if (model !== "all") params.set("model", model);
+    if (sort !== "default") params.set("sort", sort);
+    if (q.trim()) params.set("q", q);
+    const qs = params.toString();
+    const newPath = qs ? `${pathname}?${qs}` : pathname || "";
+    router.replace(newPath, { scroll: false });
+  }, [pathname, router]);
+
+  // Debounced URL sync to avoid spamming router on every keystroke
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      syncToUrl(activeMake, activeModel, sortOrder, searchQuery);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [activeMake, activeModel, sortOrder, searchQuery, syncToUrl]);
 
   // Reset visible limit whenever a filter changes
   useEffect(() => {
@@ -146,23 +177,27 @@ export default function RacechipVehicleFilter({
     const priceEur = ep?.eur ?? p.price.eur ?? 0;
     const priceUah = ep?.uah ?? p.price.uah ?? 0;
     
-    // Racechip is EUR based natively
-    if (currency === "EUR") return priceEur > 0 ? formatPrice(locale, priceEur, "EUR") : null;
-    if (currency === "USD" && rates?.USD) {
-      const usd = priceUsd > 0 ? priceUsd : Math.round(priceEur * rates.USD); 
-      return usd > 0 ? formatPrice(locale, usd, "USD") : null;
-    }
-    if (currency === "UAH" && rates?.UAH) {
-      const uah = priceUah > 0 ? priceUah : Math.round(priceEur * rates.UAH); 
-      return uah > 0 ? formatPrice(locale, uah, "UAH") : null;
-    }
-    return priceEur > 0 ? formatPrice(locale, priceEur, "EUR") : null;
+    if (priceEur <= 0) return null;
+
+    const usd = priceUsd > 0 ? priceUsd : (rates?.USD ? Math.round(priceEur * rates.USD) : 0);
+    const uah = priceUah > 0 ? priceUah : (rates?.UAH ? Math.round(priceEur * rates.UAH) : 0);
+
+    return {
+      eur: formatPrice(locale, priceEur, "EUR"),
+      usd: usd > 0 ? formatPrice(locale, usd, "USD") : null,
+      uah: uah > 0 ? formatPrice(locale, uah, "UAH") : null,
+      primary: currency === "USD" && usd > 0
+        ? formatPrice(locale, usd, "USD")
+        : currency === "UAH" && uah > 0
+          ? formatPrice(locale, uah, "UAH")
+          : formatPrice(locale, priceEur, "EUR"),
+    };
   };
 
   if (!mounted) return null;
 
   return (
-    <section className="bg-transparent text-white py-12 min-h-[90vh] relative z-10 selection:bg-[#ff4a00] selection:text-white font-sans overflow-hidden">
+    <section className="bg-transparent text-white py-12 min-h-[90dvh] relative z-10 selection:bg-[#ff4a00] selection:text-white font-sans overflow-hidden">
       {/* Top Right Orange Glow Only */}
       <div className="absolute -top-40 -right-40 w-[1000px] h-[1000px] bg-[radial-gradient(circle_at_center,rgba(255,74,0,0.06)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none" />
       
@@ -171,22 +206,25 @@ export default function RacechipVehicleFilter({
         <div className="flex flex-col gap-10">
           
           {/* ─── TOP: COMMAND CENTER FILTER ─── */}
-          {/* ─── TOP: COMMAND CENTER FILTER ─── */}
           <div className="relative z-30 mb-8 max-w-5xl mx-auto w-full">
             <div className="flex flex-col items-center justify-center text-center mb-10">
               <h2 className="text-2xl lg:text-3xl font-light tracking-[0.05em] uppercase text-white/90">
                 {isUa ? "НАЛАШТУЙТЕ СВІЙ АВТОМОБІЛЬ" : "CONFIGURE YOUR VEHICLE"}
               </h2>
+              <p className="mt-3 text-[10px] tracking-[0.3em] uppercase text-zinc-500 font-light flex items-center gap-2">
+                <Zap size={11} strokeWidth={2} className="text-[#ff4a00]" />
+                GTS 5 + App Control
+              </p>
             </div>
 
-            {/* CONTROLS ROW - 4 COLUMNS EXACTLY LIKE CONCEPT */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* CONTROLS ROW — 4 columns: Make / Model / Search / Sort */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* MAKE DROPDOWN */}
               <div className="relative border border-white/20 hover:border-[#ff4a00]/50 transition-colors">
                 <select
                   value={activeMake}
                   onChange={(e) => setActiveMake(e.target.value)}
-                  className="appearance-none w-full bg-[#080808] text-white text-[11px] uppercase tracking-[0.1em] font-light px-6 py-4 pr-12 outline-none cursor-pointer rounded-none"
+                  className="appearance-none w-full bg-[#080808] text-white text-[11px] uppercase tracking-[0.1em] font-light px-5 py-4 pr-10 outline-none cursor-pointer rounded-none"
                 >
                   <option value="all" className="bg-[#080808] text-zinc-500 font-light">{isUa ? "Виберіть Марку" : "Select Make"}</option>
                   {availableMakes.map((m) => (
@@ -195,7 +233,7 @@ export default function RacechipVehicleFilter({
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-6 text-zinc-500">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
                   <ChevronDown size={14} strokeWidth={1.5} />
                 </div>
               </div>
@@ -206,7 +244,7 @@ export default function RacechipVehicleFilter({
                   value={activeModel}
                   onChange={(e) => setActiveModel(e.target.value)}
                   disabled={activeMake === "all" || availableModels.length === 0}
-                  className="appearance-none w-full bg-[#080808] text-white text-[11px] uppercase tracking-[0.1em] font-light px-6 py-4 pr-12 outline-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed rounded-none"
+                  className="appearance-none w-full bg-[#080808] text-white text-[11px] uppercase tracking-[0.1em] font-light px-5 py-4 pr-10 outline-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed rounded-none"
                 >
                   <option value="all" className="bg-[#080808] text-zinc-500 font-light">{isUa ? "Виберіть Модель" : "Select Model"}</option>
                   {availableModels.map((m) => (
@@ -215,25 +253,25 @@ export default function RacechipVehicleFilter({
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-6 text-zinc-500">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
                   <ChevronDown size={14} strokeWidth={1.5} />
                 </div>
               </div>
 
-              {/* SEARCH -> Replaced with search box that matches the box style */}
+              {/* SEARCH */}
               <div className="relative border border-white/20 hover:border-[#ff4a00]/50 transition-colors">
-                <Search size={14} strokeWidth={1.5} className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-500" />
+                <Search size={14} strokeWidth={1.5} className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={isUa ? "Пошук авто..." : "Search Engine..."}
-                  className="w-full bg-[#080808] text-white text-[11px] tracking-[0.1em] font-light px-14 py-4 outline-none placeholder-zinc-500 rounded-none cursor-text"
+                  placeholder={isUa ? "Пошук двигуна..." : "Search Engine..."}
+                  className="w-full bg-[#080808] text-white text-[11px] tracking-[0.1em] font-light px-12 py-4 outline-none placeholder-zinc-500 rounded-none cursor-text"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 text-[#ff4a00] hover:text-white transition-opacity"
+                    className="absolute right-5 top-1/2 -translate-y-1/2 text-[#ff4a00] hover:text-white transition-opacity"
                   >
                     <X size={14} />
                   </button>
@@ -242,27 +280,40 @@ export default function RacechipVehicleFilter({
 
               {/* SORT DROPDOWN */}
               <div className="relative border border-white/20 hover:border-[#ff4a00]/50 transition-colors">
-                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-500">
+                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500">
                    <SlidersHorizontal size={14} strokeWidth={1.5} />
                 </div>
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value as any)}
-                  className="appearance-none w-full bg-[#080808] text-white text-[11px] uppercase tracking-[0.1em] font-light px-14 py-4 pr-12 outline-none cursor-pointer rounded-none"
+                  className="appearance-none w-full bg-[#080808] text-white text-[11px] uppercase tracking-[0.1em] font-light pl-12 py-4 pr-10 outline-none cursor-pointer rounded-none"
                 >
                   <option value="default" className="bg-[#080808] text-white">{isUa ? "За замовчуванням" : "Default Sort"}</option>
                   <option value="price_desc" className="bg-[#080808] text-white">{isUa ? "Спочатку дорожчі" : "Price: High to Low"}</option>
                   <option value="price_asc" className="bg-[#080808] text-white">{isUa ? "Спочатку дешевші" : "Price: Low to High"}</option>
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-6 text-zinc-500">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
                   <ChevronDown size={14} strokeWidth={1.5} />
                 </div>
               </div>
             </div>
-            
-            <p className="text-center text-zinc-500 text-[10px] sm:text-xs font-light tracking-widest mt-6">
-              {isUa ? "Цей селектор авто веде до продуктів та функцій." : "The vehicle selector leads to products and features."}
-            </p>
+
+            {/* Active filters summary */}
+            <div className="flex items-center justify-between mt-6">
+              <p className="text-zinc-500 text-[10px] sm:text-xs font-light tracking-widest">
+                {filtered.length} {isUa
+                  ? `результат${filtered.length === 1 ? '' : filtered.length < 5 ? 'и' : 'ів'}`
+                  : `result${filtered.length === 1 ? '' : 's'}`}
+                {(activeMake !== "all" || searchQuery) && (
+                  <> · <button
+                    onClick={() => { setActiveMake("all"); setActiveModel("all"); setSearchQuery(""); setSortOrder("default"); }}
+                    className="text-[#ff4a00] hover:text-white transition-colors uppercase tracking-widest"
+                  >
+                    {isUa ? "Скинути" : "Reset"}
+                  </button></>
+                )}
+              </p>
+            </div>
           </div>
 
           {/* ─── BOTTOM: PRODUCT GRID ─── */}
@@ -292,11 +343,19 @@ export default function RacechipVehicleFilter({
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
                 {displayedProducts.map((product) => {
                   const productTitle = localizeShopProductTitle(locale, product);
-                  const priceStr = getDisplayPrice(product);
+                  const priceData = getDisplayPrice(product);
                   const engineTag = product.tags?.find(t => t.startsWith("car_engine:"))?.slice(11);
 
                   return (
                     <article key={product.slug} className="group relative bg-[#080808] rounded-none flex flex-col border border-white/[0.05] hover:border-white/20 transition-all duration-500 shadow-xl">
+                      {/* Static GTS 5 Badge — all products are GTS 5 tier */}
+                      <div className="absolute top-4 right-4 z-20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[8px] uppercase tracking-[0.2em] font-bold bg-[#ff4a00]/15 text-[#ff4a00] border border-[#ff4a00]/20 rounded-sm backdrop-blur-sm">
+                          <Zap size={10} strokeWidth={2.5} />
+                          GTS 5
+                        </span>
+                      </div>
+
                       {/* MAIN CLICKABLE LINK */}
                       <Link
                         href={`/${locale}/shop/racechip/products/${product.slug}`}
@@ -365,26 +424,40 @@ export default function RacechipVehicleFilter({
                             </div>
                           )}
                           
-                          {/* Price */}
+                          {/* Price — primary + all currencies */}
                           <div className="mt-auto pt-2 pb-4">
                             <span className="text-lg tracking-widest font-thin text-white">
-                              {priceStr ? priceStr.replace('€', '€ ') : "ОЧІКУЄТЬСЯ"}
+                              {priceData ? priceData.primary : "ОЧІКУЄТЬСЯ"}
                             </span>
+                            {priceData && (
+                              <div className="flex items-center gap-2 mt-1.5 text-[9px] tracking-widest font-light text-zinc-600">
+                                <span className={currency === "EUR" ? "text-zinc-400" : ""}>{priceData.eur}</span>
+                                {priceData.usd && (<><span className="text-zinc-800">·</span><span className={currency === "USD" ? "text-zinc-400" : ""}>{priceData.usd}</span></>)}
+                                {priceData.uah && (<><span className="text-zinc-800">·</span><span className={currency === "UAH" ? "text-zinc-400" : ""}>{priceData.uah}</span></>)}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </Link>
 
-                      {/* Add To Cart Quick Action */}
-                      <div className="px-6 pb-6 pt-0 z-20 relative">
+                      {/* Bottom Actions: View + Add To Cart */}
+                      <div className="px-6 pb-6 pt-0 z-20 relative flex gap-3">
+                        <Link
+                          href={`/${locale}/shop/racechip/products/${product.slug}`}
+                          className="flex-1 flex items-center justify-center gap-2 py-3 border border-[#ff4a00]/30 text-[10px] tracking-[0.3em] uppercase font-light text-[#ff4a00] hover:text-white hover:bg-[#ff4a00] hover:border-[#ff4a00] transition-all duration-300 rounded-[2px]"
+                        >
+                          {isUa ? "ПЕРЕЙТИ" : "VIEW"}
+                          <ArrowRight size={12} strokeWidth={2} />
+                        </Link>
                         <AddToCartButton 
                           slug={product.slug}
                           variantId={null}
                           locale={locale}
                           redirect={true}
                           productName={productTitle}
-                          label={isUa ? "ДО КОШИКА" : "ADD TO CART"}
-                          labelAdded={isUa ? "В КОШИКУ" : "ADDED"}
-                          className="w-full flex items-center justify-center py-3 border border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
+                          label={isUa ? "КОШИК" : "CART"}
+                          labelAdded={isUa ? "✓" : "✓"}
+                          className="flex-1 flex items-center justify-center py-3 border border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
                           variant="inline"
                         />
                       </div>

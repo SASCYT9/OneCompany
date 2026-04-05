@@ -516,14 +516,6 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                     : formatShopMoney(locale, quote?.shippingCost ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span>{isUa ? 'Податок' : 'Tax'}</span>
-                <span>
-                  {quote && quote.taxAmount <= 0
-                    ? (isUa ? 'Податки включено у вартість' : 'Taxes included in price')
-                    : formatShopMoney(locale, quote?.taxAmount ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}
-                </span>
-              </div>
               <div className="flex items-center justify-between border-t border-white/10 pt-3 text-base font-medium text-white">
                 <span>{isUa ? 'Разом' : 'Total'}</span>
                 <span>{formatShopMoney(locale, quote?.total ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
@@ -534,11 +526,6 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
               {quote?.pricingAudience === 'b2b' ? 'B2B pricing applied' : 'B2C pricing applied'}
             </p>
 
-            {quote?.taxRegion ? (
-              <p className="mt-3 text-xs text-white/40">
-                {isUa ? 'Податкове правило' : 'Tax rule'}: {quote.taxRegion.name}
-              </p>
-            ) : null}
             {quote?.regionalPricingRule ? (
               <p className="mt-2 text-xs text-white/40">
                 {isUa ? 'Регіональна корекція' : 'Regional adjustment'}: {quote.regionalPricingRule.name}

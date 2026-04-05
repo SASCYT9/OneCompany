@@ -134,7 +134,7 @@ export default function BrandLogosGrid({
           )}
         </div>
 
-        <aside className="hidden md:block fixed right-0 top-1/2 -translate-y-1/2 h-full" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+        <aside className="hidden md:block fixed right-0 top-1/2 -translate-y-1/2 h-full" style={{ maxHeight: 'calc(100dvh - 200px)' }}>
           <ul className="flex flex-col space-y-1 text-center pr-4">
             {alphabet.map(letter => (
               <li key={letter}>

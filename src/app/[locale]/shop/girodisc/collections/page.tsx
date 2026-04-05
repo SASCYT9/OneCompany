@@ -35,7 +35,7 @@ export default async function GiroDiscCollectionsPage({ params }: Props) {
       style={{
         background: '#09090b',
         color: '#f4f4f5',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         fontFamily: "'Inter', system-ui, sans-serif",
       }}
     >

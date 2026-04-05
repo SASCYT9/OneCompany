@@ -116,7 +116,7 @@ export function BurgerShopProductDetailLayout({
   };
 
   return (
-    <div className="burger-shop" style={{ minHeight: "100vh", paddingTop: 100 }}>
+    <div className="burger-shop" style={{ minHeight: "100dvh", paddingTop: 100 }}>
       {/* ── Back Link ── */}
       <div className="burger-back" style={{ paddingBottom: 0 }}>
         <Link href={`/${locale}/shop/burger/products`} className="burger-back__link">

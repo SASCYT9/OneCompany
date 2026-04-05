@@ -60,6 +60,18 @@ aliases: [Dashboard, Головна]
 
 ## 🧭 Навігація
 
+### 💡 Генератор Ідей
+Свіжі думки, архітектурні інсайти та пропозиції (створюйте нові ідеї в папці `💡 Ідеї`):
+```dataview
+TABLE
+  status as "Статус",
+  priority as "Пріоритет",
+  file.cday as "Створено"
+FROM "💡 Ідеї" AND #idea
+SORT file.ctime DESC
+LIMIT 5
+```
+
 ### 🏪 E-Commerce (SHOP)
 - **[[✅ Розроблені Магазини (Storefronts)|🚀 Всі Готові Магазини (Візуал та Роути)]]**
 - [[Shop Overview]] — Архітектура магазину (фази A-F)
@@ -131,15 +143,15 @@ aliases: [Dashboard, Головна]
 - [[Analytics & Performance]] — Аналіз трафіку (Google Search Console) та Core Web Vitals
 
 ### ⚙️ Операції (Playbooks / SOPs)
-- [[Order Processing Playbook]] — Як менеджерам обробляти замовлення (від плати до доставки)
-- [[B2B Operations]] — Робота з дилерами (СТО), групи лояльності та видимість цін
-- [[Brand Onboarding Playbook]] — Інструкція по інтеграції нових брендів-постачальників
-- [[Competitor Analysis]] — Наші переваги на ринку та розбір конкурентів
+- 👑 **[[SOP - Standard Operating Procedures|Усі Інструкції (Головний Хаб)]]** — Відкрийте цей хаб для повної класифікації відділів
+- [[Order Processing Playbook]] — Як менеджерам обробляти замовлення
+- [[B2B Operations]] — Робота з дилерами (СТО) та знижки
+- [[Brand Onboarding Playbook]] — Чекліст інтеграції нових брендів
 
-### 📌 Статус
+### 📌 Статус та Задачі
+- 🎯 **[[Tasks Kanban|Kanban Board (Робоча Дошка)]]** — Повноцінний дашборд завдань (TODO, In Progress, Done)
 - [[Improvement Strategy]] — Ідеї по Інстаграму та функціоналу сайту 🚀
-- [[Blockers]] — Зовнішні залежності
-- [[TODO]] — Задачі без блокерів
+- [[TODO]] — Архів текстових задач
 - [[Team]] — Команда та відповідальності
 
 ---

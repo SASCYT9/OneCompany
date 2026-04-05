@@ -1,628 +1,496 @@
-/* ═══════════════════════════════════════════
-   iPE Exhaust — Crimson Velocity Theme
-   «Feel the Power»
-   ═══════════════════════════════════════════ */
+/* ──────────────────────────────────────────────────
+   iPE Exhaust — "Acoustic Studio" Architecture
+────────────────────────────────────────────────── */
 
-/* ── Variables ── */
 :root {
-  --ipe-bg: #080808;
-  --ipe-bg-warm: #0e0e0e;
-  --ipe-card: #141414;
-  --ipe-card-hover: #1a1a1a;
-  --ipe-border: #222222;
-  --ipe-titanium: #78716c;
-  --ipe-crimson: #dc2626;
-  --ipe-crimson-bright: #ef4444;
-  --ipe-crimson-glow: rgba(220, 38, 38, 0.15);
-  --ipe-crimson-subtle: rgba(220, 38, 38, 0.06);
-  --ipe-white: #fafaf9;
-  --ipe-muted: #a8a29e;
-  --ipe-faint: rgba(255, 255, 255, 0.06);
+  --ipe-bg: #09090b; /* Very dark zinc */
+  --ipe-bg-alt: #18181b;
+  --ipe-amber: #f59e0b;
+  --ipe-crimson: #e11d48;
+  --ipe-white: #fafafa;
+  --ipe-border: rgba(245, 158, 11, 0.15);
 }
 
-/* ── Layout ── */
+/* ── Typography & Global ── */
 .ipe-home {
   background: var(--ipe-bg);
   color: var(--ipe-white);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  position: relative;
+}
+
+.ipe-canvas {
+  width: 100%;
+  height: 300px;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.8;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+}
+
+/* ── Focus-visible (a11y) ── */
+*:focus-visible {
+  outline: 2px solid var(--ipe-amber);
+  outline-offset: 3px;
 }
 
 /* ── Back Link ── */
 .ipe-back {
   position: fixed;
-  top: 60px;
+  top: 70px;
   left: 0;
   z-index: 90;
   padding: 1rem 1.5rem;
 }
 .ipe-back__link {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
   transition: color 0.3s;
 }
 .ipe-back__link:hover {
-  color: var(--ipe-crimson);
+  color: var(--ipe-amber);
 }
 
-/* ── Typography ── */
-.ipe-label {
-  display: inline-block;
-  font-size: 0.6rem;
-  font-weight: 600;
+/* ── Section 1: Acoustic Hero ── */
+.ipe-acoustic-hero {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--ipe-border);
+  overflow: hidden;
+}
+
+.ipe-acoustic-hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.3;
+}
+.ipe-acoustic-hero__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0);
+}
+.ipe-acoustic-hero__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent, var(--ipe-bg) 80%);
+}
+
+.ipe-acoustic-hero__content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1200px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.ipe-hero-title {
+  font-size: clamp(4rem, 10vw, 8rem);
+  font-weight: 900;
+  line-height: 1;
   text-transform: uppercase;
-  letter-spacing: 0.25em;
-  color: var(--ipe-crimson);
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, var(--ipe-white), var(--ipe-amber) 70%, var(--ipe-crimson));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin-bottom: 1rem;
 }
-.ipe-section-title {
-  font-size: clamp(1.8rem, 4vw, 3rem);
-  font-weight: 200;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  line-height: 1.1;
-  margin: 0;
-}
-.ipe-section-sub {
-  font-size: 0.85rem;
-  font-weight: 300;
-  color: var(--ipe-muted);
-  line-height: 1.8;
-  max-width: 520px;
-  margin-top: 1.5rem;
-}
-.ipe-divider {
-  width: 50px;
-  height: 1px;
-  background: var(--ipe-crimson);
-  margin: 1.5rem 0;
-}
-.ipe-divider--center {
-  margin: 1.5rem auto;
+
+.ipe-hero-subtitle {
+  font-size: 1.25rem;
+  color: #a1a1aa;
+  max-width: 600px;
+  margin: 0 auto 3rem auto;
+  line-height: 1.5;
 }
 
-/* ── Reveal Animation ── */
+/* Audio Player Console Integration */
+.ipe-audio-console {
+  display: inline-flex;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--ipe-border);
+  backdrop-filter: blur(10px);
+  padding: 1rem 2rem;
+  border-radius: 100px;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+.ipe-btn-play {
+  background: linear-gradient(135deg, var(--ipe-amber), var(--ipe-crimson));
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.ipe-btn-play:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+}
+.ipe-btn-play svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+.ipe-equalizer {
+  display: flex;
+  gap: 4px;
+  height: 30px;
+  align-items: flex-end;
+}
+.ipe-eq-bar {
+  width: 4px;
+  background: var(--ipe-amber);
+  border-radius: 2px;
+  animation: equalize 1s infinite alternate;
+}
+.ipe-eq-bar:nth-child(1) { animation-delay: 0.1s; height: 30%; }
+.ipe-eq-bar:nth-child(2) { animation-delay: 0.4s; height: 60%; background: var(--ipe-crimson); }
+.ipe-eq-bar:nth-child(3) { animation-delay: 0.2s; height: 100%; }
+.ipe-eq-bar:nth-child(4) { animation-delay: 0.5s; height: 40%; background: var(--ipe-crimson); }
+.ipe-eq-bar:nth-child(5) { animation-delay: 0.3s; height: 80%; }
+.ipe-audio-console.paused .ipe-eq-bar {
+  animation-play-state: paused;
+  height: 10% !important;
+  transition: height 0.3s;
+}
+
+@keyframes equalize {
+  0% { transform: scaleY(1); }
+  100% { transform: scaleY(0.3); }
+}
+
+/* ── Metrics Bar ── */
+.ipe-metrics {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  border-top: 1px solid var(--ipe-border);
+  background: rgba(9, 9, 11, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+.ipe-metric {
+  flex: 1;
+  padding: 1.5rem;
+  text-align: center;
+  border-right: 1px solid var(--ipe-border);
+}
+.ipe-metric:last-child { border-right: none; }
+.ipe-metric-val {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ipe-white);
+  margin-bottom: 0.25rem;
+}
+.ipe-metric-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #a1a1aa;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 768px) {
+  .ipe-metrics {
+    position: static;
+    flex-wrap: wrap;
+    border-top: none;
+  }
+  .ipe-metric {
+    flex: 50%;
+    border-bottom: 1px solid var(--ipe-border);
+  }
+  .ipe-metric:nth-child(even) { border-right: none; }
+}
+
+/* ── Section 2: Valvetronic Dashboard ── */
+.ipe-valve-dash {
+  padding: 6rem 2rem;
+  background: var(--ipe-bg);
+  border-bottom: 1px solid var(--ipe-border);
+}
+.ipe-dash-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+@media (min-width: 900px) {
+  .ipe-dash-inner { grid-template-columns: 1fr 1fr; }
+}
+
+.ipe-dash-visual {
+  position: relative;
+  border-radius: 50%;
+  aspect-ratio: 1;
+  background: var(--ipe-bg-alt);
+  border: 4px solid var(--ipe-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+}
+.ipe-dash-visual img {
+  width: 90%;
+  height: 90%;
+  object-fit: cover;
+  border-radius: 50%;
+  opacity: 0.8;
+  mix-blend-mode: luminosity;
+  transition: opacity 0.5s;
+}
+.ipe-dash-visual:hover img {
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+.ipe-dash-visual::after {
+  content: 'VALVETRONIC';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 4rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.03);
+  pointer-events: none;
+}
+
+.ipe-dash-content h2 {
+  font-size: 2.5rem;
+  color: var(--ipe-amber);
+  margin-bottom: 1.5rem;
+}
+.ipe-dash-content p {
+  color: #a1a1aa;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+.ipe-specs-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+.ipe-spec-item {
+  border-left: 2px solid var(--ipe-crimson);
+  padding-left: 1rem;
+}
+.ipe-spec-v {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ipe-white);
+}
+.ipe-spec-l {
+  font-size: 0.8rem;
+  color: #71717a;
+  text-transform: uppercase;
+}
+
+/* ── Section 3: DNA Tracklist (Product Grid) ── */
+.ipe-dna-tracklist {
+  padding: 6rem 2rem;
+  background: var(--ipe-bg-alt);
+  border-bottom: 1px solid var(--ipe-border);
+}
+.ipe-dna-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.ipe-dna-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+.ipe-dna-header h2 {
+  font-size: 2.5rem;
+  color: var(--ipe-white);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.ipe-track-grid {
+  display: flex;
+  flex-direction: column;
+}
+.ipe-track {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  align-items: center;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  text-decoration: none;
+  transition: background 0.3s;
+}
+.ipe-track:hover {
+  background: rgba(255,255,255,0.02);
+}
+.ipe-track:hover .ipe-track-name {
+  color: var(--ipe-amber);
+}
+.ipe-track-no {
+  font-size: 1.5rem;
+  color: #3f3f46;
+  font-weight: 900;
+  text-align: center;
+}
+.ipe-track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.ipe-track-name {
+  font-size: 1.5rem;
+  color: var(--ipe-white);
+  font-weight: 700;
+  transition: color 0.3s;
+}
+.ipe-track-desc {
+  color: #a1a1aa;
+  font-size: 0.9rem;
+}
+.ipe-track-action {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--ipe-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ipe-amber);
+}
+
+@media (min-width: 768px) {
+  .ipe-track-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 4rem;
+  }
+}
+
+/* ── Section 4: Thermal Titanium Process ── */
+.ipe-thermal-process {
+  padding: 6rem 2rem;
+  background: var(--ipe-bg);
+}
+.ipe-thermal-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4rem;
+}
+@media (min-width: 900px) {
+  .ipe-thermal-inner {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.ipe-thermal-text {
+  flex: 1;
+}
+.ipe-thermal-text h2 {
+  font-size: 2.5rem;
+  color: var(--ipe-white);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.ipe-thermal-text h2::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--ipe-crimson), transparent);
+}
+.ipe-thermal-text p {
+  color: #a1a1aa;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.ipe-thermal-image {
+  flex: 1;
+  aspect-ratio: 4/3;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(225, 29, 72, 0.1);
+}
+.ipe-thermal-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+.ipe-thermal-image:hover img {
+  transform: scale(1.05);
+}
+
+/* Common CTA Button */
+.ipe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: transparent;
+  border: 1px solid var(--ipe-amber);
+  color: var(--ipe-amber);
+  padding: 1rem 2.5rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s;
+  border-radius: 4px;
+}
+.ipe-btn:hover {
+  background: var(--ipe-amber);
+  color: var(--ipe-bg);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+}
+.ipe-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
+/* Reveal */
 [data-ipe-reveal] {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateY(20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
 }
 [data-ipe-reveal].ipe-vis {
   opacity: 1;
   transform: translateY(0);
-}
-
-/* ═══════════════ HERO ═══════════════ */
-.ipe-hero {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  min-height: 700px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-.ipe-hero__bg {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-.ipe-hero__bg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: brightness(0.45) saturate(1.2);
-}
-.ipe-hero__bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(8, 8, 8, 0.3) 0%,
-    rgba(8, 8, 8, 0.1) 40%,
-    rgba(8, 8, 8, 0.6) 70%,
-    rgba(8, 8, 8, 0.95) 100%
-  );
-}
-.ipe-hero__content {
-  position: relative;
-  z-index: 20;
-  max-width: 800px;
-  padding: 0 2rem;
-}
-.ipe-hero__overtitle {
-  font-size: 0.6rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.35em;
-  color: var(--ipe-crimson);
-  margin-bottom: 1.5rem;
-}
-.ipe-hero__title {
-  font-size: clamp(2.5rem, 6vw, 5rem);
-  font-weight: 100;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  line-height: 1.05;
-  margin: 0 0 0.5rem;
-}
-.ipe-hero__title em {
-  font-style: normal;
-  font-weight: 300;
-  color: var(--ipe-crimson);
-}
-.ipe-hero__subtitle {
-  font-size: 0.85rem;
-  font-weight: 300;
-  color: var(--ipe-muted);
-  line-height: 1.8;
-  max-width: 480px;
-  margin: 1.5rem auto 0;
-}
-
-/* Scroll indicator */
-.ipe-hero__scroll {
-  position: absolute;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-}
-.ipe-hero__scroll-line {
-  width: 1px;
-  height: 40px;
-  background: linear-gradient(to bottom, var(--ipe-crimson), transparent);
-  animation: ipe-pulse 2s ease-in-out infinite;
-}
-@keyframes ipe-pulse {
-  0%, 100% { opacity: 0.3; transform: scaleY(1); }
-  50% { opacity: 1; transform: scaleY(1.3); }
-}
-
-/* Stats bar */
-.ipe-hero__stats {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  display: flex;
-  justify-content: center;
-  border-top: 1px solid var(--ipe-faint);
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(12px);
-}
-.ipe-hero__stat {
-  flex: 1;
-  max-width: 240px;
-  padding: 1.5rem 2rem;
-  text-align: center;
-  border-right: 1px solid var(--ipe-faint);
-}
-.ipe-hero__stat:last-child { border-right: none; }
-.ipe-hero__stat-num {
-  display: block;
-  font-size: 1.4rem;
-  font-weight: 200;
-  letter-spacing: 0.04em;
-  color: var(--ipe-white);
-  font-variant-numeric: tabular-nums;
-}
-.ipe-hero__stat-label {
-  display: block;
-  font-size: 0.55rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--ipe-muted);
-  margin-top: 0.35rem;
-}
-
-/* ═══════════════ VALVETRONIC TECHNOLOGY ═══════════════ */
-.ipe-valve {
-  padding: 4rem clamp(1.5rem, 4vw, 6rem);
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-.ipe-valve__header {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-/* ── Valve Card ── */
-.ipe-valve-card {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(320px, 45%) 1fr;
-  border-radius: 16px;
-  overflow: hidden;
-  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
-  border: 1px solid rgba(255,255,255,0.06);
-  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s ease;
-  grid-template-rows: 1fr;
-}
-.ipe-valve-card:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    0 20px 60px -15px rgba(0, 0, 0, 0.5),
-    0 0 40px -10px var(--ipe-crimson-glow);
-}
-/* Animated gradient border on hover */
-.ipe-valve-card::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 17px;
-  padding: 1px;
-  background: linear-gradient(135deg, var(--ipe-crimson), transparent 40%, transparent 60%, var(--ipe-crimson));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  z-index: 2;
-}
-.ipe-valve-card:hover::before {
-  opacity: 1;
-}
-.ipe-valve-card--reverse {
-  grid-template-columns: 1fr minmax(320px, 45%);
-}
-
-/* ── Image ── */
-.ipe-valve-card__image {
-  position: relative;
-  overflow: hidden;
-  min-height: 0;
-  max-height: 380px;
-}
-.ipe-valve-card--reverse .ipe-valve-card__image {
-  order: 2;
-}
-.ipe-valve-card__image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.8s ease;
-  filter: brightness(0.85) saturate(1.1);
-}
-.ipe-valve-card:hover .ipe-valve-card__image img {
-  transform: scale(1.08);
-  filter: brightness(1) saturate(1.2);
-}
-/* Subtle red overlay on image */
-.ipe-valve-card__image::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.08) 0%, transparent 60%);
-  pointer-events: none;
-  transition: opacity 0.5s ease;
-}
-.ipe-valve-card:hover .ipe-valve-card__image::after {
-  opacity: 0;
-}
-
-/* ── Text panel ── */
-.ipe-valve-card__text {
-  padding: 2.5rem clamp(2rem, 3vw, 3rem);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  position: relative;
-  z-index: 1;
-}
-.ipe-valve-card__title {
-  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
-  font-weight: 100;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  line-height: 1.1;
-  margin: 0 0 0.75rem;
-}
-.ipe-valve-card__desc {
-  font-size: 0.8rem;
-  font-weight: 300;
-  color: var(--ipe-muted);
-  line-height: 1.85;
-}
-
-/* ── Specs grid ── */
-.ipe-valve-card__specs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  margin-top: 1.5rem;
-}
-.ipe-valve-card__spec {
-  padding: 1rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  position: relative;
-  transition: background 0.3s ease;
-}
-.ipe-valve-card__spec:nth-child(odd) {
-  padding-right: 1rem;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-}
-.ipe-valve-card__spec:nth-child(even) {
-  padding-left: 1rem;
-}
-.ipe-valve-card__spec:hover {
-  background: var(--ipe-crimson-subtle);
-}
-.ipe-valve-card__spec-val {
-  display: block;
-  font-size: 1.2rem;
-  font-weight: 300;
-  letter-spacing: 0.02em;
-  color: var(--ipe-white);
-  margin-bottom: 0.2rem;
-  transition: color 0.3s ease;
-}
-.ipe-valve-card__spec:hover .ipe-valve-card__spec-val {
-  color: var(--ipe-crimson);
-}
-.ipe-valve-card__spec-label {
-  display: block;
-  font-size: 0.5rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: rgba(255, 255, 255, 0.3);
-}
-
-/* ── Staggered reveal for specs ── */
-.ipe-valve-card.ipe-vis .ipe-valve-card__spec {
-  animation: ipe-spec-in 0.6s ease forwards;
-  opacity: 0;
-}
-.ipe-valve-card.ipe-vis .ipe-valve-card__spec:nth-child(1) { animation-delay: 0.1s; }
-.ipe-valve-card.ipe-vis .ipe-valve-card__spec:nth-child(2) { animation-delay: 0.2s; }
-.ipe-valve-card.ipe-vis .ipe-valve-card__spec:nth-child(3) { animation-delay: 0.3s; }
-.ipe-valve-card.ipe-vis .ipe-valve-card__spec:nth-child(4) { animation-delay: 0.4s; }
-
-@keyframes ipe-spec-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Shimmer accent line under title ── */
-.ipe-valve-card__shimmer {
-  height: 2px;
-  width: 60px;
-  margin-bottom: 1rem;
-  background: linear-gradient(90deg, var(--ipe-crimson), rgba(220, 38, 38, 0.2), var(--ipe-crimson));
-  background-size: 200% 100%;
-  animation: ipe-shimmer-flow 3s ease infinite;
-  border-radius: 2px;
-}
-@keyframes ipe-shimmer-flow {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-/* ═══════════════ PRODUCT LINES ═══════════════ */
-.ipe-lines {
-  padding: 6rem 0 4rem;
-}
-.ipe-lines__header {
-  text-align: center;
-  padding: 0 2rem;
-  margin-bottom: 4rem;
-}
-.ipe-lines__track {
-  display: flex;
-  gap: 1.5rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding: 0 clamp(2rem, 6vw, 8rem) 1.5rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--ipe-crimson) rgba(255,255,255,0.05);
-}
-.ipe-lines__track::-webkit-scrollbar { height: 4px; }
-.ipe-lines__track::-webkit-scrollbar-thumb { background: var(--ipe-crimson); }
-.ipe-lines__track::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
-
-.ipe-line-card {
-  flex: 0 0 min(80vw, 550px);
-  height: clamp(380px, 60vh, 520px);
-  position: relative;
-  overflow: hidden;
-  border-radius: 12px;
-  scroll-snap-align: start;
-  text-decoration: none;
-  color: var(--ipe-white);
-  border: 1px solid rgba(255,255,255,0.04);
-  transition: transform 0.5s ease, box-shadow 0.5s ease;
-}
-.ipe-line-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 50px -10px var(--ipe-crimson-glow);
-}
-.ipe-line-card__img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.8s ease;
-}
-.ipe-line-card:hover .ipe-line-card__img {
-  transform: scale(1.06);
-}
-.ipe-line-card__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(8,8,8,0.9) 0%, rgba(8,8,8,0.2) 50%, transparent 100%);
-}
-.ipe-line-card__badge {
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  font-size: 0.5rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  border: 1px solid var(--ipe-crimson);
-  color: var(--ipe-crimson);
-  padding: 0.2rem 0.6rem;
-}
-.ipe-line-card__content {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 2rem;
-}
-.ipe-line-card__name {
-  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
-  font-weight: 300;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin: 0 0 0.5rem;
-}
-.ipe-line-card__desc {
-  font-size: 0.75rem;
-  font-weight: 300;
-  color: var(--ipe-muted);
-  line-height: 1.6;
-  max-width: 360px;
-}
-
-/* ═══════════════ HERITAGE ═══════════════ */
-.ipe-heritage {
-  position: relative;
-  width: 100%;
-  min-height: 70vh;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-.ipe-heritage__bg {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-.ipe-heritage__bg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: brightness(0.3) saturate(0.8);
-}
-.ipe-heritage__bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(8, 8, 8, 0.5) 0%,
-    rgba(8, 8, 8, 0.3) 50%,
-    rgba(8, 8, 8, 0.7) 100%
-  );
-}
-.ipe-heritage__content {
-  position: relative;
-  z-index: 20;
-  max-width: 640px;
-  padding: 4rem 2rem;
-}
-.ipe-heritage__title {
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 100;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 1.5rem;
-}
-.ipe-heritage__desc {
-  font-size: 0.85rem;
-  font-weight: 300;
-  color: var(--ipe-muted);
-  line-height: 1.9;
-}
-
-/* ═══════════════ BOTTOM CTA ═══════════════ */
-.ipe-bottom-cta {
-  text-align: center;
-  padding: 5rem 2rem;
-  border-top: 1px solid var(--ipe-faint);
-}
-.ipe-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.85rem 2.5rem;
-  font-size: 0.65rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  text-decoration: none;
-  border: 1px solid var(--ipe-crimson);
-  color: var(--ipe-white);
-  background: transparent;
-  transition: all 0.35s ease;
-  cursor: pointer;
-}
-.ipe-btn:hover {
-  background: var(--ipe-crimson);
-  box-shadow: 0 0 30px var(--ipe-crimson-glow);
-}
-.ipe-btn svg {
-  width: 14px;
-  height: 14px;
-  stroke: currentColor;
-  stroke-width: 2;
-  fill: none;
-}
-
-/* ═══════════════ WAVE DIVIDER ═══════════════ */
-.ipe-wave {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  padding: 3rem 2rem;
-  overflow: hidden;
-}
-.ipe-wave__bar {
-  width: 2px;
-  height: var(--h, 10px);
-  background: var(--ipe-crimson);
-  border-radius: 2px;
-  opacity: 0.4;
-  animation: ipe-wave-pulse 1.5s ease-in-out infinite;
-}
-@keyframes ipe-wave-pulse {
-  0%, 100% { transform: scaleY(0.5); opacity: 0.2; }
-  50%      { transform: scaleY(1);   opacity: 0.6; }
-}
-
-/* ═══════════════ RESPONSIVE ═══════════════ */
-@media (max-width: 960px) {
-  .ipe-valve-card { grid-template-columns: 1fr; }
-  .ipe-valve-card--reverse { grid-template-columns: 1fr; }
-  .ipe-valve-card--reverse .ipe-valve-card__image { order: 0; }
-  .ipe-valve-card__image { min-height: 260px; }
-  .ipe-valve-card__text { padding: 2rem 1.5rem; }
-}
-@media (max-width: 640px) {
-  .ipe-hero__stats { flex-direction: column; }
-  .ipe-hero__stat {
-    border-right: none;
-    border-bottom: 1px solid var(--ipe-faint);
-    padding: 1rem;
-  }
-  .ipe-hero__stat:last-child { border-bottom: none; }
-  .ipe-hero__scroll { display: none; }
-  .ipe-back { display: none; }
-  .ipe-line-card { flex: 0 0 88vw; }
 }

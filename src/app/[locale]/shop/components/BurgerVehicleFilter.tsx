@@ -173,7 +173,7 @@ export default function BurgerVehicleFilter({
   if (!mounted) return null;
 
   return (
-    <section className="bg-[#050505] text-white py-12 min-h-[90vh] relative z-10 selection:bg-[var(--burger-yellow)] selection:text-black font-sans overflow-hidden">
+    <section className="bg-[#050505] text-white py-12 min-h-[90dvh] relative z-10 selection:bg-[var(--burger-yellow)] selection:text-black font-sans overflow-hidden">
       {/* Top Right Golden Glow Only */}
       <div className="absolute -top-40 -right-40 w-[1000px] h-[1000px] bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.06)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none" />
       

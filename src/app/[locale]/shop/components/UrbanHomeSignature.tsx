@@ -46,8 +46,8 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
         style={
           {
             '--accent': '#f5f5f3',
-            '--hero-h-mobile': '90vh',
-            '--hero-h-desktop': '90vh',
+            '--hero-h-mobile': '90dvh',
+            '--hero-h-desktop': '90dvh',
             '--overlay-alpha': 0.25,
             '--logo-w': '220px',
           } as React.CSSProperties
