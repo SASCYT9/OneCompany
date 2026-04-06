@@ -11,12 +11,10 @@
             "id": "e7a7b303c61786dc",
             "type": "leaf",
             "state": {
-              "type": "excalidraw",
-              "state": {
-                "file": "🏛️ Архітектура CRM.md"
-              },
-              "icon": "excalidraw-icon",
-              "title": "🏛️ Архітектура CRM"
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Граф"
             }
           }
         ]
@@ -236,12 +234,14 @@
       "smart-connections:Smart Lookup: Open lookup view": false
     }
   },
-  "active": "5d37162db881cef0",
+  "active": "e7a7b303c61786dc",
   "lastOpenFiles": [
+    "Phase D — Orders.md",
+    "Admin — Dashboard.md",
+    "🏛️ Архітектура CRM.md",
     "🚀 Головна (Dashboard).md",
     "🗺️ Глобальна Архітектура.canvas",
     "🗺️ Візуальна Архітектура БД.canvas",
-    "🏛️ Архітектура CRM.md",
     "Home.md",
     "copilot/copilot-custom-prompts/Clip Web Page.md",
     "copilot/copilot-custom-prompts/Clip YouTube Transcript.md",
@@ -267,8 +267,6 @@
     "Templates/Idea Template.md",
     "💡 Ідеї",
     "Shop Master Plan.md",
-    "Content Calendar.md",
-    "SOP - Standard Operating Procedures.md",
     "Shop Mind Map.canvas",
     "Без назви 1.canvas",
     "screenshots/real_burger.png",

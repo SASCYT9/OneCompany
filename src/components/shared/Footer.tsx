@@ -158,18 +158,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
                 <p className="text-white/60">{t('workingHours')}</p>
               </div>
 
-              {/* Map Embed */}
-              <div className="h-32 w-full overflow-hidden rounded-sm border border-white/10 bg-white/5 grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  title="OneCompany Location"
-                  src="https://maps.google.com/maps?q=21B%20Baseina%20St%2C%20Kyiv%2C%20Ukraine&t=&z=15&ie=UTF8&iwloc=&output=embed"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                />
               </div>
-            </div>
           </div>
         </div>
 
@@ -195,13 +184,13 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
               </Link>
             </div>
             
-            <div className="flex flex-col items-center lg:items-end gap-3 mt-6 lg:mt-0">
-              <span className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-medium">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-end gap-3 sm:gap-5 mt-6 lg:mt-0 flex-wrap px-2">
+              <span className="text-base text-white font-medium text-center sm:text-right shrink-0">
                 {locale === 'ua' ? 'Безпечна оплата' : 'Secure Payment'}
               </span>
-              <div className="flex items-center gap-4">
-                <img src="/images/payments/visa.svg" alt="Visa" className="h-10 w-auto rounded-lg shadow-md" loading="lazy" />
-                <img src="/images/payments/mastercard.svg" alt="MasterCard" className="h-10 w-auto rounded-lg shadow-md" loading="lazy" />
+              <div className="flex items-center justify-center gap-5 bg-white/5 px-5 py-2.5 rounded-xl border border-white/10 shrink-0 shadow-lg">
+                <img src="/images/payments/visa.svg" alt="Visa" className="h-7 w-auto object-contain opacity-100 shrink-0 bg-white/10 p-1 rounded-sm" loading="lazy" />
+                <img src="/images/payments/mastercard.svg" alt="MasterCard" className="h-[32px] w-auto object-contain opacity-100 shrink-0 bg-white/10 p-1 rounded-sm" loading="lazy" />
               </div>
             </div>
           </div>
