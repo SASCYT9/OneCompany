@@ -8,6 +8,7 @@ import { BRABUS_SHOWCASES } from '../data/brabusShowcasesData';
 import BrabusThemeScript from './BrabusThemeScript';
 import BrabusVideoBackground from './BrabusVideoBackground';
 import BrabusQuickSelector from './BrabusQuickSelector';
+import BrabusTiltCard from './BrabusTiltCard';
 
 /* ── Image references ──────────────────────────────── */
 const BRABUS_ROCKET_IMG = '/images/shop/brabus/hq/brabus-supercars-26.jpg';
@@ -184,106 +185,109 @@ export default function BrabusHomeSignature({ locale }: Props) {
 
           <div className="br-widestar__grid">
             {/* ── G-Class Widestar ── */}
-            <Link
-              href={locHref(locale, '/shop/brabus/collections/g-class')}
-              className="br-widestar__card"
-              data-br-reveal
-            >
-              <div className="br-widestar__card-media">
-                <Image
-                  src="/images/shop/brabus/hq/brabus-supercars-27.jpg"
-                  alt="Brabus Widestar G-Class"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="br-widestar__card-img"
-                  unoptimized
-                />
-              </div>
-              <div className="br-widestar__card-overlay" />
-              <div className="br-widestar__card-content">
-                <span className="br-widestar__card-badge">Widestar</span>
-                <h3 className="br-widestar__card-title">G-Class</h3>
-                <p className="br-widestar__card-sub">
-                  {L(isUa,
-                    'W465 · Up to 900 HP · Carbon Widestar body kit',
-                    'W465 · До 900 к.с. · Карбоновий обвіс Widestar'
-                  )}
-                </p>
-                <span className="br-widestar__card-cta">
-                  {L(isUa, 'Shop Components', 'Каталог деталей')}
-                  <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-                </span>
-              </div>
-              <div className="br-widestar__card-accent" />
-            </Link>
+            <div data-br-reveal>
+              <BrabusTiltCard
+                href={locHref(locale, '/shop/brabus/collections/g-class')}
+                className="br-widestar__card"
+              >
+                <div className="br-widestar__card-media">
+                  <Image
+                    src="/images/shop/brabus/hq/brabus-supercars-27.jpg"
+                    alt="Brabus Widestar G-Class"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="br-widestar__card-img"
+                    unoptimized
+                  />
+                </div>
+                <div className="br-widestar__card-overlay" />
+                <div className="br-widestar__card-content">
+                  <span className="br-widestar__card-badge">Widestar</span>
+                  <h3 className="br-widestar__card-title">G-Class</h3>
+                  <p className="br-widestar__card-sub">
+                    {L(isUa,
+                      'W465 · Up to 900 HP · Carbon Widestar body kit',
+                      'W465 · До 900 к.с. · Карбоновий обвіс Widestar'
+                    )}
+                  </p>
+                  <span className="br-widestar__card-cta">
+                    {L(isUa, 'Shop Components', 'Каталог деталей')}
+                    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                  </span>
+                </div>
+                <div className="br-widestar__card-accent" />
+              </BrabusTiltCard>
+            </div>
 
             {/* ── Porsche 911 ── */}
-            <Link
-              href={locHref(locale, '/shop/brabus/collections/porsche')}
-              className="br-widestar__card"
-              data-br-reveal
-            >
-              <div className="br-widestar__card-media">
-                <Image
-                  src="/images/shop/brabus/hq/brabus-supercars-84.jpg"
-                  alt="Brabus Rocket R Porsche 911"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="br-widestar__card-img"
-                  unoptimized
-                />
-              </div>
-              <div className="br-widestar__card-overlay" />
-              <div className="br-widestar__card-content">
-                <span className="br-widestar__card-badge">Rocket R</span>
-                <h3 className="br-widestar__card-title">Porsche 911</h3>
-                <p className="br-widestar__card-sub">
-                  {L(isUa,
-                    'Turbo S · 900 HP · Full carbon aero programme',
-                    'Turbo S · 900 к.с. · Повна карбонова аеро програма'
-                  )}
-                </p>
-                <span className="br-widestar__card-cta">
-                  {L(isUa, 'Shop Components', 'Каталог деталей')}
-                  <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-                </span>
-              </div>
-              <div className="br-widestar__card-accent" />
-            </Link>
+            <div data-br-reveal>
+              <BrabusTiltCard
+                href={locHref(locale, '/shop/brabus/collections/porsche')}
+                className="br-widestar__card"
+              >
+                <div className="br-widestar__card-media">
+                  <Image
+                    src="/images/shop/brabus/hq/brabus-supercars-84.jpg"
+                    alt="Brabus Rocket R Porsche 911"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="br-widestar__card-img"
+                    unoptimized
+                  />
+                </div>
+                <div className="br-widestar__card-overlay" />
+                <div className="br-widestar__card-content">
+                  <span className="br-widestar__card-badge">Rocket R</span>
+                  <h3 className="br-widestar__card-title">Porsche 911</h3>
+                  <p className="br-widestar__card-sub">
+                    {L(isUa,
+                      'Turbo S · 900 HP · Full carbon aero programme',
+                      'Turbo S · 900 к.с. · Повна карбонова аеро програма'
+                    )}
+                  </p>
+                  <span className="br-widestar__card-cta">
+                    {L(isUa, 'Shop Components', 'Каталог деталей')}
+                    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                  </span>
+                </div>
+                <div className="br-widestar__card-accent" />
+              </BrabusTiltCard>
+            </div>
 
             {/* ── Range Rover ── */}
-            <Link
-              href={locHref(locale, '/shop/brabus/collections/range-rover')}
-              className="br-widestar__card"
-              data-br-reveal
-            >
-              <div className="br-widestar__card-media">
-                <Image
-                  src="/images/shop/brabus/hq/brabus-supercars-148.jpg"
-                  alt="Brabus Range Rover 600"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="br-widestar__card-img"
-                  unoptimized
-                />
-              </div>
-              <div className="br-widestar__card-overlay" />
-              <div className="br-widestar__card-content">
-                <span className="br-widestar__card-badge">Signature</span>
-                <h3 className="br-widestar__card-title">Range Rover</h3>
-                <p className="br-widestar__card-sub">
-                  {L(isUa,
-                    '600 HP · Carbon body kit · Bespoke interior',
-                    '600 к.с. · Карбоновий обвіс · Ексклюзивний інтер\'єр'
-                  )}
-                </p>
-                <span className="br-widestar__card-cta">
-                  {L(isUa, 'Shop Components', 'Каталог деталей')}
-                  <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-                </span>
-              </div>
-              <div className="br-widestar__card-accent" />
-            </Link>
+            <div data-br-reveal>
+              <BrabusTiltCard
+                href={locHref(locale, '/shop/brabus/collections/range-rover')}
+                className="br-widestar__card"
+              >
+                <div className="br-widestar__card-media">
+                  <Image
+                    src="/images/shop/brabus/hq/brabus-supercars-148.jpg"
+                    alt="Brabus Range Rover 600"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="br-widestar__card-img"
+                    unoptimized
+                  />
+                </div>
+                <div className="br-widestar__card-overlay" />
+                <div className="br-widestar__card-content">
+                  <span className="br-widestar__card-badge">Signature</span>
+                  <h3 className="br-widestar__card-title">Range Rover</h3>
+                  <p className="br-widestar__card-sub">
+                    {L(isUa,
+                      '600 HP · Carbon body kit · Bespoke interior',
+                      '600 к.с. · Карбоновий обвіс · Ексклюзивний інтер\'єр'
+                    )}
+                  </p>
+                  <span className="br-widestar__card-cta">
+                    {L(isUa, 'Shop Components', 'Каталог деталей')}
+                    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                  </span>
+                </div>
+                <div className="br-widestar__card-accent" />
+              </BrabusTiltCard>
+            </div>
           </div>
         </section>
 

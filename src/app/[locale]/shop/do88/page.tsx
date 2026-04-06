@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
+import { JsonLd, generateBrandSchema } from '@/lib/jsonLd';
 import Do88HomeSignature from '../components/Do88HomeSignature';
 import Do88CollectionsGrid from '../components/Do88CollectionsGrid';
 import Do88FeaturedModels from '../components/Do88FeaturedModels';
@@ -30,8 +31,20 @@ export default async function ShopDo88Page({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
+  const description = resolvedLocale === 'ua'
+    ? 'Преміальні системи охолодження DO88 зі Швеції. Офіційний постачальник в Україні.'
+    : 'Premium DO88 performance cooling systems from Sweden. Official supplier in Ukraine.';
+
   return (
     <>
+      <JsonLd 
+        schema={generateBrandSchema({
+          locale: resolvedLocale,
+          slug: 'shop/do88',
+          brandName: 'DO88',
+          description,
+        })} 
+      />
       <Do88HomeSignature locale={resolvedLocale} />
       
       <Suspense fallback={<div className="h-64 bg-black" />}>

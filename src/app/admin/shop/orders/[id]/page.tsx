@@ -496,6 +496,31 @@ export default function AdminOrderDetailPage() {
     }
   }
 
+  async function handleGenerateStripeLink() {
+    if (!id || !order) return;
+    setUpdating(true);
+    setError('');
+    setSuccess('');
+    try {
+      const response = await fetch(`/api/admin/shop/orders/${id}/stripe`, {
+        method: 'POST',
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data.error || 'Не вдалося згенерувати Stripe посилання');
+        return;
+      }
+      await load();
+      setSuccess('Посилання на оплату Stripe успішно згенеровано та СКОПІЙОВАНО в буфер обміну!');
+      if (data.url) {
+        navigator.clipboard.writeText(data.url).catch(() => {});
+        window.open(data.url, '_blank');
+      }
+    } finally {
+      setUpdating(false);
+    }
+  }
+
   if (loading) {
     return <div className="p-6 text-white/60">Завантаження замовлення…</div>;
   }
@@ -737,11 +762,20 @@ export default function AdminOrderDetailPage() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => void handleGenerateStripeLink()}
+                    disabled={updating || !['EUR', 'USD'].includes(order.currency)}
+                    className="rounded-lg bg-violet-500/20 px-3 py-1 text-xs text-violet-300 hover:bg-violet-500/30 disabled:opacity-50 transition-colors shadow-[0_0_10px_-2px_rgba(139,92,246,0.2)]"
+                    title={!['EUR', 'USD'].includes(order.currency) ? 'Stripe підтримує тільки EUR та USD' : 'Генерувати Stripe Checkout Link'}
+                  >
+                    Stripe Лінк (Міжнар)
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => void handleGenerateHutkoLink()}
                     disabled={updating}
                     className="rounded-lg bg-indigo-500/20 px-3 py-1 text-xs text-indigo-300 hover:bg-indigo-500/30 disabled:opacity-50 transition-colors shadow-[0_0_10px_-2px_rgba(99,102,241,0.2)]"
                   >
-                    Whitepay Лінк
+                    Whitepay Лінк (UAH)
                   </button>
                   <button
                     type="button"

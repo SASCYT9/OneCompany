@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
+import { JsonLd, generateBrandSchema } from '@/lib/jsonLd';
 import UrbanHomeSignature from '../components/UrbanHomeSignature';
 
 type Props = {
@@ -25,5 +26,21 @@ export default async function ShopUrbanPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  return <UrbanHomeSignature locale={resolvedLocale} />;
+  const description = resolvedLocale === 'ua'
+    ? 'Преміальні обвіси Urban Automotive. Офіційний постачальник в Україні.'
+    : 'Premium Urban Automotive body kits. Official supplier in Ukraine.';
+
+  return (
+    <>
+      <JsonLd 
+        schema={generateBrandSchema({
+          locale: resolvedLocale,
+          slug: 'shop/urban',
+          brandName: 'Urban Automotive',
+          description,
+        })} 
+      />
+      <UrbanHomeSignature locale={resolvedLocale} />
+    </>
+  );
 }

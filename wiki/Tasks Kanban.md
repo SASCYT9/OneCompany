@@ -5,24 +5,25 @@ tags: [dashboard, tasks]
 
 ## 🛑 Блокери (Очікуємо)
 
-- [ ] Інтеграція Онлайн-Еквайрингу (Stripe/Hutko) ^blocker-stripe
 - [ ] Отримання API ключів від Нової Пошти для калькулятора доставки ^blocker-np
 - [ ] Підписання контракту з складом у Польщі (Turnover) ^blocker-pl
 
 ## ⏳ В Роботі / Backlog
 
-- [ ] Базовий SEO / Копірайтинг аудит на сторінках брендів (Urban, Brabus) #seo
 - [ ] Зйомка 1-ї партії роликів для TikTok / Reels #marketing
+- [ ] Оформлення Instagram Highlight Covers для брендів #marketing
 - [ ] Додати більше B2B дилерських акаунтів вручну #b2b
-- [ ] Налаштувати Airtable CRM експорт (увімкнути ENABLE_AIRTABLE_EXPORT) #dev
 
 ## 🚀 Готово (Останні Релізи)
 
-- [ ] Финалізація MVP E-commerce архітектури (Phase F) #dev 
-- [ ] Глобальний блок валют (EUR, USD, UAH) та B2B знижок #dev 
-- [ ] Мультивалютний кошик і чекаут (Checkout flow) #dev 
-- [ ] Аудит та видалення "VAT / Taxes Included" з інтерфейсу клієнтів #dev 
-- [ ] Каталоги Urban, Akrapovič, Brabus, CSF фіналізовані #catalog
+- [x] Базовий SEO / Копірайтинг аудит на сторінках брендів (Urban, Brabus) #seo
+- [x] Інтеграція Онлайн-Еквайрингу (Stripe/Hutko Checkout) #dev
+- [x] Финалізація MVP E-commerce архітектури (Phase F) #dev 
+- [x] Глобальний блок валют (EUR, USD, UAH) та B2B знижок #dev 
+- [x] Мультивалютний кошик і чекаут (Checkout flow) #dev 
+- [x] Аудит та видалення "VAT / Taxes Included" з інтерфейсу клієнтів #dev 
+- [x] Мультискладський облік запасів (Medusa Architecture) #dev
+- [x] Каталоги Urban, Akrapovič, Brabus, CSF фіналізовані #catalog
 
 ***
 
@@ -30,6 +31,7 @@ tags: [dashboard, tasks]
 
 - [ ] Перенос бази в Supabase
 - [ ] Розробка системи ієрархічного каталогу
+- [ ] Налаштувати Airtable CRM експорт (Плани на рік) #dev
 
 %% kanban:settings
 ```

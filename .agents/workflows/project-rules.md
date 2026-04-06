@@ -28,3 +28,12 @@ This rule applies to:
 - Do not write, post, update, or delete any data on external platforms.
 - Only FETCH / GET data from APIs.
 - All modifications to state or records must be saved LOCALLY in the PostgreSQL database only.
+
+## 🚫 ANTI-PATTERNS (CRIMINAL CODE)
+
+**The AI must NEVER write code using the following anti-patterns:**
+1. **No CSS-in-JS**: Never install or use `styled-components` or `emotion`. We strictly use Tailwind CSS + inline classes.
+2. **No Redux / Global Context for Data**: Never scaffold a global React Context for server data. Use React Server Components and pass props, or rely on URL searchParams for stateless filters.
+3. **No Direct DOM Manipulation**: Do not use `document.getElementById` or `window.location.reload()`. Use React `useRef` and Next.js `useRouter` / `revalidatePath`.
+4. **No Console Errors**: Never leave unused variables, unhandled Promise rejections, or raw `console.log` statements in production components.
+5. **No Blind Imports**: Do not import packages that are not in `package.json`. Always check before using a third-party library.

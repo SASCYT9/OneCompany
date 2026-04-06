@@ -3,69 +3,21 @@ name: pixel-perfect-ui
 description: Навичка для 100% точного перенесення концептів UI у код та динамічної генерації графіки (ілюстрацій/фонів) прямо на льоту.
 ---
 
-# Premium Pixel-Perfect UI Generation Protocol
+# 🎨 Pixel-Perfect UI Skill
 
-## 🚫 Глобальні Обмеження
-- **КРИТИЧНО:** Заборонено спрощувати. Працюй виключно на рівні максимального аналізу Vision.
-- **Стандарт:** 100% Pixel-perfect. Жодних спрощень. Всі тіні, відблиски, градієнти, ефекти скла мають бути відтворені точнісінько як на зображенні за допомогою просунутого CSS.
-- **Заборонено:** Ніколи не ставити порожні сірі плейсхолдери. Завжди або реальне фото, або AI-генерація.
+You are operating under the **Stealth Wealth UI Designer** protocol.
 
-## 🛠 Покроковий алгоритм роботи
+## 1. Aesthetic Enforcements
+- Never use generic placeholder colors (e.g. `bg-red-500`, `text-blue-600`).
+- Use the established project palette: Deep Obsidian Black (`bg-zinc-950`), Bronze Accents (`text-[#c29d59]`), and Glassmorphism (`bg-white/5`, `backdrop-blur-xl`).
+- Micro-interactions are mandatory. All interactive buttons MUST have transition classes (`transition-all duration-300 hover:scale-105 active:scale-95`).
 
-### Етап 0: Перевірка реальних асетів
-1. Перед будь-якою генерацією, перевір чи є **реальні фото/відео продукту** в `/public/images/shop/`.
-2. Реальні фото **завжди пріоритетніші** за AI-генерацію.
-3. Якщо реальних фото немає — переходь до Етапу 2 (динамічна генерація).
+## 2. Using `generate_image`
+When creating UI demonstrations or placeholder hero images, NEVER rely on generic stock URLs. Use your `generate_image` tool to instantly create a highly fitting placeholder. 
+Example prompts for `generate_image` tool:
+- "A highly cinematic, dark moody shot of a carbon fiber aerodynamic wing"
+- "A photorealistic luxury car rim painted in dark bronze"
+- "Dark abstract geometric waveform in obsidian and gold"
 
-### Етап 1: Візуальний аналіз (Design System Artifact)
-1. Уважно проаналізуй завантажену картинку концепту.
-2. Створи документ (Артефакт) `design_system_{store_name}.md` і випиши туди математично точні дані:
-   - Всі HEX-коди (фони, градієнти, текст, акценти).
-   - Точні параметри тіней (`box-shadow`), розмиттів (`backdrop-filter`, `blur`).
-   - Шрифти (підбери максимально схожі з Google Fonts), їхню вагу (`font-weight`).
-   - Радіуси (`border-radius`).
-   - Сітку та відступи (`padding`, `margin`, `gap`).
-   - Розміри секцій (`min-height`, `max-width`).
-   - Всі ефекти: глоу, мерехтіння, частинки, shimmer, parallax.
-3. **СТОП. Зупинись і дочекайся підтвердження користувача, перш ніж писати код.**
-
-### Етап 2: Генерація графіки (Asset Pipeline)
-На макетах є красиві ілюстрації, фони, 3D-елементи. Використовуй **динамічну генерацію**:
-
-#### Варіант А — Pollinations AI (для прототипу)
-- Замість порожніх сірих квадратів, генеруй картинки через Pollinations AI URL.
-- Вставляй їх у код (HTML або CSS) з детальним англомовним промптом (URL Encoded).
-- Формат:
-  ```html
-  <img src="https://image.pollinations.ai/prompt/{detailed_description_in_english}?width={w}&height={h}" alt="..." />
-  ```
-- Приклад:
-  ```html
-  <img src="https://image.pollinations.ai/prompt/golden%20ohlins%20racing%20coilover%20suspension%20on%20black%20background%20studio%20lighting%20product%20photography?width=800&height=600" />
-  ```
-
-#### Варіант Б — Збереження для продакшн
-- Для фінального деплою: завантаж зображення з Pollinations URL і збережи в `/public/images/shop/{brand}/`.
-- Або використовуй `generate_image` tool для створення та збереження локально.
-- У коді посилайся на локальний файл: `src="/images/shop/ohlins/hero-product.png"`.
-
-### Етап 3: Верстка та Перевірка (Code Generation)
-1. Напиши HTML/CSS (або React/JSX), використовуючи **точні дані** з Етапу 1.
-2. Встав згенеровані лінки на картинки з Етапу 2.
-3. Обов'язково застосуй складний CSS:
-   - Multiple `box-shadow` для об'єму і глибини.
-   - Complex `linear-gradient` / `radial-gradient` для фонів.
-   - `backdrop-filter: blur()` для ефектів скла.
-   - `mix-blend-mode`, `clip-path` де потрібно.
-   - CSS анімації та `@keyframes` для мікро-взаємодій.
-4. Перевір результат через браузерний агент, порівняй з мокапом.
-5. Якщо є розбіжності — виправ до 100% відповідності.
-
-## 📋 Чек-лист перед здачею
-- [ ] Кольори збігаються з мокапом (HEX).
-- [ ] Типографіка: правильний шрифт, розмір, вага.
-- [ ] Тіні та ефекти відтворені.
-- [ ] Картинки — реальні або AI-генеровані (не плейсхолдери).
-- [ ] Анімації працюють (hover, scroll-reveal, particles).
-- [ ] Responsive: мобільна версія адекватна.
-- [ ] Скріншот порівняно з оригінальним мокапом.
+## 3. Visual Checks
+Always invoke your `browser_subagent` when a major UI component is pushed, capturing a screenshot to ensure the text alignment and responsive paddings (`px-4 md:px-8 lg:px-12`) are functioning perfectly.

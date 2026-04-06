@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
+import { JsonLd, generateBrandSchema } from '@/lib/jsonLd';
 import BrabusHomeSignature from '../components/BrabusHomeSignature';
 
 type Props = {
@@ -25,8 +26,20 @@ export default async function ShopBrabusPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
+  const description = resolvedLocale === 'ua'
+    ? 'Преміальний тюнінг Brabus. Офіційний постачальник в Україні.'
+    : 'Premium Brabus tuning. Official supplier in Ukraine.';
+
   return (
     <>
+      <JsonLd 
+        schema={generateBrandSchema({
+          locale: resolvedLocale,
+          slug: 'shop/brabus',
+          brandName: 'Brabus',
+          description,
+        })} 
+      />
       {/* 1. Cinematic Home: Hero + Showcases + Fleet + Rocket */}
       <BrabusHomeSignature locale={resolvedLocale} />
     </>

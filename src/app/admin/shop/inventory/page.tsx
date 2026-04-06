@@ -32,6 +32,23 @@ type InventoryRow = {
     collectionIds: string[];
     collectionHandles: string[];
   };
+  inventoryLevels?: {
+    id: string;
+    locationId: string;
+    locationName: string;
+    locationCode: string;
+    stockedQuantity: number;
+    reservedQuantity: number;
+    incomingQuantity: number;
+  }[];
+};
+
+type ShopLocation = {
+  id: string;
+  code: string;
+  name: string;
+  nameUa: string | null;
+  country: string;
 };
 
 type BulkInventoryState = {
@@ -57,6 +74,8 @@ function AdminInventoryPageContent() {
   const initialBrand = searchParams.get('brand') || 'ALL';
 
   const [variants, setVariants] = useState<InventoryRow[]>([]);
+  const [locations, setLocations] = useState<ShopLocation[]>([]);
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
@@ -112,12 +131,16 @@ function AdminInventoryPageContent() {
     setError('');
     try {
       const response = await fetch('/api/admin/shop/inventory');
-      const data = await response.json().catch(() => []);
+      const data = await response.json().catch(() => ({ variants: [], locations: [] }));
       if (!response.ok) {
         setError(data.error || 'Failed to load inventory');
         return;
       }
-      setVariants(data as InventoryRow[]);
+      setVariants(data.variants || []);
+      setLocations(data.locations || []);
+      if (data.locations && data.locations.length > 0 && !selectedLocationId) {
+        setSelectedLocationId(data.locations[0].id);
+      }
     } finally {
       setLoading(false);
     }
@@ -150,6 +173,7 @@ function AdminInventoryPageContent() {
 
     const payload: Record<string, unknown> = {
       variantIds: selectedIds,
+      locationId: selectedLocationId,
     };
 
     if (bulk.inventoryQty.trim()) payload.inventoryQty = Number(bulk.inventoryQty);
@@ -158,7 +182,7 @@ function AdminInventoryPageContent() {
     if (bulk.inventoryTracker.trim()) payload.inventoryTracker = bulk.inventoryTracker.trim();
     if (bulk.fulfillmentService.trim()) payload.fulfillmentService = bulk.fulfillmentService.trim();
 
-    if (Object.keys(payload).length === 1) {
+    if (Object.keys(payload).length <= 2) {
       setError('Enter at least one bulk inventory change.');
       return;
     }
@@ -225,11 +249,20 @@ function AdminInventoryPageContent() {
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <div className="grid gap-2 text-sm text-white/70 md:grid-cols-4">
               <div>{variants.length} variants</div>
-              <div>{variants.filter((variant) => variant.inventoryQty > 0).length} in stock</div>
-              <div>{variants.filter((variant) => variant.inventoryQty <= 0).length} zero/negative</div>
-              <div>{variants.filter((variant) => variant.inventoryTracker).length} tracked</div>
+              <div>{locations.length} locations</div>
+              <div>{variants.filter((variant) => (variant.inventoryLevels?.find(l => l.locationId === selectedLocationId)?.stockedQuantity || 0) > 0).length} in stock</div>
+              <div>{variants.filter((variant) => (variant.inventoryLevels?.find(l => l.locationId === selectedLocationId)?.stockedQuantity || 0) <= 0).length} zero/negative</div>
             </div>
             <div className="mt-4 flex flex-col sm:flex-row gap-2">
+              <select
+                value={selectedLocationId}
+                onChange={(e) => setSelectedLocationId(e.target.value)}
+                className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white font-medium text-emerald-400 focus:outline-none"
+              >
+                {locations.map(loc => (
+                  <option key={loc.id} value={loc.id}>🏢 {loc.nameUa || loc.name} ({loc.code})</option>
+                ))}
+              </select>
               <select
                 value={brandFilter}
                 onChange={(e) => setBrandFilter(e.target.value)}
@@ -364,7 +397,12 @@ function AdminInventoryPageContent() {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-white/80">{variant.inventoryQty}</td>
+                    <td className="px-4 py-4 text-white/80">
+                      <div className="text-lg font-medium">
+                        {(variant.inventoryLevels?.find(l => l.locationId === selectedLocationId)?.stockedQuantity) || 0}
+                      </div>
+                      <div className="text-[10px] text-white/40 uppercase mt-1">Stocked</div>
+                    </td>
                     <td className="px-4 py-4 text-white/70">{variant.inventoryPolicy}</td>
                     <td className="px-4 py-4 text-white/45">
                       <div>{variant.inventoryTracker || '—'}</div>

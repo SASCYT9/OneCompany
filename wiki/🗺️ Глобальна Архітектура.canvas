@@ -1,0 +1,245 @@
+{
+  "nodes": [
+    {
+      "id": "g_frontend",
+      "type": "group",
+      "label": "Світ Клієнта (Storefront)",
+      "x": -1200,
+      "y": -300,
+      "width": 600,
+      "height": 700,
+      "color": "4"
+    },
+    {
+      "id": "n_home",
+      "type": "text",
+      "text": "## 🏠 Home & Catalog\n- `src/app/[locale]/shop`\n- Urban / iPE / Öhlins",
+      "x": -1150,
+      "y": -200,
+      "width": 500,
+      "height": 100
+    },
+    {
+      "id": "n_product",
+      "type": "text",
+      "text": "## 🛍️ Product Page\n- `src/app/.../products/[slug]`\n- RSC + Dynamic SEO",
+      "x": -1150,
+      "y": 0,
+      "width": 500,
+      "height": 100
+    },
+    {
+      "id": "n_checkout",
+      "type": "text",
+      "text": "## 🛒 Hybrid Checkout\n- Кошик (Zustand)\n- Генерація ЗАПИТУ (не пряма оплата)",
+      "x": -1150,
+      "y": 200,
+      "width": 500,
+      "height": 100
+    },
+
+    {
+      "id": "g_admin",
+      "type": "group",
+      "label": "Світ Менеджера (Admin CRM)",
+      "x": -1200,
+      "y": 600,
+      "width": 600,
+      "height": 550,
+      "color": "3"
+    },
+    {
+      "id": "n_admin_catalog",
+      "type": "text",
+      "text": "## 📋 Catalog Manager\n- Редагування Товарів та Варіантів",
+      "x": -1150,
+      "y": 700,
+      "width": 500,
+      "height": 100
+    },
+    {
+      "id": "n_ai_seo",
+      "type": "text",
+      "text": "## ✨ AI SEO Machine\n- Генерація Meta Title/Desc через Gemini",
+      "x": -1150,
+      "y": 900,
+      "width": 500,
+      "height": 100
+    },
+
+    {
+      "id": "g_server",
+      "type": "group",
+      "label": "Двигун (Next.js Server / APIs)",
+      "x": -400,
+      "y": -200,
+      "width": 500,
+      "height": 1000,
+      "color": "6"
+    },
+    {
+      "id": "n_actions",
+      "type": "text",
+      "text": "## ⚡ Server Actions\n- Валідація Zod\n- Захист RBAC",
+      "x": -350,
+      "y": -100,
+      "width": 400,
+      "height": 100
+    },
+    {
+      "id": "n_stripe_wh",
+      "type": "text",
+      "text": "## 💳 Stripe Webhook\n- Обробка успішних платежів",
+      "x": -350,
+      "y": 200,
+      "width": 400,
+      "height": 100
+    },
+    {
+      "id": "n_turn14_sync",
+      "type": "text",
+      "text": "## 🔄 Turn14 Cron Sync\n- Оновлення залишків кожну ніч",
+      "x": -350,
+      "y": 500,
+      "width": 400,
+      "height": 100
+    },
+
+    {
+      "id": "g_db",
+      "type": "group",
+      "label": "Світ Даних (Prisma / Supabase)",
+      "x": 300,
+      "y": -200,
+      "width": 500,
+      "height": 1200,
+      "color": "5"
+    },
+    {
+      "id": "n_db_product",
+      "type": "text",
+      "text": "### 📦 ShopProduct\n(Глобальна карточка товару)",
+      "x": 350,
+      "y": -100,
+      "width": 400,
+      "height": 100
+    },
+    {
+      "id": "n_db_variant",
+      "type": "text",
+      "text": "### 🏷️ ShopVariant\n(Конкретна модель, SKU, Вага)",
+      "x": 350,
+      "y": 100,
+      "width": 400,
+      "height": 100
+    },
+    {
+      "id": "n_db_inventory",
+      "type": "text",
+      "text": "### 🏭 InventoryLevel & Location\n(Хранитель складських залишків)",
+      "x": 350,
+      "y": 300,
+      "width": 400,
+      "height": 100
+    },
+    {
+      "id": "n_db_order",
+      "type": "text",
+      "text": "### 🧾 ShopOrder\n(Замовлення клієнта)",
+      "x": 350,
+      "y": 700,
+      "width": 400,
+      "height": 100
+    },
+
+    {
+      "id": "g_external",
+      "type": "group",
+      "label": "Зовнішній Світ (External APIs)",
+      "x": 1000,
+      "y": 0,
+      "width": 500,
+      "height": 700,
+      "color": "1"
+    },
+    {
+      "id": "n_ext_stripe",
+      "type": "text",
+      "text": "## Stripe API / Hutko",
+      "x": 1050,
+      "y": 100,
+      "width": 400,
+      "height": 100
+    },
+    {
+      "id": "n_ext_turn14",
+      "type": "text",
+      "text": "## Turn14 B2B Network",
+      "x": 1050,
+      "y": 300,
+      "width": 400,
+      "height": 100
+    },
+    {
+      "id": "n_ext_airtable",
+      "type": "text",
+      "text": "## Airtable (Read-Only)",
+      "x": 1050,
+      "y": 500,
+      "width": 400,
+      "height": 100
+    },
+
+    {
+      "id": "g_ai",
+      "type": "group",
+      "label": "Мозок AI (Antigravity & Obsidian)",
+      "x": -600,
+      "y": -800,
+      "width": 900,
+      "height": 400,
+      "color": "2"
+    },
+    {
+      "id": "n_obsidian",
+      "type": "text",
+      "text": "## 💎 Obsidian Shared Brain\n- Візуальні Архітектури\n- B2B Правила\n- Smart Connections RAG",
+      "x": -550,
+      "y": -700,
+      "width": 350,
+      "height": 200
+    },
+    {
+      "id": "n_antigravity",
+      "type": "text",
+      "text": "## 🤖 Antigravity AI Agent\n- Читає Obsidian Vault\n- Генерує код у `src/`\n- Авто-компілює TypeScript",
+      "x": -100,
+      "y": -700,
+      "width": 350,
+      "height": 200
+    }
+  ],
+  "edges": [
+    { "id": "e1", "fromNode": "n_home", "fromSide": "bottom", "toNode": "n_product", "toSide": "top" },
+    { "id": "e2", "fromNode": "n_product", "fromSide": "bottom", "toNode": "n_checkout", "toSide": "top" },
+    { "id": "e3", "fromNode": "n_checkout", "fromSide": "right", "toNode": "n_actions", "toSide": "left", "label": "Відправляє Замовлення" },
+    { "id": "e4", "fromNode": "n_actions", "fromSide": "right", "toNode": "n_db_order", "toSide": "left", "label": "Створює" },
+    
+    { "id": "e5", "fromNode": "n_admin_catalog", "fromSide": "right", "toNode": "n_actions", "toSide": "left" },
+    { "id": "e6", "fromNode": "n_actions", "fromSide": "right", "toNode": "n_db_product", "toSide": "left" },
+    
+    { "id": "e7", "fromNode": "n_stripe_wh", "fromSide": "right", "toNode": "n_db_inventory", "toSide": "left", "label": "Резервує товар" },
+    { "id": "e8", "fromNode": "n_stripe_wh", "fromSide": "right", "toNode": "n_db_order", "toSide": "left", "label": "Оновлює PENDING -> PAID" },
+    { "id": "e9", "fromNode": "n_ext_stripe", "fromSide": "left", "toNode": "n_stripe_wh", "toSide": "right", "label": "Webhooks" },
+    
+    { "id": "e10", "fromNode": "n_turn14_sync", "fromSide": "right", "toNode": "n_db_inventory", "toSide": "left" },
+    { "id": "e11", "fromNode": "n_ext_turn14", "fromSide": "left", "toNode": "n_turn14_sync", "toSide": "right", "label": "REST API" },
+    
+    { "id": "e12", "fromNode": "n_db_product", "fromSide": "bottom", "toNode": "n_db_variant", "toSide": "top" },
+    { "id": "e13", "fromNode": "n_db_variant", "fromSide": "bottom", "toNode": "n_db_inventory", "toSide": "top" },
+    
+    { "id": "e14", "fromNode": "n_antigravity", "fromSide": "bottom", "toNode": "g_server", "toSide": "top", "label": "Пише код" },
+    { "id": "e15", "fromNode": "n_obsidian", "fromSide": "bottom", "toNode": "g_frontend", "toSide": "top", "label": "Диктує дизайн" },
+    { "id": "e16", "fromNode": "n_ai_seo", "fromSide": "right", "toNode": "n_db_product", "toSide": "left", "label": "Генерує Мета-теги" }
+  ]
+}

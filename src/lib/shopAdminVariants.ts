@@ -10,6 +10,9 @@ export const adminVariantSummarySelect = {
   inventoryPolicy: true,
   inventoryTracker: true,
   fulfillmentService: true,
+  inventoryLevels: {
+    include: { location: true },
+  },
   priceEur: true,
   priceUsd: true,
   priceUah: true,
@@ -112,6 +115,15 @@ export function serializeAdminVariantSummary(record: AdminShopVariantSummaryReco
     inventoryPolicy: record.inventoryPolicy,
     inventoryTracker: record.inventoryTracker,
     fulfillmentService: record.fulfillmentService,
+    inventoryLevels: record.inventoryLevels.map(level => ({
+      id: level.id,
+      locationId: level.locationId,
+      locationName: level.location.name,
+      locationCode: level.location.code,
+      stockedQuantity: level.stockedQuantity,
+      reservedQuantity: level.reservedQuantity,
+      incomingQuantity: level.incomingQuantity,
+    })),
     priceEur: decimalToNumber(record.priceEur),
     priceUsd: decimalToNumber(record.priceUsd),
     priceUah: decimalToNumber(record.priceUah),
@@ -238,7 +250,7 @@ async function syncProductsFromVariantInventory(prisma: PrismaClient, productIds
   );
 }
 
-export async function applyAdminInventoryPatch(prisma: PrismaClient, input: AdminInventoryPatchInput) {
+export async function applyAdminInventoryPatch(prisma: PrismaClient, input: AdminInventoryPatchInput & { locationId?: string }) {
   const variantIds = uniqueStrings(input.variantIds);
   if (!variantIds.length) {
     return { updatedCount: 0, productIds: [] as string[] };
@@ -257,6 +269,7 @@ export async function applyAdminInventoryPatch(prisma: PrismaClient, input: Admi
     return { updatedCount: 0, productIds: [] as string[] };
   }
 
+  // Update legacy fields for backwards compatibility (for now)
   await prisma.$transaction(
     variants.map((variant) =>
       prisma.shopProductVariant.update({
@@ -277,6 +290,46 @@ export async function applyAdminInventoryPatch(prisma: PrismaClient, input: Admi
       })
     )
   );
+
+  // If a location is specified, heavily modify the Warehouse inventory metrics
+  if (input.locationId && (input.inventoryQty != null || input.inventoryAdjustment != null)) {
+    // 1. Fetch current levels for that location
+    const currentLevels = await prisma.shopInventoryLevel.findMany({
+      where: {
+        variantId: { in: variantIds },
+        locationId: input.locationId,
+      }
+    });
+    const levelMap = new Map(currentLevels.map(lvl => [`${lvl.variantId}_${lvl.locationId}`, lvl.stockedQuantity]));
+
+    const upserts = variants.map(variant => {
+      const variantQty = typeof variant.inventoryQty === 'number' ? variant.inventoryQty : Number(variant.inventoryQty || 0);
+      const existingQuantity = typeof levelMap.get(`${variant.id}_${input.locationId}`) === 'number' ? levelMap.get(`${variant.id}_${input.locationId}`) as number : 0;
+      
+      const targetQuantity = input.inventoryQty != null
+        ? input.inventoryQty 
+        : existingQuantity + (input.inventoryAdjustment || 0);
+
+      return prisma.shopInventoryLevel.upsert({
+        where: {
+          variantId_locationId: {
+            variantId: variant.id,
+            locationId: input.locationId as string
+          }
+        },
+        create: {
+          variantId: variant.id,
+          locationId: input.locationId as string,
+          stockedQuantity: targetQuantity
+        },
+        update: {
+          stockedQuantity: targetQuantity
+        }
+      });
+    });
+
+    await prisma.$transaction(upserts);
+  }
 
   const productIds = uniqueStrings(variants.map((variant) => variant.productId));
   await syncProductsFromVariantInventory(prisma, productIds);

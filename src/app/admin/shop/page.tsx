@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Plus, Pencil, Trash2, Upload, Package, ShoppingCart, Search, Layers3, Warehouse, Coins, Settings2, FileClock, ImageIcon, FolderTree, Users, Boxes, Globe } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, Package, ShoppingCart, Search, Layers3, Warehouse, Coins, Settings2, FileClock, ImageIcon, FolderTree, Users, Boxes, Globe, Sparkles } from 'lucide-react';
 
 type ShopProductListItem = {
   id: string;
@@ -225,6 +225,10 @@ function AdminShopPageContent() {
             <Link href="/admin/shop/import" title="Імпорт товарів з CSV і мапінг колонок" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Upload className="w-4 h-4" />
               Імпорт CSV
+            </Link>
+            <Link href="/admin/shop/seo" title="Автоматична генерація SEO мета-тегів" className="flex items-center gap-2 rounded-lg border border-teal-500/30 bg-teal-500/10 px-4 py-2 text-sm font-medium text-teal-400 hover:bg-teal-500/20 shadow-[0_0_15px_-3px_rgba(45,212,191,0.2)]">
+              <Sparkles className="w-4 h-4" />
+              SEO Machine
             </Link>
             <Link href="/admin/shop/new" title="Створити новий товар" className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
               <Plus className="w-4 h-4" />

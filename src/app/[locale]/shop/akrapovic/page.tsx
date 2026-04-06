@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
+import { JsonLd, generateBrandSchema } from '@/lib/jsonLd';
 import AkrapovicHomeSignature from '../components/AkrapovicHomeSignature';
 
 type Props = {
@@ -28,5 +29,21 @@ export default async function ShopAkrapovicPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  return <AkrapovicHomeSignature locale={resolvedLocale} />;
+  const description = resolvedLocale === 'ua'
+    ? 'Преміальні титанові та карбонові вихлопні системи Akrapovič. Офіційний постачальник в Україні. BMW, Porsche, Mercedes, Audi, Lamborghini, Ferrari.'
+    : 'Premium titanium & carbon fibre Akrapovič exhaust systems. Official supplier in Ukraine. BMW, Porsche, Mercedes, Audi, Lamborghini, Ferrari.';
+
+  return (
+    <>
+      <JsonLd 
+        schema={generateBrandSchema({
+          locale: resolvedLocale,
+          slug: 'shop/akrapovic',
+          brandName: 'Akrapovič',
+          description,
+        })} 
+      />
+      <AkrapovicHomeSignature locale={resolvedLocale} />
+    </>
+  );
 }

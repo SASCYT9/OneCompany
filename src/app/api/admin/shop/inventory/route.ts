@@ -32,7 +32,14 @@ export async function GET() {
       select: adminVariantSummarySelect,
     });
 
-    return NextResponse.json(variants.map(serializeAdminVariantSummary));
+    const locations = await prisma.shopWarehouse.findMany({
+      orderBy: { name: 'asc' },
+    });
+
+    return NextResponse.json({
+      variants: variants.map(serializeAdminVariantSummary),
+      locations,
+    });
   } catch (error) {
     if ((error as Error).message === 'UNAUTHORIZED') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -67,6 +74,8 @@ export async function PATCH(request: NextRequest) {
     const fulfillmentService = Object.prototype.hasOwnProperty.call(body, 'fulfillmentService')
       ? nullableString(body.fulfillmentService)
       : undefined;
+    
+    const locationId = body.locationId ? String(body.locationId) : undefined;
 
     if (!variantIds.length) {
       return NextResponse.json({ error: 'variantIds are required' }, { status: 400 });
@@ -80,7 +89,8 @@ export async function PATCH(request: NextRequest) {
       inventoryAdjustment != null ||
       inventoryPolicy !== undefined ||
       inventoryTracker !== undefined ||
-      fulfillmentService !== undefined;
+      fulfillmentService !== undefined ||
+      locationId !== undefined;
 
     if (!hasUpdate) {
       return NextResponse.json({ error: 'No inventory changes provided' }, { status: 400 });
@@ -93,6 +103,7 @@ export async function PATCH(request: NextRequest) {
       inventoryPolicy,
       inventoryTracker,
       fulfillmentService,
+      locationId,
     });
     await writeAdminAuditLog(prisma, session, {
       scope: 'shop',
