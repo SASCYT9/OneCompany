@@ -59,7 +59,7 @@ export default function BrabusTechHUD({ locale }: Props) {
 
         <Link
           href={`/${locale}/shop/brabus/collections`}
-          className="inline-flex flex-col items-center justify-center border border-[#cc0000] bg-black/40 backdrop-blur-sm text-white px-6 py-3 text-xs md:text-sm font-medium uppercase tracking-[0.25em] hover:bg-[#cc0000] hover:text-white transition-all duration-300 w-fit group"
+          className="inline-flex flex-col items-center justify-center border border-[#c29d59]/40 bg-white/5 backdrop-blur-xl text-white px-6 py-3 text-xs md:text-sm font-medium uppercase tracking-[0.25em] hover:bg-[#c29d59]/15 hover:border-[#c29d59]/70 hover:shadow-[0_0_30px_rgba(194,157,89,0.15)] transition-all duration-500 w-fit group"
         >
           {isUa ? "Дослідити G-Wagon" : "Explore the G-Wagon"}
         </Link>

@@ -226,3 +226,183 @@
 .animate-scroll-right:hover {
   animation-play-state: paused;
 }
+
+/* ===== STEALTH WEALTH PREMIUM UTILITIES ===== */
+
+/* Shimmer gradient line — decorative accent */
+.shimmer-line {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(194, 157, 89, 0) 15%,
+    rgba(194, 157, 89, 0.6) 50%,
+    rgba(194, 157, 89, 0) 85%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.5s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Bronze gradient text */
+.bronze-text-gradient {
+  background: linear-gradient(135deg, #c29d59 0%, #d4b77e 40%, #c29d59 60%, #a8864a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Performance stats ribbon (Akrapovic/Brabus style) */
+.perf-ribbon {
+  display: flex;
+  gap: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(8px);
+}
+.perf-ribbon__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.perf-ribbon__stat:last-child {
+  border-right: none;
+}
+.perf-ribbon__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+  line-height: 1;
+}
+.perf-ribbon__label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 0.35rem;
+}
+
+/* Premium product card hover effect */
+.product-card-premium {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease;
+}
+.product-card-premium::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #c29d59, transparent);
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.product-card-premium:hover {
+  border-color: rgba(194, 157, 89, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(194, 157, 89, 0.08);
+  transform: translateY(-2px);
+}
+.product-card-premium:hover::after {
+  width: 100%;
+}
+
+/* Hero title — condensed uppercase style */
+.hero-title {
+  font-family: var(--font-stack-condensed), var(--font-stack-display), sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 0.92;
+}
+
+/* Ghost button (Brabus/Urban style) */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+.btn-ghost::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.06);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-ghost:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.btn-ghost:hover::before {
+  transform: scaleX(1);
+}
+
+/* Bronze CTA button */
+.btn-bronze {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 2.5rem;
+  background: linear-gradient(135deg, #c29d59 0%, #a8864a 100%);
+  color: #030303;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.btn-bronze::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #d4b77e 0%, #c29d59 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.btn-bronze:hover::after {
+  opacity: 1;
+}
+.btn-bronze:hover {
+  box-shadow: 0 4px 24px rgba(194, 157, 89, 0.3);
+  transform: translateY(-1px);
+}
+.btn-bronze > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Condensed font stack variable */
+@layer base {
+  :root {
+    --font-stack-condensed: var(--font-condensed), 'Bebas Neue', 'Oswald', 'Barlow Condensed', var(--font-stack-display);
+  }
+}

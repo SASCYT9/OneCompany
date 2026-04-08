@@ -1,0 +1,69 @@
+model_list:
+  # === ONE COMPANY: Перехоплюємо ВСЕ → локальна Gemma 4:26b ===
+  # Всі можливі назви моделей Claude, які шлють різні клієнти
+
+  # Vibe Kanban v0.1.36 моделі
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: ollama/gemma4:26b
+      api_base: http://localhost:11434
+      timeout: 300
+      num_ctx: 16384
+
+  - model_name: claude-sonnet-4-20250514
+    litellm_params:
+      model: ollama/gemma4:26b
+      api_base: http://localhost:11434
+      timeout: 300
+      num_ctx: 16384
+
+  - model_name: claude-haiku-4-5-20251001
+    litellm_params:
+      model: ollama/gemma4:26b
+      api_base: http://localhost:11434
+      timeout: 300
+      num_ctx: 16384
+
+  # Claude Code CLI моделі
+  - model_name: claude-3-5-sonnet-20241022
+    litellm_params:
+      model: ollama/gemma4:26b
+      api_base: http://localhost:11434
+      timeout: 300
+      num_ctx: 16384
+
+  - model_name: claude-3-5-haiku-20241022
+    litellm_params:
+      model: ollama/gemma4:26b
+      api_base: http://localhost:11434
+      timeout: 300
+      num_ctx: 16384
+
+  # Opus моделі
+  - model_name: claude-3-opus-20240229
+    litellm_params:
+      model: ollama/gemma4:26b
+      api_base: http://localhost:11434
+      timeout: 300
+      num_ctx: 16384
+
+  - model_name: claude-4-opus
+    litellm_params:
+      model: ollama/gemma4:26b
+      api_base: http://localhost:11434
+      timeout: 300
+      num_ctx: 16384
+
+  # Wildcard catch-all: claude-*
+  - model_name: "claude-*"
+    litellm_params:
+      model: ollama/gemma4:26b
+      api_base: http://localhost:11434
+      timeout: 300
+      num_ctx: 16384
+
+router_settings:
+  enable_pre_call_checks: false
+
+litellm_settings:
+  drop_params: true

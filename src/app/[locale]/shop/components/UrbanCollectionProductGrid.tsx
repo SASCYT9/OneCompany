@@ -80,6 +80,27 @@ function computePricesFromUah(
   };
 }
 
+import { motion } from 'framer-motion';
+
+const gridVariants = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 50, scale: 0.95 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: "spring" as const, stiffness: 50, damping: 20 },
+  },
+};
+
 export default function UrbanCollectionProductGrid({
   locale,
   handle,
@@ -106,7 +127,13 @@ export default function UrbanCollectionProductGrid({
       }
     >
       <div className="urban-product-grid__inner">
-        <div className="urban-product-grid__head">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.8 }}
+          className="urban-product-grid__head"
+        >
           <div>
             <p className="urban-product-grid__eyebrow">
               {brand || 'Urban Automotive'}
@@ -130,10 +157,16 @@ export default function UrbanCollectionProductGrid({
           >
             {isUa ? 'Усі колекції' : 'All collections'}
           </Link>
-        </div>
+        </motion.div>
 
         {products.length > 0 ? (
-          <div className="urban-product-grid__cards">
+          <motion.div
+            variants={gridVariants}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            className="urban-product-grid__cards"
+          >
             {products.map((product) => {
               const pricing = viewerContext
                 ? resolveShopProductPricing(product, viewerContext)
@@ -158,22 +191,29 @@ export default function UrbanCollectionProductGrid({
                 : (rawImg || '/images/placeholders/product-fallback.jpg');
 
               return (
-              <article key={product.slug} className="urban-product-grid__card">
+              <motion.article 
+                variants={cardVariants}
+                whileHover={{ y: -8, transition: { duration: 0.3 } }}
+                key={product.slug} 
+                className="urban-product-grid__card"
+              >
                 <Link
                   href={buildShopProductPath(locale, product)}
                   className="urban-product-grid__card-link"
                   aria-label={productTitle}
                 />
-                <div className="urban-product-grid__media">
-                  <Image
-                    src={safeImageUrl}
-                    alt={productTitle}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 25vw"
-                    className="object-cover"
-                  />
+                <div className="urban-product-grid__media group overflow-hidden relative">
+                  <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.6 }} className="w-full h-full">
+                    <Image
+                      src={safeImageUrl}
+                      alt={productTitle}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 25vw"
+                      className="object-cover"
+                    />
+                  </motion.div>
                 </div>
-                <div className="urban-product-grid__body">
+                <div className="urban-product-grid__body backdrop-blur-md bg-white/5 border border-white/10 rounded-b-xl">
                   <p className="urban-product-grid__brand">{product.brand}</p>
                   <h3 className="urban-product-grid__name">
                     {productTitle}
@@ -189,7 +229,7 @@ export default function UrbanCollectionProductGrid({
                       variant="inline"
                       productName={productTitle}
                       className="urban-product-grid__add"
-                      label={isUa ? 'Додати в кошик' : 'Add to cart'}
+                      label={isUa ? 'Додати' : 'Add'}
                       labelAdded={isUa ? 'Додано' : 'Added'}
                     />
                     <div className="urban-product-grid__price-stack flex flex-col items-end gap-1">
@@ -208,18 +248,23 @@ export default function UrbanCollectionProductGrid({
                     </div>
                     <Link
                       href={buildShopProductPath(locale, product)}
-                      className="urban-product-grid__details"
+                      className="urban-product-grid__details whitespace-nowrap text-xs text-white/70 hover:text-white transition-colors uppercase tracking-widest"
                     >
                       {isUa ? 'Деталі' : 'Details'}
                     </Link>
                   </div>
                 </div>
-              </article>
+              </motion.article>
             );
           })}
-          </div>
+          </motion.div>
         ) : (
-          <div className="urban-product-grid__empty">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="urban-product-grid__empty"
+          >
             <p className="urban-product-grid__empty-title">
               {isUa ? 'Колекція незабаром у каталозі' : 'Collection coming to the catalog'}
             </p>
@@ -228,10 +273,10 @@ export default function UrbanCollectionProductGrid({
                 ? `Ми завершуємо формування асортименту для ${title}. Залиште запит, і менеджер підбере комплект під ваш автомобіль.`
                 : `We are finalizing the assortment for ${title}. Leave a request and our team will curate a package for your car.`}
             </p>
-            <Link href={`/${locale}/#contact`} className="urban-product-grid__empty-cta">
+            <Link href={`/${locale}/#contact`} className="urban-product-grid__empty-cta hover:bg-white hover:text-black transition-colors duration-500">
               {isUa ? 'Запитати комплект' : 'Request a package'}
             </Link>
-          </div>
+          </motion.div>
         )}
       </div>
     </section>

@@ -101,9 +101,9 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
   };
 
   const wrapperClass = isSidebar
-    ? "do88-glass-panel w-full p-6 rounded-2xl flex flex-col gap-4 border border-white/5 bg-white/5 backdrop-blur-md"
+    ? "do88-glass-panel w-full p-6 rounded-2xl flex flex-col gap-4"
     : compact 
-      ? "do88-glass-panel w-full max-w-5xl mx-auto px-4 py-4 md:px-8 rounded-2xl flex flex-col md:flex-row items-center gap-4 do88-animate-up border border-white/10"
+      ? "do88-glass-panel w-full max-w-5xl mx-auto px-4 py-4 md:px-8 rounded-2xl flex flex-col md:flex-row items-center gap-4 do88-animate-up"
       : "do88-glass-panel do88-filter-container w-full max-w-4xl mx-auto do88-animate-up";
 
   return (
@@ -149,7 +149,7 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
           <select 
             value={selectedMake} 
             onChange={handleMakeChange}
-            className={`w-full appearance-none rounded-xl px-4 py-3 text-white focus:outline-none transition shadow-inner text-sm tracking-wide ${isSidebar ? 'bg-black/40 border border-white/10 hover:border-white/20' : 'bg-white/5 border border-white/10 hover:border-white/20'}`}
+            className={`w-full appearance-none rounded-xl px-4 py-3 text-white focus:outline-none transition shadow-inner text-sm tracking-wide bg-[#030303]/50 border border-white/5 hover:border-[#c29d59]/40 focus:border-[#c29d59] focus:shadow-[0_0_20px_rgba(194,157,89,0.15)]`}
           >
             <option value="" className="text-black bg-white">{isUa ? 'Оберіть марку' : 'Select Make'}</option>
             {Object.keys(CAR_DATA).map((make) => (
@@ -171,7 +171,7 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
             value={selectedModel} 
             onChange={handleModelChange}
             disabled={!selectedMake}
-            className={`w-full appearance-none rounded-xl px-4 py-3 text-white focus:outline-none transition shadow-inner text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed ${isSidebar ? 'bg-black/40 border border-white/10 hover:border-white/20' : 'bg-white/5 border border-white/10 hover:border-white/20'}`}
+            className={`w-full appearance-none rounded-xl px-4 py-3 text-white focus:outline-none transition shadow-inner text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed bg-[#030303]/50 border border-white/5 hover:border-[#c29d59]/40 focus:border-[#c29d59] focus:shadow-[0_0_20px_rgba(194,157,89,0.15)]`}
           >
             <option value="" className="text-black bg-white">{isUa ? 'Оберіть модель' : 'Select Model'}</option>
             {selectedMake && CAR_DATA[selectedMake]?.map((model) => (
@@ -193,7 +193,7 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
             <select 
               value={selectedCategory} 
               onChange={handleCategoryChange}
-              className={`w-full appearance-none rounded-xl px-4 py-3 text-white focus:outline-none transition shadow-inner text-sm tracking-wide ${isSidebar ? 'bg-black/40 border border-white/10 hover:border-white/20' : 'bg-white/5 border border-white/10 hover:border-white/20'}`}
+              className={`w-full appearance-none rounded-xl px-4 py-3 text-white focus:outline-none transition shadow-inner text-sm tracking-wide bg-[#030303]/50 border border-white/5 hover:border-[#c29d59]/40 focus:border-[#c29d59] focus:shadow-[0_0_20px_rgba(194,157,89,0.15)]`}
             >
               <option value="all" className="text-black bg-white">{isUa ? 'Всі деталі' : 'All Parts'}</option>
               {DO88_CATEGORIES.filter(c => c.handle !== 'all').map((cat) => (

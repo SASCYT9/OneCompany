@@ -6,7 +6,7 @@ aliases: [Dashboard, Головна]
 # 🏢 One Company — Повна Wiki
 
 > [!info] Центральна база знань компанії
-> Оновлено: **02 квітня 2026**
+> Оновлено: **07 квітня 2026**
 
 ---
 
@@ -153,6 +153,12 @@ LIMIT 5
 - [[Improvement Strategy]] — Ідеї по Інстаграму та функціоналу сайту 🚀
 - [[TODO]] — Архів текстових задач
 - [[Team]] — Команда та відповідальності
+
+### 🤖 AI Agent Syndicate
+- 🧠 **[[AI Agent Syndicate]]** — Мульти-агентна система розробки
+- 📋 **[Vibe Kanban](http://localhost:53923)** — Візуальний дашборд завдань агентів
+- 📄 Handoff-система — `.agents/handoffs/` (обмін задачами між агентами)
+- ⚙️ Workflow — `.agents/workflows/multi-agent.md`
 
 ---
 

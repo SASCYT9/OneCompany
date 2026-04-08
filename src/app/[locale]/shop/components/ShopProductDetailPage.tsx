@@ -36,6 +36,7 @@ import {
   getUrbanCollectionHandleForProduct,
 } from '@/lib/urbanCollectionMatcher';
 import { URBAN_COLLECTION_CARDS } from '../data/urbanCollectionsList';
+import { ShopProductGallery } from './ShopProductGallery';
 
 import type { ShopProduct } from '@/lib/shopCatalog';
 
@@ -319,57 +320,15 @@ export default async function ShopProductDetailPage({
           </span>
         </div>
 
-        <section className="grid gap-8 lg:grid-cols-[1.2fr_1fr]">
-          <div className="space-y-4">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-white/15 bg-black/40">
-              {safeImageUrl && safeImageUrl.length > 0 ? (
-                <Image
-                  src={safeImageUrl}
-                  alt={productTitle}
-                  fill
-                  sizes="(max-width: 1280px) 100vw, 58vw"
-                  className="object-contain p-4"
-                  priority
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-white/10">
-                  <ShoppingBag className="h-20 w-20 opacity-30" />
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/15 to-black/65" />
-              <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-3">
-                <span className="rounded-full border border-white/25 bg-black/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/75">
-                  {productCategory}
-                </span>
-                <span
-                  className={`rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.2em] ${
-                    isInStock
-                      ? 'border-emerald-300/45 bg-emerald-400/20 text-emerald-100'
-                      : 'border-amber-300/45 bg-amber-400/20 text-amber-100'
-                  }`}
-                >
-                  {isInStock ? (isUa ? 'В наявності' : 'In stock') : (isUa ? 'Під замовлення' : 'Pre-order')}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {gallery.slice(0, 6).map((image, index) => {
-                const cleanImage = image ? image.replace(/^["']|["']$/g, '').trim() : '';
-                if (!cleanImage) return null;
-                return (
-                  <div key={`${product.slug}-${index}`} className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/15 bg-black/40">
-                    <Image
-                      src={cleanImage}
-                      alt={`${productTitle} ${index + 1}`}
-                      fill
-                      sizes="(max-width: 1280px) 50vw, 16vw"
-                      className="object-contain p-3"
-                    />
-                  </div>
-                );
-              })}
-            </div>
+        <section className="grid items-start gap-10 lg:grid-cols-[1.2fr_1fr]">
+          <div className="sticky top-32 space-y-4">
+            <ShopProductGallery 
+              images={[safeImageUrl, ...gallery.filter(img => img !== safeImageUrl && img && img.length > 0)]} 
+              productTitle={productTitle}
+              category={productCategory}
+              isInStock={isInStock}
+              isUa={isUa}
+            />
           </div>
 
           <div className="space-y-6 rounded-3xl border border-white/15 bg-white/[0.03] p-6 backdrop-blur-xl sm:p-7">
@@ -463,30 +422,33 @@ export default async function ShopProductDetailPage({
               ) : null}
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <span className="rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-xs text-white/75">
-                SKU: {product.sku}
+            {/* Divider */}
+            <div className="mx-auto h-[1px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent my-6" />
+
+            <div className="flex flex-wrap gap-3">
+              <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/[0.04]">
+                <span className="text-white/30">SKU</span> {product.sku}
               </span>
               {leadTime ? (
-                <span className="rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-xs text-white/75">
-                  {isUa ? 'Поставка:' : 'Lead time:'} {leadTime}
+                <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/[0.04]">
+                  <span className="text-white/30">{isUa ? 'Поставка' : 'Lead time'}</span> {leadTime}
                 </span>
               ) : null}
-              <span className="rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-xs text-white/75">
+              <span className="flex items-center gap-2 rounded-full border border-[#c29d59]/20 bg-[#c29d59]/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-[#c29d59]/80 transition-colors hover:bg-[#c29d59]/10">
                 {collection}
               </span>
               {product.productType ? (
-                <span className="rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-xs text-white/75">
+                <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/[0.04]">
                   {product.productType}
                 </span>
               ) : null}
               {country ? (
-                <span className="rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-xs text-white/75">
+                <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/[0.04]">
                   {country}
                 </span>
               ) : null}
               {subcategory ? (
-                <span className="rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-xs text-white/75">
+                <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/[0.04]">
                   {subcategory}
                 </span>
               ) : null}
@@ -558,17 +520,24 @@ export default async function ShopProductDetailPage({
               </div>
             ) : null}
 
-            <div className="flex flex-wrap gap-3">
-              <AddToCartButton slug={product.slug} locale={resolvedLocale} variantId={defaultVariant?.id ?? null} productName={productTitle} />
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4">
+              <AddToCartButton 
+                slug={product.slug} 
+                locale={resolvedLocale} 
+                variantId={defaultVariant?.id ?? null} 
+                productName={productTitle}
+                variant="minimal"
+                className="group relative overflow-hidden rounded-full border border-white/10 bg-black px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#c29d59] transition-all duration-500 hover:border-[#c29d59]/50 hover:shadow-[0_0_20px_-5px_rgba(194,157,89,0.4)] disabled:opacity-50"
+              />
               <Link
                 href={`/${resolvedLocale}/contact`}
-                className="rounded-full border border-white/25 bg-white px-5 py-2 text-xs uppercase tracking-[0.2em] text-black transition hover:border-white hover:bg-white/90"
+                className="group relative overflow-hidden rounded-full border border-white/10 bg-white/[0.02] px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-white/80 transition-all duration-500 hover:border-white/30 hover:bg-white/[0.08] hover:text-white"
               >
                 {pricing.requestQuote ? (isUa ? 'Запитати B2B ціну' : 'Request B2B pricing') : (isUa ? 'Запит по товару' : 'Request product')}
               </Link>
               <Link
                 href={continueShoppingHref}
-                className="rounded-full border border-white/25 bg-white/[0.03] px-5 py-2 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/50"
+                className="rounded-full border border-transparent bg-transparent px-6 py-3.5 text-[10px] font-light uppercase tracking-[0.15em] text-white/40 transition-all duration-500 hover:text-white/80"
               >
                 {isUa ? 'Продовжити покупки' : 'Continue shopping'}
               </Link>

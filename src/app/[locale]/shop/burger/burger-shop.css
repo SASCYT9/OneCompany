@@ -4,15 +4,15 @@
 
 /* ── Variables ── */
 :root {
-  --burger-yellow: #FFD700;
-  --burger-gold: #F5A623;
-  --burger-amber: #E8A317;
-  --burger-dark: #0a0a0a;
-  --burger-card: #111111;
-  --burger-border: #1e1e1e;
+  --burger-yellow: #a88544; /* Darker luxury bronze */
+  --burger-gold: #c29d59; /* Luxury Bronze */
+  --burger-amber: #c29d59;
+  --burger-dark: #030303; /* Obsidian Black */
+  --burger-card: rgba(3, 3, 3, 0.7); /* Deep Glassmorphism base */
+  --burger-border: rgba(255, 255, 255, 0.08); /* Minimalist border */
   --burger-text: #ffffff;
   --burger-muted: #888888;
-  --burger-glow: rgba(255, 215, 0, 0.15);
+  --burger-glow: rgba(194, 157, 89, 0.15); /* Bronze glow */
 }
 
 /* ── Layout ── */

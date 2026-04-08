@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
-import { IBM_Plex_Mono, Unbounded } from "next/font/google";
+import { IBM_Plex_Mono, Unbounded, Bebas_Neue } from "next/font/google";
 import { OrganizationSchema, WebSiteSchema, LocalBusinessSchema } from "@/components/seo/StructuredData";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import MicrosoftClarity from "@/components/analytics/MicrosoftClarity";
@@ -132,6 +132,14 @@ const fontMono = IBM_Plex_Mono({
   variable: "--font-mono",
 });
 
+// Bebas Neue - condensed font for hero headlines (BRABUS, URBAN, AKRAPOVIČ)
+const fontCondensed = Bebas_Neue({
+  subsets: ["latin", "latin-ext"],
+  weight: "400",
+  variable: "--font-condensed",
+  display: "swap",
+});
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -148,7 +156,8 @@ export default async function RootLayout({
       className={cn(
         fontSans.variable,
         fontDisplay.variable,
-        fontMono.variable
+        fontMono.variable,
+        fontCondensed.variable
       )}
     >
       <head>

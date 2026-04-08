@@ -13,6 +13,20 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-06 03:23] Commit `8f79fb7a`
+**Автор**: 👤 SASCYT9
+
+> fix(footer): adjust secure payment badge visibility, layout, and sizing
+
+#### 📂 Змінені файли:
+- **M**: `src/components/shared/Footer.tsx`
+- **M**: `wiki/.obsidian/graph.json`
+- **M**: `wiki/.obsidian/workspace.json`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-06 03:03] Commit `99a24ece`
 **Автор**: 👤 SASCYT9
 

@@ -28,3 +28,11 @@ date_created: "2026-04-06"
 ## Styling & Theme
 - `src/app/globals.css` — Global Tailwind resets and Stealth Wealth color variables.
 - `tailwind.config.ts` — Custom breakpoints, animations, and color palettes.
+
+## 🤖 AI Agent Syndicate
+- `.agents/handoffs/` — Shared memory / task exchange between AI agents.
+- `.agents/workflows/multi-agent.md` — Multi-agent orchestration workflow.
+- `.agents/scripts/litellm_config.yaml` — LiteLLM proxy config (routes all Claude models → local Gemma 4:26b).
+- `.agents/scripts/Start-LocalClaude.ps1` — PowerShell launcher for Claude Code on local LLM.
+- `.agents/mcp-servers/ollama-bridge/` — MCP server bridging to Ollama API.
+- `wiki/AI Agent Syndicate.md` — Full documentation of the agent system.

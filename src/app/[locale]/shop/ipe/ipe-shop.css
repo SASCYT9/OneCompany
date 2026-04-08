@@ -3,12 +3,12 @@
 ────────────────────────────────────────────────── */
 
 :root {
-  --ipe-bg: #09090b; /* Very dark zinc */
-  --ipe-bg-alt: #18181b;
-  --ipe-amber: #f59e0b;
-  --ipe-crimson: #e11d48;
-  --ipe-white: #fafafa;
-  --ipe-border: rgba(245, 158, 11, 0.15);
+  --ipe-bg: #030303; /* Stealth Vault Black */
+  --ipe-bg-alt: rgba(3, 3, 3, 0.7); /* Deep Glassmorphism base */
+  --ipe-amber: #c29d59; /* Luxury Bronze */
+  --ipe-crimson: #a88544; /* Dark Luxury Bronze */
+  --ipe-white: #ffffff;
+  --ipe-border: rgba(255, 255, 255, 0.08); /* Minimalist border */
 }
 
 /* ── Typography & Global ── */

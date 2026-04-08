@@ -429,20 +429,21 @@ export default function BrabusHomeSignature({ locale }: Props) {
       <style jsx global>{`
         /* ── Reset & Base ──────────────────────────── */
         .br-home {
-          --br-bg: #0a0a0a;
-          --br-card: #111;
-          --br-card-hover: #161616;
-          --br-red: #cc0000;
-          --br-white: #fff;
-          --br-muted: rgba(255,255,255,.8);
-          --br-faint: rgba(255,255,255,.15);
+          --br-bg: #030303;
+          --br-card: rgba(255, 255, 255, 0.02);
+          --br-card-hover: rgba(255, 255, 255, 0.05);
+          --br-red: #c29d59; /* Stealth wealth bronze override */
+          --br-white: #ffffff;
+          --br-muted: rgba(255, 255, 255, 0.6);
+          --br-faint: rgba(255, 255, 255, 0.05);
           background-color: var(--br-bg);
           background-image: 
-            radial-gradient(circle at 50% 0%, rgba(255, 0, 0, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 50% 0%, rgba(194, 157, 89, 0.08) 0%, transparent 60%),
             radial-gradient(ellipse at 50% 100%, rgba(255, 255, 255, 0.02) 0%, transparent 40%),
-            url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h2v2H0V0zm2 2h2v2H2V2zm2 2h2v2H4V4zm2 2h2v2H6V6zm2 2h2v2H8V8zm2 2h2v2h-2v-2zm-2-2v-2h2v2h-2zm-2-2V4h2v2h-2zm-2-2V2h2v2H6zm-2-2V0h2v2H4z' fill='%23ffffff' fill-opacity='0.012' fill-rule='evenodd'/%3E%3C/svg%3E");
+            url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h2v2H0V0zm2 2h2v2H2V2zm2 2h2v2H4V4zm2 2h2v2H6V6zm2 2h2v2H8V8zm2 2h2v2h-2v-2zm-2-2v-2h2v2h-2zm-2-2V4h2v2h-2zm-2-2V2h2v2H6zm-2-2V0h2v2H4z' fill='%23ffffff' fill-opacity='0.008' fill-rule='evenodd'/%3E%3C/svg%3E");
           background-attachment: fixed;
           color: var(--br-white);
+          backdrop-filter: blur(20px);
           font-family: var(--font-body, 'Inter', system-ui, sans-serif);
         }
 
@@ -468,9 +469,10 @@ export default function BrabusHomeSignature({ locale }: Props) {
           transition: transform .6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity .6s ease;
         }
         .br-section-title {
-          font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 200;
-          text-transform: uppercase; letter-spacing: .08em;
-          line-height: 1.15; margin: 0;
+          font-family: var(--font-stack-condensed), var(--font-stack-display), sans-serif;
+          font-size: clamp(2rem, 4.5vw, 3.2rem); font-weight: 400;
+          text-transform: uppercase; letter-spacing: .04em;
+          line-height: 1.05; margin: 0;
           opacity: 0; transform: translateY(30px);
           transition: transform .8s cubic-bezier(0.2, 0.8, 0.2, 1) .15s, opacity .8s ease .15s;
         }
@@ -501,15 +503,45 @@ export default function BrabusHomeSignature({ locale }: Props) {
           border-color: var(--br-white);
           background: rgba(255,255,255,.05);
         }
-        .br-btn--ghost { border-color: rgba(255,255,255,.15); }
-        .br-btn--red {
-          border-color: var(--br-red); color: var(--br-white);
-        }
-        .br-btn--red:hover { background: var(--br-red); }
         .br-btn svg {
           width: 16px; height: 16px; fill: none;
           stroke: currentColor; stroke-width: 2;
+          transition: transform .3s ease;
         }
+        .br-btn:hover svg {
+          transform: translateX(3px);
+        }
+        .br-btn--ghost {
+          border-color: rgba(255,255,255,.15);
+          position: relative;
+          overflow: hidden;
+        }
+        .br-btn--ghost::before {
+          content: '';
+          position: absolute; inset: 0;
+          background: rgba(255,255,255,0.04);
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform .4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .br-btn--ghost:hover::before {
+          transform: scaleX(1);
+        }
+        .br-btn--red {
+          border-color: var(--br-red); color: var(--br-white);
+          position: relative; overflow: hidden;
+        }
+        .br-btn--red::before {
+          content: '';
+          position: absolute; inset: 0;
+          background: var(--br-red);
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform .4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .br-btn--red:hover { color: #030303; }
+        .br-btn--red:hover::before { transform: scaleX(1); }
+        .br-btn--red span, .br-btn--red svg { position: relative; z-index: 1; }
 
         /* ── Reveal animation ──────────────────────── */
         [data-br-reveal] {
@@ -547,7 +579,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
         }
         .br-hero__accent-line {
           position: absolute; top: 0; left: 0; right: 0;
-          height: 3px; z-index: 5;
+          height: 1px; z-index: 5;
           background: linear-gradient(90deg, transparent, var(--br-red) 15%, var(--br-red) 85%, transparent);
         }
         .br-hero__content {
@@ -561,13 +593,21 @@ export default function BrabusHomeSignature({ locale }: Props) {
         }
         .br-hero__wordmark sup { font-size: .5em; }
         .br-hero__divider {
-          width: 50px; height: 1px; background: var(--br-red);
+          width: 50px; height: 1px;
+          background: linear-gradient(90deg, transparent, var(--br-red), transparent);
+          background-size: 200% 100%;
+          animation: br-shimmer 2.5s linear infinite;
           margin-bottom: 1.5rem;
         }
+        @keyframes br-shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
         .br-hero__title {
-          font-size: clamp(2.2rem, 5vw, 4rem);
-          font-weight: 200; text-transform: uppercase;
-          letter-spacing: .08em; line-height: 1.1;
+          font-family: var(--font-stack-condensed), var(--font-stack-display), sans-serif;
+          font-size: clamp(3rem, 7vw, 5.5rem);
+          font-weight: 400; text-transform: uppercase;
+          letter-spacing: 0.04em; line-height: 0.95;
           margin: 0 0 1rem;
         }
         .br-hero__eyebrow {
@@ -649,7 +689,9 @@ export default function BrabusHomeSignature({ locale }: Props) {
         @media (hover: hover) {
           .br-sc:hover { 
             transform: scale(1.02) translateY(-8px); 
-            box-shadow: 0 25px 60px -15px rgba(204, 0, 0, 0.2);
+            box-shadow: 
+              0 25px 60px -15px rgba(194, 157, 89, 0.15),
+              0 0 0 1px rgba(194, 157, 89, 0.1);
             z-index: 10;
           }
         }
@@ -806,8 +848,8 @@ export default function BrabusHomeSignature({ locale }: Props) {
         }
         .br-widestar__card-accent {
           position: absolute; top: 0; left: 0; right: 0;
-          height: 2px; z-index: 4;
-          background: linear-gradient(90deg, transparent, var(--br-red) 20%, var(--br-red) 80%, transparent);
+          height: 1px; z-index: 4;
+          background: linear-gradient(90deg, transparent, var(--br-red) 30%, var(--br-red) 70%, transparent);
           transform: scaleX(0); transform-origin: left;
           transition: transform .5s ease;
         }
@@ -837,16 +879,21 @@ export default function BrabusHomeSignature({ locale }: Props) {
         }
         .br-fleet__card {
           position: relative; overflow: hidden;
-          background: var(--br-card);
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
           border-radius: 12px;
           text-decoration: none; color: var(--br-white);
           opacity: 0; transform: translateY(40px) scale(0.98);
-          transition: transform .7s cubic-bezier(0.2, 0.8, 0.2, 1), opacity .7s ease, background .3s;
+          transition: transform .7s cubic-bezier(0.2, 0.8, 0.2, 1), opacity .7s ease, background .3s, box-shadow .4s ease;
         }
         .br-fleet__card::after {
           content: ""; position: absolute; inset: 0;
-          border-radius: 12px; border: 1px solid rgba(255,255,255,0.02);
-          pointer-events: none;
+          border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);
+          pointer-events: none; transition: border-color .4s ease;
+        }
+        .br-fleet__card:hover::after {
+          border-color: rgba(194, 157, 89, 0.15);
         }
         .br-fleet.br-vis .br-fleet__card {
           opacity: 1; transform: translateY(0) scale(1);
@@ -887,16 +934,20 @@ export default function BrabusHomeSignature({ locale }: Props) {
           margin: .3rem 0 0;
         }
         .br-fleet__line {
-          width: 0; height: 2px; background: var(--br-red);
-          margin-top: 1rem; transition: width .4s ease;
+          width: 0; height: 1px;
+          background: linear-gradient(90deg, var(--br-red), transparent);
+          margin-top: 1rem; transition: width .5s ease;
         }
         .br-fleet__card:hover .br-fleet__line { width: 100%; }
         .br-fleet__card-arrow {
           position: absolute; top: 1rem; right: 1rem;
-          font-size: .85rem; color: rgba(255,255,255,.2);
-          transition: color .3s;
+          font-size: 1.1rem; color: rgba(255,255,255,.15);
+          transition: color .4s ease, transform .4s ease;
         }
-        .br-fleet__card:hover .br-fleet__card-arrow { color: var(--br-red); }
+        .br-fleet__card:hover .br-fleet__card-arrow {
+          color: var(--br-red);
+          transform: translateX(3px);
+        }
 
         /* ═══════════════════ ROCKET 1000 ═══════════════════ */
         .br-rocket {
@@ -931,9 +982,10 @@ export default function BrabusHomeSignature({ locale }: Props) {
           width: 36px; height: 1px; background: var(--br-red);
         }
         .br-rocket__title {
-          font-size: clamp(2.4rem, 5vw, 4rem);
-          font-weight: 200; letter-spacing: .08em;
-          line-height: 1; margin: 0;
+          font-family: var(--font-stack-condensed), var(--font-stack-display), sans-serif;
+          font-size: clamp(3rem, 6vw, 5rem);
+          font-weight: 400; letter-spacing: .04em;
+          line-height: 0.95; margin: 0;
         }
         .br-rocket__edition {
           display: block;
@@ -955,7 +1007,10 @@ export default function BrabusHomeSignature({ locale }: Props) {
           padding-left: 1rem;
         }
         .br-rocket__spec-num {
-          display: block; font-size: 1.8rem; font-weight: 200;
+          display: block;
+          font-family: var(--font-stack-condensed), var(--font-stack-display), sans-serif;
+          font-size: 2.4rem; font-weight: 400;
+          font-variant-numeric: tabular-nums;
           color: var(--br-white); line-height: 1;
         }
         .br-rocket__spec-unit {

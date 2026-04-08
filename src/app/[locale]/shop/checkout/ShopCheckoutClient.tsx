@@ -241,8 +241,8 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
       <main className="min-h-screen bg-black px-4 py-24">
         <div className="mx-auto max-w-lg text-center">
           <p className="text-white/60">{error || (isUa ? 'Кошик порожній.' : 'Your cart is empty.')}</p>
-          <Link href={`/${locale}/shop/urban/collections`} className="mt-4 inline-block text-white underline">
-            {isUa ? 'До колекцій Urban' : 'Back to Urban collections'}
+          <Link href={`/${locale}/shop`} className="mt-4 inline-block text-white underline">
+            {isUa ? 'До магазину' : 'Back to shop'}
           </Link>
         </div>
       </main>
@@ -260,29 +260,32 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
         </Link>
         <header>
           <p className="text-[11px] uppercase tracking-[0.35em] text-white/45">
-            Urban Automotive
+            One Company Shop
           </p>
           <h1 className="mt-3 text-3xl font-light tracking-tight sm:text-5xl">
-            {isUa ? 'Оформлення замовлення' : 'Urban checkout'}
+            {isUa ? 'Оформлення замовлення' : 'Checkout'}
           </h1>
           <p className="mt-2 text-sm text-white/55">
             {isUa ? 'Контактні дані та адреса доставки' : 'Contact details and shipping address'}
           </p>
         </header>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6 rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+        <form onSubmit={handleSubmit} className="mt-8 space-y-10 rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-xl">
+          {error && <p className="rounded-xl bg-red-950/30 p-4 border border-red-900/50 text-red-500 text-sm">{error}</p>}
 
           <div>
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-white/55">{isUa ? 'Контакти' : 'Contact'}</h2>
-            <div className="space-y-3">
+            <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#c29d59] flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]/50"></span>
+              {isUa ? 'Контакти' : 'Contact'}
+            </h2>
+            <div className="space-y-4">
               <input
                 type="email"
                 required
                 placeholder={isUa ? 'Email' : 'Email'}
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-white/35 focus:border-white/35 focus:outline-none"
+                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
               />
               <input
                 type="text"
@@ -290,60 +293,63 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                 placeholder={isUa ? 'ПІБ' : 'Full name'}
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-white/35 focus:border-white/35 focus:outline-none"
+                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
               />
               <input
                 type="tel"
                 placeholder={isUa ? 'Телефон' : 'Phone'}
                 value={form.phone}
                 onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-white/35 focus:border-white/35 focus:outline-none"
+                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
               />
             </div>
           </div>
 
           <div>
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-white/55">{isUa ? 'Адреса доставки' : 'Shipping address'}</h2>
-            <div className="space-y-3">
+            <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#c29d59] flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]/50"></span>
+              {isUa ? 'Адреса доставки' : 'Shipping address'}
+            </h2>
+            <div className="space-y-4">
               <input
                 type="text"
                 required
                 placeholder={isUa ? 'Адреса (вулиця, будинок)' : 'Address (street, number)'}
                 value={form.line1}
                 onChange={(e) => setForm((f) => ({ ...f, line1: e.target.value }))}
-                className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-white/35 focus:border-white/35 focus:outline-none"
+                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
               />
               <input
                 type="text"
                 placeholder={isUa ? 'Квартира, офіс (не обов’язково)' : 'Apt, office (optional)'}
                 value={form.line2}
                 onChange={(e) => setForm((f) => ({ ...f, line2: e.target.value }))}
-                className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-white/35 focus:border-white/35 focus:outline-none"
+                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
               />
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <input
                   type="text"
                   required
                   placeholder={isUa ? 'Місто' : 'City'}
                   value={form.city}
                   onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-                  className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-white/35 focus:border-white/35 focus:outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
                 />
                 <input
                   type="text"
                   placeholder={isUa ? 'Область' : 'Region'}
                   value={form.region}
                   onChange={(e) => setForm((f) => ({ ...f, region: e.target.value }))}
-                  className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-white/35 focus:border-white/35 focus:outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
                 />
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <input
                   type="text"
                   placeholder={isUa ? 'Індекс' : 'Postcode'}
                   value={form.postcode}
                   onChange={(e) => setForm((f) => ({ ...f, postcode: e.target.value }))}
-                  className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-white/35 focus:border-white/35 focus:outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
                 />
                 <input
                   type="text"
@@ -351,46 +357,49 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                   placeholder={isUa ? 'Країна' : 'Country'}
                   value={form.country}
                   onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-                  className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-white/35 focus:border-white/35 focus:outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white placeholder:text-white/30 backdrop-blur-md transition-all focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
                 />
               </div>
             </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium uppercase tracking-wider text-white/55">{isUa ? 'Валюта' : 'Currency'}</label>
+            <label className="mb-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#c29d59] flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]/50"></span>
+              {isUa ? 'Валюта розрахунку' : 'Billing Currency'}
+            </label>
             <select
               value={form.currency}
               onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}
-              className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white focus:border-white/35 focus:outline-none"
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white backdrop-blur-md transition-all hover:bg-black/60 focus:border-[#c29d59]/50 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-[#c29d59]/50"
             >
-              <option value="EUR">EUR</option>
-              <option value="USD">USD</option>
-              <option value="UAH">UAH</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="USD">USD ($)</option>
+              <option value="UAH">UAH (₴)</option>
             </select>
           </div>
 
           <div>
-            <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-white/60 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#c29d59] flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]/50"></span>
               {isUa ? 'Спосіб оплати' : 'Payment method'}
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-4 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-white/40 has-[:checked]:bg-white/[0.08] has-[:checked]:shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden group">
-                <div className="flex items-center gap-3 relative z-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
+                <div className="flex items-center gap-4 relative z-10">
                   <input
                     type="radio"
                     name="paymentMethod"
                     value="FOP"
                     checked={form.paymentMethod === 'FOP'}
                     onChange={() => setForm((f) => ({ ...f, paymentMethod: 'FOP' }))}
-                    className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50 accent-white"
+                    className="h-4 w-4 border-white/30 bg-black text-[#c29d59] focus:ring-[#c29d59]/50 accent-[#c29d59]"
                   />
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-white/90 group-hover:text-white transition-colors">
+                    <span className="text-sm font-medium text-white group-hover:text-[#c29d59] transition-colors">
                       {isUa ? 'Оплата на ФОП' : 'Bank Transfer'}
                     </span>
-                    <span className="text-[11px] text-white/50">
+                    <span className="text-[11px] text-white/40">
                       {isUa ? 'За реквізитами (IBAN)' : 'Direct invoice payment'}
                     </span>
                   </div>
@@ -398,93 +407,93 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
               </label>
               
               {paymentOptions?.methods.includes('HUTKO') && (
-                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-4 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-white/40 has-[:checked]:bg-white/[0.08] has-[:checked]:shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden group">
-                  <div className="flex items-center gap-3 relative z-10">
+                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
+                  <div className="flex items-center gap-4 relative z-10">
                     <input
                       type="radio"
                       name="paymentMethod"
                       value="HUTKO"
                       checked={form.paymentMethod === 'HUTKO'}
                       onChange={() => setForm((f) => ({ ...f, paymentMethod: 'HUTKO' }))}
-                      className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50 accent-white"
+                      className="h-4 w-4 border-white/30 bg-black text-[#c29d59] focus:ring-[#c29d59]/50 accent-[#c29d59]"
                     />
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white/90 group-hover:text-white transition-colors">Apple Pay / Google Pay</span>
-                      <span className="text-[11px] text-white/50">{isUa ? 'Онлайн оплата карткою' : 'Card acquiring (Hutko)'}</span>
+                      <span className="text-sm font-medium text-white group-hover:text-[#c29d59] transition-colors">Apple Pay / Google Pay</span>
+                      <span className="text-[11px] text-white/40">{isUa ? 'Онлайн оплата карткою' : 'Card acquiring (Hutko)'}</span>
                     </div>
                   </div>
                 </label>
               )}
 
               {paymentOptions?.methods.includes('STRIPE') && (
-                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-4 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-white/40 has-[:checked]:bg-white/[0.08] has-[:checked]:shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden group">
-                  <div className="flex items-center gap-3 relative z-10">
+                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
+                  <div className="flex items-center gap-4 relative z-10">
                     <input
                       type="radio"
                       name="paymentMethod"
                       value="STRIPE"
                       checked={form.paymentMethod === 'STRIPE'}
                       onChange={() => setForm((f) => ({ ...f, paymentMethod: 'STRIPE' }))}
-                      className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50 accent-white"
+                      className="h-4 w-4 border-white/30 bg-black text-[#c29d59] focus:ring-[#c29d59]/50 accent-[#c29d59]"
                     />
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white/90 group-hover:text-white transition-colors">Stripe Checkout</span>
-                      <span className="text-[11px] text-white/50">{isUa ? 'Міжнародна картка / USD EUR' : 'International Cards'}</span>
+                      <span className="text-sm font-medium text-white group-hover:text-[#c29d59] transition-colors">Stripe Checkout</span>
+                      <span className="text-[11px] text-white/40">{isUa ? 'Міжнародна картка / USD EUR' : 'International Cards'}</span>
                     </div>
                   </div>
                 </label>
               )}
 
               {paymentOptions?.methods.includes('WHITEBIT') && (
-                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-4 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-white/40 has-[:checked]:bg-white/[0.08] has-[:checked]:shadow-[0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden group">
-                  <div className="flex items-center gap-3 relative z-10">
+                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
+                  <div className="flex items-center gap-4 relative z-10">
                     <input
                       type="radio"
                       name="paymentMethod"
                       value="WHITEBIT"
                       checked={form.paymentMethod === 'WHITEBIT'}
                       onChange={() => setForm((f) => ({ ...f, paymentMethod: 'WHITEBIT' }))}
-                      className="h-4 w-4 border-white/30 bg-black text-white focus:ring-white/50 accent-white"
+                      className="h-4 w-4 border-white/30 bg-black text-[#c29d59] focus:ring-[#c29d59]/50 accent-[#c29d59]"
                     />
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white/90 group-hover:text-white transition-colors">WhiteBIT Crypto</span>
-                      <span className="text-[11px] text-white/50">{isUa ? 'USDT, BTC, ETH' : 'Crypto checkout'}</span>
+                      <span className="text-sm font-medium text-white group-hover:text-[#c29d59] transition-colors">WhiteBIT Crypto</span>
+                      <span className="text-[11px] text-white/40">{isUa ? 'USDT, BTC, ETH' : 'Crypto checkout'}</span>
                     </div>
                   </div>
                 </label>
               )}
             </div>
             
-            <p className="mt-3 text-[11px] text-white/30 leading-relaxed max-w-lg">
+            <p className="mt-4 text-[11px] text-white/30 leading-relaxed max-w-lg">
               {isUa 
                 ? 'Вибір способу оплати формує тип інвойсу в кінці. Зверніть увагу: замовлення не буде відправлено без підтвердження оплати або зв\'язку з менеджером (Payment Security).'
                 : 'Payment choice determines the final invoice type. No items are shipped without payment clearance (Payment Security).'}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-black/25 p-5">
+          <div className="rounded-3xl border border-white/10 bg-black/40 p-6 backdrop-blur-md">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-sm font-medium uppercase tracking-wider text-white/55">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#c29d59]">
                   {isUa ? 'Підсумок замовлення' : 'Order summary'}
                 </h2>
-                <p className="mt-1 text-xs text-white/40">
+                <p className="mt-2 text-[11px] text-white/40">
                   {quote?.shippingZone
                     ? `${isUa ? 'Доставка' : 'Shipping'}: ${quote.shippingZone.name}`
                     : (isUa ? 'Розрахунок за поточними правилами' : 'Calculated from current shop rules')}
                 </p>
               </div>
-              {quoteLoading ? <span className="text-xs text-white/45">{isUa ? 'Оновлення…' : 'Updating…'}</span> : null}
+              {quoteLoading ? <span className="text-[11px] uppercase tracking-wider text-white/45">{isUa ? 'Оновлення…' : 'Updating…'}</span> : null}
             </div>
 
-            <ul className="mt-4 space-y-2 text-sm text-white/80">
+            <ul className="mt-6 space-y-3 text-sm text-white/80">
               {(cart.items ?? []).map((item) => (
-                <li key={item.id} className="flex items-center justify-between gap-4">
+                <li key={item.id} className="flex items-center justify-between gap-4 font-light">
                   <span className="truncate">
                     {(isUa ? item.title?.ua : item.title?.en) || item.title?.en || item.slug} × {item.quantity}
-                    {item.variantTitle ? ` · ${item.variantTitle}` : ''}
+                    {item.variantTitle ? <span className="block text-[11px] text-[#c29d59]/70 uppercase tracking-widest mt-1">{item.variantTitle}</span> : ''}
                   </span>
-                  <span className="text-white/55">
+                  <span className="text-white/55 tabular-nums">
                     {item.price
                       ? formatShopMoney(
                           locale,
@@ -497,38 +506,38 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
               ))}
             </ul>
 
-            {quoteError ? <p className="mt-4 text-sm text-amber-400">{quoteError}</p> : null}
+            {quoteError ? <p className="mt-4 text-sm text-red-400">{quoteError}</p> : null}
 
-            <div className="mt-4 space-y-2 border-t border-white/10 pt-4 text-sm text-white/70">
-              <div className="flex items-center justify-between">
+            <div className="mt-6 space-y-3 border-t border-white/10 pt-6 text-[13px] text-white/70">
+              <div className="flex items-center justify-between font-light">
                 <span>{isUa ? 'Підсумок товарів' : 'Subtotal'}</span>
-                <span>{formatShopMoney(locale, quote?.subtotal ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
+                <span className="tabular-nums">{formatShopMoney(locale, quote?.subtotal ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between font-light">
                 <span>{isUa ? 'Регіональна корекція' : 'Regional adjustment'}</span>
-                <span>{formatShopMoney(locale, quote?.regionalAdjustmentAmount ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
+                <span className="tabular-nums">{formatShopMoney(locale, quote?.regionalAdjustmentAmount ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between font-light">
                 <span>{isUa ? 'Доставка' : 'Shipping'}</span>
-                <span>
+                <span className="tabular-nums">
                   {quote?.shippingCost === 0 
                     ? (isUa ? 'За тарифами перевізника' : 'Calculated by carrier')
                     : formatShopMoney(locale, quote?.shippingCost ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}
                 </span>
               </div>
-              <div className="flex items-center justify-between border-t border-white/10 pt-3 text-base font-medium text-white">
-                <span>{isUa ? 'Разом' : 'Total'}</span>
-                <span>{formatShopMoney(locale, quote?.total ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
+              <div className="flex items-center justify-between border-t border-white/10 pt-4 text-lg font-light text-white">
+                <span className="text-[#c29d59] uppercase tracking-[0.1em] text-[11px] font-medium">{isUa ? 'Разом' : 'Total'}</span>
+                <span className="tabular-nums">{formatShopMoney(locale, quote?.total ?? 0, (quote?.currency || form.currency) as ShopCurrencyCode)}</span>
               </div>
             </div>
 
-            <p className="mt-3 text-xs text-white/40">
+            <p className="mt-4 text-[11px] uppercase tracking-wider text-[#c29d59]/50">
               {quote?.pricingAudience === 'b2b' ? 'B2B pricing applied' : 'B2C pricing applied'}
             </p>
 
             {quote?.regionalPricingRule ? (
-              <p className="mt-2 text-xs text-white/40">
-                {isUa ? 'Регіональна корекція' : 'Regional adjustment'}: {quote.regionalPricingRule.name}
+              <p className="mt-1 text-[11px] uppercase tracking-wider text-[#c29d59]/50">
+                {isUa ? 'Корекція' : 'Adjustment'}: {quote.regionalPricingRule.name}
               </p>
             ) : null}
           </div>
@@ -536,7 +545,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-full border border-white/20 bg-white py-3 font-medium text-black transition hover:bg-white/90 disabled:opacity-50"
+            className="w-full rounded-full border border-white/10 bg-zinc-950 py-4 text-[11px] font-medium uppercase tracking-[0.25em] text-[#c29d59] transition-all duration-300 hover:border-[#c29d59]/50 hover:bg-[#c29d59]/10 hover:shadow-[0_0_20px_-5px_rgba(194,157,89,0.3)] shadow-2xl disabled:opacity-50"
           >
             {submitting ? (isUa ? 'Відправка…' : 'Submitting…') : (isUa ? 'Підтвердити замовлення' : 'Place order')}
           </button>

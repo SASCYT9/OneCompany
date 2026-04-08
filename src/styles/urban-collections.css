@@ -84,7 +84,7 @@
 
 .ucg__hero-title {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-condensed), sans-serif;
   font-size: clamp(36px, 5.5vw, 72px);
   font-weight: 300;
   letter-spacing: 0.06em;
@@ -265,7 +265,7 @@
 
 .ucg__card-title {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-condensed), sans-serif;
   font-size: clamp(18px, 2vw, 28px);
   font-weight: 400;
   letter-spacing: 0.04em;
@@ -378,7 +378,7 @@
 
 .urban-product-grid__title {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-condensed), sans-serif;
   font-size: clamp(30px, 4vw, 52px);
   font-weight: 400;
   line-height: 1;
@@ -573,7 +573,7 @@
 
 .urban-product-grid__empty-title {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-condensed), sans-serif;
   font-size: clamp(28px, 3vw, 42px);
   line-height: 1;
   text-transform: uppercase;
@@ -695,7 +695,7 @@
 
 .urban-hero__title {
   margin: 0;
-  font-family: 'Oswald', 'Montserrat', sans-serif;
+  font-family: var(--font-condensed), sans-serif;
   font-size: clamp(34px, 8.8vw, 118px);
   font-weight: 500;
   line-height: 0.94;
@@ -776,7 +776,7 @@
 
 .urban-overview__title {
   margin: 12px 0 0;
-  font-family: 'Oswald', 'Montserrat', sans-serif;
+  font-family: var(--font-condensed), sans-serif;
   font-size: clamp(36px, 8vw, 112px);
   font-weight: 500;
   line-height: 0.94;
@@ -1036,7 +1036,7 @@
 .urban-vp__caption-title {
   margin: 0;
   color: #fff;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-condensed), sans-serif;
   font-size: clamp(18px, 3vw, 42px);
   font-weight: 300;
   letter-spacing: 0.04em;
@@ -1142,7 +1142,7 @@
 
 .urban-stack__caption-title {
   margin: 0;
-  font-family: 'Oswald', 'Montserrat', sans-serif;
+  font-family: var(--font-condensed), sans-serif;
   font-size: clamp(31px, 6vw, 88px);
   font-weight: 500;
   line-height: 0.94;
@@ -1208,7 +1208,7 @@
 
 .urban-bp__heading {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-condensed), sans-serif;
   font-size: clamp(28px, 4.5vw, 56px);
   font-weight: 300;
   line-height: 1.1;
@@ -1325,7 +1325,7 @@
   margin: 0;
   overflow: hidden;
   color: var(--bp-muted, #666);
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-condensed), sans-serif;
   font-size: clamp(14px, 1.35vw, 18px);
   font-weight: 400;
   line-height: 1.2;

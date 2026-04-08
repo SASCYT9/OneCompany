@@ -38,7 +38,8 @@
   "vaultSelector": true,
   "deleteFileOption": "trash",
   "expandedSpaces": [
-    "/"
+    "/",
+    "//💡 Ідеї"
   ],
   "expandFolderOnClick": true,
   "spacesFolder": "Tags",

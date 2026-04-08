@@ -181,11 +181,11 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
         </header>
 
         {items.length === 0 ? (
-          <div className="mt-8 rounded-[28px] border border-white/10 bg-white/[0.04] p-10 text-center text-white/60 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+          <div className="mt-8 rounded-3xl border border-white/10 bg-black/40 p-10 text-center text-white/60 shadow-2xl backdrop-blur-xl">
             <p>{isUa ? 'Кошик порожній.' : 'Your cart is empty.'}</p>
             <Link
               href={`/${locale}/shop`}
-              className="mt-4 inline-block rounded-full border border-white/20 bg-white px-5 py-2 text-sm text-black transition hover:bg-white/90"
+              className="mt-6 inline-block rounded-full border border-white/10 bg-zinc-950 px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-white/90 transition hover:border-[#c29d59]/50 hover:bg-[#c29d59]/10 hover:text-[#c29d59]"
             >
               {isUa ? 'Перейти до каталогу' : 'Go to catalog'}
             </Link>
@@ -196,23 +196,23 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
               {items.map((i) => (
                 <li
                   key={i.id}
-                  className="flex flex-col gap-3 rounded-[26px] border border-white/10 bg-white/[0.05] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.25)] sm:flex-row sm:items-center sm:gap-4"
+                  className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-black/40 p-5 shadow-2xl backdrop-blur-xl transition hover:border-[#c29d59]/30 sm:flex-row sm:items-center sm:gap-6"
                 >
-                  <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-xl sm:h-24 sm:w-24">
+                  <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-2xl border border-white/5 bg-zinc-950 sm:h-24 sm:w-24">
                     <CartItemImage src={i.image || ''} fallbackSrc={i.fallbackImage} alt={localize(locale, i.title)} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-white truncate">{localize(locale, i.title)}</p>
-                    {i.variantTitle ? <p className="mt-1 text-xs text-white/45 truncate">{i.variantTitle}</p> : null}
-                    <p className="mt-1 text-sm text-white/55">
+                    <p className="font-light text-lg text-white truncate">{localize(locale, i.title)}</p>
+                    {i.variantTitle ? <p className="mt-1 text-xs text-[#c29d59]/80 uppercase tracking-widest truncate">{i.variantTitle}</p> : null}
+                    <p className="mt-2 text-sm text-white/55">
                       {i.price ? formatPrice(locale, getPrice(i.price, currency), currency) : ''} × {i.quantity}
                     </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setQuantity(i.id, Math.max(1, i.quantity - 1))}
                         disabled={updating === i.id}
-                        className="h-8 w-8 rounded border border-white/15 text-white/70 transition hover:bg-white/5 disabled:opacity-50"
+                        className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/70 transition hover:border-[#c29d59]/50 hover:bg-[#c29d59]/10 hover:text-[#c29d59] disabled:opacity-50"
                         aria-label={isUa ? 'Зменшити кількість' : 'Decrease quantity'}
                       >
                         −
@@ -222,7 +222,7 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
                         type="button"
                         onClick={() => setQuantity(i.id, i.quantity + 1)}
                         disabled={updating === i.id}
-                        className="h-8 w-8 rounded border border-white/15 text-white/70 transition hover:bg-white/5 disabled:opacity-50"
+                        className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/70 transition hover:border-[#c29d59]/50 hover:bg-[#c29d59]/10 hover:text-[#c29d59] disabled:opacity-50"
                         aria-label={isUa ? 'Збільшити кількість' : 'Increase quantity'}
                       >
                         +
@@ -231,26 +231,26 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
                         type="button"
                         onClick={() => setQuantity(i.id, 0)}
                         disabled={updating === i.id}
-                        className="ml-1 text-xs text-white/45 transition hover:text-red-400"
+                        className="ml-4 text-[10px] uppercase tracking-[0.2em] text-white/40 transition hover:text-[#c29d59]"
                       >
                         {isUa ? 'Видалити' : 'Remove'}
                       </button>
                     </div>
                   </div>
-                  <div className="text-left text-sm font-medium text-white sm:text-right sm:shrink-0">
+                  <div className="text-left text-lg font-light text-white sm:text-right sm:shrink-0">
                     {i.price ? formatPrice(locale, getPrice(i.price, currency) * i.quantity, currency) : '—'}
                   </div>
                 </li>
               ))}
             </ul>
-            <div className="mt-8 rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_18px_48px_rgba(0,0,0,0.28)]">
-              <div className="flex justify-between text-lg text-white">
-                <span>{isUa ? 'Підсумок' : 'Subtotal'}</span>
+            <div className="mt-8 rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-xl">
+              <div className="flex justify-between items-center text-xl font-light text-white">
+                <span className="text-[#c29d59] uppercase tracking-[0.1em] text-xs font-normal">{isUa ? 'Підсумок' : 'Subtotal'}</span>
                 <span>{formatPrice(locale, subtotal, currency)}</span>
               </div>
               <Link
                 href={`/${locale}/shop/checkout`}
-                className="mt-4 block w-full rounded-full border border-white/20 bg-white py-3 text-center font-medium text-black transition hover:bg-white/90"
+                className="mt-8 block w-full rounded-full border border-white/10 bg-zinc-950 py-4 text-center text-[11px] font-medium uppercase tracking-[0.25em] text-[#c29d59] transition-all duration-300 hover:border-[#c29d59]/50 hover:bg-[#c29d59]/10 hover:shadow-[0_0_20px_-5px_rgba(194,157,89,0.3)] shadow-2xl"
               >
                 {isUa ? 'Оформити замовлення' : 'Proceed to checkout'}
               </Link>

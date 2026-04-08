@@ -59,8 +59,8 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/g-class',
-    /** W465 Rocket Edition — real Brabus press photo, on-location 3/4 view */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-29.jpg',
+    /** W465 Rocket Edition — stealth dark studio variant */
+    imageUrl: '/images/shop/brabus/hq/brabus_gclass_stealth.png',
   },
   {
     title: 'Porsche 911 Turbo S',
@@ -74,8 +74,8 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/porsche',
-    /** 900 Rocket R — real Brabus studio photo, side profile */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-84.jpg',
+    /** 900 Rocket R — stealth dark studio variant */
+    imageUrl: '/images/shop/brabus/hq/brabus_porsche_rocket_stealth.png',
   },
   {
     title: 'Brabus 930',
@@ -89,8 +89,8 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/s-class',
-    /** S63 E Performance — real Brabus studio shot, dark background */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-180.jpg',
+    /** S63 E Performance — stealth dark studio variant */
+    imageUrl: '/images/shop/brabus/hq/brabus_s63_stealth.png',
   },
   {
     title: 'Brabus 820',
@@ -104,8 +104,8 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/rolls-royce',
-    /** Bentley GTC — real Brabus press photo, exterior wide */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-53.jpg',
+    /** Bentley GTC — stealth dark studio variant */
+    imageUrl: '/images/shop/brabus/hq/brabus_bentley_stealth.png',
   },
   {
     title: 'Brabus 900',
@@ -119,8 +119,8 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/lamborghini',
-    /** Lamborghini Urus 900 — real Brabus on-location wide shot */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-16.jpg',
+    /** Lamborghini Urus 900 — stealth dark studio variant */
+    imageUrl: '/images/shop/brabus/hq/brabus_urus_stealth.png',
   },
   {
     title: 'Range Rover 600',
@@ -134,7 +134,7 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/range-rover',
-    /** Range Rover 600 — real Brabus studio photo */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-148.jpg',
+    /** Range Rover 600 — stealth dark studio variant */
+    imageUrl: '/images/shop/brabus/hq/brabus_range_rover_stealth.png',
   },
 ];

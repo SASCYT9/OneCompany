@@ -78,7 +78,7 @@ export default function BrabusCustomCursor() {
       <div className="pointer-events-none fixed inset-0 z-[9999]">
         {/* Outer physics ring */}
         <motion.div
-          className="absolute left-0 top-0 rounded-full border border-[#cc0000] mix-blend-screen"
+          className="absolute left-0 top-0 rounded-full border border-[#c29d59]/60 mix-blend-screen"
           style={{
             x: cursorX,
             y: cursorY,
@@ -93,16 +93,16 @@ export default function BrabusCustomCursor() {
         />
         {/* Exact hardware-centered dot */}
         <motion.div
-          className="absolute left-0 top-0 w-2 h-2 rounded-full bg-[#cc0000] -ml-1 -mt-1 mix-blend-screen"
+          className="absolute left-0 top-0 w-2 h-2 rounded-full bg-[#c29d59] -ml-1 -mt-1 mix-blend-screen"
           style={{
-            boxShadow: '0 0 10px 2px rgba(204,0,0,0.8)'
+            boxShadow: '0 0 10px 2px rgba(194,157,89,0.8)'
           }}
           animate={{
             x: position.x,
             y: position.y,
             scale: isHovering ? 4 : 1,
-            backgroundColor: isHovering ? "rgba(204,0,0,0.5)" : "rgba(204,0,0,1)",
-            boxShadow: isHovering ? '0 0 15px 4px rgba(204,0,0,0.4)' : '0 0 10px 2px rgba(204,0,0,0.8)'
+            backgroundColor: isHovering ? "rgba(194,157,89,0.5)" : "rgba(194,157,89,1)",
+            boxShadow: isHovering ? '0 0 15px 4px rgba(194,157,89,0.4)' : '0 0 10px 2px rgba(194,157,89,0.8)'
           }}
           transition={{ type: "spring", stiffness: 1000, damping: 28, mass: 0.1 }}
         />

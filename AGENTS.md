@@ -26,6 +26,7 @@ Welcome to the One Company repository. You are operating as the Senior Solutions
 - **"Stealth Wealth" Rule**: High-end luxury. Deep obsidian blacks (`bg-zinc-950`, `#030303`), dark bronze accents (`#c29d59`), subtle white noise, radial gradients, glassmorphism (`bg-white/5`, `backdrop-blur-xl`). 
 - **No Cheap Colors**: Avoid pure `#FF0000` or `#00FF00` unless explicitly brand-matched (e.g., Brabus red, Öhlins gold).
 - **Premium Components**: When creating a storefront, use global modular components from `src/app/[locale]/shop/components`.
+- **REAL IMAGERY ONLY**: ABSOLUTE PROHIBITION on placeholder, stock, or AI-generated images. All images used must be real, high-quality, official assets from the brand's CDN or official marketing materials. No cheap renders or fake graphics.
 
 ## 5. 🤖 AI Sub-Modules (The "Machines")
 - **SEO Machine**: We use `@google/generative-ai` in `/api/admin/shop/seo-generate/route.ts` to bulk generate SEO. If modifying SEO logic, ensure you don't break the JSON response schema.

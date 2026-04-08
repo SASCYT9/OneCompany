@@ -31,7 +31,7 @@ export default function RacechipHomeSignature({ locale }: Props) {
   }, []);
 
   return (
-    <div className="rc-home bg-[#080808] text-white min-h-screen font-sans selection:bg-[#ff4a00] selection:text-white relative">
+    <div className="rc-home bg-[#080808] text-white min-h-screen font-sans selection:bg-[#c29d59] selection:text-white relative">
       {/* Global Asphalt Noise — covers entire page */}
       <div className="fixed inset-0 bg-[url('/noise.png')] bg-repeat opacity-[0.15] mix-blend-overlay pointer-events-none z-[1]"></div>
       
@@ -64,7 +64,7 @@ export default function RacechipHomeSignature({ locale }: Props) {
 
         {/* CONTENT */}
         <div className="relative z-10 px-6 md:px-16 lg:px-24 mx-auto w-full max-w-5xl flex flex-col items-center text-center -mt-20" data-rc-reveal>
-          <div className="text-[#ff4a00] text-[10px] md:text-xs font-light tracking-[0.3em] uppercase mb-6 flex items-center gap-4 drop-shadow-md">
+          <div className="text-[#c29d59] text-[10px] md:text-xs font-light tracking-[0.3em] uppercase mb-6 flex items-center gap-4 drop-shadow-md">
             {L(isUa, "ELEVATE. PERFORM. EXPERIENCE.", "ПІДНІМАЙ. ДОСЯГАЙ. ВІДЧУВАЙ.")}
           </div>
           
@@ -81,7 +81,7 @@ export default function RacechipHomeSignature({ locale }: Props) {
 
           <Link
             href={`/${locale}/shop/racechip/catalog`}
-            className="relative inline-flex items-center justify-center px-10 py-4 bg-[#ff4a00]/80 backdrop-blur-md border border-[#ff4a00]/50 text-white font-light text-[11px] tracking-[0.2em] uppercase overflow-hidden group rounded-sm shadow-[0_0_30px_rgba(255,74,0,0.3)] hover:bg-white hover:text-black hover:border-white transition-all duration-500"
+            className="relative inline-flex items-center justify-center px-10 py-4 bg-[#c29d59]/80 backdrop-blur-md border border-[#c29d59]/50 text-white font-light text-[11px] tracking-[0.2em] uppercase overflow-hidden group rounded-sm shadow-[0_0_30px_rgba(194,157,89,0.3)] hover:bg-white hover:text-black hover:border-white transition-all duration-500"
           >
             <span className="relative z-10 flex items-center gap-4">
               {L(isUa, "CONFIGURE YOUR VEHICLE", "ВІДКРИТИ КАТАЛОГ")}
@@ -95,10 +95,10 @@ export default function RacechipHomeSignature({ locale }: Props) {
           SECTION 2 — APP CONTROL FEATURE
       ════════════════════════════════════════════════════════════════════ */}
       <section className="relative py-16 md:py-24 px-6 md:px-16 lg:px-24 overflow-hidden flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#ff4a00]/5 blur-[120px] rounded-full pointer-events-none z-0"></div>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#c29d59]/5 blur-[120px] rounded-full pointer-events-none z-0"></div>
         
         <div className="w-full lg:w-1/2 relative z-10 mx-auto" data-rc-reveal>
-          <div className="aspect-video bg-[#111] rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,74,0,0.15)] relative">
+          <div className="aspect-video bg-[#111] rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(194,157,89,0.15)] relative">
             <div className="absolute inset-0 w-full h-full p-2">
               <Image 
                 src="/images/shop/racechip/app-stealth-realui.png" 
@@ -113,8 +113,8 @@ export default function RacechipHomeSignature({ locale }: Props) {
 
         <div className="w-full lg:w-[45%] relative z-10" data-rc-reveal>
           <div className="flex items-center gap-4 mb-8">
-            <span className="w-8 h-[1px] bg-[#ff4a00]/50"></span>
-            <span className="text-[#ff4a00] text-[9px] font-light uppercase tracking-[0.3em] rounded-[2px]">
+            <span className="w-8 h-[1px] bg-[#c29d59]/50"></span>
+            <span className="text-[#c29d59] text-[9px] font-light uppercase tracking-[0.3em] rounded-[2px]">
               {L(isUa, "Smart Control", "Розумне Керування")}
             </span>
           </div>
@@ -135,7 +135,7 @@ export default function RacechipHomeSignature({ locale }: Props) {
               L(isUa, "Automatic software updates", "Автоматичні оновлення програмного забезпечення")
             ].map((item, idx) => (
               <li key={idx} className="flex items-center gap-5 text-[11px] md:text-xs font-light text-zinc-300 uppercase tracking-[0.2em]">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#ff4a00]/80 shadow-[0_0_10px_rgba(255,74,0,0.8)] flex-shrink-0"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#c29d59]/80 shadow-[0_0_10px_rgba(194,157,89,0.8)] flex-shrink-0"></div>
                 {item}
               </li>
             ))}
@@ -148,13 +148,13 @@ export default function RacechipHomeSignature({ locale }: Props) {
       ════════════════════════════════════════════════════════════════════ */}
       <section className="relative py-16 md:py-32 px-6 md:px-16 lg:px-24 overflow-hidden flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-24">
         {/* Glow on the left for Section 3 */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#ff4a00]/5 blur-[120px] rounded-full pointer-events-none z-0"></div>
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#c29d59]/5 blur-[120px] rounded-full pointer-events-none z-0"></div>
         
         {/* TEXT CONTENT (NOW ON THE LEFT) */}
         <div className="w-full lg:w-[45%] relative z-10" data-rc-reveal>
           <div className="flex items-center gap-4 mb-8">
-            <span className="w-8 h-[1px] bg-[#ff4a00]/50"></span>
-            <span className="text-[#ff4a00] text-[9px] font-light uppercase tracking-[0.3em] rounded-[2px]">
+            <span className="w-8 h-[1px] bg-[#c29d59]/50"></span>
+            <span className="text-[#c29d59] text-[9px] font-light uppercase tracking-[0.3em] rounded-[2px]">
               {L(isUa, "German Engineering", "Німецька Інженерія")}
             </span>
           </div>
@@ -175,7 +175,7 @@ export default function RacechipHomeSignature({ locale }: Props) {
               L(isUa, "Invisible to official dealership diagnostics", "Залишається невидимим для офіційної діагностики")
             ].map((item, idx) => (
               <li key={idx} className="flex items-center gap-5 text-[11px] md:text-xs font-light text-zinc-300 uppercase tracking-[0.2em]">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#ff4a00]/80 shadow-[0_0_10px_rgba(255,74,0,0.8)] flex-shrink-0"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#c29d59]/80 shadow-[0_0_10px_rgba(194,157,89,0.8)] flex-shrink-0"></div>
                 {item}
               </li>
             ))}
@@ -196,7 +196,7 @@ export default function RacechipHomeSignature({ locale }: Props) {
             </div>
             {/* Edge highlights */}
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-transparent to-white/5 pointer-events-none rounded-2xl mix-blend-overlay"></div>
-            <div className="absolute inset-0 shadow-[inset_0_0_30px_rgba(255,74,0,0.02)] pointer-events-none rounded-2xl"></div>
+            <div className="absolute inset-0 shadow-[inset_0_0_30px_rgba(194,157,89,0.02)] pointer-events-none rounded-2xl"></div>
           </div>
         </div>
 

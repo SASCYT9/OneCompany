@@ -6,16 +6,38 @@ aliases: [Магазин, Shop]
 # 🏪 Shop Overview
 
 > [!info] Архітектура e-commerce One Company SHOP
-> Прогрес: **85%** · 4/6 фаз
+> Прогрес: **90%** · Основні фази завершено
 
-Це зведена нотатка по всій e-commerce частині. Детальніше по кожній фазі:
+Це зведена нотатка по всій e-commerce частині.
 
-[[Phase A — Security]] · [[Phase B — Catalog]] · [[Phase C — Storefront]]
-[[Phase D — Orders]] · [[Phase E — CSV Import]] · [[Phase F — SEO]]
+## User Journey (Шлях клієнта)
+
+```mermaid
+graph TD
+    A[Клієнт заходить на сайт] --> B{Пошук товару}
+    B -->|Каталог / Бренд| C[Сторінка товару]
+    B -->|Автомобіль| C
+    C --> D[Додавання в кошик / Hybrid Checkout]
+    D --> E[Введення даних доставки]
+    E --> F[Генерація замовлення PENDING_REVIEW]
+    F --> G[Створення лінка на оплату Stripe/Hutko]
+    G --> H[Оплата]
+    H --> I[Відправка / Логістика]
+```
+
+## Фази розробки (Прогрес)
+- **Phase A**: Security & Auth (`100%`)
+- **Phase B**: Catalog & Brands (`100%`)
+- **Phase C**: Storefront Design (`100%`)
+- **Phase D**: Orders & CRM (`95%`)
+- **Phase E**: CSV Import (`100%`)
+- **Phase F**: SEO & Google (`90%`)
+
+Детальніше: [[Phase A — Security]] · [[Phase B — Catalog]] · [[Phase C — Storefront]] · [[Phase D — Orders]] · [[Phase E — CSV Import]] · [[Phase F — SEO]]
 
 ---
 
-## Стек
+## Стек та Інфраструктура
 
 `Next.js 14` → `Prisma ORM` → `PostgreSQL (Supabase)` → `Vercel`
 
@@ -28,8 +50,14 @@ aliases: [Магазин, Shop]
 - ✅ Guest + Customer checkout
 - ✅ Turn14 API integration (~700K products)
 - ✅ Admin panel (RBAC)
-- ⏳ Payment gateway (WhitePay/Hutko)
-- ⏳ CSV Import wizard
+- ✅ Payment gateway (Stripe + Hutko)
+- ✅ CSV Import wizard
+
+## Shopify Storefronts
+Окрім основного порталу `onecompany.global`, ми маємо спеціалізовані окремі брендові магазини на базі Shopify для покращеної конверсії:
+- **Eventuri** (`eventuri.onecompany.global`) — мультимовний магазин кастомного UI.
+- **KW Automotive** (`kw.onecompany.global`) — підвіски.
+Більше інформації: [[Shopify Storefronts]]
 
 ## Зв'язки
 

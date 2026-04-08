@@ -1,15 +1,15 @@
 /* ──────────────────────────────────────────────────
-   GiroDisc — "Braking Forge" Architecture
+   GiroDisc — "Asymmetric Friction" Architecture
 ────────────────────────────────────────────────── */
 
 :root {
-  --gd-bg: #111111;
-  --gd-bg-alt: #1a1a1a;
-  --gd-red: #cc0000;
-  --gd-red-glow: rgba(204, 0, 0, 0.4);
-  --gd-iron: #333333;
-  --gd-white: #eeeeee;
-  --gd-gray: #aaaaaa;
+  --gd-bg: #000000; 
+  --gd-bg-surface: #0a0a0c;
+  --gd-orange: #E85B24; /* Official GiroDisc Orange */
+  --gd-orange-dim: rgba(232, 91, 36, 0.1);
+  --gd-iron: rgba(255, 255, 255, 0.08); 
+  --gd-white: #ffffff;
+  --gd-gray: #a0a0a5;
 }
 
 .gd-home {
@@ -18,353 +18,385 @@
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   position: relative;
+  min-height: 100vh;
 }
 
-.gd-canvas {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-/* ── Focus-visible (a11y) ── */
+/* ── Typography & Globals ── */
 *:focus-visible {
-  outline: 2px solid var(--gd-red);
+  outline: 2px solid var(--gd-orange);
   outline-offset: 3px;
+}
+h2, h3 {
+  letter-spacing: -0.02em;
 }
 
 /* ── Back Link ── */
 .gd-back {
   position: fixed;
-  top: 70px;
-  left: 0;
-  z-index: 90;
-  padding: 1rem 1.5rem;
+  top: 90px;
+  left: 2rem;
+  z-index: 100;
 }
 .gd-back__link {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  font-weight: 900;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.15em;
   color: var(--gd-white);
   text-decoration: none;
-  background: var(--gd-red);
-  padding: 0.5rem 1rem;
-  clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
-  transition: background 0.3s;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  background: #000;
+  padding: 0.8rem 1.5rem;
+  border-left: 4px solid var(--gd-orange);
+  transition: all 0.3s;
 }
 .gd-back__link:hover {
-  background: #aa0000;
+  background: var(--gd-bg-surface);
+  color: var(--gd-orange);
+  transform: translateX(5px);
 }
 
-/* ── Section 1: Forge Hero ── */
-.gd-forge-hero {
+/* ── 1. Hero Setup (Full Bleed, High Contrast) ── */
+.gd-hero-asym {
   position: relative;
-  min-height: 100dvh;
+  height: 100vh;
+  min-height: 800px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-end;
+  padding: 0 4rem 6rem;
   overflow: hidden;
-  background: #000;
 }
-.gd-forge-hero__bg {
+.gd-hero-bg {
   position: absolute;
-  inset: 0;
-  z-index: 0;
-  opacity: 0.6;
+  top: 0; left: 0; width: 100%; height: 100%;
 }
-.gd-forge-hero__bg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: contrast(1.2) grayscale(0.5);
+.gd-hero-bg img {
+  width: 100%; height: 100%; object-fit: cover;
+  transform: scale(1.02);
 }
-.gd-forge-hero__bg::after {
+.gd-hero-bg::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 50%, var(--gd-bg) 100%);
+  background: linear-gradient(0deg, rgba(0,0,0,1) 0%, transparent 60%);
+}
+.gd-hero-gradient {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(232,91,36,0.15) 0%, transparent 40%);
+  mix-blend-mode: color-dodge;
+  z-index: 1;
 }
 
-.gd-hero-content {
+.gd-hero-text {
   position: relative;
   z-index: 10;
-  text-align: center;
   max-width: 900px;
-  padding: 2rem;
 }
-
-.gd-hero-title {
-  font-size: clamp(3.5rem, 8vw, 7rem);
+.gd-htitle {
+  font-size: clamp(4rem, 9vw, 9rem);
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: -0.02em;
+  line-height: 0.85;
   margin-bottom: 2rem;
-  line-height: 0.9;
-  text-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
 }
-.gd-hero-title span {
-  display: block;
-  color: var(--gd-red);
+.gd-htitle span:last-child {
+  color: var(--gd-orange);
+  margin-left: 10vw; /* Asymmetric offset */
 }
-
-.gd-hero-subtitle {
+.gd-hsubtitle {
   font-size: 1.25rem;
-  color: var(--gd-white);
+  color: var(--gd-gray);
   max-width: 600px;
-  margin: 0 auto 3rem auto;
   line-height: 1.6;
-  font-weight: 500;
-  text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+  margin-left: 10vw;
+  padding-left: 2rem;
+  border-left: 2px solid var(--gd-iron);
 }
 
-.gd-btn {
-  display: inline-flex;
-  padding: 1.25rem 3rem;
-  background: var(--gd-red);
-  color: #fff;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  text-decoration: none;
-  font-size: 1.1rem;
-  clip-path: polygon(5% 0, 100% 0, 95% 100%, 0% 100%);
-  transition: all 0.3s;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-}
-.gd-btn:hover {
-  background: #ff1111;
-  box-shadow: 0 0 30px var(--gd-red-glow);
-  transform: scale(1.05);
-}
-
-/* ── Section 2: Foundry Specs ── */
-.gd-foundry-specs {
+/* ── 2. Slanted Stats Bar ── */
+.gd-slanted-stats {
   display: flex;
   flex-wrap: wrap;
-  background: var(--gd-bg-alt);
-  border-top: 4px solid var(--gd-red);
+  background: var(--gd-orange);
+  color: #000;
+  padding: 2rem 5%;
   position: relative;
   z-index: 20;
+  transform: skewY(-2deg); /* Angular cut */
+  margin-top: -3rem; /* overlap hero */
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
-.gd-spec-block {
+.gd-slanted-stats .gd-stat-inc {
+  transform: skewY(2deg); /* Straighten internal content */
+  display: flex;
+  width: 100%;
+}
+.gd-stat-block {
   flex: 1;
-  min-width: 200px;
-  padding: 3rem 2rem;
-  text-align: center;
-  border-right: 1px solid rgba(255,255,255,0.05);
+  padding: 1rem 2rem;
+  border-right: 1px solid rgba(0,0,0,0.1);
 }
-.gd-spec-block:last-child {
-  border-right: none;
-}
-.gd-spec-val {
+.gd-stat-block:last-child { border-right: none; }
+.gd-stat-val {
   display: block;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 900;
-  color: var(--gd-white);
-  margin-bottom: 0.5rem;
+  line-height: 1.1;
 }
-.gd-spec-label {
-  font-size: 0.8rem;
-  color: var(--gd-gray);
+.gd-stat-lab {
+  font-weight: 800;
   text-transform: uppercase;
+  font-size: 0.75rem;
   letter-spacing: 0.1em;
-  font-weight: 700;
+  opacity: 0.8;
 }
 
-/* ── Section 3: Vane Technology ── */
-.gd-vane-tech {
+@media (max-width: 800px) {
+  .gd-slanted-stats { transform: skewY(-4deg); }
+  .gd-slanted-stats .gd-stat-inc { transform: skewY(4deg); flex-direction: column; }
+  .gd-stat-block { border-right: none; border-bottom: 1px solid rgba(0,0,0,0.1); }
+}
+
+/* ── 3. Editorial Split Section (Materials) ── */
+.gd-editorial {
+  position: relative;
+  z-index: 10;
   padding: 8rem 0;
   background: var(--gd-bg);
 }
-.gd-vane-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.gd-vane-item {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 6rem;
-}
-.gd-vane-item:last-child { margin-bottom: 0; }
-@media (min-width: 900px) {
-  .gd-vane-item {
-    flex-direction: row;
-    align-items: center;
-  }
-  .gd-vane-item:nth-child(even) {
-    flex-direction: row-reverse;
-  }
-}
-
-.gd-vi-text {
-  flex: 1;
-  padding: 2rem;
-}
-.gd-vi-text h2 {
-  font-size: 2.5rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  color: var(--gd-white);
-  margin-bottom: 1.5rem;
-  position: relative;
-  display: inline-block;
-}
-.gd-vi-text h2::after {
-  content: '';
-  position: absolute;
-  bottom: -0.5rem; left: 0;
-  width: 50px; height: 4px;
-  background: var(--gd-red);
-}
-.gd-vi-text p {
-  color: var(--gd-gray);
-  font-size: 1.1rem;
-  line-height: 1.8;
-  font-weight: 500;
-}
-
-.gd-vi-image {
-  flex: 1;
-  position: relative;
-  padding: 2rem;
-}
-.gd-vi-image-inner {
-  position: relative;
-  aspect-ratio: 4/3;
-  overflow: hidden;
-  clip-path: polygon(0 10%, 100% 0, 100% 90%, 0 100%);
-  border: 4px solid var(--gd-iron);
-}
-.gd-vane-item:nth-child(even) .gd-vi-image-inner {
-  clip-path: polygon(0 0, 100% 10%, 100% 100%, 0 90%);
-}
-.gd-vi-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.8s;
-}
-.gd-vane-item:hover .gd-vi-image img {
-  transform: scale(1.1);
-}
-
-/* ── Section 4: Hardware Grid ── */
-.gd-hardware {
-  padding: 6rem 2rem;
-  background: var(--gd-bg-alt);
-}
-.gd-hw-inner {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-.gd-hw-header {
-  text-align: center;
+.gd-ed-header {
+  padding: 0 5%;
   margin-bottom: 4rem;
 }
-.gd-hw-header h2 {
+.gd-ed-header h2 {
   font-size: 3rem;
   font-weight: 900;
   text-transform: uppercase;
-  color: var(--gd-white);
+  color: var(--gd-orange);
 }
 
-.gd-hw-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-}
-
-.gd-hw-card {
-  background: var(--gd-bg);
-  border: 2px solid var(--gd-iron);
-  text-decoration: none;
-  transition: border-color 0.3s, transform 0.3s;
+.gd-ed-split {
   display: flex;
   flex-direction: column;
-}
-.gd-hw-card:hover {
-  border-color: var(--gd-red);
-  transform: translateY(-5px);
-}
-.gd-hc-image {
-  aspect-ratio: 16/9;
-  overflow: hidden;
   position: relative;
 }
-.gd-hc-image img {
+@media (min-width: 1024px) {
+  .gd-ed-split { flex-direction: row; }
+}
+
+.gd-ed-sticky-img {
+  flex: 1;
+  height: 500px;
+}
+@media (min-width: 1024px) {
+  .gd-ed-sticky-img {
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+}
+.gd-ed-sticky-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(80%) contrast(1.2);
-  transition: filter 0.3s;
+  filter: grayscale(80%) sepia(20%) hue-rotate(-20deg); /* Metallic look */
 }
-.gd-hw-card:hover .gd-hc-image img {
-  filter: grayscale(0%) contrast(1.2);
-}
-.gd-hc-content {
-  padding: 2rem;
+
+.gd-ed-content-scroll {
   flex: 1;
+  padding: 4rem 5%;
+  background: var(--gd-bg);
+}
+.gd-ed-block {
+  min-height: 60vh;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  margin-bottom: 6rem;
+  border-left: 2px solid var(--gd-orange);
+  padding-left: 3rem;
+  position: relative;
 }
-.gd-hc-badge {
-  color: var(--gd-red);
-  font-size: 0.75rem;
+.gd-ed-block::before {
+  content: '0' counter(ed-block);
+  counter-increment: ed-block;
+  color: var(--gd-iron);
+  font-size: 6rem;
+  font-weight: 900;
+  position: absolute;
+  top: -2rem; left: -1rem;
+  z-index: 0;
+}
+.gd-ed-block h3 {
+  font-size: 2.2rem;
   font-weight: 900;
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
-  letter-spacing: 0.1em;
+  margin-bottom: 1.5rem;
+  z-index: 1;
 }
-.gd-hc-title {
-  font-size: 1.5rem;
+.gd-ed-block p {
+  color: var(--gd-gray);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  max-width: 500px;
+  z-index: 1;
+}
+
+/* ── 4. Asymmetric Hardware Stack ── */
+.gd-hw-stack {
+  background: var(--gd-bg-surface);
+  padding: 10rem 5%;
+  position: relative;
+  overflow: hidden;
+  clip-path: polygon(0 6vw, 100% 0, 100% 100%, 0 100%);
+  margin-top: -6vw;
+}
+.gd-hw-stack::before {
+  content: 'RACING HARDWARE';
+  position: absolute;
+  top: 10%; left: -5%;
+  font-size: 18vw;
   font-weight: 900;
-  color: var(--gd-white);
+  color: rgba(255,255,255,0.02);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.gd-hw-item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8rem;
+  position: relative;
+  z-index: 10;
+  text-decoration: none;
+}
+@media (min-width: 900px) {
+  .gd-hw-item { flex-direction: row; align-items: center; }
+  .gd-hw-item:nth-child(even) { flex-direction: row-reverse; }
+}
+.gd-hw-item-img {
+  flex: 1.2;
+  position: relative;
+}
+.gd-hw-item-img img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  transition: transform 0.6s, filter 0.6s;
+  box-shadow: 20px 20px 60px rgba(0,0,0,0.5);
+}
+.gd-hw-item:hover .gd-hw-item-img img {
+  transform: scale(1.03);
+  filter: brightness(1.2);
+}
+
+.gd-hw-item-text {
+  flex: 0.8;
+  padding: 3rem;
+  background: var(--gd-bg);
+  margin-top: -4rem; /* Overlap image horizontally */
+  margin-left: 2rem;
+  margin-right: 2rem;
+  position: relative;
+  transition: transform 0.4s;
+}
+@media (min-width: 900px) {
+  .gd-hw-item-text {
+    margin-top: 0;
+    margin-left: -5rem; 
+    margin-right: 0;
+  }
+  .gd-hw-item:nth-child(even) .gd-hw-item-text {
+    margin-left: 0;
+    margin-right: -5rem;
+  }
+}
+.gd-hw-item:hover .gd-hw-item-text {
+  transform: translateY(-10px);
+  border-bottom: 2px solid var(--gd-orange);
+}
+.gd-pad {
+  font-size: 0.75rem;
+  color: var(--gd-orange);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  display: block;
   margin-bottom: 1rem;
 }
-.gd-hc-desc {
-  font-size: 0.95rem;
+.gd-hw-item-text h3 {
+  color: var(--gd-white);
+  font-size: 2rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+.gd-hw-item-text p {
   color: var(--gd-gray);
-  line-height: 1.5;
-  font-weight: 500;
+  line-height: 1.6;
 }
 
-
-/* ── Section 5: Foundry Heritage ── */
-.gd-heritage {
-  padding: 8rem 2rem;
+/* ── 5. Full Width Heritage Video ── */
+.gd-fact-video {
+  position: relative;
+  height: 100vh;
   background: #000;
+  overflow: hidden;
+  clip-path: polygon(0 0, 100% 5vw, 100% 100%, 0 calc(100% - 5vw));
+  margin-bottom: -5vw;
+}
+.gd-fact-video iframe, .gd-fact-video img {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 100vw; height: 100vh;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  pointer-events: none;
+  opacity: 0.5;
+}
+/* Force iframe to cover properly for 16:9 */
+@media (min-aspect-ratio: 16/9) {
+  .gd-fact-video iframe { height: 300%; top: -100%; }
+}
+@media (max-aspect-ratio: 16/9) {
+  .gd-fact-video iframe { width: 300%; left: -100%; }
+}
+.gd-fact-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
   text-align: center;
-  border-top: 4px solid var(--gd-red);
+  padding: 2rem;
 }
-.gd-ht-inner {
-  max-width: 800px;
-  margin: 0 auto;
-}
-.gd-ht-inner h2 {
-  font-size: 2.5rem;
+.gd-fact-overlay h2 {
+  font-size: 4rem;
   font-weight: 900;
   text-transform: uppercase;
   color: var(--gd-white);
-  margin-bottom: 1.5rem;
 }
-.gd-ht-inner p {
-  font-size: 1.15rem;
-  line-height: 1.8;
+.gd-fact-overlay h2 span { color: var(--gd-orange); }
+.gd-fact-overlay p {
+  font-size: 1.25rem;
+  max-width: 600px;
   color: var(--gd-gray);
+  margin-top: 1.5rem;
+  line-height: 1.6;
 }
 
-
-/* Reveal Animation */
-[data-gd-reveal] {
+/* Reveal */
+[data-gd-dyn] {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateX(-30px);
+  transition: all 0.8s cubic-bezier(0.16,1,0.3,1);
 }
-[data-gd-reveal].gd-vis {
-  opacity: 1;
-  transform: translateY(0);
+[data-gd-dyn].gd-in {
+  opacity: 1; transform: translateX(0);
 }

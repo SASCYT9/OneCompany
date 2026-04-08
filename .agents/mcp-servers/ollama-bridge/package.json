@@ -1,0 +1,21 @@
+{
+  "name": "ollama-bridge",
+  "version": "1.0.0",
+  "description": "MCP Bridge for Local Ollama Model",
+  "main": "build/index.js",
+  "type": "module",
+  "bin": {
+    "ollama-bridge": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0"
+  }
+}

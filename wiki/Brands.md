@@ -9,6 +9,85 @@ aliases: [Бренди]
 
 ---
 
+## 🏎 Brabus
+
+| | |
+|---|---|
+| **Тип** | EU Direct (Німеччина) |
+| **Продукти** | Преміум тюнінг Mercedes |
+| **Каталог** | ✅ Мануальне введення |
+| **Ціни** | Manual pricing |
+| **Склад** | EU warehouse |
+
+---
+
+## 🏙 Urban Automotive
+
+| | |
+|---|---|
+| **Тип** | UK Direct (Великобританія) |
+| **Продукти** | Тюнінг Land Rover, Rolls-Royce, G-Class |
+| **Каталог** | ✅ Локальний |
+| **Ціни** | Прайс від виробника |
+| **Склад** | UK warehouse |
+
+---
+
+## 🔩 Akrapovič
+
+| | |
+|---|---|
+| **Тип** | Turn14 Distribution |
+| **Продукти** | Титанові та карбонові вихлопні системи |
+| **Каталог** | ✅ Через Turn14 API → Supabase cache |
+| **Ціни** | Turn14 cost + Brand Markup % |
+| **Склад** | US warehouse (Turn14) |
+| **Storefront** | ✅ `/shop/akrapovic` — Cinematic "Sound of Perfection" |
+| **Секції** | Hero video, Sound Wave, Materials, Product Lines, Sound Grid, Heritage, Stats, CTA |
+| **SEO** | ✅ Sitemap, metadata UA/EN |
+
+> [!tip] Наступні кроки
+> - Завантажити реальні відео Akrapovič (hero + factory)
+> - Додати sound clips (MP3, 3-5 сек) для інтерактивної сітки
+> - Імпортувати товари з Turn14 API в каталог
+
+---
+
+## 🌬 Eventuri
+
+| | |
+|---|---|
+| **Тип** | Shopify Storefront |
+| **Продукти** | Впускні системи |
+| **Каталог** | ✅ Імпортовано через CSV на Shopify |
+| **Ціни** | Синхронізовані |
+| **Склад** | UK / EU warehouse |
+| **Storefront** | `eventuri.onecompany.global` |
+
+---
+
+## 📉 KW Automotive
+
+| | |
+|---|---|
+| **Тип** | Shopify Storefront |
+| **Продукти** | Підвіски та койловери |
+| **Каталог** | ✅ Запущено |
+| **Storefront** | `kw.onecompany.global` |
+
+---
+
+## 🥶 CSF Racing
+
+| | |
+|---|---|
+| **Тип** | Turn14 Distribution |
+| **Продукти** | Преміальні радіатори, інтеркулери |
+| **Каталог** | Turn14 API |
+| **Склад** | US warehouse |
+
+---
+
 ## 🍔 Burger Motorsports
 
 | | |
@@ -38,18 +117,6 @@ aliases: [Бренди]
 
 ---
 
-## 🏎 Brabus
-
-| | |
-|---|---|
-| **Тип** | EU Direct (Німеччина) |
-| **Продукти** | Преміум тюнінг Mercedes |
-| **Каталог** | ✅ Мануальне введення |
-| **Ціни** | Manual pricing |
-| **Склад** | EU warehouse |
-
----
-
 ## ⚡ RaceChip
 
 | | |
@@ -59,38 +126,6 @@ aliases: [Бренди]
 | **Каталог** | ✅ Автоматичний скрейпінг RaceChip EU |
 | **Ціни** | Scraped EUR prices |
 | **Склад** | EU warehouse |
-
----
-
-## 🔩 Akrapovič
-
-| | |
-|---|---|
-| **Тип** | Turn14 Distribution |
-| **Продукти** | Титанові та карбонові вихлопні системи |
-| **Каталог** | ✅ Через Turn14 API → Supabase cache |
-| **Ціни** | Turn14 cost + Brand Markup % |
-| **Склад** | US warehouse (Turn14) |
-| **Storefront** | ✅ `/shop/akrapovic` — Cinematic "Sound of Perfection" |
-| **Секції** | Hero video, Sound Wave, Materials, Product Lines, Sound Grid, Heritage, Stats, CTA |
-| **SEO** | ✅ Sitemap, metadata UA/EN |
-
-> [!tip] Наступні кроки
-> - Завантажити реальні відео Akrapovič (hero + factory)
-> - Додати sound clips (MP3, 3-5 сек) для інтерактивної сітки
-> - Імпортувати товари з Turn14 API в каталог
-
----
-
-## 🌬 Eventuri
-
-| | |
-|---|---|
-| **Тип** | Файл (не API) |
-| **Продукти** | Впускні системи |
-| **Каталог** | ⏳ Чекаємо прайс-файл від Вані |
-| **Ціни** | З прайс-файлу |
-| **Блокер** | → [[Blockers]] |
 
 ---
 

@@ -29,6 +29,12 @@ This rule applies to:
 - Only FETCH / GET data from APIs.
 - All modifications to state or records must be saved LOCALLY in the PostgreSQL database only.
 
+## 🚫 NO FAKE OR PLACEHOLDER IMAGERY
+
+**Under NO circumstances may you use placeholder, generic stock, or AI-generated images on the storefronts.**
+- ALL images must be real, high-quality, official brand assets.
+- If an official image is not immediately available, find an appropriate official substitute, rather than using a cheap placeholder or AI generation.
+
 ## 🚫 ANTI-PATTERNS (CRIMINAL CODE)
 
 **The AI must NEVER write code using the following anti-patterns:**

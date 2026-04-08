@@ -3,6 +3,7 @@ import CSFHomeSignature from '../components/CSFHomeSignature';
 
 type Props = {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 export async function generateMetadata({
@@ -24,9 +25,13 @@ export async function generateMetadata({
   });
 }
 
-export default async function CSFRacingPage({ params }: Props) {
+export default async function CSFRacingPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  return <CSFHomeSignature locale={resolvedLocale} />;
+  // Await searchParams in Next.js 15+
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const src = typeof resolvedSearchParams.src === 'string' ? resolvedSearchParams.src : undefined;
+
+  return <CSFHomeSignature locale={resolvedLocale} smmSource={src} />;
 }

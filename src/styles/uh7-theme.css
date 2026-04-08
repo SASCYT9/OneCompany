@@ -19,17 +19,17 @@
 }
 
 .uh7 {
-  --ff-display: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+  --ff-display: var(--font-condensed), "Cormorant Garamond", "Playfair Display", Georgia, serif;
   --ff-body: "Sora", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  --c-black: #0a0a0a;
-  --c-dark: #111;
+  --c-black: #030303; /* Stealth Vault Black */
+  --c-dark: rgba(3, 3, 3, 0.7); /* Deep Glassmorphism base */
   --c-grey-1: #141414;
   --c-grey-2: #1e1e1e;
   --c-grey-3: #2a2a2a;
   --c-grey-4: #666;
   --c-grey-5: #999;
-  --c-white: #f5f5f3;
-  --c-accent: var(--accent, #f5f5f3);
+  --c-white: #ffffff;
+  --c-accent: #c29d59; /* Luxury Bronze */
   --c-accent-dim: color-mix(in srgb, var(--c-accent) 30%, transparent);
   --c-accent-glow: color-mix(in srgb, var(--c-accent) 8%, transparent);
   --r-sm: 8px;
@@ -213,11 +213,12 @@
 }
 .uh7-shdr__title {
   font-family: var(--ff-display);
-  font-size: clamp(28px, 4vw, 52px);
-  font-weight: 300;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-  margin: 0 0 16px;
+  font-size: clamp(36px, 5vw, 64px);
+  text-transform: uppercase;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  margin: 0 0 20px;
 }
 .uh7-shdr__desc {
   font-size: clamp(13px, 1.2vw, 15px);
@@ -909,11 +910,12 @@
 /* Title with shimmer sweep — білий текст на будь-якому тлі */
 .uh7-hero__title {
   font-family: var(--ff-display);
-  font-size: clamp(10px, 2.1vw, 40px);
-  font-weight: 300;
-  line-height: 0.98;
-  letter-spacing: -0.01em;
-  margin: 0 0 14px;
+  font-size: clamp(40px, 8vw, 120px);
+  font-weight: 500;
+  text-transform: uppercase;
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  margin: 0 0 24px;
   white-space: nowrap !important;
   text-wrap: nowrap;
   overflow-wrap: normal;
@@ -971,11 +973,11 @@
 
 @media (max-width: 1024px) {
   .uh7-hero__title {
-    white-space: nowrap !important;
-    text-wrap: nowrap;
-    font-size: clamp(8px, 2.8vw, 26px);
-    line-height: 1;
-    letter-spacing: 0;
+    white-space: normal !important;
+    text-wrap: balance;
+    font-size: clamp(36px, 10vw, 64px);
+    line-height: 0.95;
+    letter-spacing: 0.02em;
   }
 }
 
@@ -1066,10 +1068,12 @@
   overflow: hidden;
   display: flex;
   align-items: flex-end;
+  background: var(--c-black);
 }
 .uh7-sc__media {
   position: absolute;
   inset: 0;
+  background: var(--c-black);
 }
 .uh7-sc__img {
   width: 100%;
@@ -1109,6 +1113,7 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 1.4s var(--ease-material);
+  background: var(--c-black);
 }
 .uh7-sc.is-vis .uh7-sc__vimeo {
   opacity: 1;
@@ -1120,11 +1125,11 @@
   z-index: 2;
   background: linear-gradient(
     180deg,
-    rgba(10, 10, 10, 0.15) 0%,
-    rgba(10, 10, 10, 0.15) 20%,
-    rgba(10, 10, 10, 0.4) 45%,
-    rgba(10, 10, 10, 0.75) 65%,
-    rgba(10, 10, 10, 0.92) 100%
+    rgba(10, 10, 10, 0.10) 0%,
+    rgba(10, 10, 10, 0.12) 15%,
+    rgba(10, 10, 10, 0.35) 40%,
+    rgba(10, 10, 10, 0.70) 60%,
+    rgba(10, 10, 10, 0.90) 100%
   );
 }
 
@@ -1140,7 +1145,7 @@
   line-height: 1;
   letter-spacing: -0.04em;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(245, 245, 243, 0.08);
+  -webkit-text-stroke: 1px rgba(245, 245, 243, 0.12);
   opacity: 0;
   transform: translateY(30px);
   transition:
@@ -1306,9 +1311,16 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(245, 245, 243, 0.06) 50%,
+    rgba(245, 245, 243, 0.10) 30%,
+    rgba(245, 245, 243, 0.14) 50%,
+    rgba(245, 245, 243, 0.10) 70%,
     transparent
   );
+  animation: uh7DividerShimmer 4s ease-in-out infinite;
+}
+@keyframes uh7DividerShimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 /* ═══════════════════════════════════════════

@@ -234,12 +234,12 @@ export default function BrabusVehicleFilter({
         <div className="lg:hidden flex items-center gap-3 mb-4">
           <button
             onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-            className="flex items-center gap-2.5 px-5 py-3 bg-[#050505]/80 backdrop-blur-md border border-white/[0.08] rounded-xl text-white text-[10px] uppercase tracking-[0.18em] font-semibold hover:border-[#cc0000]/40 transition-colors shadow-xl"
+            className="flex items-center gap-2.5 px-5 py-3 bg-[#050505]/80 backdrop-blur-md border border-white/[0.08] rounded-xl text-white text-[10px] uppercase tracking-[0.18em] font-semibold hover:border-[#c29d59]/40 transition-colors shadow-xl"
           >
             <SlidersHorizontal size={13} />
             {isUa ? "Фільтри" : "Filters"}
             {activeBrand !== "all" && (
-              <span className="w-1.5 h-1.5 rounded-full bg-[#cc0000] ml-1" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59] ml-1" />
             )}
           </button>
           <p className="text-white/40 text-xs tracking-wide">
@@ -282,7 +282,7 @@ export default function BrabusVehicleFilter({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={isUa ? "Пошук деталей..." : "Search parts..."}
-                  className="w-full bg-black/40 border border-white/10 rounded-sm pl-11 pr-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#cc0000]/60 transition-colors backdrop-blur-md"
+                  className="w-full bg-black/40 border border-white/10 rounded-sm pl-11 pr-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#c29d59]/50 transition-colors backdrop-blur-md"
                 />
                 {searchQuery && (
                   <button
@@ -308,7 +308,7 @@ export default function BrabusVehicleFilter({
                       }`}
                     >
                       <span>{isUa ? "Всі марки" : "All Brands"}</span>
-                      {activeBrand === "all" && <span className="w-1.5 h-1.5 rounded-full bg-[#cc0000]"></span>}
+                      {activeBrand === "all" && <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]"></span>}
                     </button>
                   </li>
                   {availableBrands.map((brand) => (
@@ -322,7 +322,7 @@ export default function BrabusVehicleFilter({
                         <span>{brand.label}</span>
                         <div className="flex items-center gap-3">
                           <span className="text-[10px] text-white/40 font-bold">{brand.count}</span>
-                          {activeBrand === brand.key && <span className="w-1.5 h-1.5 rounded-full bg-[#cc0000]"></span>}
+                          {activeBrand === brand.key && <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]"></span>}
                         </div>
                       </button>
                     </li>
@@ -342,7 +342,7 @@ export default function BrabusVehicleFilter({
                       <button
                         onClick={() => setActiveModel("all")}
                         className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.12em] font-semibold transition-colors flex justify-between items-center ${
-                          activeModel === "all" ? "text-[#cc0000]" : "text-white/40 hover:text-white"
+                          activeModel === "all" ? "text-[#c29d59]" : "text-white/40 hover:text-white"
                         }`}
                       >
                         {isUa ? "Всі моделі" : "All Models"}
@@ -353,7 +353,7 @@ export default function BrabusVehicleFilter({
                         <button
                           onClick={() => setActiveModel(model.key)}
                           className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.12em] font-semibold transition-colors flex justify-between items-center ${
-                            activeModel === model.key ? "text-[#cc0000]" : "text-white/40 hover:text-white"
+                            activeModel === model.key ? "text-[#c29d59]" : "text-white/40 hover:text-white"
                           }`}
                         >
                           <span>{model.label}</span>
@@ -384,7 +384,7 @@ export default function BrabusVehicleFilter({
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value as any)}
-                  className="appearance-none bg-[#050505]/80 backdrop-blur-md border border-white/10 text-white text-[10px] uppercase tracking-[0.2em] font-semibold px-5 py-3 pr-10 rounded-lg outline-none focus:border-[#cc0000]/60 transition-colors shadow-xl cursor-pointer"
+                  className="appearance-none bg-[#050505]/80 backdrop-blur-md border border-white/10 text-white text-[10px] uppercase tracking-[0.2em] font-semibold px-5 py-3 pr-10 rounded-lg outline-none focus:border-[#c29d59]/50 transition-colors shadow-xl cursor-pointer"
                 >
                   <option value="default">{isUa ? "За замовчуванням (Популярні)" : "Default (Popular)"}</option>
                   <option value="price_desc">{isUa ? "Ціна: Від найбільшої" : "Price: High to Low"}</option>
@@ -411,7 +411,7 @@ export default function BrabusVehicleFilter({
                 </p>
                 <button
                   onClick={() => { setActiveBrand("all"); setActiveModel("all"); setSearchQuery(""); setSortOrder("default"); }}
-                  className="px-8 py-3 bg-[#cc0000] text-white text-[10px] uppercase tracking-widest hover:bg-[#ff1a1a] transition-colors shadow-lg rounded-md font-bold"
+                  className="px-8 py-3 bg-[#c29d59]/15 backdrop-blur-xl border border-[#c29d59]/40 text-white text-[10px] uppercase tracking-widest hover:bg-[#c29d59]/25 hover:border-[#c29d59]/70 transition-all duration-500 shadow-lg rounded-md font-medium"
                 >
                   {isUa ? "Скинути фільтри" : "Reset Filters"}
                 </button>
@@ -438,7 +438,7 @@ export default function BrabusVehicleFilter({
                       >
                         {/* Image */}
                         <div className="relative aspect-[4/3] bg-transparent overflow-hidden flex items-center justify-center p-8 border-b border-white/[0.02]">
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(204,0,0,0.25)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(194,157,89,0.15)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                           <Image
                             src={product.image || "/images/placeholders/product-fallback.jpg"}
                             alt={productTitle}
@@ -450,7 +450,7 @@ export default function BrabusVehicleFilter({
 
                         {/* Card Body */}
                         <div className="px-6 pb-6 pt-5 flex flex-col flex-grow">
-                          <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#cc0000] mb-2">{product.brand}</p>
+                          <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#c29d59] mb-2">{product.brand}</p>
                           <h3 className="text-sm font-light leading-snug text-white line-clamp-2 mb-4">
                             {productTitle}
                           </h3>
@@ -472,7 +472,7 @@ export default function BrabusVehicleFilter({
                         </div>
 
                         {/* HOVER OVERLAY STRIP */}
-                        <div className="absolute top-0 left-0 w-full h-[2px] bg-[#cc0000] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#c29d59] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
                       </Link>
                     </article>
                   );

@@ -34,7 +34,7 @@ export default async function CSFCollectionsPage({ params }: Props) {
     <div
       style={{
         background: '#050505',
-        color: '#f8f8f8',
+        color: '#ffffff',
         minHeight: '100dvh',
         fontFamily: "'Inter', system-ui, sans-serif",
       }}
@@ -44,11 +44,12 @@ export default async function CSFCollectionsPage({ params }: Props) {
         <Link
           href={`/${resolvedLocale}/shop/csf`}
           style={{
-            fontSize: '0.65rem',
-            letterSpacing: '0.15em',
+            fontSize: '0.75rem',
+            letterSpacing: '0.05em',
             textTransform: 'uppercase' as const,
             color: 'rgba(255,255,255,0.4)',
             textDecoration: 'none',
+            fontWeight: 500,
           }}
         >
           ← {isUa ? 'Магазин CSF Racing' : 'CSF Racing Store'}
@@ -59,32 +60,32 @@ export default async function CSFCollectionsPage({ params }: Props) {
       <div style={{ padding: '2rem 48px 4rem', maxWidth: 1400, margin: '0 auto', textAlign: 'center' }}>
         <span
           style={{
-            fontSize: '0.6rem',
-            fontWeight: 600,
+            fontSize: '0.7rem',
+            fontWeight: 500,
             textTransform: 'uppercase' as const,
-            letterSpacing: '0.25em',
-            color: '#3b82f6',
+            letterSpacing: '0.1em',
+            color: '#a1a1aa',
           }}
         >
           {isUa ? 'Каталог' : 'Catalog'}
         </span>
         <h1
           style={{
-            fontSize: 'clamp(2rem, 4vw, 3rem)',
-            fontWeight: 200,
-            textTransform: 'uppercase' as const,
-            letterSpacing: '0.06em',
+            fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+            fontWeight: 400,
+            letterSpacing: '-0.02em',
             marginTop: '1rem',
+            color: '#ffffff',
           }}
         >
           {isUa ? 'Лінійки Продукції' : 'Product Lines'}
         </h1>
         <div
           style={{
-            width: 50,
-            height: 2,
-            background: 'linear-gradient(90deg, transparent, #3b82f6, transparent)',
-            margin: '1.5rem auto',
+            width: 40,
+            height: 1,
+            background: 'rgba(255,255,255,0.2)',
+            margin: '2rem auto',
           }}
         />
       </div>
@@ -93,9 +94,9 @@ export default async function CSFCollectionsPage({ params }: Props) {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-          gap: '1.5rem',
-          padding: '0 48px 6rem',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+          gap: '2rem',
+          padding: '0 48px 8rem',
           maxWidth: 1400,
           margin: '0 auto',
         }}
@@ -104,62 +105,67 @@ export default async function CSFCollectionsPage({ params }: Props) {
           <div
             key={line.id}
             style={{
-              background: '#111',
-              border: '1px solid rgba(255,255,255,0.05)',
-              borderRadius: 8,
+              background: '#0A0A0A',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 4,
               overflow: 'hidden',
-              transition: 'border-color 0.4s',
+              transition: 'all 0.3s ease',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            <div style={{ position: 'relative', aspectRatio: '16/10', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', aspectRatio: '16/10', overflow: 'hidden', background: '#111' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={line.image}
                 alt={isUa ? line.nameUk : line.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9, transition: 'transform 0.6s ease' }}
                 loading="lazy"
+                className="csf-collection-img"
               />
               <div
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  background: 'linear-gradient(to top, rgba(5,5,5,0.9) 0%, transparent 50%)',
+                  background: 'linear-gradient(to top, rgba(10,10,10,1) 0%, transparent 40%)',
                 }}
               />
               <span
                 style={{
                   position: 'absolute',
-                  top: '1rem',
-                  left: '1rem',
-                  fontSize: '0.625rem',
-                  fontWeight: 700,
+                  top: '1.25rem',
+                  right: '1.25rem',
+                  fontSize: '0.65rem',
+                  fontWeight: 500,
                   textTransform: 'uppercase' as const,
-                  letterSpacing: '0.1em',
-                  background: 'rgba(255,255,255,0.9)',
-                  color: '#000',
+                  letterSpacing: '0.05em',
+                  background: 'rgba(0,0,0,0.6)',
+                  backdropFilter: 'blur(8px)',
+                  color: '#ffffff',
                   padding: '0.25rem 0.75rem',
-                  borderRadius: 999,
+                  borderRadius: 20,
+                  border: '1px solid rgba(255,255,255,0.1)',
                 }}
               >
                 {isUa ? line.badgeUk : line.badge}
               </span>
             </div>
-            <div style={{ padding: '1.5rem' }}>
+            <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
               <h3
                 style={{
-                  fontSize: '1.2rem',
-                  fontWeight: 300,
+                  fontSize: '1.25rem',
+                  fontWeight: 500,
                   margin: '0 0 0.5rem',
-                  color: '#fff',
+                  color: '#ffffff',
                 }}
               >
                 {isUa ? line.nameUk : line.name}
               </h3>
               <p
                 style={{
-                  fontSize: '0.875rem',
+                  fontSize: '0.9rem',
                   fontWeight: 300,
-                  color: '#a8a29e',
+                  color: '#a1a1aa',
                   lineHeight: 1.6,
                   margin: 0,
                 }}

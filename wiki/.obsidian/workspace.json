@@ -16,8 +16,23 @@
               "icon": "lucide-git-fork",
               "title": "Граф"
             }
+          },
+          {
+            "id": "23314b380ce510b5",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Home.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Home"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -49,7 +64,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "tag:#marketing",
+                "query": "tag:#branding",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -71,7 +86,7 @@
             }
           },
           {
-            "id": "693b90ee2731bd78",
+            "id": "b7b2c668559329f5",
             "type": "leaf",
             "state": {
               "type": "mk-path-view",
@@ -81,7 +96,7 @@
             }
           }
         ],
-        "currentTab": 3
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -199,6 +214,26 @@
               "icon": "smart-connections",
               "title": "Connections"
             }
+          },
+          {
+            "id": "8841847dd614de5a",
+            "type": "leaf",
+            "state": {
+              "type": "copilot-chat-view",
+              "state": {},
+              "icon": "message-square",
+              "title": "Copilot"
+            }
+          },
+          {
+            "id": "b32484770a393dc0",
+            "type": "leaf",
+            "state": {
+              "type": "advanced-tables-toolbar",
+              "state": {},
+              "icon": "spreadsheet",
+              "title": "Advanced Tables"
+            }
           }
         ],
         "currentTab": 7
@@ -234,15 +269,29 @@
       "smart-connections:Smart Lookup: Open lookup view": false
     }
   },
-  "active": "e7a7b303c61786dc",
+  "active": "23314b380ce510b5",
   "lastOpenFiles": [
-    "Phase D — Orders.md",
-    "Admin — Dashboard.md",
-    "🏛️ Архітектура CRM.md",
+    "Без назви 2.canvas",
+    "Localization & AI.md",
+    "API & Integrations.md",
+    "Codebase Architecture.md",
+    "Security & Dependencies.md",
+    "Design System.md",
+    "Database ERD Schema.md",
+    "Tasks Kanban.md",
+    "AI Agent Syndicate.md",
+    "Home.md",
     "🚀 Головна (Dashboard).md",
     "🗺️ Глобальна Архітектура.canvas",
+    "📡 Code Map.md",
+    "📡 Git Changelog.md",
+    "✅ Розроблені Магазини (Storefronts).md",
+    "🏛️ Архітектура CRM.md",
+    "Marketing Strategy.md",
+    "2026-04-06.md",
+    "Phase D — Orders.md",
+    "Admin — Dashboard.md",
     "🗺️ Візуальна Архітектура БД.canvas",
-    "Home.md",
     "copilot/copilot-custom-prompts/Clip Web Page.md",
     "copilot/copilot-custom-prompts/Clip YouTube Transcript.md",
     "copilot/copilot-custom-prompts/Rewrite as tweet thread.md",
@@ -250,23 +299,9 @@
     "copilot/copilot-custom-prompts/Remove URLs.md",
     "copilot/copilot-custom-prompts/Generate glossary.md",
     "copilot/copilot-custom-prompts/Generate table of contents.md",
-    "copilot/copilot-custom-prompts/Make longer.md",
-    "copilot/copilot-custom-prompts/Make shorter.md",
-    "copilot/copilot-custom-prompts/Emojify.md",
-    "copilot/copilot-custom-prompts/Explain like I am 5.md",
-    "copilot/copilot-custom-prompts/Simplify.md",
-    "copilot/copilot-custom-prompts/Summarize.md",
-    "copilot/copilot-custom-prompts/Translate to Chinese.md",
-    "copilot/copilot-custom-prompts/Fix grammar and spelling.md",
     "copilot/copilot-custom-prompts",
     "copilot",
-    "Admin — CRM.md",
-    "Tasks Kanban.md",
-    "📡 Code Map.md",
-    "📡 Git Changelog.md",
-    "Templates/Idea Template.md",
     "💡 Ідеї",
-    "Shop Master Plan.md",
     "Shop Mind Map.canvas",
     "Без назви 1.canvas",
     "screenshots/real_burger.png",

@@ -56,7 +56,7 @@ export default function BrabusVideoBackground({
           {/* Subtle gradient behind text on the left */}
           <div className="absolute inset-0 z-10 bg-[linear-gradient(105deg,rgba(0,0,0,0.7)_0%,rgba(0,0,0,0.2)_40%,transparent_60%)]" />
           <div className="absolute inset-0 z-10 bg-[linear-gradient(to_top,rgba(0,0,0,0.6)_0%,transparent_30%)]" />
-          <div className="absolute top-0 left-0 right-0 h-[3px] z-20 bg-[linear-gradient(90deg,transparent,#cc0000_15%,#cc0000_85%,transparent)]" />
+          <div className="absolute top-0 left-0 right-0 h-[1px] z-20 bg-[linear-gradient(90deg,transparent,#c29d59_15%,#c29d59_85%,transparent)]" />
         </>
       )}
       
@@ -67,7 +67,7 @@ export default function BrabusVideoBackground({
       {overlayStyle === "collection" && (
         <>
           <div className="absolute inset-0 z-10 bg-[linear-gradient(to_top,rgba(0,0,0,0.8)_0%,rgba(0,0,0,0.2)_40%,transparent_100%)]" />
-          <div className="absolute bottom-0 left-0 right-0 h-[3px] z-20 bg-[linear-gradient(90deg,transparent,#cc0000_15%,#cc0000_85%,transparent)]" />
+          <div className="absolute bottom-0 left-0 right-0 h-[1px] z-20 bg-[linear-gradient(90deg,transparent,#c29d59_15%,#c29d59_85%,transparent)]" />
         </>
       )}
     </div>

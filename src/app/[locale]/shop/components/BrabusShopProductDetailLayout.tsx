@@ -108,7 +108,7 @@ export function BrabusShopProductDetailLayout({
         .b-pdp {
           --b-bg: transparent;
           --b-card: #0f0f0f;
-          --b-red: #cc0000;
+          --b-red: #c29d59;
           --b-muted: rgba(255,255,255,.5);
           --b-border: rgba(255,255,255,.08);
           background: var(--b-bg);
@@ -305,14 +305,15 @@ export function BrabusShopProductDetailLayout({
           display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 3.5rem;
         }
         .b-btn-custom {
-          width: 100%; background: var(--b-red) !important; color: #fff !important;
-          border: 1px solid var(--b-red) !important;
+          width: 100%; background: rgba(194,157,89,0.1) !important; color: #fff !important;
+          border: 1px solid rgba(194,157,89,0.4) !important;
+          backdrop-filter: blur(12px);
           padding: 1.25rem !important; text-align: center;
           font-size: .75rem !important; font-weight: 600 !important;
           text-transform: uppercase !important; letter-spacing: .25em !important;
           transition: all .3s; cursor: pointer; border-radius: 0;
         }
-        .b-btn-custom:hover { background: #ff1a1a !important; border-color: #ff1a1a !important; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(204,0,0,0.3); }
+        .b-btn-custom:hover { background: rgba(194,157,89,0.25) !important; border-color: rgba(194,157,89,0.7) !important; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(194,157,89,0.15); }
         
         .b-action-links {
           display: flex; justify-content: space-between;

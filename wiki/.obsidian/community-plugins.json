@@ -14,5 +14,6 @@
   "obsidian-tasks-plugin",
   "templater-obsidian",
   "obsidian-projects",
-  "smart-connections"
+  "smart-connections",
+  "obsidian-local-rest-api"
 ]

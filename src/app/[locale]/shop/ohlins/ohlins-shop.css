@@ -1,23 +1,28 @@
 /* ──────────────────────────────────────────────────
-   Öhlins Racing — "Gold Precision" Architecture
+   Öhlins Racing — "Gold Precision" Architecture (Stealth Wealth)
 ────────────────────────────────────────────────── */
 
 :root {
-  --oh-bg: #0a0a0a;
-  --oh-bg-alt: #121212;
-  --oh-gold: #e5b326;
-  --oh-gold-dim: rgba(229, 179, 38, 0.2);
-  --oh-white: #f5f5f5;
-  --oh-gray: #888888;
-  --oh-border: rgba(255,255,255,0.08);
+  --oh-bg: #121214; /* Softer dark zinc instead of pure black */
+  --oh-bg-alt: #1a1a1c; /* Lighter section background */
+  --oh-gold: #c29d59;
+  --oh-gold-dim: rgba(194, 157, 89, 0.25); /* Stronger gold presence */
+  --oh-gold-glow: rgba(194, 157, 89, 0.5); /* Warmer glow */
+  --oh-white: #f0f0f0; /* Less harsh white */
+  --oh-gray: #a8a8aa; /* Warm gray */
+  --oh-border: rgba(255, 255, 255, 0.08); /* Lighter borders */
+  --oh-glass: rgba(255, 255, 255, 0.04); /* More visible glass */
 }
 
 .oh-home {
-  background: var(--oh-bg);
+  background: transparent; /* Allows global ShopAmbientBackground to shine through */
+  background-image: radial-gradient(circle at top right, rgba(194, 157, 89, 0.05) 0%, transparent 50%),
+                    radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.02) 0%, transparent 40%);
   color: var(--oh-white);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   position: relative;
+  min-height: 100vh;
 }
 
 .oh-canvas {
@@ -28,6 +33,7 @@
   pointer-events: none;
   z-index: 1;
   mix-blend-mode: screen;
+  opacity: 0.8; /* Slightly soften the particles */
 }
 
 /* ── Focus-visible (a11y) ── */
@@ -42,81 +48,140 @@
   top: 70px;
   left: 0;
   z-index: 90;
-  padding: 1rem 1.5rem;
+  padding: 1.5rem 2rem;
 }
 .oh-back__link {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #888;
+  letter-spacing: 0.2em;
+  color: var(--oh-gray);
   text-decoration: none;
-  transition: color 0.3s;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(18, 18, 20, 0.7);
+  backdrop-filter: blur(12px);
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  border: 1px solid var(--oh-border);
 }
 .oh-back__link:hover {
-  color: var(--oh-gold);
+  color: var(--oh-white);
+  border-color: var(--oh-gold);
+  background: rgba(194, 157, 89, 0.1);
 }
 
 /* ── Section 1: Precision Hero ── */
 .oh-precision-hero {
   min-height: 100dvh;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   position: relative;
-  border-bottom: 1px solid var(--oh-border);
-  padding: 4rem 2rem;
-  text-align: center;
+  padding: 6rem 2rem;
+  overflow: hidden;
 }
-.oh-precision-hero::after {
+
+.oh-hero-bg-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  opacity: 0.6; /* Slight transparency to let the background gradient show through */
+}
+
+.oh-hero-bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(18,18,20,0.85) 0%, rgba(18,18,20,0.6) 40%, rgba(18,18,20,0.95) 100%);
+  z-index: 1;
+}
+
+/* Radial luxury glow - much wider and softer to illuminate the page */
+.oh-precision-hero::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(circle at center, transparent 30%, var(--oh-bg));
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 100vw;
+  max-width: 1400px;
+  max-height: 1400px;
+  background: radial-gradient(circle, var(--oh-gold-dim) 0%, rgba(255,255,255,0.02) 40%, transparent 70%);
+  transform: translate(-50%, -50%);
   pointer-events: none;
+  filter: blur(80px);
+  z-index: 0;
+  opacity: 0.8; /* Make it warmer */
+}
+
+.oh-hero-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 800px;
 }
 
 .oh-brand-badge {
   color: var(--oh-gold);
   font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.25em;
-  margin-bottom: 2rem;
+  letter-spacing: 0.3em;
+  margin-bottom: 2.5rem;
   border: 1px solid var(--oh-gold-dim);
-  padding: 0.5rem 1rem;
-  z-index: 10;
+  padding: 0.6rem 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border-radius: 30px; /* Softer pill shape */
 }
 
 .oh-hero-title {
-  font-size: clamp(3rem, 8vw, 7rem);
-  font-weight: 300; /* Minimalist elegant */
-  line-height: 1.1;
+  font-size: clamp(3.5rem, 8vw, 8rem);
+  font-weight: 300; /* Slightly heavier to feel less cold/thin */
+  line-height: 1.05;
   text-transform: uppercase;
   letter-spacing: -0.01em;
   color: var(--oh-white);
-  z-index: 10;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  text-shadow: 0 5px 20px rgba(0,0,0,0.3);
 }
 .oh-hero-title em {
   font-style: normal;
-  color: var(--oh-gold);
+  color: transparent;
+  -webkit-text-stroke: 1px var(--oh-gold);
+  text-stroke: 1px var(--oh-gold);
+  font-weight: 400;
+  background: linear-gradient(135deg, var(--oh-gold) 0%, #e0c896 50%, var(--oh-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .oh-hero-subtitle {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   color: var(--oh-gray);
-  max-width: 500px;
-  line-height: 1.6;
-  z-index: 10;
-  margin-bottom: 3rem;
+  max-width: 600px;
+  line-height: 1.8;
+  margin-bottom: 3.5rem;
 }
 
-/* Stats Row - Minimalist */
 .oh-hero-stats {
   display: flex;
   gap: 3rem;
-  z-index: 10;
   margin-bottom: 4rem;
+  border-top: 1px solid var(--oh-border);
+  border-bottom: 1px solid var(--oh-border);
+  padding: 1.5rem 0;
+  width: 100%;
+  justify-content: center;
 }
 .oh-stat {
   display: flex;
@@ -124,213 +189,317 @@
   align-items: center;
 }
 .oh-stat-val {
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 300;
-  color: var(--oh-white);
+  color: var(--oh-gold); /* Gold stats are friendlier */
 }
 .oh-stat-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.15em;
   color: var(--oh-gray);
   margin-top: 0.5rem;
 }
 
 .oh-btn {
-  z-index: 10;
   display: inline-flex;
   align-items: center;
   gap: 1rem;
-  color: var(--oh-bg);
-  background: var(--oh-gold);
-  padding: 1rem 2rem;
-  font-size: 0.8rem;
+  color: #111;
+  background: linear-gradient(to right, var(--oh-gold), #d4b271);
+  padding: 1.2rem 3rem;
+  font-size: 0.9rem;
   text-transform: uppercase;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-weight: 600;
+  letter-spacing: 0.15em;
   text-decoration: none;
-  transition: transform 0.3s, box-shadow 0.3s;
+  border-radius: 4px;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(194, 157, 89, 0.25);
 }
 .oh-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px var(--oh-gold-dim);
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px rgba(194, 157, 89, 0.4);
+  background: linear-gradient(to right, #d4b271, #e3c58b);
 }
-
 
 /* ── Section 2: DFV Decoder ── */
 .oh-dfv-decoder {
-  padding: 8rem 2rem;
+  padding: 6rem 2rem;
   background: var(--oh-bg-alt);
-  border-bottom: 1px solid var(--oh-border);
+  position: relative;
+  box-shadow: 0 -20px 40px rgba(0,0,0,0.2); /* Soft shadow between sections */
 }
 .oh-dfv-inner {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6rem;
+}
+
+.oh-decoder-row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 4rem;
-  /* Alternating layout logic applied in React */
+  gap: 3rem;
+  align-items: center;
 }
 
 @media (min-width: 900px) {
-  .oh-dfv-inner {
+  .oh-decoder-row {
     grid-template-columns: 1fr 1fr;
-    align-items: center;
+    gap: 6rem;
   }
 }
 
 .oh-decoder-text h2 {
-  font-size: 2.5rem;
+  font-size: clamp(2.2rem, 4vw, 3rem);
   font-weight: 300;
   margin-bottom: 1.5rem;
   color: var(--oh-white);
+  line-height: 1.2;
 }
 .oh-decoder-text p {
   color: var(--oh-gray);
-  font-size: 1.1rem;
-  line-height: 1.7;
+  font-size: 1.15rem;
+  line-height: 1.8;
 }
 
 .oh-decoder-visual {
   position: relative;
-  aspect-ratio: 1;
-  background: var(--oh-bg);
+  aspect-ratio: 4/3;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
   border: 1px solid var(--oh-border);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 3rem;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
 }
-.oh-decoder-visual::before {
-  content: '+';
+.oh-decoder-glow {
   position: absolute;
-  top: 1rem; left: 1rem;
-  color: var(--oh-gold);
-  font-size: 1.5rem;
-}
-.oh-decoder-visual::after {
-  content: '+';
-  position: absolute;
-  bottom: 1rem; right: 1rem;
-  color: var(--oh-gold);
-  font-size: 1.5rem;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  height: 60%;
+  background: var(--oh-gold);
+  filter: blur(100px);
+  opacity: 0.25; /* Warmer glow */
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 .oh-decoder-visual img {
+  position: relative;
+  z-index: 2;
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  opacity: 0.9;
-  filter: contrast(1.1);
+  filter: drop-shadow(0 15px 25px rgba(0,0,0,0.5)); /* Softer image shadow */
+  transition: transform 0.6s ease;
+}
+.oh-decoder-visual:hover img {
+  transform: scale(1.05);
 }
 
-/* ── Section 3: Applications / Collections ── */
+/* ── Section 3: Applications Bento Grid ── */
 .oh-applications {
   padding: 8rem 2rem;
   background: var(--oh-bg);
 }
 .oh-applications-inner {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 .oh-app-header {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 5rem;
 }
 .oh-app-header h2 {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 300;
   color: var(--oh-white);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-.oh-app-grid {
+/* Bento Grid System */
+.oh-app-bento-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: 24px;
 }
+
 @media (min-width: 768px) {
-  .oh-app-grid {
-    grid-template-columns: 1fr 1fr;
+  .oh-app-bento-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.oh-app-card {
+@media (min-width: 1024px) {
+  .oh-app-bento-grid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: 400px;
+  }
+  
+  .card-0 { grid-column: span 2; grid-row: span 1; }
+  .card-1 { grid-column: span 1; grid-row: span 2; }
+  .card-2 { grid-column: span 1; grid-row: span 1; }
+  .card-3 { grid-column: span 1; grid-row: span 1; }
+}
+
+.oh-bento-card {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   border: 1px solid var(--oh-border);
-  background: var(--oh-bg-alt);
-  padding: 3rem 2rem;
+  background: linear-gradient(to bottom right, var(--oh-bg-alt), var(--oh-bg));
+  padding: 2.5rem;
   text-decoration: none;
-  transition: border-color 0.4s;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  min-height: 350px;
 }
-.oh-app-card:hover {
-  border-color: var(--oh-gold);
+.oh-bento-card:hover {
+  border-color: var(--oh-gold-dim);
+  background: linear-gradient(to bottom right, #202022, var(--oh-bg-alt));
+  transform: translateY(-4px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.3), 0 0 40px rgba(194, 157, 89, 0.05);
 }
-.oh-app-card h3 {
-  font-size: 1.5rem;
+
+.oh-bento-content {
+  position: relative;
+  z-index: 10;
+  max-width: 80%;
+}
+
+.oh-bento-card h3 {
+  font-size: 1.8rem;
   font-weight: 300;
   color: var(--oh-white);
   margin-bottom: 1rem;
 }
-.oh-app-card p {
+.oh-bento-card p {
   color: var(--oh-gray);
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 2rem;
-  flex: 1;
 }
+
 .oh-catalog-link {
   color: var(--oh-gold);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
+  font-weight: 600;
   letter-spacing: 0.1em;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  opacity: 0.8;
-  transition: opacity 0.3s;
+  transition: all 0.3s ease;
 }
-.oh-app-card:hover .oh-catalog-link { opacity: 1; }
+.oh-bento-card:hover .oh-catalog-link { 
+  color: #fff;
+  gap: 0.8rem;
+}
 .oh-catalog-link svg {
-  width: 16px; height: 16px;
-  transition: transform 0.3s;
-}
-.oh-app-card:hover .oh-catalog-link svg {
-  transform: translateX(4px);
+  width: 18px; 
+  height: 18px;
 }
 
+.oh-bento-img-wrap {
+  position: absolute;
+  bottom: -10%;
+  right: -5%;
+  width: 60%;
+  height: 70%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  z-index: 1;
+  pointer-events: none;
+}
+.card-0 .oh-bento-img-wrap {
+  width: 45%; 
+  right: 5%;
+  bottom: 0;
+}
+.card-1 .oh-bento-img-wrap {
+  width: 90%;
+  height: 60%;
+  bottom: 5%;
+  right: 5%;
+}
 
-/* ── Section 4: Heritage Timeline ── */
+.oh-bento-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(-5px 5px 15px rgba(0,0,0,0.4)); /* Softer shadow */
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.oh-bento-card:hover .oh-bento-img {
+  transform: scale(1.08) rotate(-2deg);
+}
+
+/* ── Section 4: Heritage ── */
 .oh-heritage-timeline {
   padding: 8rem 2rem;
   background: var(--oh-bg-alt);
   border-top: 1px solid var(--oh-border);
 }
 .oh-heritage-inner {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+  align-items: center;
 }
-.oh-heritage-inner h2 {
-  font-size: 2.5rem;
+@media (min-width: 900px) {
+  .oh-heritage-inner {
+    flex-direction: row;
+  }
+}
+
+.oh-heritage-text {
+  flex: 1;
+}
+.oh-heritage-text h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 300;
   color: var(--oh-white);
   margin-bottom: 2rem;
 }
-.oh-heritage-inner p {
-  font-size: 1.1rem;
+.oh-heritage-text p {
+  font-size: 1.15rem;
   color: var(--oh-gray);
   line-height: 1.8;
 }
 
+.oh-heritage-img-wrap {
+  flex: 1;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--oh-border);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.oh-heritage-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  opacity: 0.9;
+  transform: scale(1.02);
+}
 
 /* Reveal Animation */
 [data-oh-reveal] {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 [data-oh-reveal].oh-vis {
   opacity: 1;

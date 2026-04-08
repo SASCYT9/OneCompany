@@ -21,7 +21,7 @@ export default function BrabusCollectionHero({ locale, config, productCount }: P
     <>
       <style jsx global>{`
         .bch {
-          --bch-red: #cc0000;
+          --bch-red: #c29d59;
           --bch-muted: rgba(255,255,255,.4);
           --bch-faint: rgba(255,255,255,.06);
         }
@@ -43,7 +43,7 @@ export default function BrabusCollectionHero({ locale, config, productCount }: P
         }
         .bch-hero__accent {
           position: absolute; bottom: 0; left: 0; right: 0;
-          height: 3px;
+          height: 1px;
           background: linear-gradient(90deg, transparent, var(--bch-red) 15%, var(--bch-red) 85%, transparent);
         }
         .bch-hero__content {

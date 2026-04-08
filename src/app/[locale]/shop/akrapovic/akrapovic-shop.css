@@ -6,23 +6,29 @@
 
 /* ── Variables ── */
 :root {
-  --ak-bg: #0d0d0b;
-  --ak-bg-warm: #121210;
-  --ak-card: #161614;
-  --ak-card-hover: #1c1c19;
-  --ak-border: #252520;
-  --ak-titanium: #78716c;
-  --ak-ember: #c00020;
-  --ak-ember-glow: rgba(192, 0, 32, 0.15);
-  --ak-carbon: #44403c;
+  --ak-bg: #0a0a0a;
+  --ak-bg-warm: #1a1a1a;
+  --ak-bg-light: #2b2b2b;
+  --ak-card: rgba(26, 26, 26, 0.6);
+  --ak-card-hover: rgba(43, 43, 43, 0.8);
+  --ak-border: rgba(255, 255, 255, 0.08);
+  --ak-titanium: #a0a0a0;
+  --ak-ember: #c29d59; /* Red replaced with solid gold for Titanium/Carbon luxury tech look */
+  --ak-ember-glow: rgba(194, 157, 89, 0.25);
+  --ak-carbon: #181818;
   --ak-white: #fafaf9;
-  --ak-muted: #a8a29e;
-  --ak-faint: rgba(255, 255, 255, 0.06);
+  --ak-muted: #888888;
+  --ak-faint: rgba(255, 255, 255, 0.04);
 }
 
 /* ── Layout ── */
 .ak-home {
-  background: var(--ak-bg);
+  background-color: transparent; /* Allows global ShopAmbientBackground to shine through */
+  background-image: 
+    radial-gradient(ellipse at 50% 0%, var(--ak-bg-light) 0%, transparent 60%),
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 1px, transparent 1px, transparent 4px),
+    repeating-linear-gradient(-45deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 1px, transparent 1px, transparent 4px);
+  background-attachment: fixed;
   color: var(--ak-white);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
@@ -33,7 +39,7 @@
 .ak-line-card:focus-visible,
 .ak-back__link:focus-visible,
 .ak-hero__sound-toggle:focus-visible {
-  outline: 2px solid var(--ak-ember);
+  outline: 2px solid rgba(255,255,255,0.5);
   outline-offset: 3px;
 }
 
@@ -54,7 +60,7 @@
   transition: color 0.3s;
 }
 .ak-back__link:hover {
-  color: var(--ak-ember);
+  color: var(--ak-white);
 }
 
 /* ── Typography ── */
@@ -64,7 +70,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.25em;
-  color: var(--ak-ember);
+  color: var(--ak-titanium);
   margin-bottom: 1rem;
 }
 .ak-section-title {
@@ -84,9 +90,10 @@
   margin-top: 1.5rem;
 }
 .ak-divider {
-  width: 50px;
+  width: 120px;
   height: 1px;
-  background: var(--ak-ember);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
   margin: 1.5rem 0;
 }
 .ak-divider--center {
@@ -96,12 +103,14 @@
 /* ── Reveal Animation ── */
 [data-ak-reveal] {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateY(30px) scale(0.98);
+  filter: blur(4px);
+  transition: opacity 1s ease, transform 1s cubic-bezier(0.2, 0.8, 0.2, 1), filter 1s ease;
 }
 [data-ak-reveal].ak-vis {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  filter: blur(0px);
 }
 
 /* ═══════════════ HERO ═══════════════ */
@@ -137,6 +146,7 @@
   letter-spacing: 0.12em;
   line-height: 1.05;
   margin: 0 0 0.5rem;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.7), 0 4px 40px rgba(0,0,0,0.5);
 }
 .ak-hero__title em {
   font-style: normal;
@@ -145,11 +155,12 @@
 }
 .ak-hero__subtitle {
   font-size: 0.85rem;
-  font-weight: 300;
-  color: var(--ak-muted);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.75);
   line-height: 1.8;
   max-width: 480px;
   margin: 1.5rem auto 0;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.8), 0 2px 20px rgba(0,0,0,0.6);
 }
 /* Sound toggle */
 .ak-hero__sound-toggle {
@@ -223,7 +234,7 @@
 }
 .ak-hero__stat:last-child { border-right: none; }
 .ak-hero__stat:hover {
-  background: rgba(192, 0, 32, 0.03);
+  background: rgba(255, 255, 255, 0.03);
 }
 .ak-hero__stat::before {
   content: '';
@@ -339,7 +350,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(192, 0, 32, 0.08) 0%, transparent 60%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, transparent 60%);
   pointer-events: none;
   transition: opacity 0.5s ease;
 }
@@ -392,7 +403,7 @@
   padding-left: 1rem;
 }
 .ak-material__spec:hover {
-  background: rgba(192, 0, 32, 0.04);
+  background: rgba(255, 255, 255, 0.04);
 }
 .ak-material__spec-val {
   display: block;
@@ -435,7 +446,7 @@
   height: 2px;
   width: 60px;
   margin-bottom: 1rem;
-  background: linear-gradient(90deg, var(--ak-ember), rgba(192, 0, 32, 0.2), var(--ak-ember));
+  background: linear-gradient(90deg, var(--ak-ember), rgba(255, 255, 255, 0.15), var(--ak-ember));
   background-size: 200% 100%;
   animation: ak-shimmer-flow 3s ease infinite;
   border-radius: 2px;
@@ -707,7 +718,7 @@
   text-transform: uppercase;
   letter-spacing: 0.25em;
   text-decoration: none;
-  border: 1px solid rgba(192, 0, 32, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: var(--ak-white);
   background: transparent;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -720,7 +731,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #e00025, var(--ak-ember));
+  background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
   opacity: 0;
   transition: opacity 0.4s;
   z-index: -1;
@@ -728,7 +739,7 @@
 .ak-btn:hover {
   border-color: var(--ak-ember);
   color: #fff;
-  box-shadow: 0 0 40px var(--ak-ember-glow), 0 8px 30px -10px rgba(192, 0, 32, 0.3);
+  box-shadow: 0 0 40px var(--ak-ember-glow), 0 8px 30px -10px rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
 }
 .ak-btn:hover::before {

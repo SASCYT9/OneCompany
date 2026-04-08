@@ -11,11 +11,12 @@ tags: [dashboard, tasks]
 ## ⏳ В Роботі / Backlog
 
 - [ ] Зйомка 1-ї партії роликів для TikTok / Reels #marketing
-- [ ] Оформлення Instagram Highlight Covers для брендів #marketing
+- [/] Оформлення Instagram Highlight Covers для брендів #marketing
 - [ ] Додати більше B2B дилерських акаунтів вручну #b2b
 
 ## 🚀 Готово (Останні Релізи)
 
+- [x] Налаштування AI Agent Syndicate (Antigravity + Claude Code + Vibe Kanban + Gemma 4) #dev
 - [x] Базовий SEO / Копірайтинг аудит на сторінках брендів (Urban, Brabus) #seo
 - [x] Інтеграція Онлайн-Еквайрингу (Stripe/Hutko Checkout) #dev
 - [x] Финалізація MVP E-commerce архітектури (Phase F) #dev 

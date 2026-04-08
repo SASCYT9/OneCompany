@@ -63,7 +63,7 @@ export default async function AkrapovicCollectionsPage({ params }: Props) {
             fontWeight: 600,
             textTransform: 'uppercase' as const,
             letterSpacing: '0.25em',
-            color: '#c00020',
+            color: 'rgba(255, 255, 255, 0.6)',
           }}
         >
           {isUa ? 'Каталог' : 'Catalog'}
@@ -83,7 +83,7 @@ export default async function AkrapovicCollectionsPage({ params }: Props) {
           style={{
             width: 50,
             height: 1,
-            background: '#c00020',
+            background: 'rgba(255, 255, 255, 0.2)',
             margin: '1.5rem auto',
           }}
         />
@@ -128,8 +128,8 @@ export default async function AkrapovicCollectionsPage({ params }: Props) {
                   fontWeight: 600,
                   textTransform: 'uppercase' as const,
                   letterSpacing: '0.2em',
-                  border: '1px solid #c00020',
-                  color: '#c00020',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  color: 'rgba(255, 255, 255, 0.6)',
                   padding: '0.2rem 0.6rem',
                 }}
               >
