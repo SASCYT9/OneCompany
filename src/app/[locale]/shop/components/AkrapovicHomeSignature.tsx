@@ -83,6 +83,11 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
         />
 
         <div className="ak-hero__content" data-ak-reveal>
+          <div className="ak-hero__logo-wrapper">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logos/akrapovic.svg" alt="Akrapovič" className="ak-hero__logo" />
+          </div>
+
           <p className="ak-hero__overtitle">
             One Company × Akrapovič
           </p>

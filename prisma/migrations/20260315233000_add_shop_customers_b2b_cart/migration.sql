@@ -1,6 +1,10 @@
 -- AlterEnum
 -- (skipped in local dev: PARTNERSHIP already exists)
 
+-- CreateEnum
+CREATE TYPE "ContactMethod" AS ENUM ('TELEGRAM', 'WHATSAPP');
+CREATE TYPE "CustomerGroup" AS ENUM ('B2C', 'B2B_PENDING', 'B2B_APPROVED');
+
 -- AlterEnum
 -- This migration adds more than one value to an enum.
 -- With PostgreSQL versions 11 and earlier, this is not possible

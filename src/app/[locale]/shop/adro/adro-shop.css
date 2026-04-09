@@ -3,14 +3,14 @@
 ────────────────────────────────────────────────── */
 
 :root {
-  --adro-bg: #030303; /* Stealth Vault Black */
-  --adro-panel-bg: rgba(3, 3, 3, 0.7); /* Deep Glassmorphism base */
-  --adro-cyan: #c29d59; /* Luxury Bronze replacing Cyan */
-  --adro-cyan-glow: rgba(194, 157, 89, 0.2); 
+  --adro-bg: #000000; /* Absolute Stealth Black */
+  --adro-panel-bg: rgba(10, 10, 10, 0.8); /* Deep tech background */
+  --adro-cyan: #ffffff; /* Strict White for accents */
+  --adro-cyan-glow: rgba(255, 255, 255, 0.15); /* Minimalist white glow */
   --adro-white: #ffffff;
-  --adro-gray: #888888;
-  --adro-border: rgba(255, 255, 255, 0.08); /* Minimalist border */
-  --adro-hud-green: #c29d59; /* Bronze details */
+  --adro-gray: #a0a0a0;
+  --adro-border: rgba(255, 255, 255, 0.15); /* Crisp 1px grid borders */
+  --adro-hud-green: #ffffff; /* Stark white HUD */
 }
 
 .adro-home {
@@ -109,140 +109,146 @@
 
 .adro-hero-title {
   font-size: clamp(3.5rem, 8vw, 6.5rem);
-  font-weight: 900;
-  line-height: 1;
+  font-weight: 300;
+  line-height: 1.1;
   text-transform: uppercase;
-  color: transparent;
-  -webkit-text-stroke: 1px var(--adro-cyan);
+  color: var(--adro-white);
   margin-bottom: 2rem;
-  letter-spacing: 0.05em;
+  letter-spacing: -0.02em;
   position: relative;
 }
 .adro-hero-title em {
   display: block;
   font-style: normal;
-  color: var(--adro-white);
-  -webkit-text-stroke: 0;
-  text-shadow: 0 0 20px var(--adro-cyan-glow);
+  font-weight: 900;
 }
 
 .adro-hero-subtitle {
   font-size: 1.1rem;
   color: var(--adro-gray);
   line-height: 1.6;
-  margin-bottom: 3rem;
-  font-family: monospace;
+  margin-bottom: 4rem;
+  letter-spacing: 0.5px;
 }
 
-/* Crosshairs HUD elements for Hero */
-.adro-crosshair {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-}
-.adro-crosshair::before, .adro-crosshair::after {
-  content: '';
-  position: absolute;
-  background: var(--adro-cyan);
-}
-.adro-crosshair::before { top: 50%; left: 0; right: 0; height: 1px; transform: translateY(-50%); }
-.adro-crosshair::after  { left: 50%; top: 0; bottom: 0; width: 1px; transform: translateX(-50%); }
-.adro-crosshair-top-left { top: 4rem; left: 4rem; }
-.adro-crosshair-top-right { top: 4rem; right: 4rem; }
-.adro-crosshair-bottom-left { bottom: 4rem; left: 4rem; }
-.adro-crosshair-bottom-right { bottom: 4rem; right: 4rem; }
 
-
-/* ── Section 2: CFD HUD Dashboard ── */
-.adro-cfd-hud {
-  padding: 6rem 2rem;
+/* ── Section 2: Engineering Excellence ── */
+.adro-engineering {
+  padding: 0;
   background: var(--adro-bg);
   position: relative;
   z-index: 10;
+  border-bottom: 1px solid var(--adro-border);
 }
-.adro-hud-grid {
-  max-width: 1400px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-}
-@media (min-width: 1024px) {
-  .adro-hud-grid { grid-template-columns: 1fr 2fr; }
-}
-
-.adro-hud-panel {
-  background: var(--adro-panel-bg);
-  border: 1px solid var(--adro-border);
-  backdrop-filter: blur(10px);
-  padding: 2rem;
+.adro-engineering-grid {
   display: flex;
   flex-direction: column;
 }
-.adro-hud-panel--visual {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 16/9;
-  padding: 0;
-}
-.adro-hud-panel--visual img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: contrast(1.2) saturate(1.2);
-}
-/* HUD Overlay elements */
-.adro-hud-overlay-text {
-  position: absolute;
-  top: 1rem; left: 1rem;
-  font-family: monospace;
-  color: var(--adro-hud-green);
-  font-size: 0.8rem;
-  background: rgba(0,0,0,0.5);
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--adro-hud-green);
+@media (min-width: 1024px) {
+  .adro-engineering-grid { 
+    flex-direction: row; 
+    align-items: stretch;
+  }
 }
 
-.adro-hud-panel h2 {
-  font-size: 2rem;
-  color: var(--adro-white);
-  margin-bottom: 1rem;
-  text-transform: uppercase;
+.adro-engineering-content {
+  flex: 1;
+  padding: 6rem 10%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
-.adro-hud-panel p {
-  color: var(--adro-gray);
-  font-size: 1rem;
-  line-height: 1.6;
+@media (min-width: 1024px) {
+  .adro-engineering-content {
+    border-right: 1px solid var(--adro-border);
+    padding: 6rem 4rem;
+  }
+}
+
+.adro-engineering-header {
   margin-bottom: 2rem;
+}
+.adro-overline {
+  display: inline-block;
   font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--adro-gray);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 1rem;
+}
+.adro-engineering-header h2 {
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: var(--adro-white);
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+}
+@media (min-width: 768px) {
+  .adro-engineering-header h2 { font-size: 3.5rem; }
+}
+
+.adro-engineering-desc {
+  font-size: 1rem;
+  color: var(--adro-gray);
+  line-height: 1.8;
+  max-width: 500px;
+  margin-bottom: 4rem;
+}
+
+.adro-engineering-visual {
+  flex: 1.2;
+  position: relative;
+  display: flex;
+  min-height: 500px;
+}
+.adro-engineering-visual img {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  object-fit: cover;
+  filter: grayscale(100%) contrast(1.1) brightness(0.6);
+  transition: filter 0.8s ease;
+}
+.adro-engineering-visual:hover img {
+  filter: grayscale(0%) contrast(1) brightness(1);
 }
 
 .adro-metrics-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0;
   margin-top: auto;
+  border-top: 1px solid var(--adro-border);
+  border-left: 1px solid var(--adro-border);
+  width: 100%;
+  max-width: 600px;
 }
 .adro-metric-box {
-  border-left: 2px solid var(--adro-cyan);
-  padding-left: 1rem;
-  background: rgba(255,255,255,0.02);
-  padding: 1rem 1rem 1rem 1.5rem;
+  border-right: 1px solid var(--adro-border);
+  border-bottom: 1px solid var(--adro-border);
+  background: transparent;
+  padding: 1.5rem;
+  transition: background 0.3s;
+}
+.adro-metric-box:hover {
+  background: rgba(255,255,255,0.03);
 }
 .adro-metric-val {
   display: block;
   font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--adro-cyan);
+  font-weight: 300;
+  color: var(--adro-white);
   font-family: monospace;
 }
 .adro-metric-label {
   font-size: 0.75rem;
-  color: var(--adro-white);
+  color: var(--adro-gray);
   text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.25rem;
+  display: block;
 }
 
 
@@ -334,82 +340,72 @@
   text-transform: uppercase;
 }
 
-.adro-skew-grid {
+.adro-platform-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
+  gap: 0;
+  border-top: 1px solid var(--adro-border);
+  border-left: 1px solid var(--adro-border);
 }
 
-.adro-skew-card {
+.adro-platform-card {
   position: relative;
   background: var(--adro-bg);
-  border: 1px solid var(--adro-border);
+  border-right: 1px solid var(--adro-border);
+  border-bottom: 1px solid var(--adro-border);
   padding: 0;
   text-decoration: none;
   overflow: hidden;
-  transition: transform 0.3s;
+  transition: background 0.4s;
   display: flex;
   flex-direction: column;
 }
-.adro-skew-card:hover {
-  transform: translateY(-5px);
-  border-color: var(--adro-cyan);
-}
-.adro-skew-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 50%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.2), transparent);
-  transform: skewX(-20deg);
-  transition: left 0.5s;
-  z-index: 2;
-}
-.adro-skew-card:hover::before {
-  left: 200%;
+.adro-platform-card:hover {
+  background: rgba(255,255,255,0.03);
 }
 
-.adro-sc-image {
+.adro-pc-image {
   width: 100%;
   height: 200px;
   position: relative;
+  border-bottom: 1px solid var(--adro-border);
 }
-.adro-sc-image img {
+.adro-pc-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(80%);
-  transition: filter 0.3s;
+  filter: grayscale(80%) brightness(0.8);
+  transition: filter 0.4s;
 }
-.adro-skew-card:hover .adro-sc-image img {
-  filter: grayscale(0%);
+.adro-platform-card:hover .adro-pc-image img {
+  filter: grayscale(0%) brightness(1);
 }
 
-.adro-sc-content {
+.adro-pc-content {
   padding: 1.5rem;
-  border-top: 1px solid var(--adro-border);
   flex: 1;
   display: flex;
   flex-direction: column;
 }
-.adro-sc-title {
+.adro-pc-title {
   font-size: 1.25rem;
   color: var(--adro-white);
   margin-bottom: 0.5rem;
   font-weight: 700;
 }
-.adro-sc-desc {
+.adro-pc-desc {
   font-size: 0.85rem;
   color: var(--adro-gray);
   line-height: 1.5;
   margin-bottom: 1.5rem;
   flex: 1;
 }
-.adro-sc-badge {
+.adro-pc-badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
-  background: var(--adro-cyan-glow);
+  background: var(--adro-panel-bg);
   color: var(--adro-cyan);
+  border: 1px solid var(--adro-border);
   font-size: 0.75rem;
   font-family: monospace;
   align-self: flex-start;
@@ -420,23 +416,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--adro-cyan);
-  color: #000;
-  padding: 1rem 2.5rem;
+  background: var(--adro-white);
+  color: var(--adro-bg);
+  padding: 1rem 3rem;
   font-size: 0.9rem;
   text-transform: uppercase;
-  font-weight: 900;
-  letter-spacing: 0.1em;
+  font-weight: 600;
+  letter-spacing: 2px;
   text-decoration: none;
-  font-family: monospace;
-  transition: all 0.3s;
+  transition: all 0.4s ease;
   margin-top: 2rem;
-  border: 1px solid var(--adro-cyan);
+  border: 1px solid var(--adro-white);
 }
 .adro-btn:hover {
   background: transparent;
-  color: var(--adro-cyan);
-  box-shadow: 0 0 20px var(--adro-cyan-glow);
+  color: var(--adro-white);
 }
 
 
@@ -449,4 +443,165 @@
 [data-adro-reveal].adro-vis {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ── Video Background Hero ── */
+.adro-video-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.adro-video-bg iframe {
+  width: 100vw;
+  height: 56.25vw;
+  min-height: 100vh;
+  min-width: 177.77vh;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  opacity: 0.5;
+  filter: grayscale(80%) contrast(1.2);
+}
+.adro-video-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(3,3,3,0.5) 0%, rgba(3,3,3,0.95) 100%);
+  z-index: 1;
+}
+
+/* ── Section 5: Media Vault ── */
+.adro-vault {
+  padding: 8rem 0;
+  background: var(--adro-bg);
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+  border-top: 1px solid var(--adro-border);
+}
+.adro-vault-header {
+  padding: 0 2rem;
+  margin-bottom: 3rem;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+@media (max-width: 768px) {
+  .adro-vault-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}
+.adro-vault-header-info {
+  border-left: 4px solid var(--adro-cyan);
+  padding-left: 1.5rem;
+}
+.adro-vault-header h2 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--adro-white);
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+.adro-vault-header p {
+  color: var(--adro-gray);
+  font-family: monospace;
+}
+.adro-vault-controls {
+  display: flex;
+  gap: 1rem;
+}
+.adro-vault-btn {
+  background: var(--adro-panel-bg);
+  border: 1px solid var(--adro-border);
+  color: var(--adro-cyan);
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 1.5rem;
+}
+.adro-vault-btn:hover {
+  background: var(--adro-cyan);
+  color: #000;
+}
+
+.adro-vault-scroller {
+  width: 100%;
+  overflow-x: auto;
+  padding: 0 2rem 4rem 2rem;
+  scrollbar-width: none;
+}
+.adro-vault-scroller::-webkit-scrollbar {
+  display: none;
+}
+.adro-vault-track {
+  display: flex;
+  gap: 0;
+  width: max-content;
+  border-top: 1px solid var(--adro-border);
+  border-bottom: 1px solid var(--adro-border);
+  border-left: 1px solid var(--adro-border);
+}
+.adro-vault-item {
+  position: relative;
+  width: 80vw;
+  max-width: 600px;
+  height: 400px;
+  flex-shrink: 0;
+  background: var(--adro-bg);
+  border-right: 1px solid var(--adro-border);
+  overflow: hidden;
+  transition: background 0.4s;
+}
+@media (max-width: 768px) {
+  .adro-vault-item {
+    height: 250px;
+  }
+}
+.adro-vault-item:hover {
+  background: rgba(255,255,255,0.03);
+}
+.adro-vault-item iframe,
+.adro-vault-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 0.5s ease;
+}
+.adro-vault-item--image img {
+  filter: grayscale(100%) brightness(0.6) contrast(1.2);
+}
+.adro-vault-item--image:hover img {
+  filter: grayscale(0%) brightness(1) contrast(1);
+}
+.adro-vault-item-overlay {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  background: transparent;
+  pointer-events: none;
+}
+.adro-vault-item-overlay span {
+  font-family: monospace;
+  color: var(--adro-white);
+  background: var(--adro-bg);
+  border: 1px solid var(--adro-border);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }

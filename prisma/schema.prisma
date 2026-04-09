@@ -221,7 +221,6 @@ model ShopProduct {
   options              ShopProductOption[]
   variants             ShopProductVariant[]
 
-  @@index([slug])
   @@index([scope])
   @@index([isPublished])
   @@index([status])
@@ -309,7 +308,6 @@ model ShopTaxRegionRule {
   updatedAt     DateTime @updatedAt
 
   @@index([isActive, sortOrder])
-  @@index([regionCode])
 }
 
 model ShopCollection {
@@ -328,7 +326,6 @@ model ShopCollection {
   updatedAt     DateTime                @updatedAt
   products      ShopProductCollection[]
 
-  @@index([handle])
   @@index([isUrban, sortOrder])
   @@index([isPublished])
 }
@@ -349,7 +346,6 @@ model ShopCategory {
   children      ShopCategory[] @relation("ShopCategoryTree")
   products      ShopProduct[]
 
-  @@index([slug])
   @@index([parentId, sortOrder])
   @@index([isPublished, sortOrder])
 }
@@ -665,7 +661,6 @@ model ShopOrder {
   events                  ShopOrderStatusEvent[]
   shipments               ShopShipment[]
 
-  @@index([orderNumber])
   @@index([status])
   @@index([createdAt])
   @@index([customerId])
@@ -687,6 +682,8 @@ model ShopOrderItem {
   product     ShopProduct? @relation(fields: [productId], references: [id])
 
   @@index([orderId])
+  @@index([productId])
+  @@index([variantId])
 }
 
 model ShopOrderStatusEvent {
@@ -1055,7 +1052,6 @@ model Turn14CatalogItem {
   updatedAt      DateTime @updatedAt
 
   @@index([brandId])
-  @@index([partNumber])
   @@index([mfrPartNumber])
   @@map("turn14_catalog_items")
 }

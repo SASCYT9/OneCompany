@@ -1,5 +1,4 @@
 import { ReactNode } from 'react';
-import './csf-shop.css';
 
 export default function CSFSizingLayout({ children }: { children: ReactNode }) {
   return (

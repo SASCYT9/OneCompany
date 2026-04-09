@@ -13,8 +13,8 @@
   --ak-card-hover: rgba(43, 43, 43, 0.8);
   --ak-border: rgba(255, 255, 255, 0.08);
   --ak-titanium: #a0a0a0;
-  --ak-ember: #c29d59; /* Red replaced with solid gold for Titanium/Carbon luxury tech look */
-  --ak-ember-glow: rgba(194, 157, 89, 0.25);
+  --ak-ember: #c00020; /* Original Akrapovic red */
+  --ak-ember-glow: rgba(192, 0, 32, 0.15);
   --ak-carbon: #181818;
   --ak-white: #fafaf9;
   --ak-muted: #888888;
@@ -130,6 +130,22 @@
   z-index: 20;
   max-width: 800px;
   padding: 0 2rem;
+}
+.ak-hero__logo-wrapper {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+}
+.ak-hero__logo {
+  height: 50px; /* Base height for the logo */
+  width: auto;
+  max-width: 100%;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+}
+@media (min-width: 768px) {
+  .ak-hero__logo {
+    height: 70px;
+  }
 }
 .ak-hero__overtitle {
   font-size: 0.6rem;

@@ -10,6 +10,7 @@ import {
 
 import AdroCanvas from './canvas/AdroCanvas';
 import ScrollRevealClient from './ScrollRevealClient';
+import AdroMediaVault from './AdroMediaVault';
 
 type Props = { locale: SupportedLocale };
 
@@ -30,7 +31,7 @@ export default function AdroHomeSignature({ locale }: Props) {
       {/* ── Back to Stores ── */}
       <div className="adro-back">
         <Link href={`/${locale}/shop`} className="adro-back__link">
-          [ESC] {L(isUa, 'Return to Index', 'Повернутись')}
+          &larr; {L(isUa, 'BACK TO PLATFORMS', 'НАЗАД ДО БРЕНДІВ')}
         </Link>
       </div>
 
@@ -38,10 +39,15 @@ export default function AdroHomeSignature({ locale }: Props) {
           SECTION 1 — FLOW HERO
       ════════════════════════════════════════════════════════════════ */}
       <section className="adro-flow-hero">
-        <div className="adro-crosshair adro-crosshair-top-left"></div>
-        <div className="adro-crosshair adro-crosshair-top-right"></div>
-        <div className="adro-crosshair adro-crosshair-bottom-left"></div>
-        <div className="adro-crosshair adro-crosshair-bottom-right"></div>
+        <div className="adro-video-bg">
+          <iframe
+            src="https://www.youtube.com/embed/pyEBZ8jJvZg?autoplay=1&mute=1&controls=0&loop=1&playlist=pyEBZ8jJvZg&showinfo=0&rel=0&modestbranding=1"
+            frameBorder="0"
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+          ></iframe>
+          <div className="adro-video-overlay"></div>
+        </div>
 
         <div className="adro-flow-content" data-adro-reveal>
           <h1 className="sr-only">
@@ -56,19 +62,29 @@ export default function AdroHomeSignature({ locale }: Props) {
           </p>
 
           <Link href={`/${locale}/shop/adro/collections`} className="adro-btn">
-            {L(isUa, 'Initiate Data Link', 'Запустити каталог')}
+            {L(isUa, 'Explore Collection', 'Переглянути Колекцію')}
           </Link>
         </div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 2 — CFD HUD DASHBOARD
+          SECTION 2 — ENGINEERING EXCELLENCE
       ════════════════════════════════════════════════════════════════ */}
-      <section className="adro-cfd-hud">
-        <div className="adro-hud-grid">
+      <section className="adro-engineering">
+        <div className="adro-engineering-grid">
           
-          <div className="adro-hud-panel" data-adro-reveal>
-            <h2>{L(isUa, 'SYS_METRICS', 'МЕТРИКИ')}</h2>
+          <div className="adro-engineering-content" data-adro-reveal>
+            <div className="adro-engineering-header">
+              <span className="adro-overline">
+                {L(isUa, 'Aerodynamic Precision', 'Аеродинамічна точність')}
+              </span>
+              <h2>{L(isUa, ADRO_TECHNOLOGY.title, ADRO_TECHNOLOGY.titleUk)}</h2>
+            </div>
+            
+            <p className="adro-engineering-desc">
+              {L(isUa, ADRO_TECHNOLOGY.description, ADRO_TECHNOLOGY.descriptionUk)}
+            </p>
+
             <div className="adro-metrics-grid">
               {ADRO_STATS.map((s, i) => (
                 <div key={i} className="adro-metric-box">
@@ -77,14 +93,9 @@ export default function AdroHomeSignature({ locale }: Props) {
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: '2rem' }}>
-              <h2>{L(isUa, ADRO_TECHNOLOGY.title, ADRO_TECHNOLOGY.titleUk)}</h2>
-              <p>{L(isUa, ADRO_TECHNOLOGY.description, ADRO_TECHNOLOGY.descriptionUk)}</p>
-            </div>
           </div>
 
-          <div className="adro-hud-panel adro-hud-panel--visual" data-adro-reveal style={{ transitionDelay: '0.2s' }}>
-            <div className="adro-hud-overlay-text">CFD_SIMULATION_ACTIVE</div>
+          <div className="adro-engineering-visual" data-adro-reveal style={{ transitionDelay: '0.2s' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={ADRO_TECHNOLOGY.image} alt={L(isUa, ADRO_TECHNOLOGY.title, ADRO_TECHNOLOGY.titleUk)} />
           </div>
@@ -118,26 +129,31 @@ export default function AdroHomeSignature({ locale }: Props) {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 4 — SKEWED PLATFORM TRACK
+          SECTION 3.5 — MEDIA VAULT
+      ════════════════════════════════════════════════════════════════ */}
+      <AdroMediaVault locale={locale} />
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 4 — VEHICLE PLATFORMS
       ════════════════════════════════════════════════════════════════ */}
       <section className="adro-platforms">
         <div className="adro-platforms-inner">
           <div className="adro-platforms-header" data-adro-reveal>
-            <h2>{L(isUa, 'Platform Data', 'База Платформ')}</h2>
+            <h2>{L(isUa, 'Vehicle Platforms', 'Платформи Автомобілів')}</h2>
           </div>
           
-          <div className="adro-skew-grid">
+          <div className="adro-platform-grid">
             {ADRO_PRODUCT_LINES.map((line, idx) => (
-              <Link key={line.id} href={line.link} className="adro-skew-card" data-adro-reveal style={{ transitionDelay: `${(idx * 0.1)}s` }}>
-                <div className="adro-sc-image">
+              <Link key={line.id} href={line.link} className="adro-platform-card" data-adro-reveal style={{ transitionDelay: `${(idx * 0.1)}s` }}>
+                <div className="adro-pc-image">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={line.image} alt={L(isUa, line.name, line.nameUk)} />
                 </div>
-                <div className="adro-sc-content">
-                  <span className="adro-sc-badge">{L(isUa, line.badge, line.badgeUk)}</span>
+                <div className="adro-pc-content">
+                  <span className="adro-pc-badge">{L(isUa, line.badge, line.badgeUk)}</span>
                   <div style={{ padding: '1rem 0' }}>
-                    <h3 className="adro-sc-title">{L(isUa, line.name, line.nameUk)}</h3>
-                    <p className="adro-sc-desc">{L(isUa, line.description, line.descriptionUk)}</p>
+                    <h3 className="adro-pc-title">{L(isUa, line.name, line.nameUk)}</h3>
+                    <p className="adro-pc-desc">{L(isUa, line.description, line.descriptionUk)}</p>
                   </div>
                 </div>
               </Link>
