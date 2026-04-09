@@ -153,17 +153,6 @@ const Footer = () => {
                 <p className="text-white/60">{t('workingHours')}</p>
               </div>
 
-              {/* Map Embed */}
-              <div className="h-32 w-full overflow-hidden rounded-sm border border-white/10 bg-white/5 grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  title="OneCompany Location"
-                  src="https://maps.google.com/maps?q=21B%20Baseina%20St%2C%20Kyiv%2C%20Ukraine&t=&z=15&ie=UTF8&iwloc=&output=embed"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                />
-              </div>
             </div>
           </div>
         </div>

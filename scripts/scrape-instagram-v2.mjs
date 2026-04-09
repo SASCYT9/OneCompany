@@ -16,11 +16,14 @@ fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
 // Only scrape posts that are missing images or all posts that have /p/ URLs
 const POSTS_TO_SCRAPE = [
-  'DTsKmdmjFgF',  // OneCompany Premium
-  'DUGFrvdDCzP',  // Brabus
-  'DT-XLbLjQEb',  // iPE Exhaust
-  'DT0NWC8DCsl',  // Eventuri
-  'DTu98JODL1s',  // Akrapovic
+  'DW3qRqdDO4l',
+  'DWzAIIoDHb4',
+  'DWn0fWMjB1t',
+  'DWlaTXVjBNO',
+  'DWbybFkjHXp',
+  'DWTU9BsDEJC',
+  'DWPLJ-PjAwZ',
+  'DVG3S66DAgX'
 ];
 
 function downloadFile(url, dest) {
