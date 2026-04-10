@@ -12,7 +12,7 @@ export function getWhitepayToken(): string {
 }
 
 export function getWhitepaySlug(): string {
-  return (process.env.WHITEPAY_SLUG || 'ua').trim();
+  return (process.env.WHITEPAY_SLUG || 'onecompany').trim();
 }
 
 const API_BASE = 'https://api.whitepay.com';
