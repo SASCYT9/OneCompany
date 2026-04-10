@@ -13,6 +13,76 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-10 19:41] Commit `4cbc584c`
+**Автор**: 👤 SASCYT9
+
+> chore: redeploy to pick up Whitepay api credentials
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-10 19:38] Commit `25d2cf5f`
+**Автор**: 👤 SASCYT9
+
+> feat(payment): enable Whitepay webhook auth token verification
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shop/whitepay/callback/route.ts`
+
+---
+
+
+### 🟢 [2026-04-10 17:26] Commit `69b47795`
+**Автор**: 👤 SASCYT9
+
+> fix(build): resolve typescript errors in replaceUrbanImages.ts and add Whitepay integration
+
+#### 📂 Змінені файли:
+- **M**: `replaceUrbanImages.ts`
+- **M**: `src/app/admin/shop/orders/[id]/page.tsx`
+- **A**: `src/app/api/admin/shop/orders/[id]/whitepay/crypto/route.ts`
+- **A**: `src/app/api/admin/shop/orders/[id]/whitepay/fiat/route.ts`
+- **A**: `src/app/api/shop/whitepay/callback/route.ts`
+- **A**: `src/lib/shopWhitepay.ts`
+
+---
+
+
+### 🟢 [2026-04-10 00:29] Commit `7d3b2589`
+**Автор**: 👤 SASCYT9
+
+> Refactor ADRO storefront: finalize stealth wealth aesthetic, magazine grid, and remove gimmicks
+
+#### 📂 Змінені файли:
+- **A**: `__pycache__/blender_client.cpython-310.pyc`
+- **A**: `blender_client.py`
+- **A**: `blender_mcp_addon.py`
+- **A**: `generate_exhaust.py`
+- **A**: `generate_v2.py`
+- **M**: `prisma/migrations/20260315233000_add_shop_customers_b2b_cart/migration.sql`
+- **M**: `prisma/schema.prisma`
+- **A**: `public/3d/akrapovic_exhaust.glb`
+- **A**: `public/3d/akrapovic_v2.glb`
+- **M**: `src/app/[locale]/shop/adro/adro-shop.css`
+- **M**: `src/app/[locale]/shop/akrapovic/akrapovic-shop.css`
+- **M**: `src/app/[locale]/shop/components/AdroHomeSignature.tsx`
+- **A**: `src/app/[locale]/shop/components/AdroMediaVault.tsx`
+- **A**: `src/app/[locale]/shop/components/AkrapovicCinematicScroll.tsx`
+- **M**: `src/app/[locale]/shop/components/AkrapovicHomeSignature.tsx`
+- **A**: `src/app/[locale]/shop/components/AkrapovicLiquidBackground.tsx`
+- **A**: `src/app/[locale]/shop/components/AkrapovicScene3D.tsx`
+- **A**: `src/app/[locale]/shop/components/AkrapovicTextMask.tsx`
+- **M**: `src/app/[locale]/shop/components/CSFHomeSignature.tsx`
+- **A**: `src/app/[locale]/shop/components/TitaniumExhaustModel.tsx`
+- **M**: `src/app/[locale]/shop/csf/layout.tsx`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-08 03:24] Commit `89f009af`
 **Автор**: 👤 SASCYT9
 

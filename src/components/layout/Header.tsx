@@ -62,12 +62,12 @@ export function Header() {
       key: "brand-catalog",
       href: currentBrand === 'racechip' 
         ? `/${locale}/shop/racechip/catalog` 
-        : ['brabus', 'burger', 'urban'].includes(currentBrand) 
-          ? `/${locale}/shop/${currentBrand}/products` 
-          : currentBrand === 'do88'
-            ? `/${locale}/shop/do88/collections`
-            : currentBrand === 'akrapovic'
-              ? `/${locale}/shop/akrapovic/collections`
+        : currentBrand === 'girodisc'
+          ? `/${locale}/shop/girodisc/catalog`
+          : ['brabus', 'burger', 'urban'].includes(currentBrand) 
+            ? `/${locale}/shop/${currentBrand}/products` 
+            : ['do88', 'akrapovic'].includes(currentBrand)
+              ? `/${locale}/shop/${currentBrand}/collections`
               : `/${locale}/shop/${currentBrand}#catalog`,
       label: isUa ? `Каталог ${formatBrandName(currentBrand)}` : `${formatBrandName(currentBrand)} Catalog`,
     }] : []),

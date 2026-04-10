@@ -236,8 +236,9 @@ export default async function ShopProductDetailPage({
     },
     offers: {
       '@type': 'Offer',
-      price: pricing.effectivePrice.eur,
+      price: computeCrossPrices(pricing.effectivePrice).eur,
       priceCurrency: 'EUR',
+
       availability: isInStock ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
       url: productUrl,
       priceValidUntil: priceValidUntil.toISOString().slice(0, 10),
@@ -262,7 +263,7 @@ export default async function ShopProductDetailPage({
       <ShopProductViewTracker
         slug={product.slug}
         name={productTitle}
-        priceEur={pricing.effectivePrice.eur}
+        priceEur={computeCrossPrices(pricing.effectivePrice).eur}
       />
       
       {product.brand === 'Brabus' || mode === 'brabus' ? (
@@ -574,7 +575,7 @@ export default async function ShopProductDetailPage({
                   <p className="text-xs uppercase tracking-[0.18em] text-white/55">{item.brand}</p>
                   <h3 className="text-lg font-light leading-snug">{localizeShopProductTitle(resolvedLocale, item)}</h3>
                   <p className="text-sm text-white/65">
-                    {formatPrice(resolvedLocale, resolveShopProductPricing(item, viewerContext).effectivePrice.eur, 'EUR')}
+                    {formatPrice(resolvedLocale, computeCrossPrices(resolveShopProductPricing(item, viewerContext).effectivePrice).eur, 'EUR')}
                   </p>
                 </div>
               </Link>

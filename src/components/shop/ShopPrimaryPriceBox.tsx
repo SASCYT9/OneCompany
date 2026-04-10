@@ -54,7 +54,7 @@ export function ShopPrimaryPriceBox({ locale, isUa, price }: Props) {
         ? computedEur
         : computedUah;
 
-  if (amountEur === 0) {
+  if (!hasValid(displayAmount)) {
     return (
       <>
         <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
