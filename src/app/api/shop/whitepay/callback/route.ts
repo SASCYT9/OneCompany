@@ -4,10 +4,10 @@ import { prisma } from '@/lib/prisma';
 export async function POST(req: NextRequest) {
   try {
     // Optionally check Authorization header here if Whitepay uses Bearer
-    // const authHeader = req.headers.get('authorization');
-    // if (process.env.WHITEPAY_WEBHOOK_TOKEN && authHeader !== `Bearer ${process.env.WHITEPAY_WEBHOOK_TOKEN}`) {
-    //   return new Response('Unauthorized', { status: 401 });
-    // }
+    const authHeader = req.headers.get('authorization');
+    if (process.env.WHITEPAY_WEBHOOK_TOKEN && authHeader !== `Bearer ${process.env.WHITEPAY_WEBHOOK_TOKEN}`) {
+      return new Response('Unauthorized', { status: 401 });
+    }
 
     const body = await req.json();
 
