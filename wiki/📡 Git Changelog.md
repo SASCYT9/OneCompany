@@ -13,6 +13,32 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-10 19:46] Commit `e78769ad`
+**Автор**: 👤 SASCYT9
+
+> feat(shop): finalize Girodisc UI components and layout updates
+
+#### 📂 Змінені файли:
+- **A**: `data/girodisc-products.json`
+- **A**: `scripts/fix-girodisc-prices.mjs`
+- **A**: `scripts/gen-patch-sql.mjs`
+- **A**: `scripts/import-girodisc-direct.mjs`
+- **A**: `scripts/import-girodisc-missing.mjs`
+- **A**: `scripts/import-girodisc.ts`
+- **A**: `scripts/scrape-girodisc.mjs`
+- **A**: `scripts/update-girodisc-pricing.ts`
+- **A**: `src/app/[locale]/shop/components/GirodiscSpotlightGrid.tsx`
+- **A**: `src/app/[locale]/shop/components/GirodiscVehicleFilter.tsx`
+- **M**: `src/app/[locale]/shop/components/ShopProductDetailPage.tsx`
+- **A**: `src/app/[locale]/shop/girodisc/catalog/page.tsx`
+- **M**: `src/components/layout/Header.tsx`
+- **M**: `src/components/shop/ShopPrimaryPriceBox.tsx`
+- **A**: `src/lib/girodiscCollectionMatcher.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-10 19:41] Commit `4cbc584c`
 **Автор**: 👤 SASCYT9
 

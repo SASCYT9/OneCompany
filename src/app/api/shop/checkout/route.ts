@@ -182,12 +182,38 @@ export async function POST(req: NextRequest) {
   };
 
   // ── HYBRID CHECKOUT MODE ──
-  // Do not redirect to Stripe or Hutko yet. We only save the intended paymentMethod.
-  // The Admin will evaluate shipping and generate the payment link later.
+  // By default, do not redirect immediately (Hybrid Checkout).
+  // Exception: WHITEBIT payment method has an auto-redirect override per user request.
 
-  const order = await prisma.shopOrder.create({
+  let order = await prisma.shopOrder.create({
     data: orderData,
   });
+
+  let redirectUrl: string | undefined = undefined;
+
+  if (paymentMethod === 'WHITEBIT') {
+    const { createWhitepayCryptoOrder } = require('@/lib/shopWhitepay');
+    const successUrl = `${baseUrl}/${locale}/shop/checkout/success?order=${encodeURIComponent(orderNumber)}&token=${encodeURIComponent(viewToken)}`;
+    
+    const wpRes = await createWhitepayCryptoOrder({
+      amount: quote.total.toString(),
+      currency: quote.currency.toUpperCase(),
+      external_order_id: order.id,
+      success_url: successUrl,
+      fail_url: successUrl,
+      webhooks: [`${baseUrl}/api/shop/whitepay/callback`]
+    });
+    
+    if (wpRes.success && wpRes.url) {
+      redirectUrl = wpRes.url;
+      order = await prisma.shopOrder.update({
+        where: { id: order.id },
+        data: { status: 'PENDING_PAYMENT' }
+      });
+    } else {
+      console.error('[Checkout] Whitepay auto-redirect generation failed. Falling back to PENDING_REVIEW.', wpRes.error);
+    }
+  }
 
   // CRM Webhook
   await dispatchCrmWebhook('order.created', order).catch(() => {});
@@ -253,6 +279,7 @@ export async function POST(req: NextRequest) {
   }
 
   const response = NextResponse.json({
+    redirectUrl,
     orderNumber,
     viewToken,
     subtotal: quote.subtotal,
