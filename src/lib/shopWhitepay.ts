@@ -8,11 +8,11 @@
  */
 
 export function getWhitepayToken(): string {
-  return process.env.WHITEPAY_TOKEN || '';
+  return (process.env.WHITEPAY_TOKEN || '').trim();
 }
 
 export function getWhitepaySlug(): string {
-  return process.env.WHITEPAY_SLUG || 'ua';
+  return (process.env.WHITEPAY_SLUG || 'ua').trim();
 }
 
 const API_BASE = 'https://api.whitepay.com';
