@@ -65,15 +65,13 @@ export async function createWhitepayFiatOrder(params: WhitepayFiatParams) {
       return { success: false, error: data.message || data.error || `HTTP ${res.status} Error`, details: data };
     }
 
-    // Usually Whitepay API returns acquire_url directly or in a nested object. 
-    // E.g. { order: { id, acquire_url, ... } } or { order: ..., acquire_url: ... }
-    // As per docs, check data structure:
-    const acquireUrl = data.acquire_url || (data.order && data.order.acquire_url);
-    if (acquireUrl) {
-      return { success: true, url: acquireUrl, orderId: data.id || data.order?.id };
+    // Whitepay API returns the payment URL as `acquiring_url` inside the `order` object
+    const acquiringUrl = data.order?.acquiring_url || data.acquiring_url || data.order?.acquire_url || data.acquire_url;
+    if (acquiringUrl) {
+      return { success: true, url: acquiringUrl, orderId: data.order?.id || data.id };
     }
 
-    return { success: false, error: 'acquire_url not found in response', details: data };
+    return { success: false, error: 'acquiring_url not found in response', details: data };
   } catch (err: any) {
     console.error('[Whitepay Fiat]', err);
     return { success: false, error: err.message };
@@ -107,12 +105,12 @@ export async function createWhitepayCryptoOrder(params: WhitepayCryptoParams) {
       return { success: false, error: data.message || data.error || `HTTP ${res.status} Error`, details: data };
     }
 
-    const acquireUrl = data.order?.acquire_url?.url || data.acquire_url || (data.order && data.order.acquire_url);
-    if (acquireUrl) {
-      return { success: true, url: acquireUrl, orderId: data.order?.id || data.id };
+    const acquiringUrl = data.order?.acquiring_url || data.acquiring_url || data.order?.acquire_url || data.acquire_url;
+    if (acquiringUrl) {
+      return { success: true, url: acquiringUrl, orderId: data.order?.id || data.id };
     }
 
-    return { success: false, error: 'acquire_url not found in response', details: data };
+    return { success: false, error: 'acquiring_url not found in response', details: data };
   } catch (err: any) {
     console.error('[Whitepay Crypto]', err);
     return { success: false, error: err.message };
