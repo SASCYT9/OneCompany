@@ -471,22 +471,47 @@ export default function AdminOrderDetailPage() {
     }
   }
 
-  async function handleGenerateHutkoLink() {
+  async function handleGenerateWhitepayFiatLink() {
     if (!id || !order) return;
     setUpdating(true);
     setError('');
     setSuccess('');
     try {
-      const response = await fetch(`/api/admin/shop/orders/${id}/hutko`, {
+      const response = await fetch(`/api/admin/shop/orders/${id}/whitepay/fiat`, {
         method: 'POST',
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Не вдалося згенерувати посилання');
+        setError(data.error || 'Не вдалося згенерувати посилання Whitepay Fiat');
         return;
       }
       await load();
-      setSuccess('Посилання на оплату Hutko успішно згенеровано та СКОПІЙОВАНО в буфер обміну!');
+      setSuccess('Посилання на оплату Whitepay (Fiat) успішно згенеровано та СКОПІЙОВАНО в буфер обміну!');
+      if (data.url) {
+        navigator.clipboard.writeText(data.url).catch(() => {});
+        window.open(data.url, '_blank');
+      }
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  async function handleGenerateWhitepayCryptoLink() {
+    if (!id || !order) return;
+    setUpdating(true);
+    setError('');
+    setSuccess('');
+    try {
+      const response = await fetch(`/api/admin/shop/orders/${id}/whitepay/crypto`, {
+        method: 'POST',
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data.error || 'Не вдалося згенерувати посилання Whitepay Crypto');
+        return;
+      }
+      await load();
+      setSuccess('Посилання на оплату Whitepay (Crypto) успішно згенеровано та СКОПІЙОВАНО в буфер обміну!');
       if (data.url) {
         navigator.clipboard.writeText(data.url).catch(() => {});
         window.open(data.url, '_blank');
@@ -771,11 +796,19 @@ export default function AdminOrderDetailPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => void handleGenerateHutkoLink()}
+                    onClick={() => void handleGenerateWhitepayFiatLink()}
                     disabled={updating}
                     className="rounded-lg bg-indigo-500/20 px-3 py-1 text-xs text-indigo-300 hover:bg-indigo-500/30 disabled:opacity-50 transition-colors shadow-[0_0_10px_-2px_rgba(99,102,241,0.2)]"
                   >
-                    Whitepay Лінк (UAH)
+                    Whitepay Лінк (Картка)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleGenerateWhitepayCryptoLink()}
+                    disabled={updating}
+                    className="rounded-lg bg-cyan-500/20 px-3 py-1 text-xs text-cyan-300 hover:bg-cyan-500/30 disabled:opacity-50 transition-colors shadow-[0_0_10px_-2px_rgba(6,182,212,0.2)]"
+                  >
+                    Whitepay Лінк (Крипто)
                   </button>
                   <button
                     type="button"

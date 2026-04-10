@@ -109,7 +109,7 @@ async function main() {
           brand: 'Urban Automotive',
           vendor: 'Urban Automotive',
           image: p.image && !p.image.includes('placeholder') ? p.image : imageToUse,
-          gallery: p.image && !p.image.includes('placeholder') ? p.gallery : [imageToUse]
+          gallery: p.image && !p.image.includes('placeholder') ? (p.gallery as any) : [imageToUse]
         }
       });
 
@@ -129,7 +129,7 @@ async function main() {
           brand: 'Urban Automotive',
           vendor: 'Urban Automotive',
           image: p.image && !p.image.includes('placeholder') ? p.image : imageToUse,
-          gallery: p.image && !p.image.includes('placeholder') ? p.gallery : [imageToUse]
+          gallery: p.image && !p.image.includes('placeholder') ? (p.gallery as any) : [imageToUse]
         }
       });
       updatedCount++;
