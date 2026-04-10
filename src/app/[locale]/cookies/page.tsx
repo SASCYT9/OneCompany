@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { resolveLocale, buildPageMetadata, type SupportedLocale } from "@/lib/seo";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 const metaCopy: Record<SupportedLocale, { title: string; description: string }> = {
   en: { title: "Cookies Policy · onecompany", description: "Information about how we use cookies." },
