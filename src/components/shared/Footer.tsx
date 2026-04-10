@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { Instagram } from "lucide-react";
+import { Instagram, Youtube } from "lucide-react";
 import gsap from "gsap";
 import { Logo } from "@/components/ui/Logo";
 import { getTypography, resolveLocale } from "@/lib/typography";
@@ -48,6 +48,25 @@ const Footer = () => {
       href: "https://t.me/onecompany_global",
       label: "Telegram"
     },
+    {
+      icon: (props: React.SVGProps<SVGSVGElement>) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          {...props}
+        >
+          <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+        </svg>
+      ),
+      href: "https://www.tiktok.com/@onecompanyglobal",
+      label: "TikTok"
+    },
+    { icon: Youtube, href: "https://www.youtube.com/@OneCompanyGlobal", label: "YouTube" },
   ];
 
   const scopeRef = useRef<HTMLDivElement | null>(null);
