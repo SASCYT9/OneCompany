@@ -40,7 +40,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
-  const orderId = body.order_id;
+  const rawOrderId = String(body.order_id || '');
+  const orderId = rawOrderId.split('_')[0]; // Extract base orderNumber
   const orderStatus = body.order_status; // approved, declined, expired, processing, etc.
   const paymentId = body.payment_id;
 

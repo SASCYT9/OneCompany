@@ -17,7 +17,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true, ignored: true, reason: 'No order in body' });
     }
 
-    const orderNumber = orderData.external_order_id;
+    // Extract base orderNumber since we might append _timestamp for uniqueness
+    const rawExternalId = String(orderData.external_order_id || '');
+    const orderNumber = rawExternalId.split('_')[0];
     const status = orderData.status;
 
     if (!orderNumber || !status) {

@@ -41,7 +41,7 @@ export async function POST(
     const responseUrl = `${baseUrl}/ua/shop/checkout/success?order=${encodeURIComponent(order.orderNumber)}&token=${encodeURIComponent(order.viewToken)}`;
 
     const hutkoResult = await createHutkoCheckout({
-      orderId: order.orderNumber,
+      orderId: `${order.orderNumber}_${Date.now()}`, // unique per generation
       orderDescription: `One Company #${order.orderNumber}`,
       amount: amountKopecks,
       currency: order.currency as 'UAH' | 'USD' | 'EUR',

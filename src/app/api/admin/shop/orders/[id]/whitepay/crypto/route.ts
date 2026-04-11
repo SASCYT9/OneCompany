@@ -49,7 +49,7 @@ export async function POST(
     const whitepayResult = await createWhitepayCryptoOrder({
       amount: amountStr,
       currency: order.currency, // Whitepay uses this to calculate crypto equivalents
-      external_order_id: String(order.orderNumber),
+      external_order_id: `${order.orderNumber}_${Date.now()}`, // unique per generation
       success_url: successUrl,
       fail_url: failUrl,
       webhooks: [webhookUrl]

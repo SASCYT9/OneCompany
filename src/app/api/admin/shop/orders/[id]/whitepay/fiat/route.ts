@@ -55,7 +55,7 @@ export async function POST(
       amount: amountStr,
       currency: currency,
       description: `Замовлення #${order.orderNumber}`,
-      external_order_id: String(order.orderNumber), // using order number to match in webhook
+      external_order_id: `${order.orderNumber}_${Date.now()}`, // unique per generation
       success_url: successUrl,
       fail_url: failUrl,
       webhooks: [webhookUrl]

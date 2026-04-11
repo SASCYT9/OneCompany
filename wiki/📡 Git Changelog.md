@@ -13,6 +13,95 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-10 20:56] Commit `9c764927`
+**Автор**: 👤 SASCYT9
+
+> fix(build): make cookies page dynamic to prevent DB pool exhaustion during SSG
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/cookies/page.tsx`
+
+---
+
+
+### 🟢 [2026-04-10 20:50] Commit `7ee119df`
+**Автор**: 👤 SASCYT9
+
+> chore: retry build after transient DB pool timeout
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-10 20:45] Commit `28f4ebea`
+**Автор**: 👤 SASCYT9
+
+> fix(shop): correct Whitepay field name from acquire_url to acquiring_url
+
+#### 📂 Змінені файли:
+- **M**: `src/lib/shopWhitepay.ts`
+
+---
+
+
+### 🟢 [2026-04-10 20:35] Commit `d38e32a0`
+**Автор**: 👤 SASCYT9
+
+> chore: redeploy with clean Whitepay env variables for all environments
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-10 20:22] Commit `cb4868ab`
+**Автор**: 👤 SASCYT9
+
+> chore: redeploy with updated Whitepay env variables
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-10 20:13] Commit `df879ee8`
+**Автор**: 👤 SASCYT9
+
+> chore(shop): clean up whitepay env variables access to standard trim
+
+#### 📂 Змінені файли:
+- **M**: `src/lib/shopWhitepay.ts`
+
+---
+
+
+### 🟢 [2026-04-10 20:06] Commit `825138fa`
+**Автор**: 👤 SASCYT9
+
+> fix(shop): trim whitepay API token to handle hidden whitespace
+
+#### 📂 Змінені файли:
+- **M**: `src/lib/shopWhitepay.ts`
+
+---
+
+
+### 🟢 [2026-04-10 19:57] Commit `6ce7138f`
+**Автор**: 👤 SASCYT9
+
+> feat(shop): bypass Hybrid Checkout to auto-redirect WhiteBIT crypto orders
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shop/checkout/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-10 19:46] Commit `e78769ad`
 **Автор**: 👤 SASCYT9
 

@@ -198,7 +198,7 @@ export async function POST(req: NextRequest) {
     const wpRes = await createWhitepayCryptoOrder({
       amount: quote.total.toString(),
       currency: quote.currency.toUpperCase(),
-      external_order_id: order.id,
+      external_order_id: String(order.orderNumber),
       success_url: successUrl,
       fail_url: successUrl,
       webhooks: [`${baseUrl}/api/shop/whitepay/callback`]
