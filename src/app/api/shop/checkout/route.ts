@@ -195,9 +195,8 @@ export async function POST(req: NextRequest) {
         currency: quote.currency.toUpperCase(),
         description: `One Company — Замовлення #${order.orderNumber} / ${order.email}`,
         external_order_id: String(order.orderNumber),
-        success_url: successUrl,
-        fail_url: successUrl,
-        webhooks: [`${baseUrl}/api/shop/whitepay/callback`]
+        successful_link: successUrl,
+        failure_link: successUrl,
       });
       
       console.log('[Checkout] Whitepay response:', JSON.stringify(wpRes));

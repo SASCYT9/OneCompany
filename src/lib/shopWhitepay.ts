@@ -18,14 +18,13 @@ export function getWhitepaySlug(): string {
 const API_BASE = 'https://api.whitepay.com';
 
 type WhitepayFiatParams = {
-  /** The amount as a string, e.g. "100.50" or integer if smallest unit, will just pass exactly what is provided */
+  /** The amount as a string, e.g. "100.50" */
   amount: string;
   currency: string;
   description?: string;
   external_order_id: string;
-  success_url: string;
-  fail_url: string;
-  webhooks: string[];
+  successful_link: string;
+  failure_link: string;
 };
 
 type WhitepayCryptoParams = {
@@ -33,9 +32,8 @@ type WhitepayCryptoParams = {
   currency: string;
   description?: string;
   external_order_id: string;
-  success_url: string;
-  fail_url: string;
-  webhooks: string[];
+  successful_link: string;
+  failure_link: string;
 };
 
 export async function createWhitepayFiatOrder(params: WhitepayFiatParams) {

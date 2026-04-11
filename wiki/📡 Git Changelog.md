@@ -13,6 +13,18 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 19:17] Commit `f959eb53`
+**Автор**: 👤 SASCYT9
+
+> fix(checkout): replace require() with ESM import for shopWhitepay, add error logging
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shop/checkout/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 18:53] Commit `84123bce`
 **Автор**: 👤 SASCYT9
 
