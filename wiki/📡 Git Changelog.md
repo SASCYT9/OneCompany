@@ -13,6 +13,19 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 19:20] Commit `16209aaf`
+**Автор**: 👤 SASCYT9
+
+> fix(whitepay): correct API field names - successful_link/failure_link per docs, remove webhooks from request body
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shop/checkout/route.ts`
+- **M**: `src/lib/shopWhitepay.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 19:17] Commit `f959eb53`
 **Автор**: 👤 SASCYT9
 
