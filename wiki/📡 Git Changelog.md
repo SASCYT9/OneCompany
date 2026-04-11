@@ -13,6 +13,24 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 22:18] Commit `5e34de87`
+**Автор**: 👤 SASCYT9
+
+> feat(shopify): Multi-store Whitepay OAuth integration & Email invoicing
+
+#### 📂 Змінені файли:
+- **M**: `prisma/schema.prisma`
+- **A**: `src/app/api/shopify/auth/callback/route.ts`
+- **A**: `src/app/api/shopify/auth/init/route.ts`
+- **A**: `src/app/api/shopify/webhooks/order-create/route.ts`
+- **A**: `src/app/api/shopify/webhooks/whitepay-callback/route.ts`
+- **A**: `src/emails/ShopifyCryptoInvoiceEmail.tsx`
+- **A**: `src/lib/services/emailService.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 19:56] Commit `ecba6566`
 **Автор**: 👤 SASCYT9
 
