@@ -13,6 +13,22 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 16:25] Commit `033e108d`
+**Автор**: 👤 SASCYT9
+
+> feat(payments): format payment invoices with brand name, order number, and customer email for better CRM visibility
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/admin/shop/orders/[id]/hutko/route.ts`
+- **M**: `src/app/api/admin/shop/orders/[id]/whitepay/crypto/route.ts`
+- **M**: `src/app/api/admin/shop/orders/[id]/whitepay/fiat/route.ts`
+- **M**: `src/app/api/shop/checkout/route.ts`
+- **M**: `src/lib/shopWhitepay.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 16:23] Commit `733a28c8`
 **Автор**: 👤 SASCYT9
 

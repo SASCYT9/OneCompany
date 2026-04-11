@@ -5,7 +5,6 @@
 
 import { NextResponse } from 'next/server';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import { isHutkoEnabled } from '@/lib/shopHutko';
 import { prisma } from '@/lib/prisma';
 
 export async function GET() {
@@ -13,7 +12,7 @@ export async function GET() {
     const record = await getOrCreateShopSettings(prisma);
     const settings = getShopSettingsRuntime(record);
 
-    const methods: Array<'FOP' | 'STRIPE' | 'WHITEBIT' | 'HUTKO'> = ['FOP', 'HUTKO', 'WHITEBIT'];
+    const methods: Array<'FOP' | 'STRIPE' | 'WHITEBIT'> = ['FOP', 'WHITEBIT'];
 
     const fopDetails =
       settings.fopCompanyName ||

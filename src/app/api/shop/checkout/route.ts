@@ -28,7 +28,6 @@ import {
   createStripeCheckoutSession,
   stripeSupportedCurrency,
 } from '@/lib/shopStripe';
-import { createHutkoCheckout, isHutkoEnabled } from '@/lib/shopHutko';
 import { prisma } from '@/lib/prisma';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
@@ -36,7 +35,7 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 const CURRENCIES = ['EUR', 'USD', 'UAH'] as const;
 
-const PAYMENT_METHODS = ['FOP', 'STRIPE', 'WHITEBIT', 'HUTKO'] as const;
+const PAYMENT_METHODS = ['FOP', 'STRIPE', 'WHITEBIT'] as const;
 type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 function normalizePaymentMethod(value: unknown): PaymentMethod {

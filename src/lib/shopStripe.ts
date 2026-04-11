@@ -50,8 +50,8 @@ export async function createStripeCheckoutSession(params: {
             currency: params.currency,
             unit_amount: params.amountTotalCents,
             product_data: {
-              name: `Order ${params.orderNumber}`,
-              description: `One Company Shop – Order ${params.orderNumber}`,
+              name: `One Company — Замовлення #${params.orderNumber}`,
+              description: `Email: ${params.customerEmail}`,
             },
           },
           quantity: 1,

@@ -33,7 +33,7 @@ export async function POST(
     const supportedCurrency = stripeSupportedCurrency(order.currency);
     if (!supportedCurrency) {
       return NextResponse.json({ 
-        error: `Stripe only supports EUR and USD for checkout. Order is in ${order.currency}. Please use Whitepay (Hutko) instead.` 
+        error: `Stripe only supports EUR and USD for checkout. Order is in ${order.currency}. Please use Whitepay Fiat instead.` 
       }, { status: 400 });
     }
 
