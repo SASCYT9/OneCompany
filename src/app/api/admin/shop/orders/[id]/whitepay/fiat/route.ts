@@ -34,30 +34,20 @@ export async function POST(
     if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     if (order.paymentStatus === 'PAID') return NextResponse.json({ error: 'Order already paid' }, { status: 400 });
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://onecompany.global');
-
     // Amount as float string e.g. "100.50"
     const amountStr = Number(order.total).toFixed(2);
     
-    // Use the actual view checkout link as the response URL after payment
-    const successUrl = `${baseUrl}/ua/shop/checkout/success?order=${encodeURIComponent(order.orderNumber)}&token=${encodeURIComponent(order.viewToken)}`;
-    const failUrl = `${baseUrl}/ua/shop/checkout/error`;
-    const webhookUrl = `${baseUrl}/api/shop/whitepay/callback`;
-
     // Whitepay usually expects Fiat requests in UAH if it's UA local acquiring, 
     // but we will send order.currency and let Whitepay handle it if configured.
     let currency = order.currency;
     if (currency === 'UAH') currency = 'UAH';
 
+    // Fiat API only accepts: amount, currency, external_order_id
+    // successful_link / failure_link are configured in Whitepay CRM payment page settings
     const whitepayResult = await createWhitepayFiatOrder({
       amount: amountStr,
       currency: currency,
-      description: `One Company — Замовлення #${order.orderNumber} / ${order.email}`,
       external_order_id: `${order.orderNumber}_${Date.now()}`, // unique per generation
-      successful_link: successUrl,
-      failure_link: failUrl,
     });
 
     if (!whitepayResult.success) {

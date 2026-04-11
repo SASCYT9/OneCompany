@@ -1,9 +1,10 @@
 /**
  * POST /api/shop/checkout
- * Body: { items, contact, shipping, currency, locale?, paymentMethod?: 'FOP'|'STRIPE'|'WHITEBIT' }
+ * Body: { items, contact, shipping, currency, locale?, paymentMethod?: 'FOP'|'STRIPE'|'WHITEBIT'|'WHITEPAY_FIAT' }
  * FOP: creates order PENDING_REVIEW, sends email, returns { orderNumber, viewToken }.
  * STRIPE: creates order PENDING_PAYMENT, returns { redirectUrl, orderNumber, viewToken }; webhook confirms.
- * WHITEBIT: creates order PENDING_PAYMENT, redirects to WhiteBIT Pay; webhook confirms.
+ * WHITEBIT: creates order PENDING_PAYMENT, redirects to WhiteBIT Crypto Pay; webhook confirms.
+ * WHITEPAY_FIAT: creates order PENDING_PAYMENT, redirects to WhiteBIT Card Pay; webhook confirms.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -23,7 +24,7 @@ import {
   createStripeCheckoutSession,
   stripeSupportedCurrency,
 } from '@/lib/shopStripe';
-import { createWhitepayCryptoOrder } from '@/lib/shopWhitepay';
+import { createWhitepayCryptoOrder, createWhitepayFiatOrder } from '@/lib/shopWhitepay';
 import { prisma } from '@/lib/prisma';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
@@ -31,7 +32,7 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 const CURRENCIES = ['EUR', 'USD', 'UAH'] as const;
 
-const PAYMENT_METHODS = ['FOP', 'STRIPE', 'WHITEBIT'] as const;
+const PAYMENT_METHODS = ['FOP', 'STRIPE', 'WHITEBIT', 'WHITEPAY_FIAT'] as const;
 type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 function normalizePaymentMethod(value: unknown): PaymentMethod {
@@ -215,7 +216,31 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // CRM Webhook
+  if (paymentMethod === 'WHITEPAY_FIAT') {
+    try {
+      // Fiat API only accepts: amount, currency, external_order_id
+      // Redirect URLs are configured in Whitepay CRM payment page settings
+      const wpRes = await createWhitepayFiatOrder({
+        amount: quote.total.toString(),
+        currency: quote.currency.toUpperCase(),
+        external_order_id: String(order.orderNumber),
+      });
+      
+      console.log('[Checkout] Whitepay Fiat response:', JSON.stringify(wpRes));
+      
+      if (wpRes.success && wpRes.url) {
+        redirectUrl = wpRes.url;
+        order = await prisma.shopOrder.update({
+          where: { id: order.id },
+          data: { status: 'PENDING_PAYMENT', paymentMethod: 'WHITEPAY_FIAT' }
+        });
+      } else {
+        console.error('[Checkout] Whitepay Fiat redirect generation failed:', wpRes.error, wpRes);
+      }
+    } catch (wpError) {
+      console.error('[Checkout] Whitepay Fiat exception:', wpError);
+    }
+  }
   await dispatchCrmWebhook('order.created', order).catch(() => {});
 
   // Native Airtable Direct Export (Disabled by default / Dry Run)

@@ -23,8 +23,9 @@ type WhitepayFiatParams = {
   currency: string;
   description?: string;
   external_order_id: string;
-  successful_link: string;
-  failure_link: string;
+  /** These are stored on our side but NOT sent to Fiat API (they're crypto-only per docs) */
+  successful_link?: string;
+  failure_link?: string;
 };
 
 type WhitepayCryptoParams = {
@@ -40,7 +41,17 @@ export async function createWhitepayFiatOrder(params: WhitepayFiatParams) {
   const token = getWhitepayToken();
   const slug = getWhitepaySlug();
   
+  // Fiat API only accepts: amount, currency, external_order_id
+  // successful_link and failure_link are configured in the Whitepay CRM payment page settings
+  const body: Record<string, string> = {
+    amount: params.amount,
+    currency: params.currency,
+  };
+  if (params.external_order_id) body.external_order_id = params.external_order_id;
+
   try {
+    console.log(`[Whitepay Fiat] POST /private-api/orders/${slug}`, JSON.stringify(body));
+    
     const res = await fetch(`${API_BASE}/private-api/orders/${slug}`, {
       method: 'POST',
       headers: {
@@ -48,7 +59,7 @@ export async function createWhitepayFiatOrder(params: WhitepayFiatParams) {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify(params),
+      body: JSON.stringify(body),
     });
     
     // Sometimes Whitepay responses can be non-json if 500 error
@@ -59,6 +70,8 @@ export async function createWhitepayFiatOrder(params: WhitepayFiatParams) {
     } catch {
       return { success: false, error: 'Non-JSON response: ' + text.substring(0, 100) };
     }
+
+    console.log(`[Whitepay Fiat] Response ${res.status}:`, JSON.stringify(data));
 
     if (!res.ok) {
       return { success: false, error: data.message || data.error || `HTTP ${res.status} Error`, details: data };

@@ -13,6 +13,20 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 19:26] Commit `aee2b63a`
+**Автор**: 👤 SASCYT9
+
+> fix(whitepay): comprehensive API fix - correct field names in all routes, proper HMAC-SHA256 webhook signature validation, event_type-based status mapping, update test product to 250 UAH
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/admin/shop/orders/[id]/whitepay/crypto/route.ts`
+- **M**: `src/app/api/admin/shop/orders/[id]/whitepay/fiat/route.ts`
+- **M**: `src/app/api/shop/whitepay/callback/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 19:20] Commit `16209aaf`
 **Автор**: 👤 SASCYT9
 
