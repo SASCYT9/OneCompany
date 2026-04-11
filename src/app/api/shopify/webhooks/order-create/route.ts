@@ -5,6 +5,17 @@ import { sendShopifyCryptoInvoice } from '@/lib/services/emailService';
 
 export const dynamic = 'force-dynamic';
 
+// Map Shopify internal domains to pretty brand names and public domains
+const STORE_BRANDING: Record<string, { displayName: string; publicDomain: string }> = {
+  '1t4mqk-bv.myshopify.com': { displayName: 'Eventuri Shop Ukraine', publicDomain: 'eventuri.shop' },
+  'eventuri-ua.myshopify.com': { displayName: 'Eventuri Shop Ukraine', publicDomain: 'eventuri.shop' },
+  // Add more stores here as they are onboarded
+};
+
+function getStoreBranding(domain: string) {
+  return STORE_BRANDING[domain] || { displayName: domain, publicDomain: domain };
+}
+
 function verifyShopifyWebhook(rawBody: string, hmacHeader: string | null, secret: string): boolean {
   if (!hmacHeader || !secret) return false;
   const hash = crypto
@@ -78,13 +89,15 @@ export async function POST(req: NextRequest) {
     console.log(`[Shopify Webhook] Whitepay invoice generated: ${payUrl}`);
 
     // 2. Send Email Invoice via Resend
+    const branding = getStoreBranding(storeDomain);
     const emailRes = await sendShopifyCryptoInvoice({
       toEmail: order.email,
       orderNumber: String(order.order_number),
       amount: order.total_price.toString(),
       currency: order.currency.toUpperCase(),
       payUrl: payUrl,
-      storeName: storeDomain,
+      storeName: branding.displayName,
+      publicDomain: branding.publicDomain,
     });
 
     if (!emailRes.success) {

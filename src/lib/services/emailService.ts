@@ -15,6 +15,7 @@ interface SendShopifyInvoiceParams {
   currency: string;
   payUrl: string;
   storeName?: string;
+  publicDomain?: string;
 }
 
 export async function sendShopifyCryptoInvoice({
@@ -24,6 +25,7 @@ export async function sendShopifyCryptoInvoice({
   currency,
   payUrl,
   storeName,
+  publicDomain,
 }: SendShopifyInvoiceParams) {
   if (!resend) {
     console.error('Email Service Error: RESEND_API_KEY is not defined.');
@@ -37,6 +39,7 @@ export async function sendShopifyCryptoInvoice({
       currency,
       payUrl,
       storeName,
+      publicDomain,
     });
     
     // Some envs prefer HTML strings instead of passing the react element directly

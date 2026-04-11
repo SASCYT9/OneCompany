@@ -13,6 +13,61 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 23:54] Commit `96fac066`
+**Автор**: 👤 SASCYT9
+
+> chore: redeploy for webhook test
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-11 23:31] Commit `f1471645`
+**Автор**: 👤 SASCYT9
+
+> chore: redeploy with fixed env vars
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-11 23:24] Commit `cc3a841b`
+**Автор**: 👤 SASCYT9
+
+> chore: trigger vercel rebuild 2
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-11 23:19] Commit `0022a5ae`
+**Автор**: 👤 SASCYT9
+
+> chore: trigger vercel rebuild for env vars
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-11 23:13] Commit `9dbd6faa`
+**Автор**: 👤 SASCYT9
+
+> fix(shopify): dynamically use request origin for oauth redirect to support previews
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shopify/auth/init/route.ts`
+
+---
+
+
 ### 🟢 [2026-04-11 22:19] Commit `0d857292`
 **Автор**: 👤 SASCYT9
 

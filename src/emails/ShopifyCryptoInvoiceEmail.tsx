@@ -6,6 +6,7 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Link,
   Preview,
   Section,
@@ -19,9 +20,8 @@ interface ShopifyCryptoInvoiceEmailProps {
   currency: string;
   payUrl: string;
   storeName?: string;
+  publicDomain?: string;
 }
-
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
 
 export const ShopifyCryptoInvoiceEmail = ({
   orderNumber,
@@ -29,8 +29,11 @@ export const ShopifyCryptoInvoiceEmail = ({
   currency,
   payUrl,
   storeName = 'One Company',
+  publicDomain,
 }: ShopifyCryptoInvoiceEmailProps) => {
   const previewText = `Ваше замовлення #${orderNumber} очікує на оплату криптовалютою.`;
+  const storeUrl = publicDomain ? `https://${publicDomain}` : 'https://onecompany.global';
+  const displayDomain = publicDomain || storeName;
 
   return (
     <Html>
@@ -38,16 +41,19 @@ export const ShopifyCryptoInvoiceEmail = ({
       <Preview>{previewText}</Preview>
       <Body style={main}>
         <Container style={container}>
-          {/* Header */}
+          {/* Header with store branding */}
           <Section style={header}>
-            <Text style={logoText}>{storeName.toUpperCase()}</Text>
+            <Link href={storeUrl} style={logoLink}>
+              {storeName.toUpperCase()}
+            </Link>
+            <Text style={domainText}>{displayDomain}</Text>
           </Section>
 
           {/* Content */}
           <Section style={content}>
             <Heading style={heading}>ОПЛАТА ЗАМОВЛЕННЯ</Heading>
             <Text style={paragraph}>
-              Дякуємо за ваше замовлення <strong>#{orderNumber}</strong>. 
+              Дякуємо за ваше замовлення <strong>#{orderNumber}</strong>.{' '}
               Ви обрали оплату криптовалютою.
             </Text>
             
@@ -74,7 +80,9 @@ export const ShopifyCryptoInvoiceEmail = ({
 
             <Text style={footer}>
               Якщо ви не робили це замовлення або у вас виникли питання, просто дайте відповідь на цей лист.
-              <br />© {new Date().getFullYear()} {storeName}
+              <br />© {new Date().getFullYear()}{' '}
+              <Link href={storeUrl} style={footerLink}>{storeName}</Link>
+              {' '}· {displayDomain}
             </Text>
           </Section>
         </Container>
@@ -102,12 +110,21 @@ const header = {
   paddingBottom: '30px',
 };
 
-const logoText = {
+const logoLink = {
   color: '#ffffff',
   fontSize: '24px',
   fontWeight: '600',
   letterSpacing: '4px',
-  margin: '0',
+  textDecoration: 'none',
+  display: 'block',
+};
+
+const domainText = {
+  color: '#c29d59',
+  fontSize: '13px',
+  letterSpacing: '2px',
+  margin: '8px 0 0 0',
+  textAlign: 'center' as const,
 };
 
 const content = {
@@ -195,4 +212,9 @@ const footer = {
   lineHeight: '20px',
   textAlign: 'center' as const,
   margin: '0',
+};
+
+const footerLink = {
+  color: '#c29d59',
+  textDecoration: 'none',
 };
