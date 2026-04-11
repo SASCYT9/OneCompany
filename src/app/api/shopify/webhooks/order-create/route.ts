@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
 
     // 1. Generate Whitepay Invoice
     // We use order.id (internal Shopify ID) combined with store domain so the callback has the exact DB ID
+    const branding = getStoreBranding(storeDomain);
     const externalOrderId = `${storeDomain}_${order.id}`;
     
     console.log(`[Shopify Webhook] Generating Whitepay invoice for external_order_id: ${externalOrderId}`);
@@ -73,11 +74,11 @@ export async function POST(req: NextRequest) {
     const whitepayRes = await createWhitepayCryptoOrder({
       amount: order.total_price.toString(),
       currency: order.currency.toUpperCase(),
-      description: `Shopify Order #${order.order_number} (${storeDomain})`,
+      description: `Order #${order.order_number} — ${branding.displayName}`,
       external_order_id: externalOrderId,
       // For success return them to the Shopify order status page
-      successful_link: order.order_status_url || `https://${storeDomain}`,
-      failure_link: order.order_status_url || `https://${storeDomain}`,
+      successful_link: order.order_status_url || `https://${branding.publicDomain}`,
+      failure_link: order.order_status_url || `https://${branding.publicDomain}`,
     });
 
     if (!whitepayRes.success || !whitepayRes.url) {
@@ -89,7 +90,6 @@ export async function POST(req: NextRequest) {
     console.log(`[Shopify Webhook] Whitepay invoice generated: ${payUrl}`);
 
     // 2. Send Email Invoice via Resend
-    const branding = getStoreBranding(storeDomain);
     const emailRes = await sendShopifyCryptoInvoice({
       toEmail: order.email,
       orderNumber: String(order.order_number),

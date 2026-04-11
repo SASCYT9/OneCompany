@@ -13,6 +13,18 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-12 00:02] Commit `da09ceb0`
+**Автор**: 👤 SASCYT9
+
+> fix: fallback store branding to One Company for unknown stores
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shopify/webhooks/order-create/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-12 00:00] Commit `bd42dde7`
 **Автор**: 👤 SASCYT9
 
