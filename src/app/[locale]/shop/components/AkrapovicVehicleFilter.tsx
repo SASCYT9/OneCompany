@@ -3,12 +3,11 @@
 import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
-import { localizeShopProductTitle, localizeShopText } from "@/lib/shopText";
+import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import AkrapovicSpotlightGrid from "./AkrapovicSpotlightGrid";
@@ -83,12 +82,8 @@ export default function AkrapovicVehicleFilter({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const searchParams = useSearchParams();
-  const initialBrand = searchParams?.get("brand") || "all";
-  const initialLine = searchParams?.get("line") || "all";
-
-  const [activeBrand, setActiveBrand] = useState<string>(initialBrand);
-  const [activeLine, setActiveLine] = useState<string>(initialLine);
+  const [activeBrand, setActiveBrand] = useState<string>("all");
+  const [activeLine, setActiveLine] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);

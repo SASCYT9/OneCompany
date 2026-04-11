@@ -13,6 +13,20 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 18:02] Commit `46185ed1`
+**Автор**: 👤 SASCYT9
+
+> feat(shop): fix whitepay checkout and integrate akrapovic filter catalog
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/shop/akrapovic/collections/page.tsx`
+- **A**: `src/app/[locale]/shop/components/AkrapovicSpotlightGrid.tsx`
+- **A**: `src/app/[locale]/shop/components/AkrapovicVehicleFilter.tsx`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 17:00] Commit `96aca59a`
 **Автор**: 👤 SASCYT9
 
