@@ -1055,3 +1055,12 @@ model Turn14CatalogItem {
   @@index([mfrPartNumber])
   @@map("turn14_catalog_items")
 }
+
+model ShopifyStore {
+  id          String   @id @default(cuid())
+  shopDomain  String   @unique
+  accessToken String
+  scope       String?
+  installedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

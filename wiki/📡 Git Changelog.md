@@ -13,6 +13,24 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 19:56] Commit `ecba6566`
+**Автор**: 👤 SASCYT9
+
+> feat(shop): temporarily disable Whitepay Fiat Card payment option from UI
+> 
+> - Fiat acquiring is not yet enabled on the Whitepay merchant account
+> - Removed WHITEPAY_FIAT from payment-options API
+> - Removed 'Card / Apple Pay' option from ShopCheckoutClient UI
+> - Retained the backend implementation for when the feature is enabled by Whitepay support
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/shop/checkout/ShopCheckoutClient.tsx`
+- **M**: `src/app/api/shop/checkout/payment-options/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 19:51] Commit `4a0ab5e8`
 **Автор**: 👤 SASCYT9
 

@@ -1,0 +1,102 @@
+import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
+import { createWhitepayCryptoOrder } from '@/lib/shopWhitepay';
+import { sendShopifyCryptoInvoice } from '@/lib/services/emailService';
+
+export const dynamic = 'force-dynamic';
+
+function verifyShopifyWebhook(rawBody: string, hmacHeader: string | null, secret: string): boolean {
+  if (!hmacHeader || !secret) return false;
+  const hash = crypto
+    .createHmac('sha256', secret)
+    .update(rawBody, 'utf8')
+    .digest('base64');
+  return hash === hmacHeader;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const rawBody = await req.text();
+    
+    // Webhook auth
+    const hmac = req.headers.get('x-shopify-hmac-sha256');
+    const storeDomain = req.headers.get('x-shopify-shop-domain') || 'unknown';
+    
+    // Ideally we would look up a secret per store domain in the DB or env
+    // For now, we use a single SHOPIFY_WEBHOOK_SECRET
+    const webhookSecret = process.env.SHOPIFY_WEBHOOK_SECRET;
+
+    if (webhookSecret && !verifyShopifyWebhook(rawBody, hmac, webhookSecret)) {
+      console.error(`[Shopify Webhook] Invalid HMAC from ${storeDomain}`);
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const order = JSON.parse(rawBody);
+    
+    console.log(`[Shopify Webhook] Order Created: #${order.order_number} from ${storeDomain}`);
+
+    // Wait, check if they chose Crypto
+    const gateways = order.payment_gateway_names || [];
+    const isCrypto = gateways.some((g: string) => 
+      g.toLowerCase().includes('crypto') || 
+      g.toLowerCase().includes('whitebit') ||
+      g.toLowerCase().includes('whitepay')
+    );
+
+    if (!isCrypto) {
+      console.log(`[Shopify Webhook] Ignored order #${order.order_number}: Selected gateways ${gateways.join(", ")}`);
+      return NextResponse.json({ received: true, ignored: true, reason: 'Not crypto payment' });
+    }
+
+    if (!order.email) {
+      console.error(`[Shopify Webhook] Error: No email for order #${order.order_number}`);
+      return NextResponse.json({ error: 'No email' }, { status: 400 });
+    }
+
+    // 1. Generate Whitepay Invoice
+    // We use order.id (internal Shopify ID) combined with store domain so the callback has the exact DB ID
+    const externalOrderId = `${storeDomain}_${order.id}`;
+    
+    console.log(`[Shopify Webhook] Generating Whitepay invoice for external_order_id: ${externalOrderId}`);
+
+    const whitepayRes = await createWhitepayCryptoOrder({
+      amount: order.total_price.toString(),
+      currency: order.currency.toUpperCase(),
+      description: `Shopify Order #${order.order_number} (${storeDomain})`,
+      external_order_id: externalOrderId,
+      // For success return them to the Shopify order status page
+      successful_link: order.order_status_url || `https://${storeDomain}`,
+      failure_link: order.order_status_url || `https://${storeDomain}`,
+    });
+
+    if (!whitepayRes.success || !whitepayRes.url) {
+      console.error(`[Shopify Webhook] Failed to generate Whitepay invoice for #${order.order_number}`, whitepayRes);
+      return NextResponse.json({ error: 'Whitepay invoice generation failed' }, { status: 502 });
+    }
+
+    const payUrl = whitepayRes.url;
+    console.log(`[Shopify Webhook] Whitepay invoice generated: ${payUrl}`);
+
+    // 2. Send Email Invoice via Resend
+    const emailRes = await sendShopifyCryptoInvoice({
+      toEmail: order.email,
+      orderNumber: String(order.order_number),
+      amount: order.total_price.toString(),
+      currency: order.currency.toUpperCase(),
+      payUrl: payUrl,
+      storeName: storeDomain,
+    });
+
+    if (!emailRes.success) {
+      console.error(`[Shopify Webhook] Failed to send email to ${order.email}`, emailRes);
+      // We still return 200 to Shopify so it doesn't retry the webhook endlessly
+      return NextResponse.json({ received: true, emailSent: false, error: emailRes.error });
+    }
+
+    return NextResponse.json({ received: true, emailSent: true, payUrl });
+
+  } catch (e: any) {
+    console.error('[Shopify Webhook] Exception:', e);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
