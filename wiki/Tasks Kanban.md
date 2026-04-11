@@ -10,6 +10,7 @@ tags: [dashboard, tasks]
 
 ## ⏳ В Роботі / Backlog
 
+- [ ] ⚠️ **При злитті `feature/shop` → `master`**: Оновити URL вебхуків у Shopify для ВСІХ магазинів (Eventuri, Fi Exhaust, KW Suspension) з preview URL на production домен `onecompany.global` #dev #critical
 - [ ] Зйомка 1-ї партії роликів для TikTok / Reels #marketing
 - [/] Оформлення Instagram Highlight Covers для брендів #marketing
 - [ ] Додати більше B2B дилерських акаунтів вручну #b2b

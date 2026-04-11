@@ -13,6 +13,30 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-12 01:54] Commit `31448752`
+**Автор**: 👤 SASCYT9
+
+> chore: redeploy to pick up KW Suspension secrets
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-12 01:49] Commit `7fd50f97`
+**Автор**: 👤 SASCYT9
+
+> feat: add KW Suspension store routing and webhook env keys
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shopify/webhooks/order-create/route.ts`
+- **A**: `vlogs4.txt`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-12 01:40] Commit `a21591db`
 **Автор**: 👤 SASCYT9
 
