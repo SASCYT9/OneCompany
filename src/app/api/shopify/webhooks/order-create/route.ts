@@ -9,6 +9,8 @@ export const dynamic = 'force-dynamic';
 const STORE_BRANDING: Record<string, { displayName: string; publicDomain: string }> = {
   '1t4mqk-bv.myshopify.com': { displayName: 'Eventuri Shop Ukraine', publicDomain: 'eventuri.shop' },
   'eventuri-ua.myshopify.com': { displayName: 'Eventuri Shop Ukraine', publicDomain: 'eventuri.shop' },
+  'dvstz5-vy.myshopify.com': { displayName: 'Fi Exhaust Ukraine', publicDomain: 'fiexhaust.shop' },
+  'fiexaust.myshopify.com': { displayName: 'Fi Exhaust Ukraine', publicDomain: 'fiexhaust.shop' },
   // Add more stores here as they are onboarded
 };
 
