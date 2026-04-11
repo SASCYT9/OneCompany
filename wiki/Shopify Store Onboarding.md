@@ -3,146 +3,76 @@ tags: [playbook, shopify, whitepay, onboarding]
 created: 2026-04-12
 ---
 
-# 🏪 Shopify Store Onboarding — Crypto Whitepay
+# 🏪 Shopify Store Onboarding — Crypto Whitepay (Custom App)
 
-Покрокова інструкція для підключення **нового Shopify магазину** до системи крипто-оплати Whitepay через наш централізований додаток.
-
----
-
-## Архітектура
-
-```
-┌──────────────┐    Webhook     ┌──────────────────┐   API    ┌──────────┐
-│  Shopify     │ ──────────────>│  One Company      │ ──────> │ Whitepay │
-│  Store       │                │  Vercel Backend   │         │ Commerce │
-│  (Eventuri)  │ <──────────────│  /api/shopify/*   │ <────── │ (Crypto) │
-└──────────────┘   Email+Link   └──────────────────┘  URL    └──────────┘
-```
-
-**Один додаток** обслуговує **всі магазини**. Кожен магазин отримує:
-- Свій брендований email-шаблон (назва, домен, стилі)
-- Локалізовані листи (UA/EN) на основі мови клієнта
-- Окремий запис у БД (`ShopifyStore`) з власним access token
+Покрокова інструкція для підключення **нових Shopify магазинів** до системи крипто-оплати Whitepay. 
+Оскільки магазини знаходяться в різних організаціях Shopify, ми використовуємо надійний метод "Custom App" для кожного магазину.
 
 ---
 
-## Крок 1: Реєстрація магазину в STORE_BRANDING
+## Крок 1: Створення мануального способу оплати в Shopify
 
-**Файл:** `src/app/api/shopify/webhooks/order-create/route.ts`
-
-Додайте новий рядок у маппінг `STORE_BRANDING`:
-
-```typescript
-const STORE_BRANDING: Record<string, { displayName: string; publicDomain: string }> = {
-  '1t4mqk-bv.myshopify.com': { displayName: 'Eventuri Shop Ukraine', publicDomain: 'eventuri.shop' },
-  'eventuri-ua.myshopify.com': { displayName: 'Eventuri Shop Ukraine', publicDomain: 'eventuri.shop' },
-  // ↓↓↓ Новий магазин ↓↓↓
-  'new-store.myshopify.com': { displayName: 'Brand Name', publicDomain: 'brand-domain.com' },
-};
-```
-
-> **Як знайти Shopify домен:** Админка магазину → Settings → Domains → домен що закінчується на `.myshopify.com`
-
----
-
-## Крок 2: OAuth Авторизація
-
-Мерчант переходить за посиланням для встановлення додатку:
-
-```
-https://onecompany.global/api/shopify/auth/init?shop=NEW-STORE.myshopify.com
-```
-
-> Для тестування на Preview використовуйте відповідний Vercel URL замість `onecompany.global`
-
-Після натискання "Install" → Shopify видасть access token → він автоматично збережеться у таблицю `ShopifyStore` в БД.
-
----
-
-## Крок 3: Налаштування вебхука в Shopify
+Цей крок необхідний, щоб клієнт міг обрати крипту при оформленні замовлення.
 
 В адмінці нового магазину:
-
-1. **Settings** → **Notifications** → прокрутити до **Webhooks**
-2. **Create webhook:**
-   - Event: `Order creation`
-   - Format: `JSON`
-   - URL: `https://onecompany.global/api/shopify/webhooks/order-create`
-   - Version: найновіша стабільна
-3. **Зберегти.** Скопіювати Webhook Signing Secret.
-
----
-
-## Крок 4: Webhook Secret у Vercel
-
-> ⚠️ **УВАГА:** Наразі ми використовуємо один `SHOPIFY_WEBHOOK_SECRET` для всіх магазинів. Якщо новий магазин має **інший** signing secret, потрібно або:
-> - (A) Вимкнути HMAC перевірку для нових магазинів (менш безпечно)
-> - (B) Зберігати per-store секрети в БД (правильний шлях, TODO)
+1. Йдемо в **Settings** (Налаштування) → **Payments** (Платежі)
+2. Прокручуємо вниз до **Manual payment methods** (Ручні способи оплати)
+3. Натискаємо **Add manual payment method** → **Create custom payment method**
+4. У поле **Назва** (Custom payment method name) ОБОВ'ЯЗКОВО вводимо:
+   `Crypto WhiteBIT (USDT, BTC, ETH)`
+   > ⚠️ *Важливо:* Наш бекенд шукає слово `Crypto`, `WhiteBIT` або `Whitepay` у назві оплати. Якщо їх не буде, система проігнорує замовлення і не надішле інвойс.
+5. Натисніть **Activate** (Активувати).
 
 ---
 
-## Крок 5: Створити спосіб оплати Crypto
+## Крок 2: Створення додатку Custom App та отримання Токена
+
+Це дасть нашому коду права бачити замовлення та оновлювати їх статуси.
 
 В адмінці нового магазину:
-
-1. **Settings** → **Payments** → **Manual payment methods**
-2. **Create custom payment method**
-3. Назва ОБОВ'ЯЗКОВО має містити одне з слів: `Crypto`, `WhiteBIT`, або `Whitepay`
-   - Приклад: `Crypto WhiteBIT (USDT, BTC, ETH)`
-
-Наш бекенд фільтрує замовлення за назвою способу оплати. Якщо назва не містить цих ключових слів — замовлення ігнорується.
-
----
-
-## Крок 6: Налаштувати App URL (опційно)
-
-Якщо хочете, щоб мерчант бачив красивий дашборд при натисканні на "Whitepay Crypto" в Shopify Admin:
-
-1. **Shopify Partners Dashboard** → Apps → Whitepay Crypto → App setup
-2. **App URL:** `https://onecompany.global/api/shopify/app`
-3. **Allowed redirection URLs:** `https://onecompany.global/api/shopify/auth/callback`
+1. Йдемо в **Settings** → **Apps and sales channels** (Додатки та канали продажів)
+2. Натискаємо кнопку **Develop apps** (Розробка додатків) у правому верхньому куті.
+3. Натискаємо **Create an app** (Створити додаток) і називаємо його `Whitepay Crypto`.
+4. Натискаємо **Configure Admin API scopes** (Налаштувати області доступу Admin API).
+5. Знаходимо розділ `Orders` (Замовлення) і ставимо **галочки** на:
+   - `read_orders`
+   - `write_orders`
+6. Зберігаємо (кнопка Save).
+7. Натискаємо **Install app** (Встановити додаток) у правому верхньому куті → підтверджуємо.
+8. У розділі "Admin API access token" натисніть **Reveal token once** (Показати токен).
+9. **Скопіюйте цей токен** (він починається з `shpat_...`) і надішліть його мені.
 
 ---
 
-## Крок 7: Деплой і тест
+## Крок 3: Налаштування вебхука (щоб ми миттєво дізнавалися про замовлення)
 
-```bash
-git add -A
-git commit -m "feat: onboard <brand-name> store"
-git push origin feature/shop
-```
-
-Після деплою:
-1. Зайдіть на вітрину нового магазину як покупець
-2. Додайте товар у кошик
-3. Оберіть `Crypto WhiteBIT` у способах оплати
-4. Введіть свій email
-5. Оформіть замовлення
-6. Перевірте пошту — має прийти брендований лист з кнопкою оплати
+В адмінці нового магазину:
+1. Йдемо в **Settings** → **Notifications** (Сповіщення).
+2. Прокручуємо в самий низ до розділу **Webhooks**.
+3. Натискаємо **Create webhook**:
+   - **Event:** `Order creation`
+   - **Format:** `JSON`
+   - **URL:** `https://onecompany.global/api/shopify/webhooks/order-create` *(для тестування може використовуватися Vercel URL)*
+   - **Webhook API version:** Найновіша (наприклад, 2024-01)
+4. Збережіть.
 
 ---
 
-## Чеклист онбордингу
+## Крок 4: Надішліть дані розробнику (мені)
 
-- [ ] Додано запис у `STORE_BRANDING`
-- [ ] Мерчант пройшов OAuth авторизацію
-- [ ] Вебхук `Order creation` додано в Shopify
-- [ ] Webhook Secret оновлено/підтверджено у Vercel
-- [ ] Ручний спосіб оплати "Crypto" створено
-- [ ] App URL налаштовано в Shopify Partners (опційно)
-- [ ] Тестове замовлення успішно оброблено
-- [ ] Email прийшов з правильним брендингом
+Для кожного магазину мені потрібні 3 речі:
+1. **Токен доступу** (починається з `shpat_...` з Кроку 2).
+2. **Shopify домен** (те що закінчується на `.myshopify.com`, наприклад `brand.myshopify.com`).
+3. **Публічний домен** для листів (як клієнт бачить ваш сайт, наприклад `brand.com`).
 
+Після того, як ви скинете мені ці дані, я пропишу їх у коді.
 
 ---
 
-## Поточні підключені магазини
+## Крок 5: Тестування
 
-| Shopify Domain | Brand | Public Domain | Status |
-|---|---|---|---|
-| `1t4mqk-bv.myshopify.com` | Eventuri Shop Ukraine | eventuri.shop | ✅ Active |
-| `eventuri-ua.myshopify.com` | Eventuri Shop Ukraine | eventuri.shop | ✅ Active |
-
----
-
-*Останнє оновлення: 2026-04-12*
+1. Зайдіть на вітрину нового магазину як звичайний покупець.
+2. Додайте товар у кошик.
+3. Оберіть `Crypto WhiteBIT` під час чекауту.
+4. Оформіть замовлення.
+5. Перевірте пошту (email, який ви вказали при замовленні) — ਤੁади має прийти красивий брендований лист з кнопкою "PAY WITH CRYPTO".

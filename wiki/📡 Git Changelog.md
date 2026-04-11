@@ -13,6 +13,19 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-12 00:25] Commit `283d90d7`
+**Автор**: 👤 SASCYT9
+
+> feat: shopify embedded app dashboard + store onboarding wiki guide
+
+#### 📂 Змінені файли:
+- **A**: `src/app/api/shopify/app/route.ts`
+- **A**: `wiki/Shopify Store Onboarding.md`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-12 00:11] Commit `658214a5`
 **Автор**: 👤 SASCYT9
 
