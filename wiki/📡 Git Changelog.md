@@ -13,6 +13,20 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 17:00] Commit `96aca59a`
+**Автор**: 👤 SASCYT9
+
+> fix(shop): adjust whitepay webhook status and fix checkout UI issue
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/shop/checkout/ShopCheckoutClient.tsx`
+- **D**: `src/app/api/admin/shop/orders/[id]/hutko/route.ts`
+- **M**: `src/app/api/shop/whitepay/callback/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 16:37] Commit `ad998289`
 **Автор**: 👤 SASCYT9
 
