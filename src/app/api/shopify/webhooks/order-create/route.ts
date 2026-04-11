@@ -39,9 +39,11 @@ export async function POST(req: NextRequest) {
 
     if (storeDomain.includes('fiexhaust') || storeDomain.includes('dvstz5')) {
       // For Fi Exhaust, try both the Store Webhook Secret and Custom App Secret
-      const storeSecret = '92fe17bbbd7233cb250e2ab5d711130fab7e5a499ac5b482e3e7f4ed69328a25';
-      const appSecret = ['shpss_', '8b4af4af79181c1d8c3bae1896f1255c'].join('');
-      isValid = verifyShopifyWebhook(rawBody, hmac, storeSecret) || verifyShopifyWebhook(rawBody, hmac, appSecret);
+      const storeSecret = process.env.FIEXHAUST_WEBHOOK_SECRET;
+      const appSecret = process.env.FIEXHAUST_APP_SECRET;
+      
+      isValid = (storeSecret && verifyShopifyWebhook(rawBody, hmac, storeSecret)) || 
+                (appSecret && verifyShopifyWebhook(rawBody, hmac, appSecret)) || false;
     } else {
       // Default to Eventuri logic
       const webhookSecret = process.env.SHOPIFY_WEBHOOK_SECRET;
