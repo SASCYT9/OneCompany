@@ -31,6 +31,7 @@ type WhitepayFiatParams = {
 type WhitepayCryptoParams = {
   amount: string;
   currency: string;
+  description?: string;
   external_order_id: string;
   success_url: string;
   fail_url: string;

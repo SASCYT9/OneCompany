@@ -13,6 +13,23 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 16:23] Commit `733a28c8`
+**Автор**: 👤 SASCYT9
+
+> fix(payments): allow generating multiple Whitepay/Hutko invoices per order by appending timestamp to external_order_id
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/admin/shop/orders/[id]/hutko/route.ts`
+- **M**: `src/app/api/admin/shop/orders/[id]/whitepay/crypto/route.ts`
+- **M**: `src/app/api/admin/shop/orders/[id]/whitepay/fiat/route.ts`
+- **M**: `src/app/api/shop/checkout/route.ts`
+- **M**: `src/app/api/shop/hutko/callback/route.ts`
+- **M**: `src/app/api/shop/whitepay/callback/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-10 20:56] Commit `9c764927`
 **Автор**: 👤 SASCYT9
 

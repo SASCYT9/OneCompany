@@ -198,6 +198,7 @@ export async function POST(req: NextRequest) {
     const wpRes = await createWhitepayCryptoOrder({
       amount: quote.total.toString(),
       currency: quote.currency.toUpperCase(),
+      description: `One Company — Замовлення #${order.orderNumber} / ${order.email}`,
       external_order_id: String(order.orderNumber),
       success_url: successUrl,
       fail_url: successUrl,

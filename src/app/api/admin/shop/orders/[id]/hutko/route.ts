@@ -42,7 +42,7 @@ export async function POST(
 
     const hutkoResult = await createHutkoCheckout({
       orderId: `${order.orderNumber}_${Date.now()}`, // unique per generation
-      orderDescription: `One Company #${order.orderNumber}`,
+      orderDescription: `One Company — Замовлення #${order.orderNumber} / ${order.email}`,
       amount: amountKopecks,
       currency: order.currency as 'UAH' | 'USD' | 'EUR',
       responseUrl,

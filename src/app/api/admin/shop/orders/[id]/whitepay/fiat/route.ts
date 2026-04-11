@@ -54,7 +54,7 @@ export async function POST(
     const whitepayResult = await createWhitepayFiatOrder({
       amount: amountStr,
       currency: currency,
-      description: `Замовлення #${order.orderNumber}`,
+      description: `One Company — Замовлення #${order.orderNumber} / ${order.email}`,
       external_order_id: `${order.orderNumber}_${Date.now()}`, // unique per generation
       success_url: successUrl,
       fail_url: failUrl,
