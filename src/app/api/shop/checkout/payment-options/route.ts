@@ -12,7 +12,7 @@ export async function GET() {
     const record = await getOrCreateShopSettings(prisma);
     const settings = getShopSettingsRuntime(record);
 
-    const methods: Array<'FOP' | 'STRIPE' | 'WHITEBIT' | 'WHITEPAY_FIAT'> = ['FOP', 'WHITEPAY_FIAT', 'WHITEBIT'];
+    const methods: Array<'FOP' | 'STRIPE' | 'WHITEBIT'> = ['FOP', 'WHITEBIT'];
 
     const fopDetails =
       settings.fopCompanyName ||

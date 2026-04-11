@@ -13,6 +13,30 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 19:51] Commit `4a0ab5e8`
+**Автор**: 👤 SASCYT9
+
+> feat(shop): add Whitepay Fiat (card/ApplePay) payment option alongside crypto
+> 
+> - Added WHITEPAY_FIAT as new payment method in checkout UI (Card / Apple Pay / Google Pay)
+> - Payment options API now returns FOP, WHITEPAY_FIAT, WHITEBIT methods
+> - Checkout route handles WHITEPAY_FIAT via createWhitepayFiatOrder
+> - Fixed Fiat API params: only sends amount, currency, external_order_id (per docs)
+> - Removed unsupported successful_link/failure_link from Fiat API calls (crypto-only)
+> - Webhook handler already supports both crypto and fiat order events
+> - Admin fiat route cleaned up to match API spec
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/shop/checkout/ShopCheckoutClient.tsx`
+- **M**: `src/app/api/admin/shop/orders/[id]/whitepay/fiat/route.ts`
+- **M**: `src/app/api/shop/checkout/payment-options/route.ts`
+- **M**: `src/app/api/shop/checkout/route.ts`
+- **M**: `src/lib/shopWhitepay.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 19:26] Commit `aee2b63a`
 **Автор**: 👤 SASCYT9
 

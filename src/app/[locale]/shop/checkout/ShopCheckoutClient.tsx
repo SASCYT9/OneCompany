@@ -424,29 +424,6 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                 </label>
               )}
 
-              {paymentOptions?.methods.includes('WHITEPAY_FIAT') && (
-                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
-                  <div className="flex items-center gap-4 relative z-10">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="WHITEPAY_FIAT"
-                      checked={form.paymentMethod === 'WHITEPAY_FIAT'}
-                      onChange={() => setForm((f) => ({ ...f, paymentMethod: 'WHITEPAY_FIAT' }))}
-                      className="h-4 w-4 border-white/30 bg-black text-[#c29d59] focus:ring-[#c29d59]/50 accent-[#c29d59]"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white group-hover:text-[#c29d59] transition-colors">
-                        {isUa ? '💳 Картка / Apple Pay' : '💳 Card / Apple Pay'}
-                      </span>
-                      <span className="text-[11px] text-white/40">
-                        {isUa ? 'Visa, Mastercard, Google Pay' : 'Visa, Mastercard, Google Pay'}
-                      </span>
-                    </div>
-                  </div>
-                </label>
-              )}
-
               {paymentOptions?.methods.includes('WHITEBIT') && (
                 <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
                   <div className="flex items-center gap-4 relative z-10">
