@@ -78,7 +78,7 @@ export default async function AkrapovicCollectionsPage({ params }: Props) {
           locale={resolvedLocale} 
           products={akrapovicProducts} 
           viewerContext={viewerContext}
-          buildProductPath={(l, p) => `/${l}/shop/akrapovic/products/${p.slug}`}
+          productPathPrefix={`/${locale}/shop/akrapovic/products`}
         />
       </div>
     </div>

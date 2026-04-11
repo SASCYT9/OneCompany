@@ -16,7 +16,7 @@ type AkrapovicVehicleFilterProps = {
   locale: SupportedLocale;
   products: ShopProduct[];
   viewerContext?: ShopViewerPricingContext;
-  buildProductPath: (locale: string, product: ShopProduct) => string;
+  productPathPrefix: string;
 };
 
 const BRAND_ORDER = ["Porsche", "BMW", "Mercedes-Benz", "Mercedes-AMG", "Audi", "Lamborghini", "Ferrari", "McLaren", "Toyota", "Volkswagen"];
@@ -75,7 +75,7 @@ export default function AkrapovicVehicleFilter({
   locale,
   products,
   viewerContext,
-  buildProductPath
+  productPathPrefix
 }: AkrapovicVehicleFilterProps) {
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
@@ -381,7 +381,7 @@ export default function AkrapovicVehicleFilter({
                   return (
                     <article key={product.slug} className="group relative bg-[#050505]/60 backdrop-blur-xl rounded-none overflow-hidden flex flex-col hover:bg-[rgba(10,10,10,0.85)] transition-all duration-500 border border-white/[0.04] shadow-2xl">
                       <Link
-                        href={buildProductPath(locale, product)}
+                        href={`${productPathPrefix}/${product.slug}`}
                         className="flex flex-col flex-grow z-10"
                       >
                         <div className="relative aspect-[4/3] bg-transparent overflow-hidden flex items-center justify-center p-8 border-b border-white/[0.02]">

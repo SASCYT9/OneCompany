@@ -13,6 +13,18 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 18:48] Commit `d7310495`
+**Автор**: 👤 SASCYT9
+
+> fix(shop): remove broken useSearchParams and unused localizeShopText import from AkrapovicVehicleFilter
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/shop/components/AkrapovicVehicleFilter.tsx`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 18:02] Commit `46185ed1`
 **Автор**: 👤 SASCYT9
 
