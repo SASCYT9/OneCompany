@@ -90,6 +90,10 @@ export async function POST(req: NextRequest) {
     console.log(`[Shopify Webhook] Whitepay invoice generated: ${payUrl}`);
 
     // 2. Send Email Invoice via Resend
+    // Shopify sends customer_locale (e.g. "uk", "en", "ru") — map to our locales
+    const shopifyLocale = order.customer_locale || order.locale || 'uk';
+    const emailLocale = shopifyLocale.startsWith('uk') || shopifyLocale.startsWith('ru') ? 'ua' : 'en';
+    
     const emailRes = await sendShopifyCryptoInvoice({
       toEmail: order.email,
       orderNumber: String(order.order_number),
@@ -98,6 +102,7 @@ export async function POST(req: NextRequest) {
       payUrl: payUrl,
       storeName: branding.displayName,
       publicDomain: branding.publicDomain,
+      locale: emailLocale,
     });
 
     if (!emailRes.success) {

@@ -16,6 +16,7 @@ interface SendShopifyInvoiceParams {
   payUrl: string;
   storeName?: string;
   publicDomain?: string;
+  locale?: 'ua' | 'en';
 }
 
 export async function sendShopifyCryptoInvoice({
@@ -26,6 +27,7 @@ export async function sendShopifyCryptoInvoice({
   payUrl,
   storeName,
   publicDomain,
+  locale = 'ua',
 }: SendShopifyInvoiceParams) {
   if (!resend) {
     console.error('Email Service Error: RESEND_API_KEY is not defined.');
@@ -40,15 +42,20 @@ export async function sendShopifyCryptoInvoice({
       payUrl,
       storeName,
       publicDomain,
+      locale,
     });
     
     // Some envs prefer HTML strings instead of passing the react element directly
     const htmlString = await render(reactElement);
 
+    const subject = locale === 'en'
+      ? `Order Payment #${orderNumber} (${storeName || 'One Company'})`
+      : `Оплата замовлення #${orderNumber} (${storeName || 'One Company'})`;
+
     const { data, error } = await resend.emails.send({
       from: `${storeName || 'One Company'} <${fromEmail}>`,
       to: [toEmail],
-      subject: `Оплата замовлення #${orderNumber} (${storeName || 'One Company'})`,
+      subject,
       html: htmlString,
     });
 

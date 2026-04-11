@@ -6,7 +6,6 @@ import {
   Heading,
   Hr,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -21,7 +20,31 @@ interface ShopifyCryptoInvoiceEmailProps {
   payUrl: string;
   storeName?: string;
   publicDomain?: string;
+  locale?: 'ua' | 'en';
 }
+
+const translations = {
+  ua: {
+    preview: (orderNumber: string) => `Ваше замовлення #${orderNumber} очікує на оплату криптовалютою.`,
+    heading: 'ОПЛАТА ЗАМОВЛЕННЯ',
+    thankYou: (orderNumber: string) => `Дякуємо за ваше замовлення #${orderNumber}. Ви обрали оплату криптовалютою.`,
+    priceLabel: 'Сума до оплати:',
+    instructions: 'Для завершення замовлення, будь ласка, перейдіть за посиланням нижче для миттєвої оплати через безпечний шлюз Whitepay:',
+    payButton: 'ОПЛАТИТИ КРИПТОВАЛЮТОЮ',
+    timeWarning: 'Це посилання дійсне обмежений час. Після успішної транзакції статус вашого замовлення оновиться автоматично.',
+    footer: 'Якщо ви не робили це замовлення або у вас виникли питання, просто дайте відповідь на цей лист.',
+  },
+  en: {
+    preview: (orderNumber: string) => `Your order #${orderNumber} is awaiting cryptocurrency payment.`,
+    heading: 'ORDER PAYMENT',
+    thankYou: (orderNumber: string) => `Thank you for your order #${orderNumber}. You have selected cryptocurrency payment.`,
+    priceLabel: 'Amount due:',
+    instructions: 'To complete your order, please follow the link below for instant payment via the secure Whitepay gateway:',
+    payButton: 'PAY WITH CRYPTO',
+    timeWarning: 'This link is valid for a limited time. After a successful transaction, your order status will be updated automatically.',
+    footer: 'If you did not place this order or have any questions, simply reply to this email.',
+  },
+};
 
 export const ShopifyCryptoInvoiceEmail = ({
   orderNumber,
@@ -30,15 +53,16 @@ export const ShopifyCryptoInvoiceEmail = ({
   payUrl,
   storeName = 'One Company',
   publicDomain,
+  locale = 'ua',
 }: ShopifyCryptoInvoiceEmailProps) => {
-  const previewText = `Ваше замовлення #${orderNumber} очікує на оплату криптовалютою.`;
+  const t = translations[locale] || translations.ua;
   const storeUrl = publicDomain ? `https://${publicDomain}` : 'https://onecompany.global';
   const displayDomain = publicDomain || storeName;
 
   return (
     <Html>
       <Head />
-      <Preview>{previewText}</Preview>
+      <Preview>{t.preview(orderNumber)}</Preview>
       <Body style={main}>
         <Container style={container}>
           {/* Header with store branding */}
@@ -51,35 +75,34 @@ export const ShopifyCryptoInvoiceEmail = ({
 
           {/* Content */}
           <Section style={content}>
-            <Heading style={heading}>ОПЛАТА ЗАМОВЛЕННЯ</Heading>
+            <Heading style={heading}>{t.heading}</Heading>
             <Text style={paragraph}>
-              Дякуємо за ваше замовлення <strong>#{orderNumber}</strong>.{' '}
-              Ви обрали оплату криптовалютою.
+              {t.thankYou(orderNumber)}
             </Text>
             
             <Section style={priceBox}>
-              <Text style={priceLabel}>Сума до оплати:</Text>
+              <Text style={priceLabel}>{t.priceLabel}</Text>
               <Text style={priceValue}>{amount} {currency}</Text>
             </Section>
 
             <Text style={paragraph}>
-              Для завершення замовлення, будь ласка, перейдіть за посиланням нижче для миттєвої оплати через безпечний шлюз Whitepay:
+              {t.instructions}
             </Text>
 
             <Section style={btnContainer}>
               <Button style={button} href={payUrl}>
-                ОПЛАТИТИ КРИПТОВАЛЮТОЮ
+                {t.payButton}
               </Button>
             </Section>
 
             <Text style={smallText}>
-              Це посилання дійсне обмежений час. Після успішної транзакції статус вашого замовлення оновиться автоматично.
+              {t.timeWarning}
             </Text>
 
             <Hr style={hr} />
 
             <Text style={footer}>
-              Якщо ви не робили це замовлення або у вас виникли питання, просто дайте відповідь на цей лист.
+              {t.footer}
               <br />© {new Date().getFullYear()}{' '}
               <Link href={storeUrl} style={footerLink}>{storeName}</Link>
               {' '}· {displayDomain}

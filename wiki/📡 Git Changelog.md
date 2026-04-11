@@ -13,6 +13,18 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-12 00:04] Commit `a4b2d751`
+**Автор**: 👤 SASCYT9
+
+> fix: hide ugly shopify domain from Whitepay description and fallback URLs
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shopify/webhooks/order-create/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-12 00:02] Commit `da09ceb0`
 **Автор**: 👤 SASCYT9
 
