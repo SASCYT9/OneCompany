@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const sanitizedShop = shop.replace(/https?:\/\//, '').replace(/\/$/, '');
 
   const clientId = process.env.SHOPIFY_CLIENT_ID;
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onecompany.global';
+  const baseUrl = req.nextUrl.origin;
   const redirectUri = `${baseUrl}/api/shopify/auth/callback`;
 
   if (!clientId) {
