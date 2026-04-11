@@ -35,9 +35,15 @@ export async function POST(req: NextRequest) {
     const hmac = req.headers.get('x-shopify-hmac-sha256');
     const storeDomain = req.headers.get('x-shopify-shop-domain') || 'unknown';
     
-    // Ideally we would look up a secret per store domain in the DB or env
-    // For now, we use a single SHOPIFY_WEBHOOK_SECRET
-    const webhookSecret = process.env.SHOPIFY_WEBHOOK_SECRET;
+    // Lookup the correct secret based on the store domain
+    let webhookSecret = process.env.SHOPIFY_WEBHOOK_SECRET; // Default Eventuri
+    
+    if (storeDomain.includes('fiexhaust')) {
+       // Temporary direct fallback if env not set in Vercel yet
+       webhookSecret = process.env.FIEXHAUST_WEBHOOK_SECRET || '92fe17bbbd7233cb250e2ab5d711130fab7e5a499ac5b482e3e7f4ed69328a25';
+    } else if (storeDomain.includes('dvstz5')) {
+       webhookSecret = process.env.FIEXHAUST_WEBHOOK_SECRET || '92fe17bbbd7233cb250e2ab5d711130fab7e5a499ac5b482e3e7f4ed69328a25';
+    }
 
     if (webhookSecret && !verifyShopifyWebhook(rawBody, hmac, webhookSecret)) {
       console.error(`[Shopify Webhook] Invalid HMAC from ${storeDomain}`);

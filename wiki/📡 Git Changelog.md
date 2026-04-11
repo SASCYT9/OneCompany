@@ -13,6 +13,18 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-12 01:18] Commit `f1d9921d`
+**Автор**: 👤 SASCYT9
+
+> feat: add Fi Exhaust to shopify routing map
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shopify/webhooks/order-create/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-12 01:12] Commit `6a6846a0`
 **Автор**: 👤 SASCYT9
 
