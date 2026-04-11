@@ -13,6 +13,33 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-12 01:36] Commit `805205dc`
+**Автор**: 👤 SASCYT9
+
+> fix: verify webhook with both store and app secrets for fiexhaust
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shopify/webhooks/order-create/route.ts`
+- **A**: `vlogs2.txt`
+- **A**: `vlogs3.txt`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
+### 🟢 [2026-04-12 01:30] Commit `3ab64aa0`
+**Автор**: 👤 SASCYT9
+
+> fix: route shopify webhook secrets dynamically by domain
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shopify/webhooks/order-create/route.ts`
+- **A**: `vlogs.txt`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-12 01:18] Commit `f1d9921d`
 **Автор**: 👤 SASCYT9
 
