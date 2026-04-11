@@ -13,6 +13,19 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 18:53] Commit `84123bce`
+**Автор**: 👤 SASCYT9
+
+> fix(shop): replace function prop with string prefix in AkrapovicVehicleFilter (Server->Client serialization)
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/shop/akrapovic/collections/page.tsx`
+- **M**: `src/app/[locale]/shop/components/AkrapovicVehicleFilter.tsx`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 18:48] Commit `d7310495`
 **Автор**: 👤 SASCYT9
 

@@ -2,13 +2,8 @@
  * POST /api/shop/checkout
  * Body: { items, contact, shipping, currency, locale?, paymentMethod?: 'FOP'|'STRIPE'|'WHITEBIT' }
  * FOP: creates order PENDING_REVIEW, sends email, returns { orderNumber, viewToken }.
- * STRIPE: creates order PENDING_PAYMENT, returns { redirectUrl, orderNumber, viewToken }; webhook confirms and sends email.
-/**
- * POST /api/shop/checkout
- * Body: { items, contact, shipping, currency, locale?, paymentMethod?: 'FOP'|'STRIPE'|'WHITEBIT' }
- * FOP: creates order PENDING_REVIEW, sends email, returns { orderNumber, viewToken }.
- * STRIPE: creates order PENDING_PAYMENT, returns { redirectUrl, orderNumber, viewToken }; webhook confirms and sends email.
- * WHITEBIT: for now same as FOP (coming later).
+ * STRIPE: creates order PENDING_PAYMENT, returns { redirectUrl, orderNumber, viewToken }; webhook confirms.
+ * WHITEBIT: creates order PENDING_PAYMENT, redirects to WhiteBIT Pay; webhook confirms.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -28,6 +23,7 @@ import {
   createStripeCheckoutSession,
   stripeSupportedCurrency,
 } from '@/lib/shopStripe';
+import { createWhitepayCryptoOrder } from '@/lib/shopWhitepay';
 import { prisma } from '@/lib/prisma';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
@@ -191,27 +187,32 @@ export async function POST(req: NextRequest) {
   let redirectUrl: string | undefined = undefined;
 
   if (paymentMethod === 'WHITEBIT') {
-    const { createWhitepayCryptoOrder } = require('@/lib/shopWhitepay');
-    const successUrl = `${baseUrl}/${locale}/shop/checkout/success?order=${encodeURIComponent(orderNumber)}&token=${encodeURIComponent(viewToken)}`;
-    
-    const wpRes = await createWhitepayCryptoOrder({
-      amount: quote.total.toString(),
-      currency: quote.currency.toUpperCase(),
-      description: `One Company — Замовлення #${order.orderNumber} / ${order.email}`,
-      external_order_id: String(order.orderNumber),
-      success_url: successUrl,
-      fail_url: successUrl,
-      webhooks: [`${baseUrl}/api/shop/whitepay/callback`]
-    });
-    
-    if (wpRes.success && wpRes.url) {
-      redirectUrl = wpRes.url;
-      order = await prisma.shopOrder.update({
-        where: { id: order.id },
-        data: { status: 'PENDING_PAYMENT' }
+    try {
+      const successUrl = `${baseUrl}/${locale}/shop/checkout/success?order=${encodeURIComponent(orderNumber)}&token=${encodeURIComponent(viewToken)}`;
+      
+      const wpRes = await createWhitepayCryptoOrder({
+        amount: quote.total.toString(),
+        currency: quote.currency.toUpperCase(),
+        description: `One Company — Замовлення #${order.orderNumber} / ${order.email}`,
+        external_order_id: String(order.orderNumber),
+        success_url: successUrl,
+        fail_url: successUrl,
+        webhooks: [`${baseUrl}/api/shop/whitepay/callback`]
       });
-    } else {
-      console.error('[Checkout] Whitepay auto-redirect generation failed. Falling back to PENDING_REVIEW.', wpRes.error);
+      
+      console.log('[Checkout] Whitepay response:', JSON.stringify(wpRes));
+      
+      if (wpRes.success && wpRes.url) {
+        redirectUrl = wpRes.url;
+        order = await prisma.shopOrder.update({
+          where: { id: order.id },
+          data: { status: 'PENDING_PAYMENT' }
+        });
+      } else {
+        console.error('[Checkout] Whitepay redirect generation failed:', wpRes.error, wpRes);
+      }
+    } catch (wpError) {
+      console.error('[Checkout] Whitepay exception:', wpError);
     }
   }
 
