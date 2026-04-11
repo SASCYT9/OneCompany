@@ -13,7 +13,7 @@ const STORE_BRANDING: Record<string, { displayName: string; publicDomain: string
 };
 
 function getStoreBranding(domain: string) {
-  return STORE_BRANDING[domain] || { displayName: domain, publicDomain: domain };
+  return STORE_BRANDING[domain] || { displayName: 'One Company', publicDomain: 'onecompany.global' };
 }
 
 function verifyShopifyWebhook(rawBody: string, hmacHeader: string | null, secret: string): boolean {

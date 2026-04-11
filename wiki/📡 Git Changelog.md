@@ -13,6 +13,20 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-12 00:00] Commit `bd42dde7`
+**Автор**: 👤 SASCYT9
+
+> feat: branded email template - eventuri.shop instead of myshopify domain
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shopify/webhooks/order-create/route.ts`
+- **M**: `src/emails/ShopifyCryptoInvoiceEmail.tsx`
+- **M**: `src/lib/services/emailService.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 23:54] Commit `96fac066`
 **Автор**: 👤 SASCYT9
 
