@@ -13,6 +13,24 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-11 16:37] Commit `ad998289`
+**Автор**: 👤 SASCYT9
+
+> chore: update Stripe desc and complete Hutko removal
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/shop/checkout/ShopCheckoutClient.tsx`
+- **M**: `src/app/api/admin/shop/orders/[id]/stripe/route.ts`
+- **M**: `src/app/api/shop/checkout/payment-options/route.ts`
+- **M**: `src/app/api/shop/checkout/route.ts`
+- **D**: `src/app/api/shop/hutko/callback/route.ts`
+- **D**: `src/lib/shopHutko.ts`
+- **M**: `src/lib/shopStripe.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-11 16:25] Commit `033e108d`
 **Автор**: 👤 SASCYT9
 

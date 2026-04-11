@@ -40,10 +40,10 @@ export async function POST(req: NextRequest) {
     let newPaymentStatus = order.paymentStatus;
     let newAmountPaid = undefined;
 
-    if (status === 'COMPLETED' || status === 'SUCCESS') {
+    if (status === 'COMPLETE' || status === 'COMPLETED' || status === 'SUCCESS') {
       newPaymentStatus = 'PAID';
       newAmountPaid = Number(order.total);
-    } else if (status === 'PARTIAL_AMOUNT') {
+    } else if (status === 'PARTIALLY_FULFILLED' || status === 'PARTIAL_AMOUNT') {
       newPaymentStatus = 'PARTIALLY_PAID';
     } else if (status === 'DECLINED' || status === 'CANCELED' || status === 'EXPIRED_BY_TIME') {
       // If it was already paid, don't revert unless manual action
