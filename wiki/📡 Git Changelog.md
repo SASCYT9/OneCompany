@@ -13,6 +13,29 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-12 01:40] Commit `a21591db`
+**Автор**: 👤 SASCYT9
+
+> chore: trigger webhook rebuild for env vars
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-12 01:37] Commit `7df4a505`
+**Автор**: 👤 SASCYT9
+
+> fix: remove hardcoded secrets and use process.env
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shopify/webhooks/order-create/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-12 01:36] Commit `9ebb10b7`
 **Автор**: 👤 SASCYT9
 

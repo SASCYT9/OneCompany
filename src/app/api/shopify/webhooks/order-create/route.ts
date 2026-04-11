@@ -11,6 +11,7 @@ const STORE_BRANDING: Record<string, { displayName: string; publicDomain: string
   'eventuri-ua.myshopify.com': { displayName: 'Eventuri Shop Ukraine', publicDomain: 'eventuri.shop' },
   'dvstz5-vy.myshopify.com': { displayName: 'Fi Exhaust Ukraine', publicDomain: 'fiexhaust.shop' },
   'fiexaust.myshopify.com': { displayName: 'Fi Exhaust Ukraine', publicDomain: 'fiexhaust.shop' },
+  'dhs4v6-0y.myshopify.com': { displayName: 'KW Suspension Ukraine', publicDomain: 'kwsuspension.shop' },
   // Add more stores here as they are onboarded
 };
 
@@ -41,6 +42,13 @@ export async function POST(req: NextRequest) {
       // For Fi Exhaust, try both the Store Webhook Secret and Custom App Secret
       const storeSecret = process.env.FIEXHAUST_WEBHOOK_SECRET;
       const appSecret = process.env.FIEXHAUST_APP_SECRET;
+      
+      isValid = (storeSecret && verifyShopifyWebhook(rawBody, hmac, storeSecret)) || 
+                (appSecret && verifyShopifyWebhook(rawBody, hmac, appSecret)) || false;
+    } else if (storeDomain.includes('kwsuspension') || storeDomain.includes('dhs4v6')) {
+      // For KW Suspension, try both the Store Webhook Secret and Custom App Secret
+      const storeSecret = process.env.KWSUSPENSION_WEBHOOK_SECRET;
+      const appSecret = process.env.KWSUSPENSION_APP_SECRET;
       
       isValid = (storeSecret && verifyShopifyWebhook(rawBody, hmac, storeSecret)) || 
                 (appSecret && verifyShopifyWebhook(rawBody, hmac, appSecret)) || false;
