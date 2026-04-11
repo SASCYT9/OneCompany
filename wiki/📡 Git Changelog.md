@@ -13,6 +13,20 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-12 00:11] Commit `658214a5`
+**Автор**: 👤 SASCYT9
+
+> feat: localized email template - UA/EN based on Shopify customer_locale
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/shopify/webhooks/order-create/route.ts`
+- **M**: `src/emails/ShopifyCryptoInvoiceEmail.tsx`
+- **M**: `src/lib/services/emailService.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-12 00:04] Commit `a4b2d751`
 **Автор**: 👤 SASCYT9
 
