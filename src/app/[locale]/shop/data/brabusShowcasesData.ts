@@ -53,8 +53,8 @@ export const BRABUS_SHOWCASES: BrabusShowcase[] = [
     shopLink: '/shop/brabus/products',
     avail: 'Worldwide Shipping',
     availUk: 'Доставка по всьому світу',
-    /** Bentley GTC interior — real Brabus press photo, luxury interior */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-48.jpg',
+    /** Supercars Interieur Kopie-2 — real Brabus press photo, luxury interior */
+    imageUrl: '/images/shop/brabus/hq/brabus-supercars-172.jpg',
     imageAlt: 'Brabus Masterpiece Interior',
     vimeoUrl: '',
   },

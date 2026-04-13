@@ -16,6 +16,8 @@ interface SendShopifyInvoiceParams {
   payUrl: string;
   storeName?: string;
   publicDomain?: string;
+  accentColor?: string;
+  logoUrl?: string;
   locale?: 'ua' | 'en';
 }
 
@@ -27,6 +29,8 @@ export async function sendShopifyCryptoInvoice({
   payUrl,
   storeName,
   publicDomain,
+  accentColor,
+  logoUrl,
   locale = 'ua',
 }: SendShopifyInvoiceParams) {
   if (!resend) {
@@ -42,6 +46,8 @@ export async function sendShopifyCryptoInvoice({
       payUrl,
       storeName,
       publicDomain,
+      accentColor,
+      logoUrl,
       locale,
     });
     

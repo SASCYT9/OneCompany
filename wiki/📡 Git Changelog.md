@@ -13,6 +13,18 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-12 02:20] Commit `5d5bbb06`
+**Автор**: 👤 SASCYT9
+
+> chore: add webhook URL migration task to kanban for feature/shop merge
+
+#### 📂 Змінені файли:
+- **M**: `wiki/Tasks Kanban.md`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-12 01:54] Commit `31448752`
 **Автор**: 👤 SASCYT9
 

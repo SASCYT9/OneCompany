@@ -10,6 +10,7 @@ import {
   Preview,
   Section,
   Text,
+  Img,
 } from '@react-email/components';
 import * as React from 'react';
 
@@ -20,6 +21,8 @@ interface ShopifyCryptoInvoiceEmailProps {
   payUrl: string;
   storeName?: string;
   publicDomain?: string;
+  accentColor?: string;
+  logoUrl?: string;
   locale?: 'ua' | 'en';
 }
 
@@ -53,6 +56,8 @@ export const ShopifyCryptoInvoiceEmail = ({
   payUrl,
   storeName = 'One Company',
   publicDomain,
+  accentColor = '#c29d59',
+  logoUrl,
   locale = 'ua',
 }: ShopifyCryptoInvoiceEmailProps) => {
   const t = translations[locale] || translations.ua;
@@ -68,9 +73,18 @@ export const ShopifyCryptoInvoiceEmail = ({
           {/* Header with store branding */}
           <Section style={header}>
             <Link href={storeUrl} style={logoLink}>
-              {storeName.toUpperCase()}
+              {logoUrl ? (
+                <Img
+                  src={logoUrl}
+                  height="40"
+                  alt={storeName}
+                  style={logoImage}
+                />
+              ) : (
+                storeName.toUpperCase()
+              )}
             </Link>
-            <Text style={domainText}>{displayDomain}</Text>
+            <Text style={{ ...domainText, color: accentColor }}>{displayDomain}</Text>
           </Section>
 
           {/* Content */}
@@ -90,7 +104,7 @@ export const ShopifyCryptoInvoiceEmail = ({
             </Text>
 
             <Section style={btnContainer}>
-              <Button style={button} href={payUrl}>
+              <Button style={{ ...button, backgroundColor: accentColor }} href={payUrl}>
                 {t.payButton}
               </Button>
             </Section>
@@ -104,7 +118,7 @@ export const ShopifyCryptoInvoiceEmail = ({
             <Text style={footer}>
               {t.footer}
               <br />© {new Date().getFullYear()}{' '}
-              <Link href={storeUrl} style={footerLink}>{storeName}</Link>
+              <Link href={storeUrl} style={{ ...footerLink, color: accentColor }}>{storeName}</Link>
               {' '}· {displayDomain}
             </Text>
           </Section>
@@ -117,7 +131,7 @@ export const ShopifyCryptoInvoiceEmail = ({
 export default ShopifyCryptoInvoiceEmail;
 
 const main = {
-  backgroundColor: '#0a0a0a',
+  backgroundColor: '#fefefe',
   fontFamily:
     '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
 };
@@ -134,12 +148,17 @@ const header = {
 };
 
 const logoLink = {
-  color: '#ffffff',
+  color: '#111111',
   fontSize: '24px',
   fontWeight: '600',
   letterSpacing: '4px',
   textDecoration: 'none',
+  display: 'inline-block',
+};
+
+const logoImage = {
   display: 'block',
+  margin: '0 auto',
 };
 
 const domainText = {
@@ -151,14 +170,15 @@ const domainText = {
 };
 
 const content = {
-  backgroundColor: '#111111',
-  border: '1px solid #222222',
+  backgroundColor: '#ffffff',
+  border: '1px solid #eaeaea',
   borderRadius: '12px',
   padding: '40px',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)',
 };
 
 const heading = {
-  color: '#ffffff',
+  color: '#111111',
   fontSize: '20px',
   fontWeight: '500',
   letterSpacing: '2px',
@@ -167,7 +187,7 @@ const heading = {
 };
 
 const paragraph = {
-  color: '#a0a0a0',
+  color: '#555555',
   fontSize: '15px',
   lineHeight: '24px',
   textAlign: 'center' as const,
@@ -175,9 +195,9 @@ const paragraph = {
 };
 
 const priceBox = {
-  backgroundColor: '#1a1a1a',
+  backgroundColor: '#f9f9f9',
   borderRadius: '8px',
-  border: '1px solid #333333',
+  border: '1px solid #eaeaea',
   padding: '20px',
   textAlign: 'center' as const,
   margin: '20px 0',
@@ -192,7 +212,7 @@ const priceLabel = {
 };
 
 const priceValue = {
-  color: '#ffffff',
+  color: '#111111',
   fontSize: '28px',
   fontWeight: '600',
   margin: '0',
@@ -206,7 +226,7 @@ const btnContainer = {
 const button = {
   backgroundColor: '#c29d59',
   borderRadius: '6px',
-  color: '#000000',
+  color: '#ffffff',
   fontSize: '14px',
   fontWeight: '600',
   textDecoration: 'none',
@@ -217,7 +237,7 @@ const button = {
 };
 
 const smallText = {
-  color: '#666666',
+  color: '#888888',
   fontSize: '12px',
   lineHeight: '20px',
   textAlign: 'center' as const,
@@ -225,12 +245,12 @@ const smallText = {
 };
 
 const hr = {
-  borderColor: '#333333',
+  borderColor: '#eaeaea',
   margin: '0 0 20px',
 };
 
 const footer = {
-  color: '#666666',
+  color: '#888888',
   fontSize: '12px',
   lineHeight: '20px',
   textAlign: 'center' as const,
