@@ -1,12 +1,13 @@
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
+import { localizeShopProductTitle } from '@/lib/shopText';
 import { prisma } from '@/lib/prisma';
-import { ADRO_PRODUCT_LINES } from '../../data/adroHomeData';
+import { ADRO_PRODUCT_LINES } from '../../../data/adroHomeData';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { getProductsForAdroCollection } from '@/lib/adroCollectionMatcher';
-import AdroCollectionProductGrid from '../../components/AdroCollectionProductGrid';
+import AdroCollectionProductGrid from '../../../components/AdroCollectionProductGrid';
 
 type Props = {
   params: Promise<{ locale: string; handle: string }>;
@@ -55,8 +56,8 @@ export default async function AdroCollectionHandlePage({ params }: Props) {
 
   // Sort: Full Kit first, then by price desc
   const sortedProducts = [...collectionProducts].sort((a, b) => {
-    const titleA = (a.titleEn || '').toLowerCase();
-    const titleB = (b.titleEn || '').toLowerCase();
+    const titleA = localizeShopProductTitle(resolvedLocale, a).toLowerCase();
+    const titleB = localizeShopProductTitle(resolvedLocale, b).toLowerCase();
     const isKitA = titleA.includes('kit') || titleA.includes('widebody') || titleA.includes('full body');
     const isKitB = titleB.includes('kit') || titleB.includes('widebody') || titleB.includes('full body');
     if (isKitA && !isKitB) return -1;

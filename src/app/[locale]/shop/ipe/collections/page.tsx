@@ -55,7 +55,7 @@ export default async function IpeCollectionsPage({ params }: Props) {
       {/* Premium Black & Bronze Backdrop */}
       <div className="fixed inset-0 z-0">
         <Image
-          src="/images/shop/ipe/ipe-factory.jpg"
+          src="/images/shop/ipe/ipe-factory.png"
           alt="iPE Workshop"
           fill
           priority

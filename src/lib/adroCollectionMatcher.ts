@@ -29,13 +29,13 @@ export function getProductsForAdroCollection(products: ShopProduct[], handle: st
     
     if (!mapping) {
       // Fallback: match by handle in title if no specific mapping
-      const normalizedTitle = p.titleEn.toLowerCase();
+      const normalizedTitle = (p.title?.en || '').toLowerCase();
       const searchTerms = handle.replace(/-/g, ' ').split(' ');
       return searchTerms.some(term => normalizedTitle.includes(term.toLowerCase()));
     }
     
     // Match ANY of the specified patterns in the title
-    const normalizedTitle = p.titleEn.toLowerCase();
+    const normalizedTitle = (p.title?.en || '').toLowerCase();
     return mapping.patterns.some(pattern => normalizedTitle.includes(pattern.toLowerCase()));
   });
 }

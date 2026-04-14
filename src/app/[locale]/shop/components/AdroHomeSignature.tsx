@@ -40,12 +40,21 @@ export default function AdroHomeSignature({ locale }: Props) {
       ════════════════════════════════════════════════════════════════ */}
       <section className="adro-flow-hero">
         <div className="adro-video-bg">
-          <iframe
-            src="https://www.youtube.com/embed/pyEBZ8jJvZg?autoplay=1&mute=1&controls=0&loop=1&playlist=pyEBZ8jJvZg&showinfo=0&rel=0&modestbranding=1"
-            frameBorder="0"
-            allow="autoplay; encrypted-media"
-            allowFullScreen
-          ></iframe>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={ADRO_HERO.heroImage}
+            alt="ADRO Carbon Aerokit"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              opacity: 0.45,
+              filter: 'grayscale(60%) contrast(1.2) brightness(0.7)',
+            }}
+          />
           <div className="adro-video-overlay"></div>
         </div>
 
@@ -144,7 +153,7 @@ export default function AdroHomeSignature({ locale }: Props) {
           
           <div className="adro-platform-grid">
             {ADRO_PRODUCT_LINES.map((line, idx) => (
-              <Link key={line.id} href={line.link} className="adro-platform-card" data-adro-reveal style={{ transitionDelay: `${(idx * 0.1)}s` }}>
+              <Link key={line.id} href={`/${locale}${line.link}`} className="adro-platform-card" data-adro-reveal style={{ transitionDelay: `${(idx * 0.1)}s` }}>
                 <div className="adro-pc-image">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={line.image} alt={L(isUa, line.name, line.nameUk)} />
