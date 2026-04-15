@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     let offset: string | undefined = undefined;
 
     do {
-      const url = new URL(`https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/%D0%A2%D0%BE%D0%B2%D0%B0%D1%80%D1%8B%2F%D0%A3%D1%81%D0%BB%D0%83%D0%B3%D0%B8`);
+      const url = new URL(`https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/tblJk07VK1kk1AK1L`);
       if (offset) url.searchParams.append('offset', offset);
       
       // Pull specific fields to reduce payload and increase speed

@@ -13,6 +13,51 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-16 01:56] Commit `91dd0771`
+**Автор**: 👤 SASCYT9
+
+> chore(shop): trigger deployment for plain text airtable environment variables
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-16 01:48] Commit `765e97fa`
+**Автор**: 👤 SASCYT9
+
+> chore(shop): trigger deployment for new airtable environment variables
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-16 01:35] Commit `01e9a9b9`
+**Автор**: 👤 SASCYT9
+
+> fix(shop): switch stock feed to pull directly from Airtable for Google Sheets integrations
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/admin/shop/feed/stock/route.ts`
+
+---
+
+
+### 🟢 [2026-04-16 01:23] Commit `b1cb6702`
+**Автор**: 👤 SASCYT9
+
+> feat: add sku_prefix filter to stock feed
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/admin/shop/feed/stock/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-16 01:13] Commit `afd8be31`
 **Автор**: 👤 SASCYT9
 
