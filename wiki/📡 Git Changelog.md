@@ -13,6 +13,19 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-16 01:13] Commit `afd8be31`
+**Автор**: 👤 SASCYT9
+
+> feat: add pagination and brand filter to stock feed
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/admin/shop/feed/stock/route.ts`
+- **M**: `tests/shop/integration/shopAdminImports.test.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-16 01:06] Commit `97319a84`
 **Автор**: 👤 SASCYT9
 

@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
   try {
     const format = req.nextUrl.searchParams.get('format') || 'json';
     const brandParam = req.nextUrl.searchParams.get('brand');
+    const skuPrefixParam = req.nextUrl.searchParams.get('sku_prefix');
     const limitParam = req.nextUrl.searchParams.get('limit');
     const pageParam = req.nextUrl.searchParams.get('page');
 
@@ -19,6 +20,12 @@ export async function GET(req: NextRequest) {
       product: {
         isPublished: true,
       },
+      ...(skuPrefixParam && {
+        sku: {
+          startsWith: skuPrefixParam,
+          mode: 'insensitive'
+        }
+      })
     };
 
     if (brandParam) {
