@@ -13,6 +13,40 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-15 22:52] Commit `df3592ef`
+**Автор**: 👤 SASCYT9
+
+> feat(shop): add CSV format parameter to stock feed for Excel import
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/admin/shop/feed/stock/route.ts`
+
+---
+
+
+### 🟢 [2026-04-15 22:45] Commit `c777ab5c`
+**Автор**: 👤 SASCYT9
+
+> feat(shop): add Airtable stocks cron job and feed endpoint
+
+#### 📂 Змінені файли:
+- **A**: `src/app/api/admin/cron/airtable-stocks/route.ts`
+- **A**: `src/app/api/admin/shop/feed/stock/route.ts`
+- **M**: `src/lib/airtable.ts`
+- **M**: `vercel.json`
+- **M**: `wiki/Blockers.md`
+- **M**: `"wiki/Phase C \342\200\224 Storefront.md"`
+- **M**: `"wiki/Phase D \342\200\224 Orders.md"`
+- **M**: `"wiki/Phase E \342\200\224 CSV Import.md"`
+- **M**: `"wiki/Phase F \342\200\224 SEO.md"`
+- **M**: `wiki/Shop Overview.md`
+- **M**: `wiki/TODO.md`
+- **M**: `wiki/Tasks Kanban.md`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-15 16:39] Commit `c3f030c8`
 **Автор**: 👤 SASCYT9
 

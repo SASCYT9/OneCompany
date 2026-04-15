@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchAirtableProductsWithStocks } from '@/lib/airtable';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(req: Request) {
   // Validate CRON token
