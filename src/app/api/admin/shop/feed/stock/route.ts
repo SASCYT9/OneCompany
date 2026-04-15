@@ -7,13 +7,31 @@ export const maxDuration = 25;
 export async function GET(req: NextRequest) {
   try {
     const format = req.nextUrl.searchParams.get('format') || 'json';
+    const brandParam = req.nextUrl.searchParams.get('brand');
+    const limitParam = req.nextUrl.searchParams.get('limit');
+    const pageParam = req.nextUrl.searchParams.get('page');
+
+    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
+    const page = pageParam ? parseInt(pageParam, 10) : 1;
+    const skip = limit ? (page - 1) * limit : undefined;
+
+    const whereClause: any = {
+      product: {
+        isPublished: true,
+      },
+    };
+
+    if (brandParam) {
+      whereClause.product.brand = {
+        equals: brandParam,
+        mode: 'insensitive' // Optional, lets you search "burger motorsports" or "Burger Motorsports"
+      };
+    }
 
     const variants = await prisma.shopProductVariant.findMany({
-      where: {
-        product: {
-          isPublished: true,
-        },
-      },
+      where: whereClause,
+      take: limit,
+      skip: skip,
       select: {
         id: true,
         sku: true,

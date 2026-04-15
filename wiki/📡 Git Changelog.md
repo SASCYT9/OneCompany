@@ -13,6 +13,41 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-16 01:06] Commit `97319a84`
+**Автор**: 👤 SASCYT9
+
+> Trigger preview deploy with Prisma DB env
+
+#### 📂 Змінені файли:
+
+
+---
+
+
+### 🟢 [2026-04-16 00:17] Commit `ef1d7666`
+**Автор**: 👤 SASCYT9
+
+> feat(db): migrate to Prisma Postgres, revert feed to clean Prisma ORM
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/admin/shop/feed/stock/route.ts`
+
+---
+
+
+### 🟢 [2026-04-15 23:39] Commit `e630f364`
+**Автор**: 👤 SASCYT9
+
+> fix(feed): switch to Supabase REST API to bypass connection pool exhaustion
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/admin/shop/feed/stock/route.ts`
+- **M**: `src/lib/shopCheckout.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-15 23:27] Commit `96e145f6`
 **Автор**: 👤 SASCYT9
 
