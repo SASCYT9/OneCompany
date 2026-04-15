@@ -42,16 +42,22 @@ export default async function LocaleLayout({ children, params }: Props) {
   const videoConfig = await readVideoConfig();
   
   // Fetch Shop Settings for company requisites
+  // Use a hardcoded fallback during build to avoid DB pool exhaustion on static generation
   let companyRequisites: string | null = null;
   try {
-    const shopSettingsRecord = await getOrCreateShopSettings(prisma);
+    const shopSettingsRecord = await Promise.race([
+      getOrCreateShopSettings(prisma),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('DB timeout')), 5000))
+    ]);
     const shopSettings = getShopSettingsRuntime(shopSettingsRecord);
     
     if (shopSettings.fopCompanyName) {
       companyRequisites = `${shopSettings.fopCompanyName}${shopSettings.fopEdrpou ? `, ЄДРПОУ: ${shopSettings.fopEdrpou}` : ''}`;
     }
   } catch (error) {
-    console.warn("Failed to fetch shop settings from DB for footer:", error instanceof Error ? error.message : error);
+    // Fallback: use hardcoded requisites so the page still renders during build
+    companyRequisites = 'ФОП Побережець Іван Юрійович, ЄДРПОУ: 3803206192';
+    console.warn("Failed to fetch shop settings from DB for footer, using fallback:", error instanceof Error ? error.message : error);
   }
 
   return (

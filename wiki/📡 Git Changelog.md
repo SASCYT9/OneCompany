@@ -13,6 +13,34 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-15 22:59] Commit `d1cbe3e7`
+**Автор**: 👤 SASCYT9
+
+> fix(shop): airtable fetcher TS type error
+
+#### 📂 Змінені файли:
+- **M**: `src/lib/airtable.ts`
+
+---
+
+
+### 🟢 [2026-04-15 22:56] Commit `6f272ceb`
+**Автор**: 👤 SASCYT9
+
+> fix(shop): correct prisma imports
+
+#### 📂 Змінені файли:
+- **A**: `.agents/scratch/check-customers.ts`
+- **A**: `.agents/scratch/clean-orders.ts`
+- **A**: `.agents/scratch/db-audit.ts`
+- **A**: `.agents/scratch/get-emails.ts`
+- **M**: `src/app/api/admin/cron/airtable-stocks/route.ts`
+- **M**: `src/app/api/admin/shop/feed/stock/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-15 22:52] Commit `df3592ef`
 **Автор**: 👤 SASCYT9
 
