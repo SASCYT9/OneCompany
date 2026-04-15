@@ -227,6 +227,7 @@ function calculateShippingCost(
   currency: ShopCurrencyCode,
   settings: ShopSettingsRuntime,
   subtotal: number,
+  itemCount: number,
   items: ResolvedCheckoutItem[]
 ) {
   if (!zone) return 0;
@@ -281,8 +282,8 @@ function calculateShippingCost(
       totalCost += itemCost;
     }
   } else {
-    const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-    totalCost += zone.perItemRate * itemCount;
+    const actualItemCount = items.length > 0 ? items.reduce((sum, item) => sum + item.quantity, 0) : itemCount;
+    totalCost += zone.perItemRate * actualItemCount;
   }
 
   return convertAmount(totalCost, zone.currency, currency, settings.currencyRates);
@@ -411,7 +412,7 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
   const adjustedSubtotal = roundMoney(Math.max(0, subtotal + rawRegionalAdjustmentAmount));
   const regionalAdjustmentAmount = roundMoney(adjustedSubtotal - subtotal);
   const shippingZone = resolveShippingZone(input.settings, input.shippingAddress, adjustedSubtotal);
-  const shippingCost = calculateShippingCost(shippingZone, currency, input.settings, subtotal, input.items);
+  const shippingCost = calculateShippingCost(shippingZone, currency, input.settings, subtotal, itemCount, input.items);
   const taxRegion = resolveTaxRegion(input.settings, input.shippingAddress);
   const taxAmount = calculateTaxAmount(taxRegion, adjustedSubtotal, shippingCost);
   const total = roundMoney(adjustedSubtotal + shippingCost + taxAmount);

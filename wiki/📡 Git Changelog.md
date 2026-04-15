@@ -13,6 +13,18 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-15 23:27] Commit `96e145f6`
+**Автор**: 👤 SASCYT9
+
+> fix(feed): use dedicated PrismaClient with disconnect to prevent pool exhaustion
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/admin/shop/feed/stock/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-15 23:10] Commit `78e10eeb`
 **Автор**: 👤 SASCYT9
 
