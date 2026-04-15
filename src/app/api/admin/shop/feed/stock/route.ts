@@ -1,90 +1,87 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 25;
+export const maxDuration = 60; // Fetching all pages from Airtable may take some time
 
 export async function GET(req: NextRequest) {
   try {
     const format = req.nextUrl.searchParams.get('format') || 'json';
-    const brandParam = req.nextUrl.searchParams.get('brand');
-    const skuPrefixParam = req.nextUrl.searchParams.get('sku_prefix');
-    const limitParam = req.nextUrl.searchParams.get('limit');
-    const pageParam = req.nextUrl.searchParams.get('page');
+    const skuPrefix = req.nextUrl.searchParams.get('sku_prefix');
+    const brandFilter = req.nextUrl.searchParams.get('brand');
 
-    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
-    const page = pageParam ? parseInt(pageParam, 10) : 1;
-    const skip = limit ? (page - 1) * limit : undefined;
-
-    const whereClause: any = {
-      product: {
-        isPublished: true,
-      },
-      ...(skuPrefixParam && {
-        sku: {
-          startsWith: skuPrefixParam,
-          mode: 'insensitive'
-        }
-      })
-    };
-
-    if (brandParam) {
-      whereClause.product.brand = {
-        equals: brandParam,
-        mode: 'insensitive' // Optional, lets you search "burger motorsports" or "Burger Motorsports"
-      };
+    if (!process.env.AIRTABLE_BASE_ID || !process.env.AIRTABLE_PAT) {
+      return NextResponse.json({ error: 'Airtable credentials missing' }, { status: 500 });
     }
 
-    const variants = await prisma.shopProductVariant.findMany({
-      where: whereClause,
-      take: limit,
-      skip: skip,
-      select: {
-        id: true,
-        sku: true,
-        title: true,
-        inventoryQty: true,
-        priceEur: true,
-        priceUsd: true,
-        product: {
-          select: {
-            titleEn: true,
-            titleUa: true,
-            slug: true,
-            brand: true,
-          }
-        }
-      },
-      orderBy: {
-        sku: 'asc'
-      }
-    });
+    let allRecords: any[] = [];
+    let offset: string | undefined = undefined;
 
-    const feed = variants.map(v => ({
-      sku: v.sku,
-      title_ua: `${v.product?.titleUa} ${v.title ? `(${v.title})` : ''}`.trim(),
-      title_en: `${v.product?.titleEn} ${v.title ? `(${v.title})` : ''}`.trim(),
-      brand: v.product?.brand || '',
-      url: `https://onecompany.global/shop/product/${v.product?.slug}`,
-      stock_quantity: v.inventoryQty,
-      price_eur: v.priceEur,
-      price_usd: v.priceUsd,
+    do {
+      const url = new URL(`https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/%D0%A2%D0%BE%D0%B2%D0%B0%D1%80%D1%8B%2F%D0%A3%D1%81%D0%BB%D0%83%D0%B3%D0%B8`);
+      if (offset) url.searchParams.append('offset', offset);
+      
+      // Pull specific fields to reduce payload and increase speed
+      url.searchParams.append('fields[]', 'Название');
+      url.searchParams.append('fields[]', 'Парт-номер производителя');
+      url.searchParams.append('fields[]', 'Наш парт-номер');
+      url.searchParams.append('fields[]', 'Бренд');
+      url.searchParams.append('fields[]', 'Кол-во в наличии');
+      url.searchParams.append('fields[]', 'РРЦ в Украине');
+
+      const res = await fetch(url.toString(), {
+        headers: { Authorization: `Bearer ${process.env.AIRTABLE_PAT}` },
+        // Use cache: 'no-store' to ensure we get real-time stock
+        cache: 'no-store'
+      });
+
+      if (!res.ok) throw new Error(`Airtable API error: ${res.status}`);
+      const data: any = await res.json();
+      
+      allRecords = allRecords.concat(data.records);
+      offset = data.offset;
+    } while (offset);
+
+    // Format the items
+    let feed = allRecords.map((r) => ({
+      airtable_id: r.id,
+      title: r.fields['Название'] || '',
+      sku: r.fields['Парт-номер производителя'] || '',
+      our_sku: r.fields['Наш парт-номер'] || '',
+      stock_quantity: parseInt(r.fields['Кол-во в наличии'] || '0', 10) || 0,
+      price: r.fields['РРЦ в Украине'] || 0
     }));
 
+    // Filter by SKU prefix (checking both "Our SKU" and "Manufacturer SKU")
+    if (skuPrefix) {
+      feed = feed.filter(item => 
+        (item.our_sku && item.our_sku.toLowerCase().startsWith(skuPrefix.toLowerCase())) ||
+        (item.sku && item.sku.toLowerCase().startsWith(skuPrefix.toLowerCase()))
+      );
+    }
+
+    // Filter by Brand (if used in future)
+    if (brandFilter) {
+      // NOTE: brand in this Airtable schema might be a linked record array. 
+      // Safe fallback: match title or sku just in case
+      feed = feed.filter(item => 
+        item.title.toLowerCase().includes(brandFilter.toLowerCase()) || 
+        item.sku.toLowerCase().includes(brandFilter.toLowerCase()) ||
+        item.our_sku.toLowerCase().includes(brandFilter.toLowerCase())
+      );
+    }
+
     if (format === 'csv') {
-      const header = ['SKU', 'Title (UA)', 'Title (EN)', 'Brand', 'Quantity', 'Price (EUR)', 'Price (USD)', 'URL'];
+      const header = ['Airtable ID', 'Our SKU (Товар)', 'Manufacturer SKU', 'Title', 'Quantity', 'Price (RRP UA)'];
       const rows = feed.map(v => [
-        `"${v.sku || ''}"`,
-        `"${(v.title_ua || '').replace(/"/g, '""')}"`,
-        `"${(v.title_en || '').replace(/"/g, '""')}"`,
-        `"${v.brand || ''}"`,
-        v.stock_quantity ?? 0,
-        v.price_eur ?? 0,
-        v.price_usd ?? 0,
-        `"${v.url}"`
+        `"${v.airtable_id}"`,
+        `"${v.our_sku}"`,
+        `"${v.sku}"`,
+        `"${v.title.replace(/"/g, '""')}"`,
+        v.stock_quantity,
+        v.price,
       ]);
       const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
-
+      
       return new NextResponse(csv, {
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
@@ -95,6 +92,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       status: 'success',
+      source: 'airtable',
       total_items: feed.length,
       timestamp: new Date().toISOString(),
       items: feed
@@ -102,6 +100,6 @@ export async function GET(req: NextRequest) {
 
   } catch (error: any) {
     console.error('[Stock Feed Error]', error?.message || error);
-    return NextResponse.json({ error: 'Failed to generate stock feed', details: error?.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to generate stock feed from Airtable', details: error?.message }, { status: 500 });
   }
 }
