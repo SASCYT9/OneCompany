@@ -1,52 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 25;
 
-/**
- * Stock feed via Supabase REST API — bypasses Prisma connection pool
- * entirely to avoid 504 timeouts on Vercel Preview.
- */
 export async function GET(req: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SupaBase_SUPABASE_URL || process.env.SupaBase_SUPABASE_URL;
-  const serviceKey = process.env.SupaBase_SUPABASE_SERVICE_ROLE_KEY
-    || process.env.SupaBase_SUPABASE_SECRET_KEY
-    || process.env.SupaBase_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !serviceKey) {
-    return NextResponse.json({ error: 'Supabase credentials not configured' }, { status: 500 });
-  }
-
   try {
     const format = req.nextUrl.searchParams.get('format') || 'json';
 
-    // Fetch published product variants with their parent product data via Supabase REST
-    const variantsRes = await fetch(
-      `${supabaseUrl}/rest/v1/ShopProductVariant?select=id,sku,title,inventoryQty,priceEur,priceUsd,product:ShopProduct!inner(titleEn,titleUa,slug,brand,isPublished)&product.isPublished=eq.true&order=sku.asc`,
-      {
-        headers: {
-          'apikey': serviceKey,
-          'Authorization': `Bearer ${serviceKey}`,
-          'Content-Type': 'application/json',
+    const variants = await prisma.shopProductVariant.findMany({
+      where: {
+        product: {
+          isPublished: true,
         },
-        cache: 'no-store'
+      },
+      select: {
+        id: true,
+        sku: true,
+        title: true,
+        inventoryQty: true,
+        priceEur: true,
+        priceUsd: true,
+        product: {
+          select: {
+            titleEn: true,
+            titleUa: true,
+            slug: true,
+            brand: true,
+          }
+        }
+      },
+      orderBy: {
+        sku: 'asc'
       }
-    );
-
-    if (!variantsRes.ok) {
-      const errText = await variantsRes.text();
-      console.error('[Stock Feed] Supabase error:', variantsRes.status, errText);
-      return NextResponse.json({ error: 'Database query failed', details: errText }, { status: 500 });
-    }
-
-    const variants: any[] = await variantsRes.json();
+    });
 
     const feed = variants.map(v => ({
       sku: v.sku,
-      title_ua: `${v.product?.titleUa || ''} ${v.title ? `(${v.title})` : ''}`.trim(),
-      title_en: `${v.product?.titleEn || ''} ${v.title ? `(${v.title})` : ''}`.trim(),
+      title_ua: `${v.product?.titleUa} ${v.title ? `(${v.title})` : ''}`.trim(),
+      title_en: `${v.product?.titleEn} ${v.title ? `(${v.title})` : ''}`.trim(),
       brand: v.product?.brand || '',
-      url: `https://onecompany.global/shop/product/${v.product?.slug || ''}`,
+      url: `https://onecompany.global/shop/product/${v.product?.slug}`,
       stock_quantity: v.inventoryQty,
       price_eur: v.priceEur,
       price_usd: v.priceUsd,
