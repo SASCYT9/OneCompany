@@ -1,12 +1,12 @@
 ---
 tags: [phase, storefront, checkout]
-status: waiting
-progress: 90
+status: done
+progress: 100
 ---
 
 # 🛍 Phase C — Storefront + Cart + Checkout
 
-> [!warning] Статус: **90%** — Чекаємо інтеграцію оплати
+> [!success] Статус: **100%** — Всі платіжні методи інтегровано (FOP, Stripe, WhitePay Crypto, WhitePay Fiat)
 
 ---
 
@@ -72,12 +72,13 @@ sequenceDiagram
 
 ---
 
-## ⏳ Чекаємо
+## ✅ Оплата — Інтегровано
 
-> [!important] Оплата
-> - **WhitePay** (крипто + фіат) — ✅ дали добро, треба інтегрувати
-
-Детальніше → [[Blockers]]
+> [!success] Платіжні методи
+> - **FOP** — оплата за реквізитами (IBAN), гібридний чекаут
+> - **Stripe** — міжнародні картки (EUR/USD)
+> - **WhitePay Crypto** — USDT, BTC, ETH з авто-редиректом
+> - **WhitePay Fiat** — Apple Pay / Google Pay через WhitePay gateway
 
 ---
 

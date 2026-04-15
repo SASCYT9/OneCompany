@@ -17,6 +17,12 @@ tags: [dashboard, tasks]
 
 ## 🚀 Готово (Останні Релізи)
 
+- [x] 🛍️ Pixel-perfect Checkout UI + 4-step flow (Phase C 100%) #dev
+- [x] 🛒 Guest/Customer Cart Merge Logic (cookie → DB merge on login) #dev
+- [x] 💸 WhitePay Crypto + Fiat інтеграція (USDT/BTC/ETH + Apple/Google Pay) #dev
+- [x] 📄 CSV Import Wizard — повний 5-кроковий wizard з шаблонами та dry-run #dev
+- [x] 🌐 Gemini API переклад 1542 товарів (UA↔EN, 99.9% покриття) #dev
+- [x] 🧹 Видалення Hutko — повний cleanup коду та wiki #dev
 - [x] Налаштування AI Agent Syndicate (Antigravity + Claude Code + Vibe Kanban + Gemma 4) #dev
 - [x] Базовий SEO / Копірайтинг аудит на сторінках брендів (Urban, Brabus) #seo
 - [x] Інтеграція Онлайн-Еквайрингу (Stripe/WhitePay Checkout) #dev

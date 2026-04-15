@@ -13,6 +13,68 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-15 16:39] Commit `c3f030c8`
+**Автор**: 👤 SASCYT9
+
+> chore: remove Hutko integration entirely — replaced by WhitePay Fiat
+
+#### 📂 Змінені файли:
+- **A**: `convert-logos-dark.mjs`
+- **A**: `delAkr.js`
+- **M**: `package-lock.json`
+- **M**: `package.json`
+- **M**: `prisma/schema.prisma`
+- **A**: `script.js`
+- **A**: `script_all_brands.js`
+- **A**: `script_brands.js`
+- **A**: `script_check_dirs.js`
+- **A**: `script_count_brands.js`
+- **A**: `script_count_brands2.js`
+- **A**: `script_count_brands3.js`
+- **A**: `script_find_ipe.js`
+- **A**: `script_find_ipe2.js`
+- **A**: `script_ipe.js`
+- **A**: `script_ipe_check.js`
+- **A**: `script_schema_check.js`
+- **A**: `script_test_products.js`
+- **A**: `scripts/.translate-checkpoint.json`
+- **A**: `scripts/.translate-feed-checkpoint.json`
+- **A**: `scripts/.translate-gemini-checkpoint.json`
+- **A**: `scripts/check-feed-translations.mjs`
+- **A**: `scripts/check-translation-stats.mjs`
+- **A**: `scripts/check-translations.js`
+- **A**: `scripts/translate-gemini.mjs`
+- **A**: `scripts/translate-products.mjs`
+- **D**: `src/app/api/cron/sync-hutko/route.ts`
+- **A**: `test-cart.js`
+- **A**: `test-prisma.ts`
+- **A**: `testAkr.js`
+- **A**: `testAkrapovic.js`
+- **A**: `testDb.js`
+- **A**: `testIds.js`
+- **A**: `testStats.js`
+- **A**: `testWholeSite.js`
+- **M**: `vercel.json`
+- **M**: `wiki/API & Integrations.md`
+- **M**: `wiki/Admin Panel Presentation.html`
+- **M**: `"wiki/Admin \342\200\224 Orders.md"`
+- **M**: `wiki/Architecture.md`
+- **M**: `wiki/Blockers.md`
+- **M**: `wiki/Improvement Strategy.md`
+- **M**: `wiki/Order Processing Playbook.md`
+- **M**: `"wiki/Phase C \342\200\224 Storefront.md"`
+- **M**: `wiki/Shop Mind Map.canvas`
+- **M**: `wiki/Shop Overview.md`
+- **M**: `wiki/TODO.md`
+- **M**: `wiki/Tasks Kanban.md`
+- **M**: `wiki/Team.md`
+- **M**: `"wiki/\360\237\223\241 Code Map.md"`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+- **M**: `"wiki/\360\237\227\272\357\270\217 \320\223\320\273\320\276\320\261\320\260\320\273\321\214\320\275\320\260 \320\220\321\200\321\205\321\226\321\202\320\265\320\272\321\202\321\203\321\200\320\260.canvas"`
+
+---
+
+
 ### 🟢 [2026-04-15 13:07] Commit `181ddc61`
 **Автор**: 👤 SASCYT9
 

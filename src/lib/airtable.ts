@@ -372,6 +372,55 @@ export async function fetchAirtableProductsByIds(recordIds: string[]): Promise<A
   return allProducts;
 }
 
+export type AirtableProductStock = {
+  id: string;
+  sku: string;
+  quantity: number;
+};
+
+/**
+ * Fetch all products from Airtable to sync their available stock.
+ */
+export async function fetchAirtableProductsWithStocks(): Promise<AirtableProductStock[]> {
+  return fetchAllAirtableRecords<AirtableProductStock>((opts) => {
+    const params: Record<string, string> = {
+      // Only fetch records that actually have an SKU assigned so we skip empty rows
+      filterByFormula: "NOT({Парт-номер производителя} = '')",
+      fields: ['Парт-номер производителя', 'Кол-во в наличии']
+    };
+    if (opts.offset) params.offset = opts.offset;
+    
+    // Pass the arrays properly for the fields param to URL
+    const queryStringData: Record<string, string> = { ...params };
+    delete queryStringData.fields;
+    
+    // Overriding the exact airtableFetch here since we have array fields
+    const searchParams = new URLSearchParams(queryStringData);
+    searchParams.append('fields[]', 'Парт-номер производителя');
+    searchParams.append('fields[]', 'Кол-во в наличии');
+    
+    return fetch(`${AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID || 'app70wZOSKU5xSoGX'}/${AIRTABLE_TABLES.PRODUCTS}?${searchParams.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.AIRTABLE_PAT || ''}`,
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store'
+    })
+    .then(res => {
+      if(!res.ok) throw new Error('Airtable Error: ' + res.status);
+      return res.json();
+    })
+    .then((data: any) => ({
+      records: data.records.map((r: any) => ({
+        id: r.id,
+        sku: r.fields['Парт-номер производителя'] || '',
+        quantity: parseInt(r.fields['Кол-во в наличии'] || '0', 10) || 0
+      })),
+      offset: data.offset
+    }));
+  });
+}
+
 // ═══════════════════════════════════════
 // Create / Update Records
 // ═══════════════════════════════════════

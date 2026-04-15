@@ -5,8 +5,8 @@ aliases: [Магазин, Shop]
 
 # 🏪 Shop Overview
 
-> [!info] Архітектура e-commerce One Company SHOP
-> Прогрес: **90%** · Основні фази завершено
+> [!success] Архітектура e-commerce One Company SHOP
+> Прогрес: **97%** · Всі основні фази завершено
 
 Це зведена нотатка по всій e-commerce частині.
 

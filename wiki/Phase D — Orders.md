@@ -1,12 +1,12 @@
 ---
 tags: [phase, orders, admin]
-status: waiting
-progress: 85
+status: done
+progress: 95
 ---
 
 # 📋 Phase D — Admin Order Operations
 
-> [!warning] Статус: **85%** — Чекаємо Turn14 Quote API
+> [!success] Статус: **95%** — Turn14 Quote API реалізовано, основна функціональність завершена
 
 ---
 

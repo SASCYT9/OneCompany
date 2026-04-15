@@ -1,22 +1,22 @@
 ---
 tags: [phase, csv, import]
-status: in-progress
-progress: 10
+status: done
+progress: 100
 ---
 
 # 📄 Phase E — CSV Import Center
 
-> [!caution] Статус: **10%** — Базова сторінка є, wizard ще не реалізований
+> [!success] Статус: **100%** — Повний CSV Import Wizard реалізовано (882 рядки UI + API)
 
 ---
 
 ## Поточний Стан
 
 - ✅ Базова сторінка `/admin/shop/stock` існує
-- ❌ CSV upload wizard — не реалізований
-- ❌ Column mapping UI — не реалізований
-- ❌ Dry-run validation — не реалізований
-- ❌ Error reporting — не реалізований
+- ✅ CSV upload wizard — реалізовано (`/admin/shop/import`)
+- ✅ Column mapping UI — реалізовано (шаблони мапінгу колонок)
+- ✅ Dry-run validation — реалізовано
+- ✅ Error reporting — реалізовано (помилки по рядках)
 
 ---
 
@@ -70,9 +70,9 @@ progress: 10
 
 ## Acceptance Criteria
 
-- [ ] Імпорт 5к+ рядків без падіння
-- [ ] Повний error report по кожному рядку
-- [ ] Шаблони зберігаються і перевикористовуються
-- [ ] Dry-run показує точний preview змін
+- [x] Імпорт 5к+ рядків без падіння
+- [x] Повний error report по кожному рядку
+- [x] Шаблони зберігаються і перевикористовуються
+- [x] Dry-run показує точний preview змін
 
 ← [[Home]]
