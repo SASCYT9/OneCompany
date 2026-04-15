@@ -13,6 +13,18 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-15 23:10] Commit `78e10eeb`
+**Автор**: 👤 SASCYT9
+
+> fix(build): prevent DB pool exhaustion during static generation with timeout + fallback
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/layout.tsx`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-15 22:59] Commit `d1cbe3e7`
 **Автор**: 👤 SASCYT9
 

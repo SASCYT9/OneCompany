@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 25; // Vercel function timeout
 
 export async function GET(req: NextRequest) {
+  // Create a dedicated short-lived Prisma client to avoid pool exhaustion
+  const db = new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
+    log: ['error'],
+  });
+
   try {
     const format = req.nextUrl.searchParams.get('format') || 'json';
 
-    const variants = await prisma.shopProductVariant.findMany({
+    const variants = await db.shopProductVariant.findMany({
       where: {
         product: {
           isPublished: true,
@@ -73,8 +86,10 @@ export async function GET(req: NextRequest) {
       items: feed
     });
 
-  } catch (error) {
-    console.error('[Stock Feed Error]', error);
-    return NextResponse.json({ error: 'Failed to generate stock feed' }, { status: 500 });
+  } catch (error: any) {
+    console.error('[Stock Feed Error]', error?.message || error);
+    return NextResponse.json({ error: 'Failed to generate stock feed', details: error?.message }, { status: 500 });
+  } finally {
+    await db.$disconnect();
   }
 }
