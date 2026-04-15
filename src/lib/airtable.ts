@@ -383,7 +383,7 @@ export type AirtableProductStock = {
  */
 export async function fetchAirtableProductsWithStocks(): Promise<AirtableProductStock[]> {
   return fetchAllAirtableRecords<AirtableProductStock>((opts) => {
-    const params: Record<string, string> = {
+    const params: Record<string, any> = {
       // Only fetch records that actually have an SKU assigned so we skip empty rows
       filterByFormula: "NOT({Парт-номер производителя} = '')",
       fields: ['Парт-номер производителя', 'Кол-во в наличии']
