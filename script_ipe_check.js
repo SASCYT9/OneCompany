@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { const countInnotech = await prisma.shopProduct.count({ where: { brand: { contains: 'innotech', mode: 'insensitive' } } }); console.log('Innotech products:', countInnotech); } main().finally(() => prisma.$disconnect());

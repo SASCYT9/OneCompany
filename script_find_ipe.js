@@ -1,0 +1,1 @@
+const fs = require('fs'); const content = fs.readFileSync('src/lib/brands.ts', 'utf8'); console.log(content.includes('iPE') || content.includes('IPE') || content.includes('ipe') || content.includes('Innotech'));

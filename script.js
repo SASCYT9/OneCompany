@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { const groupBy = await prisma.shopProduct.groupBy({ by: ['brand'], _count: true }); console.log(groupBy); } main().catch(console.error).finally(() => prisma.$disconnect());

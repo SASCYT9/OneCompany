@@ -13,6 +13,72 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-15 13:07] Commit `181ddc61`
+**Автор**: 👤 SASCYT9
+
+> feat: concurrent gemini feed translation script and fix sync job replicating UA text
+
+#### 📂 Змінені файли:
+- **A**: `scripts/translate-feed-ua-to-en.mjs`
+- **M**: `src/app/api/admin/cron/atomic-sync/route.ts`
+
+---
+
+
+### 🟢 [2026-04-14 20:43] Commit `c76e723d`
+**Автор**: 👤 SASCYT9
+
+> fix(shop): resolve ADRO & iPE storefront 404s and build errors
+> 
+> - ADRO collections/page.tsx: replace broken redirect with full platform catalog grid
+> - ADRO collections/[handle]/page.tsx: fix import paths (../../ → ../../../)
+> - ADRO AdroHomeSignature: add locale prefix to platform card links, replace YouTube iframe with static hero image
+> - iPE collections/page.tsx: fix image extension (ipe-factory.jpg → .png)
+> - adroCollectionMatcher.ts: fix titleEn → title.en (LocalizedText)
+> - Remove unused imports from collections page
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/shop/adro/collections/[handle]/page.tsx`
+- **M**: `src/app/[locale]/shop/adro/collections/page.tsx`
+- **M**: `src/app/[locale]/shop/components/AdroHomeSignature.tsx`
+- **M**: `src/app/[locale]/shop/ipe/collections/page.tsx`
+- **M**: `src/lib/adroCollectionMatcher.ts`
+
+---
+
+
+### 🟢 [2026-04-13 23:51] Commit `ce86a3e9`
+**Автор**: 👤 SASCYT9
+
+> feat(storefront): Implement ADRO and iPE collection structures & Stealth Wealth UI components
+
+#### 📂 Змінені файли:
+- **A**: `public/brands/eventuri-logo-dark.png`
+- **A**: `public/brands/eventuri-logo-dark.svg`
+- **A**: `public/brands/eventuri-logo.png`
+- **A**: `public/brands/fi-logo-dark.png`
+- **A**: `public/brands/fi-logo-dark.svg`
+- **A**: `public/brands/fi-logo.png`
+- **A**: `scripts/sync-atomic-manual.ts`
+- **A**: `src/app/[locale]/shop/adro/collections/[handle]/page.tsx`
+- **A**: `src/app/[locale]/shop/adro/collections/page.tsx`
+- **A**: `src/app/[locale]/shop/components/AdroCollectionProductGrid.tsx`
+- **A**: `src/app/[locale]/shop/components/IpeVehicleFilter.tsx`
+- **M**: `src/app/[locale]/shop/data/brabusHomeData.ts`
+- **M**: `src/app/[locale]/shop/data/brabusShowcasesData.ts`
+- **A**: `src/app/[locale]/shop/ipe/collections/page.tsx`
+- **A**: `src/app/api/admin/cron/atomic-sync/route.ts`
+- **M**: `src/app/api/shopify/webhooks/order-create/route.ts`
+- **M**: `src/emails/ShopifyCryptoInvoiceEmail.tsx`
+- **A**: `src/lib/adroCollectionMatcher.ts`
+- **M**: `src/lib/services/emailService.ts`
+- **A**: `wiki/System Audit 2026-04-13.md`
+- **M**: `wiki/Turn14.md`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-12 02:20] Commit `5d5bbb06`
 **Автор**: 👤 SASCYT9
 

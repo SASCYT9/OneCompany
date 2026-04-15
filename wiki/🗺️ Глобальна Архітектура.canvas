@@ -17,7 +17,7 @@
 		{"id":"n_db_inventory","type":"text","text":"### 🏭 InventoryLevel & Location\n(Хранитель складських залишків)","x":350,"y":300,"width":400,"height":100},
 		{"id":"n_db_order","type":"text","text":"### 🧾 ShopOrder\n(Замовлення клієнта)","x":350,"y":700,"width":400,"height":100},
 		{"id":"g_external","type":"group","label":"Зовнішній Світ (External APIs)","x":1000,"y":0,"width":500,"height":700,"color":"1"},
-		{"id":"n_ext_stripe","type":"text","text":"## Stripe API / Hutko","x":1050,"y":100,"width":400,"height":100},
+		{"id":"n_ext_stripe","type":"text","text":"## Stripe / WhitePay","x":1050,"y":100,"width":400,"height":100},
 		{"id":"n_ext_turn14","type":"text","text":"## Turn14 B2B Network","x":1050,"y":300,"width":400,"height":100},
 		{"id":"n_ext_airtable","type":"text","text":"## Airtable (Read-Only)","x":1050,"y":500,"width":400,"height":100},
 		{"id":"g_ai","type":"group","label":"Мозок AI (Antigravity & Obsidian)","x":-600,"y":-800,"width":900,"height":400,"color":"2"},

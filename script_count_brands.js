@@ -1,0 +1,1 @@
+const fs = require('fs'); const content = fs.readFileSync('src/lib/brands.ts', 'utf8'); const matches = content.match(/id: '(.*?)'/g); console.log('Total brands in file:', matches ? matches.length : 0);

@@ -20,7 +20,7 @@ graph TD
     C --> D[Додавання в кошик / Hybrid Checkout]
     D --> E[Введення даних доставки]
     E --> F[Генерація замовлення PENDING_REVIEW]
-    F --> G[Створення лінка на оплату Stripe/Hutko]
+    F --> G[Створення лінка на оплату Stripe/WhitePay]
     G --> H[Оплата]
     H --> I[Відправка / Логістика]
 ```
@@ -50,7 +50,7 @@ graph TD
 - ✅ Guest + Customer checkout
 - ✅ Turn14 API integration (~700K products)
 - ✅ Admin panel (RBAC)
-- ✅ Payment gateway (Stripe + Hutko)
+- ✅ Payment gateway (Stripe + WhitePay)
 - ✅ CSV Import wizard
 
 ## Shopify Storefronts

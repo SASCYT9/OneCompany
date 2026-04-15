@@ -29,9 +29,9 @@ One Company глибоко інтегрована з низкою зовнішн
 - Ендпоінт: `/api/webhooks/stripe`
 - Після успішної оплати (`checkout.session.completed`), webhook перевіряє `stripe-signature` і переводить статус замовлення в БД у `CONFIRMED` / Встановлює суму оплати `amountPaid`.
 
-### 💳 Hutko
-- Індивідуальний шлюз / B2B сервіс (або локальна платіжна система, залежно від країни інтеграції).
-- Має власний ідентифікатор у моделі замовлення `hutkoPaymentId` (див. [[Database ERD Schema]]).
+### 💳 WhitePay (Fiat — Apple Pay / Google Pay)
+- Використовується для фіатних платежів (GPay, APay) через WhitePay gateway.
+- Інтегрований через `WHITEPAY_FIAT` payment method у checkout flow.
 
 ## 3. Логістичні Інтеграції (Nova Poshta)
 

@@ -17,6 +17,10 @@
     {
       "path": "/api/admin/turn14-sync",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/admin/cron/atomic-sync",
+      "schedule": "0 * * * *"
     }
   ]
 }

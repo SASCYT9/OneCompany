@@ -30,7 +30,6 @@ aliases: [Команда]
 | Atomic CSV | Ігор | ⏳ Чекаємо |
 | Eventuri прайс | Ваня | ⏳ Чекаємо |
 | WhitePay інтеграція | Саша | ✅ Готово до інтеграції |
-| Hutko API ключі | External | ⏳ Чекаємо |
 
 Деталі → [[Blockers]]
 

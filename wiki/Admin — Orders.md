@@ -76,7 +76,7 @@ PENDING_PAYMENT → PENDING_REVIEW → CONFIRMED → PROCESSING → SHIPPED → 
 |------|------------|
 | **Зміна статусу** | Dropdown + швидкі кнопки переходів з валідацією дозволених transitions |
 | **Оплата** | Модальне вікно: додати платіж / встановити суму. Автоматичний UNPAID → PARTIALLY_PAID → PAID |
-| **Whitepay** | Генерація платіжного лінку Hutko / Whitepay + копіювання |
+| **Whitepay** | Генерація платіжного лінку WhitePay + копіювання |
 | **Shipments** | CRUD: carrier, tracking number, URL, status (LABEL_CREATED → IN_TRANSIT → DELIVERED) |
 | **Позиції** | Додавання/редагування/видалення order items inline |
 | **Timeline** | Повна історія подій: хто, коли, що змінив |

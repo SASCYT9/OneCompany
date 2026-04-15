@@ -19,7 +19,7 @@ tags: [dashboard, tasks]
 
 - [x] Налаштування AI Agent Syndicate (Antigravity + Claude Code + Vibe Kanban + Gemma 4) #dev
 - [x] Базовий SEO / Копірайтинг аудит на сторінках брендів (Urban, Brabus) #seo
-- [x] Інтеграція Онлайн-Еквайрингу (Stripe/Hutko Checkout) #dev
+- [x] Інтеграція Онлайн-Еквайрингу (Stripe/WhitePay Checkout) #dev
 - [x] Финалізація MVP E-commerce архітектури (Phase F) #dev 
 - [x] Глобальний блок валют (EUR, USD, UAH) та B2B знижок #dev 
 - [x] Мультивалютний кошик і чекаут (Checkout flow) #dev 

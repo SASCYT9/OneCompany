@@ -18,7 +18,7 @@ graph TD
     DB[(PostgreSQL / Supabase)]
     Turn14[Turn14 API]
     Workers[Cloudflare Workers AI]
-    Payment[WhitePay / Hutko]
+    Payment[WhitePay]
 
     Client <-->|Server Actions / API| NextJS
     NextJS <-->|Prisma ORM| DB

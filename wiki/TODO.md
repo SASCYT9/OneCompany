@@ -8,7 +8,7 @@ kanban-plugin: basic
 
 - [ ] 📄 **CSV Import Wizard (Phase E)** 🔴 Important<br>Повний wizard для імпорту товарів з CSV: Upload → Column mapping → Dry-run → Commit. ^e2a1b1
 - [ ] 💸 **WhitePay API інтеграція**<br>Потрібно спочатку отримати SDK. ^f3b2c2
-- [ ] 💳 **Hutko GPay/APay інтеграція**<br>Чекаємо API ключі. ^a4b5c6
+- [x] 🌐 **Переклад товарів (Gemini API)** 🔴 Important<br>Локальна модель (translategemma) забракована через низьку якість. Переписати `translate-products.mjs` на використання Google Gemini 1.5 Flash API. ^tr1n2l
 
 ## ⏳ In Progress (В роботі)
 
@@ -25,7 +25,7 @@ kanban-plugin: basic
 
 ## 🛑 Blocked (Блокери)
 
-- [ ] 📥 **Atomic CSV імпорт**<br>Чекаємо фінальний файл. ^j1k2l3
+- [ ] 📥 **Atomic CSV імпорт** Файл `feed_tts.csv` перевірено — він не містить колонки з цінами! Потрібно попросити менеджера додати `price_uah`. ^j1k2l3
 - [ ] 🌬 **Eventuri імпорт прайсу**<br>Чекаємо файл від Вані. ^m4n5o6
 
 %% kanban:settings

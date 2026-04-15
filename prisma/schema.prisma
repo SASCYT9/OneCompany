@@ -152,74 +152,74 @@ model AdminAuditLog {
 }
 
 model ShopProduct {
-  id                   String                  @id @default(cuid())
-  slug                 String                  @unique
-  sku                  String?
-  scope                String                  @default("auto")
-  brand                String?
-  titleUa              String
-  titleEn              String
-  categoryUa           String?
-  categoryEn           String?
-  shortDescUa          String?
-  shortDescEn          String?
-  longDescUa           String?
-  longDescEn           String?
-  leadTimeUa           String?
-  leadTimeEn           String?
-  stock                String                  @default("inStock")
-  collectionUa         String?
-  collectionEn         String?
-  priceEur             Decimal?                @db.Decimal(12, 2)
-  priceUsd             Decimal?                @db.Decimal(12, 2)
-  priceUah             Decimal?                @db.Decimal(12, 2)
-  compareAtEur         Decimal?                @db.Decimal(12, 2)
-  compareAtUsd         Decimal?                @db.Decimal(12, 2)
-  compareAtUah         Decimal?                @db.Decimal(12, 2)
-  image                String?
-  gallery              Json?
-  highlights           Json?
-  isPublished          Boolean                 @default(true)
-  createdAt            DateTime                @default(now())
-  updatedAt            DateTime                @updatedAt
-  bodyHtmlEn           String?
-  bodyHtmlUa           String?
-  categoryId           String?
-  compareAtEurB2b      Decimal?                @db.Decimal(12, 2)
-  compareAtUahB2b      Decimal?                @db.Decimal(12, 2)
-  compareAtUsdB2b      Decimal?                @db.Decimal(12, 2)
-  priceEurB2b          Decimal?                @db.Decimal(12, 2)
-  priceUahB2b          Decimal?                @db.Decimal(12, 2)
-  priceUsdB2b          Decimal?                @db.Decimal(12, 2)
-  productCategory      String?
-  productType          String?
-  publishedAt          DateTime?
-  seoDescriptionEn     String?
-  seoDescriptionUa     String?
-  seoTitleEn           String?
-  seoTitleUa           String?
-  status               ShopCatalogStatus       @default(ACTIVE)
-  tags                 String[]                @default([])
-  vendor               String?
-  weight               Float?
-  length               Float?
-  width                Float?
-  height               Float?
-  isDimensionsEstimated Boolean @default(false)
-  supplier             String?
-  originCountry        String?
-  airtableRecordId     String?
-  airtableSyncedAt     DateTime?
-  bundle               ShopBundle?
-  bundleComponentItems ShopBundleItem[]        @relation("ShopBundleComponentProduct")
-  cartItems            ShopCartItem[]
-  orderItems           ShopOrderItem[]
-  category             ShopCategory?           @relation(fields: [categoryId], references: [id])
-  collections          ShopProductCollection[]
-  media                ShopProductMedia[]
-  metafields           ShopProductMetafield[]
-  options              ShopProductOption[]
-  variants             ShopProductVariant[]
+  id                    String                  @id @default(cuid())
+  slug                  String                  @unique
+  sku                   String?
+  scope                 String                  @default("auto")
+  brand                 String?
+  titleUa               String
+  titleEn               String
+  categoryUa            String?
+  categoryEn            String?
+  shortDescUa           String?
+  shortDescEn           String?
+  longDescUa            String?
+  longDescEn            String?
+  leadTimeUa            String?
+  leadTimeEn            String?
+  stock                 String                  @default("inStock")
+  collectionUa          String?
+  collectionEn          String?
+  priceEur              Decimal?                @db.Decimal(12, 2)
+  priceUsd              Decimal?                @db.Decimal(12, 2)
+  priceUah              Decimal?                @db.Decimal(12, 2)
+  compareAtEur          Decimal?                @db.Decimal(12, 2)
+  compareAtUsd          Decimal?                @db.Decimal(12, 2)
+  compareAtUah          Decimal?                @db.Decimal(12, 2)
+  image                 String?
+  gallery               Json?
+  highlights            Json?
+  isPublished           Boolean                 @default(true)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  bodyHtmlEn            String?
+  bodyHtmlUa            String?
+  categoryId            String?
+  compareAtEurB2b       Decimal?                @db.Decimal(12, 2)
+  compareAtUahB2b       Decimal?                @db.Decimal(12, 2)
+  compareAtUsdB2b       Decimal?                @db.Decimal(12, 2)
+  priceEurB2b           Decimal?                @db.Decimal(12, 2)
+  priceUahB2b           Decimal?                @db.Decimal(12, 2)
+  priceUsdB2b           Decimal?                @db.Decimal(12, 2)
+  productCategory       String?
+  productType           String?
+  publishedAt           DateTime?
+  seoDescriptionEn      String?
+  seoDescriptionUa      String?
+  seoTitleEn            String?
+  seoTitleUa            String?
+  status                ShopCatalogStatus       @default(ACTIVE)
+  tags                  String[]                @default([])
+  vendor                String?
+  weight                Float?
+  length                Float?
+  width                 Float?
+  height                Float?
+  isDimensionsEstimated Boolean                 @default(false)
+  supplier              String?
+  originCountry         String?
+  airtableRecordId      String?
+  airtableSyncedAt      DateTime?
+  bundle                ShopBundle?
+  bundleComponentItems  ShopBundleItem[]        @relation("ShopBundleComponentProduct")
+  cartItems             ShopCartItem[]
+  orderItems            ShopOrderItem[]
+  category              ShopCategory?           @relation(fields: [categoryId], references: [id])
+  collections           ShopProductCollection[]
+  media                 ShopProductMedia[]
+  metafields            ShopProductMetafield[]
+  options               ShopProductOption[]
+  variants              ShopProductVariant[]
 
   @@index([scope])
   @@index([isPublished])
@@ -229,42 +229,42 @@ model ShopProduct {
 
 model ShopWarehouse {
   id          String   @id @default(cuid())
-  code        String   @unique       // e.g. "US_NY", "EU_PL", "UA_KYIV"
-  name        String                 // "USA Transit (New York)"
-  nameUa      String                 // "Транзитний Склад США (Нью-Йорк)"
-  country     String                 // "US"
-  city        String?                // "New York"
-  address     String?                // "123 Main St"
-  address2    String?                // "Suite 100"
-  state       String?                // "NY"
-  postalCode  String?                // "10001"
-  phone       String?                // "+1-555-123-4567"
-  contactName String?                // "John Doe" — recipient name for shipping labels
+  code        String   @unique // e.g. "US_NY", "EU_PL", "UA_KYIV"
+  name        String // "USA Transit (New York)"
+  nameUa      String // "Транзитний Склад США (Нью-Йорк)"
+  country     String // "US"
+  city        String? // "New York"
+  address     String? // "123 Main St"
+  address2    String? // "Suite 100"
+  state       String? // "NY"
+  postalCode  String? // "10001"
+  phone       String? // "+1-555-123-4567"
+  contactName String? // "John Doe" — recipient name for shipping labels
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  zones          ShopShippingZone[]
-  brands         ShopBrandLogistics[]
+  zones           ShopShippingZone[]
+  brands          ShopBrandLogistics[]
   inventoryLevels ShopInventoryLevel[]
 
   @@index([isActive, sortOrder])
 }
 
 model ShopBrandLogistics {
-  id                 String         @id @default(cuid())
-  brandName          String         @unique
-  warehouseId        String?
-  originZone         String         @default("USA") // Where does this brand ship from? (USA, EU, etc)
-  ratePerKg          Float          @default(0)     // Base cost per kg
-  volumetricDivisor  Float          @default(5000)  // 5000 for air, 4000 for ground maybe
-  volSurchargePerKg  Float          @default(0)     // Penalty for volumetric vs actual difference
-  baseFee            Float          @default(0)     // Flat handling fee per brand item
-  isActive           Boolean        @default(true)  // Should custom rule apply?
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  warehouse          ShopWarehouse? @relation(fields: [warehouseId], references: [id])
+  id                String         @id @default(cuid())
+  brandName         String         @unique
+  warehouseId       String?
+  originZone        String         @default("USA") // Where does this brand ship from? (USA, EU, etc)
+  ratePerKg         Float          @default(0) // Base cost per kg
+  volumetricDivisor Float          @default(5000) // 5000 for air, 4000 for ground maybe
+  volSurchargePerKg Float          @default(0) // Penalty for volumetric vs actual difference
+  baseFee           Float          @default(0) // Flat handling fee per brand item
+  isActive          Boolean        @default(true) // Should custom rule apply?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  warehouse         ShopWarehouse? @relation(fields: [warehouseId], references: [id])
 
   @@index([brandName])
   @@index([isActive])
@@ -272,40 +272,40 @@ model ShopBrandLogistics {
 }
 
 model ShopShippingZone {
-  id                 String         @id @default(cuid())
-  warehouseId        String?
-  zoneCode           String         // e.g. "KZ", "UA", "EU", "US", "OTHER"
-  label              String         // e.g. "Kazakhstan"
-  labelUa            String         // e.g. "Казахстан"
-  ratePerKg          Float          @default(14)
-  volSurchargePerKg  Float          @default(2)
-  baseFee            Float          @default(0)
-  etaMinDays         Int            @default(7)    // Estimated delivery: minimum days
-  etaMaxDays         Int            @default(14)   // Estimated delivery: maximum days
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  warehouse          ShopWarehouse? @relation(fields: [warehouseId], references: [id])
+  id                String         @id @default(cuid())
+  warehouseId       String?
+  zoneCode          String // e.g. "KZ", "UA", "EU", "US", "OTHER"
+  label             String // e.g. "Kazakhstan"
+  labelUa           String // e.g. "Казахстан"
+  ratePerKg         Float          @default(14)
+  volSurchargePerKg Float          @default(2)
+  baseFee           Float          @default(0)
+  etaMinDays        Int            @default(7) // Estimated delivery: minimum days
+  etaMaxDays        Int            @default(14) // Estimated delivery: maximum days
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  warehouse         ShopWarehouse? @relation(fields: [warehouseId], references: [id])
 
   @@unique([warehouseId, zoneCode])
   @@index([warehouseId])
 }
 
 model ShopTaxRegionRule {
-  id            String   @id @default(cuid())
-  regionCode    String   @unique       // e.g. "UA", "DE", "EU", "US_CA"
-  regionName    String                 // "Ukraine"
-  regionNameUa  String                 // "Україна"
-  taxType       String   @default("VAT") // VAT, GST, SALES_TAX, CUSTOMS_DUTY, NONE
-  taxRate       Float    @default(0)   // Percentage, e.g. 20 for 20%
-  taxLabel      String?                // Display label, e.g. "ПДВ 20%"
-  taxLabelUa    String?                // "ПДВ 20%"
-  customsDutyPct Float   @default(0)   // Import duty percentage
-  isInclusive   Boolean  @default(false) // Tax included in price (EU style) vs added on top (US style)
-  isActive      Boolean  @default(true)
-  notes         String?                // Admin notes, e.g. "Exempt for B2B with VAT ID"
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(cuid())
+  regionCode     String   @unique // e.g. "UA", "DE", "EU", "US_CA"
+  regionName     String // "Ukraine"
+  regionNameUa   String // "Україна"
+  taxType        String   @default("VAT") // VAT, GST, SALES_TAX, CUSTOMS_DUTY, NONE
+  taxRate        Float    @default(0) // Percentage, e.g. 20 for 20%
+  taxLabel       String? // Display label, e.g. "ПДВ 20%"
+  taxLabelUa     String? // "ПДВ 20%"
+  customsDutyPct Float    @default(0) // Import duty percentage
+  isInclusive    Boolean  @default(false) // Tax included in price (EU style) vs added on top (US style)
+  isActive       Boolean  @default(true)
+  notes          String? // Admin notes, e.g. "Exempt for B2B with VAT ID"
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([isActive, sortOrder])
 }
@@ -393,75 +393,76 @@ model ShopProductOption {
 }
 
 model ShopProductVariant {
-  id                   String              @id @default(cuid())
-  productId            String
-  title                String?
-  sku                  String?
-  position             Int                 @default(1)
-  option1Value         String?
-  option1LinkedTo      String?
-  option2Value         String?
-  option2LinkedTo      String?
-  option3Value         String?
-  option3LinkedTo      String?
-  grams                Int?
-  inventoryTracker     String?
-  inventoryQty         Int                 @default(0)
-  inventoryPolicy      ShopInventoryPolicy @default(CONTINUE)
-  fulfillmentService   String?
-  priceEur             Decimal?            @db.Decimal(12, 2)
-  priceUsd             Decimal?            @db.Decimal(12, 2)
-  priceUah             Decimal?            @db.Decimal(12, 2)
-  priceEurB2b          Decimal?            @db.Decimal(12, 2)
-  priceUsdB2b          Decimal?            @db.Decimal(12, 2)
-  priceUahB2b          Decimal?            @db.Decimal(12, 2)
-  compareAtEur         Decimal?            @db.Decimal(12, 2)
-  compareAtUsd         Decimal?            @db.Decimal(12, 2)
-  compareAtUah         Decimal?            @db.Decimal(12, 2)
-  compareAtEurB2b      Decimal?            @db.Decimal(12, 2)
-  compareAtUsdB2b      Decimal?            @db.Decimal(12, 2)
-  compareAtUahB2b      Decimal?            @db.Decimal(12, 2)
-  requiresShipping     Boolean             @default(true)
-  taxable              Boolean             @default(true)
-  barcode              String?
-  image                String?
-  weightUnit           String?
-  taxCode              String?
-  costPerItem          Decimal?            @db.Decimal(12, 2)
-  isDefault            Boolean             @default(false)
-  weight               Float?
-  length               Float?
-  width                Float?
-  height               Float?
-  isDimensionsEstimated Boolean @default(false)
-  originCountry        String?
-  airtableRecordId     String?
-  airtableSyncedAt     DateTime?
-  turn14Id             String?             @unique
-  turn14Hash           String?
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
-  bundleComponentItems ShopBundleItem[]
-  cartItems            ShopCartItem[]
-  product              ShopProduct          @relation(fields: [productId], references: [id], onDelete: Cascade)
-  inventoryLevels      ShopInventoryLevel[]
+  id                    String               @id @default(cuid())
+  productId             String
+  title                 String?
+  sku                   String?
+  position              Int                  @default(1)
+  option1Value          String?
+  option1LinkedTo       String?
+  option2Value          String?
+  option2LinkedTo       String?
+  option3Value          String?
+  option3LinkedTo       String?
+  grams                 Int?
+  inventoryTracker      String?
+  inventoryQty          Int                  @default(0)
+  inventoryPolicy       ShopInventoryPolicy  @default(CONTINUE)
+  fulfillmentService    String?
+  priceEur              Decimal?             @db.Decimal(12, 2)
+  priceUsd              Decimal?             @db.Decimal(12, 2)
+  priceUah              Decimal?             @db.Decimal(12, 2)
+  priceEurB2b           Decimal?             @db.Decimal(12, 2)
+  priceUsdB2b           Decimal?             @db.Decimal(12, 2)
+  priceUahB2b           Decimal?             @db.Decimal(12, 2)
+  compareAtEur          Decimal?             @db.Decimal(12, 2)
+  compareAtUsd          Decimal?             @db.Decimal(12, 2)
+  compareAtUah          Decimal?             @db.Decimal(12, 2)
+  compareAtEurB2b       Decimal?             @db.Decimal(12, 2)
+  compareAtUsdB2b       Decimal?             @db.Decimal(12, 2)
+  compareAtUahB2b       Decimal?             @db.Decimal(12, 2)
+  requiresShipping      Boolean              @default(true)
+  taxable               Boolean              @default(true)
+  barcode               String?
+  image                 String?
+  weightUnit            String?
+  taxCode               String?
+  costPerItem           Decimal?             @db.Decimal(12, 2)
+  isDefault             Boolean              @default(false)
+  weight                Float?
+  length                Float?
+  width                 Float?
+  height                Float?
+  isDimensionsEstimated Boolean              @default(false)
+  originCountry         String?
+  airtableRecordId      String?
+  airtableSyncedAt      DateTime?
+  turn14Id              String?              @unique
+  turn14Hash            String?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  bundleComponentItems  ShopBundleItem[]
+  cartItems             ShopCartItem[]
+  product               ShopProduct          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  inventoryLevels       ShopInventoryLevel[]
+
   @@unique([productId, position])
   @@index([productId])
   @@index([sku])
 }
 
 model ShopInventoryLevel {
-  id                String              @id @default(cuid())
-  variantId         String
-  locationId        String
-  stockedQuantity   Int                 @default(0)
-  reservedQuantity  Int                 @default(0)
-  incomingQuantity  Int                 @default(0)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  id               String   @id @default(cuid())
+  variantId        String
+  locationId       String
+  stockedQuantity  Int      @default(0)
+  reservedQuantity Int      @default(0)
+  incomingQuantity Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  variant           ShopProductVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  location          ShopWarehouse       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  variant  ShopProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  location ShopWarehouse      @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
   @@unique([variantId, locationId])
   @@index([locationId])
@@ -655,7 +656,6 @@ model ShopOrder {
   paymentStatus           String                 @default("UNPAID")
   shippingCalculatedCost  Float?
   ttnNumber               String?
-  hutkoPaymentId          String?
   customer                ShopCustomer?          @relation(fields: [customerId], references: [id])
   items                   ShopOrderItem[]
   events                  ShopOrderStatusEvent[]
@@ -1036,20 +1036,20 @@ enum ShopImportConflictMode {
 /// A local mirror of the Turn14 complete catalog to bypass their lack of search functionality.
 /// Everything is stored heavily relying on JsonB for complete data retention.
 model Turn14CatalogItem {
-  id             String   @id // Turn14 item ID, e.g. "49392"
-  partNumber     String   @unique
-  mfrPartNumber  String?
-  productName    String
-  brandId        Int
-  brand          String
-  category       String?
-  subcategory    String?
-  weight         Float?   // Pre-extracted weight in lbs
-  dealerPrice    Float?   // Wholesale / Group price
-  retailPrice    Float?   // Jobber / Retail price
-  rawAttributes  Json     // Full Turn14 /items payload
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String   @id // Turn14 item ID, e.g. "49392"
+  partNumber    String   @unique
+  mfrPartNumber String?
+  productName   String
+  brandId       Int
+  brand         String
+  category      String?
+  subcategory   String?
+  weight        Float? // Pre-extracted weight in lbs
+  dealerPrice   Float? // Wholesale / Group price
+  retailPrice   Float? // Jobber / Retail price
+  rawAttributes Json // Full Turn14 /items payload
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([brandId])
   @@index([mfrPartNumber])

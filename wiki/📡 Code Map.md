@@ -13,7 +13,7 @@ date_created: "2026-04-06"
 - `src/app/[locale]/shop` — The main Next.js App Router for the storefront.
 - `src/app/[locale]/shop/products/[slug]` — Product detail pages.
 - `src/app/[locale]/shop/components` — Shared, highly reusable client/server components.
-- `src/app/api/webhooks/` — Webhooks (Stripe, Hutko, etc.).
+- `src/app/api/webhooks/` — Webhooks (Stripe, WhitePay, Shopify).
 
 ### 🏢 Admin Panel
 - `src/app/admin` — The protected admin dashboard.

@@ -1,0 +1,1 @@
+const fs = require('fs'); const content = fs.readFileSync('prisma/schema.prisma', 'utf8'); const shopProductObj = content.slice(content.indexOf('model ShopProduct'), content.indexOf('model', content.indexOf('model ShopProduct') + 1)); console.log(shopProductObj);
