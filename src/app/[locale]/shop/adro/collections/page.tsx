@@ -74,7 +74,7 @@ export default async function AdroCollectionsPage({ params }: Props) {
               <Link
                 key={line.id}
                 href={`/${locale}/shop/adro/collections/${line.id}`}
-                className="group relative bg-[#050505]/60 backdrop-blur-xl overflow-hidden flex flex-col hover:bg-[rgba(10,10,10,0.85)] transition-all duration-500 border border-white/[0.04] shadow-2xl rounded-lg"
+                className="group relative bg-[#050505]/60 backdrop-blur-xl overflow-hidden flex flex-col hover:bg-[rgba(10,10,10,0.85)] transition-all duration-500 border border-white/[0.04] shadow-2xl"
               >
                 {/* Image */}
                 <div className="relative aspect-[16/10] bg-transparent overflow-hidden">
