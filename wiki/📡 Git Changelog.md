@@ -13,6 +13,18 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-17 02:03] Commit `b8099d25`
+**Автор**: 👤 SASCYT9
+
+> fix(ui): remove rounded-lg from ADRO collections page cars making them sharp again
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/shop/adro/collections/page.tsx`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-17 02:01] Commit `d1a6a798`
 **Автор**: 👤 SASCYT9
 

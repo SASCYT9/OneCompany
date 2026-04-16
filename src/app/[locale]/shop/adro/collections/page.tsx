@@ -83,7 +83,7 @@ export default async function AdroCollectionsPage({ params }: Props) {
                     alt={isUa ? line.nameUk : line.name}
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="object-contain transition-transform duration-700 group-hover:scale-110 p-4"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 </div>
