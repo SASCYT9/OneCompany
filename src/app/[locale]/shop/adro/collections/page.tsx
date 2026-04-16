@@ -78,7 +78,6 @@ export default async function AdroCollectionsPage({ params }: Props) {
               >
                 {/* Image */}
                 <div className="relative aspect-[16/10] bg-transparent overflow-hidden">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-10" />
                   <Image
                     src={line.image}
                     alt={isUa ? line.nameUk : line.name}
