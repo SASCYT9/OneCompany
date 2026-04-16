@@ -49,13 +49,49 @@ function AdminShopPageContent() {
   const statusParam = searchParams.get('status') || 'ALL';
 
   const [products, setProducts] = useState<ShopProductListItem[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [metadata, setMetadata] = useState({ totalCount: 0, totalPages: 1, currentPage: 1, limit: 50 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [bulkUpdating, setBulkUpdating] = useState(false);
 
   // Local state for debounced inputs
   const [searchInput, setSearchInput] = useState(searchParam);
+
+  function toggleSelectAll() {
+    if (selectedIds.size === products.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(products.map(p => p.id)));
+    }
+  }
+
+  function toggleSelect(id: string) {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  }
+
+  async function handleBulkStatus(status: 'ACTIVE' | 'DRAFT' | 'ARCHIVED') {
+    if (selectedIds.size === 0) return;
+    setBulkUpdating(true);
+    try {
+      const ids = Array.from(selectedIds);
+      const res = await fetch('/api/admin/shop/products/bulk-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, status })
+      });
+      if (res.ok) {
+        setSelectedIds(new Set());
+        await load();
+      }
+    } finally {
+      setBulkUpdating(false);
+    }
+  }
 
   function updateParams(newParams: Record<string, string | number | null>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -74,6 +110,7 @@ function AdminShopPageContent() {
   }
 
   useEffect(() => {
+    setSelectedIds(new Set());
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
@@ -299,6 +336,14 @@ function AdminShopPageContent() {
             <table className="w-full min-w-[800px] text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
+                  <th className="px-4 py-3 w-10">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.size === products.length && products.length > 0} 
+                      onChange={toggleSelectAll}
+                      className="rounded border-white/20 bg-black/40 text-emerald-500 focus:ring-emerald-500/30"
+                    />
+                  </th>
                   <th className="px-4 py-3 text-white/60 font-medium">Товар</th>
                   <th className="px-4 py-3 text-white/60 font-medium">Тип</th>
                   <th className="px-4 py-3 text-white/60 font-medium">Статус</th>
@@ -310,7 +355,15 @@ function AdminShopPageContent() {
               </thead>
               <tbody>
                 {products.map((product) => (
-                  <tr key={product.id} className="border-b border-white/5 align-top hover:bg-white/[0.03]">
+                  <tr key={product.id} className={`border-b border-white/5 align-top hover:bg-white/[0.03] transition-colors ${selectedIds.has(product.id) ? 'bg-emerald-500/[0.03]' : ''}`}>
+                    <td className="px-4 py-4">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedIds.has(product.id)} 
+                        onChange={() => toggleSelect(product.id)}
+                        className="rounded border-white/20 bg-black/40 text-emerald-500 focus:ring-emerald-500/30"
+                      />
+                    </td>
                     <td className="px-4 py-4">
                       <div className="font-medium text-white">{product.titleEn || product.titleUa}</div>
                       <div className="mt-1 text-xs font-mono text-white/45">{product.slug}</div>
@@ -377,7 +430,7 @@ function AdminShopPageContent() {
 
         {/* Pagination Controls */}
         {metadata.totalPages > 1 && (
-          <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 text-sm text-white/60">
+          <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 text-sm text-white/60 mb-20">
             <div>
               Показано {(metadata.currentPage - 1) * metadata.limit + 1} - {Math.min(metadata.currentPage * metadata.limit, metadata.totalCount)} з {metadata.totalCount}
             </div>
@@ -401,6 +454,43 @@ function AdminShopPageContent() {
           </div>
         )}
       </div>
+
+      {/* Floating Bulk Actions Bar */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 px-6 py-4 rounded-3xl border border-white/10 bg-black/90 backdrop-blur-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex flex-col">
+            <span className="text-xs font-bold text-white uppercase tracking-widest">{selectedIds.size} вибрано</span>
+            <button onClick={() => setSelectedIds(new Set())} className="text-[10px] text-white/40 hover:text-white text-left uppercase tracking-tighter">Скасувати</button>
+          </div>
+          <div className="h-8 w-px bg-white/10" />
+          <div className="flex items-center gap-2">
+            <button 
+              disabled={bulkUpdating}
+              onClick={() => handleBulkStatus('ACTIVE')}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-500/20 disabled:opacity-50 transition-all"
+            >
+              {bulkUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Package className="w-3 h-3" />}
+              Активувати
+            </button>
+            <button 
+              disabled={bulkUpdating}
+              onClick={() => handleBulkStatus('DRAFT')}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-widest hover:bg-amber-500/20 disabled:opacity-50 transition-all"
+            >
+              {bulkUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Layers3 className="w-3 h-3" />}
+              В Чернетки
+            </button>
+            <button 
+              disabled={bulkUpdating}
+              onClick={() => handleBulkStatus('ARCHIVED')}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500/20 disabled:opacity-50 transition-all"
+            >
+              {bulkUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+              В Архів
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

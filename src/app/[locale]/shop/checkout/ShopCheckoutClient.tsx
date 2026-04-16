@@ -49,7 +49,7 @@ type CheckoutQuote = {
 };
 
 type PaymentOptions = {
-  methods: Array<'FOP' | 'STRIPE' | 'WHITEBIT' | 'WHITEPAY_FIAT'>;
+  methods: Array<'FOP' | 'WHITEBIT' | 'WHITEPAY_FIAT'>;
   fopDetails: {
     companyName: string | null;
     iban: string | null;
@@ -90,7 +90,7 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
     postcode: '',
     country: isUa ? 'Ukraine' : '',
     currency: isUa ? 'UAH' : 'EUR',
-    paymentMethod: 'FOP' as 'FOP' | 'STRIPE' | 'WHITEBIT' | 'WHITEPAY_FIAT',
+    paymentMethod: 'FOP' as 'FOP' | 'WHITEBIT' | 'WHITEPAY_FIAT',
   });
   const [paymentOptions, setPaymentOptions] = useState<PaymentOptions | null>(null);
 
@@ -405,25 +405,6 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
                   </div>
                 </div>
               </label>
-              {paymentOptions?.methods.includes('STRIPE') && (
-                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
-                  <div className="flex items-center gap-4 relative z-10">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="STRIPE"
-                      checked={form.paymentMethod === 'STRIPE'}
-                      onChange={() => setForm((f) => ({ ...f, paymentMethod: 'STRIPE' }))}
-                      className="h-4 w-4 border-white/30 bg-black text-[#c29d59] focus:ring-[#c29d59]/50 accent-[#c29d59]"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white group-hover:text-[#c29d59] transition-colors">Stripe Checkout</span>
-                      <span className="text-[11px] text-white/40">{isUa ? 'Міжнародна картка / USD EUR' : 'International Cards'}</span>
-                    </div>
-                  </div>
-                </label>
-              )}
-
               {paymentOptions?.methods.includes('WHITEBIT') && (
                 <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-white/10 bg-black/30 p-5 transition-all hover:bg-white/5 hover:border-white/20 has-[:checked]:border-[#c29d59]/50 has-[:checked]:bg-[#c29d59]/5 has-[:checked]:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
                   <div className="flex items-center gap-4 relative z-10">

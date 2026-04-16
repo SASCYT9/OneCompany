@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneCompany · Hybrid Intelligence Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030303;
+            --surface: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #818cf8;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --green: #10b981;
+            --amber: #f59e0b;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* Background Glow */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(129, 140, 248, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--green);
+        }
+
+        .dot {
+            width: 8px; height: 8px;
+            background-color: var(--green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        h2 {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(129, 140, 248, 0.1);
+            border: 1px solid rgba(129, 140, 248, 0.2);
+            border-radius: 6px;
+            font-size: 11px;
+            color: var(--accent);
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .thought-bubble {
+            margin-bottom: 25px;
+            padding-left: 15px;
+            border-left: 2px solid var(--border);
+        }
+
+        .thought-bubble strong {
+            display: block;
+            color: var(--accent);
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .thought-bubble p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0;
+            color: var(--text);
+        }
+
+        .log-item {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            margin-bottom: 10px;
+            color: var(--text-dim);
+        }
+
+        .log-item span {
+            color: var(--green);
+        }
+
+        #refresh-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+    </style>
+    <script>
+        // Функція для автоматичного перезавантаження сторінки кожні 30 секунд
+        // щоб бачити свіжі думки
+        setInterval(() => {
+            window.location.reload();
+        }, 30000);
+    </script>
+</head>
+<body>
+    <header>
+        <div style="font-weight: 300; font-size: 24px; letter-spacing: -0.02em;">OneCompany <span style="font-weight: 600; color: var(--accent);">Intelligence</span></div>
+        <div class="status-badge">
+            <div class="dot"></div>
+            Hybrid Mind Active
+        </div>
+    </header>
+
+    <div class="grid">
+        <div class="side-panel">
+            <div class="card" style="margin-bottom: 30px;">
+                <h2>Active Experts (Antigravity)</h2>
+                <div id="skills-list">
+                    <span class="skill-tag">agent-orchestrator</span>
+                    <span class="skill-tag">ui-ux-pro-max</span>
+                    <span class="skill-tag">nextjs-architect</span>
+                    <span class="skill-tag">price-psychology</span>
+                    <span class="skill-tag">premium-design</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>System Logs</h2>
+                <div class="log-item"><span>[OK]</span> Antigravity Skills Linked (1400+)</div>
+                <div class="log-item"><span>[OK]</span> Whitepay Integration Validated</div>
+                <div class="log-item"><span>[WARN]</span> globals.css exceeds 8kb budget</div>
+                <div class="log-item"><span>[INFO]</span> Urban product DNA analysis started</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>Thought Space Stream</h2>
+                
+                <div class="thought-bubble">
+                    <strong>Antigravity Architect</strong>
+                    <p>Ми маємо негайно провести аудит middleware.ts. Якщо ми використовуємо Whitepay, нам потрібно переконатись, що всі вебхуки проходять через захищений периметр без Stripe-залежностей.</p>
+                </div>
+
+                <div class="thought-bubble">
+                    <strong>UX Pro Max</strong>
+                    <p>Для Urban я пропоную "Optical Center" верстку. Основні акценти мають бути зміщені на 2% вгору від математичного центру, щоб створити відчуття преміальної легкості.</p>
+                </div>
+
+                <div class="thought-bubble">
+                    <strong>Gemini CLI</strong>
+                    <p>Я інтегрую ці думки в наступний план дій. Першим кроком буде видалення коду Stripe, щоб звільнити простір для Whitepay-еквайрингу.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="refresh-hint">Сторінка автоматично оновлюється кожні 30 сек.</div>
+</body>
+</html>

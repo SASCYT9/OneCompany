@@ -88,7 +88,6 @@ type ShopSettingsResponse = {
   fopBankName: string | null;
   fopEdrpou: string | null;
   fopDetails: string | null;
-  stripeEnabled: boolean;
   whiteBitEnabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -153,7 +152,6 @@ type ShopSettingsFormState = {
   fopBankName: string;
   fopEdrpou: string;
   fopDetails: string;
-  stripeEnabled: boolean;
   whiteBitEnabled: boolean;
 };
 
@@ -358,7 +356,6 @@ function createEmptyForm(): ShopSettingsFormState {
     fopBankName: '',
     fopEdrpou: '',
     fopDetails: '',
-    stripeEnabled: false,
     whiteBitEnabled: false,
   };
 }
@@ -442,7 +439,6 @@ function settingsToForm(settings: ShopSettingsResponse): ShopSettingsFormState {
     fopBankName: settings.fopBankName ?? '',
     fopEdrpou: settings.fopEdrpou ?? '',
     fopDetails: settings.fopDetails ?? '',
-    stripeEnabled: settings.stripeEnabled ?? false,
     whiteBitEnabled: settings.whiteBitEnabled ?? false,
   };
 }
@@ -514,7 +510,6 @@ function formToPayload(form: ShopSettingsFormState) {
     fopBankName: form.fopBankName.trim() || null,
     fopEdrpou: form.fopEdrpou.trim() || null,
     fopDetails: form.fopDetails.trim() || null,
-    stripeEnabled: form.stripeEnabled,
     whiteBitEnabled: form.whiteBitEnabled,
   };
 }
@@ -1193,16 +1188,7 @@ export default function AdminShopSettingsPage() {
                 onChange={(value) => updateField('fopDetails', value)}
                 rows={3}
               />
-              <div className="flex flex-wrap gap-6 border-t border-white/10 pt-4">
-                <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-white/80">
-                  <input
-                    type="checkbox"
-                    checked={form.stripeEnabled}
-                    onChange={(e) => updateField('stripeEnabled', e.target.checked)}
-                    className="h-4 w-4 rounded border-white/20 bg-zinc-950"
-                  />
-                  Увімкнено Stripe (картка)
-                </label>
+              <div className="mt-8 flex flex-col gap-4">
                 <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-white/80">
                   <input
                     type="checkbox"
@@ -1212,10 +1198,10 @@ export default function AdminShopSettingsPage() {
                   />
                   Увімкнено White Bit (згодом)
                 </label>
+                <p className="text-xs text-white/45">
+                  White Bit (незабаром): налаштуйте ключі доступу в середовищі.
+                </p>
               </div>
-              <p className="text-xs text-white/45">
-                Stripe: встановіть STRIPE_SECRET_KEY та STRIPE_WEBHOOK_SECRET у середовищі; webhook URL: /api/shop/stripe/webhook
-              </p>
             </div>
           </section>
 

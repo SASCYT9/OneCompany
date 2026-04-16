@@ -14,7 +14,8 @@ export type OurStore = {
   href: string;
   /** true = зовнішній магазин (відкривати в новій вкладці) */
   external?: boolean;
-  imageUrl?: string;
+  /** true = магазин тимчасово прихований (для релізів) */
+  isHidden?: boolean;
 };
 
 /** Список магазинів. Для Urban href будуємо як /{locale}/shop/urban, для інших — з поля href. */

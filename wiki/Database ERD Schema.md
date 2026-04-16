@@ -39,6 +39,12 @@ erDiagram
 
     CrmCustomer ||--o{ CrmOrder : has
     CrmOrder ||--|{ CrmOrderItem : contains
+
+    ShopImportTemplate ||--o{ ShopImportJob : runs
+    ShopImportJob ||--o{ ShopImportRowError : logs
+
+    TelegramUser ||--o| TelegramSession : has
+    TelegramUser ||--o{ TelegramConversation : participates_in
 ```
 
 ## Ключові Модулі (Домени)
@@ -67,12 +73,18 @@ erDiagram
 - **AdminRole & AdminUserRole**: Рольова модель для розмежування прав менеджерів.
 - **AdminAuditLog**: Журналювання кожної дії в адмін-панелі для безпеки (хто, що і коли змінив).
 
-### 5. Інтеграції (CRM та Turn14)
+### 5. Імпорти (Data Imports)
+- **ShopImportJob & ShopImportTemplate**: Підсистема для безпечного імпорту CSV файлів, збереження шаблонів мапінгу колонок та логування помилок (`ShopImportRowError`).
+
+### 6. Інтеграції (CRM, Shopify та Turn14)
 - **CrmOrder / CrmCustomer**: Внутрішня система ведення фінансів (можливо, синхронізується з Airtable), відстеження `marginality` та `profit`.
 - **Turn14CatalogItem**: Локальне дзеркало 700K+ товарів від постачальника Turn14 (JsonB), щоб обійти повільний пошук їхнього API.
+- **ShopifyStore**: Збереження токенів доступу та конфігурацій для зовнішніх Shopify магазинів.
+- **StockProduct**: Модель для агрегації наявності товарів від різних дистриб'юторів.
 
-### 6. Telegram та Комунікації
-- **TelegramUser / TelegramConversation**: Дані користувачів, що взаємодіють з компанією через Telegram бота.
+### 7. Telegram та Комунікації
+- Детальна архітектура бота описана у [[🤖 Telegram Bot]].
+- **TelegramUser / TelegramSession / TelegramConversation**: Дані користувачів та управління станом їхніх діалогів.
 - **Message / Reply**: Система тікетів/лідів зі зворотним зв'язком.
 
 ## Особливості Архітектури

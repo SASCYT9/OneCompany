@@ -75,8 +75,8 @@ export default function OhlinsHomeSignature({ locale }: Props) {
             ))}
           </div>
 
-          <Link href={`/${locale}/shop/ohlins/collections/road-track`} className="oh-btn" data-oh-reveal style={{ transitionDelay: '0.4s' }}>
-            {L(isUa, OHLINS_HERO.ctaText, OHLINS_HERO.ctaTextUa)}
+          <Link href={`/${locale}/shop/ohlins/catalog`} className="oh-btn" data-oh-reveal style={{ transitionDelay: '0.4s' }}>
+            {L(isUa, 'Find Your Suspension', 'Знайти свою підвіску')}
           </Link>
         </div>
       </section>
@@ -153,6 +153,14 @@ export default function OhlinsHomeSignature({ locale }: Props) {
                 </Link>
               );
             })}
+          </div>
+
+          {/* Full Catalog CTA */}
+          <div style={{ textAlign: 'center', marginTop: '4rem' }} data-oh-reveal>
+            <Link href={`/${locale}/shop/ohlins/catalog`} className="oh-btn">
+              {L(isUa, 'Browse Full Catalog', 'Переглянути весь каталог')}
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </Link>
           </div>
         </div>
       </section>

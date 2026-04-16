@@ -1,100 +1,122 @@
-/* ──────────────────────────────────────────────────
-   GiroDisc Home Data  (EN / UA) - Authentic
-   ────────────────────────────────────────────────── */
-
-export const GIRODISC_HERO = {
-  heroVideoUrl: '', 
-  heroImageFallback: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/image-manager/g8xsplash.jpg?t=1708997026',
-  subtitle:
-    'High-performance 2-piece floating brake rotors. Engineered for the track, designed to win.',
-  subtitleUk:
-    'Високопродуктивні двоскладові плаваючі гальмівні диски. Розроблено для треку, створено для перемоги.',
-  ctaText: 'Store Catalog',
-  ctaTextUk: 'Каталог',
+export type GirodiscProductLine = {
+  title: string;
+  titleUk: string;
+  subtitle: string;
+  subtitleUk: string;
+  badge: string;
+  badgeUk: string;
+  tagOne: string;
+  tagTwo: string;
+  buttonLabel: string;
+  buttonLabelUk: string;
+  link: string;
+  imageUrl: string;
 };
 
-export const GIRODISC_STATS = [
-  { val: '2003', en: 'Founded', ua: 'Засновано' },
-  { val: '-8 lbs', en: 'Unsprung Wt / Corner', ua: 'Зниження непідресореної маси' },
-  { val: '6061', en: 'T-6 Aluminum', ua: 'Алюміній T-6' },
-  { val: '72', en: 'Curved Vanes', ua: 'Вигнуті ребра' },
+export const GIRODISC_HERO = {
+  eyebrow: 'One Company × GiroDisc',
+  eyebrowUk: 'One Company × GiroDisc',
+  title: 'The Pinnacle of Braking Performance.',
+  titleUk: 'Вершина гальмівної ефективності.',
+  subtitle:
+    'Official GiroDisc distributor. 100% US-made, 2-piece high-performance rotors for both street and track.',
+  subtitleUk:
+    'Офіційний дистриб\'ютор GiroDisc. Високоефективні двоскладові гальмівні диски, 100% вироблені в США, для міста та треку.',
+  primaryButtonLabel: 'Explore Range',
+  primaryButtonLabelUk: 'Модельний ряд',
+  primaryButtonLink: '/shop/girodisc/collections',
+  secondaryButtonLabel: 'About Us',
+  secondaryButtonLabelUk: 'Про нас',
+  secondaryButtonLink: '/about',
+  secondaryButtonNewTab: false,
+  heroImageUrl: '/images/shop/girodisc/girodisc-hero.jpg',
+} as const;
+
+export const GIRODISC_PRODUCT_LINES: GirodiscProductLine[] = [
+  {
+    title: '2-Piece Rotors',
+    titleUk: 'Двоскладові Ротори',
+    subtitle: 'Track-Ready Performance',
+    subtitleUk: 'Для Треку та Міста',
+    badge: 'Flagship',
+    badgeUk: 'Флагман',
+    tagOne: 'Lightweight',
+    tagTwo: 'Cooling',
+    buttonLabel: 'View Rotors',
+    buttonLabelUk: 'Переглянути ротори',
+    link: '/shop/girodisc/rotors',
+    imageUrl: '/images/shop/girodisc/line-rotors.jpg',
+  },
+  {
+    title: 'Performance Pads',
+    titleUk: 'Спортивні Колодки',
+    subtitle: 'Magic Pads',
+    subtitleUk: 'Серія Magic Pads',
+    badge: 'Popular',
+    badgeUk: 'Популярно',
+    tagOne: 'Low Dust',
+    tagTwo: 'High Bite',
+    buttonLabel: 'View Pads',
+    buttonLabelUk: 'Переглянути колодки',
+    link: '/shop/girodisc/pads',
+    imageUrl: '/images/shop/girodisc/line-pads.jpg',
+  },
+  {
+    title: 'Rebuild Kits',
+    titleUk: 'Ремонтні Набори',
+    subtitle: 'Hardware & Bobbins',
+    subtitleUk: 'Кріплення та бобіни',
+    badge: 'Essential',
+    badgeUk: 'Важливо',
+    tagOne: 'Service',
+    tagTwo: 'OEM Spec',
+    buttonLabel: 'View Kits',
+    buttonLabelUk: 'Переглянути набори',
+    link: '/shop/girodisc/rebuild-kits',
+    imageUrl: '/images/shop/girodisc/line-rebuild.jpg',
+  },
+  {
+    title: 'Titanium Shields',
+    titleUk: 'Титанові Щити',
+    subtitle: 'Thermal Management',
+    subtitleUk: 'Терморегуляція',
+    badge: 'Track',
+    badgeUk: 'Трек',
+    tagOne: 'Titanium',
+    tagTwo: 'Heat Shield',
+    buttonLabel: 'View Shields',
+    buttonLabelUk: 'Переглянути щити',
+    link: '/shop/girodisc/shields',
+    imageUrl: '/images/shop/girodisc/line-shields.jpg',
+  },
 ];
 
-export const GIRODISC_MATERIALS = [
-  {
-    title: 'Curved Vane Cast Iron',
-    titleUk: 'Чавун із вигнутими ребрами',
-    description:
-      'Our rings are poured in the USA with proprietary cast iron alloys, featuring 72 directional curved vanes. They act as a centrifugal air pump, forcing cool air through the rotor and shedding massive amounts of heat during aggressive track use.',
-    descriptionUk:
-      'Наші диски відливаються в США з патентованих чавунних сплавів та мають 72 спрямовані вигнуті ребра. Вони діють як відцентровий насос, проганяючи повітря через ротор і розсіюючи величезну кількість тепла під час агресивного водіння на треку.',
-    image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/image-manager/rings-cropped-resized.jpg',
-  },
-  {
-    title: 'Billet Aluminum Hats',
-    titleUk: 'Фрезеровані алюмінієві маточини',
-    description:
-      'Precision machined from strictly US-sourced 6061-T6 aluminum billet. This drastically reduces unsprung rotational mass while ensuring perfect fitment and zero warping. Finished in our signature black anodizing.',
-    descriptionUk:
-      'Фрезеровані на верстатах з ЧПУ з американського алюмінію 6061-T6. Це значно зменшує непідресорену обертову масу, гарантуючи ідеальну посадку і нульову деформацію. Покриті фірмовим чорним анодуванням.',
-    image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/image-manager/g8xsplash.jpg',
-  },
-];
-
-export const GIRODISC_PRODUCT_LINES = [
-  {
-    id: 'rotors',
-    name: '2-Piece Rotors',
-    nameUk: 'Двоскладові диски',
-    description: 'Direct replacement 2-piece floating rotors. Shed weight, run cooler, brake harder.',
-    descriptionUk: 'Плаваючі 2-складові диски замість штатних. Менше ваги, краще охолодження, жорсткіше гальмування.',
-    badge: 'Rotors',
-    badgeUk: 'Rotors',
-    image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/image-manager/bmw-g8x.jpg',
-    link: '/shop/girodisc/collections',
-  },
-  {
-    id: 'pads',
-    name: 'Racing Pads',
-    nameUk: 'Гоночні колодки',
-    description: 'The GiroDisc Magic Pads and Raybestos racing compounds matched for our iron rings.',
-    descriptionUk: 'Magic Pads від GiroDisc та гоночні компаунди Raybestos, спеціально підібрані під наш чавун.',
-    badge: 'Friction',
-    badgeUk: 'Тертя',
-    image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/image-manager/emira.jpg',
-    link: '/shop/girodisc/collections',
-  },
-  {
-    id: 'shields',
-    name: 'Titanium Shields',
-    nameUk: 'Титанові екрани',
-    description: 'Stop heat transfer to your caliper fluid with aerospace-grade titanium shims.',
-    descriptionUk: 'Зупиніть передачу тепла на гальмівну рідину за допомогою титанових проставок аерокосмічного класу.',
-    badge: 'Hardware',
-    badgeUk: 'Запчастини',
-    image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/image-manager/ti-shims.jpg',
-    link: '/shop/girodisc/collections',
-  },
-  {
-    id: 'rebuild',
-    name: 'Rebuild Kits',
-    nameUk: 'Ремкомплекти',
-    description: 'Rotor hardware and caliper rebuild kits with high-temperature seals and dust boots.',
-    descriptionUk: 'Кріплення для дисків та ремкомплекти супортів із високотемпературними сальниками.',
-    badge: 'Rebuild',
-    badgeUk: 'Обслуговування',
-    image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/image-manager/ccrk-c4.jpg',
-    link: '/shop/girodisc/collections',
-  },
-];
-
-export const GIRODISC_HERITAGE = {
-  videoUrl: 'https://www.youtube.com/embed/slk23FHCF7U?autoplay=1&mute=1&loop=1&playlist=slk23FHCF7U&controls=0&showinfo=0&rel=0',
-  fallbackImage: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/image-manager/grcorolla.jpg',
-  title: 'Braking Precision',
-  titleUk: 'Точність гальмування',
-  description:
-    'GiroDisc started in 2003 with one mission: to bring true racing brake technology to enthusiasts worldwide without compromise. From our dedicated manufacturing facility in Bellingham, Washington, we transform raw US materials into championship-winning thermal management hardware.',
-  descriptionUk:
-    'Компанія GiroDisc була заснована в 2003 році з єдиною метою: надати ентузіастам у всьому світі справжні гоночні гальмівні технології без компромісів. На нашому спеціалізованому заводі в Беллінгемі, штат Вашингтон, ми перетворюємо американську сировину на чемпіонське обладнання.',
+export const GIRODISC_FACTORY_CONTENT = {
+  title: 'Machined to Absolute Perfection',
+  titleUk: 'Обробка до абсолютної досконалості',
+  description: 'Every rotor is designed, engineered, and manufactured in-house at the USA facility using state-of-the-art CNC machines. This guarantees unparalleled precision and quality control.',
+  descriptionUk: 'Кожен диск спроєктовано та виготовлено на власному заводі у США з використанням найсучасніших верстатів із ЧПК. Це гарантує неперевершену точність та контроль якості.',
+  cards: [
+    {
+      title: 'CNC Precision',
+      titleUk: 'Точність ЧПК',
+      desc: 'Surgical accuracy in every cut.',
+      descUk: 'Хірургічна точність у кожному зрізі.',
+      img: '/images/shop/girodisc/girodisc-cnc.jpg'
+    },
+    {
+      title: 'Iron Casting',
+      titleUk: 'Власне Лиття',
+      desc: 'Proprietary iron alloys for max thermal capacity.',
+      descUk: 'Власні сплави чавуну для максимальної тепломісткості.',
+      img: '/images/shop/girodisc/girodisc-iron.jpg'
+    },
+    {
+      title: 'In-House Testing',
+      titleUk: 'Внутрішнє Тестування',
+      desc: 'Rigorous tests on tracks and labs.',
+      descUk: 'Жорсткі тести на треках та в лабораторіях.',
+      img: '/images/shop/girodisc/girodisc-factory.jpg'
+    }
+  ]
 };

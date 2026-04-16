@@ -41,11 +41,28 @@ export async function GET(request: NextRequest) {
     // 5. Total Customers
     const totalCustomers = await prisma.shopCustomer.count();
 
+    // 6. Turn14 Stats
+    const turn14Brands = await prisma.turn14BrandMarkup.findMany({
+      select: {
+        syncStatus: true,
+        updatedAt: true,
+        brandName: true
+      }
+    });
+
+    const turn14Stats = {
+      total: turn14Brands.length,
+      syncing: turn14Brands.filter(b => b.syncStatus === 'syncing').length,
+      idle: turn14Brands.filter(b => b.syncStatus === 'idle').length,
+      latestSync: turn14Brands.length > 0 ? new Date(Math.max(...turn14Brands.map(b => b.updatedAt.getTime()))).toISOString() : null
+    };
+
     return NextResponse.json({
       totalRevenue,
       activeOrders,
       totalDebt,
       totalCustomers,
+      turn14Stats,
       recentOrders: recentOrders.map(o => ({
         id: o.id,
         displayId: o.orderNumber,

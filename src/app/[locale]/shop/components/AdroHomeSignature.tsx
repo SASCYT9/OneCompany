@@ -145,7 +145,7 @@ export default function AdroHomeSignature({ locale }: Props) {
       {/* ════════════════════════════════════════════════════════════════
           SECTION 4 — VEHICLE PLATFORMS
       ════════════════════════════════════════════════════════════════ */}
-      <section className="adro-platforms">
+      <section id="catalog" className="adro-platforms">
         <div className="adro-platforms-inner">
           <div className="adro-platforms-header" data-adro-reveal>
             <h2>{L(isUa, 'Vehicle Platforms', 'Платформи Автомобілів')}</h2>

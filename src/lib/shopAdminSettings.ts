@@ -74,7 +74,6 @@ export type ShopSettingsRuntime = {
   fopBankName: string | null;
   fopEdrpou: string | null;
   fopDetails: string | null;
-  stripeEnabled: boolean;
   whiteBitEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -99,7 +98,6 @@ export type ShopSettingsRecord = {
   fopBankName: string | null;
   fopEdrpou: string | null;
   fopDetails: string | null;
-  stripeEnabled: boolean;
   whiteBitEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -123,7 +121,6 @@ export type ShopSettingsPayload = {
   fopBankName: string | null;
   fopEdrpou: string | null;
   fopDetails: string | null;
-  stripeEnabled: boolean;
   whiteBitEnabled: boolean;
 };
 
@@ -400,7 +397,6 @@ export function normalizeShopSettingsPayload(input: unknown) {
     fopBankName: nullableString(source.fopBankName),
     fopEdrpou: nullableString(source.fopEdrpou),
     fopDetails: nullableString(source.fopDetails),
-    stripeEnabled: source.stripeEnabled === true,
     whiteBitEnabled: source.whiteBitEnabled === true,
   };
 
@@ -459,7 +455,6 @@ export function buildShopSettingsRuntimeFromPayload(
     fopBankName: payload.fopBankName,
     fopEdrpou: payload.fopEdrpou,
     fopDetails: payload.fopDetails,
-    stripeEnabled: payload.stripeEnabled,
     whiteBitEnabled: payload.whiteBitEnabled,
     createdAt: overrides?.createdAt ?? new Date(),
     updatedAt: overrides?.updatedAt ?? new Date(),
@@ -486,7 +481,6 @@ export function getShopSettingsRuntime(record: ShopSettingsRecord): ShopSettings
       fopBankName: record.fopBankName,
       fopEdrpou: record.fopEdrpou,
       fopDetails: record.fopDetails,
-      stripeEnabled: record.stripeEnabled,
       whiteBitEnabled: record.whiteBitEnabled,
     }),
     {
@@ -518,7 +512,6 @@ export function serializeShopSettings(record: ShopSettingsRecord) {
     fopBankName: runtime.fopBankName,
     fopEdrpou: runtime.fopEdrpou,
     fopDetails: runtime.fopDetails,
-    stripeEnabled: runtime.stripeEnabled,
     whiteBitEnabled: runtime.whiteBitEnabled,
     createdAt: runtime.createdAt.toISOString(),
     updatedAt: runtime.updatedAt.toISOString(),
@@ -548,7 +541,6 @@ export async function getOrCreateShopSettings(prisma: PrismaClient) {
       taxRegions: DEFAULT_TAX_REGIONS,
       regionalPricingRules: DEFAULT_REGIONAL_PRICING_RULES,
       showTaxesIncludedNotice: false,
-      stripeEnabled: false,
       whiteBitEnabled: false,
     },
   });

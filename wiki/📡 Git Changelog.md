@@ -13,6 +13,18 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-16 02:01] Commit `44e05aa3`
+**Автор**: 👤 SASCYT9
+
+> fix(shop): use static table ID for airtable stock feed to fix URL encoding issue
+
+#### 📂 Змінені файли:
+- **M**: `src/app/api/admin/shop/feed/stock/route.ts`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-16 01:56] Commit `91dd0771`
 **Автор**: 👤 SASCYT9
 

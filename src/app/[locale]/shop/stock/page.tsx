@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Search, ChevronDown, ShoppingCart, Package, Loader2, X, Check, Layers, Car, RotateCcw } from 'lucide-react';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
+import { motion } from 'framer-motion';
 
 type StockSource = 'turn14' | 'local' | 'all';
 
@@ -25,6 +26,73 @@ type StockItem = {
 };
 
 type FitmentData = { type: string; data: string[] };
+
+type DealerData = {
+  name: string;
+  tier: 'SILVER' | 'GOLD' | 'VIP';
+  discountPct: number;
+  creditLimit: number;
+  balance: number;
+  activeOrders: number;
+};
+
+/* ========= B2B Dealer Header ========= */
+function DealerDashboardHeader({ data, isUa }: { data: DealerData; isUa: boolean }) {
+  const tierColors = {
+    SILVER: 'text-zinc-400 border-zinc-500/20 bg-zinc-500/5',
+    GOLD: 'text-amber-400 border-amber-500/20 bg-amber-500/5',
+    VIP: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5',
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-[90rem] mx-auto px-6 mb-8"
+    >
+      <div className="relative group overflow-hidden rounded-[32px] border border-white/[0.08] bg-white/[0.02] backdrop-blur-3xl p-8 shadow-2xl">
+        {/* Decorative background glow */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] pointer-events-none group-hover:bg-indigo-500/10 transition-all duration-700" />
+        
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+          {/* Welcome & Tier */}
+          <div className="space-y-3">
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-bold tracking-[0.2em] uppercase ${tierColors[data.tier]}`}>
+              <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+              Dealer Tier: {data.tier}
+            </div>
+            <h2 className="text-3xl md:text-4xl font-light tracking-tight text-white">
+              {isUa ? 'Вітаємо,' : 'Welcome,'} <span className="font-medium">{data.name}</span>
+            </h2>
+            <p className="text-zinc-500 text-sm font-light">
+              {isUa ? 'Ваш персональний B2B портал складу та логістики.' : 'Your personalized B2B stock and logistics portal.'}
+            </p>
+          </div>
+
+          {/* Financial Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-8 border-t lg:border-t-0 lg:border-l border-white/5 pt-8 lg:pt-0 lg:pl-12">
+            <div>
+              <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">{isUa ? 'Ваша знижка' : 'Your Discount'}</div>
+              <div className="text-2xl font-light text-emerald-400">{data.discountPct}%</div>
+            </div>
+            <div>
+              <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">{isUa ? 'Кредитний ліміт' : 'Credit Limit'}</div>
+              <div className="text-2xl font-light text-white">${data.creditLimit.toLocaleString()}</div>
+            </div>
+            <div>
+              <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">{isUa ? 'Баланс' : 'Balance'}</div>
+              <div className="text-2xl font-light text-rose-400">-${Math.abs(data.balance).toLocaleString()}</div>
+            </div>
+            <div>
+              <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">{isUa ? 'В роботі' : 'Active Orders'}</div>
+              <div className="text-2xl font-light text-indigo-400">{data.activeOrders}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 /* ========= Custom Combobox Component ========= */
 function Combobox({
@@ -148,6 +216,16 @@ function StockPageContent() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Mock Dealer Data (in production this would come from a session/context)
+  const [dealer] = useState<DealerData>({
+    name: 'Top Level Tuning',
+    tier: 'VIP',
+    discountPct: 25,
+    creditLimit: 50000,
+    balance: -12450,
+    activeOrders: 4
+  });
 
   // Distributor source tab
   const initialSource = (searchParams.get('source') || 'turn14') as StockSource;
@@ -326,167 +404,89 @@ function StockPageContent() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-red-500/30">
-      {/* ════ CINEMATIC HERO ════ */}
-      <div className="relative pt-32 pb-20 px-6 overflow-hidden border-b border-white/5">
-        {/* Deep atmospheric glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] max-w-[1200px] h-96 bg-red-600/5 blur-[140px] rounded-full pointer-events-none" />
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-[0.03] pointer-events-none mix-blend-screen" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#050505] to-transparent pointer-events-none" />
-
-        <div className="max-w-[90rem] mx-auto relative z-10 text-center">
-          <Link href={`/${locale}/shop`} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] uppercase tracking-[0.2em] text-white/50 hover:bg-white/10 hover:text-white transition-all mb-8">
-            ← {isUa ? "НАЗАД ДО ВІТРИН" : "BACK TO STORES"}
-          </Link>
-          <h1 className="text-5xl md:text-7xl font-extralight tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-6 drop-shadow-2xl">
-            One Company <span className="font-medium text-white">Stock</span>
-          </h1>
-          <p className="text-base md:text-lg text-white/40 max-w-2xl mx-auto font-light leading-relaxed">
-            {isUa
-              ? "Отримайте миттєвий доступ до мільйонів оригінальних деталей від понад 400 світових виробників. Введіть артикул для блискавичного пошуку."
-              : "Get instant access to millions of genuine parts from 400+ global manufacturers. Enter a part number for lightning-fast search."}
-          </p>
-        </div>
+      {/* ════ B2B DEALER HUB ════ */}
+      <div className="pt-32 pb-6 relative overflow-hidden">
+        {/* Background glow effects */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] max-w-[1400px] h-[500px] bg-indigo-600/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-[0.02] pointer-events-none mix-blend-screen" />
+        
+        <DealerDashboardHeader data={dealer} isUa={isUa} />
       </div>
 
-      {/* ════ CAR SELECTOR BAR ════ */}
-      {/* ════ CAR SELECTOR BAR (DISABLED DUE TO TURN14 API V1 PERMISSIONS) ════ */}
-      {false && source !== 'local' && (
-        <div className="bg-[#0a0a0c] border-y border-white/10">
-          <div className="max-w-[90rem] mx-auto px-6 py-4">
-            {vehicleLocked ? (
-              /* ── Selected vehicle display ── */
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 bg-red-600/10 border border-red-600/20 flex items-center justify-center shrink-0">
-                    <Car className="w-5 h-5 text-red-500" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[9px] uppercase tracking-widest text-white/40 mb-0.5">
-                      {isUa ? 'Ваше авто' : 'Your vehicle'}
-                    </div>
-                    <div className="text-base font-medium text-white truncate">
-                      {vehicleText}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleChangeVehicle}
-                    className="text-[10px] uppercase tracking-widest text-white/50 border border-white/10 px-4 py-2 hover:bg-white hover:text-black transition-all"
-                  >
-                    {isUa ? 'Змінити' : 'Change'}
-                  </button>
-                  <button
-                    onClick={handleResetVehicle}
-                    className="text-[10px] uppercase tracking-widest text-white/50 border border-white/10 px-4 py-2 hover:bg-red-600 hover:border-red-600 hover:text-white transition-all flex items-center gap-1.5"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    {isUa ? 'Скинути' : 'Reset'}
-                  </button>
-                </div>
+      {/* ════ MY GARAGE (FITMENT) ════ */}
+      <div className="max-w-[90rem] mx-auto px-6 mb-12">
+        <div className="relative group overflow-hidden rounded-[40px] border border-white/10 bg-black/40 backdrop-blur-3xl p-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-500/[0.03] to-transparent pointer-events-none" />
+          
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                <Car className="w-6 h-6 text-indigo-400" />
               </div>
-            ) : (
-              /* ── Vehicle selector form ── */
-              <div className="flex flex-col md:flex-row items-start md:items-end gap-5">
-                {/* Cascading selectors */}
-                <div className="flex-1 w-full flex flex-col sm:flex-row gap-3 items-end">
-                  <div className="shrink-0 flex items-center gap-2 mb-2 sm:mb-0 sm:mr-2">
-                    <Car className="w-4 h-4 text-white/50" />
-                    <span className="text-xs font-medium text-white tracking-wide uppercase">
-                      {isUa ? 'Підбір авто' : 'Vehicle Fitment'}
-                    </span>
-                  </div>
-
-                  {/* Year */}
-                  <div className="sm:w-32 shrink-0 flex-1 sm:flex-none">
-                    <div className="text-[8px] uppercase tracking-widest text-white/40 mb-1.5 ml-1">
-                      {isUa ? 'Рік' : 'Year'}
-                    </div>
-                    <Combobox
-                      options={years}
-                      value={year}
-                      onChange={setYear}
-                      placeholder={isUa ? 'Оберіть...' : 'Select...'}
-                      isSelected={!!year}
-                    />
-                  </div>
-
-                  {/* Make */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[8px] uppercase tracking-widest text-white/40 mb-1.5 ml-1">
-                      {isUa ? 'Марка' : 'Make'}
-                    </div>
-                    <Combobox
-                      options={makes}
-                      value={make}
-                      onChange={setMake}
-                      placeholder={isUa ? 'Марка...' : 'Make...'}
-                      disabled={!year}
-                      loading={makesLoading}
-                      isSelected={!!make}
-                    />
-                  </div>
-
-                  {/* Model */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[8px] uppercase tracking-widest text-white/40 mb-1.5 ml-1">
-                      {isUa ? 'Модель' : 'Model'}
-                    </div>
-                    <Combobox
-                      options={models}
-                      value={model}
-                      onChange={setModel}
-                      placeholder={isUa ? 'Модель...' : 'Model...'}
-                      disabled={!make}
-                      loading={modelsLoading}
-                      isSelected={!!model}
-                    />
-                  </div>
-
-                  {/* Submodel / Engine — only if available */}
-                  {submodels.length > 0 && (
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[8px] uppercase tracking-widest text-white/40 mb-1.5 ml-1">
-                        {isUa ? 'Двигун' : 'Engine'}
-                      </div>
-                      <Combobox
-                        options={submodels}
-                        value={submodel}
-                        onChange={setSubmodel}
-                        placeholder={isUa ? 'Двигун...' : 'Engine...'}
-                        loading={submodelsLoading}
-                        isSelected={!!submodel}
-                      />
-                    </div>
-                  )}
-
-                  {/* Apply button */}
-                  <div className="shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
-                    <button
-                      onClick={handleSearch}
-                      disabled={!year || !make}
-                      className="w-full sm:w-auto h-10 px-8 bg-red-600 text-white text-[10px] uppercase font-bold tracking-widest hover:bg-red-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      <Search className="w-3.5 h-3.5" />
-                      {isUa ? 'ЗНАЙТИ' : 'FIND'}
-                    </button>
-                  </div>
-                </div>
+              <div>
+                <h3 className="text-xl font-light tracking-tight text-white">{isUa ? 'Мій Гараж' : 'My Garage'}</h3>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Select a vehicle to find guaranteed fits</p>
               </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-end gap-6">
+              {/* Year */}
+              <div className="w-full md:w-40 shrink-0">
+                <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-2 ml-1 font-bold">{isUa ? 'Рік' : 'Year'}</div>
+                <Combobox options={years} value={year} onChange={setYear} placeholder="2024" isSelected={!!year} />
+              </div>
+
+              {/* Make */}
+              <div className="w-full md:flex-1 min-w-0">
+                <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-2 ml-1 font-bold">{isUa ? 'Марка' : 'Make'}</div>
+                <Combobox options={makes} value={make} onChange={setMake} placeholder="Porsche" disabled={!year} loading={makesLoading} isSelected={!!make} />
+              </div>
+
+              {/* Model */}
+              <div className="w-full md:flex-1 min-w-0">
+                <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-2 ml-1 font-bold">{isUa ? 'Модель' : 'Model'}</div>
+                <Combobox options={models} value={model} onChange={setModel} placeholder="911 GT3" disabled={!make} loading={modelsLoading} isSelected={!!model} />
+              </div>
+
+              {/* Engine / Submodel */}
+              {submodels.length > 0 && (
+                <div className="w-full md:flex-1 min-w-0">
+                  <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-2 ml-1 font-bold">{isUa ? 'Двигун' : 'Engine'}</div>
+                  <Combobox options={submodels} value={submodel} onChange={setSubmodel} placeholder="4.0L H6" loading={submodelsLoading} isSelected={!!submodel} />
+                </div>
+              )}
+
+              {/* Apply / Action */}
+              <button 
+                onClick={handleSearch}
+                disabled={!year || !make}
+                className="w-full md:w-auto h-10 px-10 rounded-xl bg-white text-black text-[11px] font-bold uppercase tracking-widest hover:bg-zinc-200 transition-all disabled:opacity-20 flex items-center justify-center gap-2"
+              >
+                <Search className="w-4 h-4" />
+                {isUa ? 'Застосувати' : 'Filter Items'}
+              </button>
+            </div>
+            
+            {vehicleLocked && (
+               <div className="mt-6 flex items-center justify-between pt-6 border-t border-white/5">
+                 <div className="flex items-center gap-2 text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
+                   <Check className="w-4 h-4" />
+                   Active Fitment: {vehicleText}
+                 </div>
+                 <button onClick={handleResetVehicle} className="text-[10px] text-zinc-500 hover:text-white transition-colors uppercase tracking-widest font-bold underline decoration-indigo-500/30 underline-offset-4">Reset Vehicle</button>
+               </div>
             )}
           </div>
         </div>
-      )}
+      </div>
 
       {/* ════ SOURCE TABS + SEARCH BAR ════ */}
       <div className="max-w-[90rem] mx-auto px-6 pt-5 pb-3">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="flex flex-col xl:flex-row items-start xl:items-center gap-6">
           {/* Source tabs */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Layers className="w-4 h-4 text-white/30" />
-            <span className="text-[10px] uppercase tracking-widest text-white/30 mr-1">{isUa ? 'Джерело' : 'Source'}</span>
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 xl:pb-0 no-scrollbar">
             {[
-              { id: 'turn14', source: 'turn14' as StockSource, label: 'Turn14', count: undefined, distributor: undefined },
+              { id: 'turn14', source: 'turn14' as StockSource, label: 'Turn14 Global', count: undefined, distributor: undefined },
               ...distributors.map(d => ({
                 id: `local_${d.name}`,
                 source: 'local' as StockSource,
@@ -494,7 +494,7 @@ function StockPageContent() {
                 count: d.count,
                 distributor: d.name
               })),
-              { id: 'all', source: 'all' as StockSource, label: isUa ? 'Усі' : 'All', count: undefined, distributor: undefined },
+              { id: 'all', source: 'all' as StockSource, label: isUa ? 'Усі склади' : 'All Stock', count: undefined, distributor: undefined },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -506,66 +506,62 @@ function StockPageContent() {
                   setItems([]); setHasSearched(false);
                   setLocalCategory(''); setBrand('');
                 }}
-                className={`px-3 py-1.5 text-xs font-medium tracking-wide transition-all border flex items-center gap-1.5 ${
+                className={`relative px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-all border shrink-0 rounded-xl flex items-center gap-2 ${
                   activeTab === tab.id
-                    ? 'bg-white text-black border-white'
-                    : 'bg-white/[0.04] text-white/60 border-white/10 hover:bg-white/[0.08] hover:border-white/20'
+                    ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+                    : 'bg-white/[0.02] text-zinc-500 border-white/5 hover:border-white/20 hover:text-white'
                 }`}
               >
                 {tab.label}
                 {tab.count != null && tab.count > 0 && (
-                  <span className={`text-[9px] px-1 py-0.5 rounded-full ${
-                    activeTab === tab.id ? 'bg-black/15 text-black/70' : 'bg-white/10 text-white/40'
+                  <span className={`px-1.5 py-0.5 rounded-md text-[9px] ${
+                    activeTab === tab.id ? 'bg-black/10 text-black/60' : 'bg-white/5 text-zinc-600'
                   }`}>{tab.count}</span>
+                )}
+                {activeTab === tab.id && (
+                  <motion.div layoutId="activeTab" className="absolute -bottom-[1px] left-4 right-4 h-[2px] bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
                 )}
               </button>
             ))}
           </div>
 
           {/* Inline search + brand */}
-          <form onSubmit={handleSearch} className="flex-1 w-full sm:w-auto flex items-center gap-2">
-            <div className="flex-1 flex items-center border border-white/10 bg-white/[0.02] focus-within:border-white/30 transition-all h-9">
-              <Search className="w-3.5 h-3.5 text-white/30 ml-2.5 shrink-0" />
+          <form onSubmit={handleSearch} className="flex-1 w-full flex flex-col sm:flex-row items-center gap-3">
+            <div className="flex-1 w-full flex items-center rounded-2xl border border-white/10 bg-white/[0.02] focus-within:border-indigo-500/50 focus-within:bg-white/[0.04] transition-all h-11 px-4">
+              <Search className="w-4 h-4 text-zinc-500 shrink-0" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={isUa ? "Артикул або назва..." : "Part number or name..."}
-                className="w-full bg-transparent text-xs text-white placeholder-white/20 focus:outline-none py-1.5 px-2 tracking-wide"
+                placeholder={isUa ? "Пошук за артикулом або назвою..." : "Search by Part Number or name..."}
+                className="w-full bg-transparent text-sm text-white placeholder-zinc-600 focus:outline-none px-3 tracking-wide"
               />
               {query && (
-                <button type="button" onClick={() => { setQuery(''); }} className="p-1 mr-1 text-white/30 hover:text-white"><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => { setQuery(''); }} className="p-1 text-zinc-500 hover:text-white transition-colors"><X className="w-4 h-4" /></button>
               )}
             </div>
-            {/* Brand quick-filter */}
-            <select
-              value={brand}
-              onChange={(e) => setBrand(e.target.value)}
-              className="bg-white/[0.02] border border-white/10 text-xs text-white/60 h-9 px-2 appearance-none cursor-pointer focus:outline-none focus:border-white/30 max-w-[120px] sm:max-w-[140px] truncate"
-            >
-              <option value="" className="bg-[#121216]">{isUa ? 'Бренд' : 'Brand'}</option>
-              {(source === 'local' ? localBrands : brands.map(b => b.name)).map(b => (
-                <option key={b} value={b} className="bg-[#121216]">{b}</option>
-              ))}
-            </select>
-            {/* Category quick-filter */}
-            <select
-              value={localCategory}
-              onChange={(e) => setLocalCategory(e.target.value)}
-              className="bg-white/[0.02] border border-white/10 text-xs text-white/60 h-9 px-2 appearance-none cursor-pointer focus:outline-none focus:border-white/30 max-w-[120px] sm:max-w-[140px] truncate hidden sm:block"
-            >
-              <option value="" className="bg-[#121216]">{isUa ? 'Категорія' : 'Category'}</option>
-              {localCategories.map(c => (
-                <option key={c} value={c} className="bg-[#121216]">{c}</option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              disabled={loading}
-              className="h-9 px-4 bg-white/[0.06] border border-white/10 text-[10px] uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white transition-all disabled:opacity-30 flex items-center gap-1.5 shrink-0"
-            >
-              <Search className="w-3 h-3" />
-            </button>
+
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <select
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                className="flex-1 sm:flex-none bg-white/[0.02] border border-white/10 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-zinc-400 h-11 px-4 appearance-none cursor-pointer focus:outline-none focus:border-indigo-500/50 min-w-[140px]"
+              >
+                <option value="" className="bg-[#121216]">{isUa ? 'Бренд' : 'Brand'}</option>
+                {(source === 'local' ? localBrands : brands.map(b => b.name)).map(b => (
+                  <option key={b} value={b} className="bg-[#121216]">{b}</option>
+                ))}
+              </select>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="h-11 px-6 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-[10px] uppercase font-bold tracking-[0.2em] text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all disabled:opacity-30 flex items-center gap-2 shrink-0"
+              >
+                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+                {isUa ? 'Пошук' : 'Search'}
+              </button>
+            </div>
           </form>
         </div>
 
@@ -658,60 +654,99 @@ function StockPageContent() {
             </div>
 
             {/* Product Grid — full width */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-px bg-white/5 border border-white/5">
-              {items.map((item) => (
-                <div key={item.id} className="bg-[#0a0a0c] p-5 flex flex-col group hover:bg-white/[0.03] transition-all duration-300 relative z-0 hover:z-10 hover:shadow-[0_0_40px_rgba(255,255,255,0.03)] hover:ring-1 hover:ring-white/10">
-                  {/* Image */}
-                  <div className="aspect-square bg-white/[0.02] mb-3 flex items-center justify-center overflow-hidden relative">
-                    {item.inStock && (
-                      <span className="absolute top-2 left-2 bg-white text-black text-[8px] uppercase font-bold tracking-widest px-2 py-1 z-10">
-                        {isUa ? 'В НАЯВНОСТІ' : 'IN STOCK'}
-                      </span>
-                    )}
-                    {item.thumbnail ? (
-                      <img src={item.thumbnail} alt={item.name} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" />
-                    ) : (
-                      <Package className="w-14 h-14 text-white/10" />
-                    )}
-                  </div>
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <p className="text-[9px] uppercase tracking-widest text-white/40 truncate">{item.brand}</p>
-                      {(item as any).source === 'local' && (
-                        <span className="text-[7px] uppercase tracking-widest bg-blue-500/20 text-blue-300 border border-blue-500/20 px-1.5 py-0.5 shrink-0">{(item as any).distributor || 'IND'}</span>
-                      )}
-                    </div>
-                    <h3 className="text-sm font-light text-white mb-1 leading-tight line-clamp-2">{item.name}</h3>
-                    <p className="text-[10px] text-white/30 mb-2 truncate font-mono">PN: {item.partNumber}</p>
-                  </div>
-                  {/* Price + Actions */}
-                  <div className="flex items-center justify-between pt-3 border-t border-white/5 mt-auto">
-                    <div>
-                      {item.price ? (
-                        <div className="flex flex-col">
-                          {item.originalPrice && (
-                            <span className="text-xs text-white/40 line-through">${item.originalPrice.toFixed(2)}</span>
-                          )}
-                          <span className={`text-lg font-light ${item.originalPrice ? 'text-red-400' : 'text-white'}`}>
-                            ${item.price.toFixed(2)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+              {items.map((item) => {
+                const msrp = item.originalPrice || (item.price ? item.price * 1.3 : null);
+                const dealerPrice = item.price;
+                const estimatedProfit = msrp && dealerPrice ? msrp - dealerPrice : null;
+
+                return (
+                  <motion.div 
+                    layout
+                    key={item.id} 
+                    className="group relative flex flex-col rounded-[32px] border border-white/[0.06] bg-zinc-900/20 backdrop-blur-sm p-6 hover:bg-zinc-900/40 hover:border-white/10 transition-all duration-500 hover:shadow-[0_0_50px_rgba(0,0,0,0.3)]"
+                  >
+                    {/* Status Badges */}
+                    <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+                      {item.inStock && (
+                        <div className="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-md">
+                          <span className="text-[8px] font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1">
+                            <div className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+                            {isUa ? 'В наявності' : 'In Stock'}
                           </span>
                         </div>
-                      ) : (
-                        <span className="text-xs text-white/30 uppercase tracking-widest">{isUa ? 'Ціна за запитом' : 'Request price'}</span>
+                      )}
+                      {vehicleLocked && (
+                        <div className="px-2 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md">
+                          <span className="text-[8px] font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-1">
+                            <Check className="w-2.5 h-2.5" />
+                            {isUa ? 'Гарантовано підходить' : 'Guaranteed Fit'}
+                          </span>
+                        </div>
                       )}
                     </div>
-                    <AddToCartButton
-                      turn14Id={item.turn14Id || item.id}
-                      locale={locale as string}
-                      variant="minimal"
-                      label={isUa ? 'В КОШИК' : 'TO CART'}
-                      labelAdded={isUa ? 'В КОШИКУ ✓' : 'IN CART ✓'}
-                      className="text-[9px] uppercase tracking-widest font-bold text-emerald-400 border border-emerald-400/30 bg-emerald-400/10 px-3 py-1.5 transition-all hover:bg-emerald-400 hover:text-black active:!scale-95"
-                    />
-                  </div>
-                </div>
-              ))}
+
+                    {/* Image Container */}
+                    <div className="aspect-square rounded-2xl bg-white/[0.02] mb-6 flex items-center justify-center overflow-hidden relative group-hover:bg-white/[0.04] transition-colors">
+                      {item.thumbnail ? (
+                        <img 
+                          src={item.thumbnail} 
+                          alt={item.name} 
+                          className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-700 ease-out" 
+                        />
+                      ) : (
+                        <Package className="w-16 h-16 text-white/5 opacity-20" />
+                      )}
+                    </div>
+
+                    {/* Brand & Name */}
+                    <div className="flex-1 space-y-2 mb-6">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{item.brand}</span>
+                        <span className="text-[10px] font-mono text-zinc-600">#{item.partNumber}</span>
+                      </div>
+                      <h3 className="text-sm font-medium text-white leading-snug line-clamp-2 group-hover:text-indigo-300 transition-colors">
+                        {item.name}
+                      </h3>
+                    </div>
+
+                    {/* B2B Pricing Block */}
+                    <div className="space-y-4 pt-4 border-t border-white/5">
+                      <div className="flex items-end justify-between">
+                        <div className="space-y-1">
+                          <div className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">{isUa ? 'РРЦ (MSRP)' : 'MSRP'}</div>
+                          <div className="text-sm text-zinc-500 line-through font-mono">
+                            ${msrp?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </div>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <div className="text-[9px] uppercase tracking-widest text-emerald-500 font-bold">{isUa ? 'Ваша Ціна' : 'Dealer Price'}</div>
+                          <div className="text-2xl font-light text-white tracking-tight font-mono">
+                            ${dealerPrice?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Profit Badge */}
+                      {estimatedProfit && (
+                        <div className="flex items-center justify-between px-4 py-2.5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                          <span className="text-[9px] font-bold text-emerald-500/60 uppercase tracking-widest">{isUa ? 'Ваш прибуток' : 'Your Profit'}</span>
+                          <span className="text-xs font-bold text-emerald-400 font-mono">+${estimatedProfit.toLocaleString(undefined, { minimumFractionDigits: 0 })}</span>
+                        </div>
+                      )}
+
+                      <AddToCartButton
+                        turn14Id={item.turn14Id || item.id}
+                        locale={locale as string}
+                        variant="minimal"
+                        label={isUa ? 'Додати до замовлення' : 'Add to Order'}
+                        labelAdded={isUa ? 'В замовленні ✓' : 'In Order ✓'}
+                        className="w-full h-12 rounded-xl bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+                      />
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
 
             {/* Pagination */}

@@ -1,8 +1,7 @@
 /**
  * POST /api/shop/checkout
- * Body: { items, contact, shipping, currency, locale?, paymentMethod?: 'FOP'|'STRIPE'|'WHITEBIT'|'WHITEPAY_FIAT' }
+ * Body: { items, contact, shipping, currency, locale?, paymentMethod?: 'FOP'|'WHITEBIT'|'WHITEPAY_FIAT' }
  * FOP: creates order PENDING_REVIEW, sends email, returns { orderNumber, viewToken }.
- * STRIPE: creates order PENDING_PAYMENT, returns { redirectUrl, orderNumber, viewToken }; webhook confirms.
  * WHITEBIT: creates order PENDING_PAYMENT, redirects to WhiteBIT Crypto Pay; webhook confirms.
  * WHITEPAY_FIAT: creates order PENDING_PAYMENT, redirects to WhiteBIT Card Pay; webhook confirms.
  */
@@ -20,10 +19,7 @@ import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { clearShopCart, resolveShopCart, SHOP_CART_COOKIE } from '@/lib/shopCart';
 import { upsertCustomerDefaultShippingAddress } from '@/lib/shopCustomers';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import {
-  createStripeCheckoutSession,
-  stripeSupportedCurrency,
-} from '@/lib/shopStripe';
+
 import { createWhitepayCryptoOrder, createWhitepayFiatOrder } from '@/lib/shopWhitepay';
 import { prisma } from '@/lib/prisma';
 
@@ -32,7 +28,7 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 const CURRENCIES = ['EUR', 'USD', 'UAH'] as const;
 
-const PAYMENT_METHODS = ['FOP', 'STRIPE', 'WHITEBIT', 'WHITEPAY_FIAT'] as const;
+const PAYMENT_METHODS = ['FOP', 'WHITEBIT', 'WHITEPAY_FIAT'] as const;
 type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 function normalizePaymentMethod(value: unknown): PaymentMethod {

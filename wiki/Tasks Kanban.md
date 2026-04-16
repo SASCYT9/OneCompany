@@ -10,13 +10,17 @@ tags: [dashboard, tasks]
 
 ## ⏳ В Роботі / Backlog
 
-- [ ] ⚠️ **При злитті `feature/shop` → `master`**: Оновити URL вебхуків у Shopify для ВСІХ магазинів (Eventuri, Fi Exhaust, KW Suspension) з preview URL на production домен `onecompany.global` #dev #critical
+- [ ] Оновити URL вебхуків у Shopify для ВСІХ магазинів (Eventuri, Fi Exhaust, KW Suspension) на `onecompany.global` #dev #critical
 - [ ] Зйомка 1-ї партії роликів для TikTok / Reels #marketing
-- [/] Оформлення Instagram Highlight Covers для брендів #marketing
 - [ ] Додати більше B2B дилерських акаунтів вручну #b2b
+- [ ] Перевірити інтеграцію `@grammyjs/conversations` для Телеграм бота #dev #bot
+- [ ] Повна інтеграція R3F `<Canvas>` на сторінки товарів (Product Detail Page) #dev #3d
+- [ ] Перенести решту PDF та планів з `docs/` у Obsidian Wiki форматах #docs
 
 ## 🚀 Готово (Останні Релізи)
 
+- [x] Масове виправлення та AI-переклад 573 товарів Urban Automotive (Cyrillic → English & Українська) через Ollama Gemma #dev #db
+- [x] Повна структуризація Obsidian Wiki (Скрипти, 3D Стек, Telegram Боти) #docs #obsidian
 - [x] 🛍️ Pixel-perfect Checkout UI + 4-step flow (Phase C 100%) #dev
 - [x] 🛒 Guest/Customer Cart Merge Logic (cookie → DB merge on login) #dev
 - [x] 💸 WhitePay Crypto + Fiat інтеграція (USDT/BTC/ETH + Apple/Google Pay) #dev
@@ -32,6 +36,7 @@ tags: [dashboard, tasks]
 - [x] Аудит та видалення "VAT / Taxes Included" з інтерфейсу клієнтів #dev 
 - [x] Мультискладський облік запасів (Medusa Architecture) #dev
 - [x] Каталоги Urban, Akrapovič, Brabus, CSF фіналізовані #catalog
+- [x] Оформлення Instagram Highlight Covers для брендів #marketing
 
 ***
 

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   TrendingUp, Package, CreditCard, ArrowRight,
   ExternalLink, DollarSign, ShoppingCart, BarChart3,
-  ArrowUpRight, ArrowDownRight, Database, Loader2, Activity
+  ArrowUpRight, ArrowDownRight, Database, Loader2, Activity, Globe
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -14,6 +14,12 @@ type DashboardData = {
   activeOrders: number;
   totalDebt: string | number;
   totalCustomers: number;
+  turn14Stats?: {
+    total: number;
+    syncing: number;
+    idle: number;
+    latestSync: string | null;
+  };
   recentOrders: Array<{
     id: string;
     displayId: string;
@@ -358,6 +364,40 @@ export default function AdminDashboardPage() {
 
         {/* ──── Right Column: Charts + QuickActions ──── */}
         <div className="xl:col-span-4 space-y-6">
+          {/* Turn14 Sync Status */}
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
+            className="rounded-3xl border border-white/[0.08] bg-black/40 shadow-2xl backdrop-blur-2xl p-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Globe className="w-16 h-16 text-indigo-500" />
+            </div>
+            <h3 className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-bold mb-5 flex items-center gap-2">
+              <Activity className={`w-3 h-3 ${data?.turn14Stats?.syncing ? 'text-emerald-400 animate-pulse' : 'text-zinc-500'}`} />
+              Turn14 Sync Status
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-4 mb-5">
+              <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
+                <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">Брендів</div>
+                <div className="text-2xl font-light text-white">{data?.turn14Stats?.total || 0}</div>
+              </div>
+              <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
+                <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">Активні</div>
+                <div className="text-2xl font-light text-emerald-400">{data?.turn14Stats?.syncing || 0}</div>
+              </div>
+            </div>
+
+            {data?.turn14Stats?.latestSync && (
+              <div className="text-[10px] text-zinc-500 font-mono flex items-center gap-2">
+                <span className="w-1 h-1 rounded-full bg-indigo-500 shadow-[0_0_5px_rgba(99,102,241,0.5)]" />
+                Last Update: {new Date(data.turn14Stats.latestSync).toLocaleString('uk-UA')}
+              </div>
+            )}
+            
+            <Link href="/admin/shop/turn14" className="mt-5 block w-full py-2.5 text-center rounded-xl bg-white/[0.03] border border-white/10 text-[10px] uppercase font-bold tracking-widest hover:bg-white/10 hover:border-indigo-500/30 transition-all text-zinc-300">
+              Database Manager
+            </Link>
+          </motion.div>
+
           {/* Status Distribution Mini */}
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             className="rounded-3xl border border-white/[0.08] bg-black/40 shadow-2xl backdrop-blur-2xl p-6">

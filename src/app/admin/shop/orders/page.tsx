@@ -331,7 +331,7 @@ export default function AdminOrdersPage() {
 
         <div className="mb-4 grid gap-4 md:grid-cols-4">
           <SummaryCard label="Видимих замовлень" value={String(stats.total)} detail={`Обрано: ${selectedIds.length}`} />
-          <SummaryCard label="Очікує оплату" value={String(stats.statusCounts.PENDING_PAYMENT || 0)} detail="Stripe / інше" />
+          <SummaryCard label="Очікує оплату" value={String(stats.statusCounts.PENDING_PAYMENT || 0)} detail="Whitepay / ФОП / Crypto" />
           <SummaryCard label="На перевірці" value={String(stats.statusCounts.PENDING_REVIEW || 0)} detail="Потребують підтвердження" />
           <SummaryCard label="В обробці" value={String(stats.statusCounts.PROCESSING || 0)} detail="Активне виконання" />
           <SummaryCard label="Відправлено" value={String(stats.statusCounts.SHIPPED || 0)} detail="В дорозі" />

@@ -141,6 +141,10 @@ export default function CustomerPricingPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <Link href="/admin/shop/pricing/simulator"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-xs uppercase tracking-widest font-bold hover:bg-indigo-500/20 transition-all">
+              <Calculator className="w-3.5 h-3.5" /> Симулятор ціни
+            </Link>
             <Link href="/admin/shop/turn14/markups"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-400 text-xs uppercase tracking-widest font-medium hover:bg-amber-500/10 transition-all">
               <Percent className="w-3 h-3" /> Бренд Націнки

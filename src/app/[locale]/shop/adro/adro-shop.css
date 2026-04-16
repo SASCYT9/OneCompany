@@ -342,10 +342,16 @@
 
 .adro-platform-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(1, 1fr);
   gap: 0;
   border-top: 1px solid var(--adro-border);
   border-left: 1px solid var(--adro-border);
+}
+
+@media (min-width: 768px) {
+  .adro-platform-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .adro-platform-card {
@@ -366,8 +372,9 @@
 
 .adro-pc-image {
   width: 100%;
-  height: 200px;
+  height: 250px;
   position: relative;
+  background: transparent;
   border-bottom: 1px solid var(--adro-border);
 }
 .adro-pc-image img {

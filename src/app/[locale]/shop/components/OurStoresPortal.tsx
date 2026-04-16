@@ -117,7 +117,7 @@ export default function OurStoresPortal({ locale, isB2bApproved }: OurStoresPort
 
         {/* Bento Grid layout */}
         <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 auto-rows-min gap-4 md:gap-6 lg:gap-8 grid-flow-dense">
-          {OUR_STORES.map((store, i) => {
+          {OUR_STORES.filter(store => !store.isHidden).map((store, i) => {
             const href = store.id === "urban" ? `/${locale}/shop/urban`
               : store.id === "do88" ? `/${locale}/shop/do88`
               : store.id === "brabus" ? `/${locale}/shop/brabus`

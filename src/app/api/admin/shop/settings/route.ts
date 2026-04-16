@@ -57,7 +57,6 @@ export async function PATCH(request: NextRequest) {
         fopBankName: payload.fopBankName,
         fopEdrpou: payload.fopEdrpou,
         fopDetails: payload.fopDetails,
-        stripeEnabled: payload.stripeEnabled,
         whiteBitEnabled: payload.whiteBitEnabled,
       },
       update: {
@@ -77,7 +76,6 @@ export async function PATCH(request: NextRequest) {
         fopBankName: payload.fopBankName,
         fopEdrpou: payload.fopEdrpou,
         fopDetails: payload.fopDetails,
-        stripeEnabled: payload.stripeEnabled,
         whiteBitEnabled: payload.whiteBitEnabled,
       },
     });
