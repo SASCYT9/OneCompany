@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Plus, Pencil, Trash2, Upload, Package, ShoppingCart, Search, Layers3, Warehouse, Coins, Settings2, FileClock, ImageIcon, FolderTree, Users, Boxes, Globe, Sparkles } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, Package, ShoppingCart, Search, Layers3, Warehouse, Coins, Settings2, FileClock, ImageIcon, FolderTree, Users, Boxes, Globe, Sparkles, Loader2 } from 'lucide-react';
 
 type ShopProductListItem = {
   id: string;

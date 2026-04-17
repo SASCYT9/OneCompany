@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Search, Save, Trash2, Plus, Users, Percent, DollarSign, Loader2 } from 'lucide-react';
+import { ArrowLeft, Search, Save, Trash2, Plus, Users, Percent, DollarSign, Loader2, Calculator } from 'lucide-react';
 
 type CustomerMarkup = {
   id: string;

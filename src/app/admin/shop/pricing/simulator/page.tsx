@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   ArrowLeft, Calculator, Truck, Globe, Info, 
   DollarSign, Percent, Weight, ChevronRight,
-  TrendingUp, Scale, Package
+  TrendingUp, Scale, Package, Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 

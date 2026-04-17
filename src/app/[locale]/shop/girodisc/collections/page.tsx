@@ -102,7 +102,7 @@ export default async function GiroDiscCollectionsPage({ params }: Props) {
       >
         {GIRODISC_PRODUCT_LINES.map((line) => (
           <div
-            key={line.id}
+            key={line.title}
             style={{
               background: '#18181b',
               border: '1px solid rgba(255,255,255,0.05)',
@@ -113,8 +113,8 @@ export default async function GiroDiscCollectionsPage({ params }: Props) {
             <div style={{ position: 'relative', aspectRatio: '16/10', overflow: 'hidden' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={line.image}
-                alt={isUa ? line.nameUk : line.name}
+                src={line.imageUrl}
+                alt={isUa ? line.titleUk : line.title}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 loading="lazy"
               />
@@ -152,7 +152,7 @@ export default async function GiroDiscCollectionsPage({ params }: Props) {
                   textTransform: 'uppercase',
                 }}
               >
-                {isUa ? line.nameUk : line.name}
+                {isUa ? line.titleUk : line.title}
               </h3>
               <p
                 style={{
@@ -163,7 +163,7 @@ export default async function GiroDiscCollectionsPage({ params }: Props) {
                   margin: 0,
                 }}
               >
-                {isUa ? line.descriptionUk : line.description}
+                {isUa ? line.subtitleUk : line.subtitle}
               </p>
             </div>
           </div>
