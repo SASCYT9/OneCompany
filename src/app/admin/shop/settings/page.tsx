@@ -13,6 +13,7 @@ import {
   Save,
   Settings2,
   Trash2,
+  Download,
 } from 'lucide-react';
 
 type ShopCurrencyCode = 'EUR' | 'USD' | 'UAH';
@@ -560,6 +561,22 @@ export default function AdminShopSettingsPage() {
     void load();
   }, []);
 
+  const exportSettings = () => {
+    try {
+      const dataStr = JSON.stringify(form, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+      const exportFileDefaultName = `shop-settings-${new Date().toISOString().slice(0, 10)}.json`;
+
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+    } catch (e: any) {
+      console.error('Failed to export settings', e);
+      alert('Помилка при експорті налаштувань');
+    }
+  };
+
   const previewPayload = useMemo(
     () =>
       JSON.stringify({
@@ -942,17 +959,17 @@ export default function AdminShopSettingsPage() {
               Валюти вітрини, правила доставки та податків, видимість B2B та знижка B2B за замовчуванням. Порядок правил важливий: застосовується перша збіжна зона доставки або податкове правило.
             </p>
           </div>
-          <div className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-right">
+          <div className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-3 text-right">
             <div className="text-xs uppercase tracking-[0.24em] text-white/40">Оновлено</div>
             <div className="mt-2 text-sm text-white/80">{updatedAt ? new Date(updatedAt).toLocaleString() : '—'}</div>
           </div>
         </div>
 
-        {error ? <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
-        {success ? <div className="mb-4 rounded-lg bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
+        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+        {success ? <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5">
               <h3 className="text-lg font-medium text-white">Core rules</h3>
               <p className="mt-1 text-sm text-white/45">Storefront defaults, global B2B discount policy and team notifications.</p>
@@ -1003,7 +1020,7 @@ export default function AdminShopSettingsPage() {
                         type="checkbox"
                         checked={form.enabledCurrencies.includes(currency)}
                         onChange={() => toggleCurrency(currency)}
-                        className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+                        className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
                       />
                       {currency}
                     </label>
@@ -1026,7 +1043,7 @@ export default function AdminShopSettingsPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-medium text-white">EN переклад каталогу</h3>
@@ -1034,7 +1051,7 @@ export default function AdminShopSettingsPage() {
                   DeepL backfill для товарів, де англійські назви чи описи порожні, дублюють українську або ще містять кирилицю.
                 </p>
               </div>
-              <div className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/45">
+              <div className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/45">
                 <div>Оновлює: titleEn, seoTitleEn, shortDescEn, longDescEn</div>
                 <div className="mt-1">HTML-опис можна вмикати окремо, щоб не спалювати квоту зайвими текстами.</div>
               </div>
@@ -1070,7 +1087,7 @@ export default function AdminShopSettingsPage() {
                 type="button"
                 onClick={() => void handleEnTranslation(false)}
                 disabled={translationLoading}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Globe2 className="h-4 w-4" />
                 Сканувати EN прогалини
@@ -1079,34 +1096,34 @@ export default function AdminShopSettingsPage() {
                 type="button"
                 onClick={() => void handleEnTranslation(true)}
                 disabled={translationLoading}
-                className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <RefreshCw className={`h-4 w-4 ${translationLoading ? 'animate-spin' : ''}`} />
                 Перекласти EN через DeepL
               </button>
             </div>
             {translationResult ? (
-              <div className="mt-4 rounded-xl border border-white/10 bg-zinc-950/60 p-4">
+              <div className="mt-4 rounded-none border border-white/10 bg-zinc-950/60 p-4">
                 <div className="grid gap-3 md:grid-cols-4">
-                  <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                  <div className="rounded-none border border-white/10 bg-white/[0.03] p-3">
                     <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Завантажено</div>
                     <div className="mt-2 text-lg font-medium text-white">{translationResult.totalLoaded}</div>
                   </div>
-                  <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                  <div className="rounded-none border border-white/10 bg-white/[0.03] p-3">
                     <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Кандидати</div>
                     <div className="mt-2 text-lg font-medium text-white">{translationResult.candidates}</div>
                   </div>
-                  <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                  <div className="rounded-none border border-white/10 bg-white/[0.03] p-3">
                     <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Оновлено</div>
                     <div className="mt-2 text-lg font-medium text-emerald-200">{translationResult.updated ?? 0}</div>
                   </div>
-                  <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                  <div className="rounded-none border border-white/10 bg-white/[0.03] p-3">
                     <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Помилки</div>
                     <div className="mt-2 text-lg font-medium text-amber-200">{translationResult.failed ?? 0}</div>
                   </div>
                 </div>
                 {translationResult.stoppedBecauseQuota ? (
-                  <div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+                  <div className="mt-4 rounded-none border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
                     DeepL зупинився через вичерпану квоту. Уже перекладені записи збережені.
                   </div>
                 ) : null}
@@ -1116,13 +1133,13 @@ export default function AdminShopSettingsPage() {
                     <div className="mt-3 space-y-2">
                       {translationResult.items.length ? (
                         translationResult.items.slice(0, 8).map((item) => (
-                          <div key={item.id} className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+                          <div key={item.id} className="rounded-none border border-white/10 bg-white/[0.03] px-3 py-2">
                             <div className="text-sm font-medium text-white">{item.slug}</div>
                             <div className="mt-1 text-xs text-white/45">{item.fields.join(', ')}</div>
                           </div>
                         ))
                       ) : (
-                        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/50">
+                        <div className="rounded-none border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/50">
                           Немає кандидатів на переклад.
                         </div>
                       )}
@@ -1133,13 +1150,13 @@ export default function AdminShopSettingsPage() {
                     <div className="mt-3 space-y-2">
                       {translationResult.errors?.length ? (
                         translationResult.errors.slice(0, 8).map((item, index) => (
-                          <div key={`${item.slug}-${index}`} className="rounded-lg border border-red-500/15 bg-red-950/10 px-3 py-2">
+                          <div key={`${item.slug}-${index}`} className="rounded-none border border-red-500/15 bg-red-950/10 px-3 py-2">
                             <div className="text-sm font-medium text-red-100">{item.slug}</div>
                             <div className="mt-1 text-xs text-red-200/70">{item.message}</div>
                           </div>
                         ))
                       ) : (
-                        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/50">
+                        <div className="rounded-none border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/50">
                           Порожньо. Якщо все добре, тут не буде записів.
                         </div>
                       )}
@@ -1150,7 +1167,7 @@ export default function AdminShopSettingsPage() {
             ) : null}
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5">
               <h3 className="text-lg font-medium text-white">Оплата</h3>
               <p className="mt-1 text-sm text-white/45">Оплата на ФОП (реквізити), Stripe (картка), White Bit (згодом).</p>
@@ -1194,7 +1211,7 @@ export default function AdminShopSettingsPage() {
                     type="checkbox"
                     checked={form.whiteBitEnabled}
                     onChange={(e) => updateField('whiteBitEnabled', e.target.checked)}
-                    className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+                    className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
                   />
                   Увімкнено White Bit (згодом)
                 </label>
@@ -1205,7 +1222,7 @@ export default function AdminShopSettingsPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-medium text-white">Валюти</h3>
@@ -1218,12 +1235,12 @@ export default function AdminShopSettingsPage() {
                   type="button"
                   onClick={handleRefreshRatesFromNbu}
                   disabled={currencySyncLoading}
-                  className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <RefreshCw className={`h-4 w-4 ${currencySyncLoading ? 'animate-spin' : ''}`} />
                   Оновити з НБУ
                 </button>
-                <div className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/50">
+                <div className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/50">
                   <div>Приклад: 1 EUR = {form.currencyRates.USD || '1.08'} USD</div>
                   {currencySyncMeta ? (
                     <div className="mt-1 text-[11px] text-white/35">
@@ -1238,7 +1255,7 @@ export default function AdminShopSettingsPage() {
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               {SHOP_CURRENCIES.map((currency) => (
-                <div key={currency} className="rounded-xl border border-white/10 bg-zinc-950/70 p-4">
+                <div key={currency} className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-sm font-medium text-white">{currency}</div>
@@ -1247,7 +1264,7 @@ export default function AdminShopSettingsPage() {
                       </div>
                     </div>
                     <span
-                      className={`rounded-full border px-2 py-0.5 text-[11px] ${
+                      className={`rounded-none-full border px-2 py-0.5 text-[11px] ${
                         form.enabledCurrencies.includes(currency)
                           ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
                           : 'border-white/10 bg-white/5 text-white/40'
@@ -1269,7 +1286,7 @@ export default function AdminShopSettingsPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-medium text-white">Зони доставки</h3>
@@ -1280,7 +1297,7 @@ export default function AdminShopSettingsPage() {
               <button
                 type="button"
                 onClick={addShippingZone}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
               >
                 <Plus className="h-4 w-4" />
                 Додати зону доставки
@@ -1288,7 +1305,7 @@ export default function AdminShopSettingsPage() {
             </div>
             <div className="space-y-4">
               {form.shippingZones.map((zone, index) => (
-                <div key={`${zone.id}-${index}`} className="rounded-xl border border-white/10 bg-zinc-950/70 p-4">
+                <div key={`${zone.id}-${index}`} className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
                   <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 text-sm font-medium text-white">
@@ -1302,7 +1319,7 @@ export default function AdminShopSettingsPage() {
                         type="button"
                         onClick={() => moveShippingZone(index, -1)}
                         disabled={index === 0}
-                        className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
                         title="Вгору"
                       >
                         <ArrowUp className="h-4 w-4" />
@@ -1311,7 +1328,7 @@ export default function AdminShopSettingsPage() {
                         type="button"
                         onClick={() => moveShippingZone(index, 1)}
                         disabled={index === form.shippingZones.length - 1}
-                        className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
                         title="Вниз"
                       >
                         <ArrowDown className="h-4 w-4" />
@@ -1319,7 +1336,7 @@ export default function AdminShopSettingsPage() {
                       <button
                         type="button"
                         onClick={() => removeShippingZone(index)}
-                        className="rounded border border-red-500/25 p-2 text-red-300 hover:bg-red-500/10"
+                        className="rounded-none border border-red-500/25 p-2 text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10"
                         title="Видалити зону"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1453,7 +1470,7 @@ export default function AdminShopSettingsPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-medium text-white">Правила доставки брендів</h3>
@@ -1464,7 +1481,7 @@ export default function AdminShopSettingsPage() {
               <button
                 type="button"
                 onClick={addBrandShippingRule}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
               >
                 <Plus className="h-4 w-4" />
                 Додати правило бренду
@@ -1472,7 +1489,7 @@ export default function AdminShopSettingsPage() {
             </div>
             <div className="space-y-4">
               {form.brandShippingRules.map((rule, index) => (
-                <div key={`${rule.id}-${index}`} className="rounded-xl border border-white/10 bg-zinc-950/70 p-4">
+                <div key={`${rule.id}-${index}`} className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
                   <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 text-sm font-medium text-white">
@@ -1486,7 +1503,7 @@ export default function AdminShopSettingsPage() {
                         type="button"
                         onClick={() => moveBrandShippingRule(index, -1)}
                         disabled={index === 0}
-                        className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
                         title="Вгору"
                       >
                         <ArrowUp className="h-4 w-4" />
@@ -1495,7 +1512,7 @@ export default function AdminShopSettingsPage() {
                         type="button"
                         onClick={() => moveBrandShippingRule(index, 1)}
                         disabled={index === form.brandShippingRules.length - 1}
-                        className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
                         title="Вниз"
                       >
                         <ArrowDown className="h-4 w-4" />
@@ -1503,7 +1520,7 @@ export default function AdminShopSettingsPage() {
                       <button
                         type="button"
                         onClick={() => removeBrandShippingRule(index)}
-                        className="rounded border border-red-500/25 p-2 text-red-300 hover:bg-red-500/10"
+                        className="rounded-none border border-red-500/25 p-2 text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10"
                         title="Видалити"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1563,7 +1580,7 @@ export default function AdminShopSettingsPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-medium text-white">Правила податку</h3>
@@ -1574,7 +1591,7 @@ export default function AdminShopSettingsPage() {
               <button
                 type="button"
                 onClick={addTaxRegion}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
               >
                 <Plus className="h-4 w-4" />
                 Додати правило податку
@@ -1582,7 +1599,7 @@ export default function AdminShopSettingsPage() {
             </div>
             <div className="space-y-4">
               {form.taxRegions.map((region, index) => (
-                <div key={`${region.id}-${index}`} className="rounded-xl border border-white/10 bg-zinc-950/70 p-4">
+                <div key={`${region.id}-${index}`} className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
                   <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 text-sm font-medium text-white">
@@ -1596,7 +1613,7 @@ export default function AdminShopSettingsPage() {
                         type="button"
                         onClick={() => moveTaxRegion(index, -1)}
                         disabled={index === 0}
-                        className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
                         title="Вгору"
                       >
                         <ArrowUp className="h-4 w-4" />
@@ -1605,7 +1622,7 @@ export default function AdminShopSettingsPage() {
                         type="button"
                         onClick={() => moveTaxRegion(index, 1)}
                         disabled={index === form.taxRegions.length - 1}
-                        className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
                         title="Вниз"
                       >
                         <ArrowDown className="h-4 w-4" />
@@ -1613,7 +1630,7 @@ export default function AdminShopSettingsPage() {
                       <button
                         type="button"
                         onClick={() => removeTaxRegion(index)}
-                        className="rounded border border-red-500/25 p-2 text-red-300 hover:bg-red-500/10"
+                        className="rounded-none border border-red-500/25 p-2 text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10"
                         title="Видалити правило податку"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1667,7 +1684,7 @@ export default function AdminShopSettingsPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-medium text-white">Регіональна корекція ціни</h3>
@@ -1678,7 +1695,7 @@ export default function AdminShopSettingsPage() {
               <button
                 type="button"
                 onClick={addRegionalPricingRule}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
               >
                 <Plus className="h-4 w-4" />
                 Додати регіональне правило
@@ -1686,7 +1703,7 @@ export default function AdminShopSettingsPage() {
             </div>
             <div className="space-y-4">
               {form.regionalPricingRules.length ? form.regionalPricingRules.map((rule, index) => (
-                <div key={`${rule.id}-${index}`} className="rounded-xl border border-white/10 bg-zinc-950/70 p-4">
+                <div key={`${rule.id}-${index}`} className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
                   <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 text-sm font-medium text-white">
@@ -1700,7 +1717,7 @@ export default function AdminShopSettingsPage() {
                         type="button"
                         onClick={() => moveRegionalPricingRule(index, -1)}
                         disabled={index === 0}
-                        className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
                         title="Вгору"
                       >
                         <ArrowUp className="h-4 w-4" />
@@ -1709,7 +1726,7 @@ export default function AdminShopSettingsPage() {
                         type="button"
                         onClick={() => moveRegionalPricingRule(index, 1)}
                         disabled={index === form.regionalPricingRules.length - 1}
-                        className="rounded border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
+                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/10 disabled:opacity-35"
                         title="Вниз"
                       >
                         <ArrowDown className="h-4 w-4" />
@@ -1717,7 +1734,7 @@ export default function AdminShopSettingsPage() {
                       <button
                         type="button"
                         onClick={() => removeRegionalPricingRule(index)}
-                        className="rounded border border-red-500/25 p-2 text-red-300 hover:bg-red-500/10"
+                        className="rounded-none border border-red-500/25 p-2 text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10"
                         title="Видалити регіональне правило"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1778,14 +1795,14 @@ export default function AdminShopSettingsPage() {
                   </div>
                 </div>
               )) : (
-                <div className="rounded-xl border border-dashed border-white/10 bg-zinc-950/40 p-4 text-sm text-white/40">
+                <div className="rounded-none border border-dashed border-white/10 bg-zinc-950/40 p-4 text-sm text-white/40">
                   Наразі регіональних корекцій ціни немає. Додайте правило, якщо хочете окрему ціну для США, ОАЕ або іншого ринку.
                 </div>
               )}
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-medium text-white">Попередній перегляд оформлення</h3>
@@ -1794,7 +1811,7 @@ export default function AdminShopSettingsPage() {
                 </p>
               </div>
               {previewLoading ? (
-                <div className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/50">Refreshing preview…</div>
+                <div className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/50">Refreshing preview…</div>
               ) : null}
             </div>
             <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -1842,9 +1859,9 @@ export default function AdminShopSettingsPage() {
                   placeholder="10115"
                 />
               </div>
-              <div className="rounded-xl border border-white/10 bg-zinc-950/70 p-4">
+              <div className="rounded-none border border-white/10 bg-zinc-950/70 p-4">
                 {previewError ? (
-                  <div className="rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{previewError}</div>
+                  <div className="rounded-none bg-red-900/20 p-3 text-sm text-red-300">{previewError}</div>
                 ) : previewResult ? (
                   <div className="space-y-4">
                     <div className="grid gap-3 text-sm">
@@ -1876,7 +1893,7 @@ export default function AdminShopSettingsPage() {
                         strong
                       />
                     </div>
-                    <div className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3 text-sm text-white/70">
+                    <div className="grid gap-3 rounded-none border border-white/10 bg-white/[0.03] p-3 text-sm text-white/70">
                       <SummaryRow
                         label="Matched shipping zone"
                         value={previewResult.shippingZone ? `${previewResult.shippingZone.name} (${previewResult.shippingZone.id})` : 'No match'}
@@ -1911,7 +1928,7 @@ export default function AdminShopSettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
               {saving ? 'Saving…' : 'Save settings'}
@@ -1919,15 +1936,23 @@ export default function AdminShopSettingsPage() {
             <button
               type="button"
               onClick={() => void load()}
-              className="rounded-lg border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5"
+              className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5"
             >
               Reload
+            </button>
+            <button
+              type="button"
+              onClick={exportSettings}
+              className="inline-flex items-center gap-2 rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5"
+            >
+              <Download className="h-4 w-4" />
+              Export
             </button>
           </div>
         </form>
 
         {/* Product Feed Links */}
-        <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <section className="mt-6 rounded-none border border-white/10 bg-white/[0.03] p-5">
           <h3 className="text-lg font-medium text-white mb-1">Product Feed (Google Merchant)</h3>
           <p className="text-sm text-white/45 mb-4">
             XML-фід для Google Merchant Center, Facebook та маркетплейсів.
@@ -1939,13 +1964,13 @@ export default function AdminShopSettingsPage() {
               { label: '🇬🇧 EN · EUR', url: '/api/shop/feed/products?locale=en&currency=EUR' },
               { label: '🇬🇧 EN · USD', url: '/api/shop/feed/products?locale=en&currency=USD' },
             ].map(feed => (
-              <div key={feed.url} className="flex items-center gap-3 rounded-xl border border-white/10 bg-zinc-950/40 p-3">
+              <div key={feed.url} className="flex items-center gap-3 rounded-none border border-white/10 bg-zinc-950/40 p-3">
                 <span className="text-xs text-white/60 shrink-0">{feed.label}</span>
                 <code className="flex-1 text-[10px] text-white/40 truncate font-mono">{feed.url}</code>
                 <button
                   type="button"
                   onClick={() => { navigator.clipboard.writeText(window.location.origin + feed.url).catch(() => {}); }}
-                  className="shrink-0 rounded-lg border border-white/10 px-2 py-1 text-[10px] text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+                  className="shrink-0 rounded-none border border-white/10 px-2 py-1 text-[10px] text-white/50 hover:text-white hover:bg-white/5 transition-colors"
                 >
                   Копіювати
                 </button>
@@ -1955,7 +1980,7 @@ export default function AdminShopSettingsPage() {
         </section>
         
         {/* Turn14 Dimensions Sync */}
-        <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <section className="mt-6 rounded-none border border-white/10 bg-white/[0.03] p-5">
           <div className="mb-5">
             <h3 className="text-lg font-medium text-white mb-1">Синхронізація логістики з Turn14</h3>
             <p className="text-sm text-white/45 max-w-2xl">
@@ -1979,7 +2004,7 @@ export default function AdminShopSettingsPage() {
                 alert(`Помилка мережі: ${e.message}`);
               }
             }}
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-none bg-zinc-100 text-black px-5 py-2.5 text-sm font-medium hover:bg-zinc-100 text-black disabled:opacity-50"
           >
             <RefreshCw className="h-4 w-4" />
             Запустити синхронізацію габаритів
@@ -2024,7 +2049,7 @@ function InputField({ label, value, onChange, placeholder, disabled }: InputFiel
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         disabled={disabled}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none disabled:bg-zinc-950/50 disabled:cursor-not-allowed"
+        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none disabled:bg-zinc-950/50 disabled:cursor-not-allowed"
       />
     </label>
   );
@@ -2045,7 +2070,7 @@ function TextareaField({ label, value, onChange, rows = 6 }: TextareaFieldProps)
         value={value}
         onChange={(event) => onChange(event.target.value)}
         rows={rows}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
       />
     </label>
   );
@@ -2065,7 +2090,7 @@ function SelectField({ label, value, onChange, options }: SelectFieldProps) {
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -2085,12 +2110,12 @@ type CheckboxFieldProps = {
 
 function CheckboxField({ label, checked, onChange }: CheckboxFieldProps) {
   return (
-    <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2.5 text-sm text-white/80">
+    <label className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2.5 text-sm text-white/80">
       <input
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+        className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
       />
       {label}
     </label>

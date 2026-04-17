@@ -184,7 +184,7 @@ export default function Turn14AdminPage() {
         </Link>
         
         <h1 className="mb-4 flex flex-col md:flex-row md:items-center gap-4 text-4xl lg:text-5xl font-light tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500">
-          <Globe className="h-10 w-10 text-indigo-400 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)] flex-shrink-0" /> 
+          <Globe className="h-10 w-10 text-zinc-400 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)] flex-shrink-0" /> 
           Turn14 Global Catalog
         </h1>
           <p className="mb-6 max-w-2xl text-sm leading-relaxed text-white/40">
@@ -194,17 +194,17 @@ export default function Turn14AdminPage() {
         {/* Quick nav */}
         <div className="mb-8 flex items-center gap-3">
           <Link href="/admin/shop/turn14/markups"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-400 text-xs uppercase tracking-widest font-medium hover:bg-amber-500/10 transition-all">
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-none border border-amber-500/20 bg-amber-500/5 text-amber-400 text-xs uppercase tracking-widest font-medium hover:bg-amber-500/10 transition-all">
             <span>%</span> Brand Markup Editor
           </Link>
           <Link href="/admin/crm"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-indigo-500/20 bg-indigo-500/5 text-indigo-400 text-xs uppercase tracking-widest font-medium hover:bg-indigo-500/10 transition-all">
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-none border border-indigo-500/20 bg-zinc-100 text-black/5 text-zinc-400 text-xs uppercase tracking-widest font-medium hover:bg-zinc-100 text-black/10 transition-all">
             CRM Dashboard
           </Link>
         </div>
 
         {/* Sync Controls Panel */}
-        <div className="mb-10 flex flex-wrap items-center justify-between gap-6 rounded-2xl border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-6 transition-all hover:border-indigo-500/20">
+        <div className="mb-10 flex flex-wrap items-center justify-between gap-6 rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-6 transition-all hover:border-indigo-500/20">
           <div className="flex-1">
             <h2 className="text-lg font-medium tracking-wide text-white mb-2">Фонова Синхронізація (B2B/Urban)</h2>
             <p className="text-[13px] text-white/50 max-w-xl">
@@ -215,20 +215,20 @@ export default function Turn14AdminPage() {
           <button
             onClick={handleSync}
             disabled={syncing}
-            className="group relative inline-flex items-center gap-3 overflow-hidden rounded-xl bg-white px-8 py-3.5 text-sm font-semibold uppercase tracking-widest text-black shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 hover:scale-[1.02] hover:bg-zinc-200 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] disabled:opacity-50 disabled:hover:scale-100"
+            className="group relative inline-flex items-center gap-3 overflow-hidden rounded-none bg-white px-8 py-3.5 text-sm font-semibold uppercase tracking-widest text-black shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 hover:scale-[1.02] hover:bg-zinc-200 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] disabled:opacity-50 disabled:hover:scale-100"
           >
             {syncing ? (
-              <RefreshCw className="h-5 w-5 animate-spin text-indigo-600" />
+              <RefreshCw className="h-5 w-5 animate-spin text-zinc-200" />
             ) : (
-              <RefreshCw className="h-5 w-5 text-indigo-600 drop-shadow-[0_0_8px_rgba(99,102,241,0.4)] transition-transform group-hover:rotate-180" />
+              <RefreshCw className="h-5 w-5 text-zinc-200 drop-shadow-[0_0_8px_rgba(99,102,241,0.4)] transition-transform group-hover:rotate-180" />
             )}
             {syncing ? 'Процеринг...' : 'Синхронізувати Urban'}
           </button>
         </div>
 
       <form onSubmit={handleSearch} className="mb-8 flex items-center gap-3">
-        <label className="flex w-full max-w-xl items-center gap-3 rounded-2xl border border-white/[0.08] bg-black/60 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl px-5 py-3.5 text-sm text-white focus-within:border-indigo-500/50 focus-within:shadow-[0_0_20px_rgba(99,102,241,0.2)] transition-all duration-300">
-          <Search className="h-5 w-5 text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.3)]" />
+        <label className="flex w-full max-w-xl items-center gap-3 rounded-none border border-white/[0.08] bg-black/60 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl px-5 py-3.5 text-sm text-white focus-within:border-indigo-500/50 focus-within:shadow-[0_0_20px_rgba(99,102,241,0.2)] transition-all duration-300">
+          <Search className="h-5 w-5 text-zinc-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.3)]" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -239,13 +239,13 @@ export default function Turn14AdminPage() {
         <button 
           type="submit" 
           disabled={loading || !query.trim()}
-          className="rounded-xl bg-white px-8 py-4 text-sm font-semibold text-black hover:bg-zinc-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] shadow-[0_0_10px_rgba(255,255,255,0.1)] transition-all duration-300 disabled:opacity-50 uppercase tracking-widest"
+          className="rounded-none bg-white px-8 py-4 text-sm font-semibold text-black hover:bg-zinc-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] shadow-[0_0_10px_rgba(255,255,255,0.1)] transition-all duration-300 disabled:opacity-50 uppercase tracking-widest"
         >
           {loading ? 'Пошук...' : 'Знайти в Turn14'}
         </button>
       </form>
 
-      {error && <div className="mb-8 text-red-500 bg-red-500/10 p-5 rounded-2xl border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.2)] flex items-center gap-3"><AlertCircle className="h-5 w-5" /> {error}</div>}
+      {error && <div className="mb-8 text-red-500 bg-red-950/30 border border-red-900/50 text-red-500/10 p-5 rounded-none border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.2)] flex items-center gap-3"><AlertCircle className="h-5 w-5" /> {error}</div>}
 
       {/* ═══ Stock Filter Bar ═══ */}
       {items.length > 0 && (
@@ -257,7 +257,7 @@ export default function Turn14AdminPage() {
           
           <button
             onClick={() => setStockFilter('all')}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium uppercase tracking-widest transition-all border ${
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-none text-xs font-medium uppercase tracking-widest transition-all border ${
               stockFilter === 'all'
                 ? 'bg-white/10 text-white border-white/20'
                 : 'bg-transparent text-white/40 border-white/[0.06] hover:border-white/15 hover:text-white/60'
@@ -270,7 +270,7 @@ export default function Turn14AdminPage() {
           <button
             onClick={() => setStockFilter('inStock')}
             disabled={stockChecking}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium uppercase tracking-widest transition-all border ${
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-none text-xs font-medium uppercase tracking-widest transition-all border ${
               stockFilter === 'inStock'
                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                 : 'bg-transparent text-white/40 border-white/[0.06] hover:border-emerald-500/20 hover:text-emerald-400/60'
@@ -286,7 +286,7 @@ export default function Turn14AdminPage() {
           <button
             onClick={() => setStockFilter('notInStock')}
             disabled={stockChecking}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium uppercase tracking-widest transition-all border ${
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-none text-xs font-medium uppercase tracking-widest transition-all border ${
               stockFilter === 'notInStock'
                 ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
                 : 'bg-transparent text-white/40 border-white/[0.06] hover:border-amber-500/20 hover:text-amber-400/60'
@@ -307,7 +307,7 @@ export default function Turn14AdminPage() {
         </div>
       )}
 
-      <div className="rounded-3xl border border-white/[0.08] bg-black/40 shadow-2xl backdrop-blur-3xl overflow-hidden hover:border-white/[0.12] transition-colors relative">
+      <div className="rounded-none border border-white/[0.08] bg-black/40 shadow-2xl backdrop-blur-3xl overflow-hidden hover:border-white/[0.12] transition-colors relative">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
         {items.length === 0 && !loading && !error ? (
           <div className="p-16 text-center text-white/40 tracking-wider text-sm">
@@ -315,7 +315,7 @@ export default function Turn14AdminPage() {
           </div>
         ) : loading ? (
            <div className="p-16 flex flex-col items-center justify-center text-center">
-             <div className="w-10 h-10 mb-4 rounded-full border-t-2 border-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
+             <div className="w-10 h-10 mb-4 rounded-none-full border-t-2 border-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
              <span className="text-white/60 animate-pulse tracking-widest text-sm uppercase">Завантаження каталогу Turn14...</span>
           </div>
         ) : filteredItems.length === 0 ? (
@@ -347,7 +347,7 @@ export default function Turn14AdminPage() {
                   >
                     {/* Stock badge */}
                     {stockInfo && (
-                      <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/20 border border-emerald-500/30 backdrop-blur-sm">
+                      <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5 px-2.5 py-1 rounded-none bg-emerald-500/20 border border-emerald-500/30 backdrop-blur-sm">
                         <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                         <span className="text-[9px] uppercase tracking-widest text-emerald-400 font-bold">В OC</span>
                       </div>
@@ -452,10 +452,10 @@ export default function Turn14AdminPage() {
 
       {orderModalOpen && selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#09090b] p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+          <div className="w-full max-w-md rounded-none border border-white/[0.08] bg-[#09090b] p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
             <h3 className="text-xl font-medium text-white mb-2 tracking-wide">Оформити замовлення</h3>
             <p className="text-sm text-white/50 mb-6 leading-relaxed">
-              Ви додаєте <span className="text-indigo-300 font-medium whitespace-pre-wrap break-words">{(selectedItem.attributes as any)?.product_name || (selectedItem.attributes as any)?.item_name || 'Деталь Turn14'}</span>. 
+              Ви додаєте <span className="text-zinc-500 font-medium whitespace-pre-wrap break-words">{(selectedItem.attributes as any)?.product_name || (selectedItem.attributes as any)?.item_name || 'Деталь Turn14'}</span>. 
               Система створить нове UNPAID замовлення.
             </p>
             <form onSubmit={handleOrderSubmit} className="space-y-5">
@@ -466,7 +466,7 @@ export default function Turn14AdminPage() {
                   required
                   value={orderForm.email}
                   onChange={e => setOrderForm(prev => ({ ...prev, email: e.target.value }))}
-                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-colors"
+                  className="w-full rounded-none bg-black/40 border border-white/[0.08] px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-colors"
                   placeholder="client@mail.com"
                 />
               </label>
@@ -479,7 +479,7 @@ export default function Turn14AdminPage() {
                   required
                   value={orderForm.price}
                   onChange={e => setOrderForm(prev => ({ ...prev, price: e.target.value }))}
-                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-colors"
+                  className="w-full rounded-none bg-black/40 border border-white/[0.08] px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-colors"
                   placeholder="1500.00"
                 />
               </label>
@@ -487,14 +487,14 @@ export default function Turn14AdminPage() {
                 <button
                   type="button"
                   onClick={() => setOrderModalOpen(false)}
-                  className="flex-1 rounded-xl border border-white/10 bg-transparent hover:bg-white/5 px-4 py-3 text-xs font-semibold uppercase tracking-widest text-white transition-colors"
+                  className="flex-1 rounded-none border border-white/10 bg-transparent hover:bg-white/5 px-4 py-3 text-xs font-semibold uppercase tracking-widest text-white transition-colors"
                 >
                   Скасувати
                 </button>
                 <button
                   type="submit"
                   disabled={orderLoading}
-                  className="flex-1 rounded-xl bg-white hover:bg-zinc-200 px-4 py-3 text-xs font-semibold uppercase tracking-widest text-black shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] disabled:opacity-50 transition-all duration-300"
+                  className="flex-1 rounded-none bg-white hover:bg-zinc-200 px-4 py-3 text-xs font-semibold uppercase tracking-widest text-black shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] disabled:opacity-50 transition-all duration-300"
                 >
                   {orderLoading ? 'Створення...' : 'Підтвердити'}
                 </button>

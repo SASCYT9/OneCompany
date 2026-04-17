@@ -223,7 +223,7 @@ export default function AdminStockPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={loadStats}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-transparent hover:bg-white/5 transition-all px-4 py-2 text-sm font-medium text-white/80"
+              className="inline-flex items-center gap-2 rounded-none border border-white/[0.08] bg-transparent hover:bg-white/5 transition-all px-4 py-2 text-sm font-medium text-white/80"
             >
               <RefreshCcw className="h-4 w-4 text-white/50" />
               Оновити
@@ -236,12 +236,12 @@ export default function AdminStockPage() {
 
         {/* Stats Cards */}
         <div className="mb-8 grid gap-4 md:grid-cols-4">
-          <div className="rounded-2xl border border-white/[0.08] bg-black/40 p-5 backdrop-blur-sm">
+          <div className="rounded-none border border-white/[0.08] bg-black/40 p-5 backdrop-blur-sm">
             <p className="text-[10px] tracking-[0.15em] uppercase text-white/40 font-medium">Усього товарів</p>
             <p className="mt-2 text-2xl font-light text-white">{loading ? '...' : stats?.total || 0}</p>
           </div>
           {stats?.distributors?.map(d => (
-            <div key={d.name} className="rounded-2xl border border-white/[0.08] bg-black/40 p-5 backdrop-blur-sm">
+            <div key={d.name} className="rounded-none border border-white/[0.08] bg-black/40 p-5 backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] tracking-[0.15em] uppercase text-white/40 font-medium">{d.name}</p>
                 <button onClick={() => handleDelete(d.name)} className="text-white/20 hover:text-red-400 transition-colors">
@@ -254,7 +254,7 @@ export default function AdminStockPage() {
         </div>
 
         {/* Import Section */}
-        <div className="rounded-2xl border border-white/[0.08] bg-black/40 p-6 backdrop-blur-sm">
+        <div className="rounded-none border border-white/[0.08] bg-black/40 p-6 backdrop-blur-sm">
           <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
             <Upload className="h-5 w-5 text-white/40" />
             Імпорт Shopify CSV
@@ -266,7 +266,7 @@ export default function AdminStockPage() {
               <select
                 value={distributor}
                 onChange={e => setDistributor(e.target.value)}
-                className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-white/30"
+                className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-white/30"
               >
                 <option value="IND" className="bg-[#121216]">IND</option>
                 <option value="OTHER" className="bg-[#121216]">Інший</option>
@@ -275,7 +275,7 @@ export default function AdminStockPage() {
             
             <div>
               <label className="block text-[10px] uppercase tracking-widest text-white/40 mb-2">CSV файл</label>
-              <label className="flex items-center gap-3 cursor-pointer bg-white/[0.03] border border-white/10 border-dashed rounded-lg px-4 py-2.5 hover:bg-white/[0.05] transition-colors">
+              <label className="flex items-center gap-3 cursor-pointer bg-white/[0.03] border border-white/10 border-dashed rounded-none px-4 py-2.5 hover:bg-white/[0.05] transition-colors">
                 <FileSpreadsheet className="h-4 w-4 text-white/40 shrink-0" />
                 <span className="text-sm text-white/60 truncate">
                   {csvFile ? csvFile.name : 'Оберіть Shopify .csv файл'}
@@ -293,7 +293,7 @@ export default function AdminStockPage() {
               {preview && preview.length > 0 && (
                 <button
                   onClick={() => setShowPreview(!showPreview)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2.5 text-xs text-white/50 hover:bg-white/5 transition-all"
+                  className="inline-flex items-center gap-1.5 rounded-none border border-white/10 px-3 py-2.5 text-xs text-white/50 hover:bg-white/5 transition-all"
                   title="Попередній перегляд"
                 >
                   {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -302,7 +302,7 @@ export default function AdminStockPage() {
               <button
                 onClick={handleImport}
                 disabled={!csvFile || importing}
-                className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-black hover:bg-zinc-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 rounded-none bg-white px-5 py-2.5 text-sm font-semibold text-black hover:bg-zinc-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {importing ? (
                   <><RefreshCcw className="h-4 w-4 animate-spin" /> Імпорт...</>
@@ -314,8 +314,8 @@ export default function AdminStockPage() {
           </div>
 
           {/* Shopify CSV format hint */}
-          <div className="mt-4 rounded-lg bg-blue-500/5 border border-blue-500/10 p-3">
-            <p className="text-[10px] uppercase tracking-widest text-blue-300/70 mb-1.5 font-medium">Shopify CSV формат</p>
+          <div className="mt-4 rounded-none bg-zinc-100 text-black/5 border border-blue-500/10 p-3">
+            <p className="text-[10px] uppercase tracking-widest text-zinc-500/70 mb-1.5 font-medium">Shopify CSV формат</p>
             <p className="text-xs text-white/40 leading-relaxed">
               Стандартний експорт із Shopify Admin → Products → Export.
               Колонки: <code className="text-white/60">Handle</code>, <code className="text-white/60">Title</code>, <code className="text-white/60">Vendor</code>, <code className="text-white/60">Type</code>, <code className="text-white/60">Variant SKU</code>, <code className="text-white/60">Variant Price</code>, <code className="text-white/60">Image Src</code>.
@@ -325,7 +325,7 @@ export default function AdminStockPage() {
 
           {/* Preview */}
           {showPreview && preview && preview.length > 0 && (
-            <div className="mt-4 rounded-lg border border-white/10 overflow-hidden">
+            <div className="mt-4 rounded-none border border-white/10 overflow-hidden">
               <div className="bg-white/[0.03] px-4 py-2 text-[10px] uppercase tracking-widest text-white/40 font-medium border-b border-white/10">
                 Попередній перегляд ({preview.length} з {csvFile ? '...' : 0})
               </div>
@@ -333,9 +333,9 @@ export default function AdminStockPage() {
                 {preview.map((p, i) => (
                   <div key={i} className="px-4 py-3 flex items-center gap-4 text-xs">
                     {p.thumbnail ? (
-                      <img src={p.thumbnail} alt="" className="w-10 h-10 object-contain rounded bg-white/5 shrink-0" />
+                      <img src={p.thumbnail} alt="" className="w-10 h-10 object-contain rounded-none bg-white/5 shrink-0" />
                     ) : (
-                      <div className="w-10 h-10 bg-white/5 rounded shrink-0" />
+                      <div className="w-10 h-10 bg-white/5 rounded-none shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-white truncate">{p.name}</p>
@@ -354,14 +354,14 @@ export default function AdminStockPage() {
 
         {/* Results */}
         {error && (
-          <div className="mt-4 rounded-lg bg-red-900/20 border border-red-500/20 p-4 flex items-center gap-3">
+          <div className="mt-4 rounded-none bg-red-900/20 border border-red-500/20 p-4 flex items-center gap-3">
             <AlertTriangle className="h-5 w-5 text-red-400 shrink-0" />
             <p className="text-sm text-red-300">{error}</p>
           </div>
         )}
         
         {importResult && (
-          <div className="mt-4 rounded-lg bg-emerald-900/20 border border-emerald-500/20 p-4 flex items-center gap-3">
+          <div className="mt-4 rounded-none bg-emerald-900/20 border border-emerald-500/20 p-4 flex items-center gap-3">
             <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
             <div className="text-sm text-emerald-300">
               <span className="font-medium">{importResult.distributor}</span>: 

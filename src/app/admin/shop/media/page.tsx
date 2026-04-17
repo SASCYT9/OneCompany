@@ -208,7 +208,7 @@ export default function AdminShopMediaPage() {
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
+              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
             >
               <RefreshCcw className="h-4 w-4" />
               Refresh
@@ -224,7 +224,7 @@ export default function AdminShopMediaPage() {
               type="button"
               onClick={() => uploadInputRef.current?.click()}
               disabled={uploading}
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-60"
             >
               <Upload className="h-4 w-4" />
               {uploading ? 'Uploading…' : 'Upload asset'}
@@ -232,30 +232,30 @@ export default function AdminShopMediaPage() {
           </div>
         </div>
 
-        {error ? <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
-        {success ? <div className="mb-4 rounded-lg bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
+        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+        {success ? <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
 
         <div className="mb-4 grid gap-4 md:grid-cols-4">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
             <div className="text-xs uppercase tracking-[0.24em] text-white/40">Assets</div>
             <div className="mt-2 text-2xl font-semibold text-white">{summary.total}</div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
             <div className="text-xs uppercase tracking-[0.24em] text-white/40">Images</div>
             <div className="mt-2 text-2xl font-semibold text-white">{summary.images}</div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
             <div className="text-xs uppercase tracking-[0.24em] text-white/40">Videos</div>
             <div className="mt-2 text-2xl font-semibold text-white">{summary.videos}</div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
             <div className="text-xs uppercase tracking-[0.24em] text-white/40">In Use</div>
             <div className="mt-2 text-2xl font-semibold text-white">{summary.inUse}</div>
           </div>
         </div>
 
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <label className="flex min-w-[280px] items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-none border border-white/10 bg-white/[0.03] p-4">
+          <label className="flex min-w-[280px] items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
             <Search className="h-4 w-4 text-white/35" />
             <input
               value={query}
@@ -268,13 +268,13 @@ export default function AdminShopMediaPage() {
         </div>
 
         {filteredItems.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
+          <div className="rounded-none border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
             No media assets found.
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredItems.map((item) => (
-              <div key={item.id} className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+              <div key={item.id} className="overflow-hidden rounded-none border border-white/10 bg-white/[0.03]">
                 <div className="border-b border-white/10 bg-black/30">
                   {item.kind === 'image' ? (
                     <img src={item.url} alt={item.originalName} className="h-48 w-full object-cover" />
@@ -294,7 +294,7 @@ export default function AdminShopMediaPage() {
                       <div className="mt-1 truncate font-mono text-[11px] text-white/40">{item.filename}</div>
                     </div>
                     <span
-                      className={`shrink-0 rounded-full border px-2 py-1 text-[11px] ${
+                      className={`shrink-0 rounded-none-full border px-2 py-1 text-[11px] ${
                         item.usageCount > 0
                           ? 'border-amber-500/25 bg-amber-500/10 text-amber-100'
                           : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100'
@@ -322,7 +322,7 @@ export default function AdminShopMediaPage() {
                         {new Date(item.uploadedAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <div className="rounded-lg border border-white/10 bg-black/20 p-3 text-white/55">
+                    <div className="rounded-none border border-white/10 bg-black/20 p-3 text-white/55">
                       {usageLabel(item)}
                     </div>
                     <div className="truncate font-mono text-[11px] text-white/35">{item.url}</div>
@@ -333,7 +333,7 @@ export default function AdminShopMediaPage() {
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-md border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
                     >
                       <ArrowUpRight className="h-3.5 w-3.5" />
                       Open
@@ -341,7 +341,7 @@ export default function AdminShopMediaPage() {
                     <button
                       type="button"
                       onClick={() => void handleCopy(item.url)}
-                      className="inline-flex items-center gap-2 rounded-md border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Copy URL
@@ -350,7 +350,7 @@ export default function AdminShopMediaPage() {
                       type="button"
                       onClick={() => void handleDelete(item)}
                       disabled={deletingId === item.id || item.usageCount > 0}
-                      className="inline-flex items-center gap-2 rounded-md border border-red-500/25 px-3 py-2 text-xs text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-none border border-red-500/25 px-3 py-2 text-xs text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10 disabled:opacity-50"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       {deletingId === item.id ? 'Deleting…' : item.usageCount > 0 ? 'In use' : 'Delete'}

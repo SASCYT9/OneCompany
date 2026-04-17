@@ -161,8 +161,8 @@ function AdminShopPageContent() {
     }
   }
 
-  // Common brands to display in dropdown since we don't load all products anymore
-  const commonBrands = [ 'Akrapovic', 'Burger Motorsports', 'CSF', 'DO88', 'Eventuri', 'MHT', 'Mishimoto', 'RaceChip', 'Urban Automotive' ];
+  // All available brands in the catalog
+  const commonBrands = [ 'ADRO', 'Akrapovic', 'Brabus', 'Burger Motorsports', 'CSF', 'DO88', 'GiroDisc', 'MHT', 'Mishimoto', 'OHLINS', 'RaceChip', 'Urban Automotive' ];
 
   if (loading && products.length === 0) {
     return (
@@ -184,97 +184,96 @@ function AdminShopPageContent() {
               <span className="font-medium text-white"> Ціни (B2C/B2B)</span>.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
-              <button 
-                onClick={() => updateParams({ brand: 'Urban Automotive', search: '' })}
-                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium tracking-wide transition-all font-mono ${brandParam === 'Urban Automotive' ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'}`}
-              >
-                <Package className="w-4 h-4" />
-                Urban
-              </button>
-              <button 
-                onClick={() => updateParams({ brand: 'DO88', search: '' })}
-                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium tracking-wide transition-all font-mono ${brandParam === 'DO88' ? 'border-amber-500 bg-amber-500/20 text-amber-400' : 'border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'}`}
-              >
-                <Package className="w-4 h-4" />
-                DO88
-              </button>
-              <button 
-                onClick={() => updateParams({ brand: 'Eventuri', search: '' })}
-                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium tracking-wide transition-all font-mono ${brandParam === 'Eventuri' ? 'border-purple-500 bg-purple-500/20 text-purple-400' : 'border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'}`}
-              >
-                <Package className="w-4 h-4" />
-                Eventuri
-              </button>
+              {commonBrands.map((brand) => {
+                const isSelected = brandParam?.toLowerCase() === brand.toLowerCase();
+                // Shorten some long names for the buttons
+                const label = brand === 'Urban Automotive' ? 'Urban' : brand === 'Burger Motorsports' ? 'Burger' : brand;
+                
+                return (
+                  <button 
+                    key={brand}
+                    onClick={() => updateParams({ brand, search: '' })}
+                    className={`flex items-center gap-2 rounded-none border px-4 py-2 text-sm font-medium tracking-wide transition-all font-mono ${
+                      isSelected 
+                        ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' 
+                        : 'border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Package className="w-4 h-4" />
+                    {label}
+                  </button>
+                );
+              })}
               <Link 
                 href="/admin/shop/turn14"
-                className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-5 py-2.5 text-sm font-medium tracking-wide text-indigo-400 hover:bg-indigo-500/20 transition-all font-mono ml-auto"
+                className="flex items-center gap-2 rounded-none border border-indigo-500/30 bg-zinc-100 text-black/10 px-5 py-2.5 text-sm font-medium tracking-wide text-zinc-400 hover:bg-zinc-100 text-black/20 transition-all font-mono ml-auto"
               >
                 <Globe className="w-4 h-4" />
                 Turn14 Database
               </Link>
             </div>
             
-            <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-2 text-xs text-white/55">
+            <div className="mt-4 rounded-none border border-white/10 bg-white/[0.02] px-4 py-2 text-xs text-white/55">
               <span className="font-medium text-white/75">Що робить кожен модуль:</span> Замовлення — перегляд і обробка замовлень; Клієнти — база B2B/B2C; Склад — залишки по варіантах; Ціни — масове ціноутворення; Налаштування — валюти, доставка, податки; Аудит — журнал дій; Категорії — дерево категорій; Колекції — підбірки товарів; Комплекти — збирання комплектів; Медіа — бібліотека зображень; Імпорт CSV — імпорт з мапінгом колонок.
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Link href="/admin/shop/orders" title="Перегляд і обробка замовлень клієнтів" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/orders" title="Перегляд і обробка замовлень клієнтів" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <ShoppingCart className="w-4 h-4" />
               Замовлення
             </Link>
-            <Link href="/admin/shop/customers" title="База клієнтів B2B та B2C" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/customers" title="База клієнтів B2B та B2C" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Users className="w-4 h-4" />
               Клієнти
             </Link>
-            <Link href="/admin/shop/inventory" title="Залишки та відстеження по варіантах" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/inventory" title="Залишки та відстеження по варіантах" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Warehouse className="w-4 h-4" />
               Склад
             </Link>
-            <Link href="/admin/shop/pricing" title="Масове ціноутворення B2C та B2B" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/pricing" title="Масове ціноутворення B2C та B2B" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Coins className="w-4 h-4" />
               Ціни (B2C/B2B)
             </Link>
-            <Link href="/admin/shop/settings" title="Валюти, зони доставки, податки, B2B" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/settings" title="Валюти, зони доставки, податки, B2B" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Settings2 className="w-4 h-4" />
               Налаштування
             </Link>
-            <Link href="/admin/shop/audit" title="Журнал дій у магазині" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/audit" title="Журнал дій у магазині" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <FileClock className="w-4 h-4" />
               Аудит
             </Link>
-            <Link href="/admin/shop/categories" title="Дерево категорій товарів" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/categories" title="Дерево категорій товарів" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <FolderTree className="w-4 h-4" />
               Категорії
             </Link>
-            <Link href="/admin/shop/collections" title="Підбірки та колекції товарів" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/collections" title="Підбірки та колекції товарів" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Layers3 className="w-4 h-4" />
               Колекції
             </Link>
-            <Link href="/admin/shop/bundles" title="Комплекти з кількох товарів" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/bundles" title="Комплекти з кількох товарів" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Boxes className="w-4 h-4" />
               Комплекти
             </Link>
-            <Link href="/admin/shop/media" title="Бібліотека зображень" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/media" title="Бібліотека зображень" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <ImageIcon className="w-4 h-4" />
               Медіа
             </Link>
-            <Link href="/admin/shop/import" title="Імпорт товарів з CSV і мапінг колонок" className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/import" title="Імпорт товарів з CSV і мапінг колонок" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               <Upload className="w-4 h-4" />
               Імпорт CSV
             </Link>
-            <Link href="/admin/shop/seo" title="Автоматична генерація SEO мета-тегів" className="flex items-center gap-2 rounded-lg border border-teal-500/30 bg-teal-500/10 px-4 py-2 text-sm font-medium text-teal-400 hover:bg-teal-500/20 shadow-[0_0_15px_-3px_rgba(45,212,191,0.2)]">
+            <Link href="/admin/shop/seo" title="Автоматична генерація SEO мета-тегів" className="flex items-center gap-2 rounded-none border border-teal-500/30 bg-teal-500/10 px-4 py-2 text-sm font-medium text-teal-400 hover:bg-teal-500/20 shadow-[0_0_15px_-3px_rgba(45,212,191,0.2)]">
               <Sparkles className="w-4 h-4" />
               SEO Machine
             </Link>
-            <Link href="/admin/shop/new" title="Створити новий товар" className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
+            <Link href="/admin/shop/new" title="Створити новий товар" className="flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
               <Plus className="w-4 h-4" />
               Новий товар
             </Link>
           </div>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-none border border-white/10 bg-white/[0.03] p-4">
           <div className="grid gap-1 text-sm text-white/70 md:grid-cols-3 md:gap-8">
             <div>Всього знайдено: {metadata.totalCount}</div>
             <div>Сторінка {metadata.currentPage} із {metadata.totalPages}</div>
@@ -284,7 +283,7 @@ function AdminShopPageContent() {
             <select
               value={statusParam}
               onChange={(e) => updateParams({ status: e.target.value })}
-              className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white"
+              className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white"
             >
               <option value="ALL">Усі статуси</option>
               <option value="ACTIVE">Активні</option>
@@ -294,14 +293,14 @@ function AdminShopPageContent() {
             <select
               value={brandParam}
               onChange={(e) => updateParams({ brand: e.target.value })}
-              className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white"
+              className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white"
             >
               <option value="ALL">Всі Бренди</option>
               {commonBrands.map(b => (
                 <option key={b} value={b}>{b}</option>
               ))}
             </select>
-            <label className="flex min-w-[260px] items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
+            <label className="flex min-w-[260px] items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
             <Search className="h-4 w-4 text-white/35" />
             <input
               value={searchInput}
@@ -318,9 +317,9 @@ function AdminShopPageContent() {
           </div>
         </div>
 
-        {error && <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div>}
+        {error && <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div>}
 
-        <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-xs text-white/55 space-y-1">
+        <div className="mb-4 rounded-none border border-white/10 bg-white/[0.02] p-4 text-xs text-white/55 space-y-1">
           <p className="font-medium text-white/80">Як працювати з каталогом:</p>
           <p>• <span className="font-semibold text-white">Редагувати товар</span> — клік по назві або іконка олівця у стовпчику дій.</p>
           <p>• <span className="font-semibold text-white">Ціни B2C / B2B</span> — окремий розділ «Ціни (B2C/B2B)», де можна масово змінювати ціни за варіантами.</p>
@@ -328,11 +327,11 @@ function AdminShopPageContent() {
         </div>
 
         {products.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
+          <div className="rounded-none border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
             Товарів не знайдено. Імпортуйте CSV або додайте товар вручну.
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-white/10">
+          <div className="overflow-x-auto rounded-none border border-white/10">
             <table className="w-full min-w-[800px] text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
@@ -341,7 +340,7 @@ function AdminShopPageContent() {
                       type="checkbox" 
                       checked={selectedIds.size === products.length && products.length > 0} 
                       onChange={toggleSelectAll}
-                      className="rounded border-white/20 bg-black/40 text-emerald-500 focus:ring-emerald-500/30"
+                      className="rounded-none border-white/20 bg-black/40 text-emerald-500 focus:ring-emerald-500/30"
                     />
                   </th>
                   <th className="px-4 py-3 text-white/60 font-medium">Товар</th>
@@ -361,7 +360,7 @@ function AdminShopPageContent() {
                         type="checkbox" 
                         checked={selectedIds.has(product.id)} 
                         onChange={() => toggleSelect(product.id)}
-                        className="rounded border-white/20 bg-black/40 text-emerald-500 focus:ring-emerald-500/30"
+                        className="rounded-none border-white/20 bg-black/40 text-emerald-500 focus:ring-emerald-500/30"
                       />
                     </td>
                     <td className="px-4 py-4">
@@ -375,13 +374,13 @@ function AdminShopPageContent() {
                           {product.collectionHandles.slice(0, 3).map((handle) => (
                             <span
                               key={handle}
-                              className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60"
+                              className="rounded-none-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60"
                             >
                               {handle}
                             </span>
                           ))}
                           {product.collectionHandles.length > 3 ? (
-                            <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/45">
+                            <span className="rounded-none-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/45">
                               +{product.collectionHandles.length - 3}
                             </span>
                           ) : null}
@@ -407,14 +406,14 @@ function AdminShopPageContent() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
-                        <Link href={`/admin/shop/${product.id}`} className="rounded border border-white/20 p-1.5 text-white/80 hover:bg-white/10" title="Редагувати">
+                        <Link href={`/admin/shop/${product.id}`} className="rounded-none border border-white/20 p-1.5 text-white/80 hover:bg-white/10" title="Редагувати">
                           <Pencil className="h-4 w-4" />
                         </Link>
                         <button
                           type="button"
                           onClick={() => handleDelete(product.id)}
                           disabled={deletingId === product.id}
-                          className="rounded border border-red-500/30 p-1.5 text-red-400 hover:bg-red-500/10 disabled:opacity-50"
+                          className="rounded-none border border-red-500/30 p-1.5 text-red-400 hover:bg-red-950/30 border border-red-900/50 text-red-500/10 disabled:opacity-50"
                           title="Видалити"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -438,7 +437,7 @@ function AdminShopPageContent() {
               <button
                 disabled={metadata.currentPage <= 1}
                 onClick={() => updateParams({ page: metadata.currentPage - 1 })}
-                className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50"
+                className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50"
               >
                 Попередня
               </button>
@@ -446,7 +445,7 @@ function AdminShopPageContent() {
               <button
                 disabled={metadata.currentPage >= metadata.totalPages}
                 onClick={() => updateParams({ page: metadata.currentPage + 1 })}
-                className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50"
+                className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50"
               >
                 Наступна
               </button>
@@ -457,7 +456,7 @@ function AdminShopPageContent() {
 
       {/* Floating Bulk Actions Bar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 px-6 py-4 rounded-3xl border border-white/10 bg-black/90 backdrop-blur-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 px-6 py-4 rounded-none border border-white/10 bg-black/90 backdrop-blur-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-bottom-4 duration-300">
           <div className="flex flex-col">
             <span className="text-xs font-bold text-white uppercase tracking-widest">{selectedIds.size} вибрано</span>
             <button onClick={() => setSelectedIds(new Set())} className="text-[10px] text-white/40 hover:text-white text-left uppercase tracking-tighter">Скасувати</button>
@@ -467,7 +466,7 @@ function AdminShopPageContent() {
             <button 
               disabled={bulkUpdating}
               onClick={() => handleBulkStatus('ACTIVE')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-500/20 disabled:opacity-50 transition-all"
+              className="flex items-center gap-2 px-4 py-2 rounded-none bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-500/20 disabled:opacity-50 transition-all"
             >
               {bulkUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Package className="w-3 h-3" />}
               Активувати
@@ -475,7 +474,7 @@ function AdminShopPageContent() {
             <button 
               disabled={bulkUpdating}
               onClick={() => handleBulkStatus('DRAFT')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-widest hover:bg-amber-500/20 disabled:opacity-50 transition-all"
+              className="flex items-center gap-2 px-4 py-2 rounded-none bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-widest hover:bg-amber-500/20 disabled:opacity-50 transition-all"
             >
               {bulkUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Layers3 className="w-3 h-3" />}
               В Чернетки
@@ -483,7 +482,7 @@ function AdminShopPageContent() {
             <button 
               disabled={bulkUpdating}
               onClick={() => handleBulkStatus('ARCHIVED')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500/20 disabled:opacity-50 transition-all"
+              className="flex items-center gap-2 px-4 py-2 rounded-none bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500/20 disabled:opacity-50 transition-all"
             >
               {bulkUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
               В Архів

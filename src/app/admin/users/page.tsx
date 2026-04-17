@@ -111,7 +111,7 @@ export default function AdminUsersPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-white text-black text-sm font-medium rounded-lg hover:bg-white/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-white text-black text-sm font-medium rounded-none hover:bg-white/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Створити доступ
@@ -119,12 +119,12 @@ export default function AdminUsersPage() {
       </div>
 
       {error ? (
-        <div className="p-4 bg-red-900/20 text-red-300 rounded border border-red-500/20 mb-6">
+        <div className="p-4 bg-red-900/20 text-red-300 rounded-none border border-red-500/20 mb-6">
           {error}
         </div>
       ) : null}
 
-      <div className="border border-white/10 bg-black/40 rounded-xl overflow-hidden">
+      <div className="border border-white/10 bg-black/40 rounded-none overflow-hidden">
         {loading ? (
           <div className="p-6 text-white/50 text-center flex items-center justify-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -151,7 +151,7 @@ export default function AdminUsersPage() {
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1">
                       {user.roles.length ? user.roles.map((r, i) => (
-                        <span key={i} className="inline-flex items-center px-2 py-0.5 border border-white/10 bg-white/5 rounded-full text-[10px] uppercase text-white/70">
+                        <span key={i} className="inline-flex items-center px-2 py-0.5 border border-white/10 bg-white/5 rounded-none-full text-[10px] uppercase text-white/70">
                           {r.role.name}
                         </span>
                       )) : (
@@ -161,16 +161,16 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-6 py-4 text-center">
                     {user.isActive ? (
-                      <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                      <span className="inline-flex items-center justify-center w-2 h-2 rounded-none-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
                     ) : (
-                      <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-red-500"></span>
+                      <span className="inline-flex items-center justify-center w-2 h-2 rounded-none-full bg-red-950/30 border border-red-900/50 text-red-500"></span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-white/50 text-xs">
                     {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Ніколи'}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-[11px] uppercase tracking-wider text-white hover:text-indigo-400 transition-colors">
+                    <button className="text-[11px] uppercase tracking-wider text-white hover:text-zinc-400 transition-colors">
                       Редагувати
                     </button>
                   </td>
@@ -204,14 +204,14 @@ export default function AdminUsersPage() {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md mx-4 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+              className="w-full max-w-md mx-4 bg-zinc-900 border border-white/10 rounded-none shadow-2xl overflow-hidden"
             >
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
                 <h2 className="text-lg font-medium text-white">Новий адміністратор</h2>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-none hover:bg-white/10 text-white/50 hover:text-white transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -229,7 +229,7 @@ export default function AdminUsersPage() {
                     value={form.email}
                     onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
                     placeholder="manager@onecompany.com.ua"
-                    className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white placeholder:text-white/25 focus:outline-none focus:border-indigo-500/50 transition-colors text-sm"
+                    className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-none text-white placeholder:text-white/25 focus:outline-none focus:border-indigo-500/50 transition-colors text-sm"
                   />
                 </div>
 
@@ -242,7 +242,7 @@ export default function AdminUsersPage() {
                     value={form.name}
                     onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
                     placeholder="Олександр"
-                    className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white placeholder:text-white/25 focus:outline-none focus:border-indigo-500/50 transition-colors text-sm"
+                    className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-none text-white placeholder:text-white/25 focus:outline-none focus:border-indigo-500/50 transition-colors text-sm"
                   />
                 </div>
 
@@ -258,7 +258,7 @@ export default function AdminUsersPage() {
                       value={form.password}
                       onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
                       placeholder="Мінімум 6 символів"
-                      className="w-full px-4 py-3 pr-12 bg-black/50 border border-white/10 rounded-xl text-white placeholder:text-white/25 focus:outline-none focus:border-indigo-500/50 transition-colors text-sm"
+                      className="w-full px-4 py-3 pr-12 bg-black/50 border border-white/10 rounded-none text-white placeholder:text-white/25 focus:outline-none focus:border-indigo-500/50 transition-colors text-sm"
                     />
                     <button
                       type="button"
@@ -280,9 +280,9 @@ export default function AdminUsersPage() {
                       {roles.map((role) => (
                         <label
                           key={role.id}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+                          className={`flex items-center gap-3 px-4 py-3 rounded-none border cursor-pointer transition-colors ${
                             form.roleIds.includes(role.id)
-                              ? 'border-indigo-500/40 bg-indigo-500/10'
+                              ? 'border-indigo-500/40 bg-zinc-100 text-black/10'
                               : 'border-white/10 bg-black/30 hover:bg-white/5'
                           }`}
                         >
@@ -292,9 +292,9 @@ export default function AdminUsersPage() {
                             onChange={() => toggleRole(role.id)}
                             className="sr-only"
                           />
-                          <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                          <div className={`w-4 h-4 rounded-none border flex items-center justify-center transition-colors ${
                             form.roleIds.includes(role.id)
-                              ? 'bg-indigo-500 border-indigo-500'
+                              ? 'bg-zinc-100 text-black border-indigo-500'
                               : 'border-white/30'
                           }`}>
                             {form.roleIds.includes(role.id) && (
@@ -314,7 +314,7 @@ export default function AdminUsersPage() {
                 )}
 
                 {createError && (
-                  <div className="p-3 bg-red-900/20 text-red-300 rounded-lg border border-red-500/20 text-sm">
+                  <div className="p-3 bg-red-900/20 text-red-300 rounded-none border border-red-500/20 text-sm">
                     {createError}
                   </div>
                 )}
@@ -323,14 +323,14 @@ export default function AdminUsersPage() {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 py-3 text-sm text-white/60 hover:text-white border border-white/10 rounded-xl hover:bg-white/5 transition-colors"
+                    className="flex-1 py-3 text-sm text-white/60 hover:text-white border border-white/10 rounded-none hover:bg-white/5 transition-colors"
                   >
                     Скасувати
                   </button>
                   <button
                     type="submit"
                     disabled={creating}
-                    className="flex-1 py-3 text-sm font-medium bg-white text-black rounded-xl hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 py-3 text-sm font-medium bg-white text-black rounded-none hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                   >
                     {creating ? (
                       <>

@@ -246,20 +246,20 @@ export default function LogisticsPage() {
   return (
     <div className="relative h-full w-full overflow-auto bg-black text-white">
       {/* Ambient glow */}
-      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-600/8 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-none-full bg-zinc-100 text-black/8 blur-[120px]" />
 
       <div className="w-full px-4 py-8 md:px-8 lg:px-12">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-3">
-            <Truck className="w-8 h-8 text-indigo-400 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
+            <Truck className="w-8 h-8 text-zinc-400 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
             Логістика & Склади
           </h1>
           <p className="mt-2 text-white/40 text-sm max-w-2xl">
             Управління складами, зонами доставки та логістичними тарифами. Кожен склад має власний набір зон з незалежними тарифами.
           </p>
           <Link href="/admin/shop/logistics/taxes"
-            className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-rose-500/20 bg-rose-500/5 text-rose-400 text-[11px] uppercase tracking-widest font-medium hover:bg-rose-500/10 transition-all">
+            className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-none border border-rose-500/20 bg-rose-500/5 text-rose-400 text-[11px] uppercase tracking-widest font-medium hover:bg-rose-500/10 transition-all">
             <Receipt className="w-3.5 h-3.5" /> Регіональні Податки
           </Link>
         </div>
@@ -272,14 +272,14 @@ export default function LogisticsPage() {
             </h2>
             <button
               onClick={() => setShowAddWarehouse(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[11px] uppercase tracking-wider font-medium hover:bg-indigo-500/20 transition-all"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-none bg-zinc-100 text-black/10 border border-indigo-500/20 text-zinc-400 text-[11px] uppercase tracking-wider font-medium hover:bg-zinc-100 text-black/20 transition-all"
             >
               <Plus className="w-3.5 h-3.5" /> Додати Склад
             </button>
           </div>
 
           {warehouses.length === 0 ? (
-            <div className="text-center py-12 text-white/20 text-sm border border-dashed border-white/10 rounded-2xl">
+            <div className="text-center py-12 text-white/20 text-sm border border-dashed border-white/10 rounded-none">
               <WarehouseIcon className="w-10 h-10 mx-auto mb-3 text-white/10" />
               Ще немає складів. Додайте перший склад для налаштування логістики.
             </div>
@@ -292,9 +292,9 @@ export default function LogisticsPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className={`
-                    relative flex-shrink-0 min-w-[200px] p-4 rounded-2xl border transition-all duration-300 text-left group
+                    relative flex-shrink-0 min-w-[200px] p-4 rounded-none border transition-all duration-300 text-left group
                     ${selectedWarehouse === w.id
-                      ? 'bg-indigo-500/10 border-indigo-500/40 shadow-[0_0_25px_rgba(99,102,241,0.15)]'
+                      ? 'bg-zinc-100 text-black/10 border-indigo-500/40 shadow-[0_0_25px_rgba(99,102,241,0.15)]'
                       : 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04]'
                     }
                   `}
@@ -302,7 +302,7 @@ export default function LogisticsPage() {
                   {selectedWarehouse === w.id && (
                     <motion.div
                       layoutId="warehouse-indicator"
-                      className="absolute inset-0 rounded-2xl border-2 border-indigo-500/50"
+                      className="absolute inset-0 rounded-none border-2 border-indigo-500/50"
                     />
                   )}
                   <div className="relative z-10">
@@ -310,7 +310,7 @@ export default function LogisticsPage() {
                       <span className="text-[10px] font-mono uppercase tracking-wider text-white/30">{w.code}</span>
                       <button
                         onClick={(e) => { e.stopPropagation(); deleteWarehouse(w.id); }}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-all"
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded-none hover:bg-red-950/30 border border-red-900/50 text-red-500/10 text-white/20 hover:text-red-400 transition-all"
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -320,7 +320,7 @@ export default function LogisticsPage() {
                       {w.city ? `${w.city}, ` : ''}{w.country}
                     </div>
                     <div className="flex gap-3 mt-3">
-                      <span className="text-[10px] text-indigo-400/80">
+                      <span className="text-[10px] text-zinc-400/80">
                         <Globe className="w-3 h-3 inline mr-1" />{w._count?.zones || 0} зон
                       </span>
                       <span className="text-[10px] text-amber-400/80">
@@ -340,9 +340,9 @@ export default function LogisticsPage() {
             <div className="flex items-center gap-4 mb-6 border-b border-white/[0.06] pb-4">
               <button
                 onClick={() => setActiveTab('outbound')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-none text-sm font-medium transition-all ${
                   activeTab === 'outbound'
-                    ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.35)]'
+                    ? 'bg-zinc-100 text-black text-white shadow-[0_0_20px_rgba(99,102,241,0.35)]'
                     : 'bg-white/[0.03] text-white/40 hover:bg-white/[0.06] hover:text-white/60'
                 }`}
               >
@@ -351,9 +351,9 @@ export default function LogisticsPage() {
               </button>
               <button
                 onClick={() => setActiveTab('inbound')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-none text-sm font-medium transition-all ${
                   activeTab === 'inbound'
-                    ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.35)]'
+                    ? 'bg-zinc-100 text-black text-white shadow-[0_0_20px_rgba(99,102,241,0.35)]'
                     : 'bg-white/[0.03] text-white/40 hover:bg-white/[0.06] hover:text-white/60'
                 }`}
               >
@@ -381,7 +381,7 @@ export default function LogisticsPage() {
                       placeholder="Пошук бренду..."
                       value={filter}
                       onChange={e => setFilter(e.target.value)}
-                      className="w-full min-w-[300px] pl-10 pr-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500/50 placeholder-white/20 transition-colors"
+                      className="w-full min-w-[300px] pl-10 pr-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-none text-sm text-white focus:outline-none focus:border-indigo-500/50 placeholder-white/20 transition-colors"
                     />
                   </div>
                   <div className="text-sm text-white/30">
@@ -389,7 +389,7 @@ export default function LogisticsPage() {
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-black/60 backdrop-blur-2xl shadow-2xl">
+                <div className="overflow-hidden rounded-none border border-white/[0.06] bg-black/60 backdrop-blur-2xl shadow-2xl">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-white/[0.06] bg-white/[0.02] text-[10px] uppercase tracking-[0.15em] text-white/40">
@@ -416,7 +416,7 @@ export default function LogisticsPage() {
                               <select
                                 value={c.warehouseId || ''}
                                 onChange={e => updateBrandField(realIdx, 'warehouseId', e.target.value || null)}
-                                className="bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 text-xs text-white/70"
+                                className="bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-none focus:border-indigo-500 text-xs text-white/70"
                               >
                                 <option value="">Не вказано</option>
                                 {brandWarehouses.map(w => (
@@ -428,7 +428,7 @@ export default function LogisticsPage() {
                               <select
                                 value={c.originZone}
                                 onChange={e => updateBrandField(realIdx, 'originZone', e.target.value)}
-                                className="bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 text-xs text-white/70"
+                                className="bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-none focus:border-indigo-500 text-xs text-white/70"
                               >
                                 <option value="USA">США</option>
                                 <option value="EU">Європа</option>
@@ -436,13 +436,13 @@ export default function LogisticsPage() {
                               </select>
                             </td>
                             <td className="px-5 py-3">
-                              <input type="number" step="0.1" value={c.ratePerKg} onChange={e => updateBrandField(realIdx, 'ratePerKg', parseFloat(e.target.value))} className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none text-right text-white/70 focus:border-indigo-500" />
+                              <input type="number" step="0.1" value={c.ratePerKg} onChange={e => updateBrandField(realIdx, 'ratePerKg', parseFloat(e.target.value))} className="w-16 bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-none text-right text-white/70 focus:border-indigo-500" />
                             </td>
                             <td className="px-5 py-3">
-                              <input type="number" value={c.volumetricDivisor} onChange={e => updateBrandField(realIdx, 'volumetricDivisor', parseFloat(e.target.value))} className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none text-right text-white/70 focus:border-indigo-500" />
+                              <input type="number" value={c.volumetricDivisor} onChange={e => updateBrandField(realIdx, 'volumetricDivisor', parseFloat(e.target.value))} className="w-16 bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-none text-right text-white/70 focus:border-indigo-500" />
                             </td>
                             <td className="px-5 py-3">
-                              <input type="number" step="0.1" value={c.volSurchargePerKg} onChange={e => updateBrandField(realIdx, 'volSurchargePerKg', parseFloat(e.target.value))} className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none text-right text-white/70 focus:border-indigo-500" />
+                              <input type="number" step="0.1" value={c.volSurchargePerKg} onChange={e => updateBrandField(realIdx, 'volSurchargePerKg', parseFloat(e.target.value))} className="w-16 bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-none text-right text-white/70 focus:border-indigo-500" />
                             </td>
                             <td className="px-5 py-3 text-center">
                               <input type="checkbox" checked={c.isActive} onChange={e => updateBrandField(realIdx, 'isActive', e.target.checked)} className="w-4 h-4 cursor-pointer accent-indigo-500" />
@@ -451,7 +451,7 @@ export default function LogisticsPage() {
                               <button
                                 onClick={() => saveBrandConfig(c)}
                                 disabled={savingKey === c.brandName}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 rounded-lg text-[11px] uppercase tracking-wider font-semibold transition disabled:opacity-50"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 text-black/15 hover:bg-zinc-100 text-black/30 text-zinc-500 rounded-none text-[11px] uppercase tracking-wider font-semibold transition disabled:opacity-50"
                               >
                                 {savingKey === c.brandName ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                                 Зберегти
@@ -470,7 +470,7 @@ export default function LogisticsPage() {
                 <div className="flex justify-between items-center">
                   <button
                     onClick={() => setShowAddZone(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[11px] uppercase tracking-wider font-medium hover:bg-indigo-500/20 transition-all"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-none bg-zinc-100 text-black/10 border border-indigo-500/20 text-zinc-400 text-[11px] uppercase tracking-wider font-medium hover:bg-zinc-100 text-black/20 transition-all"
                   >
                     <Plus className="w-3.5 h-3.5" /> Додати Зону
                   </button>
@@ -479,7 +479,7 @@ export default function LogisticsPage() {
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-black/60 backdrop-blur-2xl shadow-2xl">
+                <div className="overflow-hidden rounded-none border border-white/[0.06] bg-black/60 backdrop-blur-2xl shadow-2xl">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-white/[0.06] bg-white/[0.02] text-[10px] uppercase tracking-[0.15em] text-white/40">
@@ -504,26 +504,26 @@ export default function LogisticsPage() {
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-2">
                               <span className="text-white/25">$</span>
-                              <input type="number" step="0.1" value={c.ratePerKg} onChange={e => updateZoneField(i, 'ratePerKg', parseFloat(e.target.value))} className="w-20 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 text-white/70" />
+                              <input type="number" step="0.1" value={c.ratePerKg} onChange={e => updateZoneField(i, 'ratePerKg', parseFloat(e.target.value))} className="w-20 bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-none focus:border-indigo-500 text-white/70" />
                             </div>
                           </td>
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-2">
                               <span className="text-white/25">$</span>
-                              <input type="number" step="0.1" value={c.volSurchargePerKg} onChange={e => updateZoneField(i, 'volSurchargePerKg', parseFloat(e.target.value))} className="w-20 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 text-white/70" />
+                              <input type="number" step="0.1" value={c.volSurchargePerKg} onChange={e => updateZoneField(i, 'volSurchargePerKg', parseFloat(e.target.value))} className="w-20 bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-none focus:border-indigo-500 text-white/70" />
                             </div>
                           </td>
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-2">
                               <span className="text-white/25">$</span>
-                              <input type="number" step="1" value={c.baseFee} onChange={e => updateZoneField(i, 'baseFee', parseFloat(e.target.value))} className="w-20 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 text-white/70" />
+                              <input type="number" step="1" value={c.baseFee} onChange={e => updateZoneField(i, 'baseFee', parseFloat(e.target.value))} className="w-20 bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-none focus:border-indigo-500 text-white/70" />
                             </div>
                           </td>
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-1">
-                              <input type="number" min="1" max="90" value={c.etaMinDays} onChange={e => updateZoneField(i, 'etaMinDays', parseInt(e.target.value) || 1)} className="w-12 bg-black/40 border border-white/10 rounded-lg px-1.5 py-1.5 outline-none text-center focus:border-indigo-500 text-white/70 text-xs" />
+                              <input type="number" min="1" max="90" value={c.etaMinDays} onChange={e => updateZoneField(i, 'etaMinDays', parseInt(e.target.value) || 1)} className="w-12 bg-black/40 border border-white/10 rounded-none px-1.5 py-1.5 outline-none text-center focus:border-indigo-500 text-white/70 text-xs" />
                               <span className="text-white/20 text-[10px]">—</span>
-                              <input type="number" min="1" max="90" value={c.etaMaxDays} onChange={e => updateZoneField(i, 'etaMaxDays', parseInt(e.target.value) || 1)} className="w-12 bg-black/40 border border-white/10 rounded-lg px-1.5 py-1.5 outline-none text-center focus:border-indigo-500 text-white/70 text-xs" />
+                              <input type="number" min="1" max="90" value={c.etaMaxDays} onChange={e => updateZoneField(i, 'etaMaxDays', parseInt(e.target.value) || 1)} className="w-12 bg-black/40 border border-white/10 rounded-none px-1.5 py-1.5 outline-none text-center focus:border-indigo-500 text-white/70 text-xs" />
                             </div>
                           </td>
                           <td className="px-5 py-3 text-right">
@@ -531,7 +531,7 @@ export default function LogisticsPage() {
                               <button
                                 onClick={() => saveZoneConfig(c)}
                                 disabled={savingKey === c.zoneCode}
-                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 rounded-lg text-[11px] uppercase tracking-wider font-semibold transition disabled:opacity-50"
+                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-100 text-black/15 hover:bg-zinc-100 text-black/30 text-zinc-500 rounded-none text-[11px] uppercase tracking-wider font-semibold transition disabled:opacity-50"
                               >
                                 {savingKey === c.zoneCode ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                                 Зберегти
@@ -539,7 +539,7 @@ export default function LogisticsPage() {
                               {c.id && (
                                 <button
                                   onClick={() => deleteZone(c.id!)}
-                                  className="p-1.5 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-colors"
+                                  className="p-1.5 rounded-none hover:bg-red-950/30 border border-red-900/50 text-red-500/10 text-white/20 hover:text-red-400 transition-colors"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -552,14 +552,14 @@ export default function LogisticsPage() {
                   </table>
                 </div>
 
-                <div className="p-4 bg-indigo-500/[0.04] border border-indigo-500/10 rounded-2xl flex gap-3 text-sm text-indigo-200/80">
-                  <AlertCircle className="shrink-0 w-5 h-5 text-indigo-400/60" />
+                <div className="p-4 bg-zinc-100 text-black/[0.04] border border-indigo-500/10 rounded-none flex gap-3 text-sm text-indigo-200/80">
+                  <AlertCircle className="shrink-0 w-5 h-5 text-zinc-400/60" />
                   <div>
                     <p className="font-semibold mb-1 text-indigo-200/90">Як працює формула Вихідної Зони?</p>
                     <p className="text-indigo-200/50">
                       Якщо клієнт купує деталь (Фактична вага = 10 кг, Об&apos;ємна = 15 кг). <br />
-                      І Зона встановлена так: <code className="text-indigo-300/60">Тариф: $14/кг</code>, <code className="text-indigo-300/60">Штраф: $2/кг</code>, <code className="text-indigo-300/60">Комісія: $5</code>.<br />
-                      Розрахунок: <code className="text-indigo-300/60">$5 + (10кг × $14) + ((15кг − 10кг) × $2)</code>.
+                      І Зона встановлена так: <code className="text-zinc-500/60">Тариф: $14/кг</code>, <code className="text-zinc-500/60">Штраф: $2/кг</code>, <code className="text-zinc-500/60">Комісія: $5</code>.<br />
+                      Розрахунок: <code className="text-zinc-500/60">$5 + (10кг × $14) + ((15кг − 10кг) × $2)</code>.
                     </p>
                   </div>
                 </div>
@@ -583,14 +583,14 @@ export default function LogisticsPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/[0.08] w-full max-w-lg p-6 rounded-2xl shadow-2xl"
+              className="bg-[#0a0a0a] border border-white/[0.08] w-full max-w-lg p-6 rounded-none shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-sm font-medium text-white flex items-center gap-2">
-                  <WarehouseIcon className="w-4 h-4 text-indigo-400" /> Додати Склад
+                  <WarehouseIcon className="w-4 h-4 text-zinc-400" /> Додати Склад
                 </h3>
-                <button onClick={() => setShowAddWarehouse(false)} className="p-1 rounded hover:bg-white/5 text-white/30">
+                <button onClick={() => setShowAddWarehouse(false)} className="p-1 rounded-none hover:bg-white/5 text-white/30">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -600,31 +600,31 @@ export default function LogisticsPage() {
                   <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Код *</label>
                   <input value={newWarehouse.code} onChange={e => setNewWarehouse(p => ({ ...p, code: e.target.value.toUpperCase() }))}
                     placeholder="US_NY"
-                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15 font-mono" />
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15 font-mono" />
                 </div>
                 <div>
                   <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Країна *</label>
                   <input value={newWarehouse.country} onChange={e => setNewWarehouse(p => ({ ...p, country: e.target.value }))}
                     placeholder="US"
-                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
                 </div>
                 <div className="col-span-2">
                   <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Назва (EN) *</label>
                   <input value={newWarehouse.name} onChange={e => setNewWarehouse(p => ({ ...p, name: e.target.value }))}
                     placeholder="USA Transit (New York)"
-                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
                 </div>
                 <div className="col-span-2">
                   <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Назва (UA)</label>
                   <input value={newWarehouse.nameUa} onChange={e => setNewWarehouse(p => ({ ...p, nameUa: e.target.value }))}
                     placeholder="Транзитний Склад США (Нью-Йорк)"
-                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
                 </div>
                 <div className="col-span-2">
                   <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Місто</label>
                   <input value={newWarehouse.city} onChange={e => setNewWarehouse(p => ({ ...p, city: e.target.value }))}
                     placeholder="New York"
-                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
                 </div>
               </div>
 
@@ -636,48 +636,48 @@ export default function LogisticsPage() {
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1">Адреса</label>
                     <input value={newWarehouse.address} onChange={e => setNewWarehouse(p => ({ ...p, address: e.target.value }))}
                       placeholder="123 Main Street"
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
                   </div>
                   <div className="col-span-2">
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1">Адреса 2</label>
                     <input value={newWarehouse.address2} onChange={e => setNewWarehouse(p => ({ ...p, address2: e.target.value }))}
                       placeholder="Suite 100"
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
                   </div>
                   <div>
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1">Штат/Область</label>
                     <input value={newWarehouse.state} onChange={e => setNewWarehouse(p => ({ ...p, state: e.target.value }))}
                       placeholder="NY"
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
                   </div>
                   <div>
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1">Поштовий індекс</label>
                     <input value={newWarehouse.postalCode} onChange={e => setNewWarehouse(p => ({ ...p, postalCode: e.target.value }))}
                       placeholder="10001"
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
                   </div>
                   <div>
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1">Телефон</label>
                     <input value={newWarehouse.phone} onChange={e => setNewWarehouse(p => ({ ...p, phone: e.target.value }))}
                       placeholder="+1-555-123-4567"
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
                   </div>
                   <div>
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1">Контактна особа</label>
                     <input value={newWarehouse.contactName} onChange={e => setNewWarehouse(p => ({ ...p, contactName: e.target.value }))}
                       placeholder="John Doe"
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
                   </div>
                 </div>
               </div>
 
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setShowAddWarehouse(false)}
-                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest text-white/40 border border-white/10 rounded-xl hover:bg-white/5 transition-colors">
+                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest text-white/40 border border-white/10 rounded-none hover:bg-white/5 transition-colors">
                   Скасувати
                 </button>
                 <button onClick={saveWarehouse} disabled={!newWarehouse.code || !newWarehouse.name}
-                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest font-bold bg-indigo-500 text-white rounded-xl hover:bg-indigo-400 disabled:opacity-30 transition-all">
+                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest font-bold bg-zinc-100 text-black rounded-none hover:bg-indigo-400 disabled:opacity-30 transition-all">
                   Створити
                 </button>
               </div>
@@ -700,14 +700,14 @@ export default function LogisticsPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/[0.08] w-full max-w-lg p-6 rounded-2xl shadow-2xl"
+              className="bg-[#0a0a0a] border border-white/[0.08] w-full max-w-lg p-6 rounded-none shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-sm font-medium text-white flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-indigo-400" /> Додати Зону Доставки
+                  <Globe className="w-4 h-4 text-zinc-400" /> Додати Зону Доставки
                 </h3>
-                <button onClick={() => setShowAddZone(false)} className="p-1 rounded hover:bg-white/5 text-white/30">
+                <button onClick={() => setShowAddZone(false)} className="p-1 rounded-none hover:bg-white/5 text-white/30">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -718,59 +718,59 @@ export default function LogisticsPage() {
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Код Зони *</label>
                     <input value={newZone.zoneCode} onChange={e => setNewZone(p => ({ ...p, zoneCode: e.target.value.toUpperCase() }))}
                       placeholder="AE"
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15 font-mono" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15 font-mono" />
                   </div>
                   <div>
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Базова Комісія ($)</label>
                     <input type="number" step="1" value={newZone.baseFee} onChange={e => setNewZone(p => ({ ...p, baseFee: Number(e.target.value) }))}
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Назва (EN) *</label>
                   <input value={newZone.label} onChange={e => setNewZone(p => ({ ...p, label: e.target.value }))}
                     placeholder="United Arab Emirates"
-                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
                 </div>
                 <div>
                   <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Назва (UA)</label>
                   <input value={newZone.labelUa} onChange={e => setNewZone(p => ({ ...p, labelUa: e.target.value }))}
                     placeholder="Об'єднані Арабські Емірати"
-                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40 placeholder-white/15" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Тариф ($/кг)</label>
                     <input type="number" step="0.1" value={newZone.ratePerKg} onChange={e => setNewZone(p => ({ ...p, ratePerKg: Number(e.target.value) }))}
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40" />
                   </div>
                   <div>
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Штраф Об&apos;єму ($/кг)</label>
                     <input type="number" step="0.1" value={newZone.volSurchargePerKg} onChange={e => setNewZone(p => ({ ...p, volSurchargePerKg: Number(e.target.value) }))}
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">ETA мін. (днів)</label>
                     <input type="number" min="1" max="90" value={newZone.etaMinDays} onChange={e => setNewZone(p => ({ ...p, etaMinDays: Number(e.target.value) }))}
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40" />
                   </div>
                   <div>
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">ETA макс. (днів)</label>
                     <input type="number" min="1" max="90" value={newZone.etaMaxDays} onChange={e => setNewZone(p => ({ ...p, etaMaxDays: Number(e.target.value) }))}
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500/40" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-500/40" />
                   </div>
                 </div>
               </div>
 
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setShowAddZone(false)}
-                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest text-white/40 border border-white/10 rounded-xl hover:bg-white/5 transition-colors">
+                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest text-white/40 border border-white/10 rounded-none hover:bg-white/5 transition-colors">
                   Скасувати
                 </button>
                 <button onClick={addNewZone} disabled={!newZone.zoneCode || !newZone.label}
-                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest font-bold bg-indigo-500 text-white rounded-xl hover:bg-indigo-400 disabled:opacity-30 transition-all">
+                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest font-bold bg-zinc-100 text-black rounded-none hover:bg-indigo-400 disabled:opacity-30 transition-all">
                   Створити Зону
                 </button>
               </div>

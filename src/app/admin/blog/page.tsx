@@ -285,14 +285,14 @@ export default function AdminBlogPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={loadContent}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-xs font-medium border border-white/10"
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-none-full transition-colors text-xs font-medium border border-white/10"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Refresh
             </button>
             <button
               onClick={addNewPost}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white text-black rounded-full transition-colors text-xs font-medium"
+              className="flex items-center gap-2 px-3 py-1.5 bg-white text-black rounded-none-full transition-colors text-xs font-medium"
             >
               <Plus className="w-3.5 h-3.5" />
               New post
@@ -322,7 +322,7 @@ export default function AdminBlogPage() {
                 value={instagramUrl}
                 onChange={(e) => setInstagramUrl(e.target.value)}
                 placeholder="https://instagram.com/onecompany.global"
-                className="mt-2 w-full rounded-lg border border-white/10 bg-zinc-900/40 px-3 py-2 text-xs text-white"
+                className="mt-2 w-full rounded-none border border-white/10 bg-zinc-900/40 px-3 py-2 text-xs text-white"
               />
             </div>
             <div>
@@ -331,13 +331,13 @@ export default function AdminBlogPage() {
                 value={instagramHandle}
                 onChange={(e) => setInstagramHandle(e.target.value)}
                 placeholder="@onecompany.global"
-                className="mt-2 w-full rounded-lg border border-white/10 bg-zinc-900/40 px-3 py-2 text-xs text-white"
+                className="mt-2 w-full rounded-none border border-white/10 bg-zinc-900/40 px-3 py-2 text-xs text-white"
               />
             </div>
             <button
               onClick={() => saveContent(posts)}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-white text-black px-3 py-2 text-xs font-medium disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-none bg-white text-black px-3 py-2 text-xs font-medium disabled:opacity-60"
             >
               <Save className="w-3.5 h-3.5" />
               Save blog settings
@@ -365,7 +365,7 @@ export default function AdminBlogPage() {
                     </p>
                   </div>
                   <span
-                    className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${
+                    className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-none-full border ${
                       post.status === "published"
                         ? "border-emerald-400/40 text-emerald-300"
                         : "border-white/20 text-white/40"
@@ -397,7 +397,7 @@ export default function AdminBlogPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handlePublishToggle}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
+                    className={`px-3 py-1.5 rounded-none-full text-xs font-medium border ${
                       draft.status === "published"
                         ? "border-emerald-400/40 text-emerald-300"
                         : "border-white/20 text-white/50"
@@ -408,14 +408,14 @@ export default function AdminBlogPage() {
                   <button
                     onClick={handleSavePost}
                     disabled={loading}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-white text-black rounded-full text-xs font-medium"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-white text-black rounded-none-full text-xs font-medium"
                   >
                     <Save className="w-3.5 h-3.5" />
                     Save post
                   </button>
                   <button
                     onClick={() => handleDeletePost(draft.id)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-white/10 text-white rounded-full text-xs font-medium border border-white/10"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-white/10 text-white rounded-none-full text-xs font-medium border border-white/10"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Delete
@@ -429,7 +429,7 @@ export default function AdminBlogPage() {
                   <input
                     value={draft.title.ua}
                     onChange={(e) => updateDraft({ title: { ...draft.title, ua: e.target.value } })}
-                    className="mt-2 w-full rounded-lg border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
+                    className="mt-2 w-full rounded-none border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
                   />
                 </div>
                 <div>
@@ -437,7 +437,7 @@ export default function AdminBlogPage() {
                   <input
                     value={draft.title.en}
                     onChange={(e) => updateDraft({ title: { ...draft.title, en: e.target.value } })}
-                    className="mt-2 w-full rounded-lg border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
+                    className="mt-2 w-full rounded-none border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
                   />
                 </div>
                 <div>
@@ -452,7 +452,7 @@ export default function AdminBlogPage() {
                           })
                         : null
                     }
-                    className="mt-2 w-full rounded-lg border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
+                    className="mt-2 w-full rounded-none border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
                   />
                 </div>
                 <div>
@@ -461,11 +461,11 @@ export default function AdminBlogPage() {
                     <input
                       value={draft.slug}
                       onChange={(e) => updateDraft({ slug: e.target.value })}
-                      className="flex-1 rounded-lg border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
+                      className="flex-1 rounded-none border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
                     />
                     <button
                       onClick={handleGenerateSlug}
-                      className="px-3 py-2 rounded-lg border border-white/10 text-xs text-white/70"
+                      className="px-3 py-2 rounded-none border border-white/10 text-xs text-white/70"
                     >
                       Auto
                     </button>
@@ -479,7 +479,7 @@ export default function AdminBlogPage() {
                   value={draft.caption.ua}
                   onChange={(e) => updateDraft({ caption: { ...draft.caption, ua: e.target.value } })}
                   rows={5}
-                  className="mt-2 w-full rounded-lg border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
+                  className="mt-2 w-full rounded-none border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
                 />
               </div>
 
@@ -489,7 +489,7 @@ export default function AdminBlogPage() {
                   value={draft.caption.en}
                   onChange={(e) => updateDraft({ caption: { ...draft.caption, en: e.target.value } })}
                   rows={5}
-                  className="mt-2 w-full rounded-lg border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
+                  className="mt-2 w-full rounded-none border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
                 />
               </div>
 
@@ -503,7 +503,7 @@ export default function AdminBlogPage() {
                         location: { ...(draft.location ?? { ua: "", en: "" }), ua: e.target.value },
                       })
                     }
-                    className="mt-2 w-full rounded-lg border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
+                    className="mt-2 w-full rounded-none border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
                   />
                 </div>
                 <div>
@@ -515,7 +515,7 @@ export default function AdminBlogPage() {
                         location: { ...(draft.location ?? { ua: "", en: "" }), en: e.target.value },
                       })
                     }
-                    className="mt-2 w-full rounded-lg border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
+                    className="mt-2 w-full rounded-none border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
                   />
                 </div>
               </div>
@@ -526,7 +526,7 @@ export default function AdminBlogPage() {
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
                   placeholder="auto, tuning, delivery"
-                  className="mt-2 w-full rounded-lg border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
+                  className="mt-2 w-full rounded-none border border-white/10 bg-zinc-900/40 px-3 py-2 text-sm text-white"
                 />
               </div>
 
@@ -536,7 +536,7 @@ export default function AdminBlogPage() {
                     <p className="text-xs uppercase tracking-widest text-white/40">Media</p>
                     <p className="text-xs text-white/40 mt-1">Upload images/videos or paste a URL.</p>
                   </div>
-                  <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 text-xs text-white/70 cursor-pointer">
+                  <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-none-full border border-white/10 text-xs text-white/70 cursor-pointer">
                     <Upload className="w-3.5 h-3.5" />
                     {uploading ? "Uploading..." : "Upload files"}
                     <input
@@ -553,7 +553,7 @@ export default function AdminBlogPage() {
                   {draft.media.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2"
+                      className="flex items-center gap-2 rounded-none border border-white/10 bg-white/5 px-3 py-2"
                     >
                       <span className="text-[10px] uppercase tracking-widest text-white/50">
                         {item.type}
@@ -575,7 +575,7 @@ export default function AdminBlogPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900/40 px-3 py-2">
+                  <div className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-900/40 px-3 py-2">
                     <select
                       value={newMediaType}
                       onChange={(e) => setNewMediaType(e.target.value as "image" | "video")}
@@ -602,14 +602,14 @@ export default function AdminBlogPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleSavePost()}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/70"
+                    className="inline-flex items-center gap-2 rounded-none-full border border-white/10 px-3 py-1.5 text-xs text-white/70"
                   >
                     <Save className="w-3.5 h-3.5" />
                     Save post
                   </button>
                   <button
                     onClick={() => window.open(`/ua/blog/${draft.slug}`, "_blank")}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/70"
+                    className="inline-flex items-center gap-2 rounded-none-full border border-white/10 px-3 py-1.5 text-xs text-white/70"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     Preview

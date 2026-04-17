@@ -13,6 +13,80 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-17 10:32] Commit `e8215cdc`
+**Автор**: 👤 SASCYT9
+
+> feat(admin): remove AI Thoughts from sidebar, wire up admin user creation
+> 
+> - Remove AI Thoughts nav item from admin sidebar (dev-only tool)
+> - Add working create admin modal with email/name/password/role selector
+> - Create GET /api/admin/roles endpoint for role listing
+> - Add loading spinner and error handling to users page
+
+#### 📂 Змінені файли:
+- **M**: `src/app/admin/layout.tsx`
+- **M**: `src/app/admin/users/page.tsx`
+- **A**: `src/app/api/admin/roles/route.ts`
+
+---
+
+
+### 🟢 [2026-04-17 10:21] Commit `9b139224`
+**Автор**: 👤 SASCYT9
+
+> fix: resolve all TypeScript build errors for Vercel deployment
+> 
+> - girodisc/collections: fix property names (id->title, name->title, image->imageUrl, description->subtitle)
+> - admin/shop: add missing Loader2 import from lucide-react
+> - admin/shop/pricing: add missing Calculator import from lucide-react
+> - admin/shop/pricing/simulator: add missing Plus import from lucide-react
+> - tsconfig: exclude temp-skills directory from compilation
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/shop/girodisc/collections/page.tsx`
+- **M**: `src/app/admin/shop/page.tsx`
+- **M**: `src/app/admin/shop/pricing/page.tsx`
+- **M**: `src/app/admin/shop/pricing/simulator/page.tsx`
+- **M**: `tsconfig.json`
+
+---
+
+
+### 🟢 [2026-04-17 10:15] Commit `95a75047`
+**Автор**: 👤 SASCYT9
+
+> fix(shop): add missing imageUrl property to OurStore type
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/shop/data/ourStores.ts`
+
+---
+
+
+### 🟢 [2026-04-17 10:13] Commit `92bc437a`
+**Автор**: 👤 SASCYT9
+
+> chore: exclude figma files from typescript compilation to fix vercel build
+
+#### 📂 Змінені файли:
+- **M**: `tsconfig.json`
+
+---
+
+
+### 🟢 [2026-04-17 02:04] Commit `81ee3fbc`
+**Автор**: 👤 SASCYT9
+
+> fix(ui): use object-contain for ADRO platform cards so images perfectly fit within their frames
+
+#### 📂 Змінені файли:
+- **M**: `src/app/[locale]/shop/adro/adro-shop.css`
+- **M**: `src/app/[locale]/shop/adro/collections/page.tsx`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-17 02:03] Commit `b8099d25`
 **Автор**: 👤 SASCYT9
 

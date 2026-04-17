@@ -4,7 +4,8 @@ import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Search, X, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
+import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
@@ -461,6 +462,28 @@ export default function GirodiscVehicleFilter({
                         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-red-600 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-center" />
                         <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-red-600 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-center" />
                       </Link>
+
+                      {/* Bottom Actions: View + Add To Cart */}
+                      <div className="px-6 pb-6 pt-0 z-20 relative flex gap-3">
+                        <Link
+                          href={buildShopProductPathGirodisc(locale, product)}
+                          className="flex-1 flex items-center justify-center gap-2 py-3 border border-red-600/30 text-[10px] tracking-[0.3em] uppercase font-light text-red-500 hover:text-white hover:bg-red-600 hover:border-red-600 transition-all duration-300 rounded-[2px]"
+                        >
+                          {isUa ? "ПЕРЕЙТИ" : "VIEW"}
+                          <ArrowRight size={12} strokeWidth={2} />
+                        </Link>
+                        <AddToCartButton
+                          slug={product.slug}
+                          variantId={null}
+                          locale={locale}
+                          redirect={true}
+                          productName={productTitle}
+                          label={isUa ? "КОШИК" : "CART"}
+                          labelAdded={isUa ? "✓" : "✓"}
+                          className="flex-1 flex items-center justify-center py-3 border border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
+                          variant="inline"
+                        />
+                      </div>
                     </article>
                   );
                 })}

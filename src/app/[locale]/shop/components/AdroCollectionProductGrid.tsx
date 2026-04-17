@@ -3,6 +3,8 @@
 import type { CSSProperties } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
 import type { SupportedLocale } from '@/lib/seo';
 import type { ShopProduct } from '@/lib/shopCatalog';
@@ -179,6 +181,28 @@ export default function AdroCollectionProductGrid({
                     </div>
                   </div>
                 </Link>
+
+                {/* Bottom Actions: View + Add To Cart */}
+                <div className="px-6 pb-5 pt-0 z-20 relative flex gap-3">
+                  <Link
+                    href={`/${locale}/shop/adro/products/${product.slug}`}
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-white/20 text-[10px] tracking-[0.3em] uppercase font-light text-white/70 hover:text-black hover:bg-white hover:border-white transition-all duration-300"
+                  >
+                    {isUa ? "ПЕРЕЙТИ" : "VIEW"}
+                    <ArrowRight size={12} strokeWidth={2} />
+                  </Link>
+                  <AddToCartButton
+                    slug={product.slug}
+                    variantId={null}
+                    locale={locale}
+                    redirect={true}
+                    productName={productTitle}
+                    label={isUa ? "КОШИК" : "CART"}
+                    labelAdded={isUa ? "✓" : "✓"}
+                    className="flex-1 flex items-center justify-center py-2.5 border border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-white/50 hover:text-black hover:bg-white hover:border-white transition-all duration-300"
+                    variant="inline"
+                  />
+                </div>
                 
                 {/* Minimalist interactive line at bottom */}
                 <div className="h-[1px] w-0 bg-white group-hover:w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] absolute bottom-0 left-0" />

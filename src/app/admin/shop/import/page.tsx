@@ -383,18 +383,18 @@ export default function AdminShopImportPage() {
             type="button"
             onClick={() => void refreshCenter()}
             disabled={refreshing}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white transition hover:bg-zinc-700 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white transition hover:bg-zinc-700 disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             Оновити
           </button>
         </div>
 
-        {error ? <div className="mt-5 rounded-xl bg-red-900/25 px-4 py-3 text-sm text-red-200">{error}</div> : null}
-        {success ? <div className="mt-5 rounded-xl bg-emerald-900/20 px-4 py-3 text-sm text-emerald-200">{success}</div> : null}
+        {error ? <div className="mt-5 rounded-none bg-red-900/25 px-4 py-3 text-sm text-red-200">{error}</div> : null}
+        {success ? <div className="mt-5 rounded-none bg-emerald-900/20 px-4 py-3 text-sm text-emerald-200">{success}</div> : null}
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_0.95fr]">
-          <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="flex items-center gap-2 text-white">
               <Upload className="h-4 w-4" />
               <h3 className="text-lg font-medium">Запуск імпорту</h3>
@@ -406,7 +406,7 @@ export default function AdminShopImportPage() {
                   type="file"
                   accept=".csv,text/csv"
                   onChange={handleFile}
-                  className="block w-full text-sm text-white/70 file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-white"
+                  className="block w-full text-sm text-white/70 file:mr-4 file:rounded-none file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-white"
                 />
               </Field>
               <Field label="Ім'я файлу джерела">
@@ -414,7 +414,7 @@ export default function AdminShopImportPage() {
                   value={sourceFilename}
                   onChange={(event) => setSourceFilename(event.target.value)}
                   placeholder="products_export_urban.csv"
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                 />
               </Field>
               <Field label="Постачальник / джерело">
@@ -422,14 +422,14 @@ export default function AdminShopImportPage() {
                   value={supplierName}
                   onChange={(event) => setSupplierName(event.target.value)}
                   placeholder="Urban Automotive"
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                 />
               </Field>
               <Field label="Шаблон">
                 <select
                   value={selectedTemplateId}
                   onChange={(event) => setSelectedTemplateId(event.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:border-white/30 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:border-white/30 focus:outline-none"
                 >
                   <option value="">Без шаблону</option>
                   {templates.map((template) => (
@@ -449,7 +449,7 @@ export default function AdminShopImportPage() {
                       key={mode}
                       type="button"
                       onClick={() => setConflictMode(mode)}
-                      className={`rounded-2xl border px-4 py-3 text-left transition ${
+                      className={`rounded-none border px-4 py-3 text-left transition ${
                         conflictMode === mode
                           ? 'border-white/30 bg-white/10 text-white'
                           : 'border-white/10 bg-zinc-950 text-white/60 hover:border-white/20 hover:text-white'
@@ -469,7 +469,7 @@ export default function AdminShopImportPage() {
                   value={csvText}
                   onChange={(event) => setCsvText(event.target.value)}
                   rows={18}
-                  className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-3 py-3 font-mono text-xs text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-3 font-mono text-xs text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                   placeholder="Вставте сюди CSV (формат Shopify) або завантажте файл."
                 />
               </Field>
@@ -480,7 +480,7 @@ export default function AdminShopImportPage() {
                 type="button"
                 onClick={() => void runImport('dry-run')}
                 disabled={loading || !csvText.trim()}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-zinc-800 px-4 py-2.5 text-sm text-white transition hover:bg-zinc-700 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2.5 text-sm text-white transition hover:bg-zinc-700 disabled:opacity-50"
               >
                 <FileCheck className="h-4 w-4" />
                 {loading ? 'Виконуємо…' : 'Пробний прогон'}
@@ -489,7 +489,7 @@ export default function AdminShopImportPage() {
                 type="button"
                 onClick={() => void runImport('commit')}
                 disabled={loading || !csvText.trim()}
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white/90 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white/90 disabled:opacity-50"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 {loading ? 'Виконуємо…' : 'Виконати імпорт'}
@@ -497,7 +497,7 @@ export default function AdminShopImportPage() {
             </div>
           </section>
 
-          <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-white">
                 <Save className="h-4 w-4" />
@@ -506,7 +506,7 @@ export default function AdminShopImportPage() {
               <button
                 type="button"
                 onClick={resetTemplateDraft}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-3 py-2 text-sm text-white transition hover:bg-zinc-700"
+                className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-3 py-2 text-sm text-white transition hover:bg-zinc-700"
               >
                 <Plus className="h-4 w-4" />
                 Новий
@@ -515,14 +515,14 @@ export default function AdminShopImportPage() {
 
             <div className="mt-4 space-y-3">
               {templates.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-sm text-white/45">
+                <div className="rounded-none border border-dashed border-white/10 px-4 py-6 text-sm text-white/45">
                   Шаблонів ще немає. Додайте шаблон для мапінгу колонок по постачальнику.
                 </div>
               ) : (
                 templates.map((template) => (
                   <div
                     key={template.id}
-                    className={`rounded-2xl border px-4 py-3 ${
+                    className={`rounded-none border px-4 py-3 ${
                       selectedTemplateId === template.id ? 'border-white/30 bg-white/8' : 'border-white/10 bg-zinc-950/40'
                     }`}
                   >
@@ -543,7 +543,7 @@ export default function AdminShopImportPage() {
                         <button
                           type="button"
                           onClick={() => editTemplate(template)}
-                          className="rounded-lg border border-white/10 px-2 py-1 text-xs text-white/70 transition hover:border-white/25 hover:text-white"
+                          className="rounded-none border border-white/10 px-2 py-1 text-xs text-white/70 transition hover:border-white/25 hover:text-white"
                         >
                           Редагувати
                         </button>
@@ -551,7 +551,7 @@ export default function AdminShopImportPage() {
                           type="button"
                           onClick={() => void deleteTemplate(template.id)}
                           disabled={deletingTemplateId === template.id}
-                          className="rounded-lg border border-red-500/25 px-2 py-1 text-xs text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
+                          className="rounded-none border border-red-500/25 px-2 py-1 text-xs text-red-300 transition hover:bg-red-950/30 border border-red-900/50 text-red-500/10 disabled:opacity-50"
                         >
                           Видалити
                         </button>
@@ -562,7 +562,7 @@ export default function AdminShopImportPage() {
               )}
             </div>
 
-            <div className="mt-5 rounded-2xl border border-white/10 bg-zinc-950/40 p-4">
+            <div className="mt-5 rounded-none border border-white/10 bg-zinc-950/40 p-4">
               <div className="text-sm font-medium text-white">
                 {templateDraft.id ? 'Редагувати шаблон' : 'Створити шаблон'}
               </div>
@@ -572,7 +572,7 @@ export default function AdminShopImportPage() {
                     value={templateDraft.name}
                     onChange={(event) => setTemplateDraftField('name', event.target.value)}
                     placeholder="Urban supplier remap"
-                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+                    className="w-full rounded-none border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                   />
                 </Field>
                 <Field label="Назва постачальника">
@@ -580,7 +580,7 @@ export default function AdminShopImportPage() {
                     value={templateDraft.supplierName}
                     onChange={(event) => setTemplateDraftField('supplierName', event.target.value)}
                     placeholder="Urban Automotive"
-                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+                    className="w-full rounded-none border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                   />
                 </Field>
                 <Field label="Режим при конфлікті за замовч.">
@@ -589,7 +589,7 @@ export default function AdminShopImportPage() {
                     onChange={(event) =>
                       setTemplateDraftField('defaultConflictMode', event.target.value as ImportConflictMode)
                     }
-                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white focus:border-white/30 focus:outline-none"
+                    className="w-full rounded-none border border-white/10 bg-black/30 px-3 py-3 text-sm text-white focus:border-white/30 focus:outline-none"
                   >
                     {(Object.keys(CONFLICT_MODE_COPY) as ImportConflictMode[]).map((mode) => (
                       <option key={mode} value={mode}>
@@ -603,7 +603,7 @@ export default function AdminShopImportPage() {
                     value={templateDraft.notes}
                     onChange={(event) => setTemplateDraftField('notes', event.target.value)}
                     rows={3}
-                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+                    className="w-full rounded-none border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                     placeholder="Використовуйте цей шаблон, коли назви колонок постачальника відрізняються від стандартного експорту Shopify."
                   />
                 </Field>
@@ -616,7 +616,7 @@ export default function AdminShopImportPage() {
                     <button
                       type="button"
                       onClick={addMappingRow}
-                      className="rounded-lg border border-white/10 px-2 py-1 text-xs text-white/70 transition hover:border-white/25 hover:text-white"
+                      className="rounded-none border border-white/10 px-2 py-1 text-xs text-white/70 transition hover:border-white/25 hover:text-white"
                     >
                       Додати рядок
                     </button>
@@ -628,18 +628,18 @@ export default function AdminShopImportPage() {
                           value={row.source}
                           onChange={(event) => updateMappingRow(row.id, { source: event.target.value })}
                           placeholder="Колонка в CSV"
-                          className="rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+                          className="rounded-none border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                         />
                         <input
                           value={row.target}
                           onChange={(event) => updateMappingRow(row.id, { target: event.target.value })}
                           placeholder="Поле в системі (Shopify)"
-                          className="rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+                          className="rounded-none border border-white/10 bg-black/30 px-3 py-3 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                         />
                         <button
                           type="button"
                           onClick={() => removeMappingRow(row.id)}
-                          className="rounded-xl border border-white/10 px-3 py-3 text-white/60 transition hover:border-red-500/25 hover:text-red-300"
+                          className="rounded-none border border-white/10 px-3 py-3 text-white/60 transition hover:border-red-500/25 hover:text-red-300"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -653,7 +653,7 @@ export default function AdminShopImportPage() {
                     type="button"
                     onClick={() => void saveTemplate()}
                     disabled={savingTemplate}
-                    className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white/90 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white/90 disabled:opacity-50"
                   >
                     <Save className="h-4 w-4" />
                     {savingTemplate ? 'Зберігаємо…' : templateDraft.id ? 'Зберегти шаблон' : 'Створити шаблон'}
@@ -662,7 +662,7 @@ export default function AdminShopImportPage() {
                     <button
                       type="button"
                       onClick={resetTemplateDraft}
-                      className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-white/70 transition hover:border-white/25 hover:text-white"
+                      className="rounded-none border border-white/10 px-4 py-2.5 text-sm text-white/70 transition hover:border-white/25 hover:text-white"
                     >
                       Скасувати редагування
                     </button>
@@ -674,7 +674,7 @@ export default function AdminShopImportPage() {
         </div>
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-          <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="flex items-center gap-2 text-white">
               <FileClock className="h-4 w-4" />
               <h3 className="text-lg font-medium">Історія імпортів</h3>
@@ -682,7 +682,7 @@ export default function AdminShopImportPage() {
 
             <div className="mt-5 space-y-3">
               {jobs.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-sm text-white/45">
+                <div className="rounded-none border border-dashed border-white/10 px-4 py-6 text-sm text-white/45">
                   Імпортів поки немає.
                 </div>
               ) : (
@@ -694,7 +694,7 @@ export default function AdminShopImportPage() {
                       setSelectedJobId(job.id);
                       void loadJobDetail(job.id).catch((loadError) => setError((loadError as Error).message));
                     }}
-                    className={`w-full rounded-2xl border px-4 py-4 text-left transition ${
+                    className={`w-full rounded-none border px-4 py-4 text-left transition ${
                       selectedJobId === job.id
                         ? 'border-white/30 bg-white/8'
                         : 'border-white/10 bg-zinc-950/40 hover:border-white/20'
@@ -731,14 +731,14 @@ export default function AdminShopImportPage() {
             </div>
           </section>
 
-          <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="flex items-center gap-2 text-white">
               <FileCheck className="h-4 w-4" />
               <h3 className="text-lg font-medium">Деталі імпорту</h3>
             </div>
 
             {!selectedJob ? (
-              <div className="mt-5 rounded-2xl border border-dashed border-white/10 px-4 py-8 text-sm text-white/45">
+              <div className="mt-5 rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-white/45">
                 Оберіть імпорт зі списку, щоб переглянути підсумок, виявлені колонки та помилки по рядках.
               </div>
             ) : (
@@ -775,13 +775,13 @@ export default function AdminShopImportPage() {
                   />
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-4">
+                <div className="rounded-none border border-white/10 bg-zinc-950/40 p-4">
                   <div className="text-sm font-medium text-white">Виявлені колонки</div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {(selectedJob.columns ?? []).map((column) => (
                       <span
                         key={column}
-                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/65"
+                        className="rounded-none-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/65"
                       >
                         {column}
                       </span>
@@ -792,12 +792,12 @@ export default function AdminShopImportPage() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-4">
+                <div className="rounded-none border border-white/10 bg-zinc-950/40 p-4">
 <div className="text-sm font-medium text-white">Помилки по рядках</div>
               {!selectedJob.rowErrors.length ? (
                 <div className="mt-3 text-sm text-emerald-200">Помилок по рядках для цього імпорту не збережено.</div>
                   ) : (
-                    <div className="mt-3 overflow-hidden rounded-2xl border border-white/10">
+                    <div className="mt-3 overflow-hidden rounded-none border border-white/10">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-white/5 text-white/60">
                           <tr>
@@ -814,7 +814,7 @@ export default function AdminShopImportPage() {
                               <td className="px-3 py-3 text-white/75">
                                 <div>{rowError.message}</div>
                                 {rowError.payload ? (
-                                  <pre className="mt-2 overflow-auto rounded-xl border border-white/10 bg-black/35 p-2 text-[11px] text-white/45">
+                                  <pre className="mt-2 overflow-auto rounded-none border border-white/10 bg-black/35 p-2 text-[11px] text-white/45">
                                     {JSON.stringify(rowError.payload, null, 2)}
                                   </pre>
                                 ) : null}
@@ -848,7 +848,7 @@ function Field(props: { label: string; children: React.ReactNode }) {
 
 function MetricBox(props: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
+    <div className="rounded-none border border-white/10 bg-white/[0.04] px-3 py-2">
       <div className="text-[10px] uppercase tracking-[0.2em] text-white/40">{props.label}</div>
       <div className="mt-1 text-sm text-white">{props.value}</div>
     </div>
@@ -857,7 +857,7 @@ function MetricBox(props: { label: string; value: number }) {
 
 function MetricCard(props: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-4">
+    <div className="rounded-none border border-white/10 bg-zinc-950/40 p-4">
       <div className="text-xs uppercase tracking-[0.2em] text-white/40">{props.label}</div>
       <div className="mt-2 text-2xl font-light text-white">{props.value}</div>
     </div>
@@ -866,7 +866,7 @@ function MetricCard(props: { label: string; value: number }) {
 
 function InfoPanel(props: { title: string; rows: Array<[string, string]> }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-4">
+    <div className="rounded-none border border-white/10 bg-zinc-950/40 p-4">
       <div className="text-sm font-medium text-white">{props.title}</div>
       <div className="mt-3 space-y-2">
         {props.rows.map(([label, value]) => (

@@ -19,6 +19,22 @@ import crypto from 'crypto';
  */
 export async function POST(request: NextRequest) {
   try {
+    // ─── Auth guard: require webhook secret or cron token ───
+    const webhookSecret = process.env.AIRTABLE_WEBHOOK_SECRET || process.env.AIRTABLE_PAT;
+    const authHeader = request.headers.get('authorization');
+    const secretHeader = request.headers.get('x-webhook-secret');
+    const cronSecret = request.headers.get('x-cron-secret');
+
+    const isAuthorized =
+      (webhookSecret && secretHeader === webhookSecret) ||
+      (webhookSecret && authHeader === `Bearer ${webhookSecret}`) ||
+      (process.env.CRON_SECRET && cronSecret === process.env.CRON_SECRET);
+
+    if (!isAuthorized) {
+      console.warn('[Airtable Webhook] Unauthorized request rejected');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json().catch(() => ({}));
     
     // Airtable webhook sends a payload with changed records
@@ -77,8 +93,9 @@ export async function POST(request: NextRequest) {
           });
           results.customersCreated++;
         }
-      } catch (err: any) {
-        results.errors.push(`Customer "${atCustomer.name}": ${err.message}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        results.errors.push(`Customer "${atCustomer.name}": ${msg}`);
       }
     }
 
@@ -165,8 +182,9 @@ export async function POST(request: NextRequest) {
           });
           results.ordersCreated++;
         }
-      } catch (err: any) {
-        results.errors.push(`Order #${atOrder.number}: ${err.message}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        results.errors.push(`Order #${atOrder.number}: ${msg}`);
       }
     }
 
@@ -177,14 +195,16 @@ export async function POST(request: NextRequest) {
     try {
       crmSyncResult = await syncAllCrmData();
       console.log(`[Airtable Webhook] CRM DB sync: ${crmSyncResult.customers.synced} customers, ${crmSyncResult.orders.synced} orders, ${crmSyncResult.items.synced} items`);
-    } catch (err: any) {
-      console.error('[Airtable Webhook] CRM DB sync error:', err.message);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[Airtable Webhook] CRM DB sync error:', msg);
     }
 
     return NextResponse.json({ success: true, ...results, crmSync: crmSyncResult });
-  } catch (error: any) {
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
     console.error('[Airtable Webhook Error]', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 

@@ -222,11 +222,11 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
           </div>
         </div>
 
-        {error ? <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">{error}</div> : null}
-        {success ? <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{success}</div> : null}
+        {error ? <div className="mb-4 rounded-none border border-red-500/30 bg-red-950/30 border border-red-900/50 text-red-500/10 p-3 text-sm text-red-200">{error}</div> : null}
+        {success ? <div className="mb-4 rounded-none border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{success}</div> : null}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5">
               <h2 className="text-lg font-medium text-white">Overview</h2>
               <p className="mt-1 text-sm text-white/45">Collection identity used in admin, storefront and sitemap.</p>
@@ -245,7 +245,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5">
               <h2 className="text-lg font-medium text-white">Descriptions</h2>
               <p className="mt-1 text-sm text-white/45">Optional collection copy for future landing pages and SEO.</p>
@@ -257,7 +257,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
           </section>
 
           {isEditing ? (
-            <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
               <div className="mb-5">
                 <h2 className="text-lg font-medium text-white">Assigned products</h2>
                 <p className="mt-1 text-sm text-white/45">Products are assigned from the product editor or via Urban sync.</p>
@@ -268,7 +268,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
                     <Link
                       key={product.id}
                       href={`/admin/shop/${product.id}`}
-                      className="rounded-xl border border-white/10 bg-black/40 p-4 text-sm text-white/80 hover:bg-white/5"
+                      className="rounded-none border border-white/10 bg-black/40 p-4 text-sm text-white/80 hover:bg-white/5"
                     >
                       <div className="font-medium text-white">{product.titleEn || product.titleUa}</div>
                       <div className="mt-1 font-mono text-xs text-white/45">{product.slug}</div>
@@ -277,7 +277,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-xl border border-dashed border-white/10 bg-black/30 px-4 py-8 text-sm text-white/45">
+                <div className="rounded-none border border-dashed border-white/10 bg-black/30 px-4 py-8 text-sm text-white/45">
                   No products assigned yet.
                 </div>
               )}
@@ -285,11 +285,11 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
           ) : null}
 
           <div className="flex flex-wrap gap-3 pb-6">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-none bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
               <Save className="h-4 w-4" />
               {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти колекцію' : 'Створити колекцію'}
             </button>
-            <Link href="/admin/shop/collections" className="rounded-lg border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
+            <Link href="/admin/shop/collections" className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
               Скасувати
             </Link>
           </div>
@@ -314,7 +314,7 @@ function InputField({ label, value, onChange, type = 'text' }: InputFieldProps) 
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
       />
     </label>
   );
@@ -335,7 +335,7 @@ function TextareaField({ label, value, onChange, rows = 5 }: TextareaFieldProps)
         value={value}
         onChange={(event) => onChange(event.target.value)}
         rows={rows}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
       />
     </label>
   );
@@ -354,7 +354,7 @@ function CheckboxField({ label, checked, onChange }: CheckboxFieldProps) {
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+        className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
       />
       {label}
     </label>

@@ -95,15 +95,15 @@ export default function AdminShopAuditPage() {
           <button
             type="button"
             onClick={() => setReloadKey((current) => current + 1)}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
+            className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
           >
             <RefreshCcw className="h-4 w-4" />
             Оновити
           </button>
         </div>
 
-        <div className="mb-4 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 md:grid-cols-[1fr_240px]">
-          <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
+        <div className="mb-4 grid gap-4 rounded-none border border-white/10 bg-white/[0.03] p-4 md:grid-cols-[1fr_240px]">
+          <label className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
             <Search className="h-4 w-4 text-white/35" />
             <input
               value={query}
@@ -117,7 +117,7 @@ export default function AdminShopAuditPage() {
             <select
               value={entityType}
               onChange={(event) => setEntityType(event.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+              className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
             >
               <option value="">Усі типи</option>
               {entityTypes.map((entry) => (
@@ -129,20 +129,20 @@ export default function AdminShopAuditPage() {
           </label>
         </div>
 
-        <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/70">
+        <div className="mb-4 rounded-none border border-white/10 bg-white/[0.03] p-4 text-sm text-white/70">
           {filteredLogs.length} записів у журналі
         </div>
 
-        {error ? <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
 
         {filteredLogs.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] py-16 text-center text-white/45">
+          <div className="rounded-none border border-white/10 bg-white/[0.03] py-16 text-center text-white/45">
             Подій аудиту не знайдено.
           </div>
         ) : (
           <div className="space-y-3 pb-6">
             {filteredLogs.map((log) => (
-              <div key={log.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div key={log.id} className="rounded-none border border-white/10 bg-white/[0.03] p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="text-sm font-medium text-white">{log.action}</div>
@@ -158,7 +158,7 @@ export default function AdminShopAuditPage() {
                   <span>Область: {log.scope}</span>
                 </div>
                 {log.metadata ? (
-                  <pre className="mt-3 overflow-x-auto rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-white/65">
+                  <pre className="mt-3 overflow-x-auto rounded-none border border-white/10 bg-black/30 p-3 text-xs text-white/65">
                     {JSON.stringify(log.metadata, null, 2)}
                   </pre>
                 ) : null}

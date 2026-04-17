@@ -244,7 +244,7 @@ export default function AdminShopCustomerDetailPage() {
   if (!customer || !form) {
     return (
       <div className="p-6">
-        <div className="rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error || 'Customer not found'}</div>
+        <div className="rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error || 'Customer not found'}</div>
         <Link href="/admin/shop/customers" className="mt-4 inline-block text-sm text-white/70 hover:text-white">
           ← Back to customers
         </Link>
@@ -273,7 +273,7 @@ export default function AdminShopCustomerDetailPage() {
                 type="button"
                 onClick={() => void runAction('approve_b2b')}
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100 hover:bg-emerald-500/15 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-none border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100 hover:bg-emerald-500/15 disabled:opacity-50"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 Approve B2B
@@ -284,7 +284,7 @@ export default function AdminShopCustomerDetailPage() {
                 type="button"
                 onClick={() => void runAction('revert_b2c')}
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/[0.04] px-4 py-2 text-sm text-white hover:bg-white/[0.08] disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-none border border-white/15 bg-white/[0.04] px-4 py-2 text-sm text-white hover:bg-white/[0.08] disabled:opacity-50"
               >
                 <RotateCcw className="h-4 w-4" />
                 Revert to B2C
@@ -294,7 +294,7 @@ export default function AdminShopCustomerDetailPage() {
               type="button"
               onClick={() => void save()}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
               {saving ? 'Saving…' : 'Save'}
@@ -302,12 +302,12 @@ export default function AdminShopCustomerDetailPage() {
           </div>
         </div>
 
-        {error ? <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
-        {success ? <div className="mb-4 rounded-lg bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
+        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+        {success ? <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
 
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="rounded-none border border-white/10 bg-white/[0.03] p-5">
               <h3 className="mb-4 text-lg font-medium text-white">Profile</h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <InputField label="Ім'я" value={form.firstName} onChange={(value) => setForm((current) => current ? { ...current, firstName: value } : current)} />
@@ -324,7 +324,7 @@ export default function AdminShopCustomerDetailPage() {
                   <select
                     value={form.currencyPref}
                     onChange={(event) => setForm((current) => current ? { ...current, currencyPref: event.target.value } : current)}
-                    className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
+                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
                   >
                     <option value="EUR">EUR</option>
                     <option value="USD">USD</option>
@@ -336,7 +336,7 @@ export default function AdminShopCustomerDetailPage() {
                   <select
                     value={form.preferredLocale}
                     onChange={(event) => setForm((current) => current ? { ...current, preferredLocale: event.target.value } : current)}
-                    className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
+                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
                   >
                     <option value="en">en</option>
                     <option value="ua">ua</option>
@@ -347,23 +347,23 @@ export default function AdminShopCustomerDetailPage() {
                   <select
                     value={form.group}
                     onChange={(event) => setForm((current) => current ? { ...current, group: event.target.value as CustomerGroup } : current)}
-                    className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
+                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
                   >
                     <option value="B2C">B2C</option>
                     <option value="B2B_PENDING">B2B pending</option>
                     <option value="B2B_APPROVED">B2B approved</option>
                   </select>
                 </label>
-                <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
+                <label className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
                   <input
                     type="checkbox"
                     checked={form.isActive}
                     onChange={(event) => setForm((current) => current ? { ...current, isActive: event.target.checked } : current)}
-                    className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+                    className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
                   />
                   Active customer
                 </label>
-                <div className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white/70">
+                <div className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white/70">
                   <div>Joined {new Date(customer.createdAt).toLocaleString()}</div>
                   <div className="mt-1 text-white/45">
                     Last login {customer.account?.lastLoginAt ? new Date(customer.account.lastLoginAt).toLocaleString() : '—'}
@@ -372,14 +372,14 @@ export default function AdminShopCustomerDetailPage() {
                 {customer.account?.plainPassword ? (
                   <PasswordCard password={customer.account.plainPassword} />
                 ) : (
-                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-3 text-sm flex flex-col items-start gap-2">
+                  <div className="rounded-none border border-amber-500/20 bg-amber-500/5 px-3 py-3 text-sm flex flex-col items-start gap-2">
                     <div className="text-[11px] uppercase tracking-[0.2em] text-amber-400/50">Пароль</div>
                     <div className="text-amber-200/70">Немає збереженого пароля (зареєстровано до оновлення)</div>
                     <button
                       type="button"
                       onClick={() => void runAction('generate_password' as any)}
                       disabled={saving}
-                      className="mt-1 inline-flex items-center gap-1.5 rounded bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-400 border border-amber-400/20 hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                      className="mt-1 inline-flex items-center gap-1.5 rounded-none bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-400 border border-amber-400/20 hover:bg-amber-500/20 transition-all disabled:opacity-50"
                     >
                       Згенерувати доступ
                     </button>
@@ -392,31 +392,31 @@ export default function AdminShopCustomerDetailPage() {
                       value={form.notes}
                       onChange={(event) => setForm((current) => current ? { ...current, notes: event.target.value } : current)}
                       rows={5}
-                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                     />
                   </label>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="rounded-none border border-white/10 bg-white/[0.03] p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-white">Історія замовлень</h3>
                 <Link
                   href={`/admin/shop/orders/create?customerId=${customer.id}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-black hover:bg-white/90 transition-all"
+                  className="inline-flex items-center gap-1.5 rounded-none bg-white px-3 py-1.5 text-xs font-semibold text-black hover:bg-white/90 transition-all"
                 >
                   + Створити замовлення
                 </Link>
               </div>
               <div className="space-y-3">
                 {customer.orders.length ? customer.orders.map((order) => (
-                  <div key={order.id} className="rounded-xl border border-white/10 bg-black/30 p-4">
+                  <div key={order.id} className="rounded-none border border-white/10 bg-black/30 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-white">{order.orderNumber}</span>
-                          <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wider ${
+                          <span className={`inline-flex rounded-none-full border px-2 py-0.5 text-[10px] uppercase tracking-wider ${
                             order.status === 'DELIVERED' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' :
                             order.status === 'SHIPPED' ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300' :
                             order.status === 'PROCESSING' ? 'border-violet-500/30 bg-violet-500/10 text-violet-300' :
@@ -440,32 +440,32 @@ export default function AdminShopCustomerDetailPage() {
                     </div>
                   </div>
                 )) : (
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">Замовлень поки немає.</div>
+                  <div className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/45">Замовлень поки немає.</div>
                 )}
               </div>
             </div>
 
             {/* CRM Orders */}
-            <div className="rounded-2xl border border-indigo-500/10 bg-indigo-500/[0.02] p-5">
+            <div className="rounded-none border border-indigo-500/10 bg-zinc-100 text-black/[0.02] p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                  <Database className="w-4 h-4 text-indigo-400" /> CRM Замовлення
+                  <Database className="w-4 h-4 text-zinc-400" /> CRM Замовлення
                 </h3>
                 {crmLoading && <span className="text-[10px] text-white/20 animate-pulse">Завантаження...</span>}
               </div>
               <div className="space-y-2">
                 {crmOrders.length > 0 ? crmOrders.map(o => (
-                  <div key={o.id} className="rounded-xl border border-white/10 bg-black/30 p-4">
+                  <div key={o.id} className="rounded-none border border-white/10 bg-black/30 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-sm text-white">#{o.number}</span>
-                          <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                          <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-none-full border ${
                             o.orderStatus === 'Выполнен' ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5' :
-                            o.orderStatus === 'Отменен' ? 'border-red-500/20 text-red-400 bg-red-500/5' :
+                            o.orderStatus === 'Отменен' ? 'border-red-500/20 text-red-400 bg-red-950/30 border border-red-900/50 text-red-500/5' :
                             'border-amber-500/20 text-amber-400 bg-amber-500/5'
                           }`}>{o.orderStatus}</span>
-                          <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                          <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-none-full border ${
                             o.paymentStatus === 'Оплачено' ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5' :
                             'border-white/10 text-white/30 bg-white/[0.02]'
                           }`}>{o.paymentStatus}</span>
@@ -480,13 +480,13 @@ export default function AdminShopCustomerDetailPage() {
                     </div>
                   </div>
                 )) : !crmLoading ? (
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">Немає CRM замовлень або клієнт не прив&apos;язаний до Airtable.</div>
+                  <div className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/45">Немає CRM замовлень або клієнт не прив&apos;язаний до Airtable.</div>
                 ) : null}
               </div>
             </div>
 
             {/* Customer Markup */}
-            <div className="rounded-2xl border border-emerald-500/10 bg-emerald-500/[0.02] p-5">
+            <div className="rounded-none border border-emerald-500/10 bg-emerald-500/[0.02] p-5">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-medium text-white flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-emerald-400" /> Ціноутворення
@@ -497,7 +497,7 @@ export default function AdminShopCustomerDetailPage() {
                 <div className="flex items-center gap-4">
                   <div className="text-2xl font-light text-emerald-400">{customerMarkup.markupPct}%</div>
                   <div className="text-xs text-white/30">Персональна націнка (×{(1 + customerMarkup.markupPct / 100).toFixed(2)})</div>
-                  {customerMarkup.notes && <span className="text-[10px] px-2 py-0.5 bg-white/[0.03] border border-white/10 rounded-full text-white/40">{customerMarkup.notes}</span>}
+                  {customerMarkup.notes && <span className="text-[10px] px-2 py-0.5 bg-white/[0.03] border border-white/10 rounded-none-full text-white/40">{customerMarkup.notes}</span>}
                 </div>
               ) : (
                 <p className="text-sm text-white/40">Використовується стандартна націнка бренду.</p>
@@ -506,11 +506,11 @@ export default function AdminShopCustomerDetailPage() {
           </section>
 
           <section className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="rounded-none border border-white/10 bg-white/[0.03] p-5">
               <h3 className="mb-4 text-lg font-medium text-white">Addresses</h3>
               <div className="space-y-3">
                 {customer.addresses.length ? customer.addresses.map((address) => (
-                  <div key={address.id} className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/75">
+                  <div key={address.id} className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/75">
                     <div className="font-medium text-white">{address.label}</div>
                     <div className="mt-1">{address.line1}</div>
                     {address.line2 ? <div>{address.line2}</div> : null}
@@ -521,16 +521,16 @@ export default function AdminShopCustomerDetailPage() {
                     </div>
                   </div>
                 )) : (
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">No addresses saved.</div>
+                  <div className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/45">No addresses saved.</div>
                 )}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="rounded-none border border-white/10 bg-white/[0.03] p-5">
               <h3 className="mb-4 text-lg font-medium text-white">Active carts</h3>
               <div className="space-y-3">
                 {customer.carts.length ? customer.carts.map((cart) => (
-                  <div key={cart.id} className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/75">
+                  <div key={cart.id} className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/75">
                     <div className="font-medium text-white">{cart.currency} · {cart.locale}</div>
                     <div className="mt-1 text-xs text-white/45">
                       {cart.itemCount} items · updated {new Date(cart.updatedAt).toLocaleString()}
@@ -538,16 +538,16 @@ export default function AdminShopCustomerDetailPage() {
                     <div className="mt-1 text-xs font-mono text-white/35">{cart.token}</div>
                   </div>
                 )) : (
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">No carts found.</div>
+                  <div className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/45">No carts found.</div>
                 )}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="rounded-none border border-white/10 bg-white/[0.03] p-5">
               <h3 className="mb-4 text-lg font-medium text-white">Audit trail</h3>
               <div className="space-y-3">
                 {customer.auditLog.length ? customer.auditLog.map((entry) => (
-                  <div key={entry.id} className="rounded-xl border border-white/10 bg-black/30 p-4">
+                  <div key={entry.id} className="rounded-none border border-white/10 bg-black/30 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="text-sm font-medium text-white">{entry.action}</div>
                       <div className="text-xs text-white/45">{new Date(entry.createdAt).toLocaleString()}</div>
@@ -556,13 +556,13 @@ export default function AdminShopCustomerDetailPage() {
                       {entry.actorName || entry.actorEmail}
                     </div>
                     {entry.metadata ? (
-                      <pre className="mt-3 overflow-x-auto rounded-lg border border-white/10 bg-zinc-950 p-3 text-xs text-white/55">
+                      <pre className="mt-3 overflow-x-auto rounded-none border border-white/10 bg-zinc-950 p-3 text-xs text-white/55">
                         {JSON.stringify(entry.metadata, null, 2)}
                       </pre>
                     ) : null}
                   </div>
                 )) : (
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/45">No audit events yet.</div>
+                  <div className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/45">No audit events yet.</div>
                 )}
               </div>
             </div>
@@ -584,7 +584,7 @@ function InputField(props: {
       <input
         value={props.value}
         onChange={(event) => props.onChange(event.target.value)}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
       />
     </label>
   );
@@ -601,7 +601,7 @@ function PasswordCard({ password }: { password: string }) {
   }
 
   return (
-    <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm">
+    <div className="rounded-none border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm">
       <div className="text-[11px] uppercase tracking-[0.2em] text-emerald-400/50 mb-1.5">Пароль клієнта</div>
       <div className="flex items-center gap-2">
         <code className="flex-1 text-emerald-200 font-mono text-sm">
@@ -610,7 +610,7 @@ function PasswordCard({ password }: { password: string }) {
         <button
           type="button"
           onClick={() => setVisible(!visible)}
-          className="p-1 rounded text-white/40 hover:text-white transition"
+          className="p-1 rounded-none text-white/40 hover:text-white transition"
           title={visible ? 'Сховати' : 'Показати'}
         >
           {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -618,7 +618,7 @@ function PasswordCard({ password }: { password: string }) {
         <button
           type="button"
           onClick={handleCopy}
-          className="p-1 rounded text-white/40 hover:text-white transition"
+          className="p-1 rounded-none text-white/40 hover:text-white transition"
           title="Копіювати"
         >
           <Copy className="h-4 w-4" />

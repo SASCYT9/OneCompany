@@ -204,8 +204,8 @@ export default function CategoryPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {grouped[letter]!.map(brand => {
                       const meta = brandMetadata[brand.name];
-                      const country = meta ? countryNames[meta.country][lang] : undefined;
-                      const subcategory = meta ? subcategoryNames[meta.subcategory][lang] : undefined;
+                      const country = meta ? countryNames[meta.country]?.[lang] : undefined;
+                      const subcategory = meta ? subcategoryNames[meta.subcategory]?.[lang] : undefined;
 
                       return (
                       <button

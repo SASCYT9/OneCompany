@@ -42,9 +42,9 @@ type CustomerDetail = {
 
 const STATUS_COLORS: Record<string, string> = {
   'Выполнен': 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5',
-  'Новый': 'border-blue-500/20 text-blue-400 bg-blue-500/5',
+  'Новый': 'border-blue-500/20 text-zinc-400 bg-zinc-100 text-black/5',
   'В обработке': 'border-amber-500/20 text-amber-400 bg-amber-500/5',
-  'Отменен': 'border-red-500/20 text-red-400 bg-red-500/5',
+  'Отменен': 'border-red-500/20 text-red-400 bg-red-950/30 border border-red-900/50 text-red-500/5',
 };
 
 export default function CrmCustomerDetailPage() {
@@ -75,7 +75,7 @@ export default function CrmCustomerDetailPage() {
 
   return (
     <div className="relative h-full w-full overflow-auto bg-black text-white">
-      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/8 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-none-full bg-violet-600/8 blur-[120px]" />
 
       <div className="w-full px-4 py-8 md:px-8 lg:px-12 max-w-[1920px] mx-auto">
         <Link href="/admin/crm" className="group mb-6 inline-flex items-center gap-2 text-[13px] font-medium tracking-wide text-white/40 hover:text-white transition-all">
@@ -92,19 +92,19 @@ export default function CrmCustomerDetailPage() {
             {customer.businessName && <p className="mt-1 text-sm text-white/40">{customer.businessName}</p>}
             <div className="mt-3 flex items-center flex-wrap gap-2">
               {customer.tags.map(tag => (
-                <span key={tag} className="text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border border-violet-500/20 text-violet-400 bg-violet-500/5">
+                <span key={tag} className="text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-none-full border border-violet-500/20 text-violet-400 bg-violet-500/5">
                   {tag}
                 </span>
               ))}
               {customer.whoOwes && (
-                <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${customer.balance < 0 ? 'border-red-500/20 text-red-400 bg-red-500/5' : 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5'}`}>
+                <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-none-full border ${customer.balance < 0 ? 'border-red-500/20 text-red-400 bg-red-950/30 border border-red-900/50 text-red-500/5' : 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5'}`}>
                   {customer.whoOwes}
                 </span>
               )}
             </div>
           </div>
           {customer.markup && (
-            <Link href="/admin/shop/pricing" className="rounded-2xl border border-emerald-500/10 bg-emerald-500/[0.02] px-5 py-3 hover:bg-emerald-500/[0.05] transition-colors">
+            <Link href="/admin/shop/pricing" className="rounded-none border border-emerald-500/10 bg-emerald-500/[0.02] px-5 py-3 hover:bg-emerald-500/[0.05] transition-colors">
               <div className="text-[10px] uppercase tracking-widest text-emerald-400/50 mb-1">Персональна націнка</div>
               <div className="text-2xl font-light text-emerald-400">{customer.markup.markupPct}%</div>
               {customer.markup.notes && <div className="text-[10px] text-white/20 mt-1">{customer.markup.notes}</div>}
@@ -117,11 +117,11 @@ export default function CrmCustomerDetailPage() {
           {[
             { label: 'Виручка', value: `$${customer.totalSales.toLocaleString()}`, icon: <DollarSign className="w-4 h-4" />, color: 'text-white' },
             { label: 'Прибуток', value: `$${customer.totalProfit.toLocaleString()}`, icon: <TrendingUp className="w-4 h-4" />, color: 'text-emerald-400' },
-            { label: 'Оплати', value: `$${customer.totalPayments.toLocaleString()}`, icon: <ShoppingCart className="w-4 h-4" />, color: 'text-blue-400' },
+            { label: 'Оплати', value: `$${customer.totalPayments.toLocaleString()}`, icon: <ShoppingCart className="w-4 h-4" />, color: 'text-zinc-400' },
             { label: 'Баланс', value: `$${customer.balance.toLocaleString()}`, icon: <DollarSign className="w-4 h-4" />, color: balanceColor },
             { label: 'Замовлень', value: String(customer.orders.length), icon: <Package className="w-4 h-4" />, color: 'text-white' },
           ].map(kpi => (
-            <div key={kpi.label} className="rounded-2xl border border-white/[0.08] bg-black/60 p-4">
+            <div key={kpi.label} className="rounded-none border border-white/[0.08] bg-black/60 p-4">
               <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-white/30 mb-1.5">
                 {kpi.icon} {kpi.label}
               </div>
@@ -136,11 +136,11 @@ export default function CrmCustomerDetailPage() {
             <h2 className="text-sm font-medium text-white/50 uppercase tracking-widest mb-3">Замовлення</h2>
             {customer.orders.map(o => (
               <Link key={o.id} href={`/admin/crm/orders/${o.airtableId}`}
-                className="block rounded-2xl border border-white/[0.08] bg-black/60 p-5 hover:bg-white/[0.02] transition-colors">
+                className="block rounded-none border border-white/[0.08] bg-black/60 p-5 hover:bg-white/[0.02] transition-colors">
                 <div className="flex items-center justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-sm text-white">#{o.number}</span>
-                    <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${STATUS_COLORS[o.orderStatus] || 'border-white/10 text-white/30'}`}>{o.orderStatus}</span>
+                    <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-none-full border ${STATUS_COLORS[o.orderStatus] || 'border-white/10 text-white/30'}`}>{o.orderStatus}</span>
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-medium text-white">${o.clientTotal.toLocaleString()}</span>
@@ -155,14 +155,14 @@ export default function CrmCustomerDetailPage() {
               </Link>
             ))}
             {customer.orders.length === 0 && (
-              <div className="rounded-2xl border border-white/[0.08] bg-black/60 p-8 text-center text-white/20 text-sm">Немає замовлень</div>
+              <div className="rounded-none border border-white/[0.08] bg-black/60 p-8 text-center text-white/20 text-sm">Немає замовлень</div>
             )}
           </div>
 
           {/* Top Products */}
           <div>
             <h2 className="text-sm font-medium text-white/50 uppercase tracking-widest mb-3">Топ Товари</h2>
-            <div className="rounded-2xl border border-white/[0.08] bg-black/60 overflow-hidden">
+            <div className="rounded-none border border-white/[0.08] bg-black/60 overflow-hidden">
               {customer.topProducts.length > 0 ? customer.topProducts.map((p, i) => (
                 <div key={p.name} className={`p-4 ${i > 0 ? 'border-t border-white/[0.04]' : ''}`}>
                   <div className="text-sm text-white font-medium truncate">{p.name}</div>

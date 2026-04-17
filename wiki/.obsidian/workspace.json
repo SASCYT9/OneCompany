@@ -16,23 +16,8 @@
               "icon": "lucide-git-fork",
               "title": "Граф"
             }
-          },
-          {
-            "id": "23314b380ce510b5",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Home.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Home"
-            }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -89,14 +74,16 @@
             "id": "b7b2c668559329f5",
             "type": "leaf",
             "state": {
-              "type": "mk-path-view",
-              "state": {},
-              "icon": "layout-grid",
-              "title": "Navigator"
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Файловий менеджер"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "horizontal",
@@ -269,8 +256,14 @@
       "smart-connections:Smart Lookup: Open lookup view": false
     }
   },
-  "active": "23314b380ce510b5",
+  "active": "e7a7b303c61786dc",
   "lastOpenFiles": [
+    "🏛️ Архітектура CRM.md",
+    "🎨 3D & Animation Stack.md",
+    "✅ Розроблені Магазини (Storefronts).md",
+    "Shop Mind Map.canvas",
+    "Home.md",
+    "Tags",
     "Без назви 2.canvas",
     "Localization & AI.md",
     "API & Integrations.md",
@@ -280,13 +273,10 @@
     "Database ERD Schema.md",
     "Tasks Kanban.md",
     "AI Agent Syndicate.md",
-    "Home.md",
     "🚀 Головна (Dashboard).md",
     "🗺️ Глобальна Архітектура.canvas",
     "📡 Code Map.md",
     "📡 Git Changelog.md",
-    "✅ Розроблені Магазини (Storefronts).md",
-    "🏛️ Архітектура CRM.md",
     "Marketing Strategy.md",
     "2026-04-06.md",
     "Phase D — Orders.md",
@@ -302,7 +292,6 @@
     "copilot/copilot-custom-prompts",
     "copilot",
     "💡 Ідеї",
-    "Shop Mind Map.canvas",
     "Без назви 1.canvas",
     "screenshots/real_burger.png",
     "screenshots/real_urban.png",
@@ -314,7 +303,6 @@
     "screenshots/storefront_profile.png",
     "Marketing Mind Map.canvas",
     "Без назви.base",
-    "Без назви.canvas",
-    "Tags"
+    "Без назви.canvas"
   ]
 }

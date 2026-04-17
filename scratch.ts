@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; const prisma = new PrismaClient(); prisma.shopProduct.findMany({ select: { brand: true }, distinct: ['brand'] }).then(brands => console.log(brands.map(b => b.brand).filter(Boolean))).finally(() => prisma.$disconnect());

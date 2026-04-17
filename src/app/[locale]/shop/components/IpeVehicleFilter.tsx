@@ -3,7 +3,8 @@
 import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, X, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
+import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
@@ -418,6 +419,28 @@ export default function IpeVehicleFilter({
                           </div>
                         </div>
                       </Link>
+
+                      {/* Bottom Actions: View + Add To Cart */}
+                      <div className="px-6 pb-6 pt-0 z-20 relative flex gap-3">
+                        <Link
+                          href={`${productPathPrefix}/${product.slug}`}
+                          className="flex-1 flex items-center justify-center gap-2 py-3 border border-[#c29d59]/30 text-[10px] tracking-[0.3em] uppercase font-light text-[#c29d59] hover:text-black hover:bg-[#c29d59] hover:border-[#c29d59] transition-all duration-300 rounded-[2px]"
+                        >
+                          {isUa ? "ПЕРЕЙТИ" : "VIEW"}
+                          <ArrowRight size={12} strokeWidth={2} />
+                        </Link>
+                        <AddToCartButton
+                          slug={product.slug}
+                          variantId={null}
+                          locale={locale}
+                          redirect={true}
+                          productName={productTitle}
+                          label={isUa ? "КОШИК" : "CART"}
+                          labelAdded={isUa ? "✓" : "✓"}
+                          className="flex-1 flex items-center justify-center py-3 border border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
+                          variant="inline"
+                        />
+                      </div>
                     </article>
                   );
                 })}

@@ -123,7 +123,7 @@ export default function CustomerPricingPage() {
 
   return (
     <div className="relative h-full w-full overflow-auto bg-black text-white">
-      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-600/8 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-none-full bg-emerald-600/8 blur-[120px]" />
 
       <div className="w-full px-4 py-8 md:px-8 lg:px-12">
         <Link href="/admin/shop" className="group mb-8 inline-flex items-center gap-2 text-[13px] font-medium tracking-wide text-white/40 hover:text-white transition-all duration-300">
@@ -142,15 +142,15 @@ export default function CustomerPricingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/admin/shop/pricing/simulator"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-xs uppercase tracking-widest font-bold hover:bg-indigo-500/20 transition-all">
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-none border border-indigo-500/30 bg-zinc-100 text-black/10 text-zinc-400 text-xs uppercase tracking-widest font-bold hover:bg-zinc-100 text-black/20 transition-all">
               <Calculator className="w-3.5 h-3.5" /> Симулятор ціни
             </Link>
             <Link href="/admin/shop/turn14/markups"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-400 text-xs uppercase tracking-widest font-medium hover:bg-amber-500/10 transition-all">
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-none border border-amber-500/20 bg-amber-500/5 text-amber-400 text-xs uppercase tracking-widest font-medium hover:bg-amber-500/10 transition-all">
               <Percent className="w-3 h-3" /> Бренд Націнки
             </Link>
             <button onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 text-black text-xs uppercase tracking-widest font-bold hover:bg-emerald-400 transition-all">
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-none bg-emerald-500 text-black text-xs uppercase tracking-widest font-bold hover:bg-emerald-400 transition-all">
               <Plus className="w-3.5 h-3.5" /> Додати клієнта
             </button>
           </div>
@@ -158,24 +158,24 @@ export default function CustomerPricingPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="rounded-2xl border border-white/[0.08] bg-black/60 p-5">
+          <div className="rounded-none border border-white/[0.08] bg-black/60 p-5">
             <div className="text-[10px] uppercase tracking-widest text-white/30 mb-2">Клієнтів з націнкою</div>
             <div className="text-2xl font-light text-white">{markups.length}</div>
           </div>
-          <div className="rounded-2xl border border-white/[0.08] bg-black/60 p-5">
+          <div className="rounded-none border border-white/[0.08] bg-black/60 p-5">
             <div className="text-[10px] uppercase tracking-widest text-white/30 mb-2">Середня націнка</div>
             <div className="text-2xl font-light text-emerald-400">
               {markups.length ? (markups.reduce((s, m) => s + m.markupPct, 0) / markups.length).toFixed(1) : 0}%
             </div>
           </div>
-          <div className="rounded-2xl border border-white/[0.08] bg-black/60 p-5">
+          <div className="rounded-none border border-white/[0.08] bg-black/60 p-5">
             <div className="text-[10px] uppercase tracking-widest text-white/30 mb-2">CRM Клієнтів</div>
             <div className="text-2xl font-light text-white">{airtableCustomers.length}</div>
           </div>
         </div>
 
         {/* Search */}
-        <div className="mb-6 flex items-center gap-3 rounded-xl border border-white/[0.08] bg-black/40 px-4 py-3">
+        <div className="mb-6 flex items-center gap-3 rounded-none border border-white/[0.08] bg-black/40 px-4 py-3">
           <Search className="w-4 h-4 text-white/30" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Пошук клієнта..."
             className="flex-1 bg-transparent text-sm text-white placeholder-white/20 focus:outline-none" />
@@ -189,7 +189,7 @@ export default function CustomerPricingPage() {
             {markups.length === 0 ? 'Ще немає персональних націнок. Натисніть "Додати клієнта".' : 'Нічого не знайдено.'}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-black/60 backdrop-blur-2xl shadow-2xl">
+          <div className="overflow-hidden rounded-none border border-white/[0.08] bg-black/60 backdrop-blur-2xl shadow-2xl">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/[0.06] bg-white/[0.02]">
@@ -217,10 +217,10 @@ export default function CustomerPricingPage() {
                         <div className="flex items-center gap-2">
                           <input type="range" min="0" max="100" step="1" value={pct}
                             onChange={e => handleEdit(m.customerId, 'markupPct', e.target.value)}
-                            className="flex-1 h-1.5 appearance-none bg-white/10 rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:cursor-pointer" />
+                            className="flex-1 h-1.5 appearance-none bg-white/10 rounded-none-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:rounded-none-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:cursor-pointer" />
                           <input type="number" min="0" max="200" value={pct}
                             onChange={e => handleEdit(m.customerId, 'markupPct', e.target.value)}
-                            className="w-16 bg-white/[0.03] border border-white/10 text-center text-sm text-white rounded-lg px-2 py-1.5 focus:outline-none focus:border-emerald-500/30" />
+                            className="w-16 bg-white/[0.03] border border-white/10 text-center text-sm text-white rounded-none px-2 py-1.5 focus:outline-none focus:border-emerald-500/30" />
                           <span className="text-white/30 text-xs">%</span>
                         </div>
                       </td>
@@ -234,7 +234,7 @@ export default function CustomerPricingPage() {
                       </td>
                       <td className="px-5 py-4">
                         <button onClick={() => handleDelete(m.customerId)}
-                          className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-colors">
+                          className="p-2 rounded-none hover:bg-red-950/30 border border-red-900/50 text-red-500/10 text-white/20 hover:text-red-400 transition-colors">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </td>
@@ -248,12 +248,12 @@ export default function CustomerPricingPage() {
 
         {/* Sticky save bar */}
         {hasChanges && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-3 rounded-2xl border border-emerald-500/20 bg-black/90 backdrop-blur-xl shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-3 rounded-none border border-emerald-500/20 bg-black/90 backdrop-blur-xl shadow-[0_0_30px_rgba(16,185,129,0.15)]">
             <span className="text-xs text-white/50">
               {Object.keys(editedMarkups).length} змін
             </span>
             <button onClick={handleSaveAll} disabled={saving}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-500 text-black text-xs uppercase tracking-widest font-bold hover:bg-emerald-400 disabled:opacity-50 transition-all">
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-none bg-emerald-500 text-black text-xs uppercase tracking-widest font-bold hover:bg-emerald-400 disabled:opacity-50 transition-all">
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
               {saving ? 'Зберігаю...' : 'Зберегти все'}
             </button>
@@ -267,7 +267,7 @@ export default function CustomerPricingPage() {
       {/* Add modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
-          <div className="bg-[#111] border border-white/10 w-full max-w-md p-6 rounded-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#111] border border-white/10 w-full max-w-md p-6 rounded-none" onClick={e => e.stopPropagation()}>
             <h3 className="text-sm font-medium text-white mb-5">Додати персональну націнку</h3>
 
             <div className="space-y-4">
@@ -278,7 +278,7 @@ export default function CustomerPricingPage() {
                     const cust = availableCustomers.find(c => c.id === e.target.value);
                     setNewCustomer(prev => ({ ...prev, customerId: e.target.value, customerName: cust?.name || '' }));
                   }}
-                  className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-emerald-500/30">
+                  className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-emerald-500/30">
                   <option value="">Оберіть клієнта</option>
                   {availableCustomers.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -289,23 +289,23 @@ export default function CustomerPricingPage() {
                 <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Націнка %</label>
                 <input type="number" min="0" max="200" value={newCustomer.markupPct}
                   onChange={e => setNewCustomer(prev => ({ ...prev, markupPct: Number(e.target.value) }))}
-                  className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-emerald-500/30" />
+                  className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-emerald-500/30" />
               </div>
               <div>
                 <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Нотатки</label>
                 <input value={newCustomer.notes} onChange={e => setNewCustomer(prev => ({ ...prev, notes: e.target.value }))}
                   placeholder="VIP, оптовик..."
-                  className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-emerald-500/30" />
+                  className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-emerald-500/30" />
               </div>
             </div>
 
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowAddModal(false)}
-                className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest text-white/40 border border-white/10 rounded-xl hover:bg-white/5">
+                className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest text-white/40 border border-white/10 rounded-none hover:bg-white/5">
                 Скасувати
               </button>
               <button onClick={handleAddNew} disabled={!newCustomer.customerId || saving}
-                className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest font-bold bg-emerald-500 text-black rounded-xl hover:bg-emerald-400 disabled:opacity-50">
+                className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest font-bold bg-emerald-500 text-black rounded-none hover:bg-emerald-400 disabled:opacity-50">
                 {saving ? 'Зберігаю...' : 'Додати'}
               </button>
             </div>

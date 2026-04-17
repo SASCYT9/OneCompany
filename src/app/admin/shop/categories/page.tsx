@@ -116,25 +116,25 @@ export default function AdminShopCategoriesPage() {
               type="button"
               onClick={handleSync}
               disabled={syncing}
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700 disabled:opacity-50"
             >
               <RefreshCcw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
               {syncing ? 'Syncing…' : 'Sync from products'}
             </button>
-            <Link href="/admin/shop/categories/new" className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
+            <Link href="/admin/shop/categories/new" className="flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
               <Plus className="h-4 w-4" />
               New category
             </Link>
           </div>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-none border border-white/10 bg-white/[0.03] p-4">
           <div className="grid gap-1 text-sm text-white/70 md:grid-cols-3 md:gap-8">
             <div>{categories.length} categories</div>
             <div>{categories.reduce((sum, item) => sum + item.productsCount, 0)} assigned products</div>
             <div>{categories.reduce((sum, item) => sum + item.childrenCount, 0)} child links</div>
           </div>
-          <label className="flex min-w-[260px] items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
+          <label className="flex min-w-[260px] items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
             <Search className="h-4 w-4 text-white/35" />
             <input
               value={query}
@@ -145,14 +145,14 @@ export default function AdminShopCategoriesPage() {
           </label>
         </div>
 
-        {error ? <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
 
         {filteredCategories.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
+          <div className="rounded-none border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
             No categories found yet.
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-white/10">
+          <div className="overflow-hidden rounded-none border border-white/10">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
@@ -183,7 +183,7 @@ export default function AdminShopCategoriesPage() {
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/70">
+                      <span className="rounded-none-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/70">
                         {category.isPublished ? 'Published' : 'Hidden'}
                       </span>
                     </td>
@@ -194,14 +194,14 @@ export default function AdminShopCategoriesPage() {
                     <td className="px-4 py-4 text-white/45">{new Date(category.updatedAt).toLocaleDateString()}</td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
-                        <Link href={`/admin/shop/categories/${category.id}`} className="rounded border border-white/20 p-1.5 text-white/80 hover:bg-white/10" title="Edit">
+                        <Link href={`/admin/shop/categories/${category.id}`} className="rounded-none border border-white/20 p-1.5 text-white/80 hover:bg-white/10" title="Edit">
                           <Pencil className="h-4 w-4" />
                         </Link>
                         <button
                           type="button"
                           onClick={() => handleDelete(category.id)}
                           disabled={deletingId === category.id}
-                          className="rounded border border-red-500/30 p-1.5 text-red-400 hover:bg-red-500/10 disabled:opacity-50"
+                          className="rounded-none border border-red-500/30 p-1.5 text-red-400 hover:bg-red-950/30 border border-red-900/50 text-red-500/10 disabled:opacity-50"
                           title="Delete"
                         >
                           <Trash2 className="h-4 w-4" />

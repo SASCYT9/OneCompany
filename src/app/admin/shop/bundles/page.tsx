@@ -355,7 +355,7 @@ export default function AdminShopBundlesPage() {
               type="button"
               onClick={() => void load(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700 disabled:opacity-50"
             >
               <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh
@@ -363,7 +363,7 @@ export default function AdminShopBundlesPage() {
             <button
               type="button"
               onClick={resetToNew}
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90"
+              className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90"
             >
               <Plus className="h-4 w-4" />
               New bundle
@@ -371,10 +371,10 @@ export default function AdminShopBundlesPage() {
           </div>
         </div>
 
-        {error ? <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
 
         <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03]">
+          <div className="rounded-none border border-white/10 bg-white/[0.03]">
             <div className="border-b border-white/10 px-4 py-3 text-sm text-white/60">
               {bundles.length} bundles
             </div>
@@ -408,7 +408,7 @@ export default function AdminShopBundlesPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <div className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-white">
@@ -422,7 +422,7 @@ export default function AdminShopBundlesPage() {
                 {selectedBundle ? (
                   <Link
                     href={`/admin/shop/${selectedBundle.productId}`}
-                    className="rounded-lg border border-white/10 bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
+                    className="rounded-none border border-white/10 bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
                   >
                     Open product
                   </Link>
@@ -432,7 +432,7 @@ export default function AdminShopBundlesPage() {
                     type="button"
                     onClick={handleDelete}
                     disabled={deleting}
-                    className="inline-flex items-center gap-2 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-2 text-sm text-red-200 hover:bg-red-500/15 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-none border border-red-500/25 bg-red-950/30 border border-red-900/50 text-red-500/10 px-4 py-2 text-sm text-red-200 hover:bg-red-950/30 border border-red-900/50 text-red-500/15 disabled:opacity-50"
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete
@@ -442,7 +442,7 @@ export default function AdminShopBundlesPage() {
                   type="button"
                   onClick={handleSave}
                   disabled={saving || detailLoading}
-                  className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" />
                   {saving ? 'Saving…' : 'Save bundle'}
@@ -461,7 +461,7 @@ export default function AdminShopBundlesPage() {
                       productId: event.target.value,
                     }))
                   }
-                  className="rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
+                  className="rounded-none border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
                 >
                   <option value="">Select bundle product…</option>
                   {bundleProductOptions.map((product) => (
@@ -472,7 +472,7 @@ export default function AdminShopBundlesPage() {
                 </select>
               </label>
 
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/60">
+              <div className="rounded-none border border-white/10 bg-black/20 p-4 text-sm text-white/60">
                 Ціна комплекту та B2B-ціни задаються на картці пов’язаного товару. Тут налаштовуються лише склад комплекту та обчислена доступність.
               </div>
 
@@ -484,7 +484,7 @@ export default function AdminShopBundlesPage() {
                   <button
                     type="button"
                     onClick={addRow}
-                    className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
+                    className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
                   >
                     <Plus className="h-4 w-4" />
                     Add item
@@ -500,7 +500,7 @@ export default function AdminShopBundlesPage() {
                   return (
                     <div
                       key={item.id}
-                      className="grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_120px_56px]"
+                      className="grid gap-3 rounded-none border border-white/10 bg-black/20 p-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_120px_56px]"
                     >
                       <label className="grid gap-2 text-sm text-white/75">
                         <span>Component product #{index + 1}</span>
@@ -512,7 +512,7 @@ export default function AdminShopBundlesPage() {
                               componentVariantId: null,
                             })
                           }
-                          className="rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
+                          className="rounded-none border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
                         >
                           <option value="">Select product…</option>
                           {productOptions
@@ -534,7 +534,7 @@ export default function AdminShopBundlesPage() {
                               componentVariantId: event.target.value || null,
                             })
                           }
-                          className="rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
+                          className="rounded-none border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
                         >
                           <option value="">Default variant</option>
                           {variantOptions.map((variant) => (
@@ -556,7 +556,7 @@ export default function AdminShopBundlesPage() {
                               quantity: Math.max(1, Math.floor(Number(event.target.value) || 1)),
                             })
                           }
-                          className="rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
+                          className="rounded-none border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
                         />
                       </label>
 
@@ -565,14 +565,14 @@ export default function AdminShopBundlesPage() {
                           type="button"
                           onClick={() => removeRow(item.id)}
                           disabled={form.items.length === 1}
-                          className="inline-flex h-[46px] w-full items-center justify-center rounded-xl border border-red-500/25 bg-red-500/10 text-red-200 hover:bg-red-500/15 disabled:opacity-40"
+                          className="inline-flex h-[46px] w-full items-center justify-center rounded-none border border-red-500/25 bg-red-950/30 border border-red-900/50 text-red-500/10 text-red-200 hover:bg-red-950/30 border border-red-900/50 text-red-500/15 disabled:opacity-40"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
 
                       {componentProduct ? (
-                        <div className="lg:col-span-4 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-xs text-white/55">
+                        <div className="lg:col-span-4 rounded-none border border-white/10 bg-white/[0.03] px-3 py-3 text-xs text-white/55">
                           <span className="font-medium text-white/75">
                             {componentProduct.titleEn || componentProduct.titleUa}
                           </span>{' '}

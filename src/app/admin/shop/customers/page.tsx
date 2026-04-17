@@ -113,7 +113,7 @@ export default function AdminShopCustomersPage() {
           <div className="flex gap-2">
             <Link
               href="/admin/shop/customers/new"
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300"
+              className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300"
             >
               Створити клієнта
             </Link>
@@ -121,7 +121,7 @@ export default function AdminShopCustomersPage() {
               type="button"
               onClick={() => void refresh()}
               disabled={refreshing}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-transparent hover:bg-white/5 transition-all duration-300 px-4 py-2 text-sm font-medium text-white/80 hover:text-white disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none border border-white/[0.08] bg-transparent hover:bg-white/5 transition-all duration-300 px-4 py-2 text-sm font-medium text-white/80 hover:text-white disabled:opacity-50"
             >
               <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh
@@ -129,9 +129,9 @@ export default function AdminShopCustomersPage() {
           </div>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-6">
+        <div className="mb-6 rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-6">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
-            <label className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-black/40 px-3 py-2 text-sm text-white transition-colors focus-within:border-indigo-500/50">
+            <label className="flex items-center gap-2 rounded-none border border-white/[0.08] bg-black/40 px-3 py-2 text-sm text-white transition-colors focus-within:border-indigo-500/50">
               <Search className="h-4 w-4 text-white/35" />
               <input
                 value={query}
@@ -143,7 +143,7 @@ export default function AdminShopCustomersPage() {
             <select
               value={group}
               onChange={(event) => setGroup(event.target.value)}
-              className="rounded-xl border border-white/[0.08] bg-black/40 px-3 py-2 text-sm text-white transition-colors focus:border-indigo-500/50 focus:outline-none"
+              className="rounded-none border border-white/[0.08] bg-black/40 px-3 py-2 text-sm text-white transition-colors focus:border-indigo-500/50 focus:outline-none"
             >
               <option value="ALL">All groups</option>
               <option value="B2C">B2C</option>
@@ -153,7 +153,7 @@ export default function AdminShopCustomersPage() {
             <select
               value={status}
               onChange={(event) => setStatus(event.target.value)}
-              className="rounded-xl border border-white/[0.08] bg-black/40 px-3 py-2 text-sm text-white transition-colors focus:border-indigo-500/50 focus:outline-none"
+              className="rounded-none border border-white/[0.08] bg-black/40 px-3 py-2 text-sm text-white transition-colors focus:border-indigo-500/50 focus:outline-none"
             >
               <option value="ALL">All status</option>
               <option value="active">Active</option>
@@ -168,14 +168,14 @@ export default function AdminShopCustomersPage() {
           </div>
         </div>
 
-        {error ? <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
 
         {filteredCustomers.length === 0 ? (
-          <div className="rounded-2xl border border-white/[0.08] bg-black/40 py-24 text-center text-white/40 tracking-wider text-sm shadow-2xl backdrop-blur-sm">
+          <div className="rounded-none border border-white/[0.08] bg-black/40 py-24 text-center text-white/40 tracking-wider text-sm shadow-2xl backdrop-blur-sm">
             No customers found.
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-black/60 backdrop-blur-2xl shadow-2xl">
+          <div className="overflow-hidden rounded-none border border-white/[0.08] bg-black/60 backdrop-blur-2xl shadow-2xl">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/[0.06] bg-white/[0.02]">
@@ -199,14 +199,14 @@ export default function AdminShopCustomersPage() {
                       </div>
                     </td>
                     <td className="px-5 py-5">
-                      <span className={`inline-flex rounded-md border px-2 py-0.5 text-[10px] tracking-wider font-semibold uppercase ${groupBadge(customer.group)}`}>
+                      <span className={`inline-flex rounded-none border px-2 py-0.5 text-[10px] tracking-wider font-semibold uppercase ${groupBadge(customer.group)}`}>
                         {customer.group.replace('B2B_', 'B2B ')}
                       </span>
                     </td>
                     <td className="px-5 py-5 text-white/70">
                       {customer.isActive ? (
                         <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-medium tracking-wide">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                          <span className="w-1.5 h-1.5 rounded-none-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
                           Активний
                         </span>
                       ) : (
@@ -234,7 +234,7 @@ export default function AdminShopCustomersPage() {
                     <td className="px-5 py-5">
                       <Link
                         href={`/admin/shop/customers/${customer.id}`}
-                        className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-transparent hover:bg-white/5 px-3 py-2 text-xs font-medium uppercase tracking-widest text-white/70 hover:text-white transition-all duration-300"
+                        className="inline-flex items-center gap-2 rounded-none border border-white/[0.08] bg-transparent hover:bg-white/5 px-3 py-2 text-xs font-medium uppercase tracking-widest text-white/70 hover:text-white transition-all duration-300"
                       >
                         Відкрити
                         <ArrowRight className="h-3.5 w-3.5 text-white/40" />

@@ -7,10 +7,11 @@ import {
   Lock, LogOut, MessageSquare, Settings, ImagePlus, ShoppingBag,
   Package, Shield, LayoutDashboard, Database, Layers, DollarSign,
   ChevronLeft, ChevronRight, Users, Archive, Box, Tag, FolderTree,
-  ChevronDown, Truck, Receipt, Warehouse
+  ChevronDown, Truck, Receipt, Warehouse, Sparkles, FileInput, Image, PackagePlus
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { AdminCurrencyProvider, useAdminCurrency, type AdminCurrency } from '@/lib/admin/currencyContext';
 
 // ═══════════════════════════════
 // Types
@@ -68,6 +69,10 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/shop/inventory', label: 'Склад', icon: <Box className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/categories', label: 'Категорії', icon: <FolderTree className="w-[18px] h-[18px]" /> },
       { href: '/admin/shop/collections', label: 'Колекції', icon: <Tag className="w-[18px] h-[18px]" /> },
+      { href: '/admin/shop/bundles', label: 'Бандли', icon: <PackagePlus className="w-[18px] h-[18px]" /> },
+      { href: '/admin/shop/seo', label: 'SEO AI', icon: <Sparkles className="w-[18px] h-[18px]" /> },
+      { href: '/admin/shop/import', label: 'Імпорт', icon: <FileInput className="w-[18px] h-[18px]" /> },
+      { href: '/admin/shop/media', label: 'Медіа', icon: <Image className="w-[18px] h-[18px]" /> },
     ],
   },
   {
@@ -165,7 +170,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="w-full max-w-md rounded-3xl border border-white/5 bg-white/[0.01] p-8 backdrop-blur-xl shadow-2xl"
+          className="w-full max-w-md rounded-none border border-white/5 bg-white/[0.01] p-8 backdrop-blur-xl shadow-2xl"
         >
           <div className="text-center mb-12">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-zinc-900/50 mb-6">
@@ -222,7 +227,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               disabled={loading}
               whileHover={{ scale: loading ? 1 : 1.02 }}
               whileTap={{ scale: loading ? 1 : 0.98 }}
-              className="w-full py-4 mt-4 bg-white text-black text-sm uppercase tracking-widest font-semibold hover:bg-zinc-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 rounded-lg"
+              className="w-full py-4 mt-4 bg-white text-black text-sm uppercase tracking-widest font-semibold hover:bg-zinc-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 rounded-none"
             >
               {loading ? 'Authenticating...' : 'Login'}
             </motion.button>
@@ -234,12 +239,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   // ─── Authenticated Layout ───
   return (
+    <AdminCurrencyProvider>
     <div className="h-[100dvh] flex bg-[#030303] text-white font-sans text-sm tracking-normal overflow-hidden relative">
       
       {/* ═══ Global Background Ambience ═══ */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[150px] mix-blend-screen" />
-        <div className="absolute bottom-0 left-1/4 w-[800px] h-[800px] bg-emerald-600/5 rounded-full blur-[150px] mix-blend-screen" />
+        <div className="absolute -top-[20%] -right-[10%] w-[800px] h-[800px] bg-indigo-900/10 rounded-full blur-[150px]" />
+        <div className="absolute -bottom-[20%] -left-[10%] w-[1000px] h-[1000px] bg-emerald-900/5 rounded-full blur-[150px]" />
       </div>
 
       {/* ═══ Sidebar ═══ */}
@@ -259,14 +265,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 transition={{ duration: 0.15 }}
                 className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] font-medium text-white/80 whitespace-nowrap overflow-hidden"
               >
-                <span className="w-6 h-6 rounded bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[9px] font-bold shrink-0">OC</span>
+                <span className="w-6 h-6 rounded-none bg-white text-black flex items-center justify-center text-[9px] font-bold shrink-0">OC</span>
                 Admin Panel
               </motion.span>
             )}
           </AnimatePresence>
           <button
             onClick={toggleCollapsed}
-            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white/[0.06] text-white/30 hover:text-white/60 transition-colors shrink-0"
+            className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-white/[0.06] text-white/30 hover:text-white/60 transition-colors shrink-0"
           >
             {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
@@ -285,10 +291,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="shrink-0 border-t border-white/[0.06] px-2 py-3">
+        <div className="shrink-0 border-t border-white/[0.06] px-2 py-3 space-y-2">
+          {/* Currency Switcher */}
+          <CurrencySwitcher collapsed={collapsed} />
+
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/[0.06] transition-all group ${collapsed ? 'justify-center' : ''}`}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-none text-white/40 hover:text-red-400 hover:bg-red-950/30 border border-red-900/50 text-red-500/[0.06] transition-all group ${collapsed ? 'justify-center' : ''}`}
             title="Вийти"
           >
             <LogOut className="w-[18px] h-[18px] shrink-0" />
@@ -316,6 +325,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
     </div>
+    </AdminCurrencyProvider>
   );
 }
 
@@ -409,10 +419,10 @@ function SidebarItem({ item, pathname, collapsed }: {
       href={item.href}
       title={collapsed ? item.label : undefined}
       className={`
-        relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group
+        relative flex items-center gap-3 px-3 py-2.5 rounded-none transition-all duration-300 group
         ${collapsed ? 'justify-center mx-0.5' : ''}
         ${isActive
-          ? 'bg-indigo-500/[0.08] text-indigo-300 border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
+          ? 'bg-white/10 text-white border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)]'
           : 'text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
         }
       `}
@@ -421,12 +431,12 @@ function SidebarItem({ item, pathname, collapsed }: {
       {isActive && (
         <motion.div
           layoutId="sidebar-active"
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full shadow-[0_0_10px_rgba(99,102,241,0.8)]"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-none-r-full shadow-[0_0_10px_rgba(255,255,255,0.5)]"
           transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         />
       )}
 
-      <span className={`shrink-0 ${isActive ? 'text-indigo-400' : ''}`}>
+      <span className="shrink-0">
         {item.icon}
       </span>
 
@@ -444,5 +454,61 @@ function SidebarItem({ item, pathname, collapsed }: {
         )}
       </AnimatePresence>
     </Link>
+  );
+}
+
+// ═══════════════════════════════
+// Currency Switcher Component
+// ═══════════════════════════════
+
+const CURRENCY_OPTIONS: { value: AdminCurrency; label: string; symbol: string; flag: string }[] = [
+  { value: 'UAH', label: 'Гривня', symbol: '₴', flag: '🇺🇦' },
+  { value: 'USD', label: 'Долар', symbol: '$', flag: '🇺🇸' },
+  { value: 'EUR', label: 'Євро', symbol: '€', flag: '🇪🇺' },
+];
+
+function CurrencySwitcher({ collapsed }: { collapsed: boolean }) {
+  const { currency, setCurrency, rates, ratesLoading } = useAdminCurrency();
+  const current = CURRENCY_OPTIONS.find(c => c.value === currency)!;
+
+  if (collapsed) {
+    // Compact: cycle through currencies on click
+    const nextIdx = (CURRENCY_OPTIONS.findIndex(c => c.value === currency) + 1) % CURRENCY_OPTIONS.length;
+    return (
+      <button
+        onClick={() => setCurrency(CURRENCY_OPTIONS[nextIdx].value)}
+        title={`Валюта: ${current.label} (${current.symbol})\nКлік — перемкнути`}
+        className="w-full flex items-center justify-center px-3 py-2.5 rounded-none bg-amber-500/[0.06] border border-amber-500/15 text-amber-400 hover:bg-amber-500/10 transition-all"
+      >
+        <span className="text-sm font-bold">{current.symbol}</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="px-1">
+      <div className="flex rounded-none overflow-hidden border border-white/[0.08] bg-black/60">
+        {CURRENCY_OPTIONS.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => setCurrency(opt.value)}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] uppercase tracking-widest font-bold transition-all ${
+              currency === opt.value
+                ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]'
+            }`}
+            title={`${opt.flag} ${opt.label}`}
+          >
+            <span>{opt.symbol}</span>
+            <span className="hidden sm:inline">{opt.value}</span>
+          </button>
+        ))}
+      </div>
+      {!ratesLoading && rates.updatedAt && (
+        <div className="text-[8px] text-zinc-600 text-center mt-1 font-mono">
+          1$ = {rates.USD.toFixed(1)}₴ · 1€ = {rates.EUR.toFixed(1)}₴
+        </div>
+      )}
+    </div>
   );
 }

@@ -506,9 +506,9 @@ export default function AdminCreateOrderPage() {
           <div className="space-y-6">
 
             {/* ── Section: Customer ──────────────────────── */}
-            <Section icon={<Search className="h-4 w-4 text-blue-400" />} title="Клієнт">
+            <Section icon={<Search className="h-4 w-4 text-zinc-400" />} title="Клієнт">
               {selectedCustomer ? (
-                <div className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+                <div className="flex items-center justify-between rounded-none border border-emerald-500/20 bg-emerald-500/5 p-4">
                   <div>
                     <div className="font-medium text-white">{selectedCustomer.fullName}</div>
                     <div className="mt-1 text-xs text-white/45">{selectedCustomer.email} · {selectedCustomer.group}</div>
@@ -524,7 +524,7 @@ export default function AdminCreateOrderPage() {
                     value={customerSearch}
                     onChange={e => { setCustomerSearch(e.target.value); void loadCustomers(e.target.value); }}
                     placeholder="Пошук (ім'я, email)..."
-                    className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25"
+                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25"
                   />
                   {loadingCustomers ? (
                     <div className="mt-2 text-xs text-white/30">Завантаження...</div>
@@ -532,7 +532,7 @@ export default function AdminCreateOrderPage() {
                     <div className="mt-2 max-h-48 space-y-1 overflow-y-auto">
                       {filteredCustomers.map(c => (
                         <button key={c.id} type="button" onClick={() => { setSelectedCustomer(c); setCustomerSearch(''); }}
-                          className="w-full rounded-lg border border-white/10 bg-black/30 p-3 text-left transition hover:border-white/20">
+                          className="w-full rounded-none border border-white/10 bg-black/30 p-3 text-left transition hover:border-white/20">
                           <div className="text-sm text-white">{c.fullName}</div>
                           <div className="text-xs text-white/40">{c.email} · {c.group}{c.b2bDiscountPercent ? ` · −${c.b2bDiscountPercent}%` : ''}</div>
                         </button>
@@ -548,7 +548,7 @@ export default function AdminCreateOrderPage() {
             {/* ── Section: Items ─────────────────────────── */}
             <Section icon={<Package className="h-4 w-4 text-amber-400" />} title="Позиції">
               {items.map((item, idx) => (
-                <div key={item.key} className="rounded-xl border border-white/10 bg-black/20 p-4 mb-4">
+                <div key={item.key} className="rounded-none border border-white/10 bg-black/20 p-4 mb-4">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <span className="text-xs text-white/30 uppercase tracking-wider">#{idx + 1}</span>
                     <div className="flex items-center gap-3">
@@ -597,14 +597,14 @@ export default function AdminCreateOrderPage() {
                           }
                         }}
                         placeholder="Введіть SKU, артикул або назву деталі..."
-                        className="w-full rounded-lg border border-blue-500/20 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-blue-500/40 focus:outline-none"
+                        className="w-full rounded-none border border-blue-500/20 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-blue-500/40 focus:outline-none"
                       />
                     </label>
                     {/* Results dropdown */}
                     {addingToItemIdx === idx && turn14Results.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-xl border border-blue-500/20 bg-zinc-900 shadow-2xl">
+                      <div className="absolute top-full left-0 right-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-none border border-blue-500/20 bg-zinc-900 shadow-2xl">
                         {turn14Loading && (
-                          <div className="p-2 text-xs text-blue-400/70 text-center">Пошук...</div>
+                          <div className="p-2 text-xs text-zinc-400/70 text-center">Пошук...</div>
                         )}
                         {turn14Results.slice(0, 12).map((t14, i) => {
                           const a = t14.attributes || {};
@@ -620,14 +620,14 @@ export default function AdminCreateOrderPage() {
                               <div className="min-w-0 flex-1">
                                 <div className="text-sm text-white truncate flex items-center gap-2">
                                   {t14.source === 'local' ? (
-                                    <span className="rounded bg-emerald-500/20 text-emerald-300 font-mono text-[9px] px-1.5 py-0.5 border border-emerald-500/30">LOCAL</span>
+                                    <span className="rounded-none bg-emerald-500/20 text-emerald-300 font-mono text-[9px] px-1.5 py-0.5 border border-emerald-500/30">LOCAL</span>
                                   ) : (
-                                    <span className="rounded bg-blue-500/20 text-blue-300 font-mono text-[9px] px-1.5 py-0.5 border border-blue-500/30">TURN14</span>
+                                    <span className="rounded-none bg-zinc-100 text-black/20 text-zinc-500 font-mono text-[9px] px-1.5 py-0.5 border border-blue-500/30">TURN14</span>
                                   )}
                                   {name}
                                 </div>
                                 <div className="mt-0.5 flex flex-wrap gap-2 text-[10px] text-white/40">
-                                  {pn && <span className="rounded bg-white/10 px-1 py-0.5 font-mono">{pn}</span>}
+                                  {pn && <span className="rounded-none bg-white/10 px-1 py-0.5 font-mono">{pn}</span>}
                                   {brand && <span>{brand}</span>}
                                   {weight ? <span>{weight} {t14.source === 'local' ? 'кг' : 'lbs'}</span> : null}
                                 </div>
@@ -642,7 +642,7 @@ export default function AdminCreateOrderPage() {
                       </div>
                     )}
                     {addingToItemIdx === idx && turn14Loading && turn14Results.length === 0 && (
-                      <div className="absolute top-full left-0 right-0 z-20 mt-1 rounded-xl border border-blue-500/20 bg-zinc-900 p-3 text-xs text-center text-blue-400/70">
+                      <div className="absolute top-full left-0 right-0 z-20 mt-1 rounded-none border border-blue-500/20 bg-zinc-900 p-3 text-xs text-center text-zinc-400/70">
                         Пошук у каталогах...
                       </div>
                     )}
@@ -652,7 +652,7 @@ export default function AdminCreateOrderPage() {
                     <>
                       <div className="flex gap-3">
                         {item.thumbnail && (
-                          <div className="shrink-0 w-12 h-12 rounded-lg border border-white/10 bg-black/40 overflow-hidden">
+                          <div className="shrink-0 w-12 h-12 rounded-none border border-white/10 bg-black/40 overflow-hidden">
                             <img src={item.thumbnail} alt="" className="w-full h-full object-contain" />
                           </div>
                         )}
@@ -684,7 +684,7 @@ export default function AdminCreateOrderPage() {
                           )}
                         </div>
                         {item.isAILoading && (
-                          <span className="flex items-center gap-1 text-[10px] text-amber-400 shadow-amber-400 drop-shadow-md animate-pulse font-mono tracking-wider">
+                          <span className="flex items-center gap-1 text-[10px] text-amber-400 shadow-amber-400 drop-border border-white/5 animate-pulse font-mono tracking-wider">
                             <RefreshCw className="h-3 w-3 animate-spin"/> ШІ ФОРМУЄ ГАБАРИТИ...
                           </span>
                         )}
@@ -692,10 +692,10 @@ export default function AdminCreateOrderPage() {
 
                       <div className="relative grid gap-3 md:grid-cols-4">
                         {item.isAILoading && (
-                          <div className="absolute inset-0 z-10 rounded-lg bg-black/40 backdrop-blur-[1px] rounded-lg pointer-events-none" />
+                          <div className="absolute inset-0 z-10 rounded-none bg-black/40 backdrop-blur-[1px] rounded-none pointer-events-none" />
                         )}
                         <NumField label="Вага (LBS)" value={item.weightLbs} onChange={v => updateItem(idx, { weightLbs: v })} />
-                        <div className={`rounded-lg border px-3 py-2 transition-colors ${item.isAILoading ? 'border-amber-500/20' : 'border-white/10 bg-zinc-950'}`}>
+                        <div className={`rounded-none border px-3 py-2 transition-colors ${item.isAILoading ? 'border-amber-500/20' : 'border-white/10 bg-zinc-950'}`}>
                           <div className="text-[10px] text-white/40 uppercase tracking-wider mb-1">Вага (KG)</div>
                           <div className={`text-sm ${item.isAILoading ? 'text-amber-400' : 'text-white'}`}>{item.weightKg.toFixed(2)}</div>
                         </div>
@@ -707,7 +707,7 @@ export default function AdminCreateOrderPage() {
                         </div>
                       </div>
 
-                      <div className="mt-3 flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2">
+                      <div className="mt-3 flex items-center justify-between rounded-none border border-white/10 bg-white/[0.03] px-4 py-2">
                         <span className="text-xs text-white/40">Ціна за одиницю</span>
                         <span className="font-mono text-sm text-white">{fmtUsd(item.unitPrice)}</span>
                         <span className="text-xs text-white/40">Разом</span>
@@ -719,7 +719,7 @@ export default function AdminCreateOrderPage() {
               ))}
 
               <button type="button" onClick={addBlankItem}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-white/15 py-3 text-xs uppercase tracking-wider text-white/40 hover:border-white/30 hover:text-white/60">
+                className="flex w-full items-center justify-center gap-2 rounded-none border border-dashed border-white/15 py-3 text-xs uppercase tracking-wider text-white/40 hover:border-white/30 hover:text-white/60">
                 <Plus className="h-4 w-4" /> Додати позицію
               </button>
             </Section>
@@ -733,7 +733,7 @@ export default function AdminCreateOrderPage() {
               <label className="block mb-3">
                 <span className="mb-1 block text-xs text-white/50">Зона доставки</span>
                 <select value={zone} onChange={e => setZone(e.target.value as ShippingZone)}
-                  className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
+                  className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
                   {(Object.keys(SHIPPING_ZONES) as ShippingZone[]).map(z => (
                     <option key={z} value={z}>{SHIPPING_ZONES[z].label} ({z})</option>
                   ))}
@@ -746,7 +746,7 @@ export default function AdminCreateOrderPage() {
                 <NumField label="Базова %" value={baseFee} onChange={setBaseFee} />
               </div>
 
-              <div className="space-y-1.5 rounded-xl border border-white/10 bg-black/20 p-3 text-xs">
+              <div className="space-y-1.5 rounded-none border border-white/10 bg-black/20 p-3 text-xs">
                 <Row label="Факт. вага" value={`${totalWeightKg.toFixed(2)} kg`} />
                 <Row label="Об'ємна вага" value={`${totalVolWeightKg.toFixed(2)} kg`} />
                 <Row label="Об'ємна доплата" value={`${volSurchargeKg.toFixed(2)} kg`} />
@@ -791,16 +791,16 @@ export default function AdminCreateOrderPage() {
                 <label className="block">
                   <span className="mb-1 block text-xs text-white/50">Примітки</span>
                   <textarea value={orderNotes} onChange={e => setOrderNotes(e.target.value)} rows={3}
-                    className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25"
+                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25"
                     placeholder="Внутрішні нотатки..." />
                 </label>
               </div>
 
               {submitResult && (
-                <div className={`mt-3 flex items-start gap-2 rounded-lg border p-3 text-sm ${
+                <div className={`mt-3 flex items-start gap-2 rounded-none border p-3 text-sm ${
                   submitResult.success
                     ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-200'
-                    : 'border-red-500/20 bg-red-500/5 text-red-200'
+                    : 'border-red-500/20 bg-red-950/30 border border-red-900/50 text-red-500/5 text-red-200'
                 }`}>
                   {submitResult.success ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
                   {submitResult.message}
@@ -808,7 +808,7 @@ export default function AdminCreateOrderPage() {
               )}
 
               <button type="button" onClick={submitOrder} disabled={submitting}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-50">
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-none bg-white px-4 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-50">
                 <Save className="h-4 w-4" />
                 {submitting ? 'Створення...' : 'Створити замовлення'}
               </button>
@@ -824,7 +824,7 @@ export default function AdminCreateOrderPage() {
 
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.2)]">
+    <div className="rounded-none border border-white/10 bg-white/[0.03] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.2)]">
       <h3 className="mb-4 flex items-center gap-2 text-lg font-medium text-white">{icon}{title}</h3>
       {children}
     </div>
@@ -836,7 +836,7 @@ function Field({ label, value, onChange, placeholder }: { label: string; value: 
     <label className="block">
       <span className="mb-1 block text-[10px] text-white/40 uppercase tracking-wider">{label}</span>
       <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-1.5 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none" />
+        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-1.5 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none" />
     </label>
   );
 }
@@ -847,7 +847,7 @@ function NumField({ label, value, onChange, step, placeholder }: { label: string
       <span className="mb-1 block text-[10px] text-white/40 uppercase tracking-wider">{label}</span>
       <input type="number" step={step ?? 0.01} value={value || ''} onChange={e => onChange(Number(e.target.value) || 0)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-1.5 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none" />
+        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-1.5 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none" />
     </label>
   );
 }

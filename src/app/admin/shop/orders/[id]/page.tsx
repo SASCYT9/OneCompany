@@ -544,7 +544,7 @@ export default function AdminOrderDetailPage() {
 
   return (
     <div className="relative min-h-full overflow-auto pb-20">
-      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-600/8 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/5 blur-[120px]" />
       <div className="mx-auto max-w-[1920px] p-6 lg:p-10">
         <Link
           href="/admin/shop/orders"
@@ -554,7 +554,7 @@ export default function AdminOrderDetailPage() {
           Назад до замовлень
         </Link>
 
-        <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 backdrop-blur-md">
+        <div className="rounded-none border border-white/5 bg-white/[0.02] p-6 backdrop-blur-md">
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div>
               <div className="flex items-center gap-2">
@@ -565,7 +565,7 @@ export default function AdminOrderDetailPage() {
                     setSuccess('Номер замовлення скопійовано!');
                     setTimeout(() => setSuccess(''), 2000);
                   }}
-                  className="font-mono text-xl font-semibold text-white hover:text-blue-300 transition-colors cursor-pointer"
+                  className="font-mono text-xl font-semibold text-white hover:text-zinc-500 transition-colors cursor-pointer"
                   title="Натисніть щоб скопіювати"
                 >
                   {order.orderNumber}
@@ -573,20 +573,20 @@ export default function AdminOrderDetailPage() {
                 <Copy className="h-3.5 w-3.5 text-white/20" />
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs capitalize ${statusBadgeClass(order.status)}`}>
+                <span className={`inline-flex rounded-none-full border px-2.5 py-1 text-xs capitalize ${statusBadgeClass(order.status)}`}>
                   {statusLabel(order.status)}
                 </span>
                 {order.amountPaid != null && (
                   order.amountPaid >= order.total
-                    ? <span className="inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300">Оплачено</span>
-                    : <span className="inline-flex rounded-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs text-rose-300">
+                    ? <span className="inline-flex rounded-none-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300">Оплачено</span>
+                    : <span className="inline-flex rounded-none-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs text-rose-300">
                         Борг: {formatMoney(order.total - order.amountPaid, order.currency)}
                       </span>
                 )}
                 <button
                   type="button"
                   onClick={() => { setPayModalAmount(''); setPayModalMode('add'); setShowPayModal(true); }}
-                  className="inline-flex items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-medium text-indigo-300 shadow-[0_0_15px_-3px_rgba(99,102,241,0.2)] transition-all hover:border-indigo-500/50 hover:bg-indigo-500/20"
+                  className="inline-flex items-center gap-2 rounded-none border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-medium text-indigo-300 shadow-[0_0_15px_-3px_rgba(99,102,241,0.2)] transition-all hover:border-indigo-500/50 hover:bg-indigo-500/20 hover:text-indigo-200"
                 >
                   <DollarSign className="h-3.5 w-3.5" />
                   Внести платіж
@@ -600,7 +600,7 @@ export default function AdminOrderDetailPage() {
               <button
                 type="button"
                 onClick={copyConfirmationLink}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
+                className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
               >
                 <Copy className="h-4 w-4" />
                 {copyState || 'Копіювати посилання для клієнта'}
@@ -609,7 +609,7 @@ export default function AdminOrderDetailPage() {
                 href={confirmationUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
+                className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
               >
                 <ExternalLink className="h-4 w-4" />
                 Відкрити перегляд для клієнта
@@ -617,8 +617,8 @@ export default function AdminOrderDetailPage() {
             </div>
           </div>
 
-          {error ? <div className="mt-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
-          {success ? <div className="mt-4 rounded-lg bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
+          {error ? <div className="mt-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+          {success ? <div className="mt-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
 
           <PaymentModal
             order={order}
@@ -637,7 +637,7 @@ export default function AdminOrderDetailPage() {
             <SummaryCard label="Клієнт" value={order.customerName} detail={order.email} />
             <SummaryCard label="Зона доставки" value={order.shippingZoneName || 'Не визначено'} detail={order.shippingZoneId || '—'} />
             {order.amountPaid != null && order.amountPaid < order.total ? (
-              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 shadow-[0_0_20px_-5px_rgba(244,63,94,0.15)]">
+              <div className="rounded-none border border-rose-500/20 bg-rose-500/10 p-4 shadow-[0_0_20px_-5px_rgba(244,63,94,0.15)]">
                 <div className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-rose-400">
                   <AlertCircle className="h-3.5 w-3.5" />
                   Неоплачений борг
@@ -660,7 +660,7 @@ export default function AdminOrderDetailPage() {
             <SummaryCard label="Відправлення" value={String(order.shipments.length)} detail={`${order.events.length} подій у історії`} />
           </div>
 
-          <div className="mt-6 rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
+          <div className="mt-6 rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
             <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
               <div>
                 <span className="mb-1.5 block text-xs uppercase tracking-wider text-white/50">Примітка до статусу</span>
@@ -669,7 +669,7 @@ export default function AdminOrderDetailPage() {
                   onChange={(event) => setStatusNote(event.target.value)}
                   rows={3}
                   placeholder="Необов'язкова примітка до історії замовлення"
-                  className="box-border w-full resize-none rounded-lg border border-white/10 bg-zinc-950/50 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20"
+                  className="box-border w-full resize-none rounded-none border border-white/10 bg-zinc-950/50 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20"
                 />
               </div>
               <div>
@@ -678,7 +678,7 @@ export default function AdminOrderDetailPage() {
                   <select
                     value={newStatus}
                     onChange={(event) => setNewStatus(event.target.value)}
-                    className="flex-1 rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-sm text-white"
+                    className="flex-1 rounded-none border border-white/20 bg-black/40 px-3 py-2 text-sm text-white"
                   >
                     {[order.status, ...order.allowedTransitions].map((status) => (
                       <option key={status} value={status}>
@@ -690,7 +690,7 @@ export default function AdminOrderDetailPage() {
                     type="button"
                     onClick={() => void handleStatusChange()}
                     disabled={updating || newStatus === order.status}
-                    className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
+                    className="rounded-none bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
                   >
                     {updating ? 'Зберігаємо…' : 'Застосувати'}
                   </button>
@@ -708,7 +708,7 @@ export default function AdminOrderDetailPage() {
                       type="button"
                       onClick={() => void handleStatusChange(status)}
                       disabled={updating}
-                      className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10 disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-none-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10 disabled:opacity-50"
                     >
                       <PackageCheck className="h-3.5 w-3.5" />
                       {statusLabel(status)}
@@ -722,13 +722,13 @@ export default function AdminOrderDetailPage() {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
+            <div className="rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
               <p className="mb-2 text-xs uppercase tracking-wider text-white/50">Контакт</p>
               <p className="text-white text-lg font-medium">{order.customerName}</p>
               <p className="mt-1 text-white/80">{order.email}</p>
               {order.phone ? <p className="mt-1 text-white/70">{order.phone}</p> : null}
               {order.customerGroupSnapshot && order.customerGroupSnapshot !== 'B2C' && (
-                <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 py-2 text-xs font-medium text-indigo-300">
+                <div className="mt-4 flex flex-wrap items-center gap-2 rounded-none border border-indigo-500/30 bg-zinc-100 text-black/10 px-3 py-2 text-xs font-medium text-zinc-500">
                   <span>💎 Група: {order.customerGroupSnapshot}</span>
                   {order.b2bDiscountPercent ? (
                     <>
@@ -739,13 +739,13 @@ export default function AdminOrderDetailPage() {
                   {order.discountNotes && (
                     <>
                       <span className="text-white/20">•</span>
-                      <span className="text-indigo-400/60 font-mono truncate max-w-[200px]" title={order.discountNotes}>{order.discountNotes}</span>
+                      <span className="text-zinc-400/60 font-mono truncate max-w-[200px]" title={order.discountNotes}>{order.discountNotes}</span>
                     </>
                   )}
                 </div>
               )}
             </div>
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
+            <div className="rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
               <p className="mb-2 text-xs uppercase tracking-wider text-white/50">Адреса доставки</p>
               <p className="text-white/90">{addr.line1}</p>
               {addr.line2 ? <p className="text-white/80">{addr.line2}</p> : null}
@@ -758,7 +758,7 @@ export default function AdminOrderDetailPage() {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
+            <div className="rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs uppercase tracking-wider text-white/50">Оплата та Борг</p>
                 <div className="flex items-center gap-2">
@@ -766,7 +766,7 @@ export default function AdminOrderDetailPage() {
                     type="button"
                     onClick={() => void handleGenerateWhitepayFiatLink()}
                     disabled={updating}
-                    className="rounded-lg bg-indigo-500/20 px-3 py-1 text-xs text-indigo-300 hover:bg-indigo-500/30 disabled:opacity-50 transition-colors shadow-[0_0_10px_-2px_rgba(99,102,241,0.2)]"
+                    className="rounded-none bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs text-indigo-300 hover:bg-indigo-500/20 hover:text-indigo-200 disabled:opacity-50 transition-colors shadow-[0_0_10px_-2px_rgba(99,102,241,0.2)]"
                   >
                     Whitepay Лінк (Картка)
                   </button>
@@ -774,7 +774,7 @@ export default function AdminOrderDetailPage() {
                     type="button"
                     onClick={() => void handleGenerateWhitepayCryptoLink()}
                     disabled={updating}
-                    className="rounded-lg bg-cyan-500/20 px-3 py-1 text-xs text-cyan-300 hover:bg-cyan-500/30 disabled:opacity-50 transition-colors shadow-[0_0_10px_-2px_rgba(6,182,212,0.2)]"
+                    className="rounded-none bg-cyan-500/20 px-3 py-1 text-xs text-cyan-300 hover:bg-cyan-500/30 disabled:opacity-50 transition-colors shadow-[0_0_10px_-2px_rgba(6,182,212,0.2)]"
                   >
                     Whitepay Лінк (Крипто)
                   </button>
@@ -782,7 +782,7 @@ export default function AdminOrderDetailPage() {
                     type="button"
                     onClick={() => void handleLogisticsUpdate()}
                     disabled={updating}
-                    className="rounded-lg bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20 disabled:opacity-50 transition-colors"
+                    className="rounded-none bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20 disabled:opacity-50 transition-colors"
                   >
                     Зберегти
                   </button>
@@ -794,7 +794,7 @@ export default function AdminOrderDetailPage() {
                   <select
                     value={paymentStatus}
                     onChange={(e) => setPaymentStatus(e.target.value)}
-                    className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
+                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
                   >
                     <option value="UNPAID">Не оплачено</option>
                     <option value="PARTIALLY_PAID">Оплачено частково</option>
@@ -808,20 +808,20 @@ export default function AdminOrderDetailPage() {
                     step="0.01"
                     value={amountPaid}
                     onChange={(e) => setAmountPaid(e.target.value)}
-                    className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
+                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
                   />
                 </label>
               </div>
             </div>
 
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
+            <div className="rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-xs uppercase tracking-wider text-white/50">Спецдоставка / ТТН</p>
                 <button
                   type="button"
                   onClick={() => void handleLogisticsUpdate()}
                   disabled={updating}
-                  className="rounded-lg bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20 disabled:opacity-50"
+                  className="rounded-none bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20 disabled:opacity-50"
                 >
                   Зберегти
                 </button>
@@ -832,7 +832,7 @@ export default function AdminOrderDetailPage() {
                   <select
                     value={deliveryMethod}
                     onChange={(e) => setDeliveryMethod(e.target.value)}
-                    className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
+                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
                   >
                     <option value="">Не обрано</option>
                     <option value="NOVA_POSHTA">Нова Пошта</option>
@@ -847,7 +847,7 @@ export default function AdminOrderDetailPage() {
                       type="text"
                       value={ttnNumber}
                       onChange={(e) => setTtnNumber(e.target.value)}
-                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
+                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
                     />
                   </label>
                   <label className="text-sm">
@@ -858,7 +858,7 @@ export default function AdminOrderDetailPage() {
                       value={shippingCalculatedCost}
                       onChange={(e) => setShippingCalculatedCost(e.target.value)}
                       placeholder="Авто/Вручну"
-                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
+                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
                     />
                   </label>
                 </div>
@@ -866,13 +866,13 @@ export default function AdminOrderDetailPage() {
             </div>
           </div>
 
-          <div className="mt-6 rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
+          <div className="mt-6 rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-xs uppercase tracking-wider text-white/50">Позиції ({order.items.length})</p>
               <button
                 type="button"
                 onClick={() => setShowAddItem(!showAddItem)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white hover:bg-white/10 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-none border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white hover:bg-white/10 transition-colors"
               >
                 <Plus className="h-3 w-3" /> Додати позицію
               </button>
@@ -880,23 +880,23 @@ export default function AdminOrderDetailPage() {
 
             {/* Add Item Form */}
             {showAddItem && (
-              <div className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-4">
+              <div className="mb-4 rounded-none border border-emerald-500/20 bg-emerald-500/[0.03] p-4">
                 <p className="mb-3 text-xs uppercase tracking-wider text-emerald-400/70">Нова позиція</p>
                 <div className="grid gap-3 sm:grid-cols-[1fr_100px_80px_auto]">
                   <input
                     type="text" placeholder="Назва товару" value={newItemTitle}
                     onChange={e => setNewItemTitle(e.target.value)}
-                    className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                    className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                   />
                   <input
                     type="number" step="0.01" placeholder="Ціна" value={newItemPrice}
                     onChange={e => setNewItemPrice(e.target.value)}
-                    className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                    className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                   />
                   <input
                     type="number" min="1" placeholder="К-ть" value={newItemQty}
                     onChange={e => setNewItemQty(e.target.value)}
-                    className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                    className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                   />
                   <div className="flex gap-2">
                     <button
@@ -918,11 +918,11 @@ export default function AdminOrderDetailPage() {
                         } catch (e: any) { setError(e.message); }
                         finally { setItemSaving(false); }
                       }}
-                      className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+                      className="rounded-none bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
                     >
                       <Save className="h-3.5 w-3.5" />
                     </button>
-                    <button type="button" onClick={() => setShowAddItem(false)} className="rounded-lg bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20">
+                    <button type="button" onClick={() => setShowAddItem(false)} className="rounded-none bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20">
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -938,15 +938,15 @@ export default function AdminOrderDetailPage() {
                 const isEditing = editingItemId === item.id;
 
                 return (
-                  <div key={item.id} className="rounded-xl border border-white/5 bg-white/[0.02] p-3">
+                  <div key={item.id} className="rounded-none border border-white/5 bg-white/[0.02] p-3">
                     {isEditing ? (
                       <div className="grid gap-3 sm:grid-cols-[1fr_100px_80px_auto]">
                         <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
-                          className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none" />
+                          className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none" />
                         <input type="number" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)}
-                          className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none" />
+                          className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none" />
                         <input type="number" min="1" value={editQty} onChange={e => setEditQty(e.target.value)}
-                          className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none" />
+                          className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none" />
                         <div className="flex gap-2">
                           <button type="button" disabled={itemSaving}
                             onClick={async () => {
@@ -962,9 +962,9 @@ export default function AdminOrderDetailPage() {
                               } catch (e: any) { setError(e.message); }
                               finally { setItemSaving(false); }
                             }}
-                            className="rounded-lg bg-blue-600 px-3 py-2 text-xs text-white hover:bg-blue-500 disabled:opacity-50"
+                            className="rounded-none bg-zinc-100 text-black px-3 py-2 text-xs hover:bg-zinc-100 text-black disabled:opacity-50"
                           ><Save className="h-3.5 w-3.5" /></button>
-                          <button type="button" onClick={() => setEditingItemId(null)} className="rounded-lg bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20">
+                          <button type="button" onClick={() => setEditingItemId(null)} className="rounded-none bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20">
                             <X className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -973,11 +973,11 @@ export default function AdminOrderDetailPage() {
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div className="flex min-w-0 flex-1 items-start gap-4">
                           {item.image ? (
-                            <div className="w-12 h-12 rounded bg-white/5 border border-white/10 overflow-hidden flex-shrink-0 relative">
+                            <div className="w-12 h-12 rounded-none bg-white/5 border border-white/10 overflow-hidden flex-shrink-0 relative">
                               <img src={item.image} alt={item.title} className="object-cover w-full h-full" />
                             </div>
                           ) : (
-                            <div className="w-12 h-12 rounded bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                            <div className="w-12 h-12 rounded-none bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
                               <Package className="w-5 h-5 text-white/20" />
                             </div>
                           )}
@@ -985,9 +985,9 @@ export default function AdminOrderDetailPage() {
                             <div className="text-sm text-white font-medium truncate max-w-[400px]">{item.title}</div>
                             <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-white/45">
                               {detail?.partNumber ? (
-                                <span className="text-indigo-400 font-mono tracking-wider">{detail.partNumber}</span>
+                                <span className="text-zinc-400 font-mono tracking-wider">{detail.partNumber}</span>
                               ) : item.productSlug && (
-                                <span className="text-indigo-400 font-mono tracking-wider">
+                                <span className="text-zinc-400 font-mono tracking-wider">
                                   {item.productSlug.replace(/^(admin-|turn14-|draft-|crm-)\d*-?/, '').replace(/-[a-z0-9]{6,}$/, '') || item.productSlug}
                                 </span>
                               )}
@@ -999,10 +999,10 @@ export default function AdminOrderDetailPage() {
                             {detail && (
                               <div className="mt-2 flex flex-wrap gap-3 text-[10px] uppercase tracking-wider">
                                 {detail.baseCostUsd != null && (
-                                  <span className="rounded border border-blue-500/15 bg-blue-500/5 px-2 py-0.5 text-blue-300">Закупка: ${detail.baseCostUsd}</span>
+                                  <span className="rounded-none border border-blue-500/15 bg-zinc-100 text-black/5 px-2 py-0.5 text-zinc-500">Закупка: ${detail.baseCostUsd}</span>
                                 )}
                                 {detail.markupPct != null && (
-                                  <span className="rounded border border-amber-500/15 bg-amber-500/5 px-2 py-0.5 text-amber-300">Націнка: {detail.markupPct}%</span>
+                                  <span className="rounded-none border border-amber-500/15 bg-amber-500/5 px-2 py-0.5 text-amber-300">Націнка: {detail.markupPct}%</span>
                                 )}
                               </div>
                             )}
@@ -1015,7 +1015,7 @@ export default function AdminOrderDetailPage() {
                           <div className="flex gap-1">
                             <button type="button" title="Редагувати"
                               onClick={() => { setEditingItemId(item.id); setEditTitle(item.title); setEditPrice(String(item.price)); setEditQty(String(item.quantity)); }}
-                              className="rounded-lg border border-white/10 bg-white/5 p-1.5 text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+                              className="rounded-none border border-white/10 bg-white/5 p-1.5 text-white/40 hover:text-white hover:bg-white/10 transition-colors"
                             ><Pencil className="h-3 w-3" /></button>
                             <button type="button" title="Видалити"
                               onClick={async () => {
@@ -1032,7 +1032,7 @@ export default function AdminOrderDetailPage() {
                                 } catch (e: any) { setError(e.message); }
                                 finally { setItemSaving(false); }
                               }}
-                              className="rounded-lg border border-red-500/20 bg-red-500/5 p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                              className="rounded-none border border-red-500/20 bg-red-950/30 border border-red-900/50 text-red-500/5 p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-950/30 border border-red-900/50 text-red-500/10 transition-colors"
                             ><Trash2 className="h-3 w-3" /></button>
                           </div>
                         </div>
@@ -1054,11 +1054,11 @@ export default function AdminOrderDetailPage() {
             const snap = order.pricingSnapshot as Record<string, any>;
             const shippingCalc = snap?.shippingCalc;
             return (
-            <div className="mt-4 rounded-xl border border-indigo-500/10 bg-indigo-500/[0.02] p-4">
-              <p className="mb-3 text-xs uppercase tracking-wider text-indigo-400/60">Розрахунок ціни (Pricing Snapshot)</p>
+            <div className="mt-4 rounded-none border border-indigo-500/10 bg-zinc-100 text-black/[0.02] p-4">
+              <p className="mb-3 text-xs uppercase tracking-wider text-zinc-400/60">Розрахунок ціни (Pricing Snapshot)</p>
                 <div className="grid gap-3 md:grid-cols-2 text-xs">
                     {snap?.source && (
-                      <div className="rounded-lg border border-white/10 bg-black/30 p-3">
+                      <div className="rounded-none border border-white/10 bg-black/30 p-3">
                         <div className="text-white/40 mb-1">Джерело</div>
                         <div className="text-white/80">{snap.source === 'admin_manual' ? 'Створено адміном' : snap.source === 'turn14_catalog' ? 'Turn14 каталог' : String(snap.source)}</div>
                         {snap.zone && <div className="text-white/50 mt-1">Зона: {String(snap.zone)}</div>}
@@ -1068,7 +1068,7 @@ export default function AdminOrderDetailPage() {
                       </div>
                     )}
                     {shippingCalc && (
-                      <div className="rounded-lg border border-white/10 bg-black/30 p-3">
+                      <div className="rounded-none border border-white/10 bg-black/30 p-3">
                         <div className="text-white/40 mb-1">Доставка (розрахунок)</div>
                         <div className="space-y-0.5 text-white/70">
                           {shippingCalc.totalWeightKg != null && <div>Факт. вага: {Number(shippingCalc.totalWeightKg).toFixed(2)} кг</div>}
@@ -1088,7 +1088,7 @@ export default function AdminOrderDetailPage() {
                       </div>
                     )}
                     {snap?.notes && (
-                      <div className="rounded-lg border border-white/10 bg-black/30 p-3 md:col-span-2">
+                      <div className="rounded-none border border-white/10 bg-black/30 p-3 md:col-span-2">
                         <div className="text-white/40 mb-1">Примітки</div>
                         <div className="text-white/70">{String(snap.notes)}</div>
                       </div>
@@ -1098,7 +1098,7 @@ export default function AdminOrderDetailPage() {
             );
           })() : null}
 
-          <div className="mt-6 rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
+          <div className="mt-6 rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
             <div className="grid gap-3 text-sm">
               <SummaryRow label="Підсумок" value={formatMoney(order.subtotal, order.currency)} />
               <SummaryRow label="Доставка" value={formatMoney(order.shippingCost, order.currency)} />
@@ -1122,7 +1122,7 @@ export default function AdminOrderDetailPage() {
               {order.shipments.map((shipment) => {
                 const draft = shipmentDrafts[shipment.id] ?? buildShipmentDraft(shipment);
                 return (
-                  <div key={shipment.id} className="rounded-xl border border-white/10 bg-black/30 p-4">
+                  <div key={shipment.id} className="rounded-none border border-white/10 bg-black/30 p-4">
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <div className="text-sm font-medium text-white">
@@ -1138,7 +1138,7 @@ export default function AdminOrderDetailPage() {
                             href={shipment.trackingUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-white hover:bg-zinc-800"
+                            className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-white hover:bg-zinc-800"
                           >
                             <ExternalLink className="h-3.5 w-3.5" />
                             Посилання на відстеження
@@ -1148,7 +1148,7 @@ export default function AdminOrderDetailPage() {
                           type="button"
                           onClick={() => void handleDeleteShipment(shipment.id)}
                           disabled={shipmentDeletingId === shipment.id}
-                          className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-200 hover:bg-red-500/15 disabled:opacity-50"
+                          className="rounded-none border border-red-500/25 bg-red-950/30 border border-red-900/50 text-red-500/10 px-3 py-2 text-xs text-red-200 hover:bg-red-950/30 border border-red-900/50 text-red-500/15 disabled:opacity-50"
                         >
                           Видалити
                         </button>
@@ -1165,7 +1165,7 @@ export default function AdminOrderDetailPage() {
                               [shipment.id]: { ...draft, carrier: event.target.value },
                             }))
                           }
-                          className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         />
                       </Field>
                       <Field label="Рівень сервісу">
@@ -1177,7 +1177,7 @@ export default function AdminOrderDetailPage() {
                               [shipment.id]: { ...draft, serviceLevel: event.target.value },
                             }))
                           }
-                          className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         />
                       </Field>
                       <Field label="Номер відстеження">
@@ -1189,7 +1189,7 @@ export default function AdminOrderDetailPage() {
                               [shipment.id]: { ...draft, trackingNumber: event.target.value },
                             }))
                           }
-                          className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         />
                       </Field>
                       <Field label="URL відстеження">
@@ -1201,7 +1201,7 @@ export default function AdminOrderDetailPage() {
                               [shipment.id]: { ...draft, trackingUrl: event.target.value },
                             }))
                           }
-                          className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         />
                       </Field>
                       <Field label="Shipment status">
@@ -1213,7 +1213,7 @@ export default function AdminOrderDetailPage() {
                               [shipment.id]: { ...draft, status: event.target.value as ShipmentStatus },
                             }))
                           }
-                          className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         >
                           {SHIPMENT_STATUS_OPTIONS.map((option) => (
                             <option key={option.value} value={option.value}>
@@ -1232,7 +1232,7 @@ export default function AdminOrderDetailPage() {
                               [shipment.id]: { ...draft, shippedAt: event.target.value },
                             }))
                           }
-                          className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         />
                       </Field>
                       <Field label="Дата доставки">
@@ -1245,7 +1245,7 @@ export default function AdminOrderDetailPage() {
                               [shipment.id]: { ...draft, deliveredAt: event.target.value },
                             }))
                           }
-                          className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         />
                       </Field>
                       <Field label="Примітки">
@@ -1257,7 +1257,7 @@ export default function AdminOrderDetailPage() {
                               [shipment.id]: { ...draft, notes: event.target.value },
                             }))
                           }
-                          className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                         />
                       </Field>
                     </div>
@@ -1267,7 +1267,7 @@ export default function AdminOrderDetailPage() {
                         type="button"
                         onClick={() => void handleUpdateShipment(shipment.id)}
                         disabled={shipmentSavingId === shipment.id}
-                        className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
                       >
                         <Truck className="h-4 w-4" />
                         {shipmentSavingId === shipment.id ? 'Зберігаємо…' : 'Зберегти відправлення'}
@@ -1277,7 +1277,7 @@ export default function AdminOrderDetailPage() {
                 );
               })}
 
-              <div className="rounded-xl border border-dashed border-white/10 bg-black/20 p-4">
+              <div className="rounded-none border border-dashed border-white/10 bg-black/20 p-4">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
                     <div className="text-sm font-medium text-white">Нове відправлення</div>
@@ -1294,7 +1294,7 @@ export default function AdminOrderDetailPage() {
                       onChange={(event) =>
                         setNewShipment((current) => ({ ...current, carrier: event.target.value }))
                       }
-                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     />
                   </Field>
                   <Field label="Рівень сервісу">
@@ -1303,7 +1303,7 @@ export default function AdminOrderDetailPage() {
                       onChange={(event) =>
                         setNewShipment((current) => ({ ...current, serviceLevel: event.target.value }))
                       }
-                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     />
                   </Field>
                   <Field label="Номер відстеження">
@@ -1312,7 +1312,7 @@ export default function AdminOrderDetailPage() {
                       onChange={(event) =>
                         setNewShipment((current) => ({ ...current, trackingNumber: event.target.value }))
                       }
-                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     />
                   </Field>
                   <Field label="URL відстеження">
@@ -1321,7 +1321,7 @@ export default function AdminOrderDetailPage() {
                       onChange={(event) =>
                         setNewShipment((current) => ({ ...current, trackingUrl: event.target.value }))
                       }
-                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     />
                   </Field>
                   <Field label="Shipment status">
@@ -1333,7 +1333,7 @@ export default function AdminOrderDetailPage() {
                           status: event.target.value as ShipmentStatus,
                         }))
                       }
-                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     >
                       {SHIPMENT_STATUS_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -1349,7 +1349,7 @@ export default function AdminOrderDetailPage() {
                       onChange={(event) =>
                         setNewShipment((current) => ({ ...current, shippedAt: event.target.value }))
                       }
-                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     />
                   </Field>
                   <Field label="Дата доставки">
@@ -1359,7 +1359,7 @@ export default function AdminOrderDetailPage() {
                       onChange={(event) =>
                         setNewShipment((current) => ({ ...current, deliveredAt: event.target.value }))
                       }
-                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     />
                   </Field>
                   <Field label="Примітки">
@@ -1368,7 +1368,7 @@ export default function AdminOrderDetailPage() {
                       onChange={(event) =>
                         setNewShipment((current) => ({ ...current, notes: event.target.value }))
                       }
-                      className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
                     />
                   </Field>
                 </div>
@@ -1378,7 +1378,7 @@ export default function AdminOrderDetailPage() {
                     type="button"
                     onClick={() => void handleCreateShipment()}
                     disabled={shipmentSavingId === 'new'}
-                    className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
                   >
                     <Truck className="h-4 w-4" />
                     {shipmentSavingId === 'new' ? 'Створюємо…' : 'Створити відправлення'}
@@ -1393,7 +1393,7 @@ export default function AdminOrderDetailPage() {
             <div className="space-y-3">
               {order.events.length ? (
                 order.events.map((event) => (
-                  <div key={event.id} className="rounded-xl border border-white/10 bg-black/30 p-4">
+                  <div key={event.id} className="rounded-none border border-white/10 bg-black/30 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="text-sm text-white">
                         {event.fromStatus
@@ -1418,7 +1418,7 @@ export default function AdminOrderDetailPage() {
           {order.pricingSnapshot ? (
             <div className="mt-6 border-t border-white/10 pt-6">
               <p className="mb-3 text-xs uppercase tracking-wider text-white/50">Знімок розрахунку</p>
-              <pre className="overflow-x-auto rounded-xl border border-white/10 bg-black/30 p-4 text-xs text-white/65">
+              <pre className="overflow-x-auto rounded-none border border-white/10 bg-black/30 p-4 text-xs text-white/65">
                 {JSON.stringify(order.pricingSnapshot, null, 2)}
               </pre>
             </div>
@@ -1473,7 +1473,7 @@ function PaymentModal({ order, show, onClose, amount, setAmount, mode, setMode, 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="relative w-full max-w-md mx-4 rounded-2xl border border-white/10 bg-zinc-950 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-w-md mx-4 rounded-none border border-white/10 bg-zinc-950 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute right-4 top-4 text-white/40 hover:text-white transition-colors">✕</button>
 
         <h3 className="text-lg font-medium text-white mb-1">Записати оплату</h3>
@@ -1487,9 +1487,9 @@ function PaymentModal({ order, show, onClose, amount, setAmount, mode, setMode, 
             <span>Оплачено: {formatMoney(currentPaid, order.currency)}</span>
             <span>{paidPct}%</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
+          <div className="h-2 w-full rounded-none-full bg-white/10 overflow-hidden">
             <div
-              className="h-full rounded-full transition-all duration-500"
+              className="h-full rounded-none-full transition-all duration-500"
               style={{
                 width: paidPct + '%',
                 background: paidPct >= 100
@@ -1510,14 +1510,14 @@ function PaymentModal({ order, show, onClose, amount, setAmount, mode, setMode, 
           <button
             type="button"
             onClick={() => setMode('add')}
-            className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${mode === 'add' ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-white/10 bg-white/5 text-white/50 hover:bg-white/10'}`}
+            className={`flex-1 rounded-none border px-3 py-2 text-xs font-medium transition-colors ${mode === 'add' ? 'border-blue-500/50 bg-zinc-100 text-black/15 text-zinc-500' : 'border-white/10 bg-white/5 text-white/50 hover:bg-white/10'}`}
           >
             + Додати суму
           </button>
           <button
             type="button"
             onClick={() => setMode('set')}
-            className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${mode === 'set' ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-white/10 bg-white/5 text-white/50 hover:bg-white/10'}`}
+            className={`flex-1 rounded-none border px-3 py-2 text-xs font-medium transition-colors ${mode === 'set' ? 'border-blue-500/50 bg-zinc-100 text-black/15 text-zinc-500' : 'border-white/10 bg-white/5 text-white/50 hover:bg-white/10'}`}
           >
             = Встановити суму
           </button>
@@ -1534,7 +1534,7 @@ function PaymentModal({ order, show, onClose, amount, setAmount, mode, setMode, 
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder={mode === 'add' ? 'Наприклад: 5000' : String(order.total)}
-            className="w-full rounded-xl border border-white/15 bg-black/60 px-4 py-3 text-lg text-white placeholder-white/20 focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-colors"
+            className="w-full rounded-none border border-white/15 bg-black/60 px-4 py-3 text-lg text-white placeholder-white/20 focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-colors"
             autoFocus
           />
         </div>
@@ -1547,7 +1547,7 @@ function PaymentModal({ order, show, onClose, amount, setAmount, mode, setMode, 
                 key={p.label}
                 type="button"
                 onClick={() => setAmount(String(p.value))}
-                className="flex-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                className="flex-1 rounded-none border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:text-white transition-colors"
               >
                 {p.label} ({formatMoney(p.value, order.currency)})
               </button>
@@ -1557,7 +1557,7 @@ function PaymentModal({ order, show, onClose, amount, setAmount, mode, setMode, 
 
         {/* Preview */}
         {amount && !isNaN(parseFloat(amount)) && (
-          <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs text-white/60">
+          <div className="mb-4 rounded-none border border-white/10 bg-white/[0.03] p-3 text-xs text-white/60">
             {(() => {
               const val = parseFloat(amount);
               const newPaid = mode === 'add' ? currentPaid + val : val;
@@ -1585,7 +1585,7 @@ function PaymentModal({ order, show, onClose, amount, setAmount, mode, setMode, 
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/70 hover:bg-white/10 transition-colors"
+            className="flex-1 rounded-none border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/70 hover:bg-white/10 transition-colors"
           >
             Скасувати
           </button>
@@ -1593,7 +1593,7 @@ function PaymentModal({ order, show, onClose, amount, setAmount, mode, setMode, 
             type="button"
             onClick={onSubmit}
             disabled={updating || !amount || isNaN(parseFloat(amount))}
-            className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-40 disabled:hover:bg-blue-600 transition-colors"
+            className="flex-1 rounded-none bg-zinc-100 text-black px-4 py-2.5 text-sm font-medium hover:bg-zinc-100 text-black disabled:opacity-40 disabled:hover:bg-zinc-100 text-black transition-colors"
           >
             {updating ? 'Зберігаю…' : 'Записати'}
           </button>
@@ -1605,7 +1605,7 @@ function PaymentModal({ order, show, onClose, amount, setAmount, mode, setMode, 
 
 function SummaryCard({ label, value, detail }: SummaryCardProps) {
   return (
-    <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
+    <div className="rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
       <div className="text-xs uppercase tracking-[0.18em] text-white/40">{label}</div>
       <div className="mt-3 text-lg font-semibold text-white">{value}</div>
       <div className="mt-1 text-sm text-white/45">{detail}</div>

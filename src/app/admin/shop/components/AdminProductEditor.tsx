@@ -1492,7 +1492,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               Редактор товару у стилі Shopify: основні дані, медіа, варіанти, опції та додаткові поля для теми URBAN.
             </p>
           </div>
-          <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-right">
+          <div className="rounded-none border border-white/10 bg-white/5 px-4 py-3 text-right">
             <div className="text-xs uppercase tracking-[0.24em] text-white/40">Стан у каталозі</div>
             <div className="mt-2 text-sm text-white/80">
               {form.status} · {form.isPublished ? 'Опублікований' : 'Прихований'} · {form.variants.length} варіант(и)
@@ -1500,8 +1500,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           </div>
         </div>
 
-        {error && <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div>}
-        {success && <div className="mb-4 rounded-lg bg-green-900/20 p-3 text-sm text-green-200">{success}</div>}
+        {error && <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div>}
+        {success && <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <EditorCard
@@ -1574,7 +1574,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 placeholder="https://..."
               />
             </div>
-            <div className="mt-4 rounded-xl border border-white/10 bg-black/30 p-4">
+            <div className="mt-4 rounded-none border border-white/10 bg-black/30 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="text-sm font-medium text-white">Структурна категорія</div>
@@ -1594,7 +1594,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   : 'Структурна категорія ще не обрана'}
               </div>
             </div>
-            <div className="mt-4 rounded-xl border border-white/10 bg-black/30 p-4">
+            <div className="mt-4 rounded-none border border-white/10 bg-black/30 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="text-sm font-medium text-white">Привʼязані колекції</div>
@@ -1616,7 +1616,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                         key={collection.id}
                         type="button"
                         onClick={() => toggleCollection(collection.id)}
-                        className={`rounded-xl border p-4 text-left transition ${
+                        className={`rounded-none border p-4 text-left transition ${
                           selected
                             ? 'border-white/30 bg-white/10'
                             : 'border-white/10 bg-zinc-950/70 hover:bg-white/5'
@@ -1628,7 +1628,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                             <div className="mt-1 font-mono text-[11px] text-white/40">{collection.handle}</div>
                           </div>
                           <div
-                            className={`mt-0.5 h-4 w-4 rounded border ${
+                            className={`mt-0.5 h-4 w-4 rounded-none border ${
                               selected ? 'border-white bg-white' : 'border-white/20 bg-transparent'
                             }`}
                           />
@@ -1644,7 +1644,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   })}
                 </div>
               ) : (
-                <div className="mt-4 rounded-lg border border-dashed border-white/10 bg-zinc-950/60 px-4 py-6 text-sm text-white/45">
+                <div className="mt-4 rounded-none border border-dashed border-white/10 bg-zinc-950/60 px-4 py-6 text-sm text-white/45">
                   Колекцій ще немає. Спочатку створіть їх у розділі «Колекції».
                 </div>
               )}
@@ -1725,7 +1725,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 type="button"
                 onClick={handleEstimateDimensionsAI}
                 disabled={saving}
-                className="flex items-center gap-2 rounded-lg bg-indigo-500/20 px-3 py-2 text-sm font-medium text-indigo-400 hover:bg-indigo-500/30 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-2 rounded-none bg-zinc-100 text-black/20 px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-100 text-black/30 disabled:opacity-50 transition-colors"
               >
                 <Wand2 className="size-4" /> 🪄 Згенерувати габарити через ШІ
               </button>
@@ -1758,7 +1758,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             description="Порядок зображень та відео у вітрині, бібліотека файлів і привʼязка картинок до варіантів."
           >
             <div className="space-y-4">
-              <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+              <div className="rounded-none border border-white/10 bg-black/30 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="text-sm font-medium text-white">Бібліотека медіа</div>
@@ -1769,7 +1769,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
                       href="/admin/shop/media"
-                      className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
                     >
                       Відкрити бібліотеку
                     </Link>
@@ -1784,7 +1784,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       type="button"
                       onClick={() => uploadInputRef.current?.click()}
                       disabled={uploadingMedia}
-                      className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:opacity-50"
                     >
                       <Upload className="h-4 w-4" />
                       {uploadingMedia ? 'Завантажуємо…' : 'Завантажити файл'}
@@ -1793,13 +1793,13 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 </div>
                 <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                   {mediaLibraryLoading ? (
-                    <div className="rounded-lg border border-white/10 bg-zinc-950/70 p-4 text-sm text-white/45">
+                    <div className="rounded-none border border-white/10 bg-zinc-950/70 p-4 text-sm text-white/45">
                       Завантаження бібліотеки медіа…
                     </div>
                   ) : mediaLibrary.length ? (
                     mediaLibrary.slice(0, 9).map((item) => (
-                      <div key={item.id} className="rounded-xl border border-white/10 bg-zinc-950/70 p-3">
-                        <div className="overflow-hidden rounded-lg border border-white/10 bg-black/30">
+                      <div key={item.id} className="rounded-none border border-white/10 bg-zinc-950/70 p-3">
+                        <div className="overflow-hidden rounded-none border border-white/10 bg-black/30">
                           {item.kind === 'image' ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img
@@ -1823,7 +1823,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                           <button
                             type="button"
                             onClick={() => addLibraryMediaToProduct(item)}
-                            className="rounded-md border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
+                            className="rounded-none border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
                           >
                             Додати до товару
                           </button>
@@ -1831,7 +1831,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                             type="button"
                             onClick={() => void handleDeleteLibraryMedia(item)}
                             disabled={deletingLibraryMediaId === item.id || item.usageCount > 0}
-                            className="rounded-md border border-red-500/25 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+                            className="rounded-none border border-red-500/25 px-3 py-1.5 text-xs text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10 disabled:opacity-50"
                           >
                             {deletingLibraryMediaId === item.id
                               ? 'Видаляємо…'
@@ -1843,14 +1843,14 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-lg border border-white/10 bg-zinc-950/70 p-4 text-sm text-white/45">
+                    <div className="rounded-none border border-white/10 bg-zinc-950/70 p-4 text-sm text-white/45">
                       Завантажте перший файл, щоб розпочати формувати бібліотеку медіа магазину.
                     </div>
                   )}
                 </div>
               </div>
               {form.media.map((item, index) => (
-                <div key={item.id ?? `media-${index}`} className="rounded-xl border border-white/10 bg-black/40 p-4">
+                <div key={item.id ?? `media-${index}`} className="rounded-none border border-white/10 bg-black/40 p-4">
                   <div className="mb-4 flex items-center justify-between">
                     <div className="text-sm font-medium text-white">Media #{index + 1}</div>
                     <div className="flex items-center gap-2">
@@ -1858,7 +1858,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                         type="button"
                         onClick={() => moveMedia(index, -1)}
                         disabled={index === 0}
-                        className="rounded-md border border-white/15 p-2 text-white/70 hover:bg-white/5 disabled:opacity-40"
+                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/5 disabled:opacity-40"
                       >
                         <ChevronUp className="h-4 w-4" />
                       </button>
@@ -1866,7 +1866,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                         type="button"
                         onClick={() => moveMedia(index, 1)}
                         disabled={index === form.media.length - 1}
-                        className="rounded-md border border-white/15 p-2 text-white/70 hover:bg-white/5 disabled:opacity-40"
+                        className="rounded-none border border-white/15 p-2 text-white/70 hover:bg-white/5 disabled:opacity-40"
                       >
                         <ChevronDown className="h-4 w-4" />
                       </button>
@@ -1874,17 +1874,17 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                         type="button"
                         onClick={() => setPrimaryImageFromMedia(index)}
                         disabled={!item.src.trim()}
-                        className="rounded-md border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5 disabled:opacity-40"
+                        className="rounded-none border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5 disabled:opacity-40"
                       >
                         Use as main
                       </button>
-                      <button type="button" onClick={() => removeListItem('media', index)} className="rounded-md border border-red-500/30 p-2 text-red-300 hover:bg-red-500/10">
+                      <button type="button" onClick={() => removeListItem('media', index)} className="rounded-none border border-red-500/30 p-2 text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
                   <div className="grid gap-4 md:grid-cols-[220px_1fr]">
-                    <div className="overflow-hidden rounded-xl border border-white/10 bg-zinc-950/80">
+                    <div className="overflow-hidden rounded-none border border-white/10 bg-zinc-950/80">
                       {mediaPreviewable(item) ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img
@@ -1915,7 +1915,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                         { label: 'External video', value: 'EXTERNAL_VIDEO' },
                       ]}
                     />
-                    <div className="md:col-span-4 rounded-lg border border-white/10 bg-zinc-950/70 p-3 text-xs text-white/45">
+                    <div className="md:col-span-4 rounded-none border border-white/10 bg-zinc-950/70 p-3 text-xs text-white/45">
                       {item.src.trim().startsWith('/media/')
                         ? 'Library-backed asset. Variants using this source stay in sync if you change the URL here.'
                         : 'Custom external source. Variants can still link to this media item by matching the same URL.'}
@@ -1927,7 +1927,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <button
                 type="button"
                 onClick={addMedia}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
               >
                 <Plus className="h-4 w-4" />
                 Додати медіа
@@ -1941,7 +1941,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           >
             <div className="space-y-4">
               {form.options.map((item, index) => (
-                <div key={item.id ?? `option-${index}`} className="grid gap-4 rounded-xl border border-white/10 bg-black/40 p-4 md:grid-cols-4">
+                <div key={item.id ?? `option-${index}`} className="grid gap-4 rounded-none border border-white/10 bg-black/40 p-4 md:grid-cols-4">
                   <InputField label="Назва" value={item.name} onChange={(value) => updateListItem('options', index, { name: value })} />
                   <InputField label="Позиція" type="number" value={item.position} onChange={(value) => updateListItem('options', index, { position: value })} />
                   <div className="md:col-span-2">
@@ -1956,7 +1956,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <button
                       type="button"
                       onClick={() => removeListItem('options', index)}
-                      className="rounded-md border border-red-500/30 p-2 text-red-300 hover:bg-red-500/10"
+                      className="rounded-none border border-red-500/30 p-2 text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -1966,7 +1966,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <button
                 type="button"
                 onClick={addOption}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
               >
                 <Plus className="h-4 w-4" />
                 Додати опцію
@@ -1979,7 +1979,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             description="Ціни, залишки та опції на рівні SKU. Один варіант завжди має залишатися основним."
           >
             <div className="space-y-4">
-              <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+              <div className="rounded-none border border-white/10 bg-black/30 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="text-sm font-medium text-white">Інструменти для варіантів</div>
@@ -1991,7 +1991,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <button
                       type="button"
                       onClick={generateVariantsFromOptions}
-                      className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5"
+                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5"
                     >
                       <Wand2 className="h-4 w-4" />
                       Згенерувати з опцій
@@ -1999,7 +1999,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <button
                       type="button"
                       onClick={applyProductPricingToVariants}
-                      className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5"
+                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5"
                     >
                       <Copy className="h-4 w-4" />
                       Скопіювати ціни товару
@@ -2007,7 +2007,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <button
                       type="button"
                       onClick={copyDefaultVariantSettings}
-                      className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5"
+                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5"
                     >
                       <Copy className="h-4 w-4" />
                       Скопіювати налаштування дефолтного
@@ -2123,7 +2123,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   <button
                     type="button"
                     onClick={applyBulkVariantFields}
-                    className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90"
+                    className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90"
                   >
                     <Copy className="h-4 w-4" />
                     Застосувати bulk‑поля
@@ -2131,7 +2131,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 </div>
               </div>
               {form.variants.map((item, index) => (
-                <div key={item.id ?? `variant-${index}`} className="rounded-xl border border-white/10 bg-black/40 p-4">
+                <div key={item.id ?? `variant-${index}`} className="rounded-none border border-white/10 bg-black/40 p-4">
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="text-sm font-medium text-white">
                       Варіант #{index + 1} {item.isDefault ? '· Основний' : ''}
@@ -2141,7 +2141,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                         <button
                           type="button"
                           onClick={() => setDefaultVariant(index)}
-                          className="rounded-md border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
+                          className="rounded-none border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
                         >
                           Зробити основним
                         </button>
@@ -2149,7 +2149,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       <button
                         type="button"
                         onClick={() => removeListItem('variants', index)}
-                        className="rounded-md border border-red-500/30 p-2 text-red-300 hover:bg-red-500/10"
+                        className="rounded-none border border-red-500/30 p-2 text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -2218,7 +2218,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <InputField label="B2B порівн. USD" type="number" step="0.01" value={item.compareAtUsdB2b} onChange={(value) => updateListItem('variants', index, { compareAtUsdB2b: value })} />
                     <InputField label="B2B порівн. UAH" type="number" step="0.01" value={item.compareAtUahB2b} onChange={(value) => updateListItem('variants', index, { compareAtUahB2b: value })} />
                   </div>
-                  <div className="mt-4 rounded-lg border border-white/10 bg-zinc-950/70 p-3 text-xs text-white/45">
+                  <div className="mt-4 rounded-none border border-white/10 bg-zinc-950/70 p-3 text-xs text-white/45">
                     {item.image.trim()
                       ? form.media.some((mediaItem) => mediaItem.src.trim() === item.image.trim())
                         ? 'Зображення варіанта привʼязане до медіа товару і оновиться, якщо змінити джерело.'
@@ -2242,7 +2242,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <button
                 type="button"
                 onClick={addVariant}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
               >
                 <Plus className="h-4 w-4" />
                 Додати варіант
@@ -2256,12 +2256,12 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           >
             <div className="space-y-4">
               {form.metafields.map((item, index) => (
-                <div key={item.id ?? `metafield-${index}`} className="rounded-xl border border-white/10 bg-black/40 p-4">
+                <div key={item.id ?? `metafield-${index}`} className="rounded-none border border-white/10 bg-black/40 p-4">
                   <div className="mb-4 flex justify-end">
                     <button
                       type="button"
                       onClick={() => removeListItem('metafields', index)}
-                      className="rounded-md border border-red-500/30 p-2 text-red-300 hover:bg-red-500/10"
+                      className="rounded-none border border-red-500/30 p-2 text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -2279,7 +2279,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <button
                 type="button"
                 onClick={addMetafield}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
               >
                 <Plus className="h-4 w-4" />
                 Додати мета‑поле
@@ -2292,7 +2292,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               title="Небезпечні дії"
               description="Остаточне видалення товару з бази даних. Використовуйте тільки після бекапу або якщо впевнені, що товар більше ніколи не знадобиться."
             >
-              <div className="rounded-xl border border-red-500/40 bg-red-900/10 p-4 space-y-2">
+              <div className="rounded-none border border-red-500/40 bg-red-900/10 p-4 space-y-2">
                 <p className="text-xs text-red-200">
                   Після остаточного видалення товару буде втрачено історію варіантів, цін і привʼязок до колекцій. Відновити його
                   можна буде лише з резервної копії бази даних.
@@ -2301,7 +2301,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   type="button"
                   onClick={() => void handleHardDelete()}
                   disabled={hardDeleting}
-                  className="inline-flex items-center gap-2 rounded-lg border border-red-500/60 bg-red-600/80 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-none border border-red-500/60 bg-red-950/30 border border-red-900/50 text-red-500/80 px-4 py-2 text-sm font-medium text-white hover:bg-red-950/30 border border-red-900/50 text-red-500 disabled:opacity-50"
                 >
                   <Trash2 className="h-4 w-4" />
                   {hardDeleting ? 'Видаляємо…' : 'Остаточно видалити товар'}
@@ -2311,21 +2311,21 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           )}
 
           <div className="flex flex-wrap gap-3 pb-6 md:pb-0 hidden md:flex">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-none bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
               <Save className="h-4 w-4" />
               {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти товар' : 'Створити товар'}
             </button>
-            <Link href="/admin/shop" className="rounded-lg border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
+            <Link href="/admin/shop" className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
               Скасувати
             </Link>
           </div>
           <div className="h-20 md:hidden" aria-hidden />
           <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-3 border-t border-white/10 bg-zinc-900/95 px-4 py-3 backdrop-blur-sm safe-area-pb md:hidden">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-none bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
               <Save className="h-4 w-4" />
               {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти товар' : 'Створити товар'}
             </button>
-            <Link href="/admin/shop" className="rounded-lg border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
+            <Link href="/admin/shop" className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
               Скасувати
             </Link>
           </div>
@@ -2343,7 +2343,7 @@ type EditorCardProps = {
 
 function EditorCard({ title, description, children }: EditorCardProps) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+    <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
       <div className="mb-5">
         <h3 className="text-lg font-medium text-white">{title}</h3>
         <p className="mt-1 text-sm text-white/45">{description}</p>
@@ -2373,7 +2373,7 @@ function InputField({ label, value, onChange, type = 'text', step, placeholder, 
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className={`w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none ${mono ? 'font-mono' : ''}`}
+        className={`w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none ${mono ? 'font-mono' : ''}`}
       />
     </label>
   );
@@ -2395,7 +2395,7 @@ function TextareaField({ label, value, onChange, rows = 5, mono = false }: Texta
         value={value}
         onChange={(event) => onChange(event.target.value)}
         rows={rows}
-        className={`w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none ${mono ? 'font-mono' : ''}`}
+        className={`w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none ${mono ? 'font-mono' : ''}`}
       />
     </label>
   );
@@ -2415,7 +2415,7 @@ function SelectField({ label, value, onChange, options }: SelectFieldProps) {
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -2440,7 +2440,7 @@ function CheckboxField({ label, checked, onChange }: CheckboxFieldProps) {
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+        className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
       />
       {label}
     </label>

@@ -64,6 +64,8 @@ type CheckoutRuleSnapshot = {
   perItemRate?: number;
   freeOver?: number | null;
   appliesToShipping?: boolean;
+  etaMinDays?: number | null;
+  etaMaxDays?: number | null;
 };
 
 export type CheckoutQuote = {
@@ -376,6 +378,8 @@ function buildPricingSnapshot(params: {
           perItemRate: shippingZone.perItemRate,
           freeOver: shippingZone.freeOver,
           minimumSubtotal: shippingZone.minimumSubtotal,
+          etaMinDays: shippingZone.etaMinDays,
+          etaMaxDays: shippingZone.etaMaxDays,
         }
       : null,
     taxRegion: taxRegion
@@ -456,6 +460,8 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
           baseRate: shippingZone.baseRate,
           perItemRate: shippingZone.perItemRate,
           freeOver: shippingZone.freeOver,
+          etaMinDays: shippingZone.etaMinDays,
+          etaMaxDays: shippingZone.etaMaxDays,
         }
       : null,
     taxRegion: taxRegion

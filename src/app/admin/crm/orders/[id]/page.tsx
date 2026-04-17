@@ -49,18 +49,18 @@ type OrderDetail = {
 
 const STATUS_COLORS: Record<string, string> = {
   'Выполнен': 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5',
-  'Новый': 'border-blue-500/20 text-blue-400 bg-blue-500/5',
+  'Новый': 'border-blue-500/20 text-zinc-400 bg-zinc-100 text-black/5',
   'В обработке': 'border-amber-500/20 text-amber-400 bg-amber-500/5',
-  'Отменен': 'border-red-500/20 text-red-400 bg-red-500/5',
+  'Отменен': 'border-red-500/20 text-red-400 bg-red-950/30 border border-red-900/50 text-red-500/5',
   'Оплачено': 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5',
-  'Не оплачено': 'border-red-500/20 text-red-400 bg-red-500/5',
+  'Не оплачено': 'border-red-500/20 text-red-400 bg-red-950/30 border border-red-900/50 text-red-500/5',
   'Частично': 'border-amber-500/20 text-amber-400 bg-amber-500/5',
 };
 
 const ITEM_STATUS_ICONS: Record<string, React.ReactNode> = {
   'Нужен': <AlertCircle className="w-3.5 h-3.5 text-amber-400" />,
-  'В обработке': <Clock className="w-3.5 h-3.5 text-blue-400" />,
-  'Отправлен': <Package className="w-3.5 h-3.5 text-indigo-400" />,
+  'В обработке': <Clock className="w-3.5 h-3.5 text-zinc-400" />,
+  'Отправлен': <Package className="w-3.5 h-3.5 text-zinc-400" />,
   'Получен': <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />,
   'Отвержен': <AlertCircle className="w-3.5 h-3.5 text-red-400" />,
 };
@@ -68,7 +68,7 @@ const ITEM_STATUS_ICONS: Record<string, React.ReactNode> = {
 function StatusBadge({ status, type = 'order' }: { status: string; type?: string }) {
   const cls = STATUS_COLORS[status] || 'border-white/10 text-white/40 bg-white/[0.02]';
   return (
-    <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${cls}`}>
+    <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-none-full border ${cls}`}>
       {status || 'N/A'}
     </span>
   );
@@ -102,7 +102,7 @@ export default function CrmOrderDetailPage() {
 
   return (
     <div className="relative h-full w-full overflow-auto bg-black text-white">
-      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-600/8 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-none-full bg-zinc-100 text-black/8 blur-[120px]" />
 
       <div className="w-full px-4 py-8 md:px-8 lg:px-12 max-w-[1920px] mx-auto">
         <Link href="/admin/crm" className="group mb-6 inline-flex items-center gap-2 text-[13px] font-medium tracking-wide text-white/40 hover:text-white transition-all">
@@ -119,11 +119,11 @@ export default function CrmOrderDetailPage() {
             <div className="mt-3 flex items-center flex-wrap gap-2">
               <StatusBadge status={order.orderStatus} />
               <StatusBadge status={order.paymentStatus} />
-              {order.tag && <span className="text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/10 text-white/30">{order.tag}</span>}
-              {order.allShipped === 'Да' && <span className="text-[9px] px-2 py-0.5 rounded-full border border-emerald-500/20 text-emerald-400 bg-emerald-500/5">✓ Відвантажено</span>}
+              {order.tag && <span className="text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-none-full border border-white/10 text-white/30">{order.tag}</span>}
+              {order.allShipped === 'Да' && <span className="text-[9px] px-2 py-0.5 rounded-none-full border border-emerald-500/20 text-emerald-400 bg-emerald-500/5">✓ Відвантажено</span>}
             </div>
             {order.customer && (
-              <Link href={`/admin/crm/customers/${order.customer.airtableId}`} className="mt-2 block text-sm text-indigo-400/60 hover:text-indigo-400">
+              <Link href={`/admin/crm/customers/${order.customer.airtableId}`} className="mt-2 block text-sm text-zinc-400/60 hover:text-zinc-400">
                 → {order.customer.name}
               </Link>
             )}
@@ -143,7 +143,7 @@ export default function CrmOrderDetailPage() {
             { label: 'Прибуток', value: `$${order.profit.toLocaleString()}`, color: profitColor },
             { label: 'Маржа', value: `${(order.marginality * 100).toFixed(1)}%`, color: order.marginality > 0.2 ? 'text-emerald-400' : 'text-amber-400' },
           ].map(kpi => (
-            <div key={kpi.label} className="rounded-2xl border border-white/[0.08] bg-black/60 p-4">
+            <div key={kpi.label} className="rounded-none border border-white/[0.08] bg-black/60 p-4">
               <div className="text-[10px] uppercase tracking-widest text-white/30 mb-1">{kpi.label}</div>
               <div className={`text-xl font-light ${kpi.color}`}>{kpi.value}</div>
             </div>
@@ -151,10 +151,10 @@ export default function CrmOrderDetailPage() {
         </div>
 
         {/* Items Table */}
-        <div className="rounded-2xl border border-white/[0.08] bg-black/60 backdrop-blur-2xl shadow-2xl overflow-hidden mb-8">
+        <div className="rounded-none border border-white/[0.08] bg-black/60 backdrop-blur-2xl shadow-2xl overflow-hidden mb-8">
           <div className="px-5 py-4 border-b border-white/[0.06] bg-white/[0.02]">
             <h2 className="text-sm font-medium text-white flex items-center gap-2">
-              <Package className="w-4 h-4 text-indigo-400" />
+              <Package className="w-4 h-4 text-zinc-400" />
               Позиції товарів ({order.items.length})
             </h2>
           </div>
@@ -179,17 +179,17 @@ export default function CrmOrderDetailPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {item.imageUrl ? (
-                          <div className="w-10 h-10 rounded bg-white/5 border border-white/10 overflow-hidden flex-shrink-0">
+                          <div className="w-10 h-10 rounded-none bg-white/5 border border-white/10 overflow-hidden flex-shrink-0">
                             <img src={item.imageUrl} alt={item.productName} className="object-cover w-full h-full" />
                           </div>
                         ) : (
-                          <div className="w-10 h-10 rounded bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                          <div className="w-10 h-10 rounded-none bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
                             <Package className="w-4 h-4 text-white/20" />
                           </div>
                         )}
                         <div>
                           <div className="text-sm text-white font-medium truncate max-w-[250px]">{item.productName}</div>
-                          {item.sku && <div className="text-[10px] text-indigo-400 font-mono tracking-wider mt-0.5">{item.sku}</div>}
+                          {item.sku && <div className="text-[10px] text-zinc-400 font-mono tracking-wider mt-0.5">{item.sku}</div>}
                           {!item.sku && item.brand && <div className="text-[10px] text-white/20 mt-0.5">{item.brand}</div>}
                         </div>
                       </div>

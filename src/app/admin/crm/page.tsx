@@ -293,7 +293,7 @@ export default function CrmDashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-light tracking-tight text-white flex items-center gap-3">
-            <Database className="w-6 h-6 text-indigo-400" />
+            <Database className="w-6 h-6 text-zinc-400" />
             CRM Dashboard
           </h1>
           <p className="text-xs text-white/30 mt-1 tracking-wide">
@@ -305,16 +305,16 @@ export default function CrmDashboardPage() {
           <button
             onClick={handleFullSync}
             disabled={syncing}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-indigo-500/20 bg-indigo-500/5 text-sm text-indigo-400 hover:bg-indigo-500/10 transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-none border border-indigo-500/20 bg-zinc-100 text-black/5 text-sm text-zinc-400 hover:bg-zinc-100 text-black/10 transition-all disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
             {syncing ? 'Синхронізація...' : 'Повна синхронізація'}
           </button>
           {/* Live indicator */}
-          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/5 border border-emerald-500/20 rounded-none">
             <div className="relative">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full" />
-              <div className="absolute inset-0 w-2 h-2 bg-emerald-400 rounded-full animate-ping opacity-50" />
+              <div className="w-2 h-2 bg-emerald-400 rounded-none-full" />
+              <div className="absolute inset-0 w-2 h-2 bg-emerald-400 rounded-none-full animate-ping opacity-50" />
             </div>
             <span className="text-[10px] uppercase tracking-widest text-emerald-400 font-medium">LIVE</span>
           </div>
@@ -329,7 +329,7 @@ export default function CrmDashboardPage() {
 
       {/* Sync Result */}
       {syncResult && (
-        <div className={`mb-4 rounded-xl px-4 py-3 text-sm ${syncResult.startsWith('✓') ? 'bg-emerald-900/20 text-emerald-300' : 'bg-red-900/20 text-red-300'}`}>
+        <div className={`mb-4 rounded-none px-4 py-3 text-sm ${syncResult.startsWith('✓') ? 'bg-emerald-900/20 text-emerald-300' : 'bg-red-900/20 text-red-300'}`}>
           {syncResult}
         </div>
       )}
@@ -337,27 +337,27 @@ export default function CrmDashboardPage() {
       {/* DB Analytics Row */}
       {dbAnalytics && (
         <div className="mb-6 grid grid-cols-2 md:grid-cols-6 gap-2">
-          <div className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+          <div className="bg-white/[0.02] border border-white/5 rounded-none px-3 py-2">
             <div className="text-[8px] uppercase tracking-widest text-white/25">DB Клієнти</div>
             <div className="text-sm font-light text-white mt-0.5">{dbAnalytics.kpis.totalCustomers}</div>
           </div>
-          <div className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+          <div className="bg-white/[0.02] border border-white/5 rounded-none px-3 py-2">
             <div className="text-[8px] uppercase tracking-widest text-white/25">DB Замовлення</div>
             <div className="text-sm font-light text-white mt-0.5">{dbAnalytics.kpis.totalOrders}</div>
           </div>
-          <div className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+          <div className="bg-white/[0.02] border border-white/5 rounded-none px-3 py-2">
             <div className="text-[8px] uppercase tracking-widest text-white/25">DB Позицій</div>
             <div className="text-sm font-light text-white mt-0.5">{dbAnalytics.kpis.totalItems}</div>
           </div>
-          <div className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+          <div className="bg-white/[0.02] border border-white/5 rounded-none px-3 py-2">
             <div className="text-[8px] uppercase tracking-widest text-white/25">DB Виручка</div>
             <div className="text-sm font-light text-white mt-0.5">${dbAnalytics.kpis.totalRevenue.toLocaleString()}</div>
           </div>
-          <div className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+          <div className="bg-white/[0.02] border border-white/5 rounded-none px-3 py-2">
             <div className="text-[8px] uppercase tracking-widest text-white/25">DB Прибуток</div>
             <div className="text-sm font-light text-emerald-400 mt-0.5">${dbAnalytics.kpis.totalProfit.toLocaleString()}</div>
           </div>
-          <div className="bg-white/[0.02] border border-white/5 rounded-xl px-3 py-2">
+          <div className="bg-white/[0.02] border border-white/5 rounded-none px-3 py-2">
             <div className="text-[8px] uppercase tracking-widest text-white/25">Остання синхр.</div>
             <div className="text-[10px] font-light text-white/50 mt-0.5">{dbAnalytics.lastSyncAt ? new Date(dbAnalytics.lastSyncAt).toLocaleString('uk-UA') : 'Ніколи'}</div>
           </div>
@@ -365,14 +365,14 @@ export default function CrmDashboardPage() {
       )}
 
       {/* Tab Navigation */}
-      <div className="flex items-center gap-1 bg-white/[0.02] rounded-xl p-1 mb-8 border border-white/5">
+      <div className="flex items-center gap-1 bg-white/[0.02] rounded-none p-1 mb-8 border border-white/5">
         {(['overview', 'customers', 'orders'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2.5 text-xs uppercase tracking-widest font-medium rounded-lg transition-all ${
+            className={`flex-1 py-2.5 text-xs uppercase tracking-widest font-medium rounded-none transition-all ${
               activeTab === tab
-                ? 'bg-white/10 text-white shadow-lg'
+                ? 'bg-white/10 text-white border border-white/5'
                 : 'text-white/30 hover:text-white/60'
             }`}
           >
@@ -383,7 +383,7 @@ export default function CrmDashboardPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-40">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-400/40" />
+          <Loader2 className="w-8 h-8 animate-spin text-zinc-400/40" />
         </div>
       ) : (
         <>
@@ -428,7 +428,7 @@ export default function CrmDashboardPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="bg-white/[0.02] border border-white/5 rounded-2xl p-6"
+                  className="bg-white/[0.02] border border-white/5 rounded-none p-6"
                 >
                   <h3 className="text-[10px] uppercase tracking-widest text-white/40 font-medium mb-4">Статуси замовлень</h3>
                   <div className="flex items-center justify-center py-2">
@@ -438,7 +438,7 @@ export default function CrmDashboardPage() {
                     {statusSegments.map((seg, i) => (
                       <div key={i} className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: seg.color }} />
+                          <div className="w-2 h-2 rounded-none-full" style={{ backgroundColor: seg.color }} />
                           <span className="text-white/50">{seg.label}</span>
                         </div>
                         <span className="text-white/70 font-medium">{seg.value}</span>
@@ -452,7 +452,7 @@ export default function CrmDashboardPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-white/[0.02] border border-white/5 rounded-2xl p-6"
+                  className="bg-white/[0.02] border border-white/5 rounded-none p-6"
                 >
                   <h3 className="text-[10px] uppercase tracking-widest text-white/40 font-medium mb-4">Топ клієнти (продажі)</h3>
                   <div className="flex items-end justify-center py-2">
@@ -481,7 +481,7 @@ export default function CrmDashboardPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="bg-white/[0.02] border border-white/5 rounded-2xl p-6"
+                  className="bg-white/[0.02] border border-white/5 rounded-none p-6"
                 >
                   <h3 className="text-[10px] uppercase tracking-widest text-white/40 font-medium mb-4">Баланси контрагентів</h3>
                   <div className="space-y-3 mt-4">
@@ -512,7 +512,7 @@ export default function CrmDashboardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-white/[0.02] border border-white/5 rounded-2xl p-6"
+                className="bg-white/[0.02] border border-white/5 rounded-none p-6"
               >
                 <h3 className="text-[10px] uppercase tracking-widest text-white/40 font-medium mb-4">Останні замовлення</h3>
                 <div className="overflow-x-auto">
@@ -549,7 +549,7 @@ export default function CrmDashboardPage() {
                           <td className="py-3 pr-4 text-right">
                             <div className="text-xs text-white/70 font-medium">${fmtUsd(o.clientTotal)}</div>
                             {o.calculatedB2bTotal !== undefined && o.calculatedB2bTotal > 0 && (
-                              <div className="text-[9px] text-indigo-400/80 mt-0.5 tracking-wide">
+                              <div className="text-[9px] text-zinc-400/80 mt-0.5 tracking-wide">
                                 calc: ${fmtUsd(o.calculatedB2bTotal)}
                               </div>
                             )}
@@ -572,7 +572,7 @@ export default function CrmDashboardPage() {
           {activeTab === 'customers' && (
             <div>
               <div className="mb-6 flex items-center gap-4">
-                <div className="flex-1 flex items-center border border-white/10 bg-white/[0.02] rounded-xl px-4">
+                <div className="flex-1 flex items-center border border-white/10 bg-white/[0.02] rounded-none px-4">
                   <Search className="w-4 h-4 text-white/30" />
                   <input
                     type="text"
@@ -591,15 +591,15 @@ export default function CrmDashboardPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.02 * i }}
-                    className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all group"
+                    className="bg-white/[0.02] border border-white/5 rounded-none p-5 hover:border-white/10 transition-all group"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h4 className="text-sm font-medium text-white">{c.name}</h4>
-                        {c.email && <p className="text-[10px] text-indigo-400/60 font-mono">{c.email}</p>}
+                        {c.email && <p className="text-[10px] text-zinc-400/60 font-mono">{c.email}</p>}
                         {c.businessName && <p className="text-[10px] text-white/30">{c.businessName}</p>}
                       </div>
-                      <div className={`text-[9px] uppercase tracking-widest font-bold px-2 py-1 rounded ${c.balance < 0 ? 'bg-red-500/10 text-red-400' : c.balance > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/5 text-white/30'}`}>
+                      <div className={`text-[9px] uppercase tracking-widest font-bold px-2 py-1 rounded-none ${c.balance < 0 ? 'bg-red-950/30 border border-red-900/50 text-red-500/10 text-red-400' : c.balance > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/5 text-white/30'}`}>
                         ${fmtUsd(Math.abs(c.balance))}
                       </div>
                     </div>
@@ -619,7 +619,7 @@ export default function CrmDashboardPage() {
                         <div className="text-[8px] uppercase tracking-widest text-white/30 mt-0.5">Борг</div>
                       </div>
                     </div>
-                    <button className="mt-3 w-full text-[9px] uppercase tracking-widest text-white/30 border border-white/5 py-2 rounded-lg hover:bg-white/5 hover:text-white/60 transition-colors flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
+                    <button className="mt-3 w-full text-[9px] uppercase tracking-widest text-white/30 border border-white/5 py-2 rounded-none hover:bg-white/5 hover:text-white/60 transition-colors flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
                       <Link2 className="w-3 h-3" /> Зв'язати з акаунтом
                     </button>
                   </motion.div>
@@ -632,7 +632,7 @@ export default function CrmDashboardPage() {
           {activeTab === 'orders' && (
             <div>
               <div className="mb-6 flex items-center gap-4">
-                <div className="flex-1 flex items-center border border-white/10 bg-white/[0.02] rounded-xl px-4">
+                <div className="flex-1 flex items-center border border-white/10 bg-white/[0.02] rounded-none px-4">
                   <Search className="w-4 h-4 text-white/30" />
                   <input
                     type="text"
@@ -651,9 +651,9 @@ export default function CrmDashboardPage() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.02 * i }}
-                    className="bg-white/[0.02] border border-white/5 rounded-xl p-4 hover:border-white/10 transition-all flex items-center gap-4"
+                    className="bg-white/[0.02] border border-white/5 rounded-none p-4 hover:border-white/10 transition-all flex items-center gap-4"
                   >
-                    <div className="w-12 h-12 bg-white/[0.03] rounded-lg flex items-center justify-center text-xs font-mono text-white/40">
+                    <div className="w-12 h-12 bg-white/[0.03] rounded-none flex items-center justify-center text-xs font-mono text-white/40">
                       #{o.number}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -661,7 +661,7 @@ export default function CrmDashboardPage() {
                       <div className="flex items-center gap-3 mt-1">
                         <StatusBadge status={o.orderStatus} />
                         <span className="text-[9px] text-white/20">{o.itemCount} позицій</span>
-                        {o.tag && <span className="text-[9px] text-white/20 bg-white/5 px-2 py-0.5 rounded">{o.tag}</span>}
+                        {o.tag && <span className="text-[9px] text-white/20 bg-white/5 px-2 py-0.5 rounded-none">{o.tag}</span>}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
@@ -671,7 +671,7 @@ export default function CrmDashboardPage() {
                       </div>
                     </div>
                     <div className="shrink-0">
-                      <span className={`text-[10px] uppercase tracking-widest font-medium px-3 py-1.5 rounded-lg ${
+                      <span className={`text-[10px] uppercase tracking-widest font-medium px-3 py-1.5 rounded-none ${
                         o.paymentStatus === 'Оплачено'
                           ? 'bg-emerald-500/10 text-emerald-400'
                           : 'bg-amber-500/10 text-amber-400'
@@ -703,7 +703,7 @@ function KpiCard({ label, value, icon, color, sparkline, subtitle }: {
   subtitle?: string;
 }) {
   const colorMap: Record<string, string> = {
-    indigo: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+    indigo: 'bg-zinc-100 text-black/10 text-zinc-400 border-indigo-500/20',
     emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
     amber: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
     cyan: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
@@ -713,7 +713,7 @@ function KpiCard({ label, value, icon, color, sparkline, subtitle }: {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`${colorMap[color] || colorMap.indigo} border rounded-2xl p-5`}
+      className={`${colorMap[color] || colorMap.indigo} border rounded-none p-5`}
     >
       <div className="flex items-center justify-between mb-3">
         <div className="text-[9px] uppercase tracking-widest font-medium opacity-60">{label}</div>
@@ -728,17 +728,17 @@ function KpiCard({ label, value, icon, color, sparkline, subtitle }: {
 
 function StatusBadge({ status }: { status: string }) {
   const colorMap: Record<string, string> = {
-    'Новый': 'bg-blue-500',
+    'Новый': 'bg-zinc-100 text-black',
     'В обработке': 'bg-amber-500',
-    'В производстве': 'bg-purple-500',
+    'В производстве': 'bg-zinc-100 text-black',
     'В пути': 'bg-cyan-500',
     'Выполнен': 'bg-emerald-500',
-    'Отменен': 'bg-red-500',
+    'Отменен': 'bg-red-950/30 border border-red-900/50 text-red-500',
   };
 
   return (
     <div className="flex items-center gap-1.5">
-      <div className={`w-1.5 h-1.5 rounded-full ${colorMap[status] || 'bg-gray-500'}`} />
+      <div className={`w-1.5 h-1.5 rounded-none-full ${colorMap[status] || 'bg-gray-500'}`} />
       <span className="text-[10px] text-white/50">{status}</span>
     </div>
   );

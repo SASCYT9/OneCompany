@@ -27,7 +27,7 @@ interface TaxRule {
 }
 
 const TAX_TYPES = [
-  { value: 'VAT', label: 'ПДВ (VAT)', color: 'text-blue-400' },
+  { value: 'VAT', label: 'ПДВ (VAT)', color: 'text-zinc-400' },
   { value: 'GST', label: 'GST', color: 'text-teal-400' },
   { value: 'SALES_TAX', label: 'Sales Tax', color: 'text-amber-400' },
   { value: 'CUSTOMS_DUTY', label: 'Мито', color: 'text-red-400' },
@@ -108,7 +108,7 @@ export default function TaxRegionPage() {
   return (
     <div className="relative h-full w-full overflow-auto bg-black text-white">
       {/* Ambient glow */}
-      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-600/8 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-none-full bg-rose-600/8 blur-[120px]" />
 
       <div className="w-full px-4 py-8 md:px-8 lg:px-12">
         <Link href="/admin/shop/logistics"
@@ -128,29 +128,29 @@ export default function TaxRegionPage() {
             </p>
           </div>
           <button onClick={() => setShowAdd(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[11px] uppercase tracking-wider font-medium hover:bg-rose-500/20 transition-all">
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-none bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[11px] uppercase tracking-wider font-medium hover:bg-rose-500/20 transition-all">
             <Plus className="w-3.5 h-3.5" /> Додати Регіон
           </button>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="rounded-2xl border border-white/[0.06] bg-black/60 p-5">
+          <div className="rounded-none border border-white/[0.06] bg-black/60 p-5">
             <div className="text-[10px] uppercase tracking-widest text-white/25 mb-2">Регіонів</div>
             <div className="text-2xl font-light text-white">{rules.length}</div>
           </div>
-          <div className="rounded-2xl border border-white/[0.06] bg-black/60 p-5">
+          <div className="rounded-none border border-white/[0.06] bg-black/60 p-5">
             <div className="text-[10px] uppercase tracking-widest text-white/25 mb-2">Активних</div>
             <div className="text-2xl font-light text-rose-400">{totalActive}</div>
           </div>
-          <div className="rounded-2xl border border-white/[0.06] bg-black/60 p-5">
+          <div className="rounded-none border border-white/[0.06] bg-black/60 p-5">
             <div className="text-[10px] uppercase tracking-widest text-white/25 mb-2">Середня ставка</div>
             <div className="text-2xl font-light text-white">{avgRate}%</div>
           </div>
         </div>
 
         {/* Search */}
-        <div className="mb-6 flex items-center gap-3 rounded-xl border border-white/[0.06] bg-black/40 px-4 py-3">
+        <div className="mb-6 flex items-center gap-3 rounded-none border border-white/[0.06] bg-black/40 px-4 py-3">
           <Search className="w-4 h-4 text-white/25" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Пошук по регіону..."
             className="flex-1 bg-transparent text-sm text-white placeholder-white/15 focus:outline-none" />
@@ -161,12 +161,12 @@ export default function TaxRegionPage() {
         {loading ? (
           <div className="py-20 flex justify-center"><RefreshCw className="w-6 h-6 animate-spin text-white/20" /></div>
         ) : filtered.length === 0 && rules.length === 0 ? (
-          <div className="text-center py-20 text-white/20 text-sm border border-dashed border-white/10 rounded-2xl">
+          <div className="text-center py-20 text-white/20 text-sm border border-dashed border-white/10 rounded-none">
             <Receipt className="w-12 h-12 mx-auto mb-4 text-white/10" />
             Ще немає податкових правил. Додайте перший регіон.
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-black/60 backdrop-blur-2xl shadow-2xl">
+          <div className="overflow-hidden rounded-none border border-white/[0.06] bg-black/60 backdrop-blur-2xl shadow-2xl">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/[0.06] bg-white/[0.02]">
@@ -195,9 +195,9 @@ export default function TaxRegionPage() {
                       <td className="px-5 py-3">
                         <select value={r.taxType}
                           onChange={e => updateField(realIdx, 'taxType', e.target.value)}
-                          className="bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-rose-500/40 text-xs text-white/70">
+                          className="bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-none focus:border-rose-500/40 text-xs text-white/70">
                           {TAX_TYPES.map(t => (
-                            <option key={t.value} value={t.value}>{t.label}</option>
+                            <option key={t.value} value={t.value} className="bg-zinc-900 text-white">{t.label}</option>
                           ))}
                         </select>
                       </td>
@@ -205,7 +205,7 @@ export default function TaxRegionPage() {
                         <div className="flex items-center gap-1">
                           <input type="number" step="0.1" min="0" max="100" value={r.taxRate}
                             onChange={e => updateField(realIdx, 'taxRate', parseFloat(e.target.value) || 0)}
-                            className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none text-right text-white/70 focus:border-rose-500/40" />
+                            className="w-16 bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-none text-right text-white/70 focus:border-rose-500/40" />
                           <span className="text-white/20 text-xs">%</span>
                         </div>
                       </td>
@@ -213,7 +213,7 @@ export default function TaxRegionPage() {
                         <div className="flex items-center gap-1">
                           <input type="number" step="0.1" min="0" max="100" value={r.customsDutyPct}
                             onChange={e => updateField(realIdx, 'customsDutyPct', parseFloat(e.target.value) || 0)}
-                            className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 outline-none text-right text-white/70 focus:border-rose-500/40" />
+                            className="w-16 bg-black/40 border border-white/10 rounded-none px-2 py-1.5 outline-none text-right text-white/70 focus:border-rose-500/40" />
                           <span className="text-white/20 text-xs">%</span>
                         </div>
                       </td>
@@ -244,13 +244,13 @@ export default function TaxRegionPage() {
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-1.5">
                           <button onClick={() => saveRule(r)} disabled={savingKey === r.regionCode}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 rounded-lg text-[10px] uppercase tracking-wider font-semibold transition disabled:opacity-50">
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 rounded-none text-[10px] uppercase tracking-wider font-semibold transition disabled:opacity-50">
                             {savingKey === r.regionCode ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                             Save
                           </button>
                           {r.id && (
                             <button onClick={() => deleteRule(r.id!)}
-                              className="p-1.5 rounded-lg hover:bg-red-500/10 text-white/15 hover:text-red-400 transition-colors">
+                              className="p-1.5 rounded-none hover:bg-red-950/30 border border-red-900/50 text-red-500/10 text-white/15 hover:text-red-400 transition-colors">
                               <Trash2 className="w-3 h-3" />
                             </button>
                           )}
@@ -265,7 +265,7 @@ export default function TaxRegionPage() {
         )}
 
         {/* Info banner */}
-        <div className="p-4 bg-rose-500/[0.04] border border-rose-500/10 rounded-2xl flex gap-3 text-sm text-rose-200/80 mt-6">
+        <div className="p-4 bg-rose-500/[0.04] border border-rose-500/10 rounded-none flex gap-3 text-sm text-rose-200/80 mt-6">
           <AlertCircle className="shrink-0 w-5 h-5 text-rose-400/60" />
           <div>
             <p className="font-semibold mb-1 text-rose-200/90">Як працюють податки?</p>
@@ -293,14 +293,14 @@ export default function TaxRegionPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/[0.08] w-full max-w-lg p-6 rounded-2xl shadow-2xl"
+              className="bg-[#0a0a0a] border border-white/[0.08] w-full max-w-lg p-6 rounded-none shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-sm font-medium text-white flex items-center gap-2">
                   <Receipt className="w-4 h-4 text-rose-400" /> Додати Податковий Регіон
                 </h3>
-                <button onClick={() => setShowAdd(false)} className="p-1 rounded hover:bg-white/5 text-white/30">
+                <button onClick={() => setShowAdd(false)} className="p-1 rounded-none hover:bg-white/5 text-white/30">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -312,15 +312,15 @@ export default function TaxRegionPage() {
                     <input value={newRule.regionCode}
                       onChange={e => setNewRule(p => ({ ...p, regionCode: e.target.value.toUpperCase() }))}
                       placeholder="UA"
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-rose-500/40 placeholder-white/15 font-mono" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-rose-500/40 placeholder-white/15 font-mono" />
                   </div>
                   <div>
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Тип Податку</label>
                     <select value={newRule.taxType}
                       onChange={e => setNewRule(p => ({ ...p, taxType: e.target.value }))}
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-rose-500/40">
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-rose-500/40">
                       {TAX_TYPES.map(t => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
+                        <option key={t.value} value={t.value} className="bg-zinc-900 text-white">{t.label}</option>
                       ))}
                     </select>
                   </div>
@@ -331,7 +331,7 @@ export default function TaxRegionPage() {
                   <input value={newRule.regionName}
                     onChange={e => setNewRule(p => ({ ...p, regionName: e.target.value }))}
                     placeholder="Ukraine"
-                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-rose-500/40 placeholder-white/15" />
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-rose-500/40 placeholder-white/15" />
                 </div>
 
                 <div>
@@ -339,7 +339,7 @@ export default function TaxRegionPage() {
                   <input value={newRule.regionNameUa}
                     onChange={e => setNewRule(p => ({ ...p, regionNameUa: e.target.value }))}
                     placeholder="Україна"
-                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-rose-500/40 placeholder-white/15" />
+                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-rose-500/40 placeholder-white/15" />
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
@@ -347,20 +347,20 @@ export default function TaxRegionPage() {
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Ставка %</label>
                     <input type="number" step="0.1" min="0" max="100" value={newRule.taxRate}
                       onChange={e => setNewRule(p => ({ ...p, taxRate: Number(e.target.value) }))}
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-rose-500/40" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-rose-500/40" />
                   </div>
                   <div>
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Мито %</label>
                     <input type="number" step="0.1" min="0" max="100" value={newRule.customsDutyPct}
                       onChange={e => setNewRule(p => ({ ...p, customsDutyPct: Number(e.target.value) }))}
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-rose-500/40" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-rose-500/40" />
                   </div>
                   <div>
                     <label className="block text-[9px] uppercase tracking-widest text-white/30 mb-1.5">Мітка</label>
                     <input value={newRule.taxLabelUa || ''}
                       onChange={e => setNewRule(p => ({ ...p, taxLabelUa: e.target.value || null }))}
                       placeholder="ПДВ 20%"
-                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-lg focus:outline-none focus:border-rose-500/40 placeholder-white/15" />
+                      className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2.5 rounded-none focus:outline-none focus:border-rose-500/40 placeholder-white/15" />
                   </div>
                 </div>
 
@@ -376,11 +376,11 @@ export default function TaxRegionPage() {
 
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setShowAdd(false)}
-                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest text-white/40 border border-white/10 rounded-xl hover:bg-white/5 transition-colors">
+                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest text-white/40 border border-white/10 rounded-none hover:bg-white/5 transition-colors">
                   Скасувати
                 </button>
                 <button onClick={addNewRule} disabled={!newRule.regionCode || !newRule.regionName}
-                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest font-bold bg-rose-500 text-white rounded-xl hover:bg-rose-400 disabled:opacity-30 transition-all">
+                  className="flex-1 text-center py-2.5 text-xs uppercase tracking-widest font-bold bg-rose-500 text-white rounded-none hover:bg-rose-400 disabled:opacity-30 transition-all">
                   Створити
                 </button>
               </div>

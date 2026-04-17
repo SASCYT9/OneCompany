@@ -231,13 +231,13 @@ function AdminInventoryPageContent() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Link href="/admin/shop/pricing" className="rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+            <Link href="/admin/shop/pricing" className="rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
               Pricing
             </Link>
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
+              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
             >
               <RefreshCcw className="h-4 w-4" />
               Refresh
@@ -246,7 +246,7 @@ function AdminInventoryPageContent() {
         </div>
 
         <div className="mb-4 grid gap-4 lg:grid-cols-[1fr_320px]">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
             <div className="grid gap-2 text-sm text-white/70 md:grid-cols-4">
               <div>{variants.length} variants</div>
               <div>{locations.length} locations</div>
@@ -257,7 +257,7 @@ function AdminInventoryPageContent() {
               <select
                 value={selectedLocationId}
                 onChange={(e) => setSelectedLocationId(e.target.value)}
-                className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white font-medium text-emerald-400 focus:outline-none"
+                className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white font-medium text-emerald-400 focus:outline-none"
               >
                 {locations.map(loc => (
                   <option key={loc.id} value={loc.id}>🏢 {loc.nameUa || loc.name} ({loc.code})</option>
@@ -266,14 +266,14 @@ function AdminInventoryPageContent() {
               <select
                 value={brandFilter}
                 onChange={(e) => setBrandFilter(e.target.value)}
-                className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
+                className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
               >
                 <option value="ALL">Всі Бренди</option>
                 {uniqueBrands.map(b => (
                   <option key={b} value={b}>{b}</option>
                 ))}
               </select>
-              <label className="flex flex-1 items-center gap-2 rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
+              <label className="flex flex-1 items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
                 <Search className="h-4 w-4 text-white/35" />
                 <input
                   value={query}
@@ -285,7 +285,7 @@ function AdminInventoryPageContent() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-sm font-medium text-white">Selection</div>
@@ -296,20 +296,20 @@ function AdminInventoryPageContent() {
               <CheckSquare className="h-5 w-5 text-white/35" />
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={selectVisible} className="rounded-lg border border-white/15 px-3 py-2 text-xs text-white hover:bg-white/5">
+              <button type="button" onClick={selectVisible} className="rounded-none border border-white/15 px-3 py-2 text-xs text-white hover:bg-white/5">
                 Select visible
               </button>
-              <button type="button" onClick={clearSelection} className="rounded-lg border border-white/15 px-3 py-2 text-xs text-white hover:bg-white/5">
+              <button type="button" onClick={clearSelection} className="rounded-none border border-white/15 px-3 py-2 text-xs text-white hover:bg-white/5">
                 Clear
               </button>
             </div>
           </div>
         </div>
 
-        {error ? <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
-        {success ? <div className="mb-4 rounded-lg bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
+        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+        {success ? <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
 
-        <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <div className="mb-6 rounded-none border border-white/10 bg-white/[0.03] p-5">
           <div className="mb-4">
             <h3 className="text-lg font-medium text-white">Bulk update</h3>
             <p className="mt-1 text-sm text-white/45">
@@ -337,7 +337,7 @@ function AdminInventoryPageContent() {
               type="button"
               onClick={applyBulk}
               disabled={applying}
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
             >
               <Boxes className="h-4 w-4" />
               {applying ? 'Applying…' : 'Apply to selected'}
@@ -345,7 +345,7 @@ function AdminInventoryPageContent() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-white/10">
+        <div className="overflow-hidden rounded-none border border-white/10">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
@@ -368,7 +368,7 @@ function AdminInventoryPageContent() {
                         type="checkbox"
                         checked={selectedIds.includes(variant.id)}
                         onChange={() => toggleSelection(variant.id)}
-                        className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+                        className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
                       />
                     </td>
                     <td className="px-4 py-4">
@@ -388,7 +388,7 @@ function AdminInventoryPageContent() {
                       <div className="flex max-w-[280px] flex-wrap gap-1.5">
                         {variant.product.collectionHandles.length ? (
                           variant.product.collectionHandles.map((handle) => (
-                            <span key={handle} className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60">
+                            <span key={handle} className="rounded-none-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60">
                               {handle}
                             </span>
                           ))
@@ -439,7 +439,7 @@ function InputField({ label, value, onChange, type = 'text' }: InputFieldProps) 
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
       />
     </label>
   );
@@ -459,7 +459,7 @@ function SelectField({ label, value, onChange, options }: SelectFieldProps) {
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
       >
         {options.map((option) => (
           <option key={option.value || option.label} value={option.value}>

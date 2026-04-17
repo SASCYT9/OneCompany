@@ -67,7 +67,7 @@ export default function AdminBackupsPage() {
             <button
               type="button"
               onClick={() => void load()}
-              className="rounded-lg border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+              className="rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
             >
               Оновити список
             </button>
@@ -75,7 +75,7 @@ export default function AdminBackupsPage() {
               type="button"
               onClick={() => void createBackup()}
               disabled={creating}
-              className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
+              className="rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
             >
               {creating ? 'Створюємо…' : 'Зробити бекап зараз'}
             </button>
@@ -83,13 +83,13 @@ export default function AdminBackupsPage() {
         </div>
 
         {error ? (
-          <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div>
+          <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div>
         ) : null}
         {success ? (
-          <div className="mb-4 rounded-lg bg-green-900/20 p-3 text-sm text-green-200">{success}</div>
+          <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div>
         ) : null}
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
           {loading ? (
             <div className="py-8 text-sm text-white/60">Завантаження списку бекапів…</div>
           ) : items.length === 0 ? (
@@ -124,13 +124,13 @@ export default function AdminBackupsPage() {
           )}
         </div>
 
-        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-xs text-white/60 space-y-1">
+        <div className="mt-6 rounded-none border border-white/10 bg-white/[0.02] p-4 text-xs text-white/60 space-y-1">
           <p className="font-medium text-white/80">Архітектура та бекапи на проді (Vercel):</p>
-          <p>• На Vercel немає <code className="rounded bg-white/10 px-1">pg_dump</code> у рантаймі, тому кнопка «Зробити бекап зараз» на проді не спрацює. Для продакшну налаштуйте бекапи через <strong>GitHub Actions</strong> та зовнішнє сховище (артефакти, S3 тощо).</p>
-          <p>• Детальна інструкція: політика зберігання, приклад workflow, відновлення — у документі <code className="rounded bg-white/10 px-1">docs/BACKUPS.md</code> у репозиторії.</p>
+          <p>• На Vercel немає <code className="rounded-none bg-white/10 px-1">pg_dump</code> у рантаймі, тому кнопка «Зробити бекап зараз» на проді не спрацює. Для продакшну налаштуйте бекапи через <strong>GitHub Actions</strong> та зовнішнє сховище (артефакти, S3 тощо).</p>
+          <p>• Детальна інструкція: політика зберігання, приклад workflow, відновлення — у документі <code className="rounded-none bg-white/10 px-1">docs/BACKUPS.md</code> у репозиторії.</p>
           <p className="font-medium text-white/80 mt-3">Як відновити з бекапу (DevOps):</p>
-          <p>• Бекапи зберігаються в папці <code className="rounded bg-white/10 px-1">backups/</code> на сервері (якщо є доступ). На Vercel ця папка ефемерна.</p>
-          <p>• Відновлення: <code className="rounded bg-white/10 px-1">psql</code> або <code className="rounded bg-white/10 px-1">pg_restore</code>. Перед відновленням зробіть поточний дамп стану БД.</p>
+          <p>• Бекапи зберігаються в папці <code className="rounded-none bg-white/10 px-1">backups/</code> на сервері (якщо є доступ). На Vercel ця папка ефемерна.</p>
+          <p>• Відновлення: <code className="rounded-none bg-white/10 px-1">psql</code> або <code className="rounded-none bg-white/10 px-1">pg_restore</code>. Перед відновленням зробіть поточний дамп стану БД.</p>
         </div>
       </div>
     </div>

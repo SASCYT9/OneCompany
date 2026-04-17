@@ -22,6 +22,8 @@ export type ShopShippingZone = {
   minimumSubtotal: number | null;
   currency: ShopCurrencyCode;
   enabled: boolean;
+  etaMinDays: number | null;
+  etaMaxDays: number | null;
 };
 
 export type ShopBrandShippingRule = {
@@ -150,6 +152,8 @@ export const DEFAULT_SHIPPING_ZONES: ShopShippingZone[] = [
     minimumSubtotal: null,
     currency: 'UAH',
     enabled: true,
+    etaMinDays: 1,
+    etaMaxDays: 3,
   },
   {
     id: 'worldwide-standard',
@@ -170,6 +174,8 @@ export const DEFAULT_SHIPPING_ZONES: ShopShippingZone[] = [
     minimumSubtotal: null,
     currency: 'EUR',
     enabled: true,
+    etaMinDays: 7,
+    etaMaxDays: 14,
   },
 ];
 
@@ -274,6 +280,11 @@ function normalizeShopShippingZones(value: unknown): ShopShippingZone[] {
     const freeOver = freeOverRaw == null || freeOverRaw === '' ? null : Number(freeOverRaw);
     const minimumSubtotal = minimumSubtotalRaw == null || minimumSubtotalRaw === '' ? null : Number(minimumSubtotalRaw);
 
+    const etaMinDaysRaw = entry.etaMinDays;
+    const etaMaxDaysRaw = entry.etaMaxDays;
+    const etaMinDays = etaMinDaysRaw == null || etaMinDaysRaw === '' ? null : Number(etaMinDaysRaw);
+    const etaMaxDays = etaMaxDaysRaw == null || etaMaxDaysRaw === '' ? null : Number(etaMaxDaysRaw);
+
     return {
       id: stringValue(entry.id, `zone-${index + 1}`) || `zone-${index + 1}`,
       name: stringValue(entry.name, `Zone ${index + 1}`) || `Zone ${index + 1}`,
@@ -293,6 +304,8 @@ function normalizeShopShippingZones(value: unknown): ShopShippingZone[] {
       minimumSubtotal: minimumSubtotal != null && Number.isFinite(minimumSubtotal) ? minimumSubtotal : null,
       currency: normalizeCurrencyCode(entry.currency, 'EUR'),
       enabled: entry.enabled !== false,
+      etaMinDays: etaMinDays != null && Number.isFinite(etaMinDays) ? etaMinDays : null,
+      etaMaxDays: etaMaxDays != null && Number.isFinite(etaMaxDays) ? etaMaxDays : null,
     } satisfies ShopShippingZone;
   });
 

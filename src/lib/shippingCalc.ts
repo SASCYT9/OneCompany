@@ -14,7 +14,7 @@ const LBS_TO_KG = 0.453592;
 
 // ─── Zone profiles ───────────────────────────────────────────
 
-export type ShippingZone = 'UA' | 'KZ' | 'EU' | 'US' | 'OTHER';
+export type ShippingZone = string;
 
 export interface ShippingZoneProfile {
   label: string;

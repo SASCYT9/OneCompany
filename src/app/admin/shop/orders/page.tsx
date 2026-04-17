@@ -298,27 +298,27 @@ export default function AdminOrdersPage() {
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/admin/shop/orders/create"
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300"
+              className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300"
             >
               + B2B замовлення
             </Link>
             <Link
               href="/admin/shop/orders/new"
-              className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 hover:bg-white/10 transition-all duration-300"
+              className="inline-flex items-center gap-2 rounded-none border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 hover:bg-white/10 transition-all duration-300"
             >
               Створити власноруч
             </Link>
             <button
               type="button"
               onClick={() => setReloadKey((current) => current + 1)}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-transparent hover:bg-white/5 transition-all duration-300 px-4 py-2 text-sm font-medium text-white/80 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-none border border-white/[0.08] bg-transparent hover:bg-white/5 transition-all duration-300 px-4 py-2 text-sm font-medium text-white/80 hover:text-white"
             >
               <RefreshCcw className="h-4 w-4 text-white/50" />
               Оновити
             </button>
             <Link
               href="/admin/shop/audit"
-              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-transparent hover:bg-white/5 transition-all duration-300 px-4 py-2 text-sm font-medium text-white/80 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-none border border-white/[0.08] bg-transparent hover:bg-white/5 transition-all duration-300 px-4 py-2 text-sm font-medium text-white/80 hover:text-white"
             >
               <FileClock className="h-4 w-4 text-white/50" />
               Аудит
@@ -340,7 +340,7 @@ export default function AdminOrdersPage() {
         {/* Status Distribution Bar */}
         {stats.total > 0 && (
           <div className="mb-6 px-1">
-            <div className="flex h-2 w-full overflow-hidden rounded-full bg-white/[0.03]">
+            <div className="flex h-2 w-full overflow-hidden rounded-none-full bg-white/[0.03]">
               {STATUS_BAR_ORDER.map(s => {
                 const count = stats.statusCounts[s] || 0;
                 if (count === 0) return null;
@@ -348,7 +348,7 @@ export default function AdminOrdersPage() {
                 return (
                   <div key={s} title={`${statusLabel(s)}: ${count}`}
                     style={{ width: `${pct}%`, backgroundColor: STATUS_BAR_COLORS[s] || '#6b7280' }}
-                    className="transition-all duration-500 first:rounded-l-full last:rounded-r-full" />
+                    className="transition-all duration-500 first:rounded-none-l-full last:rounded-none-r-full" />
                 );
               })}
             </div>
@@ -358,7 +358,7 @@ export default function AdminOrdersPage() {
                 if (count === 0) return null;
                 return (
                   <div key={s} className="flex items-center gap-1.5 text-[9px] text-white/35">
-                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: STATUS_BAR_COLORS[s] }} />
+                    <div className="w-1.5 h-1.5 rounded-none-full" style={{ backgroundColor: STATUS_BAR_COLORS[s] }} />
                     {statusLabel(s)} ({count})
                   </div>
                 );
@@ -367,8 +367,8 @@ export default function AdminOrdersPage() {
           </div>
         )}
 
-        <div className="mb-6 grid gap-4 rounded-2xl border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-6 md:grid-cols-5">
-          <label className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-black/40 px-4 py-2.5 text-sm text-white md:col-span-2 transition-colors focus-within:border-indigo-500/50">
+        <div className="mb-6 grid gap-4 rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-6 md:grid-cols-5">
+          <label className="flex items-center gap-2 rounded-none border border-white/[0.08] bg-black/40 px-4 py-2.5 text-sm text-white md:col-span-2 transition-colors focus-within:border-indigo-500/50">
             <Search className="h-4 w-4 text-white/35" />
             <input
               value={query}
@@ -419,7 +419,7 @@ export default function AdminOrdersPage() {
         </div>
 
         {selectedOrders.length ? (
-          <div className="mb-6 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 backdrop-blur-xl p-6 shadow-[0_0_20px_rgba(99,102,241,0.05)]">
+          <div className="mb-6 rounded-none border border-indigo-500/20 bg-zinc-100 text-black/5 backdrop-blur-xl p-6 shadow-[0_0_20px_rgba(99,102,241,0.05)]">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm text-white/75">
                 {selectedOrders.length} обрано · {selectedOrders.map((order) => order.orderNumber).join(', ')}
@@ -451,7 +451,7 @@ export default function AdminOrdersPage() {
                   value={bulkNote}
                   onChange={(event) => setBulkNote(event.target.value)}
                   placeholder="Необов'язкова нотатка для обраних замовлень"
-                  className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
                 />
               </label>
               <div className="flex items-end">
@@ -459,7 +459,7 @@ export default function AdminOrdersPage() {
                   type="button"
                   onClick={handleBulkUpdate}
                   disabled={!bulkStatus || !selectedIds.length || bulkUpdating}
-                  className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
                 >
                   <ShoppingCart className="h-4 w-4" />
                   {bulkUpdating ? 'Застосовуємо…' : 'Застосувати масове оновлення'}
@@ -469,15 +469,15 @@ export default function AdminOrdersPage() {
           </div>
         ) : null}
 
-        {error ? <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
-        {success ? <div className="mb-4 rounded-lg bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
+        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+        {success ? <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
 
         {orders.length === 0 ? (
-          <div className="rounded-2xl border border-white/[0.08] bg-black/40 py-24 text-center text-white/40 tracking-wider text-sm shadow-2xl backdrop-blur-sm">
+          <div className="rounded-none border border-white/[0.08] bg-black/40 py-24 text-center text-white/40 tracking-wider text-sm shadow-2xl backdrop-blur-sm">
             За обраними фільтрами замовлень не знайдено.
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-black/60 backdrop-blur-2xl shadow-2xl">
+          <div className="overflow-hidden rounded-none border border-white/[0.08] bg-black/60 backdrop-blur-2xl shadow-2xl">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/[0.06] bg-white/[0.02]">
@@ -486,7 +486,7 @@ export default function AdminOrdersPage() {
                       type="checkbox"
                       checked={orders.length > 0 && selectedIds.length === orders.length}
                       onChange={toggleSelectAll}
-                      className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+                      className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
                     />
                   </th>
                   <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Замовлення</th>
@@ -505,16 +505,16 @@ export default function AdminOrdersPage() {
                         type="checkbox"
                         checked={selectedIds.includes(order.id)}
                         onChange={() => toggleSelected(order.id)}
-                        className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+                        className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
                       />
                     </td>
                     <td className="px-5 py-5 max-w-[220px]">
-                      <div className="font-mono text-xs font-semibold tracking-wide text-white drop-shadow-sm">{order.orderNumber}</div>
+                      <div className="font-mono text-xs font-semibold tracking-wide text-white drop-border border-white/5">{order.orderNumber}</div>
                       <div className="mt-1 text-sm font-medium text-white/80 truncate">{order.customerName}</div>
                       <div className="mt-1 text-xs text-white/40 truncate">{order.email}</div>
                     </td>
                     <td className="px-5 py-5">
-                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs capitalize ${statusBadgeClass(order.status)}`}>
+                      <span className={`inline-flex rounded-none-full border px-2.5 py-1 text-xs capitalize ${statusBadgeClass(order.status)}`}>
                         {statusLabel(order.status)}
                       </span>
                       <div className="mt-2 text-xs text-white/45">
@@ -543,7 +543,7 @@ export default function AdminOrdersPage() {
                     <td className="px-5 py-5">
                       <Link
                         href={`/admin/shop/orders/${order.id}`}
-                        className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-transparent hover:bg-white/5 px-3 py-2 text-xs font-medium uppercase tracking-widest text-white/70 hover:text-white transition-all duration-300"
+                        className="inline-flex items-center gap-2 rounded-none border border-white/[0.08] bg-transparent hover:bg-white/5 px-3 py-2 text-xs font-medium uppercase tracking-widest text-white/70 hover:text-white transition-all duration-300"
                       >
                         Відкрити
                         <ChevronRight className="h-3.5 w-3.5 text-white/40" />
@@ -568,7 +568,7 @@ type SummaryCardProps = {
 
 function SummaryCard({ label, value, detail }: SummaryCardProps) {
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-5 hover:border-indigo-500/30 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all duration-300 group">
+    <div className="rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-5 hover:border-indigo-500/30 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all duration-300 group">
       <div className="text-[11px] uppercase tracking-[0.2em] font-medium text-white/40 mb-4">{label}</div>
       <div className="mt-3 text-3xl font-light text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">{value}</div>
       <div className="mt-2 text-[13px] font-light text-white/40">{detail}</div>
@@ -590,7 +590,7 @@ function SelectField({ label, value, onChange, options }: SelectFieldProps) {
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-xl border border-white/[0.08] bg-black/40 px-3 py-2.5 text-[13px] text-white/80 focus:border-indigo-500/50 focus:outline-none transition-colors"
+        className="w-full rounded-none border border-white/[0.08] bg-black/40 px-3 py-2.5 text-[13px] text-white/80 focus:border-indigo-500/50 focus:outline-none transition-colors"
       >
         {options.map((option) => (
           <option key={`${label}-${option.value || option.label}`} value={option.value}>

@@ -4,10 +4,10 @@ aliases: [Дашборд, Dashboard]
 parent: "[[Admin Panel]]"
 ---
 
-# 📊 Admin — Dashboard
+# 📊 Admin — Dashboard v2
 
 > [!tip] Командний центр
-> Головна сторінка після входу. Збирає телеметрію з усіх джерел у єдиний live-дашборд.
+> Головна сторінка після входу. Real-time BI дашборд з окремими метриками Shop (€) і CRM ($).
 
 ---
 
@@ -15,23 +15,30 @@ parent: "[[Admin Panel]]"
 
 | Компонент | Опис |
 |-----------|------|
-| **KPI-карти** | 5 key metrics: дохід Shop (€), CRM Виручка ($), CRM Прибуток ($), Активні замовлення, Борги |
-| **Sparkline-графіки** | SVG мікро-графіки виручки та прибутку на базі останніх 15 угод |
-| **CRM DB Analytics** | 6-metric row з PostgreSQL: клієнти, замовлення, позиції, виручка, прибуток, маржа |
-| **Airtable CRM Live** | Таблиця останніх 6 угод з Airtable: номер, назва, статус, сума, прибуток |
-| **Shop Кошики** | Recent orders з сайту: номер, клієнт, сума, статус оплати |
-| **Pipeline Аналітика** | SVG Donut chart — візуальний розподіл замовлень по статусах |
+| **KPI-карти (×5)** | Виручка Shop (€), CRM Виручка ($), CRM Прибуток ($) з маржою, AOV (€), Борги ($) |
+| **Source Badges** | Кожна KPI-карта має badge `SHOP €` або `CRM $` для чіткої ідентифікації джерела |
+| **Monthly Revenue Chart** | SVG dual-bar chart: зелений = CRM ($), індиго = Shop (€), 12 міс. |
+| **Conversion Funnel** | Горизонтальна pipeline-візуалізація: PENDING → CONFIRMED → SHIPPED → DELIVERED |
+| **Brand Breakdown** | TOP-8 брендів за виручкою (CRM) з горизонтальними барами |
+| **CRM Orders Table** | Останні 6 угод з PostgreSQL з ім'ям клієнта та маржою |
+| **Shop Orders Table** | Останні 6 замовлень з сайту з ім'ям клієнта та статусом оплати |
+| **Top Products** | ТОП-6 продуктів за виручкою з кількістю та к-стю замовлень |
+| **Data Quality Badge** | Score 0-100% з деталізацією: без клієнта, нульова сума, без дати |
+| **Turn14 Sync Status** | К-сть брендів, активних синхронізацій, дата останнього оновлення |
 | **VIP Акаунти** | ТОП-5 клієнтів за обсягом продажів + борги |
-| **Навігатор Дій** | Quick-action buttons: Новий чек, CSV Імпорт, Бекап БД, ROI Націнки |
+| **Quick Actions (×6)** | Новий чек, CSV Імпорт, БД Бекап, ROI Націнки, CRM, Shop замовлення |
 
 ---
 
 ## Технічні деталі
 
-- **Auto-refresh**: кожні 30 секунд
-- **Live-індикатор**: зелений пульс + timestamp
-- **Анімації**: Framer Motion stagger для таблиць і карт
-- **Розмір**: `page.tsx` — 22 KB, 482 рядки
+- **Single API call**: весь дашборд живиться одним `/api/admin/dashboard` GET
+- **Structured Response**: `{ shop, crm, system }` — три namespace
+- **Auto-refresh**: кожні 60 секунд
+- **Customer Attribution**: `resolveCustomerName()` з fallback: firstName → customerName → email prefix
+- **Data Quality Score**: `(totalOrders - issues) / totalOrders * 100`
+- **Charts**: Inline SVG з Framer Motion анімаціями
+- **Data Source**: 100% PostgreSQL (CRM orders через sync, не live Airtable)
 
 ---
 
@@ -39,10 +46,24 @@ parent: "[[Admin Panel]]"
 
 | Endpoint | Метод | Опис |
 |----------|-------|------|
-| `/api/admin/dashboard` | GET | Агреговані KPI з Shop |
-| `/api/admin/crm` | GET | Останні замовлення з Airtable |
-| `/api/admin/crm/analytics` | GET | KPI з PostgreSQL |
-| `/api/admin/crm/link-customer` | GET | Список CRM-клієнтів |
+| `/api/admin/dashboard` | GET | Повна структура: shop + crm + system метрики |
+
+### Response Structure:
+```
+shop: totalRevenue, totalInvoiced, aov, conversionFunnel, monthlyRevenue, topProducts, paymentMethods, recentOrders
+crm: totalRevenue, totalProfit, avgMargin, brandBreakdown, monthlyRevenue, topCustomers, debtors, recentOrders
+system: turn14Stats, lastCrmSyncAt, dataQuality { score, ordersWithoutCustomer, ordersWithZeroTotal, crmOrdersWithoutDate }
+```
+
+---
+
+## Файли
+
+| Файл | Опис |
+|------|------|
+| `src/app/admin/page.tsx` | Головна сторінка дашборду (UI) |
+| `src/app/api/admin/dashboard/route.ts` | API endpoint з усіма метриками |
+| `src/lib/dashboard/dataQuality.ts` | Утиліта підрахунку якості даних |
 
 ---
 

@@ -70,30 +70,30 @@ export default function AdminNewOrderPage() {
           Назад до замовлень
         </Link>
         
-        <h1 className="mb-2 text-3xl font-light tracking-tight text-white drop-shadow-sm">Нове ручне замовлення (Draft)</h1>
+        <h1 className="mb-2 text-3xl font-light tracking-tight text-white drop-border border-white/5">Нове ручне замовлення (Draft)</h1>
         <p className="mb-10 text-sm text-white/40 leading-relaxed max-w-2xl">
           Створіть замовлення вручну для клієнта. Введіть існуючий Email клієнта та додайте товари.
         </p>
 
         {error && (
-          <div className="mb-6 flex items-start gap-3 rounded-xl bg-red-500/10 p-4 text-sm text-red-500 border border-red-500/20">
+          <div className="mb-6 flex items-start gap-3 rounded-none bg-red-950/30 border border-red-900/50 text-red-500/10 p-4 text-sm text-red-500 border border-red-500/20">
             <AlertCircle className="h-5 w-5 shrink-0" />
             <p>{error}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="rounded-2xl border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-8 transition-all hover:border-indigo-500/20 group">
+          <div className="rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-8 transition-all hover:border-indigo-500/20 group">
             <h2 className="text-lg font-medium tracking-wide text-white mb-6">Деталі клієнта та замовлення</h2>
             <div className="grid gap-6 md:grid-cols-2">
               <label className="block">
-                <span className="mb-2 block text-[11px] uppercase tracking-wider font-medium text-white/50 group-hover:text-indigo-300 transition-colors">Email клієнта *</span>
+                <span className="mb-2 block text-[11px] uppercase tracking-wider font-medium text-white/50 group-hover:text-zinc-500 transition-colors">Email клієнта *</span>
                 <input
                   type="email"
                   required
                   value={formData.customerEmail}
                   onChange={e => setFormData(p => ({ ...p, customerEmail: e.target.value }))}
-                  className="w-full rounded-xl border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
                   placeholder="Обов'язково має бути зареєстрований"
                 />
               </label>
@@ -103,7 +103,7 @@ export default function AdminNewOrderPage() {
                 <select
                   value={formData.currency}
                   onChange={e => setFormData(p => ({ ...p, currency: e.target.value }))}
-                  className="w-full rounded-xl border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
                 >
                   <option value="EUR">EUR (€)</option>
                   <option value="USD">USD ($)</option>
@@ -116,7 +116,7 @@ export default function AdminNewOrderPage() {
                 <select
                   value={formData.deliveryMethod}
                   onChange={e => setFormData(p => ({ ...p, deliveryMethod: e.target.value }))}
-                  className="w-full rounded-xl border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
                 >
                   <option value="SPECIAL_DELIVERY">Спецдоставка (Special)</option>
                   <option value="NOVA_POSHTA">Нова Пошта</option>
@@ -132,19 +132,19 @@ export default function AdminNewOrderPage() {
                   min="0"
                   value={formData.shippingCost}
                   onChange={e => setFormData(p => ({ ...p, shippingCost: e.target.value }))}
-                  className="w-full rounded-xl border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
                 />
               </label>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-8 hover:border-indigo-500/20 transition-all">
+          <div className="rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-8 hover:border-indigo-500/20 transition-all">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-medium tracking-wide text-white">Товари (Draft Items)</h2>
               <button
                 type="button"
                 onClick={() => setItems(p => [...p, { id: Date.now(), title: '', price: '', quantity: 1 }])}
-                className="flex items-center gap-1.5 text-[13px] tracking-wide font-medium text-indigo-400 hover:text-indigo-300 drop-shadow-[0_0_8px_rgba(99,102,241,0.4)] transition-all duration-300"
+                className="flex items-center gap-1.5 text-[13px] tracking-wide font-medium text-zinc-400 hover:text-zinc-500 drop-shadow-[0_0_8px_rgba(99,102,241,0.4)] transition-all duration-300"
               >
                 <Plus className="w-4 h-4" /> Додати рядок
               </button>
@@ -164,7 +164,7 @@ export default function AdminNewOrderPage() {
                         newItems[index].title = e.target.value;
                         setItems(newItems);
                       }}
-                      className="w-full rounded-xl border border-white/[0.06] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                      className="w-full rounded-none border border-white/[0.06] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
                     />
                   </div>
                   <div className="w-32">
@@ -180,7 +180,7 @@ export default function AdminNewOrderPage() {
                         newItems[index].price = e.target.value;
                         setItems(newItems);
                       }}
-                      className="w-full rounded-xl border border-white/[0.06] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                      className="w-full rounded-none border border-white/[0.06] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
                     />
                   </div>
                   <div className="w-24">
@@ -195,7 +195,7 @@ export default function AdminNewOrderPage() {
                         newItems[index].quantity = parseInt(e.target.value) || 1;
                         setItems(newItems);
                       }}
-                      className="w-full rounded-xl border border-white/[0.06] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner text-center"
+                      className="w-full rounded-none border border-white/[0.06] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner text-center"
                     />
                   </div>
                   {items.length > 1 && (
@@ -213,7 +213,7 @@ export default function AdminNewOrderPage() {
             
             <div className="mt-8 border-t border-white/[0.06] pt-6 flex flex-col items-end">
               <div className="text-[13px] text-white/40 mb-2 tracking-wide">Підсумок товарів: <span className="text-white/80">{subtotal.toFixed(2)} {formData.currency}</span></div>
-              <div className="text-2xl font-light text-white tracking-tight drop-shadow-md">До сплати: {total.toFixed(2)} {formData.currency}</div>
+              <div className="text-2xl font-light text-white tracking-tight drop-border border-white/5">До сплати: {total.toFixed(2)} {formData.currency}</div>
             </div>
           </div>
 
@@ -221,7 +221,7 @@ export default function AdminNewOrderPage() {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-sm font-semibold uppercase tracking-widest text-black hover:bg-zinc-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none bg-white px-8 py-3.5 text-sm font-semibold uppercase tracking-widest text-black hover:bg-zinc-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 disabled:opacity-50"
             >
               {loading ? (
                 'Обробка...'

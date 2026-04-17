@@ -42,7 +42,7 @@ import type { ShopProduct } from '@/lib/shopCatalog';
 
 const prisma = new PrismaClient();
 
-type ProductPageMode = 'default' | 'urban' | 'do88' | 'brabus' | 'burger' | 'akrapovic' | 'racechip' | 'csf' | 'ohlins' | 'girodisc' | 'ipe';
+type ProductPageMode = 'default' | 'urban' | 'do88' | 'brabus' | 'burger' | 'akrapovic' | 'racechip' | 'csf' | 'ohlins' | 'girodisc' | 'ipe' | 'adro';
 
 type Props = {
   locale: string;
@@ -79,6 +79,7 @@ export async function getShopProductPageMetadata({
   if (mode === 'do88') pageSlug = `shop/do88/products/${slug}`;
   if (mode === 'burger') pageSlug = `shop/burger/products/${slug}`;
   if (mode === 'ipe') pageSlug = `shop/ipe/products/${slug}`;
+  if (mode === 'adro') pageSlug = `shop/adro/products/${slug}`;
 
   if (!product) {
     return buildPageMetadata(resolvedLocale, pageSlug, {
