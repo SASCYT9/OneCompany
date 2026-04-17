@@ -90,7 +90,6 @@ const NAV_GROUPS: NavGroup[] = [
   {
     title: 'Система',
     items: [
-      { href: '/admin/thought-space', label: 'AI Thoughts', icon: <Layers className="w-[18px] h-[18px]" /> },
       { href: '/admin/users', label: 'Доступи', icon: <Shield className="w-[18px] h-[18px]" /> },
       { href: '/admin/settings', label: 'Налаштування', icon: <Settings className="w-[18px] h-[18px]" /> },
       { href: '/admin/backups', label: 'Бекапи', icon: <Archive className="w-[18px] h-[18px]" /> },
