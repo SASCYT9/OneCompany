@@ -305,18 +305,22 @@ function PremiumCombobox({
   );
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className={`relative ${open ? "z-50" : "z-10"}`}>
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listboxId}
-        className="flex min-h-[68px] w-full items-center justify-between gap-4 rounded-[24px] border border-white/12 bg-white/[0.04] px-5 py-4 text-left transition hover:border-white/24 hover:bg-white/[0.06]"
+        className={`flex min-h-[66px] w-full items-center justify-between gap-4 rounded-[18px] border px-5 py-4 text-left transition ${
+          open
+            ? "border-[#c29d59]/35 bg-[#111111] shadow-[0_20px_50px_rgba(0,0,0,0.22)]"
+            : "border-white/10 bg-[#101010] hover:border-white/18 hover:bg-[#121212]"
+        }`}
       >
         <span className="min-w-0">
-          <span className="block text-[10px] uppercase text-white/38">{label}</span>
-          <span className={`mt-1 block truncate text-sm ${selectedOption ? "text-white" : "text-white/42"}`}>
+          <span className="block text-[10px] uppercase text-white/34">{label}</span>
+          <span className={`mt-1 block truncate text-[15px] ${selectedOption ? "text-white" : "text-white/42"}`}>
             {selectedOption?.label ?? placeholder}
           </span>
         </span>
@@ -324,7 +328,7 @@ function PremiumCombobox({
       </button>
 
       {open ? (
-        <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-[24px] border border-white/12 bg-[#090909] shadow-[0_24px_80px_rgba(0,0,0,0.38)]">
+        <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-[70] overflow-hidden rounded-[20px] border border-white/10 bg-[#0a0a0a] shadow-[0_28px_80px_rgba(0,0,0,0.55)]">
           <div id={listboxId} role="listbox" className="max-h-[420px] overflow-y-auto p-2">
             <button
               type="button"
@@ -332,7 +336,7 @@ function PremiumCombobox({
                 onChange("all");
                 setOpen(false);
               }}
-              className={`flex w-full items-center rounded-[18px] px-4 py-3 text-left text-sm transition ${
+              className={`flex w-full items-center rounded-[14px] px-4 py-3 text-left text-sm transition ${
                 value === "all"
                   ? "bg-[#c29d59]/12 text-white"
                   : "text-white/72 hover:bg-white/[0.04] hover:text-white"
@@ -345,7 +349,7 @@ function PremiumCombobox({
               groups.map((group) => (
                 <div key={group.label ?? "group"} className="mt-2">
                   {group.label ? (
-                    <p className="px-4 pb-2 pt-2 text-[10px] uppercase text-white/30">{group.label}</p>
+                    <p className="px-4 pb-2 pt-2 text-[10px] uppercase text-white/28">{group.label}</p>
                   ) : null}
                   <div className="space-y-1">
                     {group.options.map((option) => (
@@ -356,7 +360,7 @@ function PremiumCombobox({
                           onChange(option.value);
                           setOpen(false);
                         }}
-                        className={`flex w-full items-center rounded-[18px] px-4 py-3 text-left text-sm transition ${
+                        className={`flex w-full items-center rounded-[14px] px-4 py-3 text-left text-sm transition ${
                           value === option.value
                             ? "bg-[#c29d59]/12 text-white"
                             : "text-white/72 hover:bg-white/[0.04] hover:text-white"
@@ -759,7 +763,7 @@ export default function UrbanVehicleFilter({
   return (
     <section className="pb-16 md:pb-24">
       <div className="mx-auto w-full max-w-[1720px] px-6 md:px-12 lg:px-16">
-        <div className="overflow-hidden rounded-[32px] border border-white/10 bg-[#060606] shadow-[0_24px_90px_rgba(0,0,0,0.32)]">
+        <div className="overflow-visible rounded-[32px] border border-white/10 bg-[#060606] shadow-[0_24px_90px_rgba(0,0,0,0.32)]">
           <div className="border-b border-white/8 px-6 py-6 md:px-8 lg:px-10">
             <div>
               <p className="text-[10px] font-medium uppercase text-[#c29d59]">Urban Automotive</p>

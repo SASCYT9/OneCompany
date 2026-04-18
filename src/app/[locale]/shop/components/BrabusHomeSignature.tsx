@@ -905,9 +905,12 @@ export default function BrabusHomeSignature({ locale }: Props) {
         .br-fleet__card:hover { background: var(--br-card-hover); }
         .br-fleet__card-media {
           position: relative; aspect-ratio: 4/3; overflow: hidden;
+          background: #fdfdfd;
         }
         .br-fleet__card-img {
-          object-fit: cover; width: 100%; height: 100%;
+          object-fit: contain; width: 100%; height: 100%;
+          padding: 1.5rem;
+          mix-blend-mode: multiply;
           transition: transform .6s ease;
         }
         .br-fleet__card:hover .br-fleet__card-img {

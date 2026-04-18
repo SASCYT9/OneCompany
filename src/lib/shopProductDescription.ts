@@ -1,4 +1,5 @@
 import { load } from 'cheerio';
+import type { Element } from 'domhandler';
 
 export type ShopProductDescriptionSpec = {
   label: string;
@@ -28,11 +29,17 @@ const INCLUDED_HEADINGS = [
   /^included in the package:?$/i,
   /^includes:?$/i,
   /^included:?$/i,
+  /^package details:?$/i,
+  /^kit contents:?$/i,
+  /^package contents:?$/i,
   /^in the box:?$/i,
   /^у комплекті:?$/i,
   /^в комплекті:?$/i,
   /^включає:?$/i,
   /^що входить:?$/i,
+  /^комплектація:?$/i,
+  /^комплектація \(деталі\):?$/i,
+  /^деталі комплекту:?$/i,
 ];
 
 const EXCLUDED_HEADINGS = [
@@ -204,62 +211,72 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
   const introFragments: string[] = [];
   let activeSection: SectionKind | null = null;
 
+  const visit = (element: Element) => {
+    const tagName = element.tagName?.toLowerCase() ?? '';
+    const childElements = $(element).children().toArray();
+
+    if (['div', 'section', 'article'].includes(tagName) && childElements.length > 0) {
+      childElements.forEach((child) => visit(child));
+      return;
+    }
+
+    const text = normalizeText($(element).text());
+
+    if (!text) {
+      return;
+    }
+
+    const sectionHeading = detectSectionHeading(text);
+    if (sectionHeading && (/^h[1-6]$/.test(tagName) || tagName === 'p' || tagName === 'div')) {
+      activeSection = sectionHeading;
+      return;
+    }
+
+    if (tagName === 'ul' || tagName === 'ol') {
+      const items = $(element)
+        .find('li')
+        .map((__, item) => normalizeText($(item).text()))
+        .get()
+        .filter(Boolean);
+
+      if (items.length > 0 && activeSection) {
+        pushToSection(sections, activeSection, items);
+        return;
+      }
+    }
+
+    const prefixedSection = parsePrefixedSection(text);
+    if (prefixedSection) {
+      activeSection = prefixedSection.section;
+      if (prefixedSection.items.length > 0) {
+        pushToSection(sections, prefixedSection.section, prefixedSection.items);
+      }
+      return;
+    }
+
+    const spec = parseSpec(text);
+    if (spec) {
+      if (!sections.specs.some((item) => item.label === spec.label && item.value === spec.value)) {
+        sections.specs.push(spec);
+      }
+      return;
+    }
+
+    if (activeSection && tagName === 'p') {
+      const listItems = splitInlineItems(text);
+      if (listItems.length > 1) {
+        pushToSection(sections, activeSection, listItems);
+        return;
+      }
+    }
+
+    introFragments.push($.html(element));
+  };
+
   $('body')
     .children()
-    .each((_, element) => {
-      const tagName = element.tagName?.toLowerCase() ?? '';
-      const text = normalizeText($(element).text());
-
-      if (!text) {
-        return;
-      }
-
-      const sectionHeading = detectSectionHeading(text);
-      if (sectionHeading && (/^h[1-6]$/.test(tagName) || tagName === 'p' || tagName === 'div')) {
-        activeSection = sectionHeading;
-        return;
-      }
-
-      if (tagName === 'ul' || tagName === 'ol') {
-        const items = $(element)
-          .find('li')
-          .map((__, item) => normalizeText($(item).text()))
-          .get()
-          .filter(Boolean);
-
-        if (items.length > 0 && activeSection) {
-          pushToSection(sections, activeSection, items);
-          return;
-        }
-      }
-
-      const prefixedSection = parsePrefixedSection(text);
-      if (prefixedSection) {
-        activeSection = prefixedSection.section;
-        if (prefixedSection.items.length > 0) {
-          pushToSection(sections, prefixedSection.section, prefixedSection.items);
-        }
-        return;
-      }
-
-      const spec = parseSpec(text);
-      if (spec) {
-        if (!sections.specs.some((item) => item.label === spec.label && item.value === spec.value)) {
-          sections.specs.push(spec);
-        }
-        return;
-      }
-
-      if (activeSection && tagName === 'p') {
-        const listItems = splitInlineItems(text);
-        if (listItems.length > 1) {
-          pushToSection(sections, activeSection, listItems);
-          return;
-        }
-      }
-
-      introFragments.push($.html(element));
-    });
+    .toArray()
+    .forEach((element) => visit(element));
 
   sections.introHtml = introFragments.join('').trim();
   return sections;

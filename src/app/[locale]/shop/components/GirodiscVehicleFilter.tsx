@@ -14,6 +14,7 @@ import { buildShopProductPathGirodisc } from "@/lib/girodiscCollectionMatcher";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import GirodiscSpotlightGrid from "./GirodiscSpotlightGrid";
+import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type GirodiscVehicleFilterProps = {
   locale: SupportedLocale;
@@ -92,7 +93,7 @@ export default function GirodiscVehicleFilter({
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
   // ─── Extract Car Makes (from "car_make:xyz") ───
   const availableMakes = useMemo(() => {
@@ -178,8 +179,6 @@ export default function GirodiscVehicleFilter({
     return result;
   }, [activeMake, activeCategory, searchQuery, sortOrder, products, locale]);
 
-  const totalCount = products.length;
-
   if (!mounted) return null;
 
   return (
@@ -189,7 +188,10 @@ export default function GirodiscVehicleFilter({
         {/* ─── Mobile Filter Toggle ─── */}
         <div className="lg:hidden flex items-center gap-3 mb-4">
           <button
-            onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+            type="button"
+            onClick={toggleMobileFilter}
+            aria-expanded={mobileFilterOpen}
+            aria-controls="girodisc-mobile-filters"
             className="flex items-center gap-2.5 px-5 py-3 bg-[#050505]/80 backdrop-blur-md border border-white/[0.08] rounded-xl text-white text-[10px] uppercase tracking-[0.18em] font-semibold hover:border-red-600/40 transition-colors shadow-xl"
           >
             <SlidersHorizontal size={13} />
@@ -206,20 +208,24 @@ export default function GirodiscVehicleFilter({
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
           
           {/* ─── LEFT: SIDEBAR (collapsible on mobile) ─── */}
-          <aside className={`
+          <aside
+            id="girodisc-mobile-filters"
+            className={`
             flex-shrink-0 transition-transform duration-300
             ${mobileFilterOpen 
               ? "fixed inset-y-0 left-0 z-50 w-[85%] sm:w-[320px] bg-[#030303] border-r border-white/5 shadow-[20px_0_60px_rgba(0,0,0,0.9)] overflow-y-auto custom-scrollbar block" 
               : "hidden lg:block w-full lg:w-[260px] xl:w-[280px]"
             }
-          `}>
+          `}
+          >
             <div className={`
               ${mobileFilterOpen ? 'p-6 min-h-full flex flex-col gap-8' : 'lg:sticky lg:top-[120px] max-h-[85vh] overflow-y-auto custom-scrollbar pb-10 flex flex-col gap-8 bg-[#050505]/80 backdrop-blur-md border border-white/[0.04] p-6 rounded-2xl shadow-2xl'}
             `}>
               
               {/* Mobile close button */}
               <button
-                onClick={() => setMobileFilterOpen(false)}
+                type="button"
+                onClick={closeMobileFilter}
                 className="lg:hidden self-end p-1.5 text-white/40 hover:text-white transition-colors"
                 aria-label="Close filters"
               >
@@ -335,7 +341,7 @@ export default function GirodiscVehicleFilter({
           {mobileFilterOpen && (
             <div
               className="lg:hidden fixed inset-0 bg-black/40 z-20"
-              onClick={() => setMobileFilterOpen(false)}
+              onClick={closeMobileFilter}
             />
           )}
 
@@ -346,7 +352,7 @@ export default function GirodiscVehicleFilter({
               <div className="relative inline-block">
                 <select
                   value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as any)}
+                  onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
                   className="appearance-none bg-[#050505]/80 backdrop-blur-md border border-white/10 text-white text-[10px] uppercase tracking-[0.2em] font-semibold px-5 py-3 pr-10 rounded-lg outline-none focus:border-red-600/50 transition-colors shadow-xl cursor-pointer"
                 >
                   <option value="default">{isUa ? "За замовчуванням" : "Default"}</option>

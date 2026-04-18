@@ -9,11 +9,12 @@ import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
-import { localizeShopProductTitle, localizeShopText } from "@/lib/shopText";
+import { localizeShopProductTitle } from "@/lib/shopText";
 import { buildShopProductPathBrabus } from "@/lib/brabusCollectionMatcher";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import BrabusSpotlightGrid from "./BrabusSpotlightGrid";
+import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type BrabusVehicleFilterProps = {
   locale: SupportedLocale;
@@ -129,9 +130,7 @@ export default function BrabusVehicleFilter({
   const [activeModel, setActiveModel] = useState<string>(initialModel);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
-  const [showSearch, setShowSearch] = useState(false);
-  const [showModelDropdown, setShowModelDropdown] = useState(false);
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
   // ─── Extract brands from actual data ───
   const availableBrands = useMemo(() => {
@@ -173,7 +172,6 @@ export default function BrabusVehicleFilter({
   // Reset model when brand changes
   useEffect(() => {
     setActiveModel("all");
-    setShowModelDropdown(false);
   }, [activeBrand]);
 
   // ─── Filter products ───
@@ -234,7 +232,10 @@ export default function BrabusVehicleFilter({
         {/* ─── Mobile Filter Toggle ─── */}
         <div className="lg:hidden flex items-center gap-3 mb-4">
           <button
-            onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+            type="button"
+            onClick={toggleMobileFilter}
+            aria-expanded={mobileFilterOpen}
+            aria-controls="brabus-mobile-filters"
             className="flex items-center gap-2.5 px-5 py-3 bg-[#050505]/80 backdrop-blur-md border border-white/[0.08] rounded-xl text-white text-[10px] uppercase tracking-[0.18em] font-semibold hover:border-[#c29d59]/40 transition-colors shadow-xl"
           >
             <SlidersHorizontal size={13} />
@@ -251,14 +252,26 @@ export default function BrabusVehicleFilter({
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
           
           {/* ─── LEFT: SIDEBAR (collapsible on mobile) ─── */}
-          <aside className={`w-full lg:w-[260px] xl:w-[280px] flex-shrink-0 ${
-            mobileFilterOpen ? 'block' : 'hidden lg:block'
-          }`}>
-            <div className="lg:sticky lg:top-[120px] pb-10 flex flex-col gap-8 bg-[#050505]/80 backdrop-blur-md border border-white/[0.04] p-6 rounded-2xl shadow-2xl">
+          <aside
+            id="brabus-mobile-filters"
+            className={`flex-shrink-0 transition-transform duration-300 ${
+              mobileFilterOpen
+                ? "fixed inset-y-0 left-0 z-50 block w-[88vw] max-w-[360px]"
+                : "hidden lg:block w-full lg:w-[260px] xl:w-[280px]"
+            }`}
+          >
+            <div
+              className={`${
+                mobileFilterOpen
+                  ? "flex min-h-full flex-col gap-8 overflow-y-auto border-r border-white/[0.08] bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl"
+                  : "lg:sticky lg:top-[120px] pb-10 flex flex-col gap-8 bg-[#050505]/80 backdrop-blur-md border border-white/[0.04] p-6 rounded-2xl shadow-2xl"
+              }`}
+            >
               
               {/* Mobile close button */}
               <button
-                onClick={() => setMobileFilterOpen(false)}
+                type="button"
+                onClick={closeMobileFilter}
                 className="lg:hidden self-end p-1.5 text-white/40 hover:text-white transition-colors"
                 aria-label="Close filters"
               >
@@ -372,8 +385,8 @@ export default function BrabusVehicleFilter({
           {/* Mobile overlay backdrop */}
           {mobileFilterOpen && (
             <div
-              className="lg:hidden fixed inset-0 bg-black/40 z-20"
-              onClick={() => setMobileFilterOpen(false)}
+              className="lg:hidden fixed inset-0 z-40 bg-black/60"
+              onClick={closeMobileFilter}
             />
           )}
 
@@ -384,7 +397,7 @@ export default function BrabusVehicleFilter({
               <div className="relative inline-block">
                 <select
                   value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as any)}
+                  onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
                   className="appearance-none bg-[#050505]/80 backdrop-blur-md border border-white/10 text-white text-[10px] uppercase tracking-[0.2em] font-semibold px-5 py-3 pr-10 rounded-lg outline-none focus:border-[#c29d59]/50 transition-colors shadow-xl cursor-pointer"
                 >
                   <option value="default">{isUa ? "За замовчуванням (Популярні)" : "Default (Popular)"}</option>

@@ -11,6 +11,7 @@ import type { ShopProduct } from "@/lib/shopCatalog";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type IpeVehicleFilterProps = {
   locale: SupportedLocale;
@@ -91,10 +92,7 @@ export default function IpeVehicleFilter({
   const [activeLine, setActiveLine] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
-
-  // iPE uses #c29d59 (Bronze/Gold) as accent
-  const accentColor = "#c29d59";
+  const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
   // Extract brands dynamically from tags
   const availableBrands = useMemo(() => {
@@ -197,7 +195,10 @@ export default function IpeVehicleFilter({
         
         <div className="lg:hidden flex items-center gap-3 mb-4">
           <button
-            onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+            type="button"
+            onClick={toggleMobileFilter}
+            aria-expanded={mobileFilterOpen}
+            aria-controls="ipe-mobile-filters"
             className="flex items-center gap-2.5 px-5 py-3 bg-zinc-950 backdrop-blur-md border border-white/10 rounded-none text-white text-[10px] uppercase tracking-[0.18em] font-semibold hover:border-white/30 transition-colors shadow-none"
           >
             <SlidersHorizontal size={13} />
@@ -212,12 +213,24 @@ export default function IpeVehicleFilter({
         </div>
 
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
-          <aside className={`w-full lg:w-[260px] xl:w-[280px] flex-shrink-0 ${
-            mobileFilterOpen ? 'block' : 'hidden lg:block'
-          }`}>
-            <div className="lg:sticky lg:top-[120px] pb-10 flex flex-col gap-8 bg-zinc-950 border border-white/5 p-6 rounded-none shadow-none">
+          <aside
+            id="ipe-mobile-filters"
+            className={`flex-shrink-0 transition-transform duration-300 ${
+              mobileFilterOpen
+                ? "fixed inset-y-0 left-0 z-50 block w-[88vw] max-w-[360px]"
+                : "hidden lg:block w-full lg:w-[260px] xl:w-[280px]"
+            }`}
+          >
+            <div
+              className={`${
+                mobileFilterOpen
+                  ? "flex min-h-full flex-col gap-8 overflow-y-auto border-r border-white/10 bg-zinc-950 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
+                  : "lg:sticky lg:top-[120px] pb-10 flex flex-col gap-8 bg-zinc-950 border border-white/5 p-6 rounded-none shadow-none"
+              }`}
+            >
               <button
-                onClick={() => setMobileFilterOpen(false)}
+                type="button"
+                onClick={closeMobileFilter}
                 className="lg:hidden self-end p-1.5 text-white/40 hover:text-white transition-colors"
                 aria-label="Close filters"
               >
@@ -325,8 +338,8 @@ export default function IpeVehicleFilter({
 
           {mobileFilterOpen && (
             <div
-              className="lg:hidden fixed inset-0 bg-black/80 z-20"
-              onClick={() => setMobileFilterOpen(false)}
+              className="lg:hidden fixed inset-0 z-40 bg-black/80"
+              onClick={closeMobileFilter}
             />
           )}
 
@@ -335,7 +348,7 @@ export default function IpeVehicleFilter({
               <div className="relative inline-block">
                 <select
                   value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as any)}
+                  onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
                   className="appearance-none bg-zinc-900 border border-white/5 text-white text-[10px] uppercase tracking-[0.2em] font-semibold px-5 py-3 pr-10 rounded-none outline-none focus:border-white/20 transition-colors shadow-none cursor-pointer"
                 >
                   <option value="default">{isUa ? "За замовчуванням" : "Default"}</option>

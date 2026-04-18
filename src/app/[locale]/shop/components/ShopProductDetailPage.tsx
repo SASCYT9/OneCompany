@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { ShoppingBag } from 'lucide-react';
 import { PrismaClient } from '@prisma/client';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
+import { ShopInlinePriceText } from '@/components/shop/ShopInlinePriceText';
 import { ShopPrimaryPriceBox } from '@/components/shop/ShopPrimaryPriceBox';
 import { ShopProductViewTracker } from '@/components/shop/ShopProductViewTracker';
 import {
@@ -70,19 +71,21 @@ function DetailListPanel({
   title,
   items,
   accentClassName,
+  className,
 }: {
   title: string;
   items: string[];
   accentClassName?: string;
+  className?: string;
 }) {
   return (
-    <div className={`rounded-2xl border bg-black/30 p-4 ${accentClassName ?? 'border-white/12'}`}>
+    <div className={`rounded-2xl border bg-black/30 p-5 ${accentClassName ?? 'border-white/12'} ${className ?? ''}`}>
       <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">{title}</p>
-      <ul className="mt-3 space-y-2 text-sm leading-relaxed text-white/78">
+      <ul className="mt-4 space-y-3 text-sm leading-relaxed text-white/82 sm:text-[15px]">
         {items.map((item) => (
-          <li key={item} className="flex gap-2">
-            <span className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#c29d59]/80" />
-            <span>{item}</span>
+          <li key={item} className="flex gap-3">
+            <span className="mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#c29d59]/80" />
+            <span className="text-pretty">{item}</span>
           </li>
         ))}
       </ul>
@@ -93,18 +96,23 @@ function DetailListPanel({
 function DetailSpecPanel({
   title,
   specs,
+  className,
 }: {
   title: string;
   specs: Array<{ label: string; value: string }>;
+  className?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/12 bg-black/30 p-4">
+    <div className={`rounded-2xl border border-white/12 bg-black/30 p-5 ${className ?? ''}`}>
       <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">{title}</p>
-      <dl className="mt-3 grid gap-3 text-sm">
+      <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
         {specs.map((spec) => (
-          <div key={`${spec.label}:${spec.value}`} className="grid gap-1 border-b border-white/8 pb-3 last:border-b-0 last:pb-0">
+          <div
+            key={`${spec.label}:${spec.value}`}
+            className="grid gap-1 rounded-xl border border-white/8 bg-white/[0.02] p-3"
+          >
             <dt className="text-[10px] uppercase tracking-[0.18em] text-white/38">{spec.label}</dt>
-            <dd className="text-white/78">{spec.value}</dd>
+            <dd className="text-pretty text-white/82">{spec.value}</dd>
           </div>
         ))}
       </dl>
@@ -301,6 +309,10 @@ export default async function ShopProductDetailPage({
       ? categoryRelatedProducts
       : allProducts.filter((item) => item.slug !== product.slug && item.scope === product.scope)
   ).slice(0, 3);
+  const relatedProductsWithPricing = relatedProducts.map((item) => ({
+    item,
+    price: resolveShopProductPricing(item, viewerContext).effectivePrice,
+  }));
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -444,22 +456,27 @@ export default async function ShopProductDetailPage({
               />
             ) : null}
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              <DetailListPanel
-                title={isUa ? 'Що входить' : 'What is included'}
-                items={detailIncludedItems}
-                accentClassName="border-[#c29d59]/20"
-              />
-              <DetailListPanel
-                title={isUa ? 'Що не входить' : 'What is not included'}
-                items={detailExcludedItems}
-              />
-              {detailFeatureItems.length > 0 ? (
+            <div className="space-y-4">
+              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)]">
                 <DetailListPanel
-                  title={isUa ? 'Ключові характеристики' : 'Key features'}
-                  items={detailFeatureItems}
+                  title={isUa ? 'Що входить' : 'What is included'}
+                  items={detailIncludedItems}
+                  accentClassName="border-[#c29d59]/25 bg-[#c29d59]/[0.05]"
+                  className="shadow-sm"
                 />
-              ) : null}
+                <div className="grid gap-4">
+                  <DetailListPanel
+                    title={isUa ? 'Що не входить' : 'What is not included'}
+                    items={detailExcludedItems}
+                  />
+                  {detailFeatureItems.length > 0 ? (
+                    <DetailListPanel
+                      title={isUa ? 'Ключові характеристики' : 'Key features'}
+                      items={detailFeatureItems}
+                    />
+                  ) : null}
+                </div>
+              </div>
               {detailSpecs.length > 0 ? (
                 <DetailSpecPanel
                   title={isUa ? 'Технічна довідка' : 'Reference details'}
@@ -478,9 +495,12 @@ export default async function ShopProductDetailPage({
                 {pricing.effectiveCompareAt ? (
                   <div className="mt-1 flex items-center gap-2">
                     <span className="text-xs uppercase tracking-[0.2em] text-white/40">{isUa ? 'Стара ціна' : 'Was'}</span>
-                    <span className="text-sm text-red-400/80 line-through">
-                      {formatPrice(resolvedLocale, computeCrossPrices(pricing.effectiveCompareAt).eur, 'EUR')}
-                    </span>
+                    <ShopInlinePriceText
+                      locale={resolvedLocale}
+                      price={pricing.effectiveCompareAt}
+                      className="text-sm text-red-400/80 line-through"
+                      requestLabel={isUa ? 'Ціна за запитом' : 'Price on request'}
+                    />
                   </div>
                 ) : null}
               </div>
@@ -500,7 +520,11 @@ export default async function ShopProductDetailPage({
                       return (
                         <div className="pl-7">
                           <p className="text-2xl font-light text-white">
-                            {formatPrice(resolvedLocale, b2bPrices.eur, 'EUR')}
+                            <ShopInlinePriceText
+                              locale={resolvedLocale}
+                              price={pricing.bands.b2b?.price}
+                              requestLabel={isUa ? 'Ціна за запитом' : 'Price on request'}
+                            />
                           </p>
                           <p className="text-[11px] text-cyan-100/50 mt-1">
                             {formatPrice(resolvedLocale, b2bPrices.usd, 'USD')} / {formatPrice(resolvedLocale, b2bPrices.uah, 'UAH')}
@@ -649,7 +673,7 @@ export default async function ShopProductDetailPage({
         <section className="space-y-4">
           <h2 className="text-2xl font-light">{isUa ? 'Схожі товари' : 'Related products'}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {relatedProducts.map((item) => (
+            {relatedProductsWithPricing.map(({ item, price }) => (
               <Link
                 key={item.slug}
                 href={isDo88Mode ? `/${resolvedLocale}/shop/do88/products/${item.slug}` : (isUrbanMode ? `/${resolvedLocale}/shop/urban/products/${item.slug}` : `/${resolvedLocale}/shop/${item.slug}`)}
@@ -675,7 +699,11 @@ export default async function ShopProductDetailPage({
                   <p className="text-xs uppercase tracking-[0.18em] text-white/55">{item.brand}</p>
                   <h3 className="text-lg font-light leading-snug">{localizeShopProductTitle(resolvedLocale, item)}</h3>
                   <p className="text-sm text-white/65">
-                    {formatPrice(resolvedLocale, computeCrossPrices(resolveShopProductPricing(item, viewerContext).effectivePrice).eur, 'EUR')}
+                    <ShopInlinePriceText
+                      locale={resolvedLocale}
+                      price={price}
+                      requestLabel={isUa ? 'Ціна за запитом' : 'Price on request'}
+                    />
                   </p>
                 </div>
               </Link>

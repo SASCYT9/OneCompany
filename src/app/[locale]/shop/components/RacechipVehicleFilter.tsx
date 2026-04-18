@@ -12,6 +12,7 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
+import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type Props = {
   locale: SupportedLocale;
@@ -65,6 +66,7 @@ export default function RacechipVehicleFilter({
   const [activeModel, setActiveModel] = useState<string>(initialModel);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
+  const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
   // Pagination to restrict the number of visible DOM elements
   const [visibleCount, setVisibleCount] = useState(30);
@@ -194,6 +196,136 @@ export default function RacechipVehicleFilter({
     };
   };
 
+  const hasActiveFilters =
+    activeMake !== "all" ||
+    activeModel !== "all" ||
+    searchQuery.trim().length > 0 ||
+    sortOrder !== "default";
+
+  function resetFilters() {
+    setActiveMake("all");
+    setActiveModel("all");
+    setSearchQuery("");
+    setSortOrder("default");
+  }
+
+  const filterControls = (
+    <>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="relative border border-white/20 transition-colors hover:border-[#ff4a00]/50">
+          <select
+            value={activeMake}
+            onChange={(e) => setActiveMake(e.target.value)}
+            className="appearance-none w-full rounded-none bg-[#080808] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-[0.1em] text-white outline-none"
+          >
+            <option value="all" className="bg-[#080808] font-light text-zinc-500">
+              {isUa ? "Виберіть Марку" : "Select Make"}
+            </option>
+            {availableMakes.map((m) => (
+              <option key={m.key} value={m.key} className="bg-[#080808] text-white">
+                {m.label} ({m.count})
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
+            <ChevronDown size={14} strokeWidth={1.5} />
+          </div>
+        </div>
+
+        <div className="relative border border-white/20 transition-colors hover:border-[#ff4a00]/50">
+          <select
+            value={activeModel}
+            onChange={(e) => setActiveModel(e.target.value)}
+            disabled={activeMake === "all" || availableModels.length === 0}
+            className="appearance-none w-full rounded-none bg-[#080808] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-[0.1em] text-white outline-none disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <option value="all" className="bg-[#080808] font-light text-zinc-500">
+              {isUa ? "Виберіть Модель" : "Select Model"}
+            </option>
+            {availableModels.map((m) => (
+              <option key={m.key} value={m.key} className="bg-[#080808] text-white">
+                {m.label} ({m.count})
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
+            <ChevronDown size={14} strokeWidth={1.5} />
+          </div>
+        </div>
+
+        <div className="relative border border-white/20 transition-colors hover:border-[#ff4a00]/50">
+          <Search
+            size={14}
+            strokeWidth={1.5}
+            className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={isUa ? "Пошук двигуна..." : "Search Engine..."}
+            className="w-full rounded-none bg-[#080808] px-12 py-4 text-[11px] font-light tracking-[0.1em] text-white outline-none placeholder-zinc-500"
+          />
+          {searchQuery ? (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-5 top-1/2 -translate-y-1/2 text-[#ff4a00] transition-opacity hover:text-white"
+            >
+              <X size={14} />
+            </button>
+          ) : null}
+        </div>
+
+        <div className="relative border border-white/20 transition-colors hover:border-[#ff4a00]/50">
+          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500">
+            <SlidersHorizontal size={14} strokeWidth={1.5} />
+          </div>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
+            className="appearance-none w-full rounded-none bg-[#080808] py-4 pl-12 pr-10 text-[11px] font-light uppercase tracking-[0.1em] text-white outline-none"
+          >
+            <option value="default" className="bg-[#080808] text-white">
+              {isUa ? "За замовчуванням" : "Default Sort"}
+            </option>
+            <option value="price_desc" className="bg-[#080808] text-white">
+              {isUa ? "Спочатку дорожчі" : "Price: High to Low"}
+            </option>
+            <option value="price_asc" className="bg-[#080808] text-white">
+              {isUa ? "Спочатку дешевші" : "Price: Low to High"}
+            </option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
+            <ChevronDown size={14} strokeWidth={1.5} />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 flex items-center justify-between">
+        <p className="text-[10px] font-light tracking-widest text-zinc-500 sm:text-xs">
+          {filtered.length}{" "}
+          {isUa
+            ? `результат${filtered.length === 1 ? "" : filtered.length < 5 ? "и" : "ів"}`
+            : `result${filtered.length === 1 ? "" : "s"}`}
+          {hasActiveFilters ? (
+            <>
+              {" "}
+              ·{" "}
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="text-[#ff4a00] uppercase tracking-widest transition-colors hover:text-white"
+              >
+                {isUa ? "Скинути" : "Reset"}
+              </button>
+            </>
+          ) : null}
+        </p>
+      </div>
+    </>
+  );
+
   if (!mounted) return null;
 
   return (
@@ -204,9 +336,60 @@ export default function RacechipVehicleFilter({
       <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20 relative z-20">
         
         <div className="flex flex-col gap-10">
+          <div className="mb-4 flex items-center gap-3 lg:hidden">
+            <button
+              type="button"
+              onClick={toggleMobileFilter}
+              aria-expanded={mobileFilterOpen}
+              aria-controls="racechip-mobile-filters"
+              className="flex items-center gap-2.5 border border-white/[0.14] bg-[#080808]/90 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:border-[#ff4a00]/45"
+            >
+              <SlidersHorizontal size={13} />
+              {isUa ? "Фільтри" : "Filters"}
+              {hasActiveFilters ? (
+                <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#ff4a00]" />
+              ) : null}
+            </button>
+            <p className="text-xs tracking-wide text-zinc-500">
+              {filtered.length} {isUa ? "результатів" : "results"}
+            </p>
+          </div>
+
+          {mobileFilterOpen ? (
+            <>
+              <div
+                className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+                onClick={closeMobileFilter}
+              />
+              <div
+                id="racechip-mobile-filters"
+                className="fixed inset-y-0 left-0 z-50 w-[88vw] max-w-[360px] overflow-y-auto border-r border-white/10 bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl lg:hidden"
+              >
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.26em] text-[#ff4a00]">
+                      RaceChip
+                    </p>
+                    <h2 className="mt-2 text-lg font-light uppercase tracking-[0.08em] text-white">
+                      {isUa ? "Фільтри" : "Filters"}
+                    </h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeMobileFilter}
+                    className="p-2 text-zinc-500 transition-colors hover:text-white"
+                    aria-label="Close filters"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="mt-6">{filterControls}</div>
+              </div>
+            </>
+          ) : null}
           
           {/* ─── TOP: COMMAND CENTER FILTER ─── */}
-          <div className="relative z-30 mb-8 max-w-5xl mx-auto w-full">
+          <div className="relative z-30 mb-8 hidden max-w-5xl mx-auto w-full lg:block">
             <div className="flex flex-col items-center justify-center text-center mb-10">
               <h2 className="text-2xl lg:text-3xl font-light tracking-[0.05em] uppercase text-white/90">
                 {isUa ? "НАЛАШТУЙТЕ СВІЙ АВТОМОБІЛЬ" : "CONFIGURE YOUR VEHICLE"}
@@ -216,104 +399,7 @@ export default function RacechipVehicleFilter({
                 GTS 5 + App Control
               </p>
             </div>
-
-            {/* CONTROLS ROW — 4 columns: Make / Model / Search / Sort */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* MAKE DROPDOWN */}
-              <div className="relative border border-white/20 hover:border-[#ff4a00]/50 transition-colors">
-                <select
-                  value={activeMake}
-                  onChange={(e) => setActiveMake(e.target.value)}
-                  className="appearance-none w-full bg-[#080808] text-white text-[11px] uppercase tracking-[0.1em] font-light px-5 py-4 pr-10 outline-none cursor-pointer rounded-none"
-                >
-                  <option value="all" className="bg-[#080808] text-zinc-500 font-light">{isUa ? "Виберіть Марку" : "Select Make"}</option>
-                  {availableMakes.map((m) => (
-                    <option key={m.key} value={m.key} className="bg-[#080808] text-white">
-                      {m.label} ({m.count})
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
-                  <ChevronDown size={14} strokeWidth={1.5} />
-                </div>
-              </div>
-
-              {/* MODEL DROPDOWN */}
-              <div className="relative border border-white/20 hover:border-[#ff4a00]/50 transition-colors">
-                <select
-                  value={activeModel}
-                  onChange={(e) => setActiveModel(e.target.value)}
-                  disabled={activeMake === "all" || availableModels.length === 0}
-                  className="appearance-none w-full bg-[#080808] text-white text-[11px] uppercase tracking-[0.1em] font-light px-5 py-4 pr-10 outline-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed rounded-none"
-                >
-                  <option value="all" className="bg-[#080808] text-zinc-500 font-light">{isUa ? "Виберіть Модель" : "Select Model"}</option>
-                  {availableModels.map((m) => (
-                    <option key={m.key} value={m.key} className="bg-[#080808] text-white">
-                      {m.label} ({m.count})
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
-                  <ChevronDown size={14} strokeWidth={1.5} />
-                </div>
-              </div>
-
-              {/* SEARCH */}
-              <div className="relative border border-white/20 hover:border-[#ff4a00]/50 transition-colors">
-                <Search size={14} strokeWidth={1.5} className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={isUa ? "Пошук двигуна..." : "Search Engine..."}
-                  className="w-full bg-[#080808] text-white text-[11px] tracking-[0.1em] font-light px-12 py-4 outline-none placeholder-zinc-500 rounded-none cursor-text"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-5 top-1/2 -translate-y-1/2 text-[#ff4a00] hover:text-white transition-opacity"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
-
-              {/* SORT DROPDOWN */}
-              <div className="relative border border-white/20 hover:border-[#ff4a00]/50 transition-colors">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500">
-                   <SlidersHorizontal size={14} strokeWidth={1.5} />
-                </div>
-                <select
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as any)}
-                  className="appearance-none w-full bg-[#080808] text-white text-[11px] uppercase tracking-[0.1em] font-light pl-12 py-4 pr-10 outline-none cursor-pointer rounded-none"
-                >
-                  <option value="default" className="bg-[#080808] text-white">{isUa ? "За замовчуванням" : "Default Sort"}</option>
-                  <option value="price_desc" className="bg-[#080808] text-white">{isUa ? "Спочатку дорожчі" : "Price: High to Low"}</option>
-                  <option value="price_asc" className="bg-[#080808] text-white">{isUa ? "Спочатку дешевші" : "Price: Low to High"}</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
-                  <ChevronDown size={14} strokeWidth={1.5} />
-                </div>
-              </div>
-            </div>
-
-            {/* Active filters summary */}
-            <div className="flex items-center justify-between mt-6">
-              <p className="text-zinc-500 text-[10px] sm:text-xs font-light tracking-widest">
-                {filtered.length} {isUa
-                  ? `результат${filtered.length === 1 ? '' : filtered.length < 5 ? 'и' : 'ів'}`
-                  : `result${filtered.length === 1 ? '' : 's'}`}
-                {(activeMake !== "all" || searchQuery) && (
-                  <> · <button
-                    onClick={() => { setActiveMake("all"); setActiveModel("all"); setSearchQuery(""); setSortOrder("default"); }}
-                    className="text-[#ff4a00] hover:text-white transition-colors uppercase tracking-widest"
-                  >
-                    {isUa ? "Скинути" : "Reset"}
-                  </button></>
-                )}
-              </p>
-            </div>
+            {filterControls}
           </div>
 
           {/* ─── BOTTOM: PRODUCT GRID ─── */}

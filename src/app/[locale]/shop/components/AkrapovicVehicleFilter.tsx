@@ -12,6 +12,7 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import AkrapovicSpotlightGrid from "./AkrapovicSpotlightGrid";
+import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type AkrapovicVehicleFilterProps = {
   locale: SupportedLocale;
@@ -87,7 +88,7 @@ export default function AkrapovicVehicleFilter({
   const [activeLine, setActiveLine] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
   // Extract brands dynamically from actual tags
   const availableBrands = useMemo(() => {
@@ -172,8 +173,6 @@ export default function AkrapovicVehicleFilter({
       if (sortOrder === "price_desc") return priceB - priceA;
       if (sortOrder === "price_asc") return priceA - priceB;
       
-      const titleA = localizeShopProductTitle(locale, a).toLowerCase();
-      const titleB = localizeShopProductTitle(locale, b).toLowerCase();
       const hasImgA = a.image && a.image.length > 5 ? 1 : 0;
       const hasImgB = b.image && b.image.length > 5 ? 1 : 0;
       
@@ -194,7 +193,10 @@ export default function AkrapovicVehicleFilter({
         
         <div className="lg:hidden flex items-center gap-3 mb-4">
           <button
-            onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+            type="button"
+            onClick={toggleMobileFilter}
+            aria-expanded={mobileFilterOpen}
+            aria-controls="akrapovic-mobile-filters"
             className="flex items-center gap-2.5 px-5 py-3 bg-[#050505]/80 backdrop-blur-md border border-white/[0.08] rounded-xl text-white text-[10px] uppercase tracking-[0.18em] font-semibold hover:border-[#e50000]/40 transition-colors shadow-xl"
           >
             <SlidersHorizontal size={13} />
@@ -209,12 +211,24 @@ export default function AkrapovicVehicleFilter({
         </div>
 
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
-          <aside className={`w-full lg:w-[260px] xl:w-[280px] flex-shrink-0 ${
-            mobileFilterOpen ? 'block' : 'hidden lg:block'
-          }`}>
-            <div className="lg:sticky lg:top-[120px] pb-10 flex flex-col gap-8 bg-[#050505]/80 backdrop-blur-md border border-white/[0.04] p-6 rounded-2xl shadow-2xl">
+          <aside
+            id="akrapovic-mobile-filters"
+            className={`flex-shrink-0 transition-transform duration-300 ${
+              mobileFilterOpen
+                ? "fixed inset-y-0 left-0 z-50 block w-[88vw] max-w-[360px]"
+                : "hidden lg:block w-full lg:w-[260px] xl:w-[280px]"
+            }`}
+          >
+            <div
+              className={`${
+                mobileFilterOpen
+                  ? "flex min-h-full flex-col gap-8 overflow-y-auto border-r border-white/[0.08] bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl"
+                  : "lg:sticky lg:top-[120px] pb-10 flex flex-col gap-8 bg-[#050505]/80 backdrop-blur-md border border-white/[0.04] p-6 rounded-2xl shadow-2xl"
+              }`}
+            >
               <button
-                onClick={() => setMobileFilterOpen(false)}
+                type="button"
+                onClick={closeMobileFilter}
                 className="lg:hidden self-end p-1.5 text-white/40 hover:text-white transition-colors"
                 aria-label="Close filters"
               >
@@ -322,8 +336,8 @@ export default function AkrapovicVehicleFilter({
 
           {mobileFilterOpen && (
             <div
-              className="lg:hidden fixed inset-0 bg-black/40 z-20"
-              onClick={() => setMobileFilterOpen(false)}
+              className="lg:hidden fixed inset-0 z-40 bg-black/60"
+              onClick={closeMobileFilter}
             />
           )}
 
@@ -332,7 +346,7 @@ export default function AkrapovicVehicleFilter({
               <div className="relative inline-block">
                 <select
                   value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as any)}
+                  onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
                   className="appearance-none bg-[#050505]/80 backdrop-blur-md border border-white/10 text-white text-[10px] uppercase tracking-[0.2em] font-semibold px-5 py-3 pr-10 rounded-lg outline-none focus:border-[#e50000]/50 transition-colors shadow-xl cursor-pointer"
                 >
                   <option value="default">{isUa ? "За замовчуванням" : "Default"}</option>

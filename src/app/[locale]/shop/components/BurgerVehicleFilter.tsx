@@ -4,14 +4,14 @@ import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Search, X, ChevronDown, SlidersHorizontal, ShoppingCart, Mail } from "lucide-react";
+import { Search, X, ChevronDown, SlidersHorizontal, ShoppingCart } from "lucide-react";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import { AddToCartButton } from "@/components/shop/AddToCartButton";
+import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type Props = {
   locale: SupportedLocale;
@@ -71,6 +71,7 @@ export default function BurgerVehicleFilter({
   const [activeType, setActiveType] = useState<string>(initialType);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
+  const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
   // ─── Extract brands from tags ───
   const availableBrands = useMemo(() => {
@@ -170,6 +171,12 @@ export default function BurgerVehicleFilter({
     return priceUsd > 0 ? formatPrice(locale, priceUsd, "USD") : null;
   };
 
+  const hasActiveFilters =
+    activeBrand !== "all" ||
+    activeType !== "all" ||
+    searchQuery.trim().length > 0 ||
+    sortOrder !== "default";
+
   if (!mounted) return null;
 
   return (
@@ -178,12 +185,51 @@ export default function BurgerVehicleFilter({
       <div className="absolute -top-40 -right-40 w-[1000px] h-[1000px] bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.06)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none" />
       
       <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20 relative z-20">
+        <div className="lg:hidden mb-4 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={toggleMobileFilter}
+            aria-expanded={mobileFilterOpen}
+            aria-controls="burger-mobile-filters"
+            className="flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-[#050505]/90 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:border-[var(--burger-yellow)]/40"
+          >
+            <SlidersHorizontal size={13} />
+            {isUa ? "Фільтри" : "Filters"}
+            {hasActiveFilters ? (
+              <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[var(--burger-yellow)]" />
+            ) : null}
+          </button>
+          <p className="text-xs tracking-wide text-zinc-500">
+            {filtered.length} {isUa ? "з" : "of"} {products.length}
+          </p>
+        </div>
         
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
           
           {/* ─── LEFT: STICKY SIDEBAR ─── */}
-          <aside className="w-full lg:w-[260px] xl:w-[280px] flex-shrink-0">
-            <div className="lg:sticky lg:top-[120px] pb-10 flex flex-col gap-8">
+          <aside
+            id="burger-mobile-filters"
+            className={`flex-shrink-0 transition-transform duration-300 ${
+              mobileFilterOpen
+                ? "fixed inset-y-0 left-0 z-50 block w-[88vw] max-w-[360px]"
+                : "hidden lg:block w-full lg:w-[260px] xl:w-[280px]"
+            }`}
+          >
+            <div
+              className={`${
+                mobileFilterOpen
+                  ? "flex min-h-full flex-col gap-8 overflow-y-auto border-r border-white/[0.08] bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl"
+                  : "lg:sticky lg:top-[120px] pb-10 flex flex-col gap-8"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={closeMobileFilter}
+                className="self-end p-1.5 text-zinc-500 transition-colors hover:text-white lg:hidden"
+                aria-label="Close filters"
+              >
+                <X size={16} />
+              </button>
               
               {/* Header */}
               <div>
@@ -290,6 +336,13 @@ export default function BurgerVehicleFilter({
             </div>
           </aside>
 
+          {mobileFilterOpen && (
+            <div
+              className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+              onClick={closeMobileFilter}
+            />
+          )}
+
           {/* ─── RIGHT: PRODUCT GRID ─── */}
           <main className="flex-1 min-w-0">
             {/* Top Sort Bar */}
@@ -297,7 +350,7 @@ export default function BurgerVehicleFilter({
               <div className="relative inline-flex items-center">
                 <select
                   value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as any)}
+                  onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
                   className="appearance-none bg-[#111] border border-zinc-800 text-white text-[11px] uppercase tracking-[0.1em] font-semibold px-6 py-3.5 pr-12 rounded-lg outline-none focus:border-[var(--burger-yellow)] focus:ring-1 focus:ring-[var(--burger-yellow)] transition-all shadow-lg cursor-pointer"
                 >
                   <option value="default">{isUa ? "За замовчуванням (Тюнери та Преміум)" : "Default (Tuners & Premium)"}</option>
