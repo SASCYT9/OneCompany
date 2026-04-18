@@ -2,7 +2,7 @@
 
 ## Product
 - Premium automotive ecommerce and CRM platform.
-- Main domains: storefront, admin, catalog, orders, B2B accounts, Turn14 sync, SEO, wiki operations.
+- Main domains: storefront, admin, catalog, orders, B2B accounts, Turn14 sync, SEO.
 
 ## Stack
 - Next.js 14 App Router
@@ -25,7 +25,7 @@
 
 ## Integrations
 - Turn14 is a critical catalog/supplier integration.
-- WhitePay is the live payment direction reflected in current wiki architecture.
+- WhitePay is the live payment direction reflected in current architecture.
 - External APIs should not be treated casually; preserve local DB as the operational source when existing flows already do that.
 
 ## Key Repo Areas
@@ -33,10 +33,4 @@
 - `src/app/admin/`: admin panel and internal tools
 - `src/lib/`: business logic, pricing, integrations, helpers
 - `prisma/`: schema and migrations
-- `wiki/`: SOPs, architecture, and operations knowledge
-- `.agents/workflows/`: repeatable internal workflows
 - `.agents/skills/`: curated project-relevant skills only
-
-## Active Skills Policy
-- `.agents/skills/` is intentionally small and curated.
-- Archived vendor skill packs were removed from the repo to reduce token noise.

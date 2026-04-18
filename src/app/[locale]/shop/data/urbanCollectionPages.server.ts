@@ -38,6 +38,14 @@ const TEMPLATE_DIR = path.join(
 
 const templateCache = new Map<string, UrbanCollectionPageConfig | null>();
 
+function hasTemplateDirectory() {
+  try {
+    return fs.existsSync(TEMPLATE_DIR) && fs.statSync(TEMPLATE_DIR).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
 function parseJsoncTemplate(filePath: string): ThemeTemplate {
   let text = fs.readFileSync(filePath, 'utf8');
   text = text.replace(/^\uFEFF/, '');
@@ -308,6 +316,10 @@ function buildConfigFromTemplate(handle: string, template: ThemeTemplate): Urban
 }
 
 export function getUrbanCollectionTemplateHandles(): string[] {
+  if (!hasTemplateDirectory()) {
+    return [];
+  }
+
   return fs
     .readdirSync(TEMPLATE_DIR)
     .filter((file) => /^collection\..+\.json$/.test(file))

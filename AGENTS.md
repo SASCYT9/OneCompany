@@ -4,7 +4,6 @@
 
 ## 1. Load Order
 - Read [`.agents/PROJECT_CONTEXT.md`](D:/OneCompany/.agents/PROJECT_CONTEXT.md) first for the current technical and business snapshot.
-- Read only the wiki pages relevant to the task, starting from `wiki/Architecture.md`, `wiki/Codebase Architecture.md`, and `wiki/SOP - Standard Operating Procedures.md`.
 - Use `.agents/workflows/` only when the task matches an existing repeatable workflow.
 - Use only the curated skills in `.agents/skills/`.
 
@@ -15,10 +14,9 @@
 - Keep repo-level context compact. Do not load large skill packs or broad reference trees unless explicitly needed.
 
 ## 3. Source Of Truth
-- `wiki/` is the project brain for SOPs, operations, architecture, and domain rules.
 - `prisma/schema.prisma` is the database source of truth.
 - `src/app/[locale]/shop/components` contains the main storefront building blocks.
-- `messages/en.json` and `messages/ua.json` are the translation source of truth for UI copy.
+- Localization files in `src/lib/messages/` are the translation source of truth for UI copy.
 
 ## 4. Technical Guardrails
 - Stack: Next.js 14 App Router, React, Tailwind, Framer Motion, Prisma, PostgreSQL/Supabase.
@@ -40,6 +38,4 @@
 - Preserve UA and EN support for customer-facing UI.
 
 ## 7. Repo Hygiene
-- Update [`wiki/Tasks Kanban.md`](D:/OneCompany/wiki/Tasks%20Kanban.md) when a major feature or infrastructure change starts or finishes.
-- Do not manually edit `wiki/📡 Git Changelog.md`.
 - Prefer concise, maintainable local documentation over meta-roleplay files or giant instruction dumps.

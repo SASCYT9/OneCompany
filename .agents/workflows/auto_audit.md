@@ -13,4 +13,4 @@ If the user asks you to "run an audit", "check if everything is ok", or "verify 
 2. Run `npm run lint` or `npx eslint .` to check for style violations or unused variables.
 3. If errors are found, you must immediately read the failing files, use your `replace_file_content` tool to FIX the errors, and run step 1 again. 
 4. DO NOT report back to the user until you have achieved a clean compilation state, or if the errors are fundamentally blocked by a missing library or external API dependency.
-5. Create a `wiki/✅ Audit Report.md` summarizing what you checked and fixed.
+

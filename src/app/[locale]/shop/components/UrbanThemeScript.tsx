@@ -3,19 +3,28 @@
 import { useEffect } from 'react';
 
 export default function UrbanThemeScript({ homeId }: { homeId?: string }) {
+  const resolvedHomeId = homeId || 'UrbanHomeV7';
+
   useEffect(() => {
-    const HOME_ID = homeId || 'UrbanHomeV7';
+    const HOME_ID = resolvedHomeId;
     const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const cleanups: Array<() => void> = [];
 
     const loader = document.getElementById(HOME_ID + '-loader');
     if (loader) {
       const hide = () => {
         loader.classList.add('is-hidden');
-        setTimeout(() => loader.remove(), 900);
+        const removeTimeout = window.setTimeout(() => loader.remove(), 900);
+        cleanups.push(() => window.clearTimeout(removeTimeout));
       };
-      setTimeout(hide, 2400);
+      const hideTimeout = window.setTimeout(hide, 2400);
       window.addEventListener('click', hide, { once: true });
       window.addEventListener('touchstart', hide, { once: true });
+      cleanups.push(() => {
+        window.clearTimeout(hideTimeout);
+        window.removeEventListener('click', hide);
+        window.removeEventListener('touchstart', hide);
+      });
     }
 
     const progressBar = document.getElementById(HOME_ID + '-progress');
@@ -25,12 +34,14 @@ export default function UrbanThemeScript({ homeId }: { homeId?: string }) {
         (progressBar as HTMLElement).style.width = p > 0 ? (window.scrollY / p) * 100 + '%' : '0%';
       };
       window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+      cleanups.push(() => window.removeEventListener('scroll', onScroll));
     }
 
     const uh7 = document.getElementById(HOME_ID);
     if (uh7) {
       uh7.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-        anchor.addEventListener('click', (e) => {
+        const onAnchorClick = (e: Event) => {
           const href = (anchor as HTMLAnchorElement).getAttribute('href');
           if (href === '#' || !href) return;
           const el = document.getElementById(href.slice(1));
@@ -38,30 +49,11 @@ export default function UrbanThemeScript({ homeId }: { homeId?: string }) {
             e.preventDefault();
             el.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
-        });
+        };
+        anchor.addEventListener('click', onAnchorClick);
+        cleanups.push(() => anchor.removeEventListener('click', onAnchorClick));
       });
     }
-
-    document.querySelectorAll('[data-uh7-split]').forEach((el) => {
-      const titleEl = el as HTMLElement;
-      const shimmer = titleEl.querySelector('.uh7-hero__title-shimmer');
-      const txt = (titleEl.childNodes[0]?.textContent || titleEl.textContent || '').trim();
-      titleEl.innerHTML = '';
-      let ci = 0;
-      for (let i = 0; i < txt.length; i++) {
-        if (txt[i] === ' ') {
-          titleEl.appendChild(document.createTextNode(' '));
-        } else {
-          const s = document.createElement('span');
-          s.className = 'uh7-char';
-          s.textContent = txt[i];
-          s.style.animationDelay = 0.8 + ci * 0.035 + 's';
-          titleEl.appendChild(s);
-          ci++;
-        }
-      }
-      if (shimmer) titleEl.appendChild(shimmer);
-    });
 
     const fitHeroTitle = () => {
       const hero = document.getElementById(HOME_ID + '-hero');
@@ -81,8 +73,13 @@ export default function UrbanThemeScript({ homeId }: { homeId?: string }) {
       }
     };
     fitHeroTitle();
-    setTimeout(fitHeroTitle, 160);
-    window.addEventListener('resize', () => requestAnimationFrame(fitHeroTitle), { passive: true });
+    const fitTimeout = window.setTimeout(fitHeroTitle, 160);
+    const onResize = () => requestAnimationFrame(fitHeroTitle);
+    window.addEventListener('resize', onResize, { passive: true });
+    cleanups.push(() => {
+      window.clearTimeout(fitTimeout);
+      window.removeEventListener('resize', onResize);
+    });
 
     const ro = new IntersectionObserver(
       (entries) => {
@@ -96,6 +93,7 @@ export default function UrbanThemeScript({ homeId }: { homeId?: string }) {
       { threshold: 0.08, rootMargin: '0px 0px -50px 0px' }
     );
     document.querySelectorAll('[data-uh7-reveal]').forEach((el) => ro.observe(el));
+    cleanups.push(() => ro.disconnect());
 
     const vimeoRo = new IntersectionObserver(
       (entries) => {
@@ -113,6 +111,7 @@ export default function UrbanThemeScript({ homeId }: { homeId?: string }) {
       { threshold: 0.1, rootMargin: '100px 0px' }
     );
     document.querySelectorAll('[data-uh7-vimeo]').forEach((el) => vimeoRo.observe(el));
+    cleanups.push(() => vimeoRo.disconnect());
 
     const defHero = document.getElementById(HOME_ID + '-def-hero');
     if (defHero) {
@@ -128,6 +127,7 @@ export default function UrbanThemeScript({ homeId }: { homeId?: string }) {
         { threshold: 0.15, rootMargin: '0px 0px -60px 0px' }
       );
       defObs.observe(defHero);
+      cleanups.push(() => defObs.disconnect());
     }
 
     if (!RM) {
@@ -195,8 +195,13 @@ export default function UrbanThemeScript({ homeId }: { homeId?: string }) {
         });
       };
       window.addEventListener('scroll', onScroll, { passive: true });
+      cleanups.push(() => window.removeEventListener('scroll', onScroll));
     }
-  }, []);
+
+    return () => {
+      cleanups.forEach((cleanup) => cleanup());
+    };
+  }, [resolvedHomeId]);
 
   return null;
 }

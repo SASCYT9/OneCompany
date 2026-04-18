@@ -921,9 +921,17 @@
   overflow-wrap: normal;
   word-break: keep-all;
   position: relative;
+  display: inline-block;
   color: var(--c-white);
+  isolation: isolate;
 }
-.uh7-hero__title-shimmer {
+.uh7-hero__title-text {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+}
+.uh7-hero__title::after {
+  content: attr(data-text);
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -939,9 +947,11 @@
   background-position-x: var(--hero-shimmer-x, -100%);
   -webkit-background-clip: text;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
   color: transparent;
   animation: uh7TitleShimmer 4s var(--ease-expo) 2.5s forwards;
-  mix-blend-mode: screen;
+  opacity: 0.72;
+  z-index: 2;
 }
 @keyframes uh7TitleShimmer {
   0% {
@@ -957,6 +967,10 @@
   opacity: 0;
   animation: uh7Char 0.5s var(--ease-expo) forwards;
   color: var(--c-white);
+}
+.uh7-char-space {
+  display: inline-block;
+  width: 0.32em;
 }
 @keyframes uh7Char {
   0% {
@@ -1698,7 +1712,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: clamp(24px, 4vw, 60px) clamp(24px, 5vw, 80px);
+  padding: clamp(28px, 4vw, 60px) clamp(24px, 5vw, 80px) clamp(40px, 6vw, 84px);
   max-width: 1600px;
   margin: 0 auto;
 }
@@ -1847,11 +1861,8 @@
 
 /* Stats bar */
 .uh7-def__stats {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 3;
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: center;
   gap: 0;
@@ -1876,20 +1887,20 @@
 .uh7-def__stat:last-child {
   border-right: none;
 }
-.uh7-def__hero.is-visible .uh7-def__stat {
+.uh7-def__hero.is-visible + .uh7-def__stats .uh7-def__stat {
   opacity: 1;
   transform: translateY(0);
 }
-.uh7-def__hero.is-visible .uh7-def__stat:nth-child(1) {
+.uh7-def__hero.is-visible + .uh7-def__stats .uh7-def__stat:nth-child(1) {
   transition-delay: 0.3s;
 }
-.uh7-def__hero.is-visible .uh7-def__stat:nth-child(2) {
+.uh7-def__hero.is-visible + .uh7-def__stats .uh7-def__stat:nth-child(2) {
   transition-delay: 0.4s;
 }
-.uh7-def__hero.is-visible .uh7-def__stat:nth-child(3) {
+.uh7-def__hero.is-visible + .uh7-def__stats .uh7-def__stat:nth-child(3) {
   transition-delay: 0.5s;
 }
-.uh7-def__hero.is-visible .uh7-def__stat:nth-child(4) {
+.uh7-def__hero.is-visible + .uh7-def__stats .uh7-def__stat:nth-child(4) {
   transition-delay: 0.6s;
 }
 .uh7-def__stat-num {
@@ -2496,10 +2507,8 @@
   .uh7-hero__particle,
   .uh7-hero__side-text,
   .uh7-hero__letterbox,
-  .uh7-hero__title-shimmer {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
+  .uh7-hero__title::after {
+    content: none !important;
   }
   .uh7-rv,
   .uh7-rv-s,

@@ -31,6 +31,27 @@ function localizeHref(locale: SupportedLocale, href: string) {
 
 export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) {
   const isUa = locale === 'ua';
+  const heroTitle = localize(isUa, URBAN_HERO.title, URBAN_HERO.titleUk);
+  let visibleCharIndex = 0;
+  const heroTitleChars = Array.from(heroTitle).map((char, index) => {
+    if (char === ' ') {
+      return <span key={`space-${index}`} className="uh7-char-space" aria-hidden="true" />;
+    }
+
+    const delay = `${0.8 + visibleCharIndex * 0.035}s`;
+    visibleCharIndex += 1;
+
+    return (
+      <span
+        key={`char-${index}`}
+        className="uh7-char"
+        style={{ animationDelay: delay }}
+        aria-hidden="true"
+      >
+        {char}
+      </span>
+    );
+  });
 
   return (
     <>
@@ -143,10 +164,9 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
               <img className="uh7-hero__brand-urban" src={URBAN_LOGO} alt="Urban Automotive" width={643} height={101} />
             </div>
             <p className="uh7-hero__eyebrow">{localize(isUa, URBAN_HERO.eyebrow, URBAN_HERO.eyebrowUk)}</p>
-            <h1 className="uh7-hero__title" data-uh7-split>
-              {localize(isUa, URBAN_HERO.title, URBAN_HERO.titleUk)}
-              <span className="uh7-hero__title-shimmer" aria-hidden>
-                {localize(isUa, URBAN_HERO.title, URBAN_HERO.titleUk)}
+            <h1 className="uh7-hero__title" aria-label={heroTitle} data-text={heroTitle}>
+              <span className="uh7-hero__title-text" aria-hidden="true">
+                {heroTitleChars}
               </span>
             </h1>
             <p className="uh7-hero__subtitle">
@@ -397,23 +417,23 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
                 </svg>
               </Link>
             </div>
-            <div className="uh7-def__stats">
-              <div className="uh7-def__stat">
-                <p className="uh7-def__stat-num">90 / 110 / 130</p>
-                <p className="uh7-def__stat-label">{isUa ? 'Модельний ряд' : 'Model Range'}</p>
-              </div>
-              <div className="uh7-def__stat">
-                <p className="uh7-def__stat-num">Widetrack</p>
-                <p className="uh7-def__stat-label">{isUa ? 'Фірмова програма' : 'Signature Programme'}</p>
-              </div>
-              <div className="uh7-def__stat">
-                <p className="uh7-def__stat-num">Carbon</p>
-                <p className="uh7-def__stat-label">{isUa ? 'Аеро пакет' : 'Aero Package'}</p>
-              </div>
-              <div className="uh7-def__stat">
-                <p className="uh7-def__stat-num">UK</p>
-                <p className="uh7-def__stat-label">{isUa ? 'Виробництво' : 'Hand Built'}</p>
-              </div>
+          </div>
+          <div className="uh7-def__stats">
+            <div className="uh7-def__stat">
+              <p className="uh7-def__stat-num">90 / 110 / 130</p>
+              <p className="uh7-def__stat-label">{isUa ? 'Модельний ряд' : 'Model Range'}</p>
+            </div>
+            <div className="uh7-def__stat">
+              <p className="uh7-def__stat-num">Widetrack</p>
+              <p className="uh7-def__stat-label">{isUa ? 'Фірмова програма' : 'Signature Programme'}</p>
+            </div>
+            <div className="uh7-def__stat">
+              <p className="uh7-def__stat-num">Carbon</p>
+              <p className="uh7-def__stat-label">{isUa ? 'Аеро пакет' : 'Aero Package'}</p>
+            </div>
+            <div className="uh7-def__stat">
+              <p className="uh7-def__stat-num">UK</p>
+              <p className="uh7-def__stat-label">{isUa ? 'Виробництво' : 'Hand Built'}</p>
             </div>
           </div>
         </div>

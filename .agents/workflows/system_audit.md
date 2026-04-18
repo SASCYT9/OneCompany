@@ -23,5 +23,6 @@ Spawn the `browser_subagent`.
 - Return the visual screenshot and console logs to check for Hydration Errors or misaligned components.
 
 ## 4. Report Generation
-- Combine the static analysis and subagent visual check into an Obsidian report in `wiki/System Audit YYYY-MM-DD.md`.
+- Combine the static analysis and subagent visual check into a walkthrough artifact.
 - Present it to the user.
+

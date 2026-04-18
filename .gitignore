@@ -2,7 +2,7 @@
 
 # dependencies
 /node_modules
-wp-content/themes/onecompany-theme/node_modules/
+wordpress/
 /.pnp
 .pnp.*
 .yarn/*
@@ -61,7 +61,12 @@ temp_pgsql/
 .env*.local
 .shop-products-dev-cache.json
 
-# agent bloat protection
+# agent and junk protection
 .agents/skills-archive/
-.agents/mcp-servers/*/node_modules/
-.agents/mcp-servers/*/build/
+.agents/mcp-servers/
+temp-skills/
+reference/
+docs/
+__pycache__/
+*.part
+*.rar

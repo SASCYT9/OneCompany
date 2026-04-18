@@ -5,9 +5,8 @@ Use this file as a compact routing map, not as a second system prompt.
 ## Default Read Order
 1. `AGENTS.md`
 2. `.agents/PROJECT_CONTEXT.md`
-3. Relevant wiki pages
-4. Relevant files in `src/`, `prisma/`, or `scripts/`
-5. Curated skills from `.agents/skills/` only when needed
+3. Relevant files in `src/`, `prisma/`, or `scripts/`
+4. Curated skills from `.agents/skills/` only when needed
 
 ## Domain Map
 
@@ -29,12 +28,11 @@ Use this file as a compact routing map, not as a second system prompt.
 
 ### SEO And Localization
 - Scope: metadata, schema, sitemap, localized content, search-facing content quality
-- Main areas: `src/lib/seo*`, `src/lib/shopText.ts`, `messages/`, `src/app/sitemap.ts`, `src/app/robots.ts`
+- Main areas: `src/lib/seo*`, `src/lib/shopText.ts`, `src/lib/messages/`, `src/app/sitemap.ts`, `src/app/robots.ts`
 
 ### Data Layer
 - Scope: Prisma schema, migrations, data integrity
 - Main areas: `prisma/`, `src/lib/prisma.ts`
 
 ## Guardrails
-- Follow the current wiki architecture, not outdated habits.
-- Keep project understanding grounded in repo files and wiki docs.
+- Keep project understanding grounded in repo files.
