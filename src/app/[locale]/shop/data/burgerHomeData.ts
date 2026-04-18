@@ -41,7 +41,7 @@ export const BURGER_SHOWCASES: BurgerShowcase[] = [
     desc: 'Plug & play performance tuning. Up to 100+ HP gains with no permanent modifications.',
     descUk: 'Plug & play performance тюнінг. До 100+ к.с. приросту без постійних модифікацій.',
     link: '/shop/burger/products',
-    imageUrl: '/images/shop/burger/jb4_device_macro.png',
+    imageUrl: '/images/shop/burger/showcase-jb4.jpg',
   },
   {
     badge: 'Fuel Systems',

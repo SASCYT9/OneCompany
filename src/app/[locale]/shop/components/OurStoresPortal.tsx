@@ -59,7 +59,7 @@ export default function OurStoresPortal({ locale, isB2bApproved }: OurStoresPort
             <p className="text-sm md:text-base text-white/50 leading-relaxed max-w-lg font-light">
               {isUa
                 ? "Офіційні магазини One Company. Досліджуйте простір преміальних автомобільних брендів та тюнінг-ательє."
-                : "Official One Company stores. Explore the space of premium automotive brands and tuning ateliers."}}
+                : "Official One Company stores. Explore the space of premium automotive brands and tuning ateliers."}
             </p>
           </div>
           

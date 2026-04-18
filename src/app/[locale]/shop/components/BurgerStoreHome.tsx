@@ -235,12 +235,21 @@ export default function BurgerStoreHome({ locale }: Props) {
                 </Link>
                 
                 <div className="absolute inset-0 z-0 h-3/5">
-                  <Image
-                    src={s.imageUrl}
-                    alt={s.name}
-                    fill
-                    className="object-cover transition-transform duration-1000 ease-out group-hover:scale-110 opacity-70 group-hover:opacity-100"
-                  />
+                  {s.imageUrl.includes('flexfuel') ? (
+                    <Image
+                      src={s.imageUrl}
+                      alt={s.name}
+                      fill
+                      className="object-contain p-8 transition-transform duration-1000 ease-out group-hover:scale-110 opacity-70 group-hover:opacity-100 invert"
+                    />
+                  ) : (
+                    <Image
+                      src={s.imageUrl}
+                      alt={s.name}
+                      fill
+                      className="object-cover transition-transform duration-1000 ease-out group-hover:scale-110 opacity-70 group-hover:opacity-100"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" />
                 </div>
                 
