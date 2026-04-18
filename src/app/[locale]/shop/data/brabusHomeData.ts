@@ -104,8 +104,8 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/bentley',
-    /** Bentley GTC — landscape front 3/4 right view */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-41.jpg',
+    /** Bentley GTC — landscape pure side profile (facing right) */
+    imageUrl: '/images/shop/brabus/hq/brabus-bentley-side.png',
   },
   {
     title: 'Brabus 900',
