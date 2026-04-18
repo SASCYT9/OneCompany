@@ -136,12 +136,6 @@ export default function BurgerStoreHome({ locale }: Props) {
             >
               {L(isUa, BURGER_HERO.primaryButtonLabel, BURGER_HERO.primaryButtonLabelUk)}
             </Link>
-            <Link
-              href={`/${locale}${BURGER_HERO.secondaryButtonLink}`}
-              className="inline-flex items-center justify-center border border-zinc-700 bg-transparent px-8 py-4 text-sm font-bold uppercase tracking-widest text-white transition-all hover:bg-zinc-800 hover:border-zinc-500"
-            >
-              {L(isUa, BURGER_HERO.secondaryButtonLabel, BURGER_HERO.secondaryButtonLabelUk)}
-            </Link>
           </div>
         </div>
       </section>

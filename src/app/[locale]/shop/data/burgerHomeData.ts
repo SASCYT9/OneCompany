@@ -6,15 +6,12 @@ export const BURGER_HERO = {
   titleUk: 'JB4',
   titleLine2Uk: 'Performance.',
   subtitle:
-    'World-famous plug & play performance tuning since 2007. JB4 tuners, flex fuel kits, intakes, and precision-engineered parts for 30+ vehicle brands.',
+    'World-famous JB4 power chips, flex fuel kits, intake systems, and precision-engineered parts for 30+ vehicle brands. Plug & play performance since 2007.',
   subtitleUk:
-    'Всесвітньо відомий plug & play performance тюнінг з 2007 року. JB4 тюнери, flex fuel кіти, інтейки та деталі для 30+ марок авто.',
+    'Всесвітньо відомі чіпи збільшення потужності JB4, flex fuel кіти, впускні системи та деталі для 30+ марок авто. Plug & play performance з 2007 року.',
   primaryButtonLabel: 'Explore Catalog',
   primaryButtonLabelUk: 'Каталог',
   primaryButtonLink: '/shop/burger/products',
-  secondaryButtonLabel: 'About Us',
-  secondaryButtonLabelUk: 'Про нас',
-  secondaryButtonLink: '/about',
   heroImageUrl: '/images/shop/burger/hero_jb4_tech.png',
 } as const;
 
@@ -60,9 +57,9 @@ export const BURGER_SHOWCASES: BurgerShowcase[] = [
     badge: 'Performance',
     badgeUk: 'Performance',
     name: 'Intakes & Parts',
-    nameUk: 'Інтейки та деталі',
+    nameUk: 'Впускні системи та деталі',
     desc: 'Cold air intakes, charge pipes, oil catch cans, and precision billet accessories.',
-    descUk: 'Холодні інтейки, charge pipes, oil catch cans та точні billet аксесуари.',
+    descUk: 'Впускні системи, charge pipes, oil catch cans та точні billet аксесуари.',
     link: '/shop/burger/products',
     imageUrl: '/images/shop/burger/carbon_intake.png',
   },

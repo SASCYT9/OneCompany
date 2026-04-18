@@ -19,8 +19,8 @@ export async function generateMetadata({
         : 'Burger Motorsports | JB4 Performance Tuning | One Company',
     description:
       resolvedLocale === 'ua'
-        ? 'JB4 тюнери, flex fuel кіти, інтейки та performance деталі для BMW, Mercedes, Porsche та 30+ марок. Офіційний дилер в Україні.'
-        : 'JB4 tuners, flex fuel kits, intakes and performance parts for BMW, Mercedes, Porsche and 30+ brands. Official dealer in Ukraine.',
+        ? 'Чіпи збільшення потужності JB4, flex fuel кіти, впускні системи та performance деталі для BMW, Mercedes, Porsche та 30+ марок. Офіційний дилер в Україні.'
+        : 'JB4 power chips, flex fuel kits, intake systems and performance parts for BMW, Mercedes, Porsche and 30+ brands. Official dealer in Ukraine.',
   });
 }
 

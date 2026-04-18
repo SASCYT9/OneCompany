@@ -7,7 +7,7 @@ import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { URBAN_COLLECTION_CARDS } from '../../../data/urbanCollectionsList';
-import { getUrbanCollectionPageConfig, getUrbanCollectionTemplateHandles } from '../../../data/urbanCollectionPages.server';
+import { getUrbanCollectionPageConfig } from '../../../data/urbanCollectionPages.server';
 import {
   UrbanCinematicHero,
   UrbanModelOverview,
@@ -23,7 +23,7 @@ type Props = {
 };
 
 export async function generateStaticParams() {
-  return getUrbanCollectionTemplateHandles().map((handle) => ({ handle }));
+  return URBAN_COLLECTION_CARDS.map((card) => ({ handle: card.collectionHandle }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; handle: string }> }) {
