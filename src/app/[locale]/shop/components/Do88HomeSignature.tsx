@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import type { SupportedLocale } from '@/lib/seo';
 import Do88VehicleFilter from '../do88/Do88VehicleFilter';
 import { DO88_HERO } from '../data/do88HomeData';
@@ -45,7 +44,7 @@ export default function Do88HomeSignature({ locale }: { locale: SupportedLocale 
 
         {/* Vehicle Filter in Glass Container */}
         <div className="w-full relative z-20 do88-animate-up" style={{ animationDelay: '0.2s' }}>
-          <div className="mx-auto max-w-4xl do88-glass-panel relative overflow-hidden group">
+          <div className="mx-auto max-w-4xl do88-glass-panel relative overflow-visible group">
             {/* Ambient inner glow */}
             <div className="absolute inset-0 bg-gradient-to-tr from-[#c29d59]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
             <Do88VehicleFilter locale={locale} />
