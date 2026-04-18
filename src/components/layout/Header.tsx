@@ -18,7 +18,6 @@ const navItems = [
   { key: "moto", href: "/moto" },
   { key: "shop", href: "/shop" },
   { key: "blog", href: "/blog" },
-  { key: "about", href: "/about" },
   { key: "contact", href: "/contact" },
 ];
 
