@@ -115,7 +115,7 @@ export function Header() {
           <Logo className="w-20 sm:w-28 md:w-32" priority tone="light" size="compact" />
           <span className="absolute -bottom-1 left-0 h-px w-8 bg-gradient-to-r from-white to-transparent sm:-bottom-2 sm:w-10" />
         </Link>
-        <nav className="ml-6 hidden flex-1 items-center justify-center gap-4 md:ml-8 md:gap-6 lg:gap-8 lg:flex">
+        <nav className="ml-6 hidden flex-1 items-center gap-3 md:ml-8 md:gap-5 lg:flex">
           {renderedNavItems.map((item) => {
             const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
             return (
