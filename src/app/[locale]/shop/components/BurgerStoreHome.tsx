@@ -228,35 +228,35 @@ export default function BurgerStoreHome({ locale }: Props) {
             {BURGER_SHOWCASES.map((s, i) => (
               <div
                 key={i}
-                className="category-card group relative flex h-[480px] flex-col overflow-hidden bg-black ring-1 ring-white/5"
+                className="category-card group relative flex h-[480px] flex-col overflow-hidden bg-zinc-950 ring-1 ring-white/5 transition-all duration-500 hover:ring-white/20"
               >
                 <Link href={`/${locale}${s.link}`} className="absolute inset-0 z-20">
                   <span className="sr-only">View {s.name}</span>
                 </Link>
                 
-                {/* White Studio Backdrop for Product */}
-                <div className="absolute inset-x-0 top-0 z-0 h-3/5 bg-white overflow-hidden">
+                {/* White Studio Backdrop for Product (Top half) */}
+                <div className="relative h-[55%] w-full bg-white overflow-hidden shrink-0 border-b border-white/5">
                   <Image
                     src={s.imageUrl}
                     alt={s.name}
                     fill
                     className="object-contain p-8 transition-transform duration-1000 ease-out group-hover:scale-110 mix-blend-multiply"
                   />
-                  {/* Subtle shadows for depth instead of black gradient */}
-                  <div className="absolute inset-0 shadow-[inset_0_-20px_20px_-20px_rgba(0,0,0,0.2)] pointer-events-none" />
+                  <div className="absolute inset-0 shadow-[inset_0_-20px_20px_-20px_rgba(0,0,0,0.1)] pointer-events-none" />
                 </div>
                 
-                <div className="relative z-10 flex h-full flex-col justify-end p-8 transform transition-transform duration-500 group-hover:-translate-y-2">
+                {/* Text section (Bottom half) - aligned top, CTA pushed to bottom */}
+                <div className="relative flex flex-1 flex-col p-8 transition-transform duration-500 group-hover:-translate-y-2">
                   <div className="mb-4 flex self-start bg-zinc-900 border border-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-zinc-300">
                     {L(isUa, s.badge, s.badgeUk)}
                   </div>
                   <h3 className="mb-3 text-2xl font-bold text-white leading-tight">
                     {L(isUa, s.name, s.nameUk)}
                   </h3>
-                  <p className="mb-6 text-sm text-zinc-400 line-clamp-2 font-light">
+                  <p className="text-sm text-zinc-400 line-clamp-2 font-light">
                     {L(isUa, s.desc, s.descUk)}
                   </p>
-                  <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-[var(--burger-yellow)]">
+                  <div className="mt-auto flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-[var(--burger-yellow)] pt-6">
                     <span className="h-[1px] w-6 bg-[var(--burger-yellow)] transition-all duration-300 group-hover:w-12"></span>
                     {isUa ? "Переглянути" : "Explore"}
                   </div>
