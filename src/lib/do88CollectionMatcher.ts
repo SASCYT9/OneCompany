@@ -39,7 +39,23 @@ const HANDLE_TO_ALIASES: Record<string, string[]> = {
     'slangklämme', 'klämme', 'kit', 'bigpack', 'big pack',
     'dämpare', 'cobra head', 'reducer', 'kon', 'aluminiumkon',
     'spacer', 'adapter', 'connector', 'vta', 'gfb', 'dv',
+    'hoodie', 'apparel', 'merch', 'reklamartiklar',
     'garrett', 'powermax', 'bmc', 'luftfilter',
+  ],
+  'exhaust-parts': [
+    'exhaust', 'exhaust part', 'avgas', 'avgasdelar', 'tailpipe',
+    'muffler', 'dämpare', 'flänsförband', 'kompensator', 'y-rör',
+    't-rör', 'ändrör',
+  ],
+  'aluminum-pipes': [
+    'aluminum pipe', 'aluminium pipe', 'aluminum pipes', 'aluminium pipes',
+    'aluminum reducer', 'aluminium reducer', 'aluminum bend', 'aluminium bend',
+    'aluminum pipe kit', 'aluminum tube', 'aluminum elbow', 'aluminiumror',
+    'aluminiumrör', 'aluminum pipes',
+  ],
+  'heat-protection': [
+    'heat protection', 'heat shield', 'heat insulating', 'värmesköld',
+    'tejp', 'thermal wrap', 'heat wrap',
   ],
 };
 

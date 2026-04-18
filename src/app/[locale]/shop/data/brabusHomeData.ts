@@ -93,8 +93,8 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     imageUrl: '/images/shop/brabus/hq/brabus-supercars-112.jpg',
   },
   {
-    title: 'Brabus 820',
-    titleUk: 'Brabus 820',
+    title: 'Brabus 900',
+    titleUk: 'Brabus 900',
     subtitle: 'Bentley GTC',
     subtitleUk: 'Bentley GTC',
     badge: 'Luxury',
@@ -103,7 +103,7 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     tagTwo: 'Forged',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: '/shop/brabus/collections/rolls-royce',
+    link: '/shop/brabus/collections/bentley',
     /** Bentley GTC — landscape front 3/4 right view */
     imageUrl: '/images/shop/brabus/hq/brabus-supercars-41.jpg',
   },

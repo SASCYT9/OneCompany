@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DO88_COLLECTION_CARDS } from '../data/do88CollectionsList';
 
 type Locale = string;
 
@@ -43,14 +44,11 @@ const CAR_DATA = {
 
 export const DO88_CATEGORIES = [
   { handle: 'all', title: 'All Parts', titleUa: 'Всі деталі' },
-  { handle: 'intercoolers', title: 'Intercoolers', titleUa: 'Інтеркулери' },
-  { handle: 'radiators', title: 'Radiators', titleUa: 'Радіатори' },
-  { handle: 'intake-systems', title: 'Intake Systems', titleUa: 'Системи впуску' },
-  { handle: 'performance-hoses', title: 'Performance Hoses', titleUa: 'Патрубки' },
-  { handle: 'oil-coolers', title: 'Oil Coolers', titleUa: 'Масляні радіатори' },
-  { handle: 'y-pipes-plenums', title: 'Y-Pipes & Plenums', titleUa: 'Y-Пайпи та Пленуми' },
-  { handle: 'carbon-fiber', title: 'Carbon Fiber', titleUa: 'Карбонові деталі' },
-  { handle: 'cooling-accessories', title: 'Fans & Accessories', titleUa: 'Вентилятори та аксесуари' },
+  ...DO88_COLLECTION_CARDS.map((card) => ({
+    handle: card.categoryHandle,
+    title: card.title,
+    titleUa: card.titleUk || card.title,
+  })),
 ];
 
 type Make = keyof typeof CAR_DATA;
