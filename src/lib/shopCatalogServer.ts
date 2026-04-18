@@ -244,6 +244,7 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
 
 let globalProductsCache: ShopProduct[] | null = null;
 let lastCacheTime = 0;
+let globalProductsPromise: Promise<ShopProduct[]> | null = null;
 
 /** All products: from DB (published) then static catalog (by slug, DB wins). */
 export async function getShopProductsServer(): Promise<ShopProduct[]> {
@@ -251,6 +252,9 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
   // Memory cache for 45 seconds (prevents Vercel OOM during heavy static build)
   if (globalProductsCache && (now - lastCacheTime < 45000)) {
     return globalProductsCache;
+  }
+  if (globalProductsPromise) {
+    return globalProductsPromise;
   }
 
   // File cache for local development to prevent massive Supabase egress
@@ -272,34 +276,42 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
     }
   }
 
-  let dbRows: AdminShopProductRecord[] = [];
-  try {
-    dbRows = await prisma.shopProduct.findMany({
-      where: { isPublished: true },
-      orderBy: { updatedAt: 'desc' },
-      include: adminProductInclude,
-    });
-  } catch {
-    // No DB or not migrated — use only static
-    return [...SHOP_PRODUCTS];
-  }
-
-  const bySlug = new Map<string, ShopProduct>();
-  dbRows.forEach((row) => bySlug.set(row.slug, mapDbToCatalog(row)));
-  SHOP_PRODUCTS.forEach((p) => {
-    if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
-  });
-  
-  globalProductsCache = Array.from(bySlug.values());
-  lastCacheTime = Date.now();
-  
-  if (isDev && cachePath) {
+  globalProductsPromise = (async () => {
+    let dbRows: AdminShopProductRecord[] = [];
     try {
-      fs.writeFileSync(cachePath, JSON.stringify(globalProductsCache), 'utf8');
-    } catch {}
+      dbRows = await prisma.shopProduct.findMany({
+        where: { isPublished: true },
+        orderBy: { updatedAt: 'desc' },
+        include: adminProductInclude,
+      });
+    } catch {
+      // No DB or not migrated — use only static
+      return [...SHOP_PRODUCTS];
+    }
+
+    const bySlug = new Map<string, ShopProduct>();
+    dbRows.forEach((row) => bySlug.set(row.slug, mapDbToCatalog(row)));
+    SHOP_PRODUCTS.forEach((p) => {
+      if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
+    });
+
+    globalProductsCache = Array.from(bySlug.values());
+    lastCacheTime = Date.now();
+
+    if (isDev && cachePath) {
+      try {
+        fs.writeFileSync(cachePath, JSON.stringify(globalProductsCache), 'utf8');
+      } catch {}
+    }
+
+    return globalProductsCache;
+  })();
+
+  try {
+    return await globalProductsPromise;
+  } finally {
+    globalProductsPromise = null;
   }
-  
-  return globalProductsCache;
 }
 
 /** One product by slug: DB first, then static. */

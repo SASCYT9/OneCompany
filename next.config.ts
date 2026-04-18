@@ -207,10 +207,8 @@ const nextConfig: NextConfig = {
   // Experimental features
   experimental: {
     optimizeCss: true,
-    // Fix Prisma Out Of Memory (OOM) during Vercel static build
-    cpus: 1,
-    workerThreads: false,
-    memoryBasedWorkersCount: true,
+    // Keep build parallel enough to stay fast, but avoid exhausting the DB pool during prerendering.
+    cpus: 4,
   },
   // redirects removed to allow middleware to handle routing dynamically
 };

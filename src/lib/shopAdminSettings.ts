@@ -101,6 +101,20 @@ export type ShopSettingsRecord = {
   fopEdrpou: string | null;
   fopDetails: string | null;
   whiteBitEnabled: boolean;
+  appAccentColor: string;
+  appAddress: string | null;
+  appCompanyName: string | null;
+  appContactEmail: string | null;
+  appContactPhone: string | null;
+  appDarkMode: boolean;
+  appDefaultLanguage: string;
+  appDefaultMarkup: number;
+  appLogoUrl: string | null;
+  appMetaDescription: string | null;
+  appMetaTitle: string | null;
+  appOgImage: string | null;
+  appShowPricesWithVat: boolean;
+  appSoundEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -531,30 +545,59 @@ export function serializeShopSettings(record: ShopSettingsRecord) {
   };
 }
 
-export async function getOrCreateShopSettings(prisma: PrismaClient) {
-  // FAST PATH: Prevent massive transactional upserts during Vercel static build
-  const existing = await prisma.shopSettings.findUnique({
-    where: { key: 'shop' }
-  });
-  if (existing) return existing;
+let cachedShopSettingsRecord: ShopSettingsRecord | null = null;
+let cachedShopSettingsFetchedAt = 0;
+let cachedShopSettingsPromise: Promise<ShopSettingsRecord> | null = null;
 
-  // FALLBACK: create if it completely doesn't exist
-  return prisma.shopSettings.upsert({
-    where: { key: 'shop' },
-    update: {},
-    create: {
-      key: 'shop',
-      b2bVisibilityMode: 'approved_only',
-      defaultB2bDiscountPercent: null,
-      defaultCurrency: 'EUR',
-      enabledCurrencies: ['EUR', 'USD', 'UAH'],
-      currencyRates: DEFAULT_CURRENCY_RATES,
-      shippingZones: DEFAULT_SHIPPING_ZONES,
-      brandShippingRules: DEFAULT_BRAND_SHIPPING_RULES as unknown as Prisma.InputJsonValue,
-      taxRegions: DEFAULT_TAX_REGIONS,
-      regionalPricingRules: DEFAULT_REGIONAL_PRICING_RULES,
-      showTaxesIncludedNotice: false,
-      whiteBitEnabled: false,
-    },
-  });
+export async function getOrCreateShopSettings(prisma: PrismaClient) {
+  const now = Date.now();
+  if (cachedShopSettingsRecord && now - cachedShopSettingsFetchedAt < 60_000) {
+    return cachedShopSettingsRecord;
+  }
+
+  if (cachedShopSettingsPromise) {
+    return cachedShopSettingsPromise;
+  }
+
+  // FAST PATH: Prevent massive transactional upserts during Vercel static build
+  cachedShopSettingsPromise = (async () => {
+    const existing = await prisma.shopSettings.findUnique({
+      where: { key: 'shop' }
+    });
+    if (existing) {
+      cachedShopSettingsRecord = existing;
+      cachedShopSettingsFetchedAt = Date.now();
+      return existing;
+    }
+
+    // FALLBACK: create if it completely doesn't exist
+    const created = await prisma.shopSettings.upsert({
+      where: { key: 'shop' },
+      update: {},
+      create: {
+        key: 'shop',
+        b2bVisibilityMode: 'approved_only',
+        defaultB2bDiscountPercent: null,
+        defaultCurrency: 'EUR',
+        enabledCurrencies: ['EUR', 'USD', 'UAH'],
+        currencyRates: DEFAULT_CURRENCY_RATES,
+        shippingZones: DEFAULT_SHIPPING_ZONES,
+        brandShippingRules: DEFAULT_BRAND_SHIPPING_RULES as unknown as Prisma.InputJsonValue,
+        taxRegions: DEFAULT_TAX_REGIONS,
+        regionalPricingRules: DEFAULT_REGIONAL_PRICING_RULES,
+        showTaxesIncludedNotice: false,
+        whiteBitEnabled: false,
+      },
+    });
+
+    cachedShopSettingsRecord = created;
+    cachedShopSettingsFetchedAt = Date.now();
+    return created;
+  })();
+
+  try {
+    return await cachedShopSettingsPromise;
+  } finally {
+    cachedShopSettingsPromise = null;
+  }
 }
