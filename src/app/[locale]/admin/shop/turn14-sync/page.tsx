@@ -3,8 +3,22 @@
 import { useState, useEffect } from 'react';
 import { RefreshCw, Play, AlertCircle, CheckCircle2 } from 'lucide-react';
 
+type SyncBrandStatus = 'idle' | 'syncing' | 'error';
+
+type SyncBrand = {
+  id: string;
+  brandName: string;
+  brandId: number | string;
+  isActive: boolean;
+  lastSyncAt: string | null;
+  syncStatus: SyncBrandStatus;
+  syncMessage?: string | null;
+  syncProgress: number;
+  syncTotal: number;
+};
+
 export default function Turn14SyncDashboard() {
-  const [brands, setBrands] = useState<any[]>([]);
+  const [brands, setBrands] = useState<SyncBrand[]>([]);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
 
@@ -36,8 +50,9 @@ export default function Turn14SyncDashboard() {
       // Start in background (don't await completion)
       fetch('/api/admin/turn14-sync', { method: 'POST' });
       alert('Sync started successfully! Watch the progress bars below.');
-    } catch (e: any) {
-      alert('Failed to start sync: ' + e.message);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Unknown error';
+      alert('Failed to start sync: ' + message);
     } finally {
       setTimeout(() => setStarting(false), 2000);
     }
@@ -135,12 +150,12 @@ export default function Turn14SyncDashboard() {
                   
                   <div className="h-1.5 w-full bg-[#0a0a0c] rounded-full overflow-hidden border border-black inset-0 shadow-inner">
                     <div 
-                      className={`h-full transition-all duration-[2000ms] ease-out ${
+                      className={`h-full transition-all ease-out ${
                         isSyncing ? 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 
                         isError ? 'bg-red-500' : 
                         'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'
                       }`}
-                      style={{ width: `${progressPct}%` }}
+                      style={{ width: `${progressPct}%`, transitionDuration: '2000ms' }}
                     />
                   </div>
                 </div>

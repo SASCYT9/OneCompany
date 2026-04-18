@@ -57,7 +57,7 @@ function detectLocale(req: NextRequest, isMigrated: boolean = false): 'ua' | 'en
   return 'en';
 }
 
-export default function middleware(req: NextRequest) {
+export default function proxy(req: NextRequest) {
   // 1. Block access from specific countries (Russia)
   const country = req.headers.get('x-vercel-ip-country');
   if (country && blockedCountries.includes(country)) {

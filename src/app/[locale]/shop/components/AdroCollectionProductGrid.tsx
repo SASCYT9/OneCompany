@@ -1,6 +1,5 @@
 "use client";
 
-import type { CSSProperties } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
@@ -8,7 +7,7 @@ import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
 import type { SupportedLocale } from '@/lib/seo';
 import type { ShopProduct } from '@/lib/shopCatalog';
-import { localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
+import { localizeShopProductTitle } from '@/lib/shopText';
 import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
 
@@ -78,15 +77,8 @@ function computePricesFromUah(
   };
 }
 
-// Function to generate standard product path - avoiding tight coupling
-function buildGenericShopProductPath(locale: SupportedLocale, product: ShopProduct) {
-   const brandSlug = product.brand?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'brand';
-   return `/${locale}/shop/${brandSlug}/products/${product.slug}`;
-}
-
 export default function AdroCollectionProductGrid({
   locale,
-  handle,
   title,
   brand,
   products,
@@ -122,7 +114,7 @@ export default function AdroCollectionProductGrid({
                 ? resolveShopProductPricing(product, viewerContext)
                 : { effectivePrice: product.price, effectiveCompareAt: product.compareAt, audience: 'b2c', b2bVisible: false };
               
-              const isB2B = pricing.audience === 'b2b' && (pricing as any).b2bVisible;
+              const isB2B = pricing.audience === 'b2b' && pricing.b2bVisible;
 
               const computed = computePricesFromUah(
                 pricing.effectivePrice,
@@ -147,7 +139,8 @@ export default function AdroCollectionProductGrid({
                       alt={productTitle}
                       fill
                       sizes="(max-width: 768px) 100vw, 25vw"
-                      className="object-contain p-8 opacity-80 group-hover:scale-105 group-hover:opacity-100 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      className="object-contain p-8 opacity-80 group-hover:scale-105 group-hover:opacity-100 transition-all duration-700"
+                      style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
                     />
                   </div>
                   
@@ -205,7 +198,10 @@ export default function AdroCollectionProductGrid({
                 </div>
                 
                 {/* Minimalist interactive line at bottom */}
-                <div className="h-[1px] w-0 bg-white group-hover:w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] absolute bottom-0 left-0" />
+                <div
+                  className="absolute bottom-0 left-0 h-[1px] w-0 bg-white transition-all duration-700 group-hover:w-full"
+                  style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+                />
               </article>
             );
           })}

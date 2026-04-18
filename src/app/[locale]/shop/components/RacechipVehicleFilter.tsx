@@ -456,7 +456,8 @@ export default function RacechipVehicleFilter({
                                  alt={productTitle}
                                  fill
                                  sizes="(max-width: 768px) 100vw, 33vw"
-                                 className="object-contain transition-transform duration-[1s] group-hover:scale-105 opacity-80 group-hover:opacity-100 mix-blend-screen"
+                                 className="object-contain opacity-80 transition-transform group-hover:scale-105 group-hover:opacity-100 mix-blend-screen"
+                                 style={{ transitionDuration: '1s' }}
                                />
                              </div>
                           ) : (

@@ -519,7 +519,8 @@ export default function OhlinsVehicleFilter({
                                 alt={productTitle}
                                 fill
                                 sizes="(max-width: 768px) 100vw, 33vw"
-                                className="object-contain transition-transform duration-[1s] group-hover:scale-105 opacity-80 group-hover:opacity-100"
+                                className="object-contain opacity-80 transition-transform group-hover:scale-105 group-hover:opacity-100"
+                                style={{ transitionDuration: '1s' }}
                               />
                             </div>
                           ) : (

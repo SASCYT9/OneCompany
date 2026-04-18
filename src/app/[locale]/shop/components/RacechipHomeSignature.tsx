@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 type Props = { locale: SupportedLocale };
 
@@ -104,7 +104,8 @@ export default function RacechipHomeSignature({ locale }: Props) {
                 src="/images/shop/racechip/app-stealth-realui.png" 
                 alt="RaceChip App Control Interface" 
                 fill
-                className="object-cover rounded-xl transition-transform duration-[2s] hover:scale-110"
+                className="object-cover rounded-xl transition-transform hover:scale-110"
+                style={{ transitionDuration: '2s' }}
                 unoptimized
               />
             </div>
@@ -190,7 +191,8 @@ export default function RacechipHomeSignature({ locale }: Props) {
                 src="/images/shop/racechip/gts-black-macro.png" 
                 alt="RaceChip GTS Black Carbon Module" 
                 fill
-                className="object-cover rounded-xl transition-transform duration-[3s] group-hover:scale-[1.03]"
+                className="object-cover rounded-xl transition-transform group-hover:scale-[1.03]"
+                style={{ transitionDuration: '3s' }}
                 unoptimized
               />
             </div>

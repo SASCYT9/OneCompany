@@ -57,9 +57,8 @@ const TextReveal = ({ text }: { text: string }) => {
   );
 };
 
-export default function CSFHomeSignature({ locale, smmSource }: Props) {
+export default function CSFHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
-  const isFromIG = smmSource === 'ig';
   const containerRef = useRef<HTMLDivElement>(null);
   
   const { scrollYProgress } = useScroll({
@@ -196,7 +195,8 @@ export default function CSFHomeSignature({ locale, smmSource }: Props) {
               <img 
                 src={CSF_HERO.heroImageFallback} 
                 alt="CSF Racing" 
-                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-[2s] ease-out"
+                className="w-full h-full object-cover opacity-80 transition-transform ease-out group-hover:scale-105"
+                style={{ transitionDuration: '2s' }}
               />
               {/* Technical CRT Scan lines */}
               <div className="absolute inset-0 scan-line mix-blend-overlay opacity-30"></div>
@@ -240,7 +240,12 @@ export default function CSFHomeSignature({ locale, smmSource }: Props) {
             className="flex flex-col border-r border-white/5"
           >
             <div className="aspect-[16/9] w-full border-b border-white/5 overflow-hidden relative group">
-              <img src={CSF_MATERIALS.btube.image} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-[1.5s]" alt="B-Tube" />
+              <img
+                src={CSF_MATERIALS.btube.image}
+                className="w-full h-full object-cover opacity-90 transition-all group-hover:opacity-100 group-hover:scale-105"
+                style={{ transitionDuration: '1.5s' }}
+                alt="B-Tube"
+              />
               <div className="absolute top-4 left-4 border border-white/10 bg-black/80 px-2 py-1 text-[9px] uppercase tracking-widest text-[#c29d59]">FIG 01.</div>
               <div className="absolute inset-0 scan-line mix-blend-overlay opacity-20"></div>
             </div>
@@ -275,7 +280,12 @@ export default function CSFHomeSignature({ locale, smmSource }: Props) {
             className="flex flex-col border-t lg:border-t-0 border-white/5"
           >
             <div className="aspect-[16/9] w-full border-b border-white/5 overflow-hidden relative group">
-              <img src={CSF_MATERIALS.aluminum.image} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-[1.5s]" alt="Aluminum" />
+              <img
+                src={CSF_MATERIALS.aluminum.image}
+                className="w-full h-full object-cover opacity-90 transition-all group-hover:opacity-100 group-hover:scale-105"
+                style={{ transitionDuration: '1.5s' }}
+                alt="Aluminum"
+              />
               <div className="absolute top-4 left-4 border border-white/10 bg-black/80 px-2 py-1 text-[9px] uppercase tracking-widest text-[#c29d59]">FIG 02.</div>
               <div className="absolute inset-0 scan-line mix-blend-overlay opacity-20"></div>
             </div>
@@ -328,7 +338,12 @@ export default function CSFHomeSignature({ locale, smmSource }: Props) {
                 <Link href={`/${locale}${line.link}`} className="group block relative bg-[#030303] overflow-hidden h-full">
                   <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10" />
                   <div className="relative aspect-[4/3] w-full border-b border-white/5 overflow-hidden">
-                    <img src={line.image} alt={line.name} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-[1s] relative z-0" />
+                    <img
+                      src={line.image}
+                      alt={line.name}
+                      className="relative z-0 h-full w-full object-cover opacity-70 transition-all group-hover:opacity-100 group-hover:scale-105"
+                      style={{ transitionDuration: '1s' }}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10"></div>
                   </div>
                   <div className="p-8 h-48 flex flex-col justify-between">
