@@ -61,7 +61,7 @@ export const BURGER_SHOWCASES: BurgerShowcase[] = [
     desc: 'Cold air intakes, charge pipes, oil catch cans, and precision billet accessories.',
     descUk: 'Впускні системи, charge pipes, oil catch cans та точні billet аксесуари.',
     link: '/shop/burger/products',
-    imageUrl: '/images/shop/burger/carbon_intake.png',
+    imageUrl: '/images/shop/burger/showcase-intake.jpg',
   },
 ];
 

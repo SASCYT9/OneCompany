@@ -25,7 +25,7 @@ const TYPE_LABELS: Record<string, Record<string, string>> = {
   "jb-plus-tuners": { en: "JB+ Tuners", ua: "JB+ Тюнери" },
   "stage-1-tuners": { en: "Stage 1 Tuners", ua: "Stage 1 Тюнери" },
   "flex-fuel": { en: "Flex Fuel Kits", ua: "Flex Fuel Кіти" },
-  "intakes": { en: "Intakes", ua: "Інтейки" },
+  "intakes": { en: "Intakes", ua: "Впускні системи" },
   "oil-catch-cans": { en: "Oil Catch Cans", ua: "Маслозбірники" },
   "wheel-spacers": { en: "Wheel Spacers", ua: "Проставки" },
   "methanol-injection": { en: "Methanol Injection", ua: "Метанол. вприск" },

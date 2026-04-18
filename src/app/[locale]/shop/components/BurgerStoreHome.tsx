@@ -235,7 +235,7 @@ export default function BurgerStoreHome({ locale }: Props) {
                 </Link>
                 
                 <div className="absolute inset-0 z-0 h-3/5">
-                  {s.imageUrl.includes('flexfuel') ? (
+                  {s.imageUrl.includes('flexfuel') || s.imageUrl.includes('showcase-intake') ? (
                     <Image
                       src={s.imageUrl}
                       alt={s.name}
