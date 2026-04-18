@@ -17,11 +17,31 @@ export type ShopCustomerSession = {
   lastName: string;
 };
 
+function isExpectedStaticGenerationSessionError(error: unknown) {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const nextErrorCode = (error as { __NEXT_ERROR_CODE?: string }).__NEXT_ERROR_CODE;
+  const digest = (error as { digest?: string }).digest;
+  const message = error instanceof Error ? error.message : String(error);
+
+  return (
+    nextErrorCode === 'DYNAMIC_SERVER_USAGE' ||
+    digest === 'DYNAMIC_SERVER_USAGE' ||
+    message.includes('Dynamic server usage') ||
+    message.includes('used `headers()`')
+  );
+}
+
 export async function getCurrentShopCustomerSession(): Promise<ShopCustomerSession | null> {
   let session;
   try {
     session = await getServerSession(authOptions);
   } catch (error) {
+    if (isExpectedStaticGenerationSessionError(error)) {
+      return null;
+    }
     console.error('Shop customer session resolve failed', error);
     return null;
   }
