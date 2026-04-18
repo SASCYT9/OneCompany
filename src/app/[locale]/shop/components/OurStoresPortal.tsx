@@ -155,7 +155,7 @@ export default function OurStoresPortal({ locale, isB2bApproved }: OurStoresPort
 
                 <div className="relative z-10 flex flex-col justify-end h-full">
                   <div className="transform transition-all duration-500 lg:translate-y-4 lg:group-hover:translate-y-0">
-                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light uppercase tracking-tight text-white/90 mb-3 drop-shadow-lg">
+                    <h3 className="text-xl md:text-2xl font-light uppercase tracking-widest text-white/90 mb-2 drop-shadow-md">
                       {localize(isUa, store.name, store.nameUk)}
                     </h3>
                     <p className="text-xs md:text-sm text-white/60 font-light leading-relaxed max-w-[40ch] opacity-80 md:opacity-0 md:-translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-75 hidden sm:block">

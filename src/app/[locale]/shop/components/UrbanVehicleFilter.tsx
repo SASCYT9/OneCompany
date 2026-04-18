@@ -1,9 +1,9 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, RotateCcw, Search, SlidersHorizontal, X } from "lucide-react";
+import { ChevronDown, RotateCcw, X } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
@@ -35,7 +35,6 @@ type CatalogFamily =
   | "interior"
   | "accessories";
 type FamilyFilter = "all" | CatalogFamily;
-type SortOrder = "bodykits_first" | "price_desc" | "price_asc";
 
 type EnrichedUrbanProduct = {
   product: ShopProduct;
@@ -57,6 +56,17 @@ type FacetItem = {
   key: string;
   label: string;
   count: number;
+};
+
+type PremiumComboboxOption = {
+  value: string;
+  label: string;
+  searchText?: string;
+};
+
+type PremiumComboboxGroup = {
+  label?: string;
+  options: PremiumComboboxOption[];
 };
 
 const CARD_BY_HANDLE = new Map(
@@ -234,13 +244,6 @@ function inferBodykitRank(product: ShopProduct, family: CatalogFamily) {
   return 4;
 }
 
-function sortFacetItems(items: Map<string, FacetItem>) {
-  return Array.from(items.values()).sort((left, right) => {
-    if (right.count !== left.count) return right.count - left.count;
-    return left.label.localeCompare(right.label, "en");
-  });
-}
-
 function formatDisplayPrice(
   locale: SupportedLocale,
   currency: ShopCurrencyCode,
@@ -262,6 +265,117 @@ function sanitizeImage(image: string | undefined | null) {
   if (!raw) return FALLBACK_URBAN_IMAGE;
   if (raw.startsWith("//")) return `https:${raw}`;
   return raw;
+}
+
+type PremiumComboboxProps = {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  groups: PremiumComboboxGroup[];
+  allLabel: string;
+};
+
+function PremiumCombobox({
+  label,
+  placeholder,
+  value,
+  onChange,
+  groups,
+  allLabel,
+}: PremiumComboboxProps) {
+  const listboxId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, []);
+
+  const selectedOption = useMemo(
+    () => groups.flatMap((group) => group.options).find((option) => option.value === value) ?? null,
+    [groups, value]
+  );
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={listboxId}
+        className="flex min-h-[68px] w-full items-center justify-between gap-4 rounded-[24px] border border-white/12 bg-white/[0.04] px-5 py-4 text-left transition hover:border-white/24 hover:bg-white/[0.06]"
+      >
+        <span className="min-w-0">
+          <span className="block text-[10px] uppercase text-white/38">{label}</span>
+          <span className={`mt-1 block truncate text-sm ${selectedOption ? "text-white" : "text-white/42"}`}>
+            {selectedOption?.label ?? placeholder}
+          </span>
+        </span>
+        <ChevronDown className={`h-4 w-4 shrink-0 text-white/45 transition ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open ? (
+        <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-[24px] border border-white/12 bg-[#090909] shadow-[0_24px_80px_rgba(0,0,0,0.38)]">
+          <div id={listboxId} role="listbox" className="max-h-[420px] overflow-y-auto p-2">
+            <button
+              type="button"
+              onClick={() => {
+                onChange("all");
+                setOpen(false);
+              }}
+              className={`flex w-full items-center rounded-[18px] px-4 py-3 text-left text-sm transition ${
+                value === "all"
+                  ? "bg-[#c29d59]/12 text-white"
+                  : "text-white/72 hover:bg-white/[0.04] hover:text-white"
+              }`}
+            >
+              {allLabel}
+            </button>
+
+            {groups.length > 0 ? (
+              groups.map((group) => (
+                <div key={group.label ?? "group"} className="mt-2">
+                  {group.label ? (
+                    <p className="px-4 pb-2 pt-2 text-[10px] uppercase text-white/30">{group.label}</p>
+                  ) : null}
+                  <div className="space-y-1">
+                    {group.options.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => {
+                          onChange(option.value);
+                          setOpen(false);
+                        }}
+                        className={`flex w-full items-center rounded-[18px] px-4 py-3 text-left text-sm transition ${
+                          value === option.value
+                            ? "bg-[#c29d59]/12 text-white"
+                            : "text-white/72 hover:bg-white/[0.04] hover:text-white"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="px-4 py-8 text-sm text-white/45">{allLabel}</div>
+            )}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 type ProductCardProps = {
@@ -438,13 +552,8 @@ export default function UrbanVehicleFilter({
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);
-  const [activeBrand, setActiveBrand] = useState<string>("all");
   const [activeModel, setActiveModel] = useState<string>("all");
   const [activeFamily, setActiveFamily] = useState<FamilyFilter>("all");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("bodykits_first");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showModelBrowser, setShowModelBrowser] = useState(false);
-  const deferredSearch = useDeferredValue(searchQuery);
 
   useEffect(() => {
     setMounted(true);
@@ -503,30 +612,6 @@ export default function UrbanVehicleFilter({
     });
   }, [products, locale, viewerContext, isUa]);
 
-  const brandOptions = useMemo(() => {
-    const map = new Map<string, FacetItem>();
-    enrichedProducts.forEach((entry) => {
-      const current = map.get(entry.brand);
-      if (current) {
-        current.count += 1;
-        return;
-      }
-      map.set(entry.brand, {
-        key: entry.brand,
-        label: entry.brand,
-        count: 1,
-      });
-    });
-
-    return sortFacetItems(map).sort((left, right) => {
-      const leftOrder = BRAND_ORDER.get(left.key) ?? 999;
-      const rightOrder = BRAND_ORDER.get(right.key) ?? 999;
-      if (leftOrder !== rightOrder) return leftOrder - rightOrder;
-      if (right.count !== left.count) return right.count - left.count;
-      return left.label.localeCompare(right.label, "en");
-    });
-  }, [enrichedProducts]);
-
   const modelsByBrand = useMemo(() => {
     const groups = new Map<
       string,
@@ -568,29 +653,12 @@ export default function UrbanVehicleFilter({
       }));
   }, [enrichedProducts]);
 
-  useEffect(() => {
-    if (activeBrand === "all" || activeModel === "all") return;
-    const selectedBrand = modelsByBrand.find((group) => group.brand === activeBrand);
-    if (!selectedBrand?.items.some((item) => item.key === activeModel)) {
-      setActiveModel("all");
-    }
-  }, [activeBrand, activeModel, modelsByBrand]);
-
-  const availableModelGroups = useMemo(() => {
-    if (activeBrand === "all") return modelsByBrand;
-    return modelsByBrand.filter((group) => group.brand === activeBrand);
-  }, [activeBrand, modelsByBrand]);
-
-  const normalizedSearch = normalizeUrbanValue(deferredSearch);
-
   const scopedProducts = useMemo(() => {
     return enrichedProducts.filter((entry) => {
-      if (activeBrand !== "all" && entry.brand !== activeBrand) return false;
       if (activeModel !== "all" && entry.modelHandle !== activeModel) return false;
-      if (normalizedSearch && !entry.searchableText.includes(normalizedSearch)) return false;
       return true;
     });
-  }, [activeBrand, activeModel, enrichedProducts, normalizedSearch]);
+  }, [activeModel, enrichedProducts]);
 
   const familyOptions = useMemo(() => {
     const counts = new Map<CatalogFamily, number>();
@@ -613,14 +681,6 @@ export default function UrbanVehicleFilter({
     });
 
     next.sort((left, right) => {
-      if (sortOrder === "price_desc") {
-        return right.sortablePrice - left.sortablePrice;
-      }
-
-      if (sortOrder === "price_asc") {
-        return left.sortablePrice - right.sortablePrice;
-      }
-
       if (left.bodykitRank !== right.bodykitRank) {
         return left.bodykitRank - right.bodykitRank;
       }
@@ -638,7 +698,7 @@ export default function UrbanVehicleFilter({
     });
 
     return next;
-  }, [activeFamily, locale, scopedProducts, sortOrder]);
+  }, [activeFamily, locale, scopedProducts]);
 
   const featuredBodykits = useMemo(
     () => filteredProducts.filter((entry) => entry.family === "bodykits"),
@@ -661,314 +721,86 @@ export default function UrbanVehicleFilter({
   }, [enrichedProducts]);
 
   const currentModelLabel = activeModel === "all" ? null : modelLabelByHandle.get(activeModel) ?? null;
-  const totalModelCount = modelLabelByHandle.size;
-  const totalBodykits = enrichedProducts.filter((entry) => entry.family === "bodykits").length;
-  const hasActiveFilters =
-    activeBrand !== "all" ||
-    activeModel !== "all" ||
-    activeFamily !== "all" ||
-    searchQuery.trim().length > 0 ||
-    sortOrder !== "bodykits_first";
+  const hasActiveFilters = activeModel !== "all" || activeFamily !== "all";
+
+  const modelComboboxGroups = useMemo<PremiumComboboxGroup[]>(
+    () =>
+      modelsByBrand.map((group) => ({
+        label: group.brand,
+        options: group.items.map((item) => ({
+          value: item.key,
+          label: item.label,
+          searchText: `${group.brand} ${item.label}`,
+        })),
+      })),
+    [modelsByBrand]
+  );
+
+  const categoryComboboxGroups = useMemo<PremiumComboboxGroup[]>(
+    () => [
+      {
+        options: familyOptions
+          .filter((option) => option.count > 0)
+          .map((option) => ({
+            value: option.key,
+            label: option.label,
+            searchText: option.label,
+          })),
+      },
+    ],
+    [familyOptions]
+  );
 
   function resetFilters() {
-    setActiveBrand("all");
     setActiveModel("all");
     setActiveFamily("all");
-    setSortOrder("bodykits_first");
-    setSearchQuery("");
   }
-
-  const resultLabel =
-    activeFamily !== "all"
-      ? isUa
-        ? FAMILY_LABELS[activeFamily].ua
-        : FAMILY_LABELS[activeFamily].en
-      : currentModelLabel ||
-        (activeBrand !== "all"
-          ? activeBrand
-          : isUa
-            ? "весь каталог Urban"
-            : "the full Urban catalog");
 
   return (
     <section className="pb-16 md:pb-24">
       <div className="mx-auto w-full max-w-[1720px] px-6 md:px-12 lg:px-16">
-        <div className="overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(194,157,89,0.22),_transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_90px_rgba(0,0,0,0.32)] md:p-8 lg:p-10">
-          <div className="max-w-[980px]">
-            <p className="text-[11px] uppercase tracking-[0.32em] text-[#d4b06a]">
-              Urban Automotive Global Catalog
-            </p>
-            <h1 className="mt-4 max-w-[14ch] text-4xl font-semibold tracking-tight text-white md:text-5xl lg:text-6xl">
-              {isUa
-                ? "Каталог, де спочатку бачиш повні обвіси, а не губишся в дрібних компонентах"
-                : "A catalog that starts with complete programmes instead of burying you in loose parts"}
-            </h1>
-            <p className="mt-5 max-w-[900px] text-sm leading-7 text-white/68 md:text-base">
-              {isUa
-                ? "Замість липкого sidebar тут швидкий пошук, брендові фільтри, браузер моделей та окремий пріоритет для full bodykits. Спочатку вибираєш автомобіль і програму, далі звужуєш по сімейству компонентів."
-                : "Instead of a sticky sidebar, this view uses fast search, brand filters, a model browser, and a dedicated priority layer for full bodykits. Start with the vehicle and programme, then narrow by component family."}
-            </p>
-          </div>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-[24px] border border-white/10 bg-black/35 p-5">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-white/42">
-                {isUa ? "Всього позицій" : "Total products"}
-              </p>
-              <p className="mt-3 text-3xl font-semibold text-white">{enrichedProducts.length}</p>
-              <p className="mt-2 text-sm text-white/55">
-                {isUa ? "Усі Urban товари в одному місці" : "All Urban products in one place"}
-              </p>
-            </div>
-            <div className="rounded-[24px] border border-[#c29d59]/20 bg-[#120f0a] p-5">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-[#d8b97b]">
-                {isUa ? "Bodykits / програми" : "Bodykits / programmes"}
-              </p>
-              <p className="mt-3 text-3xl font-semibold text-white">{totalBodykits}</p>
-              <p className="mt-2 text-sm text-white/58">
-                {isUa
-                  ? "Показуються першими за замовчуванням"
-                  : "Shown first by default"}
-              </p>
-            </div>
-            <div className="rounded-[24px] border border-white/10 bg-black/35 p-5">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-white/42">
-                {isUa ? "Urban моделі" : "Urban models"}
-              </p>
-              <p className="mt-3 text-3xl font-semibold text-white">{totalModelCount}</p>
-              <p className="mt-2 text-sm text-white/55">
-                {isUa
-                  ? "Фільтрація через реальний Urban model mapping"
-                  : "Facets driven by the real Urban model mapping"}
-              </p>
+        <div className="overflow-hidden rounded-[32px] border border-white/10 bg-[#060606] shadow-[0_24px_90px_rgba(0,0,0,0.32)]">
+          <div className="border-b border-white/8 px-6 py-6 md:px-8 lg:px-10">
+            <div>
+              <p className="text-[10px] font-medium uppercase text-[#c29d59]">Urban Automotive</p>
+              <h1 className="mt-3 text-balance text-[30px] font-semibold leading-[1] text-white md:text-[38px]">
+                {isUa ? "Каталог Urban" : "Urban Catalog"}
+              </h1>
             </div>
           </div>
 
-          <div className="mt-8 rounded-[28px] border border-white/10 bg-black/45 p-5 md:p-6">
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)_auto] xl:items-center">
-              <label className="relative block">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
-                <input
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder={
-                    isUa
-                      ? "Шукай по моделі, SKU, bodykit, category..."
-                      : "Search by model, SKU, bodykit, category..."
-                  }
-                  className="h-12 w-full rounded-full border border-white/10 bg-white/[0.04] pl-11 pr-12 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#c29d59]/45 focus:bg-white/[0.06]"
-                />
-                {searchQuery ? (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/35 transition hover:text-white/75"
-                    aria-label={isUa ? "Очистити пошук" : "Clear search"}
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                ) : null}
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-[11px] uppercase tracking-[0.22em] text-white/42">
-                  {isUa ? "Сортування" : "Sort order"}
-                </span>
-                <select
-                  value={sortOrder}
-                  onChange={(event) => setSortOrder(event.target.value as SortOrder)}
-                  className="h-12 w-full rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-white outline-none transition focus:border-[#c29d59]/45"
-                >
-                  <option value="bodykits_first" className="bg-[#0a0a0a]">
-                    {isUa ? "Спочатку full bodykits" : "Full bodykits first"}
-                  </option>
-                  <option value="price_desc" className="bg-[#0a0a0a]">
-                    {isUa ? "Спочатку дорожчі" : "Highest price first"}
-                  </option>
-                  <option value="price_asc" className="bg-[#0a0a0a]">
-                    {isUa ? "Спочатку дешевші" : "Lowest price first"}
-                  </option>
-                </select>
-              </label>
-
-              <button
-                type="button"
-                onClick={() => setShowModelBrowser((current) => !current)}
-                className="inline-flex min-h-12 items-center justify-center gap-3 rounded-full border border-white/12 bg-white/[0.04] px-5 text-xs font-medium uppercase tracking-[0.22em] text-white transition hover:border-white/24 hover:bg-white/[0.07]"
-              >
-                <SlidersHorizontal className="h-4 w-4 text-[#d4b06a]" />
-                <span>{isUa ? "Моделі та програми" : "Models & programmes"}</span>
-                <ChevronDown
-                  className={`h-4 w-4 transition ${showModelBrowser ? "rotate-180" : ""}`}
-                />
-              </button>
-            </div>
-
-            <div className="mt-6">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-white/42">
-                {isUa ? "Швидкий вибір сімейства" : "Quick family selection"}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-3">
+          <div className="px-6 py-6 md:px-8 md:py-7 lg:px-10">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1.25fr)_minmax(0,0.95fr)_auto]">
+              <PremiumCombobox
+                label={isUa ? "Автомобіль" : "Vehicle"}
+                placeholder={isUa ? "Вибрати авто" : "Choose vehicle"}
+                value={activeModel}
+                onChange={setActiveModel}
+                groups={modelComboboxGroups}
+                allLabel={isUa ? "Усі автомобілі" : "All vehicles"}
+              />
+              <PremiumCombobox
+                label={isUa ? "Категорія" : "Category"}
+                placeholder={isUa ? "Усі категорії" : "All categories"}
+                value={activeFamily}
+                onChange={(value) => setActiveFamily(value as FamilyFilter)}
+                groups={categoryComboboxGroups}
+                allLabel={isUa ? "Усі категорії" : "All categories"}
+              />
+              {hasActiveFilters ? (
                 <button
                   type="button"
-                  onClick={() => setActiveFamily("all")}
-                  className={`rounded-full border px-4 py-3 text-left transition ${
-                    activeFamily === "all"
-                      ? "border-[#c29d59]/40 bg-[#c29d59]/16 text-white"
-                      : "border-white/10 bg-white/[0.03] text-white/72 hover:border-white/20 hover:text-white"
-                  }`}
+                  onClick={resetFilters}
+                  className="inline-flex min-h-[68px] items-center justify-center gap-2 rounded-[24px] border border-[#c29d59]/26 bg-[#c29d59]/10 px-5 text-sm font-medium text-[#ead29d] transition hover:border-[#c29d59]/45 hover:bg-[#c29d59]/16"
                 >
-                  <span className="block text-[11px] uppercase tracking-[0.22em]">
-                    {isUa ? "Усе" : "All"}
-                  </span>
-                  <span className="mt-1 block text-sm">{enrichedProducts.length}</span>
+                  <RotateCcw className="h-4 w-4" />
+                  {isUa ? "Скинути" : "Reset"}
                 </button>
-                {familyOptions.map((option) => (
-                  <button
-                    key={option.key}
-                    type="button"
-                    onClick={() => setActiveFamily(option.key)}
-                    className={`min-w-[210px] rounded-[22px] border px-4 py-3 text-left transition ${
-                      activeFamily === option.key
-                        ? "border-[#c29d59]/40 bg-[#c29d59]/16 text-white"
-                        : "border-white/10 bg-white/[0.03] text-white/72 hover:border-white/20 hover:text-white"
-                    }`}
-                  >
-                    <span className="block text-[11px] uppercase tracking-[0.22em]">
-                      {option.count}
-                    </span>
-                    <span className="mt-2 block text-sm font-medium">{option.label}</span>
-                    <span className="mt-1 block text-xs leading-5 text-white/45">{option.hint}</span>
-                  </button>
-                ))}
-              </div>
+              ) : null}
             </div>
-
-            <div className="mt-6">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-white/42">
-                {isUa ? "Бренд / виробник" : "Brand / manufacturer"}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveBrand("all");
-                    setActiveModel("all");
-                  }}
-                  className={`rounded-full border px-4 py-2.5 text-xs uppercase tracking-[0.2em] transition ${
-                    activeBrand === "all"
-                      ? "border-[#c29d59]/40 bg-[#c29d59]/16 text-white"
-                      : "border-white/10 bg-white/[0.03] text-white/72 hover:border-white/20 hover:text-white"
-                  }`}
-                >
-                  {isUa ? "Усі бренди" : "All brands"}
-                </button>
-                {brandOptions.map((brand) => (
-                  <button
-                    key={brand.key}
-                    type="button"
-                    onClick={() => {
-                      setActiveBrand(brand.key);
-                      setActiveModel("all");
-                      setShowModelBrowser(true);
-                    }}
-                    className={`rounded-full border px-4 py-2.5 text-xs uppercase tracking-[0.2em] transition ${
-                      activeBrand === brand.key
-                        ? "border-[#c29d59]/40 bg-[#c29d59]/16 text-white"
-                        : "border-white/10 bg-white/[0.03] text-white/72 hover:border-white/20 hover:text-white"
-                    }`}
-                  >
-                    {brand.label}
-                    <span className="ml-2 text-white/40">{brand.count}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {showModelBrowser ? (
-              <div className="mt-6 rounded-[24px] border border-white/10 bg-black/35 p-4 md:p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-white/42">
-                      {isUa ? "Браузер моделей" : "Model browser"}
-                    </p>
-                    <p className="mt-1 text-sm text-white/62">
-                      {isUa
-                        ? "Вибери модель Urban і далі звузь список по компонентам"
-                        : "Pick an Urban model first, then narrow by components"}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setActiveModel("all")}
-                    className="text-xs uppercase tracking-[0.2em] text-white/45 transition hover:text-white/75"
-                  >
-                    {isUa ? "Скинути модель" : "Clear model"}
-                  </button>
-                </div>
-
-                <div className="mt-5 space-y-5">
-                  {availableModelGroups.map((group) => (
-                    <div key={group.brand}>
-                      <div className="mb-3 flex items-center gap-3">
-                        <div className="h-px flex-1 bg-white/10" />
-                        <p className="text-[11px] uppercase tracking-[0.24em] text-white/42">
-                          {group.brand}
-                        </p>
-                        <div className="h-px flex-1 bg-white/10" />
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {group.items.map((item) => (
-                          <button
-                            key={item.key}
-                            type="button"
-                            onClick={() => setActiveModel(item.key)}
-                            className={`rounded-[20px] border px-4 py-4 text-left transition ${
-                              activeModel === item.key
-                                ? "border-[#c29d59]/40 bg-[#c29d59]/16 text-white"
-                                : "border-white/10 bg-white/[0.03] text-white/72 hover:border-white/20 hover:text-white"
-                            }`}
-                          >
-                            <span className="block text-[11px] uppercase tracking-[0.2em] text-white/42">
-                              {item.count} {isUa ? "позицій" : "items"}
-                            </span>
-                            <span className="mt-2 block text-sm font-medium">{item.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
 
             {hasActiveFilters ? (
               <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-white/8 pt-5">
-                {searchQuery ? (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-2 text-xs text-white/72 transition hover:border-white/22 hover:text-white"
-                  >
-                    <span>
-                      {isUa ? "Пошук" : "Search"}: {searchQuery}
-                    </span>
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                ) : null}
-                {activeBrand !== "all" ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveBrand("all");
-                      setActiveModel("all");
-                    }}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-2 text-xs text-white/72 transition hover:border-white/22 hover:text-white"
-                  >
-                    <span>{activeBrand}</span>
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                ) : null}
                 {currentModelLabel ? (
                   <button
                     type="button"
@@ -989,74 +821,16 @@ export default function UrbanVehicleFilter({
                     <X className="h-3.5 w-3.5" />
                   </button>
                 ) : null}
-                {sortOrder !== "bodykits_first" ? (
-                  <button
-                    type="button"
-                    onClick={() => setSortOrder("bodykits_first")}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-2 text-xs text-white/72 transition hover:border-white/22 hover:text-white"
-                  >
-                    <span>
-                      {sortOrder === "price_desc"
-                        ? isUa
-                          ? "Дорожчі спочатку"
-                          : "Highest first"
-                        : isUa
-                          ? "Дешевші спочатку"
-                          : "Lowest first"}
-                    </span>
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={resetFilters}
-                  className="ml-auto inline-flex items-center gap-2 rounded-full border border-[#c29d59]/26 bg-[#c29d59]/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-[#ead29d] transition hover:border-[#c29d59]/45 hover:bg-[#c29d59]/16"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  {isUa ? "Скинути все" : "Reset all"}
-                </button>
               </div>
             ) : null}
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-white/38">
-              {isUa ? "Результати каталогу" : "Catalog results"}
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white md:text-3xl">
-              {filteredProducts.length} {isUa ? "позицій для" : "items for"} {resultLabel}
-            </h2>
-            <p className="mt-2 text-sm text-white/58">
-              {isUa
-                ? "Bodykits і програми мають окремий пріоритетний блок. Далі йдуть компоненти, відсортовані по сімейству та моделі."
-                : "Bodykits and complete programmes live in their own priority block. Components follow after that, sorted by family and model."}
-            </p>
-          </div>
-          <Link
-            href={`/${locale}/shop/urban/collections`}
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/12 px-5 text-xs font-medium uppercase tracking-[0.2em] text-white/72 transition hover:border-white/24 hover:text-white"
-          >
-            {isUa ? "Перейти до всіх моделей Urban" : "Browse Urban models"}
-          </Link>
-        </div>
-
         {filteredProducts.length === 0 ? (
           <div className="mt-8 rounded-[28px] border border-white/10 bg-white/[0.03] p-8 text-center">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-white/40">
+            <h3 className="text-2xl font-semibold text-white">
               {isUa ? "Нічого не знайдено" : "No matching products"}
-            </p>
-            <h3 className="mt-3 text-2xl font-semibold text-white">
-              {isUa
-                ? "Спробуй іншу модель, сімейство або пошук по SKU"
-                : "Try a different model, family, or SKU search"}
             </h3>
-            <p className="mx-auto mt-3 max-w-[720px] text-sm leading-7 text-white/58">
-              {isUa
-                ? "Поточна комбінація фільтрів нічого не дала. Найкращий наступний крок: скинь модель або залиш тільки бренд, а потім звужуй список."
-                : "The current filter combination returned nothing. Best next step: clear the model or keep only the brand, then narrow the list again."}
-            </p>
             <button
               type="button"
               onClick={resetFilters}
@@ -1068,23 +842,10 @@ export default function UrbanVehicleFilter({
         ) : activeFamily === "all" && featuredBodykits.length > 0 ? (
           <div className="mt-8 space-y-10">
             <section>
-              <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-[#d4b06a]">
-                    {isUa ? "Пріоритетна зона" : "Priority zone"}
-                  </p>
-                  <h3 className="mt-2 text-2xl font-semibold text-white">
-                    {isUa ? "Повні bodykits та Urban програми" : "Complete bodykits and Urban programmes"}
-                  </h3>
-                  <p className="mt-2 text-sm text-white/58">
-                    {isUa
-                      ? "Це те, з чого логічно починати вибір. Спочатку програма для конкретної моделі, потім окремі компоненти."
-                      : "This is the right place to start. Choose the programme for the vehicle first, then move to separate components."}
-                  </p>
-                </div>
-                <div className="rounded-full border border-[#c29d59]/22 bg-[#c29d59]/10 px-4 py-2 text-xs uppercase tracking-[0.22em] text-[#ead29d]">
-                  {featuredBodykits.length} {isUa ? "позицій" : "items"}
-                </div>
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-white">
+                  {isUa ? "Програми" : "Programmes"}
+                </h3>
               </div>
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {featuredBodykits.map((entry) => (
@@ -1103,23 +864,10 @@ export default function UrbanVehicleFilter({
 
             {componentProducts.length > 0 ? (
               <section>
-                <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.24em] text-white/38">
-                      {isUa ? "Далі по компонентах" : "Then move to components"}
-                    </p>
-                    <h3 className="mt-2 text-2xl font-semibold text-white">
-                      {isUa ? "Решта каталогу" : "The rest of the catalog"}
-                    </h3>
-                    <p className="mt-2 text-sm text-white/58">
-                      {isUa
-                        ? "Після full kits тут уже спойлери, диски, вихлоп, інтер'єр та аксесуари."
-                        : "After the full kits, this section covers spoilers, wheels, exhaust, interior, and accessories."}
-                    </p>
-                  </div>
-                  <div className="rounded-full border border-white/12 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.22em] text-white/58">
-                    {componentProducts.length} {isUa ? "позицій" : "items"}
-                  </div>
+                <div className="mb-4">
+                  <h3 className="text-lg font-medium text-white">
+                    {isUa ? "Компоненти" : "Components"}
+                  </h3>
                 </div>
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                   {componentProducts.map((entry) => (
@@ -1146,7 +894,7 @@ export default function UrbanVehicleFilter({
                 viewerContext={viewerContext}
                 currency={displayCurrency}
                 rates={displayRates}
-                featured={entry.family === "bodykits" && sortOrder === "bodykits_first"}
+                featured={entry.family === "bodykits"}
               />
             ))}
           </div>
