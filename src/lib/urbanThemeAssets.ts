@@ -1,5 +1,10 @@
 const ABSOLUTE_URL_RE = /^[a-z][a-z0-9+.-]*:\/\//i;
 const SMGASSETS_IMG_BASE = 'https://smgassets.blob.core.windows.net/customers/urban/dist/img';
+const KNOWN_THEME_ASSET_MAP: Record<string, string> = {
+  'blueprint-cullinan-left.png': '/images/shop/urban/banners/models/cullinan/banner-1-1920.jpg',
+  'blueprint-w465-front.jpg': '/images/shop/urban/banners/models/gwagonSoftKit/banner-1-1920.jpg',
+  'blueprint-w465-left.jpg': '/images/shop/urban/banners/models/gwagonSoftKit/banner-1-1920.jpg',
+};
 
 export function resolveUrbanThemeAssetUrl(value: string): string {
   const trimmed = value.trim();
@@ -29,5 +34,5 @@ export function resolveUrbanThemeAssetUrl(value: string): string {
     .map((segment) => encodeURIComponent(segment))
     .join('/');
 
-  return `/urban-theme-assets/${safePath}`;
+  return KNOWN_THEME_ASSET_MAP[safePath] ?? '';
 }
