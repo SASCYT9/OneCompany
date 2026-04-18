@@ -234,23 +234,16 @@ export default function BurgerStoreHome({ locale }: Props) {
                   <span className="sr-only">View {s.name}</span>
                 </Link>
                 
-                <div className="absolute inset-0 z-0 h-3/5">
-                  {s.imageUrl.includes('flexfuel') || s.imageUrl.includes('showcase-intake') ? (
-                    <Image
-                      src={s.imageUrl}
-                      alt={s.name}
-                      fill
-                      className="object-contain p-8 transition-transform duration-1000 ease-out group-hover:scale-110 opacity-70 group-hover:opacity-100 invert"
-                    />
-                  ) : (
-                    <Image
-                      src={s.imageUrl}
-                      alt={s.name}
-                      fill
-                      className="object-cover transition-transform duration-1000 ease-out group-hover:scale-110 opacity-70 group-hover:opacity-100"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" />
+                {/* White Studio Backdrop for Product */}
+                <div className="absolute inset-x-0 top-0 z-0 h-3/5 bg-white overflow-hidden">
+                  <Image
+                    src={s.imageUrl}
+                    alt={s.name}
+                    fill
+                    className="object-contain p-8 transition-transform duration-1000 ease-out group-hover:scale-110 mix-blend-multiply"
+                  />
+                  {/* Subtle shadows for depth instead of black gradient */}
+                  <div className="absolute inset-0 shadow-[inset_0_-20px_20px_-20px_rgba(0,0,0,0.2)] pointer-events-none" />
                 </div>
                 
                 <div className="relative z-10 flex h-full flex-col justify-end p-8 transform transition-transform duration-500 group-hover:-translate-y-2">

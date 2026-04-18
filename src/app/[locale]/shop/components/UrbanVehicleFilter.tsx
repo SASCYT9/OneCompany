@@ -1041,3 +1041,117 @@ export default function UrbanVehicleFilter({
             {isUa ? "Перейти до всіх моделей Urban" : "Browse Urban models"}
           </Link>
         </div>
+
+        {filteredProducts.length === 0 ? (
+          <div className="mt-8 rounded-[28px] border border-white/10 bg-white/[0.03] p-8 text-center">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-white/40">
+              {isUa ? "Нічого не знайдено" : "No matching products"}
+            </p>
+            <h3 className="mt-3 text-2xl font-semibold text-white">
+              {isUa
+                ? "Спробуй іншу модель, сімейство або пошук по SKU"
+                : "Try a different model, family, or SKU search"}
+            </h3>
+            <p className="mx-auto mt-3 max-w-[720px] text-sm leading-7 text-white/58">
+              {isUa
+                ? "Поточна комбінація фільтрів нічого не дала. Найкращий наступний крок: скинь модель або залиш тільки бренд, а потім звужуй список."
+                : "The current filter combination returned nothing. Best next step: clear the model or keep only the brand, then narrow the list again."}
+            </p>
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-[#f3f0e8] px-6 text-xs font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-white"
+            >
+              {isUa ? "Скинути фільтри" : "Reset filters"}
+            </button>
+          </div>
+        ) : activeFamily === "all" && featuredBodykits.length > 0 ? (
+          <div className="mt-8 space-y-10">
+            <section>
+              <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-[#d4b06a]">
+                    {isUa ? "Пріоритетна зона" : "Priority zone"}
+                  </p>
+                  <h3 className="mt-2 text-2xl font-semibold text-white">
+                    {isUa ? "Повні bodykits та Urban програми" : "Complete bodykits and Urban programmes"}
+                  </h3>
+                  <p className="mt-2 text-sm text-white/58">
+                    {isUa
+                      ? "Це те, з чого логічно починати вибір. Спочатку програма для конкретної моделі, потім окремі компоненти."
+                      : "This is the right place to start. Choose the programme for the vehicle first, then move to separate components."}
+                  </p>
+                </div>
+                <div className="rounded-full border border-[#c29d59]/22 bg-[#c29d59]/10 px-4 py-2 text-xs uppercase tracking-[0.22em] text-[#ead29d]">
+                  {featuredBodykits.length} {isUa ? "позицій" : "items"}
+                </div>
+              </div>
+              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                {featuredBodykits.map((entry) => (
+                  <ProductCard
+                    key={entry.product.slug}
+                    entry={entry}
+                    locale={locale}
+                    viewerContext={viewerContext}
+                    currency={displayCurrency}
+                    rates={displayRates}
+                    featured
+                  />
+                ))}
+              </div>
+            </section>
+
+            {componentProducts.length > 0 ? (
+              <section>
+                <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.24em] text-white/38">
+                      {isUa ? "Далі по компонентах" : "Then move to components"}
+                    </p>
+                    <h3 className="mt-2 text-2xl font-semibold text-white">
+                      {isUa ? "Решта каталогу" : "The rest of the catalog"}
+                    </h3>
+                    <p className="mt-2 text-sm text-white/58">
+                      {isUa
+                        ? "Після full kits тут уже спойлери, диски, вихлоп, інтер'єр та аксесуари."
+                        : "After the full kits, this section covers spoilers, wheels, exhaust, interior, and accessories."}
+                    </p>
+                  </div>
+                  <div className="rounded-full border border-white/12 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.22em] text-white/58">
+                    {componentProducts.length} {isUa ? "позицій" : "items"}
+                  </div>
+                </div>
+                <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                  {componentProducts.map((entry) => (
+                    <ProductCard
+                      key={entry.product.slug}
+                      entry={entry}
+                      locale={locale}
+                      viewerContext={viewerContext}
+                      currency={displayCurrency}
+                      rates={displayRates}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {filteredProducts.map((entry) => (
+              <ProductCard
+                key={entry.product.slug}
+                entry={entry}
+                locale={locale}
+                viewerContext={viewerContext}
+                currency={displayCurrency}
+                rates={displayRates}
+                featured={entry.family === "bodykits" && sortOrder === "bodykits_first"}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
