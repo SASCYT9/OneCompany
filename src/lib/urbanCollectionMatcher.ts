@@ -1,5 +1,6 @@
 import type { ShopProduct } from '@/lib/shopCatalog';
 import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollectionsList';
+import { buildShopStorefrontProductPathForProduct } from '@/lib/shopStorefrontRouting';
 
 type UrbanMatcherProduct = Pick<ShopProduct, 'brand' | 'title' | 'collection' | 'tags' | 'collections'>;
 
@@ -206,19 +207,13 @@ export function getUrbanCollectionHandleForProduct(product: UrbanMatcherProduct)
 }
 
 export function buildShopProductPath(locale: string, product: ShopProduct, preferUrban = true) {
-  // Try DO88 first
-  if (product.brand.toLowerCase() === 'do88') {
-    return `/${locale}/shop/do88/products/${product.slug}`;
-  }
-
-  // Try Urban
   const urbanHandle = getUrbanCollectionHandleForProduct(product);
 
   if (preferUrban && urbanHandle) {
     return `/${locale}/shop/urban/products/${product.slug}`;
   }
 
-  return `/${locale}/shop/${product.slug}`;
+  return buildShopStorefrontProductPathForProduct(locale, product);
 }
 
 export function isUrbanCatalogProduct(product: ShopProduct) {

@@ -79,7 +79,9 @@ const CARD_BY_HANDLE = new Map(
   ])
 );
 
-const BRAND_ORDER = new Map(URBAN_COLLECTION_BRANDS.map((brand, index) => [brand, index]));
+const BRAND_ORDER = new Map<string, number>(
+  URBAN_COLLECTION_BRANDS.map((brand, index) => [brand, index])
+);
 
 const FAMILY_ORDER: CatalogFamily[] = [
   "bodykits",

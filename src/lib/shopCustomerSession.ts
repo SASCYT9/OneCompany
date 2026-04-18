@@ -18,7 +18,14 @@ export type ShopCustomerSession = {
 };
 
 export async function getCurrentShopCustomerSession(): Promise<ShopCustomerSession | null> {
-  const session = await getServerSession(authOptions);
+  let session;
+  try {
+    session = await getServerSession(authOptions);
+  } catch (error) {
+    console.error('Shop customer session resolve failed', error);
+    return null;
+  }
+
   if (!session?.user?.email || !session.user.customerId || !session.user.group) {
     return null;
   }

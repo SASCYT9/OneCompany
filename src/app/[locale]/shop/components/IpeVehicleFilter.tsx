@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
@@ -88,11 +89,37 @@ export default function IpeVehicleFilter({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const [activeBrand, setActiveBrand] = useState<string>("all");
-  const [activeLine, setActiveLine] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const initialBrand = searchParams?.get("brand") || "all";
+  const initialLine = searchParams?.get("line") || "all";
+  const initialSearch = searchParams?.get("q") || "";
+  const initialSort = (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
+
+  const [activeBrand, setActiveBrand] = useState<string>(initialBrand);
+  const [activeLine, setActiveLine] = useState<string>(initialLine);
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
+
+  const syncToUrl = useCallback((brand: string, line: string, sort: string, query: string) => {
+    const params = new URLSearchParams();
+    if (brand !== "all") params.set("brand", brand);
+    if (line !== "all") params.set("line", line);
+    if (sort !== "default") params.set("sort", sort);
+    if (query.trim()) params.set("q", query);
+    const qs = params.toString();
+    const nextPath = qs ? `${pathname}?${qs}` : pathname || "";
+    router.replace(nextPath, { scroll: false });
+  }, [pathname, router]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      syncToUrl(activeBrand, activeLine, sortOrder, searchQuery);
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [activeBrand, activeLine, sortOrder, searchQuery, syncToUrl]);
 
   // Extract brands dynamically from tags
   const availableBrands = useMemo(() => {

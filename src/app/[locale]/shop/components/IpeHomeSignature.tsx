@@ -17,6 +17,11 @@ function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
 
+function getIpeCollectionHref(locale: SupportedLocale, brand: string) {
+  const params = new URLSearchParams({ brand });
+  return `/${locale}/shop/ipe/collections?${params.toString()}`;
+}
+
 export default function IpeHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
 
@@ -133,7 +138,13 @@ export default function IpeHomeSignature({ locale }: Props) {
           </div>
           <div className="ipe-track-grid">
             {IPE_PRODUCT_LINES.map((line, idx) => (
-              <Link key={line.id} href={line.link} className="ipe-track" data-ipe-reveal style={{ transitionDelay: `${(idx % 3) * 0.1}s` }}>
+              <Link
+                key={line.id}
+                href={getIpeCollectionHref(locale, line.name)}
+                className="ipe-track"
+                data-ipe-reveal
+                style={{ transitionDelay: `${(idx % 3) * 0.1}s` }}
+              >
                 <div className="ipe-track-no">0{idx + 1}</div>
                 <div className="ipe-track-info">
                   <span className="ipe-track-name">{L(isUa, line.name, line.nameUk)}</span>

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { prisma } from '@/lib/prisma';
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
 import Link from 'next/link';
@@ -74,12 +75,20 @@ export default async function IpeCollectionsPage({ params }: Props) {
           </Link>
         </div>
         
-        <IpeVehicleFilter 
-          locale={resolvedLocale} 
-          products={ipeProducts} 
-          viewerContext={viewerContext}
-          productPathPrefix={`/${locale}/shop/ipe/products`}
-        />
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center py-32">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#c29d59]/30 border-t-[#c29d59]" />
+            </div>
+          }
+        >
+          <IpeVehicleFilter 
+            locale={resolvedLocale} 
+            products={ipeProducts} 
+            viewerContext={viewerContext}
+            productPathPrefix={`/${locale}/shop/ipe/products`}
+          />
+        </Suspense>
       </div>
     </div>
   );

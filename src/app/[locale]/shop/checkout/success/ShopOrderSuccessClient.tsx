@@ -7,6 +7,7 @@ import type { SupportedLocale } from '@/lib/seo';
 import { trackOrderPlaced } from '@/lib/analytics';
 import { formatShopMoney, type ShopCurrencyCode } from '@/lib/shopMoneyFormat';
 import { formatShopOrderStatus, shopOrderStatusBadgeClass } from '@/lib/shopOrderPresentation';
+import { buildShopStorefrontProductPath, isExternalCatalogProductSlug } from '@/lib/shopStorefrontRouting';
 
 type OrderData = {
   orderNumber: string;
@@ -32,6 +33,8 @@ type OrderData = {
     originalPrice?: number | null;
     pricingSource?: string | null;
     discountPercent?: number | null;
+    sku?: string | null;
+    brand?: string | null;
   }>;
 };
 
@@ -142,16 +145,22 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    {i.productSlug ? (
-                      <Link href={`/${locale}/shop/products/${i.productSlug}`} className="line-clamp-2 text-sm text-white/85 transition hover:text-white">
+                    {i.productSlug && !isExternalCatalogProductSlug(i.productSlug) ? (
+                      <Link
+                        href={buildShopStorefrontProductPath(locale, {
+                          slug: i.productSlug,
+                          brand: i.brand,
+                        })}
+                        className="line-clamp-2 text-sm text-white/85 transition hover:text-white"
+                      >
                         {i.title}
                       </Link>
                     ) : (
                       <div className="line-clamp-2 text-sm text-white/85">{i.title}</div>
                     )}
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/45">
-                      {(i as any).sku && <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white/60">SKU: {(i as any).sku}</span>}
-                      {(i as any).brand && <span className="text-white/40">{(i as any).brand}</span>}
+                      {i.sku && <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white/60">SKU: {i.sku}</span>}
+                      {i.brand && <span className="text-white/40">{i.brand}</span>}
                       <span>
                         {i.quantity} × {formatShopMoney(locale, i.price, order.currency as ShopCurrencyCode)}
                       </span>

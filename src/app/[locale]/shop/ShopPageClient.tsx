@@ -10,6 +10,7 @@ import { SHOP_PRODUCTS, type ShopScope, type ShopMoneySet } from '@/lib/shopCata
 import { localizeShopDescription, localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
+import { buildShopStorefrontProductPathForProduct } from '@/lib/shopStorefrontRouting';
 
 type CatalogScope = 'all' | ShopScope;
 type SortMode = 'featured' | 'priceLow' | 'priceHigh';
@@ -511,7 +512,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
                 return (
                   <Link
                     key={product.slug}
-                    href={`/${locale}/shop/${product.slug}`}
+                    href={buildShopStorefrontProductPathForProduct(locale, product)}
                     className="group overflow-hidden rounded-[30px] border border-black/10 bg-white transition hover:-translate-y-0.5 hover:border-black/30 hover:shadow-[0_28px_50px_rgba(20,14,8,0.16)]"
                   >
                     <div className="relative aspect-[4/5] overflow-hidden">

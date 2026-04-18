@@ -25,6 +25,7 @@ import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { localizeShopDescription, localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopViewerPricingContext, resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import { extractShopProductDescriptionSections } from '@/lib/shopProductDescription';
+import { buildShopStorefrontProductPathForProduct } from '@/lib/shopStorefrontRouting';
 import { BurgerShopProductDetailLayout } from './BurgerShopProductDetailLayout';
 import { BrabusShopProductDetailLayout } from './BrabusShopProductDetailLayout';
 import {
@@ -611,13 +612,7 @@ export default async function ShopProductDetailPage({
                   {product.bundle.items.map((item) => (
                     <Link
                       key={item.id}
-                      href={
-                        isDo88Mode
-                          ? `/${resolvedLocale}/shop/do88/products/${item.product.slug}`
-                          : isUrbanMode
-                          ? `/${resolvedLocale}/shop/urban/products/${item.product.slug}`
-                          : `/${resolvedLocale}/shop/${item.product.slug}`
-                      }
+                      href={buildShopStorefrontProductPathForProduct(resolvedLocale, item.product)}
                       className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/75 transition hover:border-white/25 hover:text-white"
                     >
                       <div>
@@ -676,7 +671,7 @@ export default async function ShopProductDetailPage({
             {relatedProductsWithPricing.map(({ item, price }) => (
               <Link
                 key={item.slug}
-                href={isDo88Mode ? `/${resolvedLocale}/shop/do88/products/${item.slug}` : (isUrbanMode ? `/${resolvedLocale}/shop/urban/products/${item.slug}` : `/${resolvedLocale}/shop/${item.slug}`)}
+                href={buildShopStorefrontProductPathForProduct(resolvedLocale, item)}
                 className="group overflow-hidden rounded-2xl border border-white/15 bg-white/[0.03] transition hover:border-white/35"
               >
                 <div className="relative aspect-[4/3] overflow-hidden">

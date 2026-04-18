@@ -17,6 +17,23 @@ function L(isUa: boolean, en: string, ua: string | undefined) {
   return isUa && ua ? ua : en;
 }
 
+function getOhlinsCollectionHref(locale: SupportedLocale, lineId: string) {
+  const params = new URLSearchParams();
+
+  if (lineId === 'road-track') {
+    params.set('category', 'Road & Track');
+  } else if (lineId === 'advanced-track') {
+    params.set('category', 'Advanced Trackday');
+  } else if (lineId === 'dedicated-track') {
+    params.set('category', 'Motorsport');
+  }
+
+  const query = params.toString();
+  return query
+    ? `/${locale}/shop/ohlins/catalog?${query}`
+    : `/${locale}/shop/ohlins/catalog`;
+}
+
 export default function OhlinsHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
 
@@ -131,10 +148,7 @@ export default function OhlinsHomeSignature({ locale }: Props) {
           </div>
           <div className="oh-app-bento-grid">
             {OHLINS_PRODUCT_LINES.map((line, idx) => {
-              // Ensure we don't duplicate dynamic locale routes
-              const targetUrl = line.link.startsWith('/shop') 
-                ? `/${locale}${line.link}` 
-                : `/${locale}/shop/ohlins/collections/${line.link}`;
+              const targetUrl = getOhlinsCollectionHref(locale, line.id);
 
               return (
                 <Link key={line.id} href={targetUrl} className={`oh-bento-card card-${idx}`} data-oh-reveal style={{ transitionDelay: `${idx * 0.1}s` }}>
