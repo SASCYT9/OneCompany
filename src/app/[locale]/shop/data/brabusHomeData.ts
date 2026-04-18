@@ -30,8 +30,8 @@ export const BRABUS_HERO = {
   secondaryButtonLabelUk: 'Офіційний Brabus',
   secondaryButtonLink: 'https://www.brabus.com',
   secondaryButtonNewTab: true,
-  /** Rocket Edition G-Class on-location — neutral dark tones, no red neon */
-  heroImageUrl: '/images/shop/brabus/hq/brabus-supercars-29.jpg',
+  /** BRABUS ROCKET R (Porsche 911) — clean studio side-profile, no red neon */
+  heroImageUrl: '/images/shop/brabus/hq/brabus-supercars-84.jpg',
 } as const;
 
 /**

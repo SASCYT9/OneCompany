@@ -192,7 +192,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
               >
                 <div className="br-widestar__card-media">
                   <Image
-                    src="/images/shop/brabus/hq/brabus-supercars-27.jpg"
+                    src="/images/shop/brabus/hq/brabus-supercars-126.jpg"
                     alt="Brabus Widestar G-Class"
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
