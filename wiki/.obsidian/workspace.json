@@ -71,16 +71,13 @@
             }
           },
           {
-            "id": "b7b2c668559329f5",
+            "id": "e87a623e44c62585",
             "type": "leaf",
             "state": {
-              "type": "file-explorer",
-              "state": {
-                "sortOrder": "alphabetical",
-                "autoReveal": false
-              },
-              "icon": "lucide-folder-closed",
-              "title": "Файловий менеджер"
+              "type": "mk-path-view",
+              "state": {},
+              "icon": "layout-grid",
+              "title": "Navigator"
             }
           }
         ]
@@ -258,11 +255,23 @@
   },
   "active": "e7a7b303c61786dc",
   "lastOpenFiles": [
+    "Admin — CSV Import.md",
+    "Admin — CRM.md",
+    "Презентація.pdf",
+    "Admin — Audit.md",
+    "Без назви 3.canvas",
+    "🚀 Головна (Dashboard).md",
+    "🤖 Telegram Bot.md",
+    "📡 Git Changelog.md",
+    "📡 Code Map.md",
+    "📂 Scripts Encyclopedia.md",
     "🏛️ Архітектура CRM.md",
     "🎨 3D & Animation Stack.md",
+    "Home.md",
+    "screenshots/real_akrapovic.png",
+    "TODO.md",
     "✅ Розроблені Магазини (Storefronts).md",
     "Shop Mind Map.canvas",
-    "Home.md",
     "Tags",
     "Без назви 2.canvas",
     "Localization & AI.md",
@@ -273,22 +282,13 @@
     "Database ERD Schema.md",
     "Tasks Kanban.md",
     "AI Agent Syndicate.md",
-    "🚀 Головна (Dashboard).md",
     "🗺️ Глобальна Архітектура.canvas",
-    "📡 Code Map.md",
-    "📡 Git Changelog.md",
     "Marketing Strategy.md",
     "2026-04-06.md",
     "Phase D — Orders.md",
     "Admin — Dashboard.md",
     "🗺️ Візуальна Архітектура БД.canvas",
     "copilot/copilot-custom-prompts/Clip Web Page.md",
-    "copilot/copilot-custom-prompts/Clip YouTube Transcript.md",
-    "copilot/copilot-custom-prompts/Rewrite as tweet thread.md",
-    "copilot/copilot-custom-prompts/Rewrite as tweet.md",
-    "copilot/copilot-custom-prompts/Remove URLs.md",
-    "copilot/copilot-custom-prompts/Generate glossary.md",
-    "copilot/copilot-custom-prompts/Generate table of contents.md",
     "copilot/copilot-custom-prompts",
     "copilot",
     "💡 Ідеї",
@@ -296,7 +296,6 @@
     "screenshots/real_burger.png",
     "screenshots/real_urban.png",
     "screenshots/real_ohlins.png",
-    "screenshots/real_akrapovic.png",
     "screenshots/akrapovic_storefront.png",
     "screenshots/ohlins_storefront.png",
     "Templates",

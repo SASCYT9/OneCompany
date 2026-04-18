@@ -23,6 +23,7 @@ import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCat
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { localizeShopDescription, localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopViewerPricingContext, resolveShopProductPricing } from '@/lib/shopPricingAudience';
+import { extractShopProductDescriptionSections } from '@/lib/shopProductDescription';
 import { BurgerShopProductDetailLayout } from './BurgerShopProductDetailLayout';
 import { BrabusShopProductDetailLayout } from './BrabusShopProductDetailLayout';
 import {
@@ -31,7 +32,6 @@ import {
 } from '@/lib/do88CollectionMatcher';
 import { DO88_COLLECTION_CARDS } from '../data/do88CollectionsList';
 import {
-  buildShopProductPath,
   getProductsForUrbanCollection,
   getUrbanCollectionHandleForProduct,
 } from '@/lib/urbanCollectionMatcher';
@@ -64,6 +64,52 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 
   }
 
   return `${currency} ${formattedAmount}`;
+}
+
+function DetailListPanel({
+  title,
+  items,
+  accentClassName,
+}: {
+  title: string;
+  items: string[];
+  accentClassName?: string;
+}) {
+  return (
+    <div className={`rounded-2xl border bg-black/30 p-4 ${accentClassName ?? 'border-white/12'}`}>
+      <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">{title}</p>
+      <ul className="mt-3 space-y-2 text-sm leading-relaxed text-white/78">
+        {items.map((item) => (
+          <li key={item} className="flex gap-2">
+            <span className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#c29d59]/80" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function DetailSpecPanel({
+  title,
+  specs,
+}: {
+  title: string;
+  specs: Array<{ label: string; value: string }>;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/12 bg-black/30 p-4">
+      <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">{title}</p>
+      <dl className="mt-3 grid gap-3 text-sm">
+        {specs.map((spec) => (
+          <div key={`${spec.label}:${spec.value}`} className="grid gap-1 border-b border-white/8 pb-3 last:border-b-0 last:pb-0">
+            <dt className="text-[10px] uppercase tracking-[0.18em] text-white/38">{spec.label}</dt>
+            <dd className="text-white/78">{spec.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
 }
 
 export async function getShopProductPageMetadata({
@@ -168,8 +214,60 @@ export default async function ShopProductDetailPage({
   const productCategory = localizeShopText(resolvedLocale, product.category);
   const shortDescription = localizeShopDescription(resolvedLocale, product.shortDescription);
   const longDescription = localizeShopDescription(resolvedLocale, product.longDescription);
+  const descriptionSections = extractShopProductDescriptionSections(longDescription || shortDescription);
+  const fallbackSpecs: Array<{ label: string; value: string }> = [];
+  const pushFallbackSpec = (label: string, value?: string | null) => {
+    const normalizedValue = value?.trim();
+    if (!normalizedValue) {
+      return;
+    }
+    fallbackSpecs.push({ label, value: normalizedValue });
+  };
+  const detailFeatureItems = descriptionSections.features.length
+    ? descriptionSections.features
+    : product.highlights.map((item) => localizeShopText(resolvedLocale, item));
+  const detailIncludedItems = descriptionSections.included.length
+    ? descriptionSections.included
+    : [productTitle];
+  const detailExcludedItems = descriptionSections.excluded.length
+    ? descriptionSections.excluded
+    : [
+        isUa
+          ? 'Не зазначено в описі. Уточнюйте точний склад у менеджера.'
+          : 'Not specified in the description. Confirm the exact package scope with our team.',
+      ];
   const leadTime = localizeShopText(resolvedLocale, product.leadTime);
   const collection = localizeShopText(resolvedLocale, product.collection);
+  pushFallbackSpec(isUa ? 'Артикул' : 'SKU', product.sku);
+  pushFallbackSpec(isUa ? 'Колекція' : 'Collection', collection);
+  pushFallbackSpec(isUa ? 'Категорія' : 'Category', productCategory);
+  pushFallbackSpec(isUa ? 'Бренд' : 'Brand', product.brand);
+  pushFallbackSpec(isUa ? 'Термін постачання' : 'Lead time', leadTime);
+  if (product.length != null || product.width != null || product.height != null) {
+    const dimensionsValue = [
+      product.length != null ? `${product.length} mm` : null,
+      product.width != null ? `${product.width} mm` : null,
+      product.height != null ? `${product.height} mm` : null,
+    ]
+      .filter((value): value is string => Boolean(value))
+      .join(' × ');
+    pushFallbackSpec(isUa ? 'Габарити' : 'Dimensions', dimensionsValue);
+  }
+  if (product.weightKg != null) {
+    pushFallbackSpec(isUa ? 'Вага' : 'Weight', `${product.weightKg} kg`);
+  }
+  const detailSpecs = [...descriptionSections.specs];
+  const existingSpecKeys = new Set(
+    detailSpecs.map((spec) => `${spec.label.toLowerCase()}::${spec.value.toLowerCase()}`)
+  );
+  fallbackSpecs.forEach((spec) => {
+    const key = `${spec.label.toLowerCase()}::${spec.value.toLowerCase()}`;
+    if (existingSpecKeys.has(key)) {
+      return;
+    }
+    existingSpecKeys.add(key);
+    detailSpecs.push(spec);
+  });
   const isInStock = product.stock === 'inStock';
 
   const brandMeta = getBrandMetadata(product.brand);
@@ -208,14 +306,6 @@ export default async function ShopProductDetailPage({
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://onecompany.global');
     
-  let productPath = `/${resolvedLocale}/shop/${product.slug}`;
-  if (isUrbanMode) productPath = `/${resolvedLocale}/shop/urban/products/${product.slug}`;
-  if (isDo88Mode) productPath = `/${resolvedLocale}/shop/do88/products/${product.slug}`;
-  if (mode === 'burger') productPath = `/${resolvedLocale}/shop/burger/products/${product.slug}`;
-  if (mode === 'ipe') productPath = `/${resolvedLocale}/shop/ipe/products/${product.slug}`;
-  
-  const productUrl = `${baseUrl}${productPath}`;
-  
   const rawImageStr = product.image ? product.image.replace(/^["']|["']$/g, '').trim() : '';
   const safeImageUrl = rawImageStr.startsWith('//') 
     ? `https:${rawImageStr}` 
@@ -223,39 +313,27 @@ export default async function ShopProductDetailPage({
   
   const priceValidUntil = new Date();
   priceValidUntil.setDate(priceValidUntil.getDate() + 30);
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: productTitle,
-    description: shortDescription,
-    image: safeImageUrl,
-    url: productUrl,
-    ...(product.sku && { sku: product.sku }),
-    brand: {
-      '@type': 'Brand',
-      name: product.brand,
-    },
-    offers: {
-      '@type': 'Offer',
-      price: computeCrossPrices(pricing.effectivePrice).eur,
-      priceCurrency: 'EUR',
-
-      availability: isInStock ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
-      url: productUrl,
-      priceValidUntil: priceValidUntil.toISOString().slice(0, 10),
-    },
-  };
   let backLinkHref = `/${resolvedLocale}/shop`;
-  let backLinkLabel = `← ${isUa ? 'До магазину' : 'Back to shop'}`;
+  let backLinkLabel = `← ${isUa ? 'Назад до магазину' : 'Back to shop'}`;
+  let contextLinkHref: string | null = null;
+  let contextLinkLabel: string | null = null;
   let continueShoppingHref = `/${resolvedLocale}/shop`;
   
   if (isUrbanMode) {
-    backLinkHref = urbanCollectionHandle ? `/${resolvedLocale}/shop/urban/collections/${urbanCollectionHandle}` : `/${resolvedLocale}/shop/urban/collections`;
-    backLinkLabel = urbanCollectionCard ? `← ${isUa ? `До ${urbanCollectionCard.title}` : `Back to ${urbanCollectionCard.title}`}` : `← ${isUa ? 'Всі колекції' : 'All collections'}`;
+    backLinkHref = `/${resolvedLocale}/shop/urban/collections`;
+    backLinkLabel = `← ${isUa ? 'Назад до каталогу Urban' : 'Back to Urban catalog'}`;
+    contextLinkHref = urbanCollectionHandle ? `/${resolvedLocale}/shop/urban/collections/${urbanCollectionHandle}` : null;
+    contextLinkLabel = urbanCollectionCard
+      ? `${isUa ? 'Колекція' : 'Collection'}: ${urbanCollectionCard.title}`
+      : null;
     continueShoppingHref = `/${resolvedLocale}/shop/urban/collections`;
   } else if (isDo88Mode) {
-    backLinkHref = do88CollectionHandle ? `/${resolvedLocale}/shop/do88/collections/${do88CollectionHandle}` : `/${resolvedLocale}/shop/do88/collections`;
-    backLinkLabel = do88CollectionCard ? `← ${isUa ? `До ${do88CollectionCard.title}` : `Back to ${do88CollectionCard.title}`}` : `← ${isUa ? 'Всі категорії' : 'All categories'}`;
+    backLinkHref = `/${resolvedLocale}/shop/do88/collections`;
+    backLinkLabel = `← ${isUa ? 'Назад до каталогу do88' : 'Back to do88 catalog'}`;
+    contextLinkHref = do88CollectionHandle ? `/${resolvedLocale}/shop/do88/collections/${do88CollectionHandle}` : null;
+    contextLinkLabel = do88CollectionCard
+      ? `${isUa ? 'Категорія' : 'Category'}: ${do88CollectionCard.title}`
+      : null;
     continueShoppingHref = `/${resolvedLocale}/shop/do88/collections`;
   }
 
@@ -294,10 +372,19 @@ export default async function ShopProductDetailPage({
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href={backLinkHref}
-            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.04] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-white/75 transition hover:border-white/40 hover:text-white"
+            className="inline-flex items-center gap-2 rounded-full border border-[#c29d59]/35 bg-[#c29d59]/10 px-5 py-3 text-[12px] font-medium uppercase tracking-[0.22em] text-[#f1d8a5] shadow-[0_12px_30px_-18px_rgba(194,157,89,0.95)] transition hover:border-[#c29d59]/55 hover:bg-[#c29d59]/16 hover:text-white"
           >
             {backLinkLabel}
           </Link>
+
+          {contextLinkHref && contextLinkLabel ? (
+            <Link
+              href={contextLinkHref}
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.04] px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-white/72 transition hover:border-white/35 hover:text-white"
+            >
+              {contextLinkLabel}
+            </Link>
+          ) : null}
 
           {isUrbanMode ? (
             <Link
@@ -350,10 +437,36 @@ export default async function ShopProductDetailPage({
             </div>
 
             <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">{productTitle}</h1>
-            <div 
-              className="text-sm leading-relaxed text-white/75 sm:text-base prose prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: longDescription || shortDescription || '' }}
-            />
+            {descriptionSections.introHtml ? (
+              <div
+                className="prose prose-invert max-w-none text-sm leading-relaxed text-white/75 sm:text-base"
+                dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
+              />
+            ) : null}
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <DetailListPanel
+                title={isUa ? 'Що входить' : 'What is included'}
+                items={detailIncludedItems}
+                accentClassName="border-[#c29d59]/20"
+              />
+              <DetailListPanel
+                title={isUa ? 'Що не входить' : 'What is not included'}
+                items={detailExcludedItems}
+              />
+              {detailFeatureItems.length > 0 ? (
+                <DetailListPanel
+                  title={isUa ? 'Ключові характеристики' : 'Key features'}
+                  items={detailFeatureItems}
+                />
+              ) : null}
+              {detailSpecs.length > 0 ? (
+                <DetailSpecPanel
+                  title={isUa ? 'Технічна довідка' : 'Reference details'}
+                  specs={detailSpecs}
+                />
+              ) : null}
+            </div>
 
             <div className="rounded-2xl border border-white/15 bg-black/40 p-5 space-y-4">
               <div className="flex flex-col">
@@ -457,20 +570,6 @@ export default async function ShopProductDetailPage({
             </div>
 
             {/* Додатковий блок опису прибрано, щоб текст не дублювався */}
-
-            {product.highlights.length > 0 ? (
-              <div className="space-y-2 rounded-2xl border border-white/15 bg-white/[0.03] p-4">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">{isUa ? 'Ключові переваги' : 'Highlights'}</p>
-                <ul className="space-y-2 text-sm text-white/75">
-                  {product.highlights.map((item) => (
-                    <li key={item.en} className="flex gap-2">
-                      <span className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-white/60" />
-                      <span>{localizeShopText(resolvedLocale, item)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
 
             {product.bundle ? (
               <div className="space-y-3 rounded-2xl border border-white/15 bg-white/[0.03] p-4">

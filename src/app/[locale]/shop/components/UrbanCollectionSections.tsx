@@ -18,10 +18,10 @@ function localize(isUa: boolean, en: string, ua: string) {
 
 function fullUrl(locale: string, path: string): string {
   if (path.startsWith('http') || path.startsWith('#')) return path;
-  if (path === '/contact' || path === '/pages/contact') return `/${locale}/#contact`;
+  if (path === '/contact' || path === '/pages/contact') return `/${locale}/contact`;
   if (path.startsWith('/collections/')) {
     const handle = path.replace('/collections/', '');
-    return `/${locale}/shop/urban/collections/${handle}`;
+    return `/${locale}/shop/urban/collections/${handle}#urban-products`;
   }
   return path.startsWith('/') ? `/${locale}${path}` : `/${locale}/${path}`;
 }

@@ -13,6 +13,95 @@ tags: [changelog, git]
 
 <!-- HOOK_INJECT_MARKER -->
 
+### 🟢 [2026-04-18 01:22] Commit `d9258be6`
+**Автор**: 👤 SASCYT9
+
+> feat/fix: admin shop settings, taxes caching, and ui refinements
+
+#### 📂 Змінені файли:
+- **A**: `admin-premiumize.mjs`
+- **M**: `prisma/schema.prisma`
+- **A**: `scratch.ts`
+- **A**: `src/app/[locale]/shop/adro/products/[slug]/page.tsx`
+- **A**: `src/app/[locale]/shop/adro/products/page.tsx`
+- **A**: `src/app/[locale]/shop/akrapovic/products/page.tsx`
+- **M**: `src/app/[locale]/shop/components/AdroCollectionProductGrid.tsx`
+- **M**: `src/app/[locale]/shop/components/AkrapovicVehicleFilter.tsx`
+- **M**: `src/app/[locale]/shop/components/BrabusVehicleFilter.tsx`
+- **M**: `src/app/[locale]/shop/components/GirodiscVehicleFilter.tsx`
+- **M**: `src/app/[locale]/shop/components/IpeVehicleFilter.tsx`
+- **M**: `src/app/[locale]/shop/components/ShopProductDetailPage.tsx`
+- **A**: `src/app/[locale]/shop/csf/products/page.tsx`
+- **A**: `src/app/[locale]/shop/do88/products/page.tsx`
+- **A**: `src/app/[locale]/shop/girodisc/products/page.tsx`
+- **A**: `src/app/[locale]/shop/ipe/products/[slug]/page.tsx`
+- **A**: `src/app/[locale]/shop/ipe/products/page.tsx`
+- **A**: `src/app/[locale]/shop/ohlins/products/page.tsx`
+- **A**: `src/app/[locale]/shop/racechip/products/page.tsx`
+- **M**: `src/app/admin/backups/page.tsx`
+- **M**: `src/app/admin/blog/page.tsx`
+- **M**: `src/app/admin/crm/customers/[id]/page.tsx`
+- **M**: `src/app/admin/crm/orders/[id]/page.tsx`
+- **M**: `src/app/admin/crm/page.tsx`
+- **M**: `src/app/admin/layout.tsx`
+- **M**: `src/app/admin/messages/NewMessagesPage.tsx`
+- **M**: `src/app/admin/page.tsx`
+- **M**: `src/app/admin/settings/page.tsx`
+- **M**: `src/app/admin/shop/audit/page.tsx`
+- **M**: `src/app/admin/shop/bundles/page.tsx`
+- **M**: `src/app/admin/shop/categories/components/AdminCategoryEditor.tsx`
+- **M**: `src/app/admin/shop/categories/page.tsx`
+- **M**: `src/app/admin/shop/collections/components/AdminCollectionEditor.tsx`
+- **M**: `src/app/admin/shop/collections/page.tsx`
+- **M**: `src/app/admin/shop/components/AdminProductEditor.tsx`
+- **M**: `src/app/admin/shop/customers/[id]/page.tsx`
+- **M**: `src/app/admin/shop/customers/new/page.tsx`
+- **M**: `src/app/admin/shop/customers/page.tsx`
+- **M**: `src/app/admin/shop/import/page.tsx`
+- **M**: `src/app/admin/shop/inventory/page.tsx`
+- **M**: `src/app/admin/shop/logistics/page.tsx`
+- **M**: `src/app/admin/shop/logistics/taxes/page.tsx`
+- **M**: `src/app/admin/shop/media/page.tsx`
+- **M**: `src/app/admin/shop/orders/[id]/page.tsx`
+- **M**: `src/app/admin/shop/orders/create/page.tsx`
+- **M**: `src/app/admin/shop/orders/new/page.tsx`
+- **M**: `src/app/admin/shop/orders/page.tsx`
+- **M**: `src/app/admin/shop/page.tsx`
+- **M**: `src/app/admin/shop/pricing/page.tsx`
+- **M**: `src/app/admin/shop/pricing/simulator/page.tsx`
+- **M**: `src/app/admin/shop/seo/page.tsx`
+- **M**: `src/app/admin/shop/settings/page.tsx`
+- **M**: `src/app/admin/shop/stock/page.tsx`
+- **M**: `src/app/admin/shop/turn14/markups/page.tsx`
+- **M**: `src/app/admin/shop/turn14/page.tsx`
+- **M**: `src/app/admin/thought-space/page.tsx`
+- **M**: `src/app/admin/users/page.tsx`
+- **D**: `src/app/api/admin/check-all-prices/route.ts`
+- **M**: `src/app/api/admin/dashboard/route.ts`
+- **D**: `src/app/api/admin/debug-skus/route.ts`
+- **D**: `src/app/api/admin/fix-urus-prices/route.ts`
+- **D**: `src/app/api/admin/patch-urus-official/route.ts`
+- **A**: `src/app/api/admin/settings/app/route.ts`
+- **M**: `src/app/api/admin/shop/logistics/taxes/route.ts`
+- **D**: `src/app/api/admin/temp-setup/route.ts`
+- **D**: `src/app/api/admin/translate-brabus/route.ts`
+- **M**: `src/app/api/webhooks/airtable/route.ts`
+- **M**: `src/app/categories/[slug]/page.tsx`
+- **A**: `src/lib/admin/currencyContext.tsx`
+- **A**: `src/lib/dashboard/dataQuality.ts`
+- **M**: `src/lib/shippingCalc.ts`
+- **M**: `src/lib/shopAdminSettings.ts`
+- **M**: `src/lib/shopCheckout.ts`
+- **M**: `wiki/.makemd/fileCache.mdc`
+- **M**: `wiki/.makemd/superstate.mdc`
+- **M**: `wiki/.obsidian/graph.json`
+- **M**: `wiki/.obsidian/workspace.json`
+- **M**: `"wiki/Admin \342\200\224 Dashboard.md"`
+- **M**: `"wiki/\360\237\223\241 Git Changelog.md"`
+
+---
+
+
 ### 🟢 [2026-04-17 10:32] Commit `e8215cdc`
 **Автор**: 👤 SASCYT9
 

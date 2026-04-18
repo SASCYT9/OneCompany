@@ -15,7 +15,6 @@ import type { UrbanProductGridConfig } from '../data/urbanCollectionPages';
 
 type UrbanCollectionProductGridProps = {
   locale: SupportedLocale;
-  handle: string;
   title: string;
   brand: string;
   products: ShopProduct[];
@@ -103,7 +102,6 @@ const cardVariants = {
 
 export default function UrbanCollectionProductGrid({
   locale,
-  handle,
   title,
   brand,
   products,
@@ -115,6 +113,7 @@ export default function UrbanCollectionProductGrid({
 
   return (
     <section
+      id="urban-products"
       className="urban-product-grid"
       style={
         {
@@ -172,7 +171,7 @@ export default function UrbanCollectionProductGrid({
                 ? resolveShopProductPricing(product, viewerContext)
                 : { effectivePrice: product.price, effectiveCompareAt: product.compareAt, audience: 'b2c', b2bVisible: false };
               
-              const isB2B = pricing.audience === 'b2b' && (pricing as any).b2bVisible;
+              const isB2B = pricing.audience === 'b2b' && pricing.b2bVisible;
 
               const computed = computePricesFromUah(
                 pricing.effectivePrice,
@@ -229,8 +228,8 @@ export default function UrbanCollectionProductGrid({
                       variant="inline"
                       productName={productTitle}
                       className="urban-product-grid__add"
-                      label={isUa ? 'Додати' : 'Add'}
-                      labelAdded={isUa ? 'Додано' : 'Added'}
+                      label={isUa ? 'Замовити' : 'Order'}
+                      labelAdded={isUa ? 'У кошику' : 'In cart'}
                     />
                     <div className="urban-product-grid__price-stack flex flex-col items-end gap-1">
                       {isB2B && computedCompare ? (
@@ -273,7 +272,7 @@ export default function UrbanCollectionProductGrid({
                 ? `Ми завершуємо формування асортименту для ${title}. Залиште запит, і менеджер підбере комплект під ваш автомобіль.`
                 : `We are finalizing the assortment for ${title}. Leave a request and our team will curate a package for your car.`}
             </p>
-            <Link href={`/${locale}/#contact`} className="urban-product-grid__empty-cta hover:bg-white hover:text-black transition-colors duration-500">
+            <Link href={`/${locale}/contact`} className="urban-product-grid__empty-cta hover:bg-white hover:text-black transition-colors duration-500">
               {isUa ? 'Запитати комплект' : 'Request a package'}
             </Link>
           </motion.div>

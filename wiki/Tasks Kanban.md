@@ -19,6 +19,8 @@ tags: [dashboard, tasks]
 
 ## 🚀 Готово (Останні Релізи)
 
+- [x] Urban storefront cleanup — fixed broken CTA routing, added actionable catalog controls, and structured Urban product descriptions into clear sections #dev #shop #urban
+- [x] 🧠 Context layer cleanup — curated active skills, archived vendor packs, and compact agent docs for lower token overhead #dev #agents #obsidian
 - [x] Масове виправлення та AI-переклад 573 товарів Urban Automotive (Cyrillic → English & Українська) через Ollama Gemma #dev #db
 - [x] Повна структуризація Obsidian Wiki (Скрипти, 3D Стек, Telegram Боти) #docs #obsidian
 - [x] 🛍️ Pixel-perfect Checkout UI + 4-step flow (Phase C 100%) #dev

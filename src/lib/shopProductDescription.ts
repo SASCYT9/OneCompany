@@ -1,0 +1,320 @@
+import { load } from 'cheerio';
+
+export type ShopProductDescriptionSpec = {
+  label: string;
+  value: string;
+};
+
+export type ShopProductDescriptionSections = {
+  introHtml: string;
+  features: string[];
+  included: string[];
+  excluded: string[];
+  specs: ShopProductDescriptionSpec[];
+};
+
+type SectionKind = 'features' | 'included' | 'excluded';
+
+const FEATURES_HEADINGS = [
+  /^key features:?$/i,
+  /^main features:?$/i,
+  /^features:?$/i,
+  /^основні характеристики:?$/i,
+  /^ключові переваги:?$/i,
+];
+
+const INCLUDED_HEADINGS = [
+  /^what'?s included:?$/i,
+  /^included in the package:?$/i,
+  /^includes:?$/i,
+  /^included:?$/i,
+  /^in the box:?$/i,
+  /^у комплекті:?$/i,
+  /^в комплекті:?$/i,
+  /^включає:?$/i,
+  /^що входить:?$/i,
+];
+
+const EXCLUDED_HEADINGS = [
+  /^not included:?$/i,
+  /^does not include:?$/i,
+  /^excluded:?$/i,
+  /^не входить:?$/i,
+  /^не включає:?$/i,
+];
+
+const SPEC_LABELS = [
+  /^part number$/i,
+  /^article no\.?$/i,
+  /^sku$/i,
+  /^body kit brand$/i,
+  /^vehicle make$/i,
+  /^car brand$/i,
+  /^brand$/i,
+  /^model$/i,
+  /^collection$/i,
+  /^finish$/i,
+  /^material$/i,
+  /^fitment$/i,
+  /^артикул$/i,
+  /^бренд обвісу$/i,
+  /^марка авто$/i,
+  /^бренд$/i,
+  /^модель$/i,
+  /^колекція$/i,
+  /^покриття$/i,
+  /^матеріал$/i,
+  /^сумісність$/i,
+];
+
+function normalizeText(value: string | null | undefined) {
+  return String(value ?? '')
+    .replace(/\u00a0/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function pushUnique(target: string[], values: string[]) {
+  for (const value of values) {
+    const normalized = normalizeText(value)
+      .replace(/^[-*•—–]+\s*/, '')
+      .trim();
+
+    if (!normalized) {
+      continue;
+    }
+
+    if (!target.includes(normalized)) {
+      target.push(normalized);
+    }
+  }
+}
+
+function detectSectionHeading(text: string): SectionKind | null {
+  const normalized = normalizeText(text);
+
+  if (FEATURES_HEADINGS.some((pattern) => pattern.test(normalized))) {
+    return 'features';
+  }
+
+  if (INCLUDED_HEADINGS.some((pattern) => pattern.test(normalized))) {
+    return 'included';
+  }
+
+  if (EXCLUDED_HEADINGS.some((pattern) => pattern.test(normalized))) {
+    return 'excluded';
+  }
+
+  return null;
+}
+
+function parseSpec(text: string): ShopProductDescriptionSpec | null {
+  const normalized = normalizeText(text);
+  const separatorIndex = normalized.indexOf(':');
+
+  if (separatorIndex <= 0) {
+    return null;
+  }
+
+  const label = normalizeText(normalized.slice(0, separatorIndex));
+  const value = normalizeText(normalized.slice(separatorIndex + 1));
+
+  if (!label || !value) {
+    return null;
+  }
+
+  if (!SPEC_LABELS.some((pattern) => pattern.test(label))) {
+    return null;
+  }
+
+  return { label, value };
+}
+
+function splitInlineItems(value: string) {
+  return value
+    .split(/\s*(?:\||•|·|;|\n)\s*/)
+    .map((item) => item.replace(/^[-*•—–]+\s*/, ''))
+    .map((item) => normalizeText(item))
+    .filter(Boolean);
+}
+
+function parsePrefixedSection(text: string): { section: SectionKind; items: string[] } | null {
+  const normalized = normalizeText(text);
+  const patterns: Array<{ section: SectionKind; matchers: RegExp[] }> = [
+    { section: 'features', matchers: FEATURES_HEADINGS },
+    { section: 'included', matchers: INCLUDED_HEADINGS },
+    { section: 'excluded', matchers: EXCLUDED_HEADINGS },
+  ];
+
+  for (const { section, matchers } of patterns) {
+    for (const matcher of matchers) {
+      const heading = normalized.match(matcher)?.[0];
+      if (!heading) {
+        continue;
+      }
+
+      const remainder = normalizeText(normalized.slice(heading.length));
+      if (!remainder) {
+        return { section, items: [] };
+      }
+
+      return { section, items: splitInlineItems(remainder) };
+    }
+  }
+
+  return null;
+}
+
+function pushToSection(target: ShopProductDescriptionSections, section: SectionKind, items: string[]) {
+  if (section === 'features') {
+    pushUnique(target.features, items);
+    return;
+  }
+
+  if (section === 'included') {
+    pushUnique(target.included, items);
+    return;
+  }
+
+  pushUnique(target.excluded, items);
+}
+
+function createEmptySections(): ShopProductDescriptionSections {
+  return {
+    introHtml: '',
+    features: [],
+    included: [],
+    excluded: [],
+    specs: [],
+  };
+}
+
+function parseHtmlDescription(source: string): ShopProductDescriptionSections {
+  const sections = createEmptySections();
+  const $ = load(`<body>${source}</body>`);
+  const introFragments: string[] = [];
+  let activeSection: SectionKind | null = null;
+
+  $('body')
+    .children()
+    .each((_, element) => {
+      const tagName = element.tagName?.toLowerCase() ?? '';
+      const text = normalizeText($(element).text());
+
+      if (!text) {
+        return;
+      }
+
+      const sectionHeading = detectSectionHeading(text);
+      if (sectionHeading && (/^h[1-6]$/.test(tagName) || tagName === 'p' || tagName === 'div')) {
+        activeSection = sectionHeading;
+        return;
+      }
+
+      if (tagName === 'ul' || tagName === 'ol') {
+        const items = $(element)
+          .find('li')
+          .map((__, item) => normalizeText($(item).text()))
+          .get()
+          .filter(Boolean);
+
+        if (items.length > 0 && activeSection) {
+          pushToSection(sections, activeSection, items);
+          return;
+        }
+      }
+
+      const prefixedSection = parsePrefixedSection(text);
+      if (prefixedSection) {
+        activeSection = prefixedSection.section;
+        if (prefixedSection.items.length > 0) {
+          pushToSection(sections, prefixedSection.section, prefixedSection.items);
+        }
+        return;
+      }
+
+      const spec = parseSpec(text);
+      if (spec) {
+        if (!sections.specs.some((item) => item.label === spec.label && item.value === spec.value)) {
+          sections.specs.push(spec);
+        }
+        return;
+      }
+
+      if (activeSection && tagName === 'p') {
+        const listItems = splitInlineItems(text);
+        if (listItems.length > 1) {
+          pushToSection(sections, activeSection, listItems);
+          return;
+        }
+      }
+
+      introFragments.push($.html(element));
+    });
+
+  sections.introHtml = introFragments.join('').trim();
+  return sections;
+}
+
+function parsePlainTextDescription(source: string): ShopProductDescriptionSections {
+  const sections = createEmptySections();
+  const introLines: string[] = [];
+  let activeSection: SectionKind | null = null;
+
+  source
+    .split(/\n+/)
+    .map((line) => normalizeText(line))
+    .filter(Boolean)
+    .forEach((line) => {
+      const sectionHeading = detectSectionHeading(line);
+      if (sectionHeading) {
+        activeSection = sectionHeading;
+        return;
+      }
+
+      const prefixedSection = parsePrefixedSection(line);
+      if (prefixedSection) {
+        activeSection = prefixedSection.section;
+        pushToSection(sections, prefixedSection.section, prefixedSection.items);
+        return;
+      }
+
+      const spec = parseSpec(line);
+      if (spec) {
+        sections.specs.push(spec);
+        return;
+      }
+
+      if (activeSection && /^[-*•—–]/.test(line)) {
+        pushToSection(sections, activeSection, [line]);
+        return;
+      }
+
+      introLines.push(line);
+    });
+
+  sections.introHtml = introLines.map((line) => `<p>${escapeHtml(line)}</p>`).join('');
+  return sections;
+}
+
+export function extractShopProductDescriptionSections(source: string | null | undefined) {
+  const normalized = String(source ?? '').trim();
+  if (!normalized) {
+    return createEmptySections();
+  }
+
+  if (/<[a-z][\s\S]*>/i.test(normalized)) {
+    return parseHtmlDescription(normalized);
+  }
+
+  return parsePlainTextDescription(normalized);
+}

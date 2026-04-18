@@ -5,10 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
-import { localizeShopProductTitle } from "@/lib/shopText";
+import { localizeShopProductTitle, localizeShopText } from "@/lib/shopText";
 import { buildShopProductPath } from "@/lib/urbanCollectionMatcher";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
@@ -18,6 +19,8 @@ type UrbanVehicleFilterProps = {
   products: ShopProduct[];
   viewerContext?: ShopViewerPricingContext;
 };
+
+type SortOrder = "default" | "price_desc" | "price_asc";
 
 const BRAND_ORDER = ["Land Rover", "Mercedes-Benz", "Rolls-Royce", "Bentley", "Lamborghini", "Audi", "Volkswagen"];
 
@@ -74,7 +77,7 @@ export default function UrbanVehicleFilter({
   const [activeBrand, setActiveBrand] = useState<string>(initialBrand);
   const [activeCollection, setActiveCollection] = useState<string>(initialCollection);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("default");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   // Available Brands from products
@@ -318,7 +321,7 @@ export default function UrbanVehicleFilter({
               <div className="relative inline-block border-b border-white/20 pb-1">
                 <select
                   value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as any)}
+                  onChange={(e) => setSortOrder(e.target.value as SortOrder)}
                   className="appearance-none bg-transparent text-white text-[10px] uppercase tracking-[0.2em] font-semibold px-2 py-2 pr-8 outline-none cursor-pointer"
                 >
                   <option value="default">{isUa ? "За замовчуванням" : "Default"}</option>
@@ -356,13 +359,20 @@ export default function UrbanVehicleFilter({
                   );
 
                   const productTitle = localizeShopProductTitle(locale, product);
+                  const productCollection = localizeShopText(locale, product.collection, { slugFallback: product.slug });
+                  const productPath = buildShopProductPath(locale, product);
+                  const rawImage = (product.image || "").replace(/^["']|["']$/g, "").trim();
+                  const safeImageUrl = rawImage.startsWith("//")
+                    ? `https:${rawImage}`
+                    : rawImage || "/images/placeholders/product-fallback.jpg";
+                  const hasVisiblePrice = computed.eur > 0 || computed.usd > 0 || computed.uah > 0;
 
                   return (
                     <article key={product.slug} className="group relative bg-[#040404] p-6 flex flex-col justify-between hover:bg-[#0a0a0a] transition-colors">
-                      <Link href={buildShopProductPath(locale, product)} className="flex flex-col flex-grow z-10">
+                      <Link href={productPath} className="flex flex-col flex-grow z-10">
                         <div className="relative aspect-square mb-6 overflow-hidden flex items-center justify-center">
                           <Image
-                            src={product.image || "/images/placeholders/product-fallback.jpg"}
+                            src={safeImageUrl}
                             alt={productTitle}
                             fill
                             sizes="(max-width: 768px) 100vw, 33vw"
@@ -371,6 +381,9 @@ export default function UrbanVehicleFilter({
                         </div>
 
                         <div className="flex flex-col flex-grow mt-auto">
+                          <p className="mb-2 text-[10px] uppercase tracking-[0.22em] text-white/35">
+                            {productCollection || product.brand}
+                          </p>
                           <h3 className="text-xs uppercase tracking-widest leading-snug text-white/90 group-hover:text-white transition-colors mb-4 line-clamp-3">
                             {productTitle}
                           </h3>
@@ -390,6 +403,33 @@ export default function UrbanVehicleFilter({
                           </div>
                         </div>
                       </Link>
+                      <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
+                        <Link
+                          href={productPath}
+                          className="text-[10px] uppercase tracking-[0.22em] text-white/55 transition hover:text-white"
+                        >
+                          {isUa ? "Деталі" : "Details"}
+                        </Link>
+                        {hasVisiblePrice ? (
+                          <AddToCartButton
+                            slug={product.slug}
+                            locale={locale}
+                            redirect={true}
+                            variant="inline"
+                            productName={productTitle}
+                            className="rounded-full border border-white/15 bg-white px-4 py-2 text-[10px] font-medium uppercase tracking-[0.18em] text-black transition hover:border-white hover:bg-white/90"
+                            label={isUa ? "Замовити" : "Order"}
+                            labelAdded={isUa ? "У кошику" : "In cart"}
+                          />
+                        ) : (
+                          <Link
+                            href={`/${locale}/contact`}
+                            className="rounded-full border border-white/15 px-4 py-2 text-[10px] uppercase tracking-[0.18em] text-white/80 transition hover:border-white/40 hover:text-white"
+                          >
+                            {isUa ? "Уточнити" : "Request"}
+                          </Link>
+                        )}
+                      </div>
                     </article>
                   );
                 })}

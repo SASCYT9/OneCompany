@@ -124,7 +124,6 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
       <UrbanBlueprintKit locale={resolvedLocale} config={config.blueprint} />
       <UrbanCollectionProductGrid
         locale={resolvedLocale}
-        handle={handle}
         title={card?.title ?? config.overview.title}
         brand={card?.brand ?? ''}
         products={collectionProducts}

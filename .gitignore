@@ -60,3 +60,8 @@ temp_pgsql/
 *.sql
 .env*.local
 .shop-products-dev-cache.json
+
+# agent bloat protection
+.agents/skills-archive/
+.agents/mcp-servers/*/node_modules/
+.agents/mcp-servers/*/build/
