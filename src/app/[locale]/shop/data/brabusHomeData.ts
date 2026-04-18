@@ -26,10 +26,10 @@ export const BRABUS_HERO = {
   primaryButtonLabel: 'Explore Range',
   primaryButtonLabelUk: 'Модельний ряд',
   primaryButtonLink: '/shop/brabus/collections',
-  secondaryButtonLabel: 'About Us',
-  secondaryButtonLabelUk: 'Про нас',
-  secondaryButtonLink: '/about',
-  secondaryButtonNewTab: false,
+  secondaryButtonLabel: 'Official Brabus',
+  secondaryButtonLabelUk: 'Офіційний Brabus',
+  secondaryButtonLink: 'https://www.brabus.com',
+  secondaryButtonNewTab: true,
   /** Rocket Edition G-Class dark studio shot with red neon & wet reflections — largest HQ image */
   heroImageUrl: '/images/shop/brabus/hq/brabus-supercars-27.jpg',
 } as const;
