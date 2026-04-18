@@ -53,7 +53,7 @@ export const OUR_STORES: OurStore[] = [
     descriptionUk:
       "Преміальний тюнінг та стиль життя. Офіційний постачальник Brabus в Україні.",
     href: "/shop/brabus",
-    imageUrl: "/images/shop/brabus/hq/brabus-supercars-84.jpg",
+    imageUrl: "/images/shop/brabus/hq/brabus-portal-hero.png",
   },
   {
     id: "burger",
