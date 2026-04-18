@@ -384,7 +384,7 @@ export default async function ShopProductDetailPage({
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href={backLinkHref}
-            className="inline-flex items-center gap-2 rounded-full border border-[#c29d59]/35 bg-[#c29d59]/10 px-5 py-3 text-[12px] font-medium uppercase tracking-[0.22em] text-[#f1d8a5] shadow-[0_12px_30px_-18px_rgba(194,157,89,0.95)] transition hover:border-[#c29d59]/55 hover:bg-[#c29d59]/16 hover:text-white"
+            className="inline-flex items-center gap-2.5 rounded-full border-2 border-[#c29d59]/50 bg-[#c29d59]/12 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-[#f1d8a5] shadow-[0_8px_24px_-6px_rgba(194,157,89,0.5)] transition hover:border-[#c29d59]/70 hover:bg-[#c29d59]/20 hover:text-white hover:shadow-[0_12px_32px_-6px_rgba(194,157,89,0.6)]"
           >
             {backLinkLabel}
           </Link>

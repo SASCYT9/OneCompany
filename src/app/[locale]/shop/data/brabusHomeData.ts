@@ -30,8 +30,8 @@ export const BRABUS_HERO = {
   secondaryButtonLabelUk: 'Офіційний Brabus',
   secondaryButtonLink: 'https://www.brabus.com',
   secondaryButtonNewTab: true,
-  /** Rocket Edition G-Class dark studio shot with red neon & wet reflections — largest HQ image */
-  heroImageUrl: '/images/shop/brabus/hq/brabus-supercars-27.jpg',
+  /** Rocket Edition G-Class on-location — neutral dark tones, no red neon */
+  heroImageUrl: '/images/shop/brabus/hq/brabus-supercars-29.jpg',
 } as const;
 
 /**
