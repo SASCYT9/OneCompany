@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 type Locale = string;
 
@@ -46,7 +46,6 @@ type Make = keyof typeof CAR_DATA;
 export default function Do88VehicleFilter({ locale, compact = false, isSidebar = false, currentCategory = 'all' }: Do88VehicleFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = usePathname();
   
   const initialBrand = (searchParams?.get('brand') as Make) || '';
   const initialKeyword = searchParams?.get('keyword') || '';
@@ -104,12 +103,12 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
     ? "do88-glass-panel w-full p-6 rounded-2xl flex flex-col gap-4"
     : compact 
       ? "do88-glass-panel w-full max-w-5xl mx-auto px-4 py-4 md:px-8 rounded-2xl flex flex-col md:flex-row items-center gap-4 do88-animate-up"
-      : "do88-glass-panel do88-filter-container w-full max-w-4xl mx-auto do88-animate-up";
+      : "do88-glass-panel do88-filter-container w-full max-w-4xl mx-auto do88-animate-up text-left";
 
   return (
     <div className={wrapperClass} style={{ animationDelay: '0.1s' }}>
       {(!compact && !isSidebar) && (
-        <div className="flex flex-col items-center mb-6 text-center">
+        <div className="mb-6 flex flex-col items-center text-center">
           <h2 className="text-2xl font-light tracking-[0.1em] text-white">
             {isUa ? 'ЗНАЙДІТЬ СВІЙ АВТОМОБІЛЬ' : 'FIND YOUR VEHICLE'}
           </h2>
@@ -139,69 +138,75 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
         </div>
       )}
 
-      <div className={`grid grid-cols-1 ${(!isSidebar && compact) ? 'md:flex md:w-full md:gap-4' : 'gap-4'}`}>
-        <div className={`relative ${(!isSidebar && compact) ? 'md:flex-1' : ''}`}>
+      <div className={`grid grid-cols-1 ${(!isSidebar && compact) ? 'md:flex md:w-full md:gap-4' : 'gap-4'} text-left`}>
+        <div className={`${(!isSidebar && compact) ? 'md:flex-1' : ''}`}>
           {(!compact || isSidebar) && (
-            <label className="block text-[9px] uppercase tracking-[0.2em] text-white/50 mb-2 ml-1">
+            <label className="mb-2 block pl-1 text-left text-[9px] uppercase tracking-[0.2em] text-white/50">
               {isUa ? 'Марка' : 'Make'}
             </label>
           )}
-          <select 
-            value={selectedMake} 
-            onChange={handleMakeChange}
-            className={`w-full appearance-none rounded-xl px-4 py-3 text-white focus:outline-none transition shadow-inner text-sm tracking-wide bg-[#030303]/50 border border-white/5 hover:border-[#c29d59]/40 focus:border-[#c29d59] focus:shadow-[0_0_20px_rgba(194,157,89,0.15)]`}
-          >
-            <option value="" className="text-black bg-white">{isUa ? 'Оберіть марку' : 'Select Make'}</option>
-            {Object.keys(CAR_DATA).map((make) => (
-              <option key={make} value={make} className="text-black bg-white">{make}</option>
-            ))}
-          </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <div className="relative">
+            <select 
+              value={selectedMake} 
+              onChange={handleMakeChange}
+              className={`w-full appearance-none rounded-xl border border-white/5 bg-[#030303]/50 px-4 py-3 text-left text-sm tracking-wide text-white shadow-inner transition hover:border-[#c29d59]/40 focus:border-[#c29d59] focus:outline-none focus:shadow-[0_0_20px_rgba(194,157,89,0.15)]`}
+            >
+              <option value="" className="text-black bg-white">{isUa ? 'Оберіть марку' : 'Select Make'}</option>
+              {Object.keys(CAR_DATA).map((make) => (
+                <option key={make} value={make} className="text-black bg-white">{make}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/50">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
           </div>
         </div>
 
-        <div className={`relative ${(!isSidebar && compact) ? 'md:flex-1 mt-3 md:mt-0' : ''}`}>
+        <div className={`${(!isSidebar && compact) ? 'md:flex-1 mt-3 md:mt-0' : ''}`}>
           {(!compact || isSidebar) && (
-            <label className="block text-[9px] uppercase tracking-[0.2em] text-white/50 mb-2 ml-1">
+            <label className="mb-2 block pl-1 text-left text-[9px] uppercase tracking-[0.2em] text-white/50">
               {isUa ? 'Модель' : 'Model'}
             </label>
           )}
-          <select 
-            value={selectedModel} 
-            onChange={handleModelChange}
-            disabled={!selectedMake}
-            className={`w-full appearance-none rounded-xl px-4 py-3 text-white focus:outline-none transition shadow-inner text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed bg-[#030303]/50 border border-white/5 hover:border-[#c29d59]/40 focus:border-[#c29d59] focus:shadow-[0_0_20px_rgba(194,157,89,0.15)]`}
-          >
-            <option value="" className="text-black bg-white">{isUa ? 'Оберіть модель' : 'Select Model'}</option>
-            {selectedMake && CAR_DATA[selectedMake]?.map((model) => (
-              <option key={model} value={model} className="text-black bg-white">{model}</option>
-            ))}
-          </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <div className="relative">
+            <select 
+              value={selectedModel} 
+              onChange={handleModelChange}
+              disabled={!selectedMake}
+              className={`w-full appearance-none rounded-xl border border-white/5 bg-[#030303]/50 px-4 py-3 text-left text-sm tracking-wide text-white shadow-inner transition hover:border-[#c29d59]/40 focus:border-[#c29d59] focus:outline-none focus:shadow-[0_0_20px_rgba(194,157,89,0.15)] disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <option value="" className="text-black bg-white">{isUa ? 'Оберіть модель' : 'Select Model'}</option>
+              {selectedMake && CAR_DATA[selectedMake]?.map((model) => (
+                <option key={model} value={model} className="text-black bg-white">{model}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/50">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
           </div>
         </div>
 
         {(isSidebar || compact) && (
-          <div className={`relative ${(!isSidebar && compact) ? 'md:flex-1 mt-3 md:mt-0' : ''}`}>
+          <div className={`${(!isSidebar && compact) ? 'md:flex-1 mt-3 md:mt-0' : ''}`}>
             {(!compact || isSidebar) && (
-              <label className="block text-[9px] uppercase tracking-[0.2em] text-white/50 mb-2 ml-1">
+              <label className="mb-2 block pl-1 text-left text-[9px] uppercase tracking-[0.2em] text-white/50">
                 {isUa ? 'Категорія' : 'Category'}
               </label>
             )}
-            <select 
-              value={selectedCategory} 
-              onChange={handleCategoryChange}
-              className={`w-full appearance-none rounded-xl px-4 py-3 text-white focus:outline-none transition shadow-inner text-sm tracking-wide bg-[#030303]/50 border border-white/5 hover:border-[#c29d59]/40 focus:border-[#c29d59] focus:shadow-[0_0_20px_rgba(194,157,89,0.15)]`}
-            >
-              <option value="all" className="text-black bg-white">{isUa ? 'Всі деталі' : 'All Parts'}</option>
-              {DO88_CATEGORIES.filter(c => c.handle !== 'all').map((cat) => (
-                <option key={cat.handle} value={cat.handle} className="text-black bg-white">{isUa ? cat.titleUa : cat.title}</option>
-              ))}
-            </select>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <div className="relative">
+              <select 
+                value={selectedCategory} 
+                onChange={handleCategoryChange}
+                className={`w-full appearance-none rounded-xl border border-white/5 bg-[#030303]/50 px-4 py-3 text-left text-sm tracking-wide text-white shadow-inner transition hover:border-[#c29d59]/40 focus:border-[#c29d59] focus:outline-none focus:shadow-[0_0_20px_rgba(194,157,89,0.15)]`}
+              >
+                <option value="all" className="text-black bg-white">{isUa ? 'Всі деталі' : 'All Parts'}</option>
+                {DO88_CATEGORIES.filter(c => c.handle !== 'all').map((cat) => (
+                  <option key={cat.handle} value={cat.handle} className="text-black bg-white">{isUa ? cat.titleUa : cat.title}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/50">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
             </div>
           </div>
         )}

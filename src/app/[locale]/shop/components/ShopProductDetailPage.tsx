@@ -311,7 +311,7 @@ export default async function ShopProductDetailPage({
   ).slice(0, 3);
   const relatedProductsWithPricing = relatedProducts.map((item) => ({
     item,
-    price: resolveShopProductPricing(item, viewerContext).effectivePrice,
+    price: computeCrossPrices(resolveShopProductPricing(item, viewerContext).effectivePrice),
   }));
 
   const baseUrl =
@@ -497,7 +497,7 @@ export default async function ShopProductDetailPage({
                     <span className="text-xs uppercase tracking-[0.2em] text-white/40">{isUa ? 'Стара ціна' : 'Was'}</span>
                     <ShopInlinePriceText
                       locale={resolvedLocale}
-                      price={pricing.effectiveCompareAt}
+                      price={computeCrossPrices(pricing.effectiveCompareAt)}
                       className="text-sm text-red-400/80 line-through"
                       requestLabel={isUa ? 'Ціна за запитом' : 'Price on request'}
                     />
@@ -522,7 +522,7 @@ export default async function ShopProductDetailPage({
                           <p className="text-2xl font-light text-white">
                             <ShopInlinePriceText
                               locale={resolvedLocale}
-                              price={pricing.bands.b2b?.price}
+                              price={b2bPrices}
                               requestLabel={isUa ? 'Ціна за запитом' : 'Price on request'}
                             />
                           </p>
