@@ -3,7 +3,23 @@
 import { useEffect, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ArrowLeft, Boxes, CheckSquare, RefreshCcw, Search, Warehouse } from 'lucide-react';
+import { Boxes, CheckSquare, RefreshCcw, Search, Warehouse } from 'lucide-react';
+
+import {
+  AdminActionBar,
+  AdminEmptyState,
+  AdminFilterBar,
+  AdminInlineAlert,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminPage,
+  AdminPageHeader,
+  AdminTableShell,
+} from '@/components/admin/AdminPrimitives';
+import {
+  AdminInputField as InputField,
+  AdminSelectField as SelectField,
+} from '@/components/admin/AdminFormFields';
 
 type InventoryRow = {
   id: string;
@@ -209,110 +225,122 @@ function AdminInventoryPageContent() {
 
   if (loading) {
     return (
-      <div className="p-6 text-white/60 flex items-center gap-2">
-        <Warehouse className="h-5 w-5 animate-pulse" />
-        Loading inventory…
-      </div>
+      <AdminPage>
+        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+          <Warehouse className="h-4 w-4 animate-pulse" />
+          Loading inventory…
+        </div>
+      </AdminPage>
     );
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="w-full px-6 md:px-12 py-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
-              <ArrowLeft className="h-4 w-4" />
-              Back to catalog
-            </Link>
-            <h2 className="mt-3 text-2xl font-semibold text-white">Inventory</h2>
-            <p className="mt-2 text-sm text-white/45">
-              Bulk inventory operations for variant quantities, tracking, and fulfillment fields.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link href="/admin/shop/pricing" className="rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+    <AdminPage className="space-y-6">
+      <AdminPageHeader
+        eyebrow="Catalog"
+        title="Inventory"
+        description="Operational stock control for variant quantities, inventory policy, and fulfillment metadata across warehouse locations."
+        actions={
+          <>
+            <Link
+              href="/admin/shop/pricing"
+              className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+            >
               Pricing
             </Link>
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
             >
               <RefreshCcw className="h-4 w-4" />
               Refresh
             </button>
+          </>
+        }
+      />
+
+      <AdminMetricGrid>
+        <AdminMetricCard label="Variants" value={variants.length} meta="Rows available for stock operations" tone="accent" />
+        <AdminMetricCard label="Locations" value={locations.length} meta="Warehouse destinations loaded" />
+        <AdminMetricCard
+          label="In stock"
+          value={variants.filter((variant) => (variant.inventoryLevels?.find((l) => l.locationId === selectedLocationId)?.stockedQuantity || 0) > 0).length}
+          meta="Positive stocked quantity in the selected location"
+        />
+        <AdminMetricCard
+          label="Zero / negative"
+          value={variants.filter((variant) => (variant.inventoryLevels?.find((l) => l.locationId === selectedLocationId)?.stockedQuantity || 0) <= 0).length}
+          meta="Variants needing replenishment review"
+        />
+      </AdminMetricGrid>
+
+      <AdminFilterBar className="space-y-3">
+        <div className="flex flex-wrap gap-3">
+          <SelectField
+            label="Location"
+            value={selectedLocationId}
+            onChange={setSelectedLocationId}
+            options={locations.map((location) => ({
+              value: location.id,
+              label: `${location.nameUa || location.name} (${location.code})`,
+            }))}
+            className="min-w-[260px]"
+          />
+          <SelectField
+            label="Brand"
+            value={brandFilter}
+            onChange={setBrandFilter}
+            options={[
+              { value: 'ALL', label: 'All brands' },
+              ...uniqueBrands.map((brand) => ({ value: brand, label: brand })),
+            ]}
+            className="min-w-[220px]"
+          />
+          <label className="flex min-w-[320px] flex-1 items-center gap-2 self-end rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-stone-100">
+            <Search className="h-4 w-4 text-stone-500" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search by product, variant, SKU, or collection"
+              className="w-full bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
+            />
+          </label>
+        </div>
+      </AdminFilterBar>
+
+      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
+      {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
+
+      <AdminActionBar>
+        <div className="space-y-1">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Selection</div>
+          <div className="text-sm text-stone-200">
+            {selectedIds.length} selected, {selectedVisibleCount} visible in the current filter set
           </div>
         </div>
-
-        <div className="mb-4 grid gap-4 lg:grid-cols-[1fr_320px]">
-          <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
-            <div className="grid gap-2 text-sm text-white/70 md:grid-cols-4">
-              <div>{variants.length} variants</div>
-              <div>{locations.length} locations</div>
-              <div>{variants.filter((variant) => (variant.inventoryLevels?.find(l => l.locationId === selectedLocationId)?.stockedQuantity || 0) > 0).length} in stock</div>
-              <div>{variants.filter((variant) => (variant.inventoryLevels?.find(l => l.locationId === selectedLocationId)?.stockedQuantity || 0) <= 0).length} zero/negative</div>
-            </div>
-            <div className="mt-4 flex flex-col sm:flex-row gap-2">
-              <select
-                value={selectedLocationId}
-                onChange={(e) => setSelectedLocationId(e.target.value)}
-                className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white font-medium text-emerald-400 focus:outline-none"
-              >
-                {locations.map(loc => (
-                  <option key={loc.id} value={loc.id}>🏢 {loc.nameUa || loc.name} ({loc.code})</option>
-                ))}
-              </select>
-              <select
-                value={brandFilter}
-                onChange={(e) => setBrandFilter(e.target.value)}
-                className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
-              >
-                <option value="ALL">Всі Бренди</option>
-                {uniqueBrands.map(b => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
-              <label className="flex flex-1 items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
-                <Search className="h-4 w-4 text-white/35" />
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search by product, variant, SKU, collection"
-                  className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-sm font-medium text-white">Selection</div>
-                <div className="mt-1 text-xs text-white/45">
-                  {selectedIds.length} selected, {selectedVisibleCount} visible
-                </div>
-              </div>
-              <CheckSquare className="h-5 w-5 text-white/35" />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={selectVisible} className="rounded-none border border-white/15 px-3 py-2 text-xs text-white hover:bg-white/5">
-                Select visible
-              </button>
-              <button type="button" onClick={clearSelection} className="rounded-none border border-white/15 px-3 py-2 text-xs text-white hover:bg-white/5">
-                Clear
-              </button>
-            </div>
-          </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={selectVisible}
+            className="rounded-2xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+          >
+            Select visible
+          </button>
+          <button
+            type="button"
+            onClick={clearSelection}
+            className="rounded-2xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+          >
+            Clear
+          </button>
         </div>
+      </AdminActionBar>
 
-        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
-        {success ? <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
-
-        <div className="mb-6 rounded-none border border-white/10 bg-white/[0.03] p-5">
+      <div className="rounded-[28px] border border-white/10 bg-[#101010] p-5">
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-white">Bulk update</h3>
-            <p className="mt-1 text-sm text-white/45">
+            <h3 className="text-lg font-medium text-stone-50">Bulk update</h3>
+            <p className="mt-1 text-sm text-stone-400">
               Set inventory quantities or apply a delta across selected variants. Product stock state syncs automatically after update.
             </p>
           </div>
@@ -337,32 +365,38 @@ function AdminInventoryPageContent() {
               type="button"
               onClick={applyBulk}
               disabled={applying}
-              className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white disabled:opacity-50"
             >
               <Boxes className="h-4 w-4" />
               {applying ? 'Applying…' : 'Apply to selected'}
             </button>
           </div>
-        </div>
+      </div>
 
-        <div className="overflow-hidden rounded-none border border-white/10">
+      {filteredVariants.length === 0 ? (
+        <AdminEmptyState
+          title="No variants match this inventory view"
+          description="Adjust the location, brand, or search filters to surface variants that need stock actions."
+        />
+      ) : (
+        <AdminTableShell>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-white/10 bg-white/5">
-                  <th className="px-4 py-3 font-medium text-white/60">Select</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Product</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Variant</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Collections</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Qty</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Policy</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Tracker</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Actions</th>
+                <tr className="border-b border-white/10 bg-white/[0.03]">
+                  <th className="px-4 py-3 font-medium text-stone-400">Select</th>
+                  <th className="px-4 py-3 font-medium text-stone-400">Product</th>
+                  <th className="px-4 py-3 font-medium text-stone-400">Variant</th>
+                  <th className="px-4 py-3 font-medium text-stone-400">Collections</th>
+                  <th className="px-4 py-3 font-medium text-stone-400">Qty</th>
+                  <th className="px-4 py-3 font-medium text-stone-400">Policy</th>
+                  <th className="px-4 py-3 font-medium text-stone-400">Tracker</th>
+                  <th className="px-4 py-3 font-medium text-stone-400">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredVariants.map((variant) => (
-                  <tr key={variant.id} className="border-b border-white/5 align-top hover:bg-white/[0.03]">
+                  <tr key={variant.id} className="border-b border-white/5 align-top transition hover:bg-white/[0.02]">
                     <td className="px-4 py-4">
                       <input
                         type="checkbox"
@@ -418,56 +452,9 @@ function AdminInventoryPageContent() {
               </tbody>
             </table>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-type InputFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-};
-
-function InputField({ label, value, onChange, type = 'text' }: InputFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
-      />
-    </label>
-  );
-}
-
-type SelectFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
-};
-
-function SelectField({ label, value, onChange, options }: SelectFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-      >
-        {options.map((option) => (
-          <option key={option.value || option.label} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+        </AdminTableShell>
+      )}
+    </AdminPage>
   );
 }
 

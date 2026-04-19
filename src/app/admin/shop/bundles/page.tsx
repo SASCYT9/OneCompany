@@ -4,6 +4,21 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Boxes, Plus, RefreshCcw, Save, Trash2 } from 'lucide-react';
 
+import {
+  AdminActionBar,
+  AdminEmptyState,
+  AdminInlineAlert,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminPage,
+  AdminPageHeader,
+  AdminTableShell,
+} from '@/components/admin/AdminPrimitives';
+import {
+  AdminInputField,
+  AdminSelectField,
+} from '@/components/admin/AdminFormFields';
+
 type BundleListItem = {
   id: string;
   productId: string;
@@ -147,6 +162,16 @@ export default function AdminShopBundlesPage() {
         (product) => !product.bundleId || product.bundleId === form.id
       ),
     [form.id, productOptions]
+  );
+
+  const bundleMetrics = useMemo(
+    () => ({
+      total: bundles.length,
+      components: bundles.reduce((sum, bundle) => sum + bundle.componentsCount, 0),
+      available: bundles.reduce((sum, bundle) => sum + bundle.availableQuantity, 0),
+      assignableProducts: bundleProductOptions.length,
+    }),
+    [bundleProductOptions.length, bundles]
   );
 
   async function load(listOnly = false) {
@@ -333,29 +358,28 @@ export default function AdminShopBundlesPage() {
 
   if (loading) {
     return (
-      <div className="p-6 text-white/60 flex items-center gap-2">
-        <Boxes className="h-5 w-5 animate-pulse" />
-        Loading bundles…
-      </div>
+      <AdminPage>
+        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+          <Boxes className="h-4 w-4 animate-pulse" />
+          Loading bundles…
+        </div>
+      </AdminPage>
     );
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="w-full px-6 md:px-12 py-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-white">Bundles</h2>
-            <p className="mt-2 text-sm text-white/45">
-              Bundle shell product, component items and computed availability. Bundle pricing stays on the product itself.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
+    <AdminPage className="space-y-6">
+      <AdminPageHeader
+        eyebrow="Catalog"
+        title="Bundles"
+        description="Configure bundle shell products, component composition, and computed availability while leaving bundle pricing on the parent product card."
+        actions={
+          <>
             <button
               type="button"
               onClick={() => void load(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06] disabled:opacity-50"
             >
               <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh
@@ -363,66 +387,90 @@ export default function AdminShopBundlesPage() {
             <button
               type="button"
               onClick={resetToNew}
-              className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90"
+              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
             >
               <Plus className="h-4 w-4" />
               New bundle
             </button>
-          </div>
-        </div>
+          </>
+        }
+      />
 
-        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+      <AdminMetricGrid>
+        <AdminMetricCard label="Bundles" value={bundleMetrics.total} meta="Bundle definitions in catalog" tone="accent" />
+        <AdminMetricCard label="Components" value={bundleMetrics.components} meta="Assigned component rows across all bundles" />
+        <AdminMetricCard label="Available units" value={bundleMetrics.available} meta="Total computed bundle availability" />
+        <AdminMetricCard label="Assignable products" value={bundleMetrics.assignableProducts} meta="Products still eligible as bundle shells" />
+      </AdminMetricGrid>
 
-        <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-          <div className="rounded-none border border-white/10 bg-white/[0.03]">
-            <div className="border-b border-white/10 px-4 py-3 text-sm text-white/60">
-              {bundles.length} bundles
-            </div>
-            <div className="max-h-[70vh] overflow-auto">
-              {bundles.length === 0 ? (
-                <div className="px-4 py-10 text-center text-sm text-white/45">
-                  No bundles yet.
-                </div>
-              ) : (
-                bundles.map((bundle) => (
+      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
+
+      <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+        <AdminTableShell className="overflow-hidden">
+          <div className="border-b border-white/10 px-4 py-3 text-sm text-stone-400">{bundles.length} bundles</div>
+          <div className="max-h-[72vh] overflow-auto">
+            {bundles.length === 0 ? (
+              <AdminEmptyState
+                className="rounded-none border-0 bg-transparent px-4 py-12"
+                title="No bundles yet"
+                description="Create a bundle shell product and assemble its component list here."
+                action={
                   <button
-                    key={bundle.id}
                     type="button"
-                    onClick={() => setSelectedBundleId(bundle.id)}
-                    className={`w-full border-b border-white/5 px-4 py-4 text-left transition hover:bg-white/[0.04] ${
-                      selectedBundleId === bundle.id ? 'bg-white/[0.06]' : ''
-                    }`}
+                    onClick={resetToNew}
+                    className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
                   >
-                    <div className="font-medium text-white">
-                      {bundle.product.titleEn || bundle.product.titleUa}
-                    </div>
-                    <div className="mt-1 text-xs text-white/45">{bundle.product.slug}</div>
-                    <div className="mt-2 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.16em] text-white/55">
-                      <span>{bundle.componentsCount} items</span>
-                      <span>{bundle.availableQuantity} available</span>
-                      <span>{priceLabel(bundle.product)}</span>
-                    </div>
+                    <Plus className="h-4 w-4" />
+                    New bundle
                   </button>
-                ))
-              )}
-            </div>
+                }
+              />
+            ) : (
+              bundles.map((bundle) => (
+                <button
+                  key={bundle.id}
+                  type="button"
+                  onClick={() => setSelectedBundleId(bundle.id)}
+                  className={`w-full border-b border-white/5 px-4 py-4 text-left transition hover:bg-white/[0.04] ${
+                    selectedBundleId === bundle.id ? 'bg-white/[0.06]' : ''
+                  }`}
+                >
+                  <div className="font-medium text-stone-100">{bundle.product.titleEn || bundle.product.titleUa}</div>
+                  <div className="mt-1 text-xs text-stone-500">{bundle.product.slug}</div>
+                  <div className="mt-2 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.16em] text-stone-500">
+                    <span>{bundle.componentsCount} items</span>
+                    <span>{bundle.availableQuantity} available</span>
+                    <span>{priceLabel(bundle.product)}</span>
+                  </div>
+                </button>
+              ))
+            )}
           </div>
+        </AdminTableShell>
 
-          <div className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-white">
-                  {form.id ? 'Edit bundle' : 'Create bundle'}
-                </h3>
-                <p className="mt-1 text-sm text-white/45">
-                  Choose the bundle product shell, then attach component products and optional variants.
-                </p>
+        <div className="rounded-[28px] border border-white/10 bg-[#101010] p-5 md:p-6">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold tracking-tight text-stone-50">
+                {form.id ? 'Edit bundle' : 'Create bundle'}
+              </h2>
+              <p className="max-w-2xl text-sm leading-6 text-stone-400">
+                Choose the bundle shell product, then attach component products and optional variants that drive bundle availability.
+              </p>
+            </div>
+
+            <AdminActionBar className="bg-black/30">
+              <div className="space-y-1">
+                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Selected bundle</div>
+                <div className="text-sm text-stone-200">
+                  {selectedBundle ? selectedBundle.product.slug : 'New bundle draft'}
+                </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 {selectedBundle ? (
                   <Link
                     href={`/admin/shop/${selectedBundle.productId}`}
-                    className="rounded-none border border-white/10 bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
+                    className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
                   >
                     Open product
                   </Link>
@@ -432,7 +480,7 @@ export default function AdminShopBundlesPage() {
                     type="button"
                     onClick={handleDelete}
                     disabled={deleting}
-                    className="inline-flex items-center gap-2 rounded-none border border-red-500/25 bg-red-950/30 border border-red-900/50 text-red-500/10 px-4 py-2 text-sm text-red-200 hover:bg-red-950/30 border border-red-900/50 text-red-500/15 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-2xl border border-red-500/25 bg-red-950/30 px-4 py-2.5 text-sm text-red-200 transition hover:bg-red-950/40 disabled:opacity-50"
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete
@@ -442,155 +490,143 @@ export default function AdminShopBundlesPage() {
                   type="button"
                   onClick={handleSave}
                   disabled={saving || detailLoading}
-                  className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" />
                   {saving ? 'Saving…' : 'Save bundle'}
                 </button>
               </div>
-            </div>
+            </AdminActionBar>
 
-            <div className="grid gap-5">
-              <label className="grid gap-2 text-sm text-white/75">
-                <span>Bundle product</span>
-                <select
-                  value={form.productId}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      productId: event.target.value,
-                    }))
-                  }
-                  className="rounded-none border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
-                >
-                  <option value="">Select bundle product…</option>
-                  {bundleProductOptions.map((product) => (
-                    <option key={product.id} value={product.id}>
-                      {product.titleEn || product.titleUa} ({product.slug})
-                    </option>
-                  ))}
-                </select>
-              </label>
+            {detailLoading ? <AdminInlineAlert tone="warning">Loading selected bundle details…</AdminInlineAlert> : null}
 
-              <div className="rounded-none border border-white/10 bg-black/20 p-4 text-sm text-white/60">
-                Ціна комплекту та B2B-ціни задаються на картці пов’язаного товару. Тут налаштовуються лише склад комплекту та обчислена доступність.
-              </div>
+            <AdminSelectField
+              label="Bundle product"
+              value={form.productId}
+              onChange={(value) =>
+                setForm((current) => ({
+                  ...current,
+                  productId: value,
+                }))
+              }
+              options={[
+                { value: '', label: 'Select bundle product…' },
+                ...bundleProductOptions.map((product) => ({
+                  value: product.id,
+                  label: `${product.titleEn || product.titleUa} (${product.slug})`,
+                })),
+              ]}
+            />
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-3">
-                  <h4 className="text-sm font-medium uppercase tracking-[0.16em] text-white/60">
-                    Components
-                  </h4>
-                  <button
-                    type="button"
-                    onClick={addRow}
-                    className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add item
-                  </button>
+            <AdminInlineAlert tone="warning">
+              Ціна комплекту та B2B-ціни задаються на картці пов&apos;язаного товару. Тут налаштовуються лише склад комплекту та обчислена доступність.
+            </AdminInlineAlert>
+
+            <div className="space-y-3">
+              <AdminActionBar className="bg-black/30">
+                <div>
+                  <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Components</div>
+                  <div className="mt-1 text-sm text-stone-300">{form.items.length} component rows in this bundle</div>
                 </div>
+                <button
+                  type="button"
+                  onClick={addRow}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add item
+                </button>
+              </AdminActionBar>
 
-                {form.items.map((item, index) => {
-                  const componentProduct = productOptions.find(
-                    (product) => product.id === item.componentProductId
-                  );
-                  const variantOptions = componentProduct?.variants ?? [];
+              {form.items.map((item, index) => {
+                const componentProduct = productOptions.find(
+                  (product) => product.id === item.componentProductId
+                );
+                const variantOptions = componentProduct?.variants ?? [];
 
-                  return (
-                    <div
-                      key={item.id}
-                      className="grid gap-3 rounded-none border border-white/10 bg-black/20 p-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_120px_56px]"
-                    >
-                      <label className="grid gap-2 text-sm text-white/75">
-                        <span>Component product #{index + 1}</span>
-                        <select
-                          value={item.componentProductId}
-                          onChange={(event) =>
-                            updateItem(item.id, {
-                              componentProductId: event.target.value,
-                              componentVariantId: null,
-                            })
-                          }
-                          className="rounded-none border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
-                        >
-                          <option value="">Select product…</option>
-                          {productOptions
-                            .filter((product) => product.id !== form.productId)
-                            .map((product) => (
-                              <option key={product.id} value={product.id}>
-                                {product.titleEn || product.titleUa} ({product.slug})
-                              </option>
-                            ))}
-                        </select>
-                      </label>
+                return (
+                  <div
+                    key={item.id}
+                    className="grid gap-4 rounded-[24px] border border-white/10 bg-black/20 p-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_140px_56px]"
+                  >
+                    <AdminSelectField
+                      label={`Component product #${index + 1}`}
+                      value={item.componentProductId}
+                      onChange={(value) =>
+                        updateItem(item.id, {
+                          componentProductId: value,
+                          componentVariantId: null,
+                        })
+                      }
+                      options={[
+                        { value: '', label: 'Select product…' },
+                        ...productOptions
+                          .filter((product) => product.id !== form.productId)
+                          .map((product) => ({
+                            value: product.id,
+                            label: `${product.titleEn || product.titleUa} (${product.slug})`,
+                          })),
+                      ]}
+                    />
 
-                      <label className="grid gap-2 text-sm text-white/75">
-                        <span>Variant</span>
-                        <select
-                          value={item.componentVariantId ?? ''}
-                          onChange={(event) =>
-                            updateItem(item.id, {
-                              componentVariantId: event.target.value || null,
-                            })
-                          }
-                          className="rounded-none border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
-                        >
-                          <option value="">Default variant</option>
-                          {variantOptions.map((variant) => (
-                            <option key={variant.id} value={variant.id}>
-                              {variant.title || variant.sku || variant.id}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                    <AdminSelectField
+                      label="Variant"
+                      value={item.componentVariantId ?? ''}
+                      onChange={(value) =>
+                        updateItem(item.id, {
+                          componentVariantId: value || null,
+                        })
+                      }
+                      options={[
+                        { value: '', label: 'Default variant' },
+                        ...variantOptions.map((variant) => ({
+                          value: variant.id,
+                          label: variant.title || variant.sku || variant.id,
+                        })),
+                      ]}
+                    />
 
-                      <label className="grid gap-2 text-sm text-white/75">
-                        <span>Qty</span>
-                        <input
-                          type="number"
-                          min={1}
-                          value={item.quantity}
-                          onChange={(event) =>
-                            updateItem(item.id, {
-                              quantity: Math.max(1, Math.floor(Number(event.target.value) || 1)),
-                            })
-                          }
-                          className="rounded-none border border-white/10 bg-zinc-950 px-3 py-3 text-sm text-white focus:outline-none"
-                        />
-                      </label>
+                    <AdminInputField
+                      label="Qty"
+                      type="number"
+                      value={String(item.quantity)}
+                      onChange={(value) =>
+                        updateItem(item.id, {
+                          quantity: Math.max(1, Math.floor(Number(value) || 1)),
+                        })
+                      }
+                    />
 
-                      <div className="flex items-end">
-                        <button
-                          type="button"
-                          onClick={() => removeRow(item.id)}
-                          disabled={form.items.length === 1}
-                          className="inline-flex h-[46px] w-full items-center justify-center rounded-none border border-red-500/25 bg-red-950/30 border border-red-900/50 text-red-500/10 text-red-200 hover:bg-red-950/30 border border-red-900/50 text-red-500/15 disabled:opacity-40"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-
-                      {componentProduct ? (
-                        <div className="lg:col-span-4 rounded-none border border-white/10 bg-white/[0.03] px-3 py-3 text-xs text-white/55">
-                          <span className="font-medium text-white/75">
-                            {componentProduct.titleEn || componentProduct.titleUa}
-                          </span>{' '}
-                          · {priceLabel(componentProduct)} ·{' '}
-                          {variantOptions.find((variant) => variant.id === item.componentVariantId)?.inventoryQty ??
-                            variantOptions.find((variant) => variant.isDefault)?.inventoryQty ??
-                            0}{' '}
-                          units on selected/default variant
-                        </div>
-                      ) : null}
+                    <div className="flex items-end">
+                      <button
+                        type="button"
+                        onClick={() => removeRow(item.id)}
+                        disabled={form.items.length === 1}
+                        className="inline-flex h-[46px] w-full items-center justify-center rounded-2xl border border-red-500/25 bg-red-950/30 text-red-200 transition hover:bg-red-950/40 disabled:opacity-40"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
-                  );
-                })}
-              </div>
+
+                    {componentProduct ? (
+                      <div className="lg:col-span-4 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-xs text-stone-400">
+                        <span className="font-medium text-stone-200">
+                          {componentProduct.titleEn || componentProduct.titleUa}
+                        </span>{' '}
+                        · {priceLabel(componentProduct)} ·{' '}
+                        {variantOptions.find((variant) => variant.id === item.componentVariantId)?.inventoryQty ??
+                          variantOptions.find((variant) => variant.isDefault)?.inventoryQty ??
+                          0}{' '}
+                        units on selected/default variant
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </AdminPage>
   );
 }

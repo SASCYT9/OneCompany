@@ -33,6 +33,35 @@ test('catalog list screens use the shared Phase 1 list-screen primitives', () =>
   }
 });
 
+test('operational catalog screens also sit on shared admin primitives', () => {
+  const pageExpectations = [
+    {
+      path: 'src/app/admin/shop/inventory/page.tsx',
+      markers: ['AdminPageHeader', 'AdminMetricGrid', 'AdminFilterBar', 'AdminTableShell'],
+    },
+    {
+      path: 'src/app/admin/shop/media/page.tsx',
+      markers: ['AdminPageHeader', 'AdminMetricGrid', 'AdminFilterBar'],
+    },
+    {
+      path: 'src/app/admin/shop/bundles/page.tsx',
+      markers: ['AdminPageHeader', 'AdminMetricGrid', 'AdminTableShell'],
+    },
+    {
+      path: 'src/app/admin/shop/pricing/page.tsx',
+      markers: ['AdminPageHeader', 'AdminMetricGrid', 'AdminActionBar'],
+    },
+  ];
+
+  for (const expectation of pageExpectations) {
+    const source = readRepoFile(expectation.path);
+    assert.match(source, /from ['"]@\/components\/admin\/AdminPrimitives['"]/);
+    for (const marker of expectation.markers) {
+      assert.match(source, new RegExp(`\\b${marker}\\b`));
+    }
+  }
+});
+
 test('product editor declares explicit section navigation for the shared editor shell', () => {
   const editorSource = readRepoFile('src/app/admin/shop/components/AdminProductEditor.tsx');
 

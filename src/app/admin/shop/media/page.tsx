@@ -1,8 +1,17 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
-import Link from 'next/link';
 import { ArrowUpRight, Copy, ImageIcon, RefreshCcw, Search, Trash2, Upload, Video } from 'lucide-react';
+
+import {
+  AdminEmptyState,
+  AdminFilterBar,
+  AdminInlineAlert,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminPage,
+  AdminPageHeader,
+} from '@/components/admin/AdminPrimitives';
 
 type ShopLibraryMediaUsage = {
   productPrimaryImages: number;
@@ -190,31 +199,27 @@ export default function AdminShopMediaPage() {
 
   if (loading) {
     return (
-      <div className="p-6 text-white/60 flex items-center gap-2">
-        <RefreshCcw className="h-5 w-5 animate-spin" />
-        Loading media library…
-      </div>
+      <AdminPage>
+        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+          <RefreshCcw className="h-4 w-4 animate-spin" />
+          Loading media library…
+        </div>
+      </AdminPage>
     );
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="w-full px-6 md:px-12 py-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
-              Back to catalog
-            </Link>
-            <h2 className="mt-4 text-2xl font-semibold text-white">Shop media</h2>
-            <p className="mt-2 text-sm text-white/45">
-              Central media library for uploaded product assets with reuse tracking and safe delete rules.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
+    <AdminPage className="space-y-6">
+      <AdminPageHeader
+        eyebrow="Catalog"
+        title="Media library"
+        description="Shared product asset library with usage tracking, safe-delete guardrails, and reusable upload flow."
+        actions={
+          <>
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
             >
               <RefreshCcw className="h-4 w-4" />
               Refresh
@@ -230,57 +235,47 @@ export default function AdminShopMediaPage() {
               type="button"
               onClick={() => uploadInputRef.current?.click()}
               disabled={uploading}
-              className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white disabled:opacity-60"
             >
               <Upload className="h-4 w-4" />
               {uploading ? 'Uploading…' : 'Upload asset'}
             </button>
-          </div>
-        </div>
+          </>
+        }
+      />
 
-        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
-        {success ? <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
+      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
+      {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
 
-        <div className="mb-4 grid gap-4 md:grid-cols-4">
-          <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
-            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Assets</div>
-            <div className="mt-2 text-2xl font-semibold text-white">{summary.total}</div>
-          </div>
-          <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
-            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Images</div>
-            <div className="mt-2 text-2xl font-semibold text-white">{summary.images}</div>
-          </div>
-          <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
-            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Videos</div>
-            <div className="mt-2 text-2xl font-semibold text-white">{summary.videos}</div>
-          </div>
-          <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
-            <div className="text-xs uppercase tracking-[0.24em] text-white/40">In Use</div>
-            <div className="mt-2 text-2xl font-semibold text-white">{summary.inUse}</div>
-          </div>
-        </div>
+      <AdminMetricGrid>
+        <AdminMetricCard label="Assets" value={summary.total} meta="Total library records" tone="accent" />
+        <AdminMetricCard label="Images" value={summary.images} meta="Image assets available for products" />
+        <AdminMetricCard label="Videos" value={summary.videos} meta="Hosted video assets in the library" />
+        <AdminMetricCard label="In use" value={summary.inUse} meta="Assets currently referenced by the system" />
+      </AdminMetricGrid>
 
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-none border border-white/10 bg-white/[0.03] p-4">
-          <label className="flex min-w-[280px] items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
-            <Search className="h-4 w-4 text-white/35" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by name, file, URL or type"
-              className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
-            />
-          </label>
-          <div className="text-sm text-white/45">{filteredItems.length} visible assets</div>
-        </div>
+      <AdminFilterBar>
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-stone-100">
+          <Search className="h-4 w-4 text-stone-500" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search by original name, filename, URL, or type"
+            className="w-full bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
+          />
+        </label>
+        <div className="text-sm text-stone-400">{filteredItems.length} visible assets</div>
+      </AdminFilterBar>
 
         {filteredItems.length === 0 ? (
-          <div className="rounded-none border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
-            No media assets found.
-          </div>
+          <AdminEmptyState
+            title="No media assets found"
+            description="Upload an image or video to seed the shared media library and make it available to product editors."
+          />
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredItems.map((item) => (
-              <div key={item.id} className="overflow-hidden rounded-none border border-white/10 bg-white/[0.03]">
+              <div key={item.id} className="overflow-hidden rounded-[28px] border border-white/10 bg-[#101010]">
                 <div className="border-b border-white/10 bg-black/30">
                   {item.kind === 'image' ? (
                     <img src={item.url} alt={item.originalName} className="h-48 w-full object-cover" />
@@ -296,11 +291,11 @@ export default function AdminShopMediaPage() {
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-medium text-white">{item.originalName}</div>
-                      <div className="mt-1 truncate font-mono text-[11px] text-white/40">{item.filename}</div>
+                      <div className="truncate text-sm font-medium text-stone-50">{item.originalName}</div>
+                      <div className="mt-1 truncate font-mono text-[11px] text-stone-500">{item.filename}</div>
                     </div>
                     <span
-                      className={`shrink-0 rounded-none-full border px-2 py-1 text-[11px] ${
+                      className={`shrink-0 rounded-full border px-2 py-1 text-[11px] ${
                         item.usageCount > 0
                           ? 'border-amber-500/25 bg-amber-500/10 text-amber-100'
                           : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100'
@@ -310,28 +305,28 @@ export default function AdminShopMediaPage() {
                     </span>
                   </div>
 
-                  <div className="mt-4 grid gap-2 text-xs text-white/55">
+                  <div className="mt-4 grid gap-2 text-xs text-stone-400">
                     <div className="flex items-center justify-between gap-3">
                       <span>Type</span>
-                      <span className="inline-flex items-center gap-1 text-white/75">
+                      <span className="inline-flex items-center gap-1 text-stone-200">
                         <ImageIcon className="h-3.5 w-3.5" />
                         {item.kind}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span>Size</span>
-                      <span className="text-white/75">{formatBytes(item.size)}</span>
+                      <span className="text-stone-200">{formatBytes(item.size)}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span>Uploaded</span>
-                      <span className="text-white/75">
+                      <span className="text-stone-200">
                         {new Date(item.uploadedAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <div className="rounded-none border border-white/10 bg-black/20 p-3 text-white/55">
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-stone-400">
                       {usageLabel(item)}
                     </div>
-                    <div className="truncate font-mono text-[11px] text-white/35">{item.url}</div>
+                    <div className="truncate font-mono text-[11px] text-stone-600">{item.url}</div>
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -339,7 +334,7 @@ export default function AdminShopMediaPage() {
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                      className="inline-flex items-center gap-2 rounded-2xl border border-white/10 px-3 py-2 text-xs text-stone-200 transition hover:bg-white/[0.06]"
                     >
                       <ArrowUpRight className="h-3.5 w-3.5" />
                       Open
@@ -347,7 +342,7 @@ export default function AdminShopMediaPage() {
                     <button
                       type="button"
                       onClick={() => void handleCopy(item.url)}
-                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                      className="inline-flex items-center gap-2 rounded-2xl border border-white/10 px-3 py-2 text-xs text-stone-200 transition hover:bg-white/[0.06]"
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Copy URL
@@ -356,7 +351,7 @@ export default function AdminShopMediaPage() {
                       type="button"
                       onClick={() => void handleDelete(item)}
                       disabled={deletingId === item.id || item.usageCount > 0}
-                      className="inline-flex items-center gap-2 rounded-none border border-red-500/25 px-3 py-2 text-xs text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10 disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-2xl border border-red-500/20 px-3 py-2 text-xs text-red-300 transition hover:bg-red-950/30 disabled:opacity-50"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       {deletingId === item.id ? 'Deleting…' : item.usageCount > 0 ? 'In use' : 'Delete'}
@@ -367,7 +362,6 @@ export default function AdminShopMediaPage() {
             ))}
           </div>
         )}
-      </div>
-    </div>
+    </AdminPage>
   );
 }
