@@ -1,37 +1,31 @@
-import { promises as fs } from 'fs';
 import path from 'path';
 import { SiteContent } from '@/types/site-content';
 import { defaultSiteContent } from '@/config/defaultSiteContent';
+import { validateSiteContentInput } from '@/lib/adminConfigValidation';
+import {
+  ensureVersionedJsonFile,
+  readJsonFileWithFallback,
+  writeVersionedJsonFile,
+} from '@/lib/adminJsonStorage';
 
 const contentPath = path.join(process.cwd(), 'data', 'admin-config', 'site-content.json');
 const legacyContentPath = path.join(process.cwd(), 'public', 'config', 'site-content.json');
 
 async function ensureContentFile() {
-  try {
-    await fs.access(contentPath);
-  } catch {
-    const dir = path.dirname(contentPath);
-    await fs.mkdir(dir, { recursive: true });
-
-    try {
-      const legacyData = await fs.readFile(legacyContentPath, 'utf-8');
-      await fs.writeFile(contentPath, legacyData, 'utf8');
-      return;
-    } catch {}
-
-    await fs.writeFile(contentPath, JSON.stringify(defaultSiteContent, null, 2), 'utf8');
-  }
+  await ensureVersionedJsonFile({
+    filePath: contentPath,
+    defaultValue: defaultSiteContent,
+    legacyPath: legacyContentPath,
+  });
 }
 
 export async function readSiteContent(): Promise<SiteContent> {
   try {
-    let data: string;
-    try {
-      data = await fs.readFile(contentPath, 'utf-8');
-    } catch {
-      data = await fs.readFile(legacyContentPath, 'utf-8');
-    }
-    const parsed = JSON.parse(data) as SiteContent;
+    const parsed = await readJsonFileWithFallback({
+      filePath: contentPath,
+      defaultValue: defaultSiteContent,
+      legacyPath: legacyContentPath,
+    });
     const normalizeLocalized = (value: unknown, fallback: { ua: string; en: string }) => {
       if (!value) {
         return fallback;
@@ -51,7 +45,7 @@ export async function readSiteContent(): Promise<SiteContent> {
       caption: normalizeLocalized(post.caption, { ua: '', en: '' }),
       location: post.location ? normalizeLocalized(post.location, { ua: '', en: '' }) : undefined,
     });
-    return {
+    return validateSiteContentInput({
       ...defaultSiteContent,
       ...parsed,
       hero: { ...defaultSiteContent.hero, ...parsed.hero },
@@ -77,7 +71,7 @@ export async function readSiteContent(): Promise<SiteContent> {
         ...parsed.blog,
         posts: (parsed.blog?.posts ?? defaultSiteContent.blog.posts).map(normalizePost),
       },
-    };
+    });
   } catch {
     // If file doesn't exist or fails to parse, return defaults
     // Do not attempt to create file in production/read-only environments
@@ -87,9 +81,10 @@ export async function readSiteContent(): Promise<SiteContent> {
 
 export async function writeSiteContent(content: SiteContent) {
   await ensureContentFile();
-  await fs.writeFile(contentPath, JSON.stringify(content, null, 2), 'utf8');
-
-  try {
-    await fs.unlink(legacyContentPath);
-  } catch {}
+  await writeVersionedJsonFile({
+    filePath: contentPath,
+    historyKey: 'site-content',
+    value: validateSiteContentInput(content),
+    legacyPath: legacyContentPath,
+  });
 }

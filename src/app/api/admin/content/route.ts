@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { assertAdminRequest } from '@/lib/adminAuth';
+import { AdminConfigValidationError, validateSiteContentInput } from '@/lib/adminConfigValidation';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import { readSiteContent, writeSiteContent } from '@/lib/siteContentServer';
 import { prisma } from '@/lib/prisma';
@@ -32,14 +33,15 @@ export async function POST(request: NextRequest) {
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
       return NextResponse.json({ error: 'Invalid content payload' }, { status: 400 });
     }
-    await writeSiteContent(payload);
+    const validatedPayload = validateSiteContentInput(payload);
+    await writeSiteContent(validatedPayload);
     try {
       await writeAdminAuditLog(prisma, session, {
         scope: 'content',
         action: 'site-content.update',
         entityType: 'site.content',
         metadata: {
-          sections: Object.keys(payload),
+          sections: Object.keys(validatedPayload),
         },
       });
     } catch (auditError) {
@@ -53,6 +55,9 @@ export async function POST(request: NextRequest) {
     }
     if ((error as Error).message === 'FORBIDDEN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (error instanceof AdminConfigValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     console.error('Failed to save site content', error);
     return NextResponse.json({ error: 'Failed to save content' }, { status: 500 });

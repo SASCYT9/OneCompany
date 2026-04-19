@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { assertAdminRequest } from '@/lib/adminAuth';
+import { AdminConfigValidationError, validateSiteMediaInput } from '@/lib/adminConfigValidation';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import { prisma } from '@/lib/prisma';
 import { readSiteMedia, writeSiteMedia } from '@/lib/siteMediaServer';
@@ -32,14 +33,15 @@ export async function POST(request: NextRequest) {
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
       return NextResponse.json({ error: 'Invalid site media payload' }, { status: 400 });
     }
-    const saved = await writeSiteMedia(payload);
+    const validatedPayload = validateSiteMediaInput(payload);
+    const saved = await writeSiteMedia(validatedPayload);
     try {
       await writeAdminAuditLog(prisma, session, {
         scope: 'content',
         action: 'site-media.update',
         entityType: 'site.media',
         metadata: {
-          stores: Object.keys(payload.stores ?? {}),
+          stores: Object.keys(validatedPayload.stores ?? {}),
         },
       });
     } catch (auditError) {
@@ -52,6 +54,9 @@ export async function POST(request: NextRequest) {
     }
     if ((error as Error).message === 'FORBIDDEN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (error instanceof AdminConfigValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     console.error('Failed to save site media config', error);
     return NextResponse.json({ error: 'Failed to save site media' }, { status: 500 });

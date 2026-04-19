@@ -1,5 +1,10 @@
-import { promises as fs } from 'fs';
 import path from 'path';
+import { validateVideoConfigUpdate } from '@/lib/adminConfigValidation';
+import {
+  ensureVersionedJsonFile,
+  readJsonFileWithFallback,
+  writeVersionedJsonFile,
+} from '@/lib/adminJsonStorage';
 
 const configPath = path.join(process.cwd(), 'data', 'admin-config', 'video-config.json');
 const legacyConfigPath = path.join(process.cwd(), 'public', 'config', 'video-config.json');
@@ -19,33 +24,23 @@ export const defaultVideoConfig: VideoConfig = {
 };
 
 export async function ensureVideoConfigFile() {
-  try {
-    await fs.access(configPath);
-  } catch {
-    const dir = path.dirname(configPath);
-    await fs.mkdir(dir, { recursive: true });
-
-    try {
-      const legacyData = await fs.readFile(legacyConfigPath, 'utf8');
-      await fs.writeFile(configPath, legacyData, 'utf8');
-      return;
-    } catch {}
-
-    await fs.writeFile(configPath, JSON.stringify(defaultVideoConfig, null, 2), 'utf8');
-  }
+  await ensureVersionedJsonFile({
+    filePath: configPath,
+    defaultValue: defaultVideoConfig,
+    legacyPath: legacyConfigPath,
+  });
 }
 
 export async function readVideoConfig(): Promise<VideoConfig> {
   try {
-    let raw: string;
-    try {
-      raw = await fs.readFile(configPath, 'utf8');
-    } catch {
-      raw = await fs.readFile(legacyConfigPath, 'utf8');
-    }
+    const raw = await readJsonFileWithFallback({
+      filePath: configPath,
+      defaultValue: defaultVideoConfig,
+      legacyPath: legacyConfigPath,
+    });
     return {
       ...defaultVideoConfig,
-      ...(JSON.parse(raw) as Partial<VideoConfig>),
+      ...validateVideoConfigUpdate(raw),
     };
   } catch {
     return defaultVideoConfig;
@@ -55,12 +50,16 @@ export async function readVideoConfig(): Promise<VideoConfig> {
 export async function writeVideoConfig(update: Partial<VideoConfig>) {
   await ensureVideoConfigFile();
   const current = await readVideoConfig();
-  const next = { ...current, ...update };
-  await fs.writeFile(configPath, JSON.stringify(next, null, 2), 'utf8');
-
-  try {
-    await fs.unlink(legacyConfigPath);
-  } catch {}
+  const next = {
+    ...current,
+    ...validateVideoConfigUpdate(update),
+  };
+  await writeVersionedJsonFile({
+    filePath: configPath,
+    historyKey: 'video-config',
+    value: next,
+    legacyPath: legacyConfigPath,
+  });
 
   return next;
 }

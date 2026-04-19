@@ -6,7 +6,7 @@ import { spawn } from 'child_process';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import { prisma } from '@/lib/prisma';
-import { buildAdminPgDumpInvocation, getAdminBackupRuntimePolicy } from '@/lib/adminBackups';
+import { buildAdminPgDumpInvocation, getAdminBackupRuntimePolicy, pruneLocalBackupFiles } from '@/lib/adminBackups';
 
 const BACKUP_DIR = path.join(process.cwd(), 'backups');
 
@@ -119,6 +119,8 @@ export async function POST(_request: NextRequest) {
 
         try {
           const stat = await fs.stat(fullPath);
+          const retention = Math.max(1, parseInt(process.env.ADMIN_LOCAL_BACKUP_RETENTION || '10', 10));
+          await pruneLocalBackupFiles(BACKUP_DIR, retention);
           try {
             await writeAdminAuditLog(prisma, session, {
               scope: 'backups',

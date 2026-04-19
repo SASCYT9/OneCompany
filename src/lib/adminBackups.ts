@@ -1,3 +1,5 @@
+import path from 'path';
+
 export type AdminBackupRuntimePolicyInput = {
   nodeEnv?: string;
   databaseUrl?: string;
@@ -62,4 +64,16 @@ export function buildAdminPgDumpInvocation(input: AdminPgDumpInvocationInput) {
       ...(sslMode ? { PGSSLMODE: sslMode } : {}),
     },
   };
+}
+
+export async function pruneLocalBackupFiles(backupDir: string, retention: number) {
+  const { promises: fs } = await import('fs');
+  const limit = Math.max(1, Math.trunc(retention));
+  const entries = (await fs.readdir(backupDir))
+    .filter((name) => name.endsWith('.sql') || name.endsWith('.dump'))
+    .sort((left, right) => right.localeCompare(left));
+
+  for (const entry of entries.slice(limit)) {
+    await fs.unlink(path.join(backupDir, entry));
+  }
 }

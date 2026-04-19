@@ -1,6 +1,8 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { createHash } from 'crypto';
 import { nanoid } from 'nanoid';
+import { atomicWriteTextFile } from '@/lib/adminJsonStorage';
 import { matchesHeaderSecret, resolveSecret } from '@/lib/requestSecrets';
 
 export type MediaKind = 'image' | 'video' | 'other';
@@ -13,24 +15,48 @@ export interface MediaItem {
   originalName: string;
   size: number; // bytes
   uploadedAt: string; // ISO timestamp
+  checksum?: string;
 }
 
-const projectRoot = process.cwd();
-const MEDIA_DIR = path.join(projectRoot, 'public', 'media');
-const MANIFEST_PATH = path.join(MEDIA_DIR, 'media.json');
+type MediaStorePaths = {
+  mediaDir: string;
+  manifestPath: string;
+};
+
+let mediaMutationQueue: Promise<void> = Promise.resolve();
+
+function resolveMediaStorePaths(): MediaStorePaths {
+  const projectRoot = process.env.MEDIA_STORE_ROOT || process.cwd();
+  const mediaDir = path.join(projectRoot, 'public', 'media');
+  return {
+    mediaDir,
+    manifestPath: path.join(mediaDir, 'media.json'),
+  };
+}
+
+function withMediaMutationLock<T>(operation: () => Promise<T>) {
+  const task = mediaMutationQueue.then(operation, operation);
+  mediaMutationQueue = task.then(
+    () => undefined,
+    () => undefined
+  );
+  return task;
+}
 
 async function ensureMediaDir() {
-  await fs.mkdir(MEDIA_DIR, { recursive: true });
+  const { mediaDir, manifestPath } = resolveMediaStorePaths();
+  await fs.mkdir(mediaDir, { recursive: true });
   try {
-    await fs.access(MANIFEST_PATH);
+    await fs.access(manifestPath);
   } catch {
-    await fs.writeFile(MANIFEST_PATH, JSON.stringify({ items: [] }, null, 2), 'utf8');
+    await atomicWriteTextFile(manifestPath, JSON.stringify({ items: [] }, null, 2));
   }
 }
 
 export async function getManifest(): Promise<{ items: MediaItem[] }> {
   try {
-    const raw = await fs.readFile(MANIFEST_PATH, 'utf8');
+    const { manifestPath } = resolveMediaStorePaths();
+    const raw = await fs.readFile(manifestPath, 'utf8');
     const parsed = JSON.parse(raw);
     if (!parsed.items) return { items: [] };
     return parsed;
@@ -41,7 +67,8 @@ export async function getManifest(): Promise<{ items: MediaItem[] }> {
 
 export async function saveManifest(items: MediaItem[]) {
   await ensureMediaDir();
-  await fs.writeFile(MANIFEST_PATH, JSON.stringify({ items }, null, 2), 'utf8');
+  const { manifestPath } = resolveMediaStorePaths();
+  await atomicWriteTextFile(manifestPath, JSON.stringify({ items }, null, 2));
 }
 
 export function detectKind(mime: string): MediaKind {
@@ -55,44 +82,61 @@ export function sanitizeBase(name: string) {
   return base.replace(/\.+/g, '.');
 }
 
+function computeChecksum(buffer: Buffer) {
+  return createHash('sha256').update(buffer).digest('hex');
+}
+
 export async function addMediaFromBuffer(buffer: Buffer, originalName: string, mimeType: string): Promise<MediaItem> {
-  await ensureMediaDir();
-  const ext = (() => {
-    const parts = originalName.split('.');
-    return parts.length > 1 ? '.' + parts.pop()!.toLowerCase() : '';
-  })();
-  const id = nanoid(10);
-  const base = sanitizeBase(path.basename(originalName, ext));
-  const filename = `${base}-${id}${ext || guessExt(mimeType)}`;
-  const target = path.join(MEDIA_DIR, filename);
-  await fs.writeFile(target, buffer);
+  return withMediaMutationLock(async () => {
+    await ensureMediaDir();
+    const { mediaDir } = resolveMediaStorePaths();
+    const manifest = await getManifest();
+    const checksum = computeChecksum(buffer);
+    const duplicate = manifest.items.find((item) => item.checksum === checksum);
+    if (duplicate) {
+      return duplicate;
+    }
 
-  const item: MediaItem = {
-    id,
-    kind: detectKind(mimeType),
-    filename,
-    url: `/media/${filename}`,
-    originalName,
-    size: buffer.byteLength,
-    uploadedAt: new Date().toISOString(),
-  };
+    const ext = (() => {
+      const parts = originalName.split('.');
+      return parts.length > 1 ? '.' + parts.pop()!.toLowerCase() : '';
+    })();
+    const id = nanoid(10);
+    const base = sanitizeBase(path.basename(originalName, ext));
+    const filename = `${base}-${id}${ext || guessExt(mimeType)}`;
+    const target = path.join(mediaDir, filename);
+    await fs.writeFile(target, buffer);
 
-  const manifest = await getManifest();
-  await saveManifest([item, ...manifest.items]);
-  return item;
+    const item: MediaItem = {
+      id,
+      kind: detectKind(mimeType),
+      filename,
+      url: `/media/${filename}`,
+      originalName,
+      size: buffer.byteLength,
+      uploadedAt: new Date().toISOString(),
+      checksum,
+    };
+
+    await saveManifest([item, ...manifest.items]);
+    return item;
+  });
 }
 
 export async function deleteMedia(id: string): Promise<boolean> {
-  await ensureMediaDir();
-  const manifest = await getManifest();
-  const item = manifest.items.find((i) => i.id === id);
-  if (!item) return false;
-  try {
-    await fs.unlink(path.join(MEDIA_DIR, item.filename));
-  } catch {}
-  const next = manifest.items.filter((i) => i.id !== id);
-  await saveManifest(next);
-  return true;
+  return withMediaMutationLock(async () => {
+    await ensureMediaDir();
+    const { mediaDir } = resolveMediaStorePaths();
+    const manifest = await getManifest();
+    const item = manifest.items.find((i) => i.id === id);
+    if (!item) return false;
+    try {
+      await fs.unlink(path.join(mediaDir, item.filename));
+    } catch {}
+    const next = manifest.items.filter((i) => i.id !== id);
+    await saveManifest(next);
+    return true;
+  });
 }
 
 export async function listMedia(): Promise<MediaItem[]> {
