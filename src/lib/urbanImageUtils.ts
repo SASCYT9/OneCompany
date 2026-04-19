@@ -7,12 +7,17 @@ import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollection
 
 const FALLBACK_URBAN_IMAGE = '/images/shop/urban/hero/models/defender2020Plus/2025Updates/hero-1-1920.jpg';
 
+function stripQueryAndHash(url: string) {
+  return url.split(/[?#]/, 1)[0] ?? url;
+}
+
 /**
  * Detects GP Products placeholder images that should not be shown on the storefront.
  * These include "IMAGE COMING SOON" overlays and generic vehicle silhouette PNGs.
  */
 export function isUrbanPlaceholderImage(url: string | null | undefined): boolean {
   const normalized = String(url ?? '').trim().toLowerCase();
+  const normalizedPath = stripQueryAndHash(normalized);
   if (!normalized) return true;
 
   if (
@@ -33,8 +38,8 @@ export function isUrbanPlaceholderImage(url: string | null | undefined): boolean
   // Block GP Products generic vehicle placeholder PNGs that masquerade as real model images
   // e.g., /L460.png, /Gwagon_e9292903-5bf9...png, /Transporter.png
   if (
-    normalized.includes('cdn.shopify.com') &&
-    /\/(transporter|gwagon|l460|l461|l494|cullinan|defender|urus)(_[a-z0-9\-]+)?\.png$/i.test(normalized)
+    normalizedPath.includes('cdn.shopify.com') &&
+    /\/(transporter|gwagon|l460|l461|l494|cullinan|defender|urus)(_[a-z0-9\-]+)?\.png$/i.test(normalizedPath)
   ) {
     return true;
   }

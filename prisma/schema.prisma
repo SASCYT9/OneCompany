@@ -151,6 +151,18 @@ model AdminAuditLog {
   @@index([entityType, entityId])
 }
 
+model RequestRateLimit {
+  key         String   @id
+  count       Int      @default(0)
+  bucketStart DateTime
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([expiresAt])
+  @@index([bucketStart])
+}
+
 model ShopProduct {
   id                    String                  @id @default(cuid())
   slug                  String                  @unique
@@ -568,6 +580,7 @@ model ShopCustomer {
   b2bDiscountPercent Decimal?              @db.Decimal(5, 2)
   carts              ShopCart[]
   account            ShopCustomerAccount?
+  passwordSetupToken ShopCustomerPasswordSetupToken?
   addresses          ShopCustomerAddress[]
   orders             ShopOrder[]
 
@@ -583,8 +596,19 @@ model ShopCustomerAccount {
   emailVerifiedAt DateTime?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
-  plainPassword   String?
   customer        ShopCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model ShopCustomerPasswordSetupToken {
+  id         String       @id @default(cuid())
+  customerId String       @unique
+  tokenHash  String       @unique
+  expiresAt  DateTime
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  customer   ShopCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
 }
 
 model ShopCustomerAddress {

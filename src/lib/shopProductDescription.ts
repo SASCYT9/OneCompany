@@ -22,6 +22,7 @@ const FEATURES_HEADINGS = [
   /^main features:?$/i,
   /^features:?$/i,
   /^основні характеристики:?$/i,
+  /^ключові характеристики:?$/i,
   /^ключові переваги:?$/i,
 ];
 
@@ -47,7 +48,9 @@ const EXCLUDED_HEADINGS = [
   /^not included:?$/i,
   /^does not include:?$/i,
   /^excluded:?$/i,
+  /^що не входить:?$/i,
   /^не входить:?$/i,
+  /^що не включає:?$/i,
   /^не включає:?$/i,
 ];
 

@@ -252,8 +252,13 @@ function normalizeImageUrl(value: string | { src?: string | null; url?: string |
   return cleaned;
 }
 
+function stripQueryAndHash(url: string) {
+  return url.split(/[?#]/, 1)[0] ?? url;
+}
+
 export function isGpPortalPlaceholderImage(image: string | null | undefined) {
   const normalized = String(image ?? '').trim().toLowerCase();
+  const normalizedPath = stripQueryAndHash(normalized);
   if (!normalized) return true;
 
   if (
@@ -270,8 +275,8 @@ export function isGpPortalPlaceholderImage(image: string | null | undefined) {
   }
 
   if (
-    normalized.includes("cdn.shopify.com") &&
-    (/\/(transporter|gwagon|l460|l461|l494|cullinan|defender|urus)(_[a-z0-9\-]+)?\.png$/i.test(normalized))
+    normalizedPath.includes("cdn.shopify.com") &&
+    (/\/(transporter|gwagon|l460|l461|l494|cullinan|defender|urus)(_[a-z0-9\-]+)?\.png$/i.test(normalizedPath))
   ) {
     return true;
   }

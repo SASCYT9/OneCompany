@@ -39,3 +39,27 @@ test('keeps plain text descriptions readable when no HTML structure exists', () 
   assert.deepEqual(sections.included, []);
   assert.deepEqual(sections.excluded, []);
 });
+
+test('extracts Ukrainian "Що не входить" sections into excluded items', () => {
+  const sections = extractShopProductDescriptionSections(`
+    <p>Офіційний пакет Urban для Mercedes-Benz G-Wagon W465.</p>
+    <h3>Що входить</h3>
+    <ul>
+      <li>Передній бампер</li>
+      <li>Задній дифузор</li>
+    </ul>
+    <h3>Що не входить</h3>
+    <ul>
+      <li>Ковані диски 23"</li>
+      <li>Роботи з монтажу</li>
+    </ul>
+    <h3>Ключові характеристики</h3>
+    <ul>
+      <li>Офіційний Urban package</li>
+    </ul>
+  `);
+
+  assert.deepEqual(sections.included, ['Передній бампер', 'Задній дифузор']);
+  assert.deepEqual(sections.excluded, ['Ковані диски 23"', 'Роботи з монтажу']);
+  assert.deepEqual(sections.features, ['Офіційний Urban package']);
+});

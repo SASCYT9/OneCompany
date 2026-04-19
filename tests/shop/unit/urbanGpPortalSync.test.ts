@@ -35,6 +35,12 @@ test('isGpPortalPlaceholderImage detects known placeholders and accepts real ima
   assert.equal(isGpPortalPlaceholderImage('https://cdn.example.com/images/image-coming-soon.jpg'), true);
   assert.equal(isGpPortalPlaceholderImage('https://cdn.example.com/images/placeholder.png'), true);
   assert.equal(
+    isGpPortalPlaceholderImage(
+      'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/Gwagon_e9292903-5bf9-49aa-92da-8264c9bb9586.png?v=1776081527'
+    ),
+    true
+  );
+  assert.equal(
     isGpPortalPlaceholderImage('https://cdn.shopify.com/s/files/real-product.jpg?v=1'),
     false
   );
