@@ -10,6 +10,7 @@ import {
   type AdminShopProductPayload,
   type AdminShopProductVariantInput,
 } from '@/lib/shopAdminCatalog';
+import { replaceStorefrontTag } from '@/lib/shopProductStorefront';
 import {
   getOrCreateShopSettings,
   getShopSettingsRuntime,
@@ -343,13 +344,13 @@ function buildStructuredTags({
   vehicleBrand: string;
 }) {
   const slugifiedBrand = normalizeUrbanCatalogTagValue(vehicleBrand);
-  return uniqueStrings([
+  return replaceStorefrontTag([
     ...rawTags,
     structuredUrbanFamilyTag(family),
     'urban-source:gp-portal',
     `urban-vehicle-brand:${slugifiedBrand}`,
     'urban-manufacturer:urban-automotive',
-  ]);
+  ], 'urban');
 }
 
 function normalizeUrbanCatalogTagValue(value: string) {
@@ -602,11 +603,12 @@ function buildAdminPayload(item: PreparedUrbanGpPortalProduct, collectionIds: st
     slug: item.slug,
     sku: item.sku,
     scope: 'auto',
+    storefront: 'urban',
     brand: item.vehicleBrand,
     vendor: item.vendor,
     productType: item.productType,
     productCategory: item.exactCategory,
-    tags: item.tags,
+    tags: replaceStorefrontTag(item.tags, 'urban'),
     collectionIds,
     status: 'ACTIVE',
     titleUa: item.title,

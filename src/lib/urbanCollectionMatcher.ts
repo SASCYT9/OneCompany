@@ -2,9 +2,10 @@ import type { ShopProduct } from '@/lib/shopCatalog';
 import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollectionsList';
 import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
+import { resolveProductStorefront } from '@/lib/shopProductStorefront';
 import { buildShopStorefrontProductPathForProduct } from '@/lib/shopStorefrontRouting';
 
-type UrbanMatcherProduct = Pick<ShopProduct, 'brand' | 'title' | 'collection' | 'tags' | 'collections'>;
+type UrbanMatcherProduct = Pick<ShopProduct, 'slug' | 'brand' | 'vendor' | 'title' | 'collection' | 'tags' | 'collections'>;
 
 const PRIORITY_URBAN_COLLECTION_PRODUCT_REGEX =
   /(body\s?kit|bodykit|aero\s?kit|aerokit|softkit|widebody|full\s?kit|complete\s?(program|kit|package)|replacement bumper|bumper replacement|conversion kit|package|kit|обвіс|комплект|пакет|заміни бамперів|бодікит)/i;
@@ -164,6 +165,7 @@ export function getProductsForUrbanCollection(
   brand?: string
 ) {
   return products
+    .filter((product) => getProductStorefront(product) === 'urban')
     .map((product) => ({
       product,
       score: getUrbanMatchScore(product, handle, title, brand),
@@ -177,6 +179,10 @@ export function getProductsForUrbanCollection(
       return left.product.title.en.localeCompare(right.product.title.en);
     })
     .map((entry) => entry.product);
+}
+
+export function getProductStorefront(product: UrbanMatcherProduct) {
+  return resolveProductStorefront(product);
 }
 
 function getUrbanCollectionSortPrice(
@@ -233,6 +239,10 @@ export function sortUrbanCollectionProducts(
 }
 
 export function getUrbanCollectionHandleForProduct(product: UrbanMatcherProduct) {
+  if (getProductStorefront(product) !== 'urban') {
+    return null;
+  }
+
   const explicitUrbanCollection = product.collections?.find((item) =>
     URBAN_COLLECTION_CARDS.some((card) => card.collectionHandle === item.handle)
   );
@@ -275,36 +285,7 @@ export function buildShopProductPath(locale: string, product: ShopProduct, prefe
 }
 
 export function isUrbanCatalogProduct(product: ShopProduct) {
-  const vendorKey = normalizeUrbanValue(product.vendor);
-  const brandKey = normalizeUrbanValue(product.brand);
-
-  if (vendorKey === 'urban automotive' || vendorKey === 'urban') {
-    return true;
-  }
-
-  if (brandKey === 'urban automotive' || brandKey === 'urban') {
-    return true;
-  }
-
-  if (product.slug.toLowerCase().startsWith('urb-')) {
-    return true;
-  }
-
-  if (product.collections?.some((item) => item.isUrban)) {
-    return true;
-  }
-
-  // Only include products that have an explicit Shopify collection handle
-  // matching one of our known Urban collection cards. Do NOT use fuzzy
-  // title matching here — that pulls in Brabus and other non-Urban products
-  // that merely mention the same vehicle models.
-  if (product.collections?.some((item) =>
-    URBAN_COLLECTION_CARDS.some((card) => card.collectionHandle === item.handle)
-  )) {
-    return true;
-  }
-
-  return false;
+  return getProductStorefront(product) === 'urban';
 }
 
 export function getUrbanCatalogProducts(products: ShopProduct[]) {

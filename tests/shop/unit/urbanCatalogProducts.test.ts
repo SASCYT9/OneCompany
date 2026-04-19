@@ -71,3 +71,40 @@ test('getUrbanCatalogProducts still supports legacy Urban brand records', () => 
     'urban-defender-widebody',
   ]);
 });
+
+test('getUrbanCatalogProducts keeps explicit store:urban products even without Urban brand metadata', () => {
+  const taggedUrban = buildProduct({
+    slug: 'tagged-urban-product',
+    brand: 'Mercedes-Benz',
+    vendor: 'Mercedes-Benz',
+    tags: ['store:urban', 'bodykit'],
+    collections: [],
+  });
+
+  assert.deepEqual(getUrbanCatalogProducts([taggedUrban]).map((product) => product.slug), [
+    'tagged-urban-product',
+  ]);
+});
+
+test('getUrbanCatalogProducts excludes store:brabus products even when they reference Urban vehicle models', () => {
+  const brabusLeak = buildProduct({
+    slug: 'brabus-464-999-444',
+    sku: 'BRABUS-464-999-444',
+    brand: 'Brabus',
+    vendor: 'Brabus',
+    tags: ['store:brabus', 'Mercedes', 'g-class'],
+    title: { ua: 'BRABUS ADVENTURE', en: 'BRABUS ADVENTURE' },
+    collection: { ua: 'Тюнінг G-Class', en: 'G-Class Tuning' },
+    collections: [
+      {
+        handle: 'mercedes-g-wagon-w465-widetrack',
+        title: { ua: 'G-Wagon Widetrack', en: 'G-Wagon Widetrack' },
+        brand: 'Mercedes-Benz',
+        isUrban: true,
+        sortOrder: 1,
+      },
+    ],
+  });
+
+  assert.deepEqual(getUrbanCatalogProducts([brabusLeak]).map((product) => product.slug), []);
+});

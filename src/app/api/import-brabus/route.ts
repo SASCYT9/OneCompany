@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
+import { replaceStorefrontTag } from '@/lib/shopProductStorefront';
 import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 
 function determineCollections(product: any): { collectionEn: string; collectionUa: string; handle: string } {
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
         const priceEur = p.priceEUR_final;
         const mainImage = p.images && p.images.length > 0 ? p.images[0] : null;
 
-        const tags = ['Brabus', 'Tuning', colls.handle];
+        const tags = replaceStorefrontTag(['Brabus', 'Tuning', colls.handle], 'brabus');
         if (p.category) tags.push(p.category);
 
         const data = {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeAdminProductPayload } from '../../../src/lib/shopAdminCatalog';
+import { extractStorefrontTag, normalizeAdminProductPayload } from '../../../src/lib/shopAdminCatalog';
 
 test('normalizeAdminProductPayload keeps nested ids and dimension fields', () => {
   const { data, errors } = normalizeAdminProductPayload({
@@ -60,4 +60,48 @@ test('normalizeAdminProductPayload disables publish state for non-active product
   assert.equal(data.status, 'DRAFT');
   assert.equal(data.isPublished, false);
   assert.equal(data.publishedAt, null);
+});
+
+test('normalizeAdminProductPayload replaces existing store tags from explicit storefront input', () => {
+  const { data, errors } = normalizeAdminProductPayload({
+    slug: 'urban-product',
+    titleEn: 'Urban product',
+    storefront: 'urban',
+    tags: ['exterior', 'store:brabus', 'store:main'],
+  });
+
+  assert.deepEqual(errors, []);
+  assert.equal(data.storefront, 'urban');
+  assert.equal(extractStorefrontTag(data.tags), 'urban');
+  assert.equal(data.tags.filter((tag) => tag.startsWith('store:')).length, 1);
+  assert.deepEqual(data.tags, ['exterior', 'store:urban']);
+});
+
+test('normalizeAdminProductPayload infers storefront from legacy Urban signals', () => {
+  const { data, errors } = normalizeAdminProductPayload({
+    slug: 'urb-spo-1',
+    titleEn: 'Urban spoiler',
+    brand: 'Land Rover',
+    vendor: 'Urban Automotive',
+    tags: ['spoiler'],
+  });
+
+  assert.deepEqual(errors, []);
+  assert.equal(data.storefront, 'urban');
+  assert.equal(extractStorefrontTag(data.tags), 'urban');
+});
+
+test('normalizeAdminProductPayload defaults storefront to main when no store signal exists', () => {
+  const { data, errors } = normalizeAdminProductPayload({
+    slug: 'main-product',
+    titleEn: 'Main product',
+    brand: 'Akrapovic',
+    vendor: 'Akrapovic',
+    tags: ['exhaust'],
+  });
+
+  assert.deepEqual(errors, []);
+  assert.equal(data.storefront, 'main');
+  assert.equal(extractStorefrontTag(data.tags), 'main');
+  assert.equal(data.tags.filter((tag) => tag.startsWith('store:')).length, 1);
 });

@@ -1,9 +1,11 @@
 import type { ShopProduct } from '@/lib/shopCatalog';
+import { extractStorefrontTag } from '@/lib/shopProductStorefront';
 
 type StorefrontRouteInput = {
   slug: string;
   brand?: string | null;
   vendor?: string | null;
+  tags?: string[] | null;
 };
 
 const STOREFRONT_SEGMENT_BY_BRAND = new Map<string, string>([
@@ -43,19 +45,28 @@ export function isExternalCatalogProductSlug(slug: string | null | undefined) {
   return slug.startsWith('turn14-') || slug.startsWith('crm-');
 }
 
-export function resolveShopStorefrontSegment(input: Pick<StorefrontRouteInput, 'brand' | 'vendor'>) {
+export function resolveShopStorefrontSegment(input: Pick<StorefrontRouteInput, 'brand' | 'vendor' | 'tags'>) {
   const brandKey = normalizeStorefrontKey(input.brand);
   const vendorKey = normalizeStorefrontKey(input.vendor);
+  const explicitStorefront = extractStorefrontTag(input.tags);
+  const legacySegment =
+    (brandKey && STOREFRONT_SEGMENT_BY_BRAND.get(brandKey)) ||
+    (vendorKey && STOREFRONT_SEGMENT_BY_BRAND.get(vendorKey)) ||
+    null;
 
-  if (brandKey && STOREFRONT_SEGMENT_BY_BRAND.has(brandKey)) {
-    return STOREFRONT_SEGMENT_BY_BRAND.get(brandKey) ?? null;
+  if (explicitStorefront === 'urban') {
+    return 'urban';
   }
 
-  if (vendorKey && STOREFRONT_SEGMENT_BY_BRAND.has(vendorKey)) {
-    return STOREFRONT_SEGMENT_BY_BRAND.get(vendorKey) ?? null;
+  if (explicitStorefront === 'brabus') {
+    return 'brabus';
   }
 
-  return null;
+  if (explicitStorefront === 'main') {
+    return legacySegment === 'urban' || legacySegment === 'brabus' ? null : legacySegment;
+  }
+
+  return legacySegment;
 }
 
 export function buildShopStorefrontProductPath(
@@ -73,7 +84,7 @@ export function buildShopStorefrontProductPath(
 
 export function buildShopStorefrontProductPathForProduct(
   locale: string,
-  product: Pick<ShopProduct, 'slug' | 'brand' | 'vendor'>
+  product: Pick<ShopProduct, 'slug' | 'brand' | 'vendor' | 'tags'>
 ) {
   return buildShopStorefrontProductPath(locale, product);
 }

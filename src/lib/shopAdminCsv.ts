@@ -1,4 +1,5 @@
 import type { AdminShopProductPayload } from '@/lib/shopAdminCatalog';
+import { resolveProductStorefront } from '@/lib/shopProductStorefront';
 import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 
 type CsvRecord = Record<string, string>;
@@ -318,19 +319,28 @@ function buildProductPayload(handle: string, rows: CsvRecord[], columns: string[
   const primaryVariant = variants[0];
   const status = shopCatalogStatus(first['Status']);
   const published = boolValue(first['Published'], status === 'ACTIVE');
+  const brand =
+    firstNullableValue(rows, 'brand (product.metafields.custom.brand)') ??
+    firstNullableValue(rows, 'Vendor') ??
+    'Urban';
+  const vendor = firstNullableValue(rows, 'Vendor');
+  const tags = splitTags(firstNonEmptyValue(rows, 'Tags'));
 
   return {
     slug: slugify(handle),
     sku: firstNullableValue(rows, 'Variant SKU'),
     scope: 'auto',
-    brand:
-      firstNullableValue(rows, 'brand (product.metafields.custom.brand)') ??
-      firstNullableValue(rows, 'Vendor') ??
-      'Urban',
-    vendor: firstNullableValue(rows, 'Vendor'),
+    storefront: resolveProductStorefront({
+      slug: slugify(handle),
+      brand,
+      vendor,
+      tags,
+    }),
+    brand,
+    vendor,
     productType: firstNullableValue(rows, 'Type'),
     productCategory: firstNullableValue(rows, 'Product Category'),
-    tags: splitTags(firstNonEmptyValue(rows, 'Tags')),
+    tags,
     collectionIds: [],
     status,
     titleUa: firstNonEmptyValue(rows, 'Title'),

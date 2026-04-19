@@ -1,6 +1,23 @@
 import { Prisma } from '@prisma/client';
 import { resolveBundleInventory } from '@/lib/shopBundles';
 import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
+import {
+  inferLegacyStorefront,
+  normalizeStorefrontValue,
+  replaceStorefrontTag,
+  resolveProductStorefront,
+  type ShopProductStorefront,
+} from '@/lib/shopProductStorefront';
+
+export {
+  buildStorefrontBackfillPlan,
+  extractStorefrontTag,
+  inferLegacyStorefront,
+  replaceStorefrontTag,
+  resolveProductStorefront,
+  stripStorefrontTags,
+  type ShopProductStorefront,
+} from '@/lib/shopProductStorefront';
 
 export const adminBundleComponentCollectionSelect = {
   collectionId: true,
@@ -84,6 +101,7 @@ export const adminProductListSelect = {
   scope: true,
   brand: true,
   vendor: true,
+  tags: true,
   productType: true,
   category: {
     select: {
@@ -215,6 +233,7 @@ export type AdminShopProductPayload = {
   slug: string;
   sku?: string | null;
   scope: string;
+  storefront: ShopProductStorefront;
   brand?: string | null;
   vendor?: string | null;
   productType?: string | null;
@@ -481,6 +500,16 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
   const titleUa = stringValue(source.titleUa || source.title_ua || source.title);
   const titleEn = stringValue(source.titleEn || source.title_en || source.title);
   const slug = sanitizeSlug(source.slug || source.handle || titleEn || titleUa);
+  const rawTags = stringArray(source.tags);
+  const storefront =
+    normalizeStorefrontValue(source.storefront) ??
+    inferLegacyStorefront({
+      brand: nullableString(source.brand),
+      vendor: nullableString(source.vendor),
+      slug,
+      tags: rawTags,
+    }) ??
+    'main';
   const media = normalizeMedia(source.media);
   const variants = ensureSingleDefaultVariant(normalizeVariants(source.variants));
   const errors: string[] = [];
@@ -492,12 +521,13 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
     slug,
     sku: nullableString(source.sku),
     scope: stringValue(source.scope, 'auto') === 'moto' ? 'moto' : 'auto',
+    storefront,
     brand: nullableString(source.brand),
     vendor: nullableString(source.vendor),
     productType: nullableString(source.productType),
     productCategory: nullableString(source.productCategory),
     categoryId: nullableString(source.categoryId),
-    tags: stringArray(source.tags),
+    tags: replaceStorefrontTag(rawTags, storefront),
     collectionIds: uniqueStrings(stringArray(source.collectionIds)),
     status:
       stringValue(source.status, 'ACTIVE').toUpperCase() === 'DRAFT'
@@ -785,6 +815,21 @@ function decimalToNumber(value: Prisma.Decimal | number | null | undefined): num
 }
 
 export function serializeAdminProduct(record: AdminShopProductRecord) {
+  const storefront = resolveProductStorefront({
+    slug: record.slug,
+    brand: record.brand,
+    vendor: record.vendor,
+    tags: record.tags,
+    collections: record.collections.map((entry) => ({
+      handle: entry.collection.handle,
+      brand: entry.collection.brand,
+      isUrban: entry.collection.isUrban,
+      title: {
+        en: entry.collection.titleEn,
+        ua: entry.collection.titleUa,
+      },
+    })),
+  });
   const bundleInventory = record.bundle
     ? resolveBundleInventory(
         record.bundle.items.map((item) => ({
@@ -838,6 +883,7 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
     slug: record.slug,
     sku: record.sku,
     scope: record.scope,
+    storefront,
     brand: record.brand,
     vendor: record.vendor,
     productType: record.productType,
@@ -981,11 +1027,19 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
 
 export function serializeAdminProductListItem(record: AdminShopProductRecord | AdminShopProductListRecord) {
   const primaryVariant = record.variants[0];
+  const storefront = resolveProductStorefront({
+    slug: record.slug,
+    brand: record.brand,
+    vendor: record.vendor,
+    tags: record.tags,
+  });
+
   return {
     id: record.id,
     slug: record.slug,
     sku: record.sku,
     scope: record.scope,
+    storefront,
     brand: record.brand,
     vendor: record.vendor,
     productType: record.productType,

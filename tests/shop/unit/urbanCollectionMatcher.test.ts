@@ -3,7 +3,11 @@ import assert from 'node:assert/strict';
 
 import type { ShopProduct } from '../../../src/lib/shopCatalog';
 import type { ShopViewerPricingContext } from '../../../src/lib/shopPricingAudience';
-import { sortUrbanCollectionProducts } from '../../../src/lib/urbanCollectionMatcher';
+import {
+  getProductsForUrbanCollection,
+  getUrbanCollectionHandleForProduct,
+  sortUrbanCollectionProducts,
+} from '../../../src/lib/urbanCollectionMatcher';
 
 function buildProduct(overrides: Partial<ShopProduct> = {}): ShopProduct {
   return {
@@ -94,5 +98,43 @@ test('sortUrbanCollectionProducts uses effective viewer pricing for descending o
   assert.deepEqual(
     sortUrbanCollectionProducts([lowerB2B, higherB2B], viewerContext).map((product) => product.slug),
     ['urb-b', 'urb-a']
+  );
+});
+
+test('getUrbanCollectionHandleForProduct rejects Brabus products even when legacy collection copy matches Urban models', () => {
+  const brabusProduct = buildProduct({
+    slug: 'brabus-464-999-444',
+    sku: 'BRABUS-464-999-444',
+    brand: 'Brabus',
+    vendor: 'Brabus',
+    tags: ['store:brabus', 'Mercedes', 'g-class'],
+    title: { ua: 'BRABUS ADVENTURE', en: 'BRABUS ADVENTURE' },
+    collection: { ua: 'Тюнінг G-Class', en: 'G-Class Tuning' },
+    collections: [],
+  });
+
+  assert.equal(getUrbanCollectionHandleForProduct(brabusProduct), null);
+});
+
+test('getProductsForUrbanCollection only returns store:urban products for a collection grid', () => {
+  const urbanProduct = buildProduct({
+    slug: 'urb-kit-1',
+    tags: ['store:urban', 'bodykit'],
+  });
+  const brabusProduct = buildProduct({
+    slug: 'brabus-464-999-444',
+    sku: 'BRABUS-464-999-444',
+    brand: 'Brabus',
+    vendor: 'Brabus',
+    tags: ['store:brabus', 'Mercedes', 'g-class'],
+    title: { ua: 'BRABUS ADVENTURE', en: 'BRABUS ADVENTURE' },
+    collection: { ua: 'Тюнінг G-Class', en: 'G-Class Tuning' },
+  });
+
+  assert.deepEqual(
+    getProductsForUrbanCollection([urbanProduct, brabusProduct], 'mercedes-g-wagon-w465-widetrack').map(
+      (product) => product.slug
+    ),
+    ['urb-kit-1']
   );
 });

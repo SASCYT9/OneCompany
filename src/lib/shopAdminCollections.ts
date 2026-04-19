@@ -1,5 +1,6 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollectionsList';
+import { resolveProductStorefront } from '@/lib/shopProductStorefront';
 import { getUrbanCollectionHandleForProduct } from '@/lib/urbanCollectionMatcher';
 
 export const adminCollectionInclude = {
@@ -247,7 +248,9 @@ export async function syncUrbanCollectionAssignments(prisma: PrismaClient) {
     orderBy: { updatedAt: 'desc' },
     select: {
       id: true,
+      slug: true,
       brand: true,
+      vendor: true,
       titleUa: true,
       titleEn: true,
       collectionUa: true,
@@ -275,8 +278,30 @@ export async function syncUrbanCollectionAssignments(prisma: PrismaClient) {
   const assignments: Array<{ productId: string; collectionId: string; sortOrder: number }> = [];
 
   for (const product of products) {
-    const matcherHandle = getUrbanCollectionHandleForProduct({
+    const storefront = resolveProductStorefront({
+      slug: product.slug,
       brand: product.brand ?? '',
+      vendor: product.vendor ?? '',
+      tags: product.tags,
+      collections: product.collections.map((entry) => ({
+        handle: entry.collection.handle,
+        brand: entry.collection.brand,
+        isUrban: entry.collection.isUrban,
+        title: {
+          ua: entry.collection.titleUa,
+          en: entry.collection.titleEn,
+        },
+      })),
+    });
+
+    if (storefront !== 'urban') {
+      continue;
+    }
+
+    const matcherHandle = getUrbanCollectionHandleForProduct({
+      slug: product.slug,
+      brand: product.brand ?? '',
+      vendor: product.vendor ?? '',
       title: {
         ua: product.titleUa,
         en: product.titleEn,

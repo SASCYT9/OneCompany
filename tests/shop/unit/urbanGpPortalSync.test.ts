@@ -139,6 +139,7 @@ test('prepareUrbanGpPortalProducts uses collection hero fallback image and multi
   assert.equal(item.manufacturer, 'Urban Automotive');
   assert.equal(item.family, 'exterior');
   assert.equal(item.exactCategory, 'Spoilers');
+  assert.equal(item.tags.includes('store:urban'), true);
   assert.deepEqual(item.sourceTags, ['Defender', 'L663']);
   assert.equal(
     item.image,
