@@ -241,19 +241,19 @@ function PremiumCombobox({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listboxId}
-        className={`flex min-h-[66px] w-full items-center justify-between gap-4 rounded-[18px] border px-5 py-4 text-left backdrop-blur-md transition duration-300 ${
+        className={`flex min-h-[60px] w-full items-center justify-between gap-4 rounded-[16px] px-5 py-3 text-left transition duration-300 ${
           open
-            ? "border-[#c29d59]/50 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0d0d0d]/90 shadow-[0_20px_50px_rgba(194,157,89,0.15)]"
-            : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06] hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
+            ? "bg-[#c29d59]/10 shadow-[inset_0_0_0_1px_rgba(194,157,89,0.4)] backdrop-blur-md"
+            : "bg-transparent hover:bg-white/[0.05]"
         }`}
       >
         <span className="min-w-0">
-          <span className="block text-[10px] uppercase text-white/34">{label}</span>
-          <span className={`mt-1 block truncate text-[15px] ${selectedOption ? "text-white" : "text-white/42"}`}>
+          <span className="block text-[9px] font-semibold uppercase tracking-[0.15em] text-white/40">{label}</span>
+          <span className={`mt-0.5 block truncate text-[14px] font-medium ${selectedOption ? "text-white" : "text-white/60"}`}>
             {selectedOption?.label ?? placeholder}
           </span>
         </span>
-        <ChevronDown className={`h-4 w-4 shrink-0 text-white/45 transition ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-4 w-4 shrink-0 text-white/45 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open ? (
@@ -790,112 +790,113 @@ export default function UrbanVehicleFilter({
   return (
     <section className="pb-16 md:pb-24">
       <div className="mx-auto w-full max-w-[1720px] px-6 md:px-12 lg:px-16">
-        <div className="overflow-visible rounded-[32px] border border-white/10 bg-[#060606]/80 backdrop-blur-xl shadow-[0_24px_90px_rgba(0,0,0,0.32)]">
-          <div className="border-b border-white/8 px-6 py-6 md:px-8 lg:px-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <p className="text-[10px] items-center gap-2 font-medium uppercase text-[#c29d59] flex tracking-[0.2em]"><span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]" />Urban Automotive</p>
-              <h1 className="mt-3 text-balance text-[30px] font-semibold tracking-tight leading-[1] text-white md:text-[38px] drop-shadow-md">
-                {isUa ? "Каталог Urban" : "Urban Catalog"}
-              </h1>
+        <div className="mb-8 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+          <div>
+            <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[#c29d59]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#c29d59] shadow-[0_0_8px_rgba(194,157,89,0.8)]" />
+              Urban Automotive
+            </p>
+            <h1 className="mt-4 text-balance text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl">
+              {isUa ? "Каталог Urban" : "Urban Catalog"}
+            </h1>
+          </div>
+          {hasActiveFilters ? (
+            <div className="inline-flex items-center justify-center rounded-full border border-[#c29d59]/20 bg-[#c29d59]/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-[#c29d59]">
+              {filteredProducts.length} {isUa ? "Товарів знайдено" : "Products found"}
             </div>
+          ) : null}
+        </div>
+
+        <div className="relative mb-12 rounded-[24px] border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-3 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,0.9fr)_minmax(0,0.95fr)_auto]">
+            <PremiumCombobox
+              label={isUa ? "Марка" : "Brand"}
+              placeholder={isUa ? "Усі марки" : "All brands"}
+              value={activeBrand}
+              onChange={setActiveBrand}
+              groups={brandComboboxGroups}
+              allLabel={isUa ? "Усі марки" : "All brands"}
+            />
+            <PremiumCombobox
+              label={isUa ? "Модель" : "Model"}
+              placeholder={isUa ? "Усі моделі" : "All models"}
+              value={activeModel}
+              onChange={setActiveModel}
+              groups={modelComboboxGroups}
+              allLabel={isUa ? "Усі моделі" : "All models"}
+            />
+            <PremiumCombobox
+              label={isUa ? "Сімейство" : "Family"}
+              value={activeFamily}
+              onChange={(value) => setActiveFamily(value as FamilyFilter)}
+              placeholder={isUa ? "Усі сімейства" : "All families"}
+              groups={familyComboboxGroups}
+              allLabel={isUa ? "Усі сімейства" : "All families"}
+            />
+            <PremiumCombobox
+              label={isUa ? "Тип" : "Type"}
+              placeholder={isUa ? "Усі типи" : "All types"}
+              value={activeCategory}
+              onChange={(value) => setActiveCategory(value as CategoryFilter)}
+              groups={categoryComboboxGroups}
+              allLabel={isUa ? "Усі типи" : "All types"}
+            />
             {hasActiveFilters ? (
-              <div className="hidden sm:block text-xs font-medium text-[#c29d59] bg-[#c29d59]/10 border border-[#c29d59]/20 px-3 py-1.5 rounded-full uppercase tracking-wider">
-               {filteredProducts.length} {isUa ? "Товарів знайдено" : "Products found"}
-              </div>
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="flex min-h-[60px] items-center justify-center gap-2 rounded-[16px] bg-white/[0.02] px-6 text-xs font-semibold uppercase tracking-[0.1em] text-white/50 transition duration-300 hover:bg-[#c29d59]/15 hover:text-[#ead29d] hover:shadow-[0_0_20px_rgba(194,157,89,0.15)]"
+              >
+                <RotateCcw className="h-4 w-4" />
+                <span className="hidden xl:block">{isUa ? "Скинути" : "Reset"}</span>
+              </button>
             ) : null}
           </div>
 
-          <div className="px-6 py-6 md:px-8 md:py-7 lg:px-10">
-            <div className="grid gap-3 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,0.9fr)_minmax(0,0.95fr)_auto]">
-              <PremiumCombobox
-                label={isUa ? "Марка" : "Brand"}
-                placeholder={isUa ? "Усі марки" : "All brands"}
-                value={activeBrand}
-                onChange={setActiveBrand}
-                groups={brandComboboxGroups}
-                allLabel={isUa ? "Усі марки" : "All brands"}
-              />
-              <PremiumCombobox
-                label={isUa ? "Модель" : "Model"}
-                placeholder={isUa ? "Усі моделі" : "All models"}
-                value={activeModel}
-                onChange={setActiveModel}
-                groups={modelComboboxGroups}
-                allLabel={isUa ? "Усі моделі" : "All models"}
-              />
-              <PremiumCombobox
-                label={isUa ? "Сімейство" : "Family"}
-                value={activeFamily}
-                onChange={(value) => setActiveFamily(value as FamilyFilter)}
-                placeholder={isUa ? "Усі сімейства" : "All families"}
-                groups={familyComboboxGroups}
-                allLabel={isUa ? "Усі сімейства" : "All families"}
-              />
-              <PremiumCombobox
-                label={isUa ? "Тип" : "Type"}
-                placeholder={isUa ? "Усі типи" : "All types"}
-                value={activeCategory}
-                onChange={(value) => setActiveCategory(value as CategoryFilter)}
-                groups={categoryComboboxGroups}
-                allLabel={isUa ? "Усі типи" : "All types"}
-              />
-              {hasActiveFilters ? (
+          {hasActiveFilters ? (
+            <div className="mx-3 mt-3 flex flex-wrap items-center gap-2 border-t border-white/5 pt-4">
+              {currentBrandLabel ? (
                 <button
                   type="button"
-                  onClick={resetFilters}
-                  className="inline-flex min-h-[66px] items-center justify-center gap-2 rounded-[18px] border border-white/10 bg-white/[0.04] px-5 text-sm font-medium text-white/80 transition duration-300 hover:border-[#c29d59]/45 hover:bg-[#c29d59]/16 hover:text-[#ead29d] hover:shadow-[0_12px_40px_rgba(194,157,89,0.15)]"
+                  onClick={() => setActiveBrand("all")}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
                 >
-                  <RotateCcw className="h-4 w-4" />
-                  {isUa ? "Скинути" : "Reset"}
+                  <span>{currentBrandLabel}</span>
+                  <X className="h-3 w-3" />
+                </button>
+              ) : null}
+              {currentModelLabel ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveModel("all")}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
+                >
+                  <span>{currentModelLabel}</span>
+                  <X className="h-3 w-3" />
+                </button>
+              ) : null}
+              {activeFamily !== "all" ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveFamily("all")}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
+                >
+                  <span>{isUa ? FAMILY_LABELS[activeFamily].ua : FAMILY_LABELS[activeFamily].en}</span>
+                  <X className="h-3 w-3" />
+                </button>
+              ) : null}
+              {currentCategoryLabel ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory("all")}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:text-white"
+                >
+                  <span>{currentCategoryLabel}</span>
+                  <X className="h-3 w-3" />
                 </button>
               ) : null}
             </div>
-
-            {hasActiveFilters ? (
-              <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-white/8 pt-5">
-                {currentBrandLabel ? (
-                  <button
-                    type="button"
-                    onClick={() => setActiveBrand("all")}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-2 text-xs text-white/72 transition hover:border-white/22 hover:text-white"
-                  >
-                    <span>{currentBrandLabel}</span>
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                ) : null}
-                {currentModelLabel ? (
-                  <button
-                    type="button"
-                    onClick={() => setActiveModel("all")}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-2 text-xs text-white/72 transition hover:border-white/22 hover:text-white"
-                  >
-                    <span>{currentModelLabel}</span>
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                ) : null}
-                {activeFamily !== "all" ? (
-                  <button
-                    type="button"
-                    onClick={() => setActiveFamily("all")}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-2 text-xs text-white/72 transition hover:border-white/22 hover:text-white"
-                  >
-                    <span>{isUa ? FAMILY_LABELS[activeFamily].ua : FAMILY_LABELS[activeFamily].en}</span>
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                ) : null}
-                {currentCategoryLabel ? (
-                  <button
-                    type="button"
-                    onClick={() => setActiveCategory("all")}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-2 text-xs text-white/72 transition hover:border-white/22 hover:text-white"
-                  >
-                    <span>{currentCategoryLabel}</span>
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
+          ) : null}
         </div>
 
         {filteredProducts.length === 0 ? (
