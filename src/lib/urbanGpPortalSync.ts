@@ -255,14 +255,27 @@ export function isGpPortalPlaceholderImage(image: string | null | undefined) {
   const normalized = String(image ?? '').trim().toLowerCase();
   if (!normalized) return true;
 
-  return [
-    'image-coming-soon',
-    'coming-soon',
-    'comingsoon',
-    'placeholder',
-    'no-image',
-    'image_coming_soon',
-  ].some((marker) => normalized.includes(marker));
+  if (
+    [
+      'image-coming-soon',
+      'coming-soon',
+      'comingsoon',
+      'placeholder',
+      'no-image',
+      'image_coming_soon',
+    ].some((marker) => normalized.includes(marker))
+  ) {
+    return true;
+  }
+
+  if (
+    normalized.includes("cdn.shopify.com") &&
+    (/\/(transporter|gwagon|l460|l461|l494|cullinan|defender|urus)(_[a-z0-9\-]+)?\.png$/i.test(normalized))
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 function uniqueStrings(values: Array<string | null | undefined>) {

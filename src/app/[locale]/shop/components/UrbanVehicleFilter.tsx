@@ -19,6 +19,7 @@ import {
   type UrbanCatalogFamily,
   URBAN_FAMILY_ORDER,
 } from "@/lib/urbanCatalogFacets";
+import { URBAN_COLLECTION_CARDS } from "@/app/[locale]/shop/data/urbanCollectionsList";
 
 type UrbanVehicleFilterProps = {
   locale: SupportedLocale;
@@ -95,6 +96,52 @@ const FAMILY_LABELS: Record<
 const FALLBACK_URBAN_IMAGE =
   "/images/shop/urban/hero/models/defender2020Plus/2025Updates/hero-1-1920.jpg";
 
+function isPlaceholderImage(url: string | null | undefined) {
+  const normalized = String(url ?? "").trim().toLowerCase();
+  if (!normalized) return true;
+  
+  if (
+    [
+      "image-coming-soon",
+      "coming-soon",
+      "comingsoon",
+      "placeholder",
+      "no-image",
+      "image_coming_soon",
+      "gp-portal",
+      "gpproducts",
+    ].some((marker) => normalized.includes(marker))
+  ) {
+    return true;
+  }
+
+  // Block GP Products generic vehicle placeholder PNGs that masquerade as real model images
+  // e.g., /L460.png, /Gwagon_e9292903-5bf9...png, /Transporter.png
+  if (
+    normalized.includes("cdn.shopify.com") &&
+    (/\/(transporter|gwagon|l460|l461|l494|cullinan|defender|urus)(_[a-z0-9\-]+)?\.png$/i.test(normalized))
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function resolveProductImage(image: string | undefined | null, modelHandles: string[]) {
+  let raw = image ? image.replace(/^["']|["']$/g, "").trim() : "";
+  if (raw.startsWith("//")) raw = `https:${raw}`;
+
+  if (!raw || isPlaceholderImage(raw)) {
+    for (const handle of modelHandles) {
+      const card = URBAN_COLLECTION_CARDS.find((c) => c.collectionHandle === handle);
+      if (card?.externalImageUrl) return card.externalImageUrl;
+    }
+    return FALLBACK_URBAN_IMAGE;
+  }
+  
+  return raw;
+}
+
 function computePricesFromEur(
   price: ShopProduct["price"],
   rates: { EUR: number; USD: number; UAH?: number } | null
@@ -149,14 +196,6 @@ function displayAmount(currency: ShopCurrencyCode, price: { eur: number; usd: nu
   if (currency === "EUR") return price.eur;
   return price.uah;
 }
-
-function sanitizeImage(image: string | undefined | null) {
-  const raw = image ? image.replace(/^["']|["']$/g, "").trim() : "";
-  if (!raw) return FALLBACK_URBAN_IMAGE;
-  if (raw.startsWith("//")) return `https:${raw}`;
-  return raw;
-}
-
 type PremiumComboboxProps = {
   label: string;
   placeholder: string;
@@ -202,10 +241,10 @@ function PremiumCombobox({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listboxId}
-        className={`flex min-h-[66px] w-full items-center justify-between gap-4 rounded-[18px] border px-5 py-4 text-left transition ${
+        className={`flex min-h-[66px] w-full items-center justify-between gap-4 rounded-[18px] border px-5 py-4 text-left backdrop-blur-md transition duration-300 ${
           open
-            ? "border-[#c29d59]/35 bg-[#111111] shadow-[0_20px_50px_rgba(0,0,0,0.22)]"
-            : "border-white/10 bg-[#101010] hover:border-white/18 hover:bg-[#121212]"
+            ? "border-[#c29d59]/50 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0d0d0d]/90 shadow-[0_20px_50px_rgba(194,157,89,0.15)]"
+            : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06] hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
         }`}
       >
         <span className="min-w-0">
@@ -218,7 +257,7 @@ function PremiumCombobox({
       </button>
 
       {open ? (
-        <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-[70] overflow-hidden rounded-[20px] border border-white/10 bg-[#0a0a0a] shadow-[0_28px_80px_rgba(0,0,0,0.55)]">
+        <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-[70] overflow-hidden rounded-[20px] border border-white/10 bg-[#0a0a0a]/90 backdrop-blur-2xl shadow-[0_28px_80px_rgba(0,0,0,0.55)]">
           <div id={listboxId} role="listbox" className="max-h-[420px] overflow-y-auto p-2">
             <button
               type="button"
@@ -307,7 +346,7 @@ function ProductCard({
   const hasPrice = currentAmount > 0;
   const canOrder = hasPrice && !pricing.requestQuote;
   const productUrl = buildShopProductPath(locale, entry.product);
-  const productImage = sanitizeImage(entry.product.image);
+  const productImage = resolveProductImage(entry.product.image, entry.modelHandles);
   const familyLabel = isUa ? FAMILY_LABELS[entry.family].ua : FAMILY_LABELS[entry.family].en;
   const leadTime = localizeShopText(locale, entry.product.leadTime);
   const availability =
@@ -321,9 +360,9 @@ function ProductCard({
 
   return (
     <article
-      className={`group flex h-full flex-col overflow-hidden rounded-[28px] border ${
-        featured ? "border-[#c29d59]/40 bg-[#0c0c0c]" : "border-white/10 bg-white/[0.03]"
-      } shadow-[0_20px_70px_rgba(0,0,0,0.28)] transition duration-300 hover:-translate-y-1 hover:border-white/20`}
+      className={`group flex h-full flex-col overflow-hidden rounded-[28px] border backdrop-blur-md ${
+        featured ? "border-[#c29d59]/40 bg-gradient-to-br from-[#121212]/80 to-[#080808]/90" : "border-white/10 bg-white/[0.02]"
+      } shadow-[0_20px_70px_rgba(0,0,0,0.28)] transition duration-500 hover:-translate-y-2 hover:border-white/25 hover:shadow-[0_30px_90px_rgba(0,0,0,0.7)]`}
     >
       <div className="relative aspect-[4/3] overflow-hidden border-b border-white/10 bg-[#050505]">
         <Image
@@ -751,14 +790,19 @@ export default function UrbanVehicleFilter({
   return (
     <section className="pb-16 md:pb-24">
       <div className="mx-auto w-full max-w-[1720px] px-6 md:px-12 lg:px-16">
-        <div className="overflow-visible rounded-[32px] border border-white/10 bg-[#060606] shadow-[0_24px_90px_rgba(0,0,0,0.32)]">
-          <div className="border-b border-white/8 px-6 py-6 md:px-8 lg:px-10">
+        <div className="overflow-visible rounded-[32px] border border-white/10 bg-[#060606]/80 backdrop-blur-xl shadow-[0_24px_90px_rgba(0,0,0,0.32)]">
+          <div className="border-b border-white/8 px-6 py-6 md:px-8 lg:px-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <p className="text-[10px] font-medium uppercase text-[#c29d59]">Urban Automotive</p>
-              <h1 className="mt-3 text-balance text-[30px] font-semibold leading-[1] text-white md:text-[38px]">
+              <p className="text-[10px] items-center gap-2 font-medium uppercase text-[#c29d59] flex tracking-[0.2em]"><span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]" />Urban Automotive</p>
+              <h1 className="mt-3 text-balance text-[30px] font-semibold tracking-tight leading-[1] text-white md:text-[38px] drop-shadow-md">
                 {isUa ? "Каталог Urban" : "Urban Catalog"}
               </h1>
             </div>
+            {hasActiveFilters ? (
+              <div className="hidden sm:block text-xs font-medium text-[#c29d59] bg-[#c29d59]/10 border border-[#c29d59]/20 px-3 py-1.5 rounded-full uppercase tracking-wider">
+               {filteredProducts.length} {isUa ? "Товарів знайдено" : "Products found"}
+              </div>
+            ) : null}
           </div>
 
           <div className="px-6 py-6 md:px-8 md:py-7 lg:px-10">
@@ -799,7 +843,7 @@ export default function UrbanVehicleFilter({
                 <button
                   type="button"
                   onClick={resetFilters}
-                  className="inline-flex min-h-[68px] items-center justify-center gap-2 rounded-[24px] border border-[#c29d59]/26 bg-[#c29d59]/10 px-5 text-sm font-medium text-[#ead29d] transition hover:border-[#c29d59]/45 hover:bg-[#c29d59]/16"
+                  className="inline-flex min-h-[66px] items-center justify-center gap-2 rounded-[18px] border border-white/10 bg-white/[0.04] px-5 text-sm font-medium text-white/80 transition duration-300 hover:border-[#c29d59]/45 hover:bg-[#c29d59]/16 hover:text-[#ead29d] hover:shadow-[0_12px_40px_rgba(194,157,89,0.15)]"
                 >
                   <RotateCcw className="h-4 w-4" />
                   {isUa ? "Скинути" : "Reset"}
