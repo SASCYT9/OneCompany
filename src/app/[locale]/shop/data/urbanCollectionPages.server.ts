@@ -83,9 +83,12 @@ function booleanSetting(
 function assetSetting(
   source: Record<string, unknown> | undefined,
   key: string,
-  fallback = ''
+  fallback = '',
+  collectionHandle?: string
 ): string {
-  return resolveUrbanThemeAssetUrl(stringSetting(source, key, fallback));
+  return resolveUrbanThemeAssetUrl(stringSetting(source, key, fallback), {
+    collectionHandle,
+  });
 }
 
 function orderedBlocks(section?: ThemeSection): ThemeBlock[] {
@@ -109,17 +112,23 @@ function mapOverviewHighlights(section?: ThemeSection): UrbanOverviewHighlight[]
     .filter((item) => item.text || item.textUk);
 }
 
-function mapGallerySlides(section?: ThemeSection): UrbanGallerySlide[] {
+function mapGallerySlides(
+  section: ThemeSection | undefined,
+  collectionHandle?: string
+): UrbanGallerySlide[] {
   return orderedBlocks(section)
     .filter((block) => block.type === 'slide')
     .map((block) => ({
-      externalImageUrl: assetSetting(block.settings, 'external_image_url'),
+      externalImageUrl: assetSetting(block.settings, 'external_image_url', '', collectionHandle),
       caption: stringSetting(block.settings, 'caption'),
     }))
     .filter((item) => item.externalImageUrl);
 }
 
-function mapBannerItems(section?: ThemeSection): UrbanBannerItem[] {
+function mapBannerItems(
+  section: ThemeSection | undefined,
+  collectionHandle?: string
+): UrbanBannerItem[] {
   return orderedBlocks(section)
     .filter((block) => block.type === 'banner')
     .map((block) => ({
@@ -128,7 +137,7 @@ function mapBannerItems(section?: ThemeSection): UrbanBannerItem[] {
           ? 'video'
           : 'image'
       ) as UrbanBannerItem['mediaType'],
-      externalImageUrl: assetSetting(block.settings, 'external_image_url'),
+      externalImageUrl: assetSetting(block.settings, 'external_image_url', '', collectionHandle),
       eyebrow: stringSetting(block.settings, 'eyebrow'),
       eyebrowUk: stringSetting(block.settings, 'eyebrow_uk'),
       title: stringSetting(block.settings, 'title'),
@@ -142,7 +151,10 @@ function mapBannerItems(section?: ThemeSection): UrbanBannerItem[] {
     .filter((item) => item.externalImageUrl);
 }
 
-function mapBlueprintViews(section?: ThemeSection): UrbanBlueprintView[] {
+function mapBlueprintViews(
+  section: ThemeSection | undefined,
+  collectionHandle?: string
+): UrbanBlueprintView[] {
   return orderedBlocks(section)
     .filter((block) => block.type === 'view')
     .map((block) => ({
@@ -151,18 +163,21 @@ function mapBlueprintViews(section?: ThemeSection): UrbanBlueprintView[] {
       titleUk: stringSetting(block.settings, 'title_uk'),
       partsEn: stringSetting(block.settings, 'parts_en'),
       partsUk: stringSetting(block.settings, 'parts_uk'),
-      externalImageUrl: assetSetting(block.settings, 'external_image_url'),
+      externalImageUrl: assetSetting(block.settings, 'external_image_url', '', collectionHandle),
     }))
     .filter((item) => item.externalImageUrl);
 }
 
-function mapVideoPointer(section?: ThemeSection): UrbanVideoPointerConfig | null {
+function mapVideoPointer(
+  section: ThemeSection | undefined,
+  collectionHandle?: string
+): UrbanVideoPointerConfig | null {
   if (!section || section.type !== 'section-urban-video-pointer') {
     return null;
   }
 
   return {
-    videoUrl: assetSetting(section.settings, 'video_url'),
+    videoUrl: assetSetting(section.settings, 'video_url', '', collectionHandle),
     captionEyebrow: stringSetting(section.settings, 'caption_eyebrow'),
     captionEyebrowUk: stringSetting(section.settings, 'caption_eyebrow_uk'),
     captionTitle: stringSetting(section.settings, 'caption_title'),
@@ -221,7 +236,7 @@ function buildConfigFromTemplate(handle: string, template: ThemeTemplate): Urban
     'main-collection-product-grid'
   );
 
-  const videoPointer = mapVideoPointer(template.sections?.video_pointer);
+  const videoPointer = mapVideoPointer(template.sections?.video_pointer, handle);
 
   return {
     handle,
@@ -236,8 +251,9 @@ function buildConfigFromTemplate(handle: string, template: ThemeTemplate): Urban
       buttonLabelUk: stringSetting(hero.settings, 'button_label_uk'),
       buttonLink: stringSetting(hero.settings, 'button_link'),
       buttonNewTab: booleanSetting(hero.settings, 'button_new_tab'),
-      externalVideoEmbedUrl: assetSetting(hero.settings, 'external_video_embed_url') || undefined,
-      externalPosterUrl: assetSetting(hero.settings, 'external_poster_url'),
+      externalVideoEmbedUrl:
+        assetSetting(hero.settings, 'external_video_embed_url', '', handle) || undefined,
+      externalPosterUrl: assetSetting(hero.settings, 'external_poster_url', '', handle),
       overlayOpacity: numberSetting(hero.settings, 'overlay_opacity', 25),
       mobileHeight: numberSetting(hero.settings, 'mobile_height', 90),
       desktopHeight: numberSetting(hero.settings, 'desktop_height', 100),
@@ -258,7 +274,7 @@ function buildConfigFromTemplate(handle: string, template: ThemeTemplate): Urban
       buttonLabelUk: stringSetting(overview.settings, 'button_label_uk'),
       buttonLink: stringSetting(overview.settings, 'button_link'),
       buttonNewTab: booleanSetting(overview.settings, 'button_new_tab'),
-      externalImageUrl: assetSetting(overview.settings, 'external_image_url'),
+      externalImageUrl: assetSetting(overview.settings, 'external_image_url', '', handle),
       highlights: mapOverviewHighlights(overview),
       paddingTop: numberSetting(overview.settings, 'padding_top', 24),
       paddingBottom: numberSetting(overview.settings, 'padding_bottom', 24),
@@ -269,7 +285,7 @@ function buildConfigFromTemplate(handle: string, template: ThemeTemplate): Urban
     gallery: {
       label: stringSetting(gallery.settings, 'label', 'Gallery'),
       labelUk: stringSetting(gallery.settings, 'label_uk', 'Галерея'),
-      slides: mapGallerySlides(gallery),
+      slides: mapGallerySlides(gallery, handle),
       paddingTop: numberSetting(gallery.settings, 'padding_top', 24),
       paddingBottom: numberSetting(gallery.settings, 'padding_bottom', 24),
       backgroundColor: stringSetting(gallery.settings, 'background_color', '#000000'),
@@ -277,7 +293,7 @@ function buildConfigFromTemplate(handle: string, template: ThemeTemplate): Urban
     },
     videoPointer,
     bannerStack: {
-      banners: mapBannerItems(banner),
+      banners: mapBannerItems(banner, handle),
       overlayOpacity: numberSetting(banner.settings, 'overlay_opacity', 20),
       mobileHeight: numberSetting(banner.settings, 'mobile_height', 70),
       desktopHeight: numberSetting(banner.settings, 'desktop_height', 90),
@@ -294,7 +310,7 @@ function buildConfigFromTemplate(handle: string, template: ThemeTemplate): Urban
       ctaLabelUk: stringSetting(blueprint.settings, 'cta_label_uk'),
       ctaLink: stringSetting(blueprint.settings, 'cta_link'),
       ctaNewTab: booleanSetting(blueprint.settings, 'cta_new_tab'),
-      views: mapBlueprintViews(blueprint),
+      views: mapBlueprintViews(blueprint, handle),
       paddingTop: numberSetting(blueprint.settings, 'padding_top', 52),
       paddingBottom: numberSetting(blueprint.settings, 'padding_bottom', 52),
       backgroundColor: stringSetting(blueprint.settings, 'background_color', '#f5f5f3'),

@@ -1,7 +1,6 @@
 const ABSOLUTE_URL_RE = /^[a-z][a-z0-9+.-]*:\/\//i;
 const SMGASSETS_IMG_BASE = 'https://smgassets.blob.core.windows.net/customers/urban/dist/img';
 const KNOWN_THEME_ASSET_MAP: Record<string, string> = {
-  'blueprint-cullinan-left.png': '/images/shop/urban/banners/models/cullinan/banner-1-1920.jpg',
   'blueprint-w465-front.jpg': '/images/shop/urban/banners/models/gwagonSoftKit/banner-1-1920.jpg',
   'blueprint-w465-left.jpg': '/images/shop/urban/banners/models/gwagonSoftKit/banner-1-1920.jpg',
   'blueprint-w465-right.jpg':
@@ -10,7 +9,39 @@ const KNOWN_THEME_ASSET_MAP: Record<string, string> = {
     '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-12-2560.webp',
 };
 
-export function resolveUrbanThemeAssetUrl(value: string): string {
+const COLLECTION_THEME_ASSET_MAP: Record<string, Record<string, string>> = {
+  'rolls-royce-cullinan': {
+    'blueprint-cullinan-front.png': '/images/shop/urban/banners/models/cullinan/banner-1-1920.jpg',
+    'blueprint-cullinan-left.png': '/images/shop/urban/banners/models/cullinan/banner-3-1920.jpg',
+    'blueprint-cullinan-right.png': '/images/shop/urban/banners/models/cullinan/banner-2-1920.jpg',
+    'blueprint-cullinan-back.png': '/images/shop/urban/banners/models/cullinan/banner-4-1920.jpg',
+  },
+  'rolls-royce-cullinan-series-ii': {
+    'blueprint-cullinan-front.png':
+      '/images/shop/urban/carousel/models/cullinanSeriesII/webp/urban-automotive-cullinan-series-ii-7-2560.webp',
+    'blueprint-cullinan-left.png':
+      '/images/shop/urban/hero/models/cullinanSeriesII/webp/urban-automotive-cullinan-profile-1920.webp',
+    'blueprint-cullinan-right.png':
+      '/images/shop/urban/cols/models/cullinanSeriesII/webp/urban-automotive-rolls-royce-cullinan.webp',
+    'blueprint-cullinan-back.png':
+      '/images/shop/urban/carousel/models/cullinanSeriesII/webp/urban-automotive-cullinan-series-ii-6-2560.webp',
+  },
+  'rolls-royce-ghost-series-ii': {
+    'blueprint-cullinan-front.png': '/images/shop/urban/cols/models/ghost/col-image-1-lg.jpg',
+    'blueprint-cullinan-left.png': '/images/shop/urban/carousel/models/ghost/carousel-18-1920.jpg',
+    'blueprint-cullinan-right.png': '/images/shop/urban/hero/models/ghost/hero-1-1920.jpg',
+    'blueprint-cullinan-back.png': '/images/shop/urban/banners/models/ghost/banner-2-1920.jpg',
+  },
+};
+
+type ResolveUrbanThemeAssetOptions = {
+  collectionHandle?: string;
+};
+
+export function resolveUrbanThemeAssetUrl(
+  value: string,
+  options?: ResolveUrbanThemeAssetOptions
+): string {
   const trimmed = value.trim();
   if (!trimmed) {
     return '';
@@ -38,5 +69,9 @@ export function resolveUrbanThemeAssetUrl(value: string): string {
     .map((segment) => encodeURIComponent(segment))
     .join('/');
 
-  return KNOWN_THEME_ASSET_MAP[safePath] ?? '';
+  const collectionAssetMap = options?.collectionHandle
+    ? COLLECTION_THEME_ASSET_MAP[options.collectionHandle]
+    : undefined;
+
+  return collectionAssetMap?.[safePath] ?? KNOWN_THEME_ASSET_MAP[safePath] ?? '';
 }

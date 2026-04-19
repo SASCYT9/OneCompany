@@ -33,6 +33,31 @@ function parseJsoncTemplate(filePath: string) {
   };
 }
 
+function collectRelativeUrlResolutions() {
+  const files = fs.readdirSync(TEMPLATE_DIR).filter((file) => /^collection\..+\.json$/.test(file));
+  const unresolved: Array<{ file: string; handle: string; value: string }> = [];
+
+  for (const file of files) {
+    const handle = file.replace(/^collection\./, '').replace(/\.json$/, '');
+    const template = parseJsoncTemplate(path.join(TEMPLATE_DIR, file));
+    const blueprintBlocks = Object.values(template.sections?.blueprint_kit?.blocks ?? {});
+
+    for (const block of blueprintBlocks) {
+      const value = String(block.settings?.external_image_url ?? '').trim();
+      if (!value || value.startsWith('/') || /^[a-z][a-z0-9+.-]*:\/\//i.test(value)) {
+        continue;
+      }
+
+      const resolved = resolveUrbanThemeAssetUrl(value, { collectionHandle: handle });
+      if (!resolved.startsWith('/images/shop/urban/')) {
+        unresolved.push({ file, handle, value });
+      }
+    }
+  }
+
+  return unresolved;
+}
+
 test('every urban collection handle has a valid collection template file', () => {
   assert.equal(fs.existsSync(TEMPLATE_DIR), true, 'Urban collection template directory should exist');
 
@@ -63,18 +88,6 @@ test('every urban collection handle has a valid collection template file', () =>
   assert.deepEqual(invalidTemplates, [], 'Invalid Urban collection templates');
 });
 
-test('w465 widetrack blueprint renders all four view cards with mapped local assets', () => {
-  const template = parseJsoncTemplate(
-    path.join(TEMPLATE_DIR, 'collection.mercedes-g-wagon-w465-widetrack.json')
-  );
-  const blueprintViews = Object.values(template.sections?.blueprint_kit?.blocks ?? {});
-  const resolvedUrls = blueprintViews.map((block) =>
-    resolveUrbanThemeAssetUrl(String(block.settings?.external_image_url ?? ''))
-  );
-
-  assert.equal(blueprintViews.length, 4);
-  assert.ok(
-    resolvedUrls.every((url) => url.startsWith('/images/shop/urban/')),
-    'Expected blueprint views to resolve to local Urban assets'
-  );
+test('every Urban blueprint view with a relative asset resolves to a local Urban image', () => {
+  assert.deepEqual(collectRelativeUrlResolutions(), []);
 });
