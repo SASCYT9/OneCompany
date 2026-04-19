@@ -4,6 +4,8 @@
  * Urban runs on our site only (no Shopify).
  */
 
+import { URBAN_COLLECTIONS_INDEX_PATH } from './urbanRoutes';
+
 export type UrbanFeaturedModel = {
   title: string;
   titleUk: string;
@@ -30,7 +32,7 @@ export const URBAN_HERO = {
     'Офіційний постачальник Urban Automotive в Україні: повний модельний ряд обвісів Urban, преміальна якість та статус, повний супровід під ключ.',
   primaryButtonLabel: 'Explore Urban Range',
   primaryButtonLabelUk: 'Переглянути модельний ряд Urban',
-  primaryButtonLink: '/shop/urban/collections',
+  primaryButtonLink: URBAN_COLLECTIONS_INDEX_PATH,
   secondaryButtonLabel: 'About One Company',
   secondaryButtonLabelUk: 'Про One Company',
   secondaryButtonLink: 'https://onecompany.global/ua',
@@ -50,7 +52,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Best of British',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: '/shop/urban/collections/land-rover-defender-110',
+    link: URBAN_COLLECTIONS_INDEX_PATH,
     imageUrl:
       '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp',
   },
@@ -65,7 +67,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Urban Aero',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: '/shop/urban/collections/mercedes-g-wagon-w465-widetrack',
+    link: URBAN_COLLECTIONS_INDEX_PATH,
     imageUrl:
       '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-1-2560.webp',
   },
@@ -80,7 +82,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Signature',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: '/shop/urban/collections/range-rover-l460',
+    link: URBAN_COLLECTIONS_INDEX_PATH,
     imageUrl:
       '/images/shop/urban/cols/models/rangeRover2022Plus/col-image-1-lg.jpg',
   },
@@ -95,7 +97,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Carbon',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: '/shop/urban/collections/audi-rs6-rs7',
+    link: URBAN_COLLECTIONS_INDEX_PATH,
     imageUrl:
       '/images/shop/urban/hero/models/rs6/hero-1-1920.jpg',
   },
@@ -110,7 +112,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Widebody',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: '/shop/urban/collections/lamborghini-urus',
+    link: URBAN_COLLECTIONS_INDEX_PATH,
     imageUrl:
       '/images/shop/urban/carousel/models/urus/carousel-1-1920.jpg',
   },
@@ -125,7 +127,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Bespoke',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: '/shop/urban/collections/rolls-royce-cullinan-series-ii',
+    link: URBAN_COLLECTIONS_INDEX_PATH,
     imageUrl:
       '/images/shop/urban/cols/models/cullinanSeriesII/webp/urban-automotive-rolls-royce-cullinan.webp',
   },
@@ -140,7 +142,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'GT',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: '/shop/urban/collections/bentley-continental-gt',
+    link: URBAN_COLLECTIONS_INDEX_PATH,
     imageUrl:
       '/images/shop/urban/hero/models/continentalGT/hero-1-1920.jpg',
   },
@@ -155,7 +157,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Carbon',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: '/shop/urban/collections/audi-rsq8-facelift',
+    link: URBAN_COLLECTIONS_INDEX_PATH,
     imageUrl:
       '/images/shop/urban/banners/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-front-1920.webp',
   },

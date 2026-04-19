@@ -1,0 +1,84 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "banner": {
+      "type": "main-collection-banner",
+      "disabled": true,
+      "settings": {
+        "show_collection_description": true,
+        "show_collection_image": false,
+        "color_scheme": "scheme-1"
+      }
+    },
+    "filter_CrRREW": {
+      "type": "filter",
+      "disabled": true,
+      "name": "Фільтр Urban (Mark & Model)",
+      "settings": {
+        "filter_title": "ЗНАЙДИ СВОЄ АВТО",
+        "filter_subtitle": "Виберіть марку та модель для підбору запчастин"
+      }
+    },
+    "product-grid": {
+      "type": "main-collection-product-grid",
+      "settings": {
+        "products_per_page": 24,
+        "columns_desktop": 3,
+        "columns_mobile": "1",
+        "color_scheme": "scheme-1",
+        "image_ratio": "square",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "quick_add": "standard",
+        "enable_filtering": true,
+        "filter_type": "vertical",
+        "enable_sorting": true,
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "vehicle_picker_MjUhUr": {
+      "type": "vehicle-picker",
+      "disabled": true,
+      "name": "Vehicle picker (Urban-style)",
+      "settings": {
+        "style": "dark",
+        "kicker": "Premium automotive",
+        "heading": "Знайди своє авто",
+        "subheading": "<p>Виберіть марку та модель для підбору запчастин.</p>",
+        "vehicles_json": "[\n  {\n    \"handle\": \"l663-defender-110\",\n    \"label\": \"L663 - DEFENDER 110\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Defender\",\n    \"generation\": \"L663\"\n  },\n  {\n    \"handle\": \"l663-defender-90\",\n    \"label\": \"L663 - DEFENDER 90\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Defender\",\n    \"generation\": \"L663\"\n  },\n  {\n    \"handle\": \"l663-defender-130\",\n    \"label\": \"L663 - DEFENDER 130\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Defender\",\n    \"generation\": \"L663\"\n  },\n  {\n    \"handle\": \"l460-range-rover\",\n    \"label\": \"L460 - RANGE ROVER\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover\",\n    \"generation\": \"L460\"\n  },\n  {\n    \"handle\": \"l461-range-rover-sport\",\n    \"label\": \"L461 - RANGE ROVER SPORT\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover Sport\",\n    \"generation\": \"L461\"\n  },\n  {\n    \"handle\": \"l462-range-rover-sport-svr\",\n    \"label\": \"L462 - RANGE ROVER SPORT SVR\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover Sport\",\n    \"generation\": \"L462\"\n  },\n  {\n    \"handle\": \"l405-range-rover\",\n    \"label\": \"L405 - RANGE ROVER\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover\",\n    \"generation\": \"L405\"\n  },\n  {\n    \"handle\": \"l405-range-rover-svr\",\n    \"label\": \"L405 - RANGE ROVER SVR\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover\",\n    \"generation\": \"L405\"\n  },\n  {\n    \"handle\": \"l405-range-rover-sport\",\n    \"label\": \"L405 - RANGE ROVER SPORT\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover Sport\",\n    \"generation\": \"L405\"\n  },\n  {\n    \"handle\": \"l405-range-rover-sport-svr\",\n    \"label\": \"L405 - RANGE ROVER SPORT SVR\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover Sport\",\n    \"generation\": \"L405\"\n  },\n  {\n    \"handle\": \"l405-range-rover-sport-svr-2\",\n    \"label\": \"L405 - RANGE ROVER SPORT SVR (2)\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover Sport\",\n    \"generation\": \"L405\"\n  },\n  {\n    \"handle\": \"l319-range-rover-sport\",\n    \"label\": \"L319 - RANGE ROVER SPORT\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover Sport\",\n    \"generation\": \"L319\"\n  },\n  {\n    \"handle\": \"l319-range-rover-sport-svr\",\n    \"label\": \"L319 - RANGE ROVER SPORT SVR\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover Sport\",\n    \"generation\": \"L319\"\n  },\n  {\n    \"handle\": \"l494-range-rover-sport\",\n    \"label\": \"L494 - RANGE ROVER SPORT\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover Sport\",\n    \"generation\": \"L494\"\n  },\n  {\n    \"handle\": \"l494-range-rover-sport-svr\",\n    \"label\": \"L494 - RANGE ROVER SPORT SVR\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover Sport\",\n    \"generation\": \"L494\"\n  },\n  {\n    \"handle\": \"l322-range-rover\",\n    \"label\": \"L322 - RANGE ROVER\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Range Rover\",\n    \"generation\": \"L322\"\n  },\n  {\n    \"handle\": \"l663-defender-octa\",\n    \"label\": \"L663 - DEFENDER OCTA\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Defender\",\n    \"generation\": \"L663\"\n  },\n  {\n    \"handle\": \"l319-discovery-4\",\n    \"label\": \"L319 - DISCOVERY 4\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Discovery 4\",\n    \"generation\": \"L319\"\n  },\n  {\n    \"handle\": \"l462-discovery-5\",\n    \"label\": \"L462 - DISCOVERY 5\",\n    \"make\": \"Land Rover\",\n    \"model\": \"Discovery 5\",\n    \"generation\": \"L462\"\n  },\n  {\n    \"handle\": \"w463a-w465-g-wagon\",\n    \"label\": \"W463A/W465 - G-WAGON\",\n    \"make\": \"Mercedes\",\n    \"model\": \"G-Wagon\",\n    \"generation\": \"W463A/W465\"\n  },\n  {\n    \"handle\": \"w463a-g-wagon\",\n    \"label\": \"W463A - G-WAGON\",\n    \"make\": \"Mercedes\",\n    \"model\": \"G-Wagon\",\n    \"generation\": \"W463A\"\n  },\n  {\n    \"handle\": \"w465-g-wagon\",\n    \"label\": \"W465 - G-WAGON\",\n    \"make\": \"Mercedes\",\n    \"model\": \"G-Wagon\",\n    \"generation\": \"W465\"\n  },\n  {\n    \"handle\": \"mk8-golf-r\",\n    \"label\": \"MK 8 GOLF R\",\n    \"make\": \"Volkswagen\",\n    \"model\": \"Golf R\",\n    \"generation\": \"MK8\"\n  },\n  {\n    \"handle\": \"vw-transporter-t6-1\",\n    \"label\": \"VW TRANSPORTER T6.1\",\n    \"make\": \"Volkswagen\",\n    \"model\": \"TRANSPORTER\",\n    \"generation\": \"T6.1\"\n  },\n  {\n    \"handle\": \"series-i-cullinan\",\n    \"label\": \"SERIES I - ROLLS ROYCE CULLINAN\",\n    \"make\": \"Rolls Royce\",\n    \"model\": \"CULLINAN\",\n    \"generation\": \"SERIES I\"\n  },\n  {\n    \"handle\": \"rsq8\",\n    \"label\": \"AUDI RSQ8\",\n    \"make\": \"Audi\",\n    \"model\": \"RSQ8\",\n    \"generation\": \"RSQ8\"\n  },\n  {\n    \"handle\": \"rsq8-facelift\",\n    \"label\": \"AUDI RSQ8 FACELIFT\",\n    \"make\": \"Audi\",\n    \"model\": \"RSQ8 Facelift\",\n    \"generation\": \"Facelift\"\n  },\n  {\n    \"handle\": \"mk3-bentley-gt-gtc\",\n    \"label\": \"MK3 - BENTLEY GT & GTC\",\n    \"make\": \"BENTLEY\",\n    \"model\": \"GT\",\n    \"generation\": \"MK3\"\n  }\n]",
+        "columns_desktop": 4,
+        "show_make_filter": true,
+        "show_model_filter": true,
+        "show_search": false,
+        "show_counts": false,
+        "auto_navigate_single": true,
+        "make_label": "Марка",
+        "model_label": "Модель",
+        "search_label": "Пошук",
+        "search_placeholder": "Наприклад: RSQ8, Defender…",
+        "button_label": "Пошук",
+        "all_label": "Усі",
+        "products_label": "товарів",
+        "no_results_text": "Немає авто, що відповідають фільтрам.",
+        "helper_text": "Порада: якщо залишився 1 результат — кнопка відкриє колекцію автоматично."
+      }
+    }
+  },
+  "order": [
+    "banner",
+    "filter_CrRREW",
+    "product-grid",
+    "vehicle_picker_MjUhUr"
+  ]
+}

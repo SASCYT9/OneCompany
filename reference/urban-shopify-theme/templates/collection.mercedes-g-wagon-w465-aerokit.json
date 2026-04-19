@@ -1,0 +1,375 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "section-urban-cinematic-hero",
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "G-Wagon",
+        "subtitle": "The iconic G-Wagon is redefined with the Urban Aero Kit featuring a striking new bonnet, lightbar, spoiler and much more using an insane amount of our own high quality handmade carbon fibre.",
+        "button_label": "Enquire",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "enable_loader": false,
+        "show_scroll_button": true,
+        "scroll_target": "[id$='__overview']",
+        "overlay_opacity": 25,
+        "mobile_height": 90,
+        "desktop_height": 100,
+        "accent_color": "#ffffff",
+        "loader_background": "#000000",
+        "external_video_embed_url": "https://player.vimeo.com/video/1077907366?h=09abd580d9&autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1&app_id=58479",
+        "external_poster_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/gwagonAeroKit2024/webp/urban-g-wagon-aerokit-bts-1920.webp",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "G-Wagon",
+        "subtitle_uk": "Знаковий G-Wagon переосмислений з Urban Aero Kit — з вражаючим новим капотом, світловою балкою, спойлером та багатьма іншими елементами з нашого високоякісного карбону ручної роботи.",
+        "button_label_uk": "Замовити"
+      }
+    },
+    "overview": {
+      "type": "section-urban-model-overview",
+      "blocks": {
+        "hl_1": {
+          "type": "highlight",
+          "settings": {
+            "text": "Bullnose Bonnet",
+            "text_uk": "Капот Bullnose"
+          }
+        },
+        "hl_2": {
+          "type": "highlight",
+          "settings": {
+            "text": "Urban Branding",
+            "text_uk": "Фірмові логотипи Urban"
+          }
+        },
+        "hl_3": {
+          "type": "highlight",
+          "settings": {
+            "text": "Rear Spoiler",
+            "text_uk": "Задній спойлер"
+          }
+        },
+        "hl_4": {
+          "type": "highlight",
+          "settings": {
+            "text": "Bumper Overlays + Splitter",
+            "text_uk": "Накладки на бампер + Спліттер"
+          }
+        },
+        "hl_5": {
+          "type": "highlight",
+          "settings": {
+            "text": "Rear Wheel Carrier",
+            "text_uk": "Кріплення запасного колеса"
+          }
+        },
+        "hl_6": {
+          "type": "highlight",
+          "settings": {
+            "text": "Light Bar",
+            "text_uk": "Світлова панель (Light Bar)"
+          }
+        }
+      },
+      "block_order": [
+        "hl_1",
+        "hl_2",
+        "hl_3",
+        "hl_4",
+        "hl_5",
+        "hl_6"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "G-Wagon",
+        "badge": "2024+",
+        "subtitle": "Urban Widetrack",
+        "description": "For the new G-Wagon W465 2024+ we have taken the styling design to a new level with an insane amount of our own high quality handmade carbon fibre. The Aero Kit enhances the boxy silhouette with a subtle OEM plus narrowbody form featuring a striking new bonnet, light bar, spoiler and wheel cover plus many more details.",
+        "button_label": "Enquire Now",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "copy_color": "#cfcfcf",
+        "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/gwagonAeroKit2024/webp/urban-g-wagon-aerokit-bullnose-bonnet.webp",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "G-Wagon",
+        "badge_uk": "2024+",
+        "subtitle_uk": "Urban Widetrack",
+        "description_uk": "Для нового G-Wagon W465 2024+ ми вивели дизайн стайлінгу на новий рівень з неймовірною кількістю нашого преміального карбону ручної роботи. Aero Kit підсилює кутасту силуетку з витонченою формою narrowbody.",
+        "button_label_uk": "Замовити зараз"
+      }
+    },
+    "gallery": {
+      "type": "section-urban-gallery-carousel",
+      "blocks": {
+        "slide_1": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-1-2560.webp",
+            "caption": "G-Wagon - Image 1"
+          }
+        },
+        "slide_2": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-2-2560.webp",
+            "caption": "G-Wagon - Image 2"
+          }
+        },
+        "slide_3": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-3-2560.webp",
+            "caption": "G-Wagon - Image 3"
+          }
+        },
+        "slide_4": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-4-2560.webp",
+            "caption": "G-Wagon - Image 4"
+          }
+        },
+        "slide_5": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-5-2560.webp",
+            "caption": "G-Wagon - Image 5"
+          }
+        },
+        "slide_6": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-6-2560.webp",
+            "caption": "G-Wagon - Image 6"
+          }
+        },
+        "slide_7": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-7-2560.webp",
+            "caption": "G-Wagon - Image 7"
+          }
+        },
+        "slide_8": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-8-2560.webp",
+            "caption": "G-Wagon - Image 8"
+          }
+        },
+        "slide_9": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-9-2560.webp",
+            "caption": "G-Wagon - Image 9"
+          }
+        },
+        "slide_10": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-10-2560.webp",
+            "caption": "G-Wagon - Image 10"
+          }
+        },
+        "slide_11": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-11-2560.webp",
+            "caption": "G-Wagon - Image 11"
+          }
+        },
+        "slide_12": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-12-2560.webp",
+            "caption": "G-Wagon - Image 12"
+          }
+        }
+      },
+      "block_order": [
+        "slide_1",
+        "slide_2",
+        "slide_3",
+        "slide_4",
+        "slide_5",
+        "slide_6",
+        "slide_7",
+        "slide_8",
+        "slide_9",
+        "slide_10",
+        "slide_11",
+        "slide_12"
+      ],
+      "settings": {
+        "label": "Gallery",
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "label_uk": "Галерея"
+      }
+    },
+    "banner": {
+      "type": "section-urban-banner-stack",
+      "blocks": {
+        "banner_1": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/gwagonAeroKit2024/webp/urban-g-wagon-aerokit-bts-1920.webp",
+            "eyebrow": "Redefined by Urban",
+            "title": "G-Wagon",
+            "subtitle": "Widetrack",
+            "button_label": "Build Yours",
+            "button_link": "/collections/mercedes-g-wagon-w465-aerokit",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "G-Wagon",
+            "subtitle_uk": "Widetrack",
+            "button_label_uk": "Створити свій"
+          }
+        }
+      },
+      "block_order": [
+        "banner_1"
+      ],
+      "settings": {
+        "overlay_opacity": 20,
+        "mobile_height": 70,
+        "desktop_height": 90,
+        "border_color": "#1c1c1c"
+      }
+    },
+    "main": {
+      "type": "main-collection-product-grid",
+      "settings": {
+        "products_per_page": 16,
+        "columns_desktop": 4,
+        "color_scheme": "scheme-1",
+        "image_ratio": "adapt",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "enable_filtering": true,
+        "filter_type": "horizontal",
+        "enable_sorting": true,
+        "columns_mobile": "2",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "video_pointer": {
+      "type": "section-urban-video-pointer",
+      "settings": {
+        "video_url": "https://player.vimeo.com/video/636098455?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
+        "caption_eyebrow": "Urban Automotive",
+        "caption_title": "Mercedes G-Wagon Aerokit",
+        "full_width": true,
+        "max_width": 1900,
+        "overlay_top": 10,
+        "overlay_bottom": 15,
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "background_color": "#000000",
+        "caption_eyebrow_uk": "Urban Automotive",
+        "caption_title_uk": "Mercedes G-Wagon Aerokit"
+      }
+    },
+    "blueprint_kit": {
+      "type": "section-urban-blueprint-kit",
+      "blocks": {
+        "kit_1": {
+          "type": "view",
+          "settings": {
+            "position_label": "Front",
+            "title_en": "Front Aerokit Package",
+            "title_uk": "Передній пакет Aerokit",
+            "parts_en": "Aerokit front bumper|Carbon fibre bonnet vents|Front grille replacement|Front splitter",
+            "parts_uk": "Передній бампер Aerokit|Карбонові отвори капота|Заміна передньої решітки|Передній спліттер",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/gwagonSoftKit/front.jpg"
+          }
+        },
+        "kit_2": {
+          "type": "view",
+          "settings": {
+            "position_label": "Left",
+            "title_en": "Side Package",
+            "title_uk": "Бічний пакет",
+            "parts_en": "Aerokit arch extensions|Carbon side steps|Carbon mirror caps|Side vent trims",
+            "parts_uk": "Розширення арок Aerokit|Карбонові бічні підніжки|Карбонові накладки дзеркал|Бічні вентиляційні накладки",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/gwagonSoftKit/left.jpg"
+          }
+        },
+        "kit_3": {
+          "type": "view",
+          "settings": {
+            "position_label": "Right",
+            "title_en": "Wheel Package",
+            "title_uk": "Пакет коліс",
+            "parts_en": "24\" forged alloy wheels|Performance tyres|Wheel spacer kit|Branded centre caps",
+            "parts_uk": "24\" ковані легкосплавні диски|Спортивні шини|Набір проставок коліс|Фірмові центральні ковпаки",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/gwagonSoftKit/right.jpg"
+          }
+        },
+        "kit_4": {
+          "type": "view",
+          "settings": {
+            "position_label": "Back",
+            "title_en": "Rear Aerokit Package",
+            "title_uk": "Задній пакет Aerokit",
+            "parts_en": "Aerokit rear bumper|Roof spoiler|Carbon exhaust surrounds|Spare wheel cover",
+            "parts_uk": "Задній бампер Aerokit|Спойлер на дах|Карбонові обрамлення вихлопу|Ковпак запасного колеса",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/gwagonSoftKit/back.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "kit_1",
+        "kit_2",
+        "kit_3",
+        "kit_4"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "heading": "The Urban Kit",
+        "subheading": "Mercedes G-Wagon Aerokit",
+        "cta_label": "Enquire Now",
+        "cta_link": "/pages/contact",
+        "cta_new_tab": false,
+        "padding_top": 52,
+        "padding_bottom": 52,
+        "background_color": "#f5f5f3",
+        "card_background": "#ffffff",
+        "text_color": "#111111",
+        "muted_color": "#666666",
+        "separator_color": "#e0e0e0",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "heading_uk": "Комплект Urban",
+        "subheading_uk": "Mercedes G-Wagon Aerokit",
+        "cta_label_uk": "Замовити зараз"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "overview",
+    "gallery",
+    "video_pointer",
+    "banner",
+    "blueprint_kit",
+    "main"
+  ]
+}

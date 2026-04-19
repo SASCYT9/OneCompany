@@ -1,0 +1,251 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "section_urban_home_signature_XKWx7W": {
+      "type": "section-urban-home-signature",
+      "blocks": {
+        "featured_model_dzj9kp": {
+          "type": "featured_model",
+          "settings": {
+            "title": "Cullinan Series II",
+            "title_uk": "Cullinan Series II",
+            "subtitle": "Rolls-Royce by Urban",
+            "subtitle_uk": "Rolls-Royce від Urban",
+            "badge": "Luxury",
+            "badge_uk": "Люкс",
+            "tag_one": "Hand Finished",
+            "tag_two": "Bespoke",
+            "button_label": "View Programme",
+            "button_label_uk": "Переглянути програму",
+            "link": "/collections/rolls-royce-cullinan-series-ii",
+            "new_tab": false,
+            "external_image_url": "hero-1-1920__d30014d917.jpg",
+            "story_video_url": "",
+            "story_media_urls": "banner-1-1920__96dae7e8c6.jpg\nbanner-2-1920__d3372afb99.jpg\nbanner-3-1920__cf8e62daba.jpg\nbanner-4-1920__bf63dd0906.jpg"
+          }
+        },
+        "featured_model_3VyBTA": {
+          "type": "featured_model",
+          "settings": {
+            "title": "Defender Widetrack",
+            "title_uk": "Defender Widetrack",
+            "subtitle": "2020+ Programme",
+            "subtitle_uk": "Програма 2020+",
+            "badge": "Signature",
+            "badge_uk": "Signature",
+            "tag_one": "Widetrack",
+            "tag_two": "Best of British",
+            "button_label": "View Programme",
+            "button_label_uk": "Переглянути програму",
+            "link": "/collections/land-rover-defender-110",
+            "new_tab": false,
+            "external_image_url": "hero-1-1920__e95adafbca.jpg",
+            "story_video_url": "",
+            "story_media_urls": "banner-1-1920__e0826afd4a.webp\nbanner-2-1920__7375e3e4f0.webp\nbanner-3-1920__e6bfeeeb7d.webp"
+          }
+        },
+        "featured_model_wKgiV4": {
+          "type": "featured_model",
+          "settings": {
+            "title": "G-Wagon W465",
+            "title_uk": "G-Wagon W465",
+            "subtitle": "Widetrack Programme",
+            "subtitle_uk": "Програма Widetrack",
+            "badge": "2024+",
+            "badge_uk": "2024+",
+            "tag_one": "Signature",
+            "tag_two": "Urban Aero",
+            "button_label": "View Programme",
+            "button_label_uk": "Переглянути програму",
+            "link": "/collections/mercedes-g-wagon-w465-widetrack",
+            "new_tab": false,
+            "external_image_url": "urban-automotive-g-wagon-widetrack-studio-1920__8e6aca7540.webp",
+            "story_video_url": "",
+            "story_media_urls": "banner-1-1920__d79f422f20.jpg\nhero-1-1920__29145bdcdb.jpg"
+          }
+        },
+        "featured_model_KtxjVg": {
+          "type": "featured_model",
+          "settings": {
+            "title": "Lamborghini Urus",
+            "title_uk": "Lamborghini Urus",
+            "subtitle": "Urban Urus Programme",
+            "subtitle_uk": "Програма Urban Urus",
+            "badge": "Statement",
+            "badge_uk": "Statement",
+            "tag_one": "Carbon",
+            "tag_two": "Widebody",
+            "button_label": "View Programme",
+            "button_label_uk": "Переглянути програму",
+            "link": "/collections/lamborghini-urus",
+            "new_tab": false,
+            "external_image_url": "hero-1-1920__5a2198e461.jpg",
+            "story_video_url": "",
+            "story_media_urls": "banner-1-1920__a913674026.jpg\nhero-1-1920__5a2198e461.jpg"
+          }
+        },
+        "featured_model_NbjCm6": {
+          "type": "featured_model",
+          "settings": {
+            "title": "Rolls-Royce Ghost",
+            "title_uk": "Rolls-Royce Ghost",
+            "subtitle": "Urban Ghost Programme",
+            "subtitle_uk": "Програма Urban Ghost",
+            "badge": "New",
+            "badge_uk": "Новий",
+            "tag_one": "Luxury",
+            "tag_two": "Bespoke",
+            "button_label": "View Programme",
+            "button_label_uk": "Переглянути програму",
+            "link": "/collections/rolls-royce-ghost-series-ii",
+            "new_tab": false,
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/ghost/col-image-1-lg.jpg",
+            "story_video_url": "",
+            "story_media_urls": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/ghost/carousel-1-1920.jpg\nhttps://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/ghost/carousel-2-1920.jpg"
+          }
+        },
+        "featured_model_cMMbPm": {
+          "type": "featured_model",
+          "settings": {
+            "title": "Range Rover L460",
+            "title_uk": "Range Rover L460",
+            "subtitle": "The New Range Rover",
+            "subtitle_uk": "Новий Range Rover",
+            "badge": "2022+",
+            "badge_uk": "2022+",
+            "tag_one": "Luxury",
+            "tag_two": "Signature",
+            "button_label": "View Programme",
+            "button_label_uk": "Переглянути програму",
+            "link": "/collections/range-rover-l460",
+            "new_tab": false,
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/rangeRover2022Plus/col-image-1-lg.jpg",
+            "story_video_url": "",
+            "story_media_urls": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-1-1920.webp\nhttps://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-2-1920.webp"
+          }
+        },
+        "featured_model_nUfzwR": {
+          "type": "featured_model",
+          "settings": {
+            "title": "Bentley Continental GT",
+            "title_uk": "Bentley Continental GT",
+            "subtitle": "Grand Touring by Urban",
+            "subtitle_uk": "Grand Touring від Urban",
+            "badge": "Coachbuilt",
+            "badge_uk": "Coachbuilt",
+            "tag_one": "Luxury",
+            "tag_two": "GT",
+            "button_label": "View Programme",
+            "button_label_uk": "Переглянути програму",
+            "link": "/collections/bentley-continental-gt",
+            "new_tab": false,
+            "external_image_url": "hero-1-1920__6343f1ed4e.jpg",
+            "story_video_url": "",
+            "story_media_urls": "banner-1-1920__9193c17c94.jpg\nhero-1-1920__6343f1ed4e.jpg"
+          }
+        },
+        "featured_model_BQ6XCw": {
+          "type": "featured_model",
+          "settings": {
+            "title": "Audi RSQ8",
+            "title_uk": "Audi RSQ8",
+            "subtitle": "Urban RSQ8 Programme",
+            "subtitle_uk": "Програма Urban RSQ8",
+            "badge": "Facelift",
+            "badge_uk": "Facelift",
+            "tag_one": "Aero",
+            "tag_two": "Carbon",
+            "button_label": "View Programme",
+            "button_label_uk": "Переглянути програму",
+            "link": "/collections/audi-rsq8-facelift",
+            "new_tab": false,
+            "external_image_url": "hero-1-1920__f99b24ce85.jpg",
+            "story_video_url": "",
+            "story_media_urls": "banner-1-1920__d024b5a673.jpg\nbanner-2-1920__2fa513069b.jpg\nbanner-3-1920__7d96b4bc16.jpg\nbanner-4-1920__c60780d2e6.jpg"
+          }
+        },
+        "featured_model_Rrs461": {
+          "type": "featured_model",
+          "settings": {
+            "title": "Range Rover Sport",
+            "title_uk": "Range Rover Sport",
+            "subtitle": "L461 by Urban",
+            "subtitle_uk": "L461 від Urban",
+            "badge": "Widetrack",
+            "badge_uk": "Widetrack",
+            "tag_one": "Carbon",
+            "tag_two": "Signature",
+            "button_label": "View Programme",
+            "button_label_uk": "Переглянути програму",
+            "link": "/collections/range-rover-sport-l461",
+            "new_tab": false,
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/rangeRoverSportL461/col-image-1-lg.jpg",
+            "story_video_url": "",
+            "story_media_urls": ""
+          }
+        }
+      },
+      "block_order": [
+        "featured_model_dzj9kp",
+        "featured_model_3VyBTA",
+        "featured_model_wKgiV4",
+        "featured_model_KtxjVg",
+        "featured_model_NbjCm6",
+        "featured_model_cMMbPm",
+        "featured_model_nUfzwR",
+        "featured_model_BQ6XCw",
+        "featured_model_Rrs461"
+      ],
+      "name": "Urban Home Signature",
+      "settings": {
+        "eyebrow": "One Company x Urban Automotive",
+        "eyebrow_uk": "One Company x Urban Automotive",
+        "title": "Premium Urban Styling.",
+        "title_uk": "Преміальні обвіси Urban.",
+        "subtitle": "Official Urban Automotive supplier in Ukraine: full Urban body kit range. Premium quality and status. Full turnkey support.",
+        "subtitle_uk": "Офіційний постачальник Urban Automotive в Україні: повний модельний ряд обвісів Urban. Преміальна якість та статус. Повний супровід під ключ.",
+        "primary_button_label": "Explore Urban Range",
+        "primary_button_label_uk": "Переглянути модельний ряд Urban",
+        "primary_button_link": "shopify://collections/all",
+        "primary_button_new_tab": false,
+        "secondary_button_label": "About One Company",
+        "secondary_button_label_uk": "Про One Company",
+        "secondary_button_link": "https://onecompany.global/ua",
+        "secondary_button_new_tab": true,
+        "external_video_url": "",
+        "external_video_embed_url": "",
+        "external_poster_url": "",
+        "external_logo_url": "",
+        "logo_width": 220,
+        "show_featured_models": true,
+        "featured_limit": 9,
+        "show_horizontal_stories": false,
+        "prioritize_rolls_first": true,
+        "show_runway": false,
+        "show_gallery": true,
+        "gallery_limit": 8,
+        "show_ticker": true,
+        "ticker_duration": 24,
+        "accent_color": "#f5f5f3",
+        "overlay_opacity": 25,
+        "mobile_height": 90,
+        "desktop_height": 90,
+        "enable_loader": true,
+        "loader_text": "URBAN",
+        "show_scroll_button": true,
+        "scroll_target": "auto"
+      }
+    }
+  },
+  "order": [
+    "section_urban_home_signature_XKWx7W"
+  ]
+}

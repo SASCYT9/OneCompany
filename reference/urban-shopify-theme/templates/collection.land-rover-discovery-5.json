@@ -1,0 +1,382 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "section-urban-cinematic-hero",
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "Discovery 5",
+        "subtitle": "Championing the Urban look for the 2021 onwards Discovery 5 — designed in the UK and hand-built with our own high quality carbon fibre.",
+        "button_label": "Enquire",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "enable_loader": false,
+        "show_scroll_button": true,
+        "scroll_target": "[id$='__overview']",
+        "overlay_opacity": 25,
+        "mobile_height": 90,
+        "desktop_height": 100,
+        "accent_color": "#ffffff",
+        "loader_background": "#000000",
+        "external_poster_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/discovery2021Plus/hero-1-1920.jpg",
+        "external_video_embed_url": "https://player.vimeo.com/video/835492898?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "Discovery 5",
+        "subtitle_uk": "Фірмовий вигляд Urban для Discovery 5 2021+ — спроєктований у Великій Британії та виготовлений вручну з нашим власним високоякісним карбоном.",
+        "button_label_uk": "Замовити"
+      }
+    },
+    "overview": {
+      "type": "section-urban-model-overview",
+      "blocks": {
+        "hl_1": {
+          "type": "highlight",
+          "settings": {
+            "text": "Fixed Side Steps",
+            "text_uk": "Фіксовані бічні підніжки"
+          }
+        },
+        "hl_2": {
+          "type": "highlight",
+          "settings": {
+            "text": "Plate Centralisation Kit",
+            "text_uk": "Комплект центрування номера"
+          }
+        },
+        "hl_3": {
+          "type": "highlight",
+          "settings": {
+            "text": "CF Wing Mirror Covers",
+            "text_uk": "Карбонові кришки дзеркал"
+          }
+        },
+        "hl_4": {
+          "type": "highlight",
+          "settings": {
+            "text": "Commercial Seat Conversion",
+            "text_uk": "Комерційна конверсія сидінь"
+          }
+        },
+        "hl_5": {
+          "type": "highlight",
+          "settings": {
+            "text": "Genuine Black Badge",
+            "text_uk": "Оригінальний чорний логотип"
+          }
+        },
+        "hl_6": {
+          "type": "highlight",
+          "settings": {
+            "text": "UC-1",
+            "text_uk": "UC-1"
+          }
+        },
+        "hl_7": {
+          "type": "highlight",
+          "settings": {
+            "text": "UC-2",
+            "text_uk": "UC-2"
+          }
+        },
+        "hl_8": {
+          "type": "highlight",
+          "settings": {
+            "text": "UC-3",
+            "text_uk": "UC-3"
+          }
+        }
+      },
+      "block_order": [
+        "hl_1",
+        "hl_2",
+        "hl_3",
+        "hl_4",
+        "hl_5",
+        "hl_6",
+        "hl_7",
+        "hl_8"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "Discovery 5",
+        "badge": "2021+",
+        "subtitle": "Urban Widetrack Kit",
+        "description": "Highlights of our Urban styling kit for the Discovery 5 facelift include full carbon fibre replacement front bumper, and optional centralised rear number plate conversion. The Discovery benefits from integrated daytime running lights (DRLs), optional upper rear spoiler, visual carbon fibre rear diffuser and satin black exhaust tips, accompanied with Milltek back boxes. Each Urban conversion can be tailored to suit your needs with options such as our LED roof light bar, side steps, and bespoke quilted leather interior to name a few.",
+        "button_label": "Enquire Now",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "copy_color": "#cfcfcf",
+        "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/discovery2021Plus/col-image-1-lg.jpg",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "Discovery 5",
+        "badge_uk": "2021+",
+        "subtitle_uk": "Комплект Urban Widetrack",
+        "description_uk": "Ключові елементи нашого стайлінг-киту для Discovery 5 фейсліфт включають повний карбоновий бампер та опціональну конверсію заднього номерного знака. Discovery оснащений інтегрованими денними ходовими вогнями, опціональним верхнім спойлером, карбоновим заднім дифузором та сатиновими чорними насадками вихлопу.",
+        "button_label_uk": "Замовити зараз"
+      }
+    },
+    "gallery": {
+      "type": "section-urban-gallery-carousel",
+      "blocks": {
+        "slide_1": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/discovery2021Plus/hero-1-1920.jpg",
+            "caption": "Urban Discovery 5 - Hero"
+          }
+        },
+        "slide_2": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/discovery2021Plus/col-image-1-lg.jpg",
+            "caption": "Urban Discovery 5 - Detail 1"
+          }
+        },
+        "slide_3": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/discovery2021Plus/col-image-2-lg.jpg",
+            "caption": "Urban Discovery 5 - Detail 2"
+          }
+        },
+        "slide_4": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/discovery2021Plus/col-image-3-lg.jpg",
+            "caption": "Urban Discovery 5 - Detail 3"
+          }
+        },
+        "slide_5": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/discovery2021Plus/banner-1-1920.jpg",
+            "caption": "Urban Discovery 5 - Banner 1"
+          }
+        },
+        "slide_6": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/discovery2021Plus/banner-2-1920.jpg",
+            "caption": "Urban Discovery 5 - Banner 2"
+          }
+        },
+        "slide_7": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/discovery2021Plus/banner-3-1920.jpg",
+            "caption": "Urban Discovery 5 - Banner 3"
+          }
+        }
+      },
+      "block_order": [
+        "slide_1",
+        "slide_2",
+        "slide_3",
+        "slide_4",
+        "slide_5",
+        "slide_6",
+        "slide_7"
+      ],
+      "settings": {
+        "label": "Gallery",
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "label_uk": "Галерея"
+      }
+    },
+    "banner": {
+      "type": "section-urban-banner-stack",
+      "blocks": {
+        "banner_1": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/discovery2021Plus/banner-1-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "Urban Discovery 5",
+            "subtitle": "",
+            "button_label": "Build Yours",
+            "button_link": "/collections/land-rover-discovery-5",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "Urban Discovery 5",
+            "button_label_uk": "Створити свій"
+          }
+        },
+        "banner_2": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/discovery2021Plus/banner-2-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "Urban Discovery 5",
+            "subtitle": "",
+            "button_label": "Build Yours",
+            "button_link": "/collections/land-rover-discovery-5",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "Urban Discovery 5",
+            "button_label_uk": "Створити свій"
+          }
+        },
+        "banner_3": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/discovery2021Plus/banner-3-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "Urban Discovery 5",
+            "subtitle": "",
+            "button_label": "Build Yours",
+            "button_link": "/collections/land-rover-discovery-5",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "Urban Discovery 5",
+            "button_label_uk": "Створити свій"
+          }
+        }
+      },
+      "block_order": [
+        "banner_1",
+        "banner_2",
+        "banner_3"
+      ],
+      "settings": {
+        "overlay_opacity": 20,
+        "mobile_height": 70,
+        "desktop_height": 90,
+        "border_color": "#1c1c1c"
+      }
+    },
+    "main": {
+      "type": "main-collection-product-grid",
+      "settings": {
+        "products_per_page": 16,
+        "columns_desktop": 4,
+        "color_scheme": "scheme-1",
+        "image_ratio": "adapt",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "enable_filtering": true,
+        "filter_type": "horizontal",
+        "enable_sorting": true,
+        "columns_mobile": "2",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "video_pointer": {
+      "type": "section-urban-video-pointer",
+      "settings": {
+        "video_url": "https://player.vimeo.com/video/636096845?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
+        "caption_eyebrow": "Urban Automotive",
+        "caption_title": "Land Rover Discovery 5",
+        "full_width": true,
+        "max_width": 1900,
+        "overlay_top": 10,
+        "overlay_bottom": 15,
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "background_color": "#000000",
+        "caption_eyebrow_uk": "Urban Automotive",
+        "caption_title_uk": "Land Rover Discovery 5"
+      }
+    },
+    "blueprint_kit": {
+      "type": "section-urban-blueprint-kit",
+      "blocks": {
+        "kit_1": {
+          "type": "view",
+          "settings": {
+            "position_label": "Front",
+            "title_en": "Front Package",
+            "title_uk": "Передній пакет",
+            "parts_en": "Front bumper assembly|Carbon fibre bonnet vents|Front grille surround|Front splitter",
+            "parts_uk": "Передній бампер|Карбонові вентиляційні отвори капота|Обрамлення передньої решітки|Передній спліттер",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/discovery2021Plus/front.jpg"
+          }
+        },
+        "kit_2": {
+          "type": "view",
+          "settings": {
+            "position_label": "Left",
+            "title_en": "Side Package",
+            "title_uk": "Бічний пакет",
+            "parts_en": "Side steps|Side skirt extensions|Side vent surrounds|Mirror caps",
+            "parts_uk": "Бічні підніжки|Бічні пороги|Обрамлення бічних вентиляцій|Накладки дзеркал",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/discovery2021Plus/left.jpg"
+          }
+        },
+        "kit_3": {
+          "type": "view",
+          "settings": {
+            "position_label": "Right",
+            "title_en": "Wheel Package",
+            "title_uk": "Пакет коліс",
+            "parts_en": "22\" forged alloy wheels|Performance tyres|Wheel spacers|Centre caps",
+            "parts_uk": "22\" ковані легкосплавні диски|Спортивні шини|Проставки коліс|Центральні ковпаки",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/discovery2021Plus/right.jpg"
+          }
+        },
+        "kit_4": {
+          "type": "view",
+          "settings": {
+            "position_label": "Back",
+            "title_en": "Rear Package",
+            "title_uk": "Задній пакет",
+            "parts_en": "Rear bumper assembly|Rear spoiler|Exhaust finishers|Urban badging",
+            "parts_uk": "Задній бампер|Задній спойлер|Насадки вихлопу|Значки Urban",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/discovery2021Plus/back.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "kit_1",
+        "kit_2",
+        "kit_3",
+        "kit_4"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "heading": "The Urban Kit",
+        "subheading": "Land Rover Discovery 5",
+        "cta_label": "Enquire Now",
+        "cta_link": "/pages/contact",
+        "cta_new_tab": false,
+        "padding_top": 52,
+        "padding_bottom": 52,
+        "background_color": "#f5f5f3",
+        "card_background": "#ffffff",
+        "text_color": "#111111",
+        "muted_color": "#666666",
+        "separator_color": "#e0e0e0",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "heading_uk": "Комплект Urban",
+        "subheading_uk": "Land Rover Discovery 5",
+        "cta_label_uk": "Замовити зараз"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "overview",
+    "gallery",
+    "video_pointer",
+    "banner",
+    "blueprint_kit",
+    "main"
+  ]
+}

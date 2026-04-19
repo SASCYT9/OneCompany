@@ -9,17 +9,16 @@ import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { formatShopMoney, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
-import { localizeShopProductTitle, localizeShopText } from "@/lib/shopText";
-import {
-  buildShopProductPath,
-  getUrbanCollectionHandleForProduct,
-} from "@/lib/urbanCollectionMatcher";
+import { localizeShopText } from "@/lib/shopText";
+import { buildShopProductPath } from "@/lib/urbanCollectionMatcher";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import {
-  URBAN_COLLECTION_BRANDS,
-  URBAN_COLLECTION_CARDS,
-} from "../data/urbanCollectionsList";
+  buildUrbanCatalogEntries,
+  type UrbanCatalogEntry,
+  type UrbanCatalogFamily,
+  URBAN_FAMILY_ORDER,
+} from "@/lib/urbanCatalogFacets";
 
 type UrbanVehicleFilterProps = {
   locale: SupportedLocale;
@@ -27,29 +26,11 @@ type UrbanVehicleFilterProps = {
   viewerContext?: ShopViewerPricingContext;
 };
 
-type CatalogFamily =
-  | "bodykits"
-  | "exterior"
-  | "wheels"
-  | "exhaust"
-  | "interior"
-  | "accessories";
-type FamilyFilter = "all" | CatalogFamily;
+type FamilyFilter = "all" | UrbanCatalogFamily;
+type CategoryFilter = "all" | string;
 
-type EnrichedUrbanProduct = {
-  product: ShopProduct;
-  title: string;
-  brand: string;
-  modelHandle: string;
-  modelLabel: string;
-  categoryLabel: string;
-  family: CatalogFamily;
-  isBodykit: boolean;
-  bodykitRank: number;
-  searchableText: string;
-  sortablePrice: number;
-  modelOrder: number;
-  brandOrder: number;
+type EnrichedUrbanProduct = UrbanCatalogEntry & {
+  modelSummaryLabel: string;
 };
 
 type FacetItem = {
@@ -69,31 +50,8 @@ type PremiumComboboxGroup = {
   options: PremiumComboboxOption[];
 };
 
-const CARD_BY_HANDLE = new Map(
-  URBAN_COLLECTION_CARDS.map((card, index) => [
-    card.collectionHandle,
-    {
-      ...card,
-      order: index,
-    },
-  ])
-);
-
-const BRAND_ORDER = new Map<string, number>(
-  URBAN_COLLECTION_BRANDS.map((brand, index) => [brand, index])
-);
-
-const FAMILY_ORDER: CatalogFamily[] = [
-  "bodykits",
-  "exterior",
-  "wheels",
-  "exhaust",
-  "interior",
-  "accessories",
-];
-
 const FAMILY_LABELS: Record<
-  CatalogFamily,
+  UrbanCatalogFamily,
   { ua: string; en: string; hintUa: string; hintEn: string }
 > = {
   bodykits: {
@@ -133,15 +91,6 @@ const FAMILY_LABELS: Record<
     hintEn: "Decals, electrics, options, accessories",
   },
 };
-
-const BODYKIT_REGEX =
-  /(body\s?kit|bodykits|bodykit|aero\s?kit|aerokit|widebody|widetrack|wide\s?track|обвіс|обвіси|аеродинамічний обвіс|кузовний обвіс|комплект обвіс|body conversion|bundle)/i;
-const WHEEL_REGEX =
-  /(wheel|wheels|wheel nut|wheel nuts|wheel spacer|wheel spacers|spacer|spacers|tyre|tyres|rim|rims|диск|диски|гайк|болт|проставк)/i;
-const EXHAUST_REGEX = /(exhaust|tailpipe|tailpipes|вихлоп|насадк)/i;
-const INTERIOR_REGEX = /(interior|floor mat|floor mats|interior kit|салон|килим|килимк)/i;
-const ACCESSORY_REGEX =
-  /(accessor|additional options|electrics|number plate|decal|lettering|logo|logos|cover|covers|mudguard|mudguards|trim|trims|option|options|аксесуар|електрик|наклейк|логотип)/i;
 
 const FALLBACK_URBAN_IMAGE =
   "/images/shop/urban/hero/models/defender2020Plus/2025Updates/hero-1-1920.jpg";
@@ -183,67 +132,6 @@ function computePricesFromEur(
   }
 
   return { uah: baseUah, eur: baseEur, usd: baseUsd };
-}
-
-function normalizeUrbanValue(value: string) {
-  return value
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^\p{L}\p{N}\s-]+/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
-function primaryPrice(price: ShopProduct["price"]) {
-  return price.eur || price.usd || price.uah || 0;
-}
-
-function inferFamily(product: ShopProduct) {
-  const haystack = normalizeUrbanValue(
-    [
-      product.productType || "",
-      product.category.en,
-      product.category.ua,
-      product.title.en,
-      product.title.ua,
-      product.collection.en,
-      product.collection.ua,
-      ...(product.tags || []),
-    ].join(" ")
-  );
-
-  if (BODYKIT_REGEX.test(haystack)) return "bodykits";
-  if (WHEEL_REGEX.test(haystack)) return "wheels";
-  if (EXHAUST_REGEX.test(haystack)) return "exhaust";
-  if (INTERIOR_REGEX.test(haystack)) return "interior";
-  if (ACCESSORY_REGEX.test(haystack)) return "accessories";
-  return "exterior";
-}
-
-function inferBodykitRank(product: ShopProduct, family: CatalogFamily) {
-  if (family !== "bodykits") {
-    return 50 + FAMILY_ORDER.indexOf(family);
-  }
-
-  const typeHaystack = normalizeUrbanValue(
-    [product.productType || "", product.category.en, product.category.ua].join(" ")
-  );
-  const titleHaystack = normalizeUrbanValue(
-    [product.title.en, product.title.ua, product.collection.en, product.collection.ua].join(" ")
-  );
-
-  if (/\bbodykits?\b|\bbodykit\b|widebody/i.test(typeHaystack)) return 0;
-  if (/\bbundles?\b/i.test(typeHaystack)) return 1;
-  if (
-    /widetrack|wide\s?track|aero\s?kit|aerokit|кузовний обвіс|аеродинамічний обвіс/i.test(
-      titleHaystack
-    )
-  ) {
-    return 2;
-  }
-  if (/kit|комплект/i.test(titleHaystack)) return 3;
-  return 4;
 }
 
 function formatDisplayPrice(
@@ -464,7 +352,7 @@ function ProductCard({
         <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-white/45">
           <span>{entry.brand}</span>
           <span className="text-white/20">•</span>
-          <span>{entry.modelLabel}</span>
+          <span>{entry.modelSummaryLabel}</span>
         </div>
 
         <Link href={productUrl} className="mt-3 block">
@@ -558,8 +446,10 @@ export default function UrbanVehicleFilter({
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);
+  const [activeBrand, setActiveBrand] = useState<string>("all");
   const [activeModel, setActiveModel] = useState<string>("all");
   const [activeFamily, setActiveFamily] = useState<FamilyFilter>("all");
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("all");
 
   useEffect(() => {
     setMounted(true);
@@ -571,120 +461,180 @@ export default function UrbanVehicleFilter({
     : null;
 
   const enrichedProducts = useMemo<EnrichedUrbanProduct[]>(() => {
-    return products.map((product) => {
-      const modelHandle = getUrbanCollectionHandleForProduct(product);
-      const card = modelHandle ? CARD_BY_HANDLE.get(modelHandle) : undefined;
-      const title = localizeShopProductTitle(locale, product);
-      const family = inferFamily(product);
-      const pricing = viewerContext ? resolveShopProductPricing(product, viewerContext) : null;
-      const categoryLabel =
-        localizeShopText(locale, product.category) ||
-        product.productType ||
-        (isUa ? "Urban компонент" : "Urban component");
-      const brand = card?.brand ?? (isUa ? "Інші Urban" : "Other Urban");
-      const collectionLabel =
-        card?.title ||
-        localizeShopText(locale, product.collection) ||
-        (isUa ? "Інші Urban компоненти" : "Other Urban Components");
-      const searchableText = normalizeUrbanValue(
-        [
-          title,
-          categoryLabel,
-          brand,
-          collectionLabel,
-          product.sku,
-          product.productType || "",
-          product.shortDescription.en,
-          product.shortDescription.ua,
-          ...(product.tags || []),
-        ].join(" ")
-      );
+    return buildUrbanCatalogEntries({
+      locale,
+      products,
+      viewerContext,
+    }).map((entry) => ({
+      ...entry,
+      modelSummaryLabel:
+        localizeShopText(locale, entry.product.collection) ||
+        entry.modelFacets.map((facet) => facet.label).join(" / ") ||
+        entry.primaryModelLabel,
+    }));
+  }, [locale, products, viewerContext]);
 
-      return {
-        product,
-        title,
-        brand,
-        modelHandle: modelHandle ?? "other-urban",
-        modelLabel: collectionLabel,
-        categoryLabel,
-        family,
-        isBodykit: family === "bodykits",
-        bodykitRank: inferBodykitRank(product, family),
-        searchableText,
-        sortablePrice: primaryPrice(pricing?.effectivePrice ?? product.price),
-        modelOrder: card?.order ?? 999,
-        brandOrder: BRAND_ORDER.get(brand) ?? 999,
-      };
-    });
-  }, [products, locale, viewerContext, isUa]);
-
-  const modelsByBrand = useMemo(() => {
-    const groups = new Map<
-      string,
-      Map<string, FacetItem & { order: number }>
-    >();
+  const brandOptions = useMemo(() => {
+    const brands = new Map<string, FacetItem & { order: number }>();
 
     enrichedProducts.forEach((entry) => {
-      if (!groups.has(entry.brand)) {
-        groups.set(entry.brand, new Map());
-      }
-      const group = groups.get(entry.brand)!;
-      const current = group.get(entry.modelHandle);
+      const current = brands.get(entry.brand);
       if (current) {
         current.count += 1;
+        current.order = Math.min(current.order, entry.brandOrder);
         return;
       }
-      group.set(entry.modelHandle, {
-        key: entry.modelHandle,
-        label: entry.modelLabel,
+
+      brands.set(entry.brand, {
+        key: entry.brand,
+        label: entry.brand,
         count: 1,
-        order: entry.modelOrder,
+        order: entry.brandOrder,
+      });
+    });
+
+    return Array.from(brands.values()).sort((left, right) => {
+      if (left.order !== right.order) return left.order - right.order;
+      if (right.count !== left.count) return right.count - left.count;
+      return left.label.localeCompare(right.label, "en");
+    });
+  }, [enrichedProducts]);
+
+  const brandScopedProducts = useMemo(
+    () =>
+      activeBrand === "all"
+        ? enrichedProducts
+        : enrichedProducts.filter((entry) => entry.brand === activeBrand),
+    [activeBrand, enrichedProducts]
+  );
+
+  const modelsByBrand = useMemo(() => {
+    const groups = new Map<string, Map<string, FacetItem & { order: number }>>();
+
+    brandScopedProducts.forEach((entry) => {
+      entry.modelFacets.forEach((facet) => {
+        if (!groups.has(facet.brand)) {
+          groups.set(facet.brand, new Map());
+        }
+        const group = groups.get(facet.brand)!;
+        const current = group.get(facet.handle);
+        if (current) {
+          current.count += 1;
+          current.order = Math.min(current.order, facet.order);
+          return;
+        }
+
+        group.set(facet.handle, {
+          key: facet.handle,
+          label: facet.label,
+          count: 1,
+          order: facet.order,
+        });
       });
     });
 
     return Array.from(groups.entries())
       .sort((left, right) => {
-        const leftOrder = BRAND_ORDER.get(left[0]) ?? 999;
-        const rightOrder = BRAND_ORDER.get(right[0]) ?? 999;
+        const leftOrder = Math.min(...Array.from(left[1].values()).map((item) => item.order));
+        const rightOrder = Math.min(...Array.from(right[1].values()).map((item) => item.order));
         if (leftOrder !== rightOrder) return leftOrder - rightOrder;
         return left[0].localeCompare(right[0], "en");
       })
-      .map(([brand, models]) => ({
+      .map(([brand, items]) => ({
         brand,
-        items: Array.from(models.values()).sort((left, right) => {
+        items: Array.from(items.values()).sort((left, right) => {
           if (left.order !== right.order) return left.order - right.order;
           if (right.count !== left.count) return right.count - left.count;
           return left.label.localeCompare(right.label, "en");
         }),
       }));
-  }, [enrichedProducts]);
+  }, [brandScopedProducts]);
 
-  const scopedProducts = useMemo(() => {
-    return enrichedProducts.filter((entry) => {
-      if (activeModel !== "all" && entry.modelHandle !== activeModel) return false;
-      return true;
-    });
-  }, [activeModel, enrichedProducts]);
+  useEffect(() => {
+    if (
+      activeModel !== "all" &&
+      !modelsByBrand.some((group) => group.items.some((item) => item.key === activeModel))
+    ) {
+      setActiveModel("all");
+    }
+  }, [activeModel, modelsByBrand]);
+
+  const modelScopedProducts = useMemo(
+    () =>
+      activeModel === "all"
+        ? brandScopedProducts
+        : brandScopedProducts.filter((entry) => entry.modelHandles.includes(activeModel)),
+    [activeModel, brandScopedProducts]
+  );
 
   const familyOptions = useMemo(() => {
-    const counts = new Map<CatalogFamily, number>();
-    scopedProducts.forEach((entry) => {
+    const counts = new Map<UrbanCatalogFamily, number>();
+    modelScopedProducts.forEach((entry) => {
       counts.set(entry.family, (counts.get(entry.family) ?? 0) + 1);
     });
 
-    return FAMILY_ORDER.map((family) => ({
+    return URBAN_FAMILY_ORDER.map((family) => ({
       key: family,
       label: isUa ? FAMILY_LABELS[family].ua : FAMILY_LABELS[family].en,
       hint: isUa ? FAMILY_LABELS[family].hintUa : FAMILY_LABELS[family].hintEn,
       count: counts.get(family) ?? 0,
     }));
-  }, [isUa, scopedProducts]);
+  }, [isUa, modelScopedProducts]);
+
+  useEffect(() => {
+    if (
+      activeFamily !== "all" &&
+      !familyOptions.some((option) => option.key === activeFamily && option.count > 0)
+    ) {
+      setActiveFamily("all");
+    }
+  }, [activeFamily, familyOptions]);
+
+  const familyScopedProducts = useMemo(
+    () =>
+      activeFamily === "all"
+        ? modelScopedProducts
+        : modelScopedProducts.filter((entry) => entry.family === activeFamily),
+    [activeFamily, modelScopedProducts]
+  );
+
+  const categoryOptions = useMemo(() => {
+    const categories = new Map<string, FacetItem>();
+
+    familyScopedProducts.forEach((entry) => {
+      const current = categories.get(entry.categoryLabel);
+      if (current) {
+        current.count += 1;
+        return;
+      }
+
+      categories.set(entry.categoryLabel, {
+        key: entry.categoryLabel,
+        label: entry.categoryLabel,
+        count: 1,
+      });
+    });
+
+    return Array.from(categories.values()).sort((left, right) => {
+      if (right.count !== left.count) return right.count - left.count;
+      return left.label.localeCompare(right.label, locale === "ua" ? "uk" : "en");
+    });
+  }, [familyScopedProducts, locale]);
+
+  useEffect(() => {
+    if (
+      activeCategory !== "all" &&
+      !categoryOptions.some((option) => option.key === activeCategory && option.count > 0)
+    ) {
+      setActiveCategory("all");
+    }
+  }, [activeCategory, categoryOptions]);
 
   const filteredProducts = useMemo(() => {
-    const next = scopedProducts.filter((entry) => {
-      if (activeFamily === "all") return true;
-      return entry.family === activeFamily;
-    });
+    const next =
+      activeCategory === "all"
+        ? [...familyScopedProducts]
+        : familyScopedProducts.filter((entry) => entry.categoryLabel === activeCategory);
 
     next.sort((left, right) => {
       if (left.bodykitRank !== right.bodykitRank) {
@@ -704,7 +654,7 @@ export default function UrbanVehicleFilter({
     });
 
     return next;
-  }, [activeFamily, locale, scopedProducts]);
+  }, [activeCategory, familyScopedProducts, locale]);
 
   const featuredBodykits = useMemo(
     () => filteredProducts.filter((entry) => entry.family === "bodykits"),
@@ -719,15 +669,36 @@ export default function UrbanVehicleFilter({
   const modelLabelByHandle = useMemo(() => {
     const map = new Map<string, string>();
     enrichedProducts.forEach((entry) => {
-      if (!map.has(entry.modelHandle)) {
-        map.set(entry.modelHandle, entry.modelLabel);
-      }
+      entry.modelFacets.forEach((facet) => {
+        if (!map.has(facet.handle)) {
+          map.set(facet.handle, facet.label);
+        }
+      });
     });
     return map;
   }, [enrichedProducts]);
 
+  const currentBrandLabel = activeBrand === "all" ? null : activeBrand;
   const currentModelLabel = activeModel === "all" ? null : modelLabelByHandle.get(activeModel) ?? null;
-  const hasActiveFilters = activeModel !== "all" || activeFamily !== "all";
+  const currentCategoryLabel = activeCategory === "all" ? null : activeCategory;
+  const hasActiveFilters =
+    activeBrand !== "all" ||
+    activeModel !== "all" ||
+    activeFamily !== "all" ||
+    activeCategory !== "all";
+
+  const brandComboboxGroups = useMemo<PremiumComboboxGroup[]>(
+    () => [
+      {
+        options: brandOptions.map((option) => ({
+          value: option.key,
+          label: option.label,
+          searchText: option.label,
+        })),
+      },
+    ],
+    [brandOptions]
+  );
 
   const modelComboboxGroups = useMemo<PremiumComboboxGroup[]>(
     () =>
@@ -742,7 +713,7 @@ export default function UrbanVehicleFilter({
     [modelsByBrand]
   );
 
-  const categoryComboboxGroups = useMemo<PremiumComboboxGroup[]>(
+  const familyComboboxGroups = useMemo<PremiumComboboxGroup[]>(
     () => [
       {
         options: familyOptions
@@ -757,9 +728,24 @@ export default function UrbanVehicleFilter({
     [familyOptions]
   );
 
+  const categoryComboboxGroups = useMemo<PremiumComboboxGroup[]>(
+    () => [
+      {
+        options: categoryOptions.map((option) => ({
+          value: option.key,
+          label: option.label,
+          searchText: option.label,
+        })),
+      },
+    ],
+    [categoryOptions]
+  );
+
   function resetFilters() {
+    setActiveBrand("all");
     setActiveModel("all");
     setActiveFamily("all");
+    setActiveCategory("all");
   }
 
   return (
@@ -776,22 +762,38 @@ export default function UrbanVehicleFilter({
           </div>
 
           <div className="px-6 py-6 md:px-8 md:py-7 lg:px-10">
-            <div className="grid gap-3 md:grid-cols-[minmax(0,1.25fr)_minmax(0,0.95fr)_auto]">
+            <div className="grid gap-3 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,0.9fr)_minmax(0,0.95fr)_auto]">
               <PremiumCombobox
-                label={isUa ? "Автомобіль" : "Vehicle"}
-                placeholder={isUa ? "Вибрати авто" : "Choose vehicle"}
+                label={isUa ? "Марка" : "Brand"}
+                placeholder={isUa ? "Усі марки" : "All brands"}
+                value={activeBrand}
+                onChange={setActiveBrand}
+                groups={brandComboboxGroups}
+                allLabel={isUa ? "Усі марки" : "All brands"}
+              />
+              <PremiumCombobox
+                label={isUa ? "Модель" : "Model"}
+                placeholder={isUa ? "Усі моделі" : "All models"}
                 value={activeModel}
                 onChange={setActiveModel}
                 groups={modelComboboxGroups}
-                allLabel={isUa ? "Усі автомобілі" : "All vehicles"}
+                allLabel={isUa ? "Усі моделі" : "All models"}
               />
               <PremiumCombobox
-                label={isUa ? "Категорія" : "Category"}
-                placeholder={isUa ? "Усі категорії" : "All categories"}
+                label={isUa ? "Сімейство" : "Family"}
                 value={activeFamily}
                 onChange={(value) => setActiveFamily(value as FamilyFilter)}
+                placeholder={isUa ? "Усі сімейства" : "All families"}
+                groups={familyComboboxGroups}
+                allLabel={isUa ? "Усі сімейства" : "All families"}
+              />
+              <PremiumCombobox
+                label={isUa ? "Тип" : "Type"}
+                placeholder={isUa ? "Усі типи" : "All types"}
+                value={activeCategory}
+                onChange={(value) => setActiveCategory(value as CategoryFilter)}
                 groups={categoryComboboxGroups}
-                allLabel={isUa ? "Усі категорії" : "All categories"}
+                allLabel={isUa ? "Усі типи" : "All types"}
               />
               {hasActiveFilters ? (
                 <button
@@ -807,6 +809,16 @@ export default function UrbanVehicleFilter({
 
             {hasActiveFilters ? (
               <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-white/8 pt-5">
+                {currentBrandLabel ? (
+                  <button
+                    type="button"
+                    onClick={() => setActiveBrand("all")}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-2 text-xs text-white/72 transition hover:border-white/22 hover:text-white"
+                  >
+                    <span>{currentBrandLabel}</span>
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
                 {currentModelLabel ? (
                   <button
                     type="button"
@@ -824,6 +836,16 @@ export default function UrbanVehicleFilter({
                     className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-2 text-xs text-white/72 transition hover:border-white/22 hover:text-white"
                   >
                     <span>{isUa ? FAMILY_LABELS[activeFamily].ua : FAMILY_LABELS[activeFamily].en}</span>
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
+                {currentCategoryLabel ? (
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory("all")}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-2 text-xs text-white/72 transition hover:border-white/22 hover:text-white"
+                  >
+                    <span>{currentCategoryLabel}</span>
                     <X className="h-3.5 w-3.5" />
                   </button>
                 ) : null}
@@ -845,7 +867,7 @@ export default function UrbanVehicleFilter({
               {isUa ? "Скинути фільтри" : "Reset filters"}
             </button>
           </div>
-        ) : activeFamily === "all" && featuredBodykits.length > 0 ? (
+        ) : activeFamily === "all" && activeCategory === "all" && featuredBodykits.length > 0 ? (
           <div className="mt-8 space-y-10">
             <section>
               <div className="mb-4">

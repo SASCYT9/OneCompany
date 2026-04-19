@@ -1,0 +1,415 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "section-urban-cinematic-hero",
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "Audi RS6 C8 2020+",
+        "subtitle": "With a full carbon fibre aero programme, lowered suspension and the option of a CAT Back performance exhaust, we’ve taken the C8 Audi RS6 C8 2020+ Avant to the next level.",
+        "button_label": "Enquire",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "enable_loader": false,
+        "show_scroll_button": true,
+        "scroll_target": "[id$='__overview']",
+        "overlay_opacity": 25,
+        "mobile_height": 90,
+        "desktop_height": 100,
+        "accent_color": "#ffffff",
+        "loader_background": "#000000",
+        "external_video_embed_url": "https://player.vimeo.com/video/585275488?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
+        "external_poster_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/rs6/hero-1-1920.jpg",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "Audi RS6 C8 2020+",
+        "subtitle_uk": "З повною карбоновою аеро-програмою, заниженою підвіскою та опціональним спортивним вихлопом CAT Back ми вивели Audi RS6 C8 2020+ Avant на новий рівень.",
+        "button_label_uk": "Замовити"
+      }
+    },
+    "overview": {
+      "type": "section-urban-model-overview",
+      "blocks": {
+        "hl_1": {
+          "type": "highlight",
+          "settings": {
+            "text": "BlackHF-5",
+            "text_uk": "Black HF-5"
+          }
+        },
+        "hl_2": {
+          "type": "highlight",
+          "settings": {
+            "text": "Nardo GreyHF-2",
+            "text_uk": "Nardo Grey HF-2"
+          }
+        },
+        "hl_3": {
+          "type": "highlight",
+          "settings": {
+            "text": "SilverHF-2",
+            "text_uk": "Silver HF-2"
+          }
+        }
+      },
+      "block_order": [
+        "hl_1",
+        "hl_2",
+        "hl_3"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "Audi RS6 C8 2020+",
+        "badge": "HF-5",
+        "subtitle": "The ultimate in practicality & performance",
+        "description": "With a full carbon fibre aero programme, lowered suspension and the option of a CAT Back performance exhaust, we’ve taken the C8 Audi RS6 C8 2020+ Avant to the next level.",
+        "button_label": "Enquire Now",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "copy_color": "#cfcfcf",
+        "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rs6/banner-1-1920.jpg",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "Audi RS6 C8 2020+",
+        "badge_uk": "HF-5",
+        "subtitle_uk": "Найкраще поєднання практичності та продуктивності",
+        "description_uk": "З повною карбоновою аеро-програмою, заниженою підвіскою та опціональним спортивним вихлопом CAT Back ми вивели Audi RS6 C8 2020+ Avant на новий рівень.",
+        "button_label_uk": "Замовити зараз"
+      }
+    },
+    "gallery": {
+      "type": "section-urban-gallery-carousel",
+      "blocks": {
+        "slide_1": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-1-1920.jpg",
+            "caption": "Urban RS6 - Image 1"
+          }
+        },
+        "slide_2": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-2-1920.jpg",
+            "caption": "Urban RS6 - Image 2"
+          }
+        },
+        "slide_3": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-3-1920.jpg",
+            "caption": "Urban RS6 - Image 3"
+          }
+        },
+        "slide_4": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-4-1920.jpg",
+            "caption": "Urban RS6 - Image 4"
+          }
+        },
+        "slide_5": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-5-1920.jpg",
+            "caption": "Urban RS6 - Image 5"
+          }
+        },
+        "slide_6": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-6-1920.jpg",
+            "caption": "Urban RS6 - Image 6"
+          }
+        },
+        "slide_7": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-7-1920.jpg",
+            "caption": "Urban RS6 - Image 7"
+          }
+        },
+        "slide_8": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-8-1920.jpg",
+            "caption": "Urban RS6 - Image 8"
+          }
+        },
+        "slide_9": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-9-1920.jpg",
+            "caption": "Urban RS6 - Image 9"
+          }
+        },
+        "slide_10": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-10-1920.jpg",
+            "caption": "Urban RS6 - Image 10"
+          }
+        },
+        "slide_11": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-11-1920.jpg",
+            "caption": "Urban RS6 - Image 11"
+          }
+        },
+        "slide_12": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-12-1920.jpg",
+            "caption": "Urban RS6 - Image 12"
+          }
+        },
+        "slide_13": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-13-1920.jpg",
+            "caption": "Urban RS6 - Image 13"
+          }
+        },
+        "slide_14": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-14-1920.jpg",
+            "caption": "Urban RS6 - Image 14"
+          }
+        },
+        "slide_15": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-15-1920.jpg",
+            "caption": "Urban RS6 - Image 15"
+          }
+        },
+        "slide_16": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-16-1920.jpg",
+            "caption": "Urban RS6 - Image 16"
+          }
+        },
+        "slide_17": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-17-1920.jpg",
+            "caption": "Urban RS6 - Image 17"
+          }
+        },
+        "slide_18": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-18-1920.jpg",
+            "caption": "Urban RS6 - Image 18"
+          }
+        },
+        "slide_19": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-19-1920.jpg",
+            "caption": "Urban RS6 - Image 19"
+          }
+        },
+        "slide_20": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-20-1920.jpg",
+            "caption": "Urban RS6 - Image 20"
+          }
+        }
+      },
+      "block_order": [
+        "slide_1",
+        "slide_2",
+        "slide_3",
+        "slide_4",
+        "slide_5",
+        "slide_6",
+        "slide_7",
+        "slide_8",
+        "slide_9",
+        "slide_10",
+        "slide_11",
+        "slide_12",
+        "slide_13",
+        "slide_14",
+        "slide_15",
+        "slide_16",
+        "slide_17",
+        "slide_18",
+        "slide_19",
+        "slide_20"
+      ],
+      "settings": {
+        "label": "Gallery",
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "label_uk": "Галерея"
+      }
+    },
+    "banner": {
+      "type": "section-urban-banner-stack",
+      "blocks": {
+        "banner_1": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rs6/banner-1-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "Audi RS6 C8 2020+",
+            "subtitle": "Widetrack",
+            "button_label": "Build Yours",
+            "button_link": "/collections/audi-rs6-rs7",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "Audi RS6 C8 2020+",
+            "subtitle_uk": "Widetrack",
+            "button_label_uk": "Створити свій"
+          }
+        }
+      },
+      "block_order": [
+        "banner_1"
+      ],
+      "settings": {
+        "overlay_opacity": 20,
+        "mobile_height": 70,
+        "desktop_height": 90,
+        "border_color": "#1c1c1c"
+      }
+    },
+    "main": {
+      "type": "main-collection-product-grid",
+      "settings": {
+        "products_per_page": 16,
+        "columns_desktop": 4,
+        "color_scheme": "scheme-1",
+        "image_ratio": "adapt",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "enable_filtering": true,
+        "filter_type": "horizontal",
+        "enable_sorting": true,
+        "columns_mobile": "2",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "video_pointer": {
+      "type": "section-urban-video-pointer",
+      "settings": {
+        "video_url": "https://player.vimeo.com/video/666798875?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
+        "caption_eyebrow": "Urban Automotive",
+        "caption_title": "Audi RS6 / RS7",
+        "full_width": true,
+        "max_width": 1900,
+        "overlay_top": 10,
+        "overlay_bottom": 15,
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "background_color": "#000000",
+        "caption_eyebrow_uk": "Urban Automotive",
+        "caption_title_uk": "Audi RS6 / RS7"
+      }
+    },
+    "blueprint_kit": {
+      "type": "section-urban-blueprint-kit",
+      "blocks": {
+        "kit_1": {
+          "type": "view",
+          "settings": {
+            "position_label": "Front",
+            "title_en": "Front Aero Package",
+            "title_uk": "Передній аеро пакет",
+            "parts_en": "Carbon fibre front splitter|Front bumper apron|Carbon canard set|Front lip spoiler",
+            "parts_uk": "Карбоновий передній спліттер|Передній фартук бампера|Карбонові канарди|Передній спойлер",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rs6/front.jpg"
+          }
+        },
+        "kit_2": {
+          "type": "view",
+          "settings": {
+            "position_label": "Left",
+            "title_en": "Side Package",
+            "title_uk": "Бічний пакет",
+            "parts_en": "Carbon fibre side skirt extensions|Carbon mirror caps|Door blade trims|Side body kit",
+            "parts_uk": "Карбонові бічні пороги|Карбонові накладки дзеркал|Накладки на двері|Бічний обвіс",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rs6/left.jpg"
+          }
+        },
+        "kit_3": {
+          "type": "view",
+          "settings": {
+            "position_label": "Right",
+            "title_en": "Wheel Package",
+            "title_uk": "Пакет коліс",
+            "parts_en": "22\" forged alloy wheels|Performance tyres|Wheel spacer kit|Branded centre caps",
+            "parts_uk": "22\" ковані легкосплавні диски|Спортивні шини|Набір проставок коліс|Фірмові центральні ковпаки",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rs6/right.jpg"
+          }
+        },
+        "kit_4": {
+          "type": "view",
+          "settings": {
+            "position_label": "Back",
+            "title_en": "Rear Aero Package",
+            "title_uk": "Задній аеро пакет",
+            "parts_en": "Carbon fibre rear diffuser|Rear spoiler assembly|Carbon exhaust surrounds|Rear canard set",
+            "parts_uk": "Карбоновий задній дифузор|Задній спойлер|Карбонові обрамлення вихлопу|Задні канарди",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rs6/back.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "kit_1",
+        "kit_2",
+        "kit_3",
+        "kit_4"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "heading": "The Urban Kit",
+        "subheading": "Audi RS6 / RS7",
+        "cta_label": "Enquire Now",
+        "cta_link": "/pages/contact",
+        "cta_new_tab": false,
+        "padding_top": 52,
+        "padding_bottom": 52,
+        "background_color": "#f5f5f3",
+        "card_background": "#ffffff",
+        "text_color": "#111111",
+        "muted_color": "#666666",
+        "separator_color": "#e0e0e0",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "heading_uk": "Комплект Urban",
+        "subheading_uk": "Audi RS6 / RS7",
+        "cta_label_uk": "Замовити зараз"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "overview",
+    "gallery",
+    "video_pointer",
+    "banner",
+    "blueprint_kit",
+    "main"
+  ]
+}

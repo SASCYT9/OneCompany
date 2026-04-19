@@ -66,6 +66,12 @@ temp_pgsql/
 .agents/mcp-servers/
 temp-skills/
 reference/
+!reference/
+reference/*
+!reference/urban-shopify-theme/
+reference/urban-shopify-theme/*
+!reference/urban-shopify-theme/templates/
+!reference/urban-shopify-theme/templates/*.json
 docs/
 __pycache__/
 *.part

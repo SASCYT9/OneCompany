@@ -1,0 +1,317 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "section-urban-cinematic-hero",
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "VW Transporter T6.1",
+        "subtitle": "Our many years of expertise in carbon has now been applied to the iconic VW Transporter, transforming it into the van with the most defined road presence on the market today.",
+        "button_label": "Enquire",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "enable_loader": false,
+        "show_scroll_button": true,
+        "scroll_target": "[id$='__overview']",
+        "overlay_opacity": 25,
+        "mobile_height": 90,
+        "desktop_height": 100,
+        "accent_color": "#ffffff",
+        "loader_background": "#000000",
+        "external_video_embed_url": "https://player.vimeo.com/video/624328367?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
+        "external_poster_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/t6-1/hero-1-1920.jpg",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "VW Transporter T6.1",
+        "subtitle_uk": "Наш багаторічний досвід роботи з карбоном тепер застосований до знакового VW Transporter, перетворюючи його на мікроавтобус з найвиразнішою присутністю на дорозі.",
+        "button_label_uk": "Замовити"
+      }
+    },
+    "overview": {
+      "type": "section-urban-model-overview",
+      "blocks": {
+        "hl_1": {
+          "type": "highlight",
+          "settings": {
+            "text": "BlackUC-1",
+            "text_uk": "Black UC-1"
+          }
+        },
+        "hl_2": {
+          "type": "highlight",
+          "settings": {
+            "text": "BlackUC-4",
+            "text_uk": "Black UC-4"
+          }
+        },
+        "hl_3": {
+          "type": "highlight",
+          "settings": {
+            "text": "Nardo GreyWX-2 Explorer",
+            "text_uk": "Nardo Grey WX-2 Explorer"
+          }
+        }
+      },
+      "block_order": [
+        "hl_1",
+        "hl_2",
+        "hl_3"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "VW Transporter T6.1",
+        "badge": "UC-1",
+        "subtitle": "Redefined by Urban",
+        "description": "Our many years of expertise in carbon has now been applied to the iconic VW Transporter, transforming it into the van with the most defined road presence on the market today.",
+        "button_label": "Enquire Now",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "copy_color": "#cfcfcf",
+        "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/t6-1/banner-1-1920.jpg",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "VW Transporter T6.1",
+        "badge_uk": "UC-1",
+        "subtitle_uk": "Переосмислено Urban",
+        "description_uk": "Наш багаторічний досвід роботи з карбоном тепер застосований до знакового VW Transporter, перетворюючи його на мікроавтобус з найвиразнішою присутністю на дорозі.",
+        "button_label_uk": "Замовити зараз"
+      }
+    },
+    "gallery": {
+      "type": "section-urban-gallery-carousel",
+      "blocks": {
+        "slide_1": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/t6-1/carousel-1-1920.jpg",
+            "caption": "VW Transporter T6.1 - Image 1"
+          }
+        },
+        "slide_2": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/t6-1/carousel-2-1920.jpg",
+            "caption": "VW Transporter T6.1 - Image 2"
+          }
+        },
+        "slide_3": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/t6-1/carousel-3-1920.jpg",
+            "caption": "VW Transporter T6.1 - Image 3"
+          }
+        },
+        "slide_4": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/t6-1/carousel-4-1920.jpg",
+            "caption": "VW Transporter T6.1 - Image 4"
+          }
+        },
+        "slide_5": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/t6-1/gallery-1-lg.jpg",
+            "caption": "VW Transporter T6.1 - Image 5"
+          }
+        },
+        "slide_6": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/t6-1/gallery-2-lg.jpg",
+            "caption": "VW Transporter T6.1 - Image 6"
+          }
+        },
+        "slide_7": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/t6-1/gallery-3-lg.jpg",
+            "caption": "VW Transporter T6.1 - Image 7"
+          }
+        },
+        "slide_8": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/t6-1/gallery-4-lg.jpg",
+            "caption": "VW Transporter T6.1 - Image 8"
+          }
+        },
+        "slide_9": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/t6-1/gallery-5-lg.jpg",
+            "caption": "VW Transporter T6.1 - Image 9"
+          }
+        },
+        "slide_10": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/t6-1/gallery-6-lg.jpg",
+            "caption": "VW Transporter T6.1 - Image 10"
+          }
+        }
+      },
+      "block_order": [
+        "slide_1",
+        "slide_2",
+        "slide_3",
+        "slide_4",
+        "slide_5",
+        "slide_6",
+        "slide_7",
+        "slide_8",
+        "slide_9",
+        "slide_10"
+      ],
+      "settings": {
+        "label": "Gallery",
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "label_uk": "Галерея"
+      }
+    },
+    "banner": {
+      "type": "section-urban-banner-stack",
+      "blocks": {
+        "banner_1": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/t6-1/banner-1-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "VW Transporter T6.1",
+            "subtitle": "Widetrack",
+            "button_label": "Build Yours",
+            "button_link": "/collections/volkswagen-transporter-t6-1",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "VW Transporter T6.1",
+            "subtitle_uk": "Widetrack",
+            "button_label_uk": "Створити свій"
+          }
+        }
+      },
+      "block_order": [
+        "banner_1"
+      ],
+      "settings": {
+        "overlay_opacity": 20,
+        "mobile_height": 70,
+        "desktop_height": 90,
+        "border_color": "#1c1c1c"
+      }
+    },
+    "main": {
+      "type": "main-collection-product-grid",
+      "settings": {
+        "products_per_page": 16,
+        "columns_desktop": 4,
+        "color_scheme": "scheme-1",
+        "image_ratio": "adapt",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "enable_filtering": true,
+        "filter_type": "horizontal",
+        "enable_sorting": true,
+        "columns_mobile": "2",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "blueprint_kit": {
+      "type": "section-urban-blueprint-kit",
+      "blocks": {
+        "kit_1": {
+          "type": "view",
+          "settings": {
+            "position_label": "Front",
+            "title_en": "Front Package",
+            "title_uk": "Передній пакет",
+            "parts_en": "Front splitter|Front bumper lower lip|Grille surround|LED accent lights",
+            "parts_uk": "Передній спліттер|Нижня губа переднього бампера|Обрамлення решітки|LED акцентні вогні",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/t6-1/front.jpg"
+          }
+        },
+        "kit_2": {
+          "type": "view",
+          "settings": {
+            "position_label": "Left",
+            "title_en": "Side Package",
+            "title_uk": "Бічний пакет",
+            "parts_en": "Side steps|Side skirt extensions|Side window trims|Mirror caps",
+            "parts_uk": "Бічні підніжки|Бічні пороги|Бічні віконні накладки|Накладки дзеркал",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/t6-1/left.jpg"
+          }
+        },
+        "kit_3": {
+          "type": "view",
+          "settings": {
+            "position_label": "Right",
+            "title_en": "Wheel Package",
+            "title_uk": "Пакет коліс",
+            "parts_en": "20\" forged alloy wheels|Performance tyres|Wheel spacer kit|Branded centre caps",
+            "parts_uk": "20\" ковані легкосплавні диски|Спортивні шини|Набір проставок коліс|Фірмові центральні ковпаки",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/t6-1/right.jpg"
+          }
+        },
+        "kit_4": {
+          "type": "view",
+          "settings": {
+            "position_label": "Back",
+            "title_en": "Rear Package",
+            "title_uk": "Задній пакет",
+            "parts_en": "Rear bumper diffuser|Roof spoiler|Exhaust finishers|Rear badge surround",
+            "parts_uk": "Дифузор заднього бампера|Спойлер на дах|Насадки вихлопу|Обрамлення заднього значка",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/t6-1/back.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "kit_1",
+        "kit_2",
+        "kit_3",
+        "kit_4"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "heading": "The Urban Kit",
+        "subheading": "Volkswagen Transporter T6.1",
+        "cta_label": "Enquire Now",
+        "cta_link": "/pages/contact",
+        "cta_new_tab": false,
+        "padding_top": 52,
+        "padding_bottom": 52,
+        "background_color": "#f5f5f3",
+        "card_background": "#ffffff",
+        "text_color": "#111111",
+        "muted_color": "#666666",
+        "separator_color": "#e0e0e0",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "heading_uk": "Комплект Urban",
+        "subheading_uk": "Volkswagen Transporter T6.1",
+        "cta_label_uk": "Замовити зараз"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "overview",
+    "gallery",
+    "banner",
+    "blueprint_kit",
+    "main"
+  ]
+}

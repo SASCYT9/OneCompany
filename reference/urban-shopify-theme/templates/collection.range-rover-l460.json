@@ -1,0 +1,364 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "section-urban-cinematic-hero",
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "Range Rover",
+        "subtitle": "The Urban Widetrack for Range Rover incorporates 44 unique components designed in-house and a full carbon fibre front bumper like no other",
+        "button_label": "Enquire",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "enable_loader": false,
+        "show_scroll_button": true,
+        "scroll_target": "[id$='__overview']",
+        "overlay_opacity": 25,
+        "mobile_height": 90,
+        "desktop_height": 100,
+        "accent_color": "#ffffff",
+        "loader_background": "#000000",
+        "external_video_embed_url": "https://player.vimeo.com/video/944107376?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
+        "external_poster_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/flags/uk.svg",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "Range Rover",
+        "subtitle_uk": "Urban Widetrack для Range Rover включає 44 унікальні компоненти, спроєктовані власноруч, та повний карбоновий передній бампер як ніде інше.",
+        "button_label_uk": "Замовити"
+      }
+    },
+    "overview": {
+      "type": "section-urban-model-overview",
+      "blocks": {
+        "hl_1": {
+          "type": "highlight",
+          "settings": {
+            "text": "Rear Bumper & Diffuser",
+            "text_uk": "Задній бампер та дифузор"
+          }
+        },
+        "hl_2": {
+          "type": "highlight",
+          "settings": {
+            "text": "Billet Exhaust Finisher",
+            "text_uk": "Насадки вихлопної системи Billet"
+          }
+        },
+        "hl_3": {
+          "type": "highlight",
+          "settings": {
+            "text": "Urban Sabre Trim",
+            "text_uk": "Накладки Urban Sabre"
+          }
+        },
+        "hl_4": {
+          "type": "highlight",
+          "settings": {
+            "text": "Urban Side Blade",
+            "text_uk": "Бічні накладки Urban (Side Blade)"
+          }
+        },
+        "hl_5": {
+          "type": "highlight",
+          "settings": {
+            "text": "Widetrack Arches",
+            "text_uk": "Розширені арки Widetrack"
+          }
+        },
+        "hl_6": {
+          "type": "highlight",
+          "settings": {
+            "text": "Matrix Grille",
+            "text_uk": "Решітка Matrix"
+          }
+        },
+        "hl_7": {
+          "type": "highlight",
+          "settings": {
+            "text": "Upper Rear Spoiler",
+            "text_uk": "Верхній задній спойлер"
+          }
+        },
+        "hl_8": {
+          "type": "highlight",
+          "settings": {
+            "text": "Carbon Lower Sills",
+            "text_uk": "Карбонові нижні пороги"
+          }
+        }
+      },
+      "block_order": [
+        "hl_1",
+        "hl_2",
+        "hl_3",
+        "hl_4",
+        "hl_5",
+        "hl_6",
+        "hl_7",
+        "hl_8"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "Range Rover",
+        "badge": "2022+",
+        "subtitle": "Redefined By Urban",
+        "description": "Introducing the Urban Widetrack kit for Range Rover - our most detailed styling package to date which comprises of 44 individual components all designed in-house with our signature ‘OEM plus’ touch.",
+        "button_label": "Enquire Now",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "copy_color": "#cfcfcf",
+        "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/rangeRover2022Plus/col-image-1-lg.jpg",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "Range Rover",
+        "badge_uk": "2022+",
+        "subtitle_uk": "Переосмислено Urban",
+        "description_uk": "Представляємо Urban Widetrack для Range Rover — наш найдетальніший стайлінг-пакет на сьогодні, який складається з 44 індивідуальних компонентів, спроєктованих власноруч з нашим фірмовим підходом OEM plus.",
+        "button_label_uk": "Замовити зараз"
+      }
+    },
+    "gallery": {
+      "type": "section-urban-gallery-carousel",
+      "blocks": {
+        "slide_1": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-1-1920.webp",
+            "caption": "Range Rover - Image 1"
+          }
+        },
+        "slide_2": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-2-1920.webp",
+            "caption": "Range Rover - Image 2"
+          }
+        },
+        "slide_3": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-3-1920.webp",
+            "caption": "Range Rover - Image 3"
+          }
+        },
+        "slide_4": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-4-1920.webp",
+            "caption": "Range Rover - Image 4"
+          }
+        },
+        "slide_5": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-5-1920.webp",
+            "caption": "Range Rover - Image 5"
+          }
+        },
+        "slide_6": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-6-1920.webp",
+            "caption": "Range Rover - Image 6"
+          }
+        },
+        "slide_7": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-7-1920.webp",
+            "caption": "Range Rover - Image 7"
+          }
+        }
+      },
+      "block_order": [
+        "slide_1",
+        "slide_2",
+        "slide_3",
+        "slide_4",
+        "slide_5",
+        "slide_6",
+        "slide_7"
+      ],
+      "settings": {
+        "label": "Gallery",
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "label_uk": "Галерея"
+      }
+    },
+    "banner": {
+      "type": "section-urban-banner-stack",
+      "blocks": {
+        "banner_1": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rangeRover2022Plus/banner-1-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "Urban Range Rover",
+            "subtitle": "",
+            "button_label": "Build Yours",
+            "button_link": "/collections/range-rover-l460",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "Urban Range Rover",
+            "button_label_uk": "Створити свій"
+          }
+        },
+        "banner_2": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rangeRover2022Plus/banner-2-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "Urban Range Rover",
+            "subtitle": "",
+            "button_label": "Build Yours",
+            "button_link": "/collections/range-rover-l460",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "Urban Range Rover",
+            "button_label_uk": "Створити свій"
+          }
+        },
+        "banner_3": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rangeRover2022Plus/banner-3-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "Urban Range Rover",
+            "subtitle": "",
+            "button_label": "Build Yours",
+            "button_link": "/collections/range-rover-l460",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "Urban Range Rover",
+            "button_label_uk": "Створити свій"
+          }
+        }
+      },
+      "block_order": [
+        "banner_1",
+        "banner_2",
+        "banner_3"
+      ],
+      "settings": {
+        "overlay_opacity": 20,
+        "mobile_height": 70,
+        "desktop_height": 90,
+        "border_color": "#1c1c1c"
+      }
+    },
+    "main": {
+      "type": "main-collection-product-grid",
+      "settings": {
+        "products_per_page": 16,
+        "columns_desktop": 4,
+        "color_scheme": "scheme-1",
+        "image_ratio": "adapt",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "enable_filtering": true,
+        "filter_type": "horizontal",
+        "enable_sorting": true,
+        "columns_mobile": "2",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "blueprint_kit": {
+      "type": "section-urban-blueprint-kit",
+      "blocks": {
+        "kit_1": {
+          "type": "view",
+          "settings": {
+            "position_label": "Front",
+            "title_en": "Front Package",
+            "title_uk": "Передній пакет",
+            "parts_en": "Carbon fibre front splitter|Matrix front grille|Front bumper lower section|Bonnet badge surround",
+            "parts_uk": "Карбоновий передній спліттер|Решітка Matrix|Нижня частина переднього бампера|Обрамлення емблеми капота",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRover2022Plus/front.jpg"
+          }
+        },
+        "kit_2": {
+          "type": "view",
+          "settings": {
+            "position_label": "Left",
+            "title_en": "Side Package",
+            "title_uk": "Бічний пакет",
+            "parts_en": "Carbon side sill kit|Illuminated side steps|Carbon mirror caps|Side vent overlays",
+            "parts_uk": "Карбоновий бічний обвіс|Бічні підніжки з підсвіткою|Карбонові накладки дзеркал|Бічні вентиляційні накладки",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRover2022Plus/left.jpg"
+          }
+        },
+        "kit_3": {
+          "type": "view",
+          "settings": {
+            "position_label": "Right",
+            "title_en": "Wheel Package",
+            "title_uk": "Пакет коліс",
+            "parts_en": "24\" forged alloy wheels|Performance tyres|Wheel spacer kit|Branded centre caps",
+            "parts_uk": "24\" ковані легкосплавні диски|Спортивні шини|Набір проставок коліс|Фірмові центральні ковпаки",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRover2022Plus/right.jpg"
+          }
+        },
+        "kit_4": {
+          "type": "view",
+          "settings": {
+            "position_label": "Back",
+            "title_en": "Rear Package",
+            "title_uk": "Задній пакет",
+            "parts_en": "Carbon fibre rear diffuser|Rear spoiler|Exhaust finisher trims|Lower rear bumper section",
+            "parts_uk": "Карбоновий задній дифузор|Задній спойлер|Насадки вихлопу|Нижня частина заднього бампера",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRover2022Plus/back.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "kit_1",
+        "kit_2",
+        "kit_3",
+        "kit_4"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "heading": "The Urban Kit",
+        "subheading": "Range Rover L460",
+        "cta_label": "Enquire Now",
+        "cta_link": "/pages/contact",
+        "cta_new_tab": false,
+        "padding_top": 52,
+        "padding_bottom": 52,
+        "background_color": "#f5f5f3",
+        "card_background": "#ffffff",
+        "text_color": "#111111",
+        "muted_color": "#666666",
+        "separator_color": "#e0e0e0",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "heading_uk": "Комплект Urban",
+        "subheading_uk": "Range Rover L460",
+        "cta_label_uk": "Замовити зараз"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "overview",
+    "gallery",
+    "banner",
+    "blueprint_kit",
+    "main"
+  ]
+}

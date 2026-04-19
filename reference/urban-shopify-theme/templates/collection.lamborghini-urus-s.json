@@ -1,0 +1,363 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "section-urban-cinematic-hero",
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "Urus S",
+        "subtitle": "The Urban Styling kit for Urus S is loaded with high quality carbon fibre and special new design features",
+        "button_label": "Enquire",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "enable_loader": false,
+        "show_scroll_button": true,
+        "scroll_target": "[id$='__overview']",
+        "overlay_opacity": 25,
+        "mobile_height": 90,
+        "desktop_height": 100,
+        "accent_color": "#ffffff",
+        "loader_background": "#000000",
+        "external_video_embed_url": "https://player.vimeo.com/video/850204410?autoplay=1&loop=1&title=0&byline=0&portrait=0&background=1",
+        "external_poster_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/urusS/hero-1-1920.jpg",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "Urus S",
+        "subtitle_uk": "Стайлінг-кит Urban для Urus S наповнений високоякісним карбоном та спеціальними дизайнерськими елементами.",
+        "button_label_uk": "Замовити"
+      }
+    },
+    "overview": {
+      "type": "section-urban-model-overview",
+      "blocks": {
+        "hl_1": {
+          "type": "highlight",
+          "settings": {
+            "text": "Carbon Fibre Vented Bonnet",
+            "text_uk": "Карбоновий капот з вентиляцією"
+          }
+        },
+        "hl_2": {
+          "type": "highlight",
+          "settings": {
+            "text": "Carbon Fibre Front Splitter",
+            "text_uk": "Карбоновий передній спліттер"
+          }
+        },
+        "hl_3": {
+          "type": "highlight",
+          "settings": {
+            "text": "Carbon Fibre Rear Diffuser",
+            "text_uk": "Карбоновий задній дифузор"
+          }
+        },
+        "hl_4": {
+          "type": "highlight",
+          "settings": {
+            "text": "Upper Rear Wing Assembly",
+            "text_uk": "Верхній задній спойлер (в зборі)"
+          }
+        },
+        "hl_5": {
+          "type": "highlight",
+          "settings": {
+            "text": "Extended Arch Package",
+            "text_uk": "Пакет розширених арок"
+          }
+        },
+        "hl_6": {
+          "type": "highlight",
+          "settings": {
+            "text": "Unique NDS-3 Wheel Design",
+            "text_uk": "Унікальний дизайн дисків NDS-3"
+          }
+        },
+        "hl_7": {
+          "type": "highlight",
+          "settings": {
+            "text": "Sill Extensions",
+            "text_uk": "Розширювачі порогів"
+          }
+        },
+        "hl_8": {
+          "type": "highlight",
+          "settings": {
+            "text": "Branding Inlays Steps",
+            "text_uk": "Фірмові вставки підніжок"
+          }
+        }
+      },
+      "block_order": [
+        "hl_1",
+        "hl_2",
+        "hl_3",
+        "hl_4",
+        "hl_5",
+        "hl_6",
+        "hl_7",
+        "hl_8"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "title": "Urus S",
+        "badge": "",
+        "subtitle": "Redefined by Urban",
+        "description": "The Urus S finds a new dimension in the exceptional Urban styling kit - incorporating a stunning full carbon fibre bonnet with 4 functioning vents, premium billet aluminium exhaust surrounds, brand inlays, and the new especially designed NDS-3 wheel.",
+        "button_label": "Enquire Now",
+        "button_link": "/pages/contact",
+        "button_new_tab": false,
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "copy_color": "#cfcfcf",
+        "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/urusS/col-image-1-lg.jpg",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "title_uk": "Urus S",
+        "subtitle_uk": "Переосмислено Urban",
+        "description_uk": "Urus S знаходить новий вимір у виключному стайлінг-киті Urban — з повним карбоновим капотом з 4-ма функціональними вентиляціями, преміальними білетними алюмінієвими насадками вихлопу та спеціальним дизайном дисків NDS-3.",
+        "button_label_uk": "Замовити зараз"
+      }
+    },
+    "gallery": {
+      "type": "section-urban-gallery-carousel",
+      "blocks": {
+        "slide_1": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/urusS/hero-1-1920.jpg",
+            "caption": "Urban Urus S - Hero"
+          }
+        },
+        "slide_2": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/urusS/col-image-1-lg.jpg",
+            "caption": "Urban Urus S - Detail 1"
+          }
+        },
+        "slide_3": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/urusS/banner-1-1920.jpg",
+            "caption": "Urban Urus S - Banner 1"
+          }
+        },
+        "slide_4": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/urusS/banner-2-1920.jpg",
+            "caption": "Urban Urus S - Banner 2"
+          }
+        },
+        "slide_5": {
+          "type": "slide",
+          "settings": {
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/urusS/banner-3-1920.jpg",
+            "caption": "Urban Urus S - Banner 3"
+          }
+        }
+      },
+      "block_order": [
+        "slide_1",
+        "slide_2",
+        "slide_3",
+        "slide_4",
+        "slide_5"
+      ],
+      "settings": {
+        "label": "Gallery",
+        "padding_top": 24,
+        "padding_bottom": 24,
+        "background_color": "#000000",
+        "border_color": "#1b1b1b",
+        "label_uk": "Галерея"
+      }
+    },
+    "banner": {
+      "type": "section-urban-banner-stack",
+      "blocks": {
+        "banner_1": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/urusS/banner-1-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "Urban Urus S",
+            "subtitle": "",
+            "button_label": "Build Yours",
+            "button_link": "/collections/lamborghini-urus-s",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "Urban Urus S",
+            "button_label_uk": "Створити свій"
+          }
+        },
+        "banner_2": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/urusS/banner-2-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "Urban Urus S",
+            "subtitle": "",
+            "button_label": "Build Yours",
+            "button_link": "/collections/lamborghini-urus-s",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "Urban Urus S",
+            "button_label_uk": "Створити свій"
+          }
+        },
+        "banner_3": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/urusS/banner-3-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "Urban Urus S",
+            "subtitle": "",
+            "button_label": "Build Yours",
+            "button_link": "/collections/lamborghini-urus-s",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "Urban Urus S",
+            "button_label_uk": "Створити свій"
+          }
+        },
+        "banner_4": {
+          "type": "banner",
+          "settings": {
+            "media_type": "image",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/urusS/banner-4-1920.jpg",
+            "eyebrow": "Redefined by Urban",
+            "title": "Urban Urus S",
+            "subtitle": "",
+            "button_label": "Build Yours",
+            "button_link": "/collections/lamborghini-urus-s",
+            "eyebrow_uk": "Переосмислено Urban",
+            "title_uk": "Urban Urus S",
+            "button_label_uk": "Створити свій"
+          }
+        }
+      },
+      "block_order": [
+        "banner_1",
+        "banner_2",
+        "banner_3",
+        "banner_4"
+      ],
+      "settings": {
+        "overlay_opacity": 20,
+        "mobile_height": 70,
+        "desktop_height": 90,
+        "border_color": "#1c1c1c"
+      }
+    },
+    "main": {
+      "type": "main-collection-product-grid",
+      "settings": {
+        "products_per_page": 16,
+        "columns_desktop": 4,
+        "color_scheme": "scheme-1",
+        "image_ratio": "adapt",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "enable_filtering": true,
+        "filter_type": "horizontal",
+        "enable_sorting": true,
+        "columns_mobile": "2",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "blueprint_kit": {
+      "type": "section-urban-blueprint-kit",
+      "blocks": {
+        "kit_1": {
+          "type": "view",
+          "settings": {
+            "position_label": "Front",
+            "title_en": "Front Package",
+            "title_uk": "Передній пакет",
+            "parts_en": "Carbon fibre front splitter|Front bumper lower lip|Front air intake surrounds|Front lip spoiler",
+            "parts_uk": "Карбоновий передній спліттер|Нижня губа переднього бампера|Обрамлення повітрозабірників|Передній спойлер",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/urusS/front.jpg"
+          }
+        },
+        "kit_2": {
+          "type": "view",
+          "settings": {
+            "position_label": "Left",
+            "title_en": "Side Package",
+            "title_uk": "Бічний пакет",
+            "parts_en": "Carbon fibre side skirts|Carbon mirror housings|Side air intakes|Door sill trims",
+            "parts_uk": "Карбонові бічні пороги|Карбонові корпуси дзеркал|Бічні повітрозабірники|Накладки порогів",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/urusS/left.jpg"
+          }
+        },
+        "kit_3": {
+          "type": "view",
+          "settings": {
+            "position_label": "Right",
+            "title_en": "Wheel Package",
+            "title_uk": "Пакет коліс",
+            "parts_en": "24\" forged alloy wheels|Performance tyres|Wheel spacer kit|Branded centre caps",
+            "parts_uk": "24\" ковані легкосплавні диски|Спортивні шини|Набір проставок коліс|Фірмові центральні ковпаки",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/urusS/right.jpg"
+          }
+        },
+        "kit_4": {
+          "type": "view",
+          "settings": {
+            "position_label": "Back",
+            "title_en": "Rear Package",
+            "title_uk": "Задній пакет",
+            "parts_en": "Rear diffuser assembly|Carbon fibre rear spoiler|Exhaust adjusts with billet finishers|Rear bumper lower section",
+            "parts_uk": "Задній дифузор|Карбоновий задній спойлер|Насадки вихлопу з фрезерованими кінцівками|Нижня частина заднього бампера",
+            "external_image_url": "https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/urusS/back.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "kit_1",
+        "kit_2",
+        "kit_3",
+        "kit_4"
+      ],
+      "settings": {
+        "eyebrow": "Urban Range",
+        "heading": "The Urban Kit",
+        "subheading": "Lamborghini Urus S",
+        "cta_label": "Enquire Now",
+        "cta_link": "/pages/contact",
+        "cta_new_tab": false,
+        "padding_top": 52,
+        "padding_bottom": 52,
+        "background_color": "#f5f5f3",
+        "card_background": "#ffffff",
+        "text_color": "#111111",
+        "muted_color": "#666666",
+        "separator_color": "#e0e0e0",
+        "eyebrow_uk": "Модельний ряд Urban",
+        "heading_uk": "Комплект Urban",
+        "subheading_uk": "Lamborghini Urus S",
+        "cta_label_uk": "Замовити зараз"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "overview",
+    "gallery",
+    "banner",
+    "blueprint_kit",
+    "main"
+  ]
+}

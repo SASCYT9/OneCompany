@@ -21,6 +21,8 @@
     "gemini": "gemini",
     "shop:translate-en:dry": "node scripts/translate-shop-products-en.js --dry-run",
     "shop:translate-en": "node scripts/translate-shop-products-en.js --commit",
+    "shop:urban:ua-copy:dry": "tsx scripts/curate-urban-ua-copy.ts --dry-run",
+    "shop:urban:ua-copy": "tsx scripts/curate-urban-ua-copy.ts --commit",
     "seo:structure-check": "tsx scripts/seo-structure-audit.ts --baseUrl=https://onecompany.global --locales=ua,en --maxDepth=4",
     "fetch:logos": "tsx scripts/fetch-brand-logos.ts",
     "fetch:logos:js": "node scripts/fetch-brand-logos.js",
