@@ -217,5 +217,28 @@ export function buildShopProductPath(locale: string, product: ShopProduct, prefe
 }
 
 export function isUrbanCatalogProduct(product: ShopProduct) {
+  const vendorKey = normalizeUrbanValue(product.vendor);
+  const brandKey = normalizeUrbanValue(product.brand);
+
+  if (vendorKey === 'urban automotive' || vendorKey === 'urban') {
+    return true;
+  }
+
+  if (brandKey === 'urban automotive' || brandKey === 'urban') {
+    return true;
+  }
+
+  if (product.slug.toLowerCase().startsWith('urb-')) {
+    return true;
+  }
+
+  if (product.collections?.some((item) => item.isUrban)) {
+    return true;
+  }
+
   return Boolean(getUrbanCollectionHandleForProduct(product));
+}
+
+export function getUrbanCatalogProducts(products: ShopProduct[]) {
+  return products.filter((product) => isUrbanCatalogProduct(product));
 }

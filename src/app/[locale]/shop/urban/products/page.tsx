@@ -5,6 +5,7 @@ import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
+import { getUrbanCatalogProducts } from '@/lib/urbanCollectionMatcher';
 import Link from 'next/link';
 
 type Props = {
@@ -44,7 +45,7 @@ export default async function UrbanProductsCatalogPage({ params }: Props) {
     session?.b2bDiscountPercent ?? null
   );
 
-  const urbanProducts = products.filter(p => p.brand?.toLowerCase() === 'urban automotive');
+  const urbanProducts = getUrbanCatalogProducts(products);
 
   return (
     <div className="relative min-h-screen bg-black">
