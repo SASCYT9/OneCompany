@@ -53,6 +53,7 @@ function AdminShopPageContent() {
   const [metadata, setMetadata] = useState({ totalCount: 0, totalPages: 1, currentPage: 1, limit: 50 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [bulkUpdating, setBulkUpdating] = useState(false);
 
@@ -142,19 +143,22 @@ function AdminShopPageContent() {
   async function handleDelete(id: string) {
     if (
       !confirm(
-        'Остаточно видалити цей товар з бази даних?\n\nЦю дію не можна скасувати, відновлення можливе тільки з бекапу.'
+        'Архівувати цей товар?\n\nТовар буде знято з публікації та переведено в ARCHIVED без жорсткого видалення з бази.'
       )
     ) {
       return;
     }
     setDeletingId(id);
+    setSuccess('');
+    setError('');
     try {
       const response = await fetch(`/api/admin/shop/products/${id}`, { method: 'DELETE' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Delete failed');
+        setError(data.error || 'Archive failed');
         return;
       }
+      setSuccess('Товар архівовано.');
       await load();
     } finally {
       setDeletingId(null);
@@ -318,12 +322,13 @@ function AdminShopPageContent() {
         </div>
 
         {error && <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div>}
+        {success && <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div>}
 
         <div className="mb-4 rounded-none border border-white/10 bg-white/[0.02] p-4 text-xs text-white/55 space-y-1">
           <p className="font-medium text-white/80">Як працювати з каталогом:</p>
           <p>• <span className="font-semibold text-white">Редагувати товар</span> — клік по назві або іконка олівця у стовпчику дій.</p>
           <p>• <span className="font-semibold text-white">Ціни B2C / B2B</span> — окремий розділ «Ціни (B2C/B2B)», де можна масово змінювати ціни за варіантами.</p>
-          <p>• <span className="font-semibold text-white">Видалення</span> — іконка кошика. Перед повним видаленням бажано мати актуальний бекап БД.</p>
+          <p>• <span className="font-semibold text-white">Архівація</span> — іконка кошика. Товар переводиться в ARCHIVED і знімається з публікації без жорсткого видалення.</p>
         </div>
 
         {products.length === 0 ? (
@@ -414,7 +419,7 @@ function AdminShopPageContent() {
                           onClick={() => handleDelete(product.id)}
                           disabled={deletingId === product.id}
                           className="rounded-none border border-red-500/30 p-1.5 text-red-400 hover:bg-red-950/30 border border-red-900/50 text-red-500/10 disabled:opacity-50"
-                          title="Видалити"
+                          title="Архівувати"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

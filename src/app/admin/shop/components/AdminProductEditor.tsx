@@ -117,6 +117,9 @@ type ShopLibraryMediaItem = {
     productPrimaryImages: number;
     productMedia: number;
     variantImages: number;
+    siteContent: number;
+    siteMedia: number;
+    videoConfig: number;
   };
 };
 
@@ -1143,7 +1146,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
     if (!productId) return;
     if (
       !confirm(
-        'Остаточно видалити цей товар разом з усіма варіантами та цінами?\n\nЦю дію не можна скасувати. Перед видаленням переконайтесь, що маєте актуальний бекап.'
+        'Архівувати цей товар?\n\nТовар буде знято з публікації та переведено в ARCHIVED. Це безпечніше за безповоротне видалення.'
       )
     ) {
       return;
@@ -1156,8 +1159,9 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       const response = await fetch(`/api/admin/shop/products/${productId}`, { method: 'DELETE' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Не вдалося видалити товар');
+        throw new Error(data.error || 'Не вдалося архівувати товар');
       }
+      setSuccess('Товар архівовано.');
       router.push('/admin/shop');
     } catch (deleteError) {
       setError((deleteError as Error).message);
@@ -2294,12 +2298,12 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           {isEditing && (
             <EditorCard
               title="Небезпечні дії"
-              description="Остаточне видалення товару з бази даних. Використовуйте тільки після бекапу або якщо впевнені, що товар більше ніколи не знадобиться."
+              description="Безпечне зняття товару з публікації та переведення в архів. Жорстке видалення більше не є дією за замовчуванням."
             >
               <div className="rounded-none border border-red-500/40 bg-red-900/10 p-4 space-y-2">
                 <p className="text-xs text-red-200">
-                  Після остаточного видалення товару буде втрачено історію варіантів, цін і привʼязок до колекцій. Відновити його
-                  можна буде лише з резервної копії бази даних.
+                  Архівація залишає товар у базі, але прибирає його з публікації. Це зберігає історію варіантів, цін і привʼязок
+                  до колекцій та дозволяє повернути товар без відновлення з бекапу.
                 </p>
                 <button
                   type="button"
@@ -2308,7 +2312,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   className="inline-flex items-center gap-2 rounded-none border border-red-500/60 bg-red-950/30 border border-red-900/50 text-red-500/80 px-4 py-2 text-sm font-medium text-white hover:bg-red-950/30 border border-red-900/50 text-red-500 disabled:opacity-50"
                 >
                   <Trash2 className="h-4 w-4" />
-                  {hardDeleting ? 'Видаляємо…' : 'Остаточно видалити товар'}
+                  {hardDeleting ? 'Архівуємо…' : 'Архівувати товар'}
                 </button>
               </div>
             </EditorCard>

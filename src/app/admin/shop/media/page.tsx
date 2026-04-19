@@ -8,6 +8,9 @@ type ShopLibraryMediaUsage = {
   productPrimaryImages: number;
   productMedia: number;
   variantImages: number;
+  siteContent: number;
+  siteMedia: number;
+  videoConfig: number;
 };
 
 type ShopLibraryMediaItem = {
@@ -33,6 +36,9 @@ function usageLabel(item: ShopLibraryMediaItem) {
     `${item.usage.productPrimaryImages} primary`,
     `${item.usage.productMedia} gallery`,
     `${item.usage.variantImages} variants`,
+    `${item.usage.siteContent} content`,
+    `${item.usage.siteMedia} site-media`,
+    `${item.usage.videoConfig} video-config`,
   ].join(' · ');
 }
 
@@ -157,7 +163,7 @@ export default function AdminShopMediaPage() {
       if (!response.ok) {
         if (response.status === 409 && data.usage) {
           throw new Error(
-            `Asset is in use: ${data.usage.productPrimaryImages} primary, ${data.usage.productMedia} gallery, ${data.usage.variantImages} variant references.`
+            `Asset is in use: ${data.usage.productPrimaryImages} primary, ${data.usage.productMedia} gallery, ${data.usage.variantImages} variant, ${data.usage.siteContent} content, ${data.usage.siteMedia} site-media, ${data.usage.videoConfig} video-config references.`
           );
         }
         throw new Error(data.error || 'Delete failed');

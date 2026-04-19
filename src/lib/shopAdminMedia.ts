@@ -1,10 +1,17 @@
 import { PrismaClient } from '@prisma/client';
+import { countReferencedAssetUrls } from '@/lib/adminAssetReferences';
 import { deleteMedia, listMedia, type MediaItem } from '@/lib/mediaStore';
+import { readSiteContent } from '@/lib/siteContentServer';
+import { readSiteMedia } from '@/lib/siteMediaServer';
+import { readVideoConfig } from '@/lib/videoConfig';
 
 export type ShopLibraryMediaUsage = {
   productPrimaryImages: number;
   productMedia: number;
   variantImages: number;
+  siteContent: number;
+  siteMedia: number;
+  videoConfig: number;
 };
 
 export type ShopLibraryMediaItem = MediaItem & {
@@ -17,6 +24,9 @@ function emptyUsage(): ShopLibraryMediaUsage {
     productPrimaryImages: 0,
     productMedia: 0,
     variantImages: 0,
+    siteContent: 0,
+    siteMedia: 0,
+    videoConfig: 0,
   };
 }
 
@@ -26,7 +36,8 @@ async function buildUsageMap(prisma: PrismaClient, urls: string[]) {
     return new Map<string, ShopLibraryMediaUsage>();
   }
 
-  const [productPrimaryImages, productMedia, variantImages] = await Promise.all([
+  const [productPrimaryImages, productMedia, variantImages, siteContent, siteMedia, videoConfig] =
+    await Promise.all([
     prisma.shopProduct.findMany({
       where: { image: { in: uniqueUrls } },
       select: { image: true },
@@ -39,6 +50,9 @@ async function buildUsageMap(prisma: PrismaClient, urls: string[]) {
       where: { image: { in: uniqueUrls } },
       select: { image: true },
     }),
+    readSiteContent(),
+    readSiteMedia(),
+    readVideoConfig(),
   ]);
 
   const usageMap = new Map<string, ShopLibraryMediaUsage>();
@@ -66,6 +80,17 @@ async function buildUsageMap(prisma: PrismaClient, urls: string[]) {
     ensureEntry(item.image).variantImages += 1;
   }
 
+  const siteContentCounts = countReferencedAssetUrls(siteContent, uniqueUrls);
+  const siteMediaCounts = countReferencedAssetUrls(siteMedia, uniqueUrls);
+  const videoConfigCounts = countReferencedAssetUrls(videoConfig, uniqueUrls);
+
+  for (const url of uniqueUrls) {
+    const usage = ensureEntry(url);
+    usage.siteContent += siteContentCounts.get(url) ?? 0;
+    usage.siteMedia += siteMediaCounts.get(url) ?? 0;
+    usage.videoConfig += videoConfigCounts.get(url) ?? 0;
+  }
+
   return usageMap;
 }
 
@@ -77,7 +102,10 @@ function withUsage(item: MediaItem, usage?: ShopLibraryMediaUsage): ShopLibraryM
     usageCount:
       resolvedUsage.productPrimaryImages +
       resolvedUsage.productMedia +
-      resolvedUsage.variantImages,
+      resolvedUsage.variantImages +
+      resolvedUsage.siteContent +
+      resolvedUsage.siteMedia +
+      resolvedUsage.videoConfig,
   };
 }
 
@@ -100,7 +128,13 @@ export async function deleteUnusedShopLibraryMedia(prisma: PrismaClient, id: str
 
   const usageMap = await buildUsageMap(prisma, [item.url]);
   const usage = usageMap.get(item.url) ?? emptyUsage();
-  const usageCount = usage.productPrimaryImages + usage.productMedia + usage.variantImages;
+  const usageCount =
+    usage.productPrimaryImages +
+    usage.productMedia +
+    usage.variantImages +
+    usage.siteContent +
+    usage.siteMedia +
+    usage.videoConfig;
 
   if (usageCount > 0) {
     return { deleted: false, notFound: false, item, usage };

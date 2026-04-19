@@ -10,6 +10,7 @@ import {
 } from '@/lib/shopAdminCatalog';
 import { prisma } from '@/lib/prisma';
 import { planVariantMutations } from '@/lib/shopAdminCatalogMutations';
+import { buildAdminProductArchiveMutation, parseAdminProductDeleteMode } from '@/lib/adminRouteValidation';
 
 const VARIANT_TEMP_POSITION_OFFSET = 10_000;
 
@@ -408,36 +409,88 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
     const { id } = await params;
-    await prisma.$transaction(async (tx) => {
-      const deleted = await tx.shopProduct.delete({
+    const deleteMode = parseAdminProductDeleteMode(request.nextUrl.searchParams.get('mode'));
+
+    if (deleteMode === 'hard') {
+      const product = await prisma.shopProduct.findUnique({
         where: { id },
-        select: { id: true, slug: true },
+        select: { id: true, slug: true, status: true },
+      });
+      if (!product) {
+        return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      }
+      if (product.status !== 'ARCHIVED') {
+        return NextResponse.json(
+          { error: 'Archive the product before requesting a hard delete.' },
+          { status: 409 }
+        );
+      }
+
+      await prisma.$transaction(async (tx) => {
+        const deleted = await tx.shopProduct.delete({
+          where: { id },
+          select: { id: true, slug: true },
+        });
+
+        await writeAdminAuditLog(tx, session, {
+          scope: 'shop',
+          action: 'product.delete',
+          entityType: 'shop.product',
+          entityId: deleted.id,
+          metadata: {
+            slug: deleted.slug,
+            mode: 'hard',
+          },
+        });
+      });
+
+      return NextResponse.json({ success: true, mode: 'hard' });
+    }
+
+    const archived = await prisma.$transaction(async (tx) => {
+      const updated = await tx.shopProduct.update({
+        where: { id },
+        data: buildAdminProductArchiveMutation(),
+        select: { id: true, slug: true, status: true },
       });
 
       await writeAdminAuditLog(tx, session, {
         scope: 'shop',
-        action: 'product.delete',
+        action: 'product.archive',
         entityType: 'shop.product',
-        entityId: deleted.id,
+        entityId: updated.id,
         metadata: {
-          slug: deleted.slug,
+          slug: updated.slug,
+          status: updated.status,
+          mode: 'archive',
         },
       });
+
+      return updated;
     });
-    return NextResponse.json({ success: true });
+
+    return NextResponse.json({
+      success: true,
+      mode: 'archive',
+      archived: true,
+      status: archived.status,
+    });
   } catch (error) {
     if ((error as Error).message === 'UNAUTHORIZED') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if ((error as Error).message === 'FORBIDDEN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if ((error as { code?: string }).code === 'P2025') {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
     return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
   }
