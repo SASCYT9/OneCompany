@@ -807,7 +807,7 @@ export default function UrbanVehicleFilter({
           ) : null}
         </div>
 
-        <div className="relative mb-12 rounded-[24px] border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-3 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
+        <div className="relative z-50 mb-12 rounded-[24px] border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-3 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,0.9fr)_minmax(0,0.95fr)_auto]">
             <PremiumCombobox
               label={isUa ? "Марка" : "Brand"}
