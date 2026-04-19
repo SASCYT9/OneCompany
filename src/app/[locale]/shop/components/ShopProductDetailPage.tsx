@@ -38,6 +38,7 @@ import {
   getUrbanCollectionHandleForProduct,
 } from '@/lib/urbanCollectionMatcher';
 import { URBAN_COLLECTION_CARDS } from '../data/urbanCollectionsList';
+import { isUrbanPlaceholderImage, resolveUrbanProductImage, filterUrbanGalleryImages } from '@/lib/urbanImageUtils';
 import { ShopProductGallery } from './ShopProductGallery';
 
 import type { ShopProduct } from '@/lib/shopCatalog';
@@ -283,11 +284,19 @@ export default async function ShopProductDetailPage({
   const country = brandMeta ? getLocalizedCountry(brandMeta.country, resolvedLocale) : null;
   const subcategory = brandMeta ? getLocalizedSubcategory(brandMeta.subcategory, resolvedLocale) : null;
 
+  // Determine model handles for image resolution
+  const urbanModelHandles = urbanCollectionHandle ? [urbanCollectionHandle] : [];
+
   const gallery = (product.gallery?.length ? product.gallery : [product.image]).map(g => {
     if (!g) return '';
     const raw = g.replace(/^["']|["']$/g, '').trim();
     return raw.startsWith('//') ? `https:${raw}` : raw;
   });
+
+  // For urban products, filter out placeholder images from gallery
+  const resolvedGallery = isUrbanMode && urbanModelHandles.length > 0
+    ? filterUrbanGalleryImages(gallery, urbanModelHandles)
+    : gallery.filter(img => img.length > 0);
   let categoryRelatedProducts: ShopProduct[] = [];
   
   if (isUrbanMode && urbanCollectionHandle && urbanCollectionCard) {
@@ -320,9 +329,13 @@ export default async function ShopProductDetailPage({
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://onecompany.global');
     
   const rawImageStr = product.image ? product.image.replace(/^["']|["']$/g, '').trim() : '';
-  const safeImageUrl = rawImageStr.startsWith('//') 
-    ? `https:${rawImageStr}` 
-    : (rawImageStr.startsWith('http') ? rawImageStr : `${baseUrl}${rawImageStr}`);
+  // For Urban products, resolve placeholder images to collection photos
+  const resolvedImageStr = isUrbanMode && urbanModelHandles.length > 0
+    ? resolveUrbanProductImage(rawImageStr, urbanModelHandles)
+    : (rawImageStr.startsWith('//') ? `https:${rawImageStr}` : rawImageStr);
+  const safeImageUrl = resolvedImageStr.startsWith('//')
+    ? `https:${resolvedImageStr}`
+    : (resolvedImageStr.startsWith('http') || resolvedImageStr.startsWith('/') ? resolvedImageStr : `${baseUrl}${resolvedImageStr}`);
   
   const priceValidUntil = new Date();
   priceValidUntil.setDate(priceValidUntil.getDate() + 30);
@@ -425,7 +438,7 @@ export default async function ShopProductDetailPage({
         <section className="grid items-start gap-10 lg:grid-cols-[1.2fr_1fr]">
           <div className="sticky top-32 space-y-4">
             <ShopProductGallery 
-              images={[safeImageUrl, ...gallery.filter(img => img !== safeImageUrl && img && img.length > 0)]} 
+              images={[safeImageUrl, ...resolvedGallery.filter(img => img !== safeImageUrl && img && img.length > 0)]} 
               productTitle={productTitle}
               category={productCategory}
               isInStock={isInStock}

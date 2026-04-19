@@ -20,6 +20,7 @@ import {
   URBAN_FAMILY_ORDER,
 } from "@/lib/urbanCatalogFacets";
 import { URBAN_COLLECTION_CARDS } from "@/app/[locale]/shop/data/urbanCollectionsList";
+import { isUrbanPlaceholderImage, resolveUrbanProductImage } from "@/lib/urbanImageUtils";
 
 type UrbanVehicleFilterProps = {
   locale: SupportedLocale;
@@ -93,54 +94,7 @@ const FAMILY_LABELS: Record<
   },
 };
 
-const FALLBACK_URBAN_IMAGE =
-  "/images/shop/urban/hero/models/defender2020Plus/2025Updates/hero-1-1920.jpg";
 
-function isPlaceholderImage(url: string | null | undefined) {
-  const normalized = String(url ?? "").trim().toLowerCase();
-  if (!normalized) return true;
-  
-  if (
-    [
-      "image-coming-soon",
-      "coming-soon",
-      "comingsoon",
-      "placeholder",
-      "no-image",
-      "image_coming_soon",
-      "gp-portal",
-      "gpproducts",
-    ].some((marker) => normalized.includes(marker))
-  ) {
-    return true;
-  }
-
-  // Block GP Products generic vehicle placeholder PNGs that masquerade as real model images
-  // e.g., /L460.png, /Gwagon_e9292903-5bf9...png, /Transporter.png
-  if (
-    normalized.includes("cdn.shopify.com") &&
-    (/\/(transporter|gwagon|l460|l461|l494|cullinan|defender|urus)(_[a-z0-9\-]+)?\.png$/i.test(normalized))
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
-function resolveProductImage(image: string | undefined | null, modelHandles: string[]) {
-  let raw = image ? image.replace(/^["']|["']$/g, "").trim() : "";
-  if (raw.startsWith("//")) raw = `https:${raw}`;
-
-  if (!raw || isPlaceholderImage(raw)) {
-    for (const handle of modelHandles) {
-      const card = URBAN_COLLECTION_CARDS.find((c) => c.collectionHandle === handle);
-      if (card?.externalImageUrl) return card.externalImageUrl;
-    }
-    return FALLBACK_URBAN_IMAGE;
-  }
-  
-  return raw;
-}
 
 function computePricesFromEur(
   price: ShopProduct["price"],
@@ -346,7 +300,7 @@ function ProductCard({
   const hasPrice = currentAmount > 0;
   const canOrder = hasPrice && !pricing.requestQuote;
   const productUrl = buildShopProductPath(locale, entry.product);
-  const productImage = resolveProductImage(entry.product.image, entry.modelHandles);
+  const productImage = resolveUrbanProductImage(entry.product.image, entry.modelHandles);
 
   const availability =
     entry.product.stock === "inStock"
