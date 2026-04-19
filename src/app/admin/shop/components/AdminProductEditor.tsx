@@ -706,6 +706,7 @@ function buildPayload(form: ProductFormState) {
     media: form.media
       .filter((item) => item.src.trim())
       .map((item, index) => ({
+        id: item.id,
         src: item.src.trim(),
         altText: item.altText.trim() || undefined,
         position: intOrNull(item.position) ?? index + 1,
@@ -714,6 +715,7 @@ function buildPayload(form: ProductFormState) {
     options: form.options
       .filter((item) => item.name.trim())
       .map((item, index) => ({
+        id: item.id,
         name: item.name.trim(),
         position: intOrNull(item.position) ?? index + 1,
         values: cleanArrayText(item.valuesText),
@@ -728,6 +730,7 @@ function buildPayload(form: ProductFormState) {
           item.option3Value.trim()
       )
       .map((item, index) => ({
+        id: item.id,
         title: item.title.trim() || null,
         sku: item.sku.trim() || null,
         position: intOrNull(item.position) ?? index + 1,
@@ -771,6 +774,7 @@ function buildPayload(form: ProductFormState) {
     metafields: form.metafields
       .filter((item) => item.namespace.trim() && item.key.trim())
       .map((item) => ({
+        id: item.id,
         namespace: item.namespace.trim(),
         key: item.key.trim(),
         value: item.value,

@@ -3,7 +3,8 @@ import path from 'path';
 import { SiteContent } from '@/types/site-content';
 import { defaultSiteContent } from '@/config/defaultSiteContent';
 
-const contentPath = path.join(process.cwd(), 'public', 'config', 'site-content.json');
+const contentPath = path.join(process.cwd(), 'data', 'admin-config', 'site-content.json');
+const legacyContentPath = path.join(process.cwd(), 'public', 'config', 'site-content.json');
 
 async function ensureContentFile() {
   try {
@@ -11,16 +12,25 @@ async function ensureContentFile() {
   } catch {
     const dir = path.dirname(contentPath);
     await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(
-      contentPath,
-      JSON.stringify(defaultSiteContent, null, 2)
-    );
+
+    try {
+      const legacyData = await fs.readFile(legacyContentPath, 'utf-8');
+      await fs.writeFile(contentPath, legacyData, 'utf8');
+      return;
+    } catch {}
+
+    await fs.writeFile(contentPath, JSON.stringify(defaultSiteContent, null, 2), 'utf8');
   }
 }
 
 export async function readSiteContent(): Promise<SiteContent> {
   try {
-    const data = await fs.readFile(contentPath, 'utf-8');
+    let data: string;
+    try {
+      data = await fs.readFile(contentPath, 'utf-8');
+    } catch {
+      data = await fs.readFile(legacyContentPath, 'utf-8');
+    }
     const parsed = JSON.parse(data) as SiteContent;
     const normalizeLocalized = (value: unknown, fallback: { ua: string; en: string }) => {
       if (!value) {
@@ -77,5 +87,9 @@ export async function readSiteContent(): Promise<SiteContent> {
 
 export async function writeSiteContent(content: SiteContent) {
   await ensureContentFile();
-  await fs.writeFile(contentPath, JSON.stringify(content, null, 2));
+  await fs.writeFile(contentPath, JSON.stringify(content, null, 2), 'utf8');
+
+  try {
+    await fs.unlink(legacyContentPath);
+  } catch {}
 }

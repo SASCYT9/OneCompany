@@ -146,6 +146,7 @@ export type AdminShopProductListRecord = Prisma.ShopProductGetPayload<{
 }>;
 
 export type AdminShopProductMediaInput = {
+  id?: string | null;
   src: string;
   altText?: string | null;
   position?: number;
@@ -153,12 +154,14 @@ export type AdminShopProductMediaInput = {
 };
 
 export type AdminShopProductOptionInput = {
+  id?: string | null;
   name: string;
   position?: number;
   values?: string[];
 };
 
 export type AdminShopProductVariantInput = {
+  id?: string | null;
   title?: string | null;
   sku?: string | null;
   position?: number;
@@ -191,6 +194,9 @@ export type AdminShopProductVariantInput = {
   image?: string | null;
   weightUnit?: string | null;
   weight?: number | null;
+  length?: number | null;
+  width?: number | null;
+  height?: number | null;
   taxCode?: string | null;
   costPerItem?: number | null;
   isDefault?: boolean;
@@ -198,6 +204,7 @@ export type AdminShopProductVariantInput = {
 };
 
 export type AdminShopProductMetafieldInput = {
+  id?: string | null;
   namespace: string;
   key: string;
   value: string;
@@ -243,6 +250,11 @@ export type AdminShopProductPayload = {
   compareAtEurB2b?: number | null;
   compareAtUsdB2b?: number | null;
   compareAtUahB2b?: number | null;
+  weight?: number | null;
+  length?: number | null;
+  width?: number | null;
+  height?: number | null;
+  isDimensionsEstimated?: boolean;
   image?: string | null;
   seoTitleUa?: string | null;
   seoTitleEn?: string | null;
@@ -332,11 +344,51 @@ function ensureObjectArray<T extends Record<string, unknown>>(value: unknown): T
   return value.filter((entry): entry is T => Boolean(entry) && typeof entry === 'object');
 }
 
+function normalizePublishState(
+  status: AdminShopProductPayload['status'],
+  isPublished: boolean,
+  publishedAt: string | null
+) {
+  if (status !== 'ACTIVE') {
+    return {
+      isPublished: false,
+      publishedAt: null,
+    };
+  }
+
+  if (!isPublished) {
+    return {
+      isPublished: false,
+      publishedAt: null,
+    };
+  }
+
+  return {
+    isPublished: true,
+    publishedAt,
+  };
+}
+
+function ensureSingleDefaultVariant(
+  variants: AdminShopProductVariantInput[]
+): AdminShopProductVariantInput[] {
+  if (!variants.length) return variants;
+
+  const defaultIndex = variants.findIndex((variant) => variant.isDefault);
+  const resolvedDefaultIndex = defaultIndex >= 0 ? defaultIndex : 0;
+
+  return variants.map((variant, index) => ({
+    ...variant,
+    isDefault: index === resolvedDefaultIndex,
+  }));
+}
+
 function normalizeMedia(value: unknown): AdminShopProductMediaInput[] {
   return ensureObjectArray<Record<string, unknown>>(value)
     .map((item, index): AdminShopProductMediaInput => {
       const normalizedType = stringValue(item.mediaType, 'IMAGE').toUpperCase();
       return {
+        id: nullableString(item.id),
         src: stringValue(item.src),
         altText: nullableString(item.altText),
         position: intValue(item.position) ?? index + 1,
@@ -354,6 +406,7 @@ function normalizeMedia(value: unknown): AdminShopProductMediaInput[] {
 function normalizeOptions(value: unknown): AdminShopProductOptionInput[] {
   return ensureObjectArray<Record<string, unknown>>(value)
     .map((item, index) => ({
+      id: nullableString(item.id),
       name: stringValue(item.name),
       position: intValue(item.position) ?? index + 1,
       values: stringArray(item.values),
@@ -366,6 +419,7 @@ function normalizeVariants(value: unknown): AdminShopProductVariantInput[] {
     .map((item, index): AdminShopProductVariantInput => {
       const normalizedInventoryPolicy = stringValue(item.inventoryPolicy, 'CONTINUE').toUpperCase();
       return {
+        id: nullableString(item.id),
         title: nullableString(item.title),
         sku: nullableString(item.sku),
         position: intValue(item.position) ?? index + 1,
@@ -397,9 +451,14 @@ function normalizeVariants(value: unknown): AdminShopProductVariantInput[] {
         barcode: nullableString(item.barcode),
         image: nullableString(item.image),
         weightUnit: nullableString(item.weightUnit),
+        weight: decimalValue(item.weight),
+        length: decimalValue(item.length),
+        width: decimalValue(item.width),
+        height: decimalValue(item.height),
         taxCode: nullableString(item.taxCode),
         costPerItem: decimalValue(item.costPerItem),
         isDefault: boolValue(item.isDefault, index === 0),
+        isDimensionsEstimated: boolValue(item.isDimensionsEstimated, false),
       };
     })
     .filter((item) => item.title || item.sku || item.option1Value || item.option2Value || item.option3Value);
@@ -408,6 +467,7 @@ function normalizeVariants(value: unknown): AdminShopProductVariantInput[] {
 function normalizeMetafields(value: unknown): AdminShopProductMetafieldInput[] {
   return ensureObjectArray<Record<string, unknown>>(value)
     .map((item) => ({
+      id: nullableString(item.id),
       namespace: stringValue(item.namespace),
       key: stringValue(item.key),
       value: stringValue(item.value),
@@ -422,7 +482,7 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
   const titleEn = stringValue(source.titleEn || source.title_en || source.title);
   const slug = sanitizeSlug(source.slug || source.handle || titleEn || titleUa);
   const media = normalizeMedia(source.media);
-  const variants = normalizeVariants(source.variants);
+  const variants = ensureSingleDefaultVariant(normalizeVariants(source.variants));
   const errors: string[] = [];
 
   if (!slug) errors.push('slug is required');
@@ -472,6 +532,11 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
     compareAtEurB2b: decimalValue(source.compareAtEurB2b),
     compareAtUsdB2b: decimalValue(source.compareAtUsdB2b),
     compareAtUahB2b: decimalValue(source.compareAtUahB2b),
+    weight: decimalValue(source.weight),
+    length: decimalValue(source.length),
+    width: decimalValue(source.width),
+    height: decimalValue(source.height),
+    isDimensionsEstimated: boolValue(source.isDimensionsEstimated, false),
     image: nullableString(source.image) ?? media[0]?.src ?? nullableString(variants[0]?.image),
     seoTitleUa: nullableString(source.seoTitleUa),
     seoTitleEn: nullableString(source.seoTitleEn),
@@ -518,6 +583,12 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
       },
     ];
   }
+
+  data.variants = ensureSingleDefaultVariant(data.variants);
+
+  const publishedState = normalizePublishState(data.status, data.isPublished, data.publishedAt ?? null);
+  data.isPublished = publishedState.isPublished;
+  data.publishedAt = publishedState.publishedAt;
 
   return { data, errors };
 }
@@ -573,6 +644,9 @@ function nestedVariantCreate(variants: AdminShopProductVariantInput[]) {
     image: item.image ?? null,
     weightUnit: item.weightUnit ?? null,
     weight: item.weight ?? null,
+    length: item.length ?? null,
+    width: item.width ?? null,
+    height: item.height ?? null,
     taxCode: item.taxCode ?? null,
     costPerItem: item.costPerItem ?? null,
     isDefault: item.isDefault ?? index === 0,
@@ -595,70 +669,7 @@ function jsonValueOrNull(value: unknown) {
   return value as Prisma.InputJsonValue;
 }
 
-export function buildAdminProductCreateData(data: AdminShopProductPayload): Prisma.ShopProductCreateInput {
-  return {
-    slug: data.slug,
-    sku: data.sku ?? null,
-    scope: data.scope,
-    brand: data.brand ?? null,
-    vendor: data.vendor ?? null,
-    productType: data.productType ?? null,
-    productCategory: data.productCategory ?? null,
-    category: data.categoryId ? { connect: { id: data.categoryId } } : undefined,
-    tags: data.tags,
-    status: data.status,
-    titleUa: data.titleUa,
-    titleEn: data.titleEn,
-    categoryUa: data.categoryUa ?? null,
-    categoryEn: data.categoryEn ?? null,
-    shortDescUa: data.shortDescUa ?? null,
-    shortDescEn: data.shortDescEn ?? null,
-    longDescUa: data.longDescUa ?? null,
-    longDescEn: data.longDescEn ?? null,
-    bodyHtmlUa: data.bodyHtmlUa ?? null,
-    bodyHtmlEn: data.bodyHtmlEn ?? null,
-    leadTimeUa: data.leadTimeUa ?? null,
-    leadTimeEn: data.leadTimeEn ?? null,
-    stock: data.stock,
-    collectionUa: data.collectionUa ?? null,
-    collectionEn: data.collectionEn ?? null,
-    priceEur: data.priceEur ?? null,
-    priceUsd: data.priceUsd ?? null,
-    priceUah: data.priceUah ?? null,
-    priceEurB2b: data.priceEurB2b ?? null,
-    priceUsdB2b: data.priceUsdB2b ?? null,
-    priceUahB2b: data.priceUahB2b ?? null,
-    compareAtEur: data.compareAtEur ?? null,
-    compareAtUsd: data.compareAtUsd ?? null,
-    compareAtUah: data.compareAtUah ?? null,
-    compareAtEurB2b: data.compareAtEurB2b ?? null,
-    compareAtUsdB2b: data.compareAtUsdB2b ?? null,
-    compareAtUahB2b: data.compareAtUahB2b ?? null,
-    image: data.image ?? null,
-    gallery: jsonValueOrNull(data.gallery),
-    highlights: jsonValueOrNull(data.highlights),
-    seoTitleUa: data.seoTitleUa ?? null,
-    seoTitleEn: data.seoTitleEn ?? null,
-    seoDescriptionUa: data.seoDescriptionUa ?? null,
-    seoDescriptionEn: data.seoDescriptionEn ?? null,
-    isPublished: data.isPublished,
-    publishedAt: data.publishedAt ? new Date(data.publishedAt) : data.isPublished ? new Date() : null,
-    collections: {
-      create: data.collectionIds.map((collectionId, index) => ({
-        sortOrder: index,
-        collection: {
-          connect: { id: collectionId },
-        },
-      })),
-    },
-    media: { create: nestedMediaCreate(data.media) },
-    options: { create: nestedOptionCreate(data.options) },
-    variants: { create: nestedVariantCreate(data.variants) },
-    metafields: { create: nestedMetafieldCreate(data.metafields) },
-  };
-}
-
-export function buildAdminProductUpdateData(data: AdminShopProductPayload): Prisma.ShopProductUpdateInput {
+function buildAdminProductScalarMutationData(data: AdminShopProductPayload) {
   return {
     slug: data.slug,
     sku: data.sku ?? null,
@@ -697,6 +708,11 @@ export function buildAdminProductUpdateData(data: AdminShopProductPayload): Pris
     compareAtEurB2b: data.compareAtEurB2b ?? null,
     compareAtUsdB2b: data.compareAtUsdB2b ?? null,
     compareAtUahB2b: data.compareAtUahB2b ?? null,
+    weight: data.weight ?? null,
+    length: data.length ?? null,
+    width: data.width ?? null,
+    height: data.height ?? null,
+    isDimensionsEstimated: data.isDimensionsEstimated ?? false,
     image: data.image ?? null,
     gallery: jsonValueOrNull(data.gallery),
     highlights: jsonValueOrNull(data.highlights),
@@ -706,6 +722,35 @@ export function buildAdminProductUpdateData(data: AdminShopProductPayload): Pris
     seoDescriptionEn: data.seoDescriptionEn ?? null,
     isPublished: data.isPublished,
     publishedAt: data.publishedAt ? new Date(data.publishedAt) : data.isPublished ? new Date() : null,
+  };
+}
+
+export function buildAdminProductCreateData(data: AdminShopProductPayload): Prisma.ShopProductCreateInput {
+  return {
+    ...buildAdminProductScalarMutationData(data),
+    category: data.categoryId ? { connect: { id: data.categoryId } } : undefined,
+    collections: {
+      create: data.collectionIds.map((collectionId, index) => ({
+        sortOrder: index,
+        collection: {
+          connect: { id: collectionId },
+        },
+      })),
+    },
+    media: { create: nestedMediaCreate(data.media) },
+    options: { create: nestedOptionCreate(data.options) },
+    variants: { create: nestedVariantCreate(data.variants) },
+    metafields: { create: nestedMetafieldCreate(data.metafields) },
+  };
+}
+
+export function buildAdminProductScalarUpdateData(data: AdminShopProductPayload): Prisma.ShopProductUpdateInput {
+  return buildAdminProductScalarMutationData(data);
+}
+
+export function buildAdminProductUpdateData(data: AdminShopProductPayload): Prisma.ShopProductUpdateInput {
+  return {
+    ...buildAdminProductScalarMutationData(data),
     collections: {
       deleteMany: {},
       create: data.collectionIds.map((collectionId, index) => ({
@@ -836,6 +881,11 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
     compareAtEurB2b: decimalToNumber(record.compareAtEurB2b),
     compareAtUsdB2b: decimalToNumber(record.compareAtUsdB2b),
     compareAtUahB2b: decimalToNumber(record.compareAtUahB2b),
+    weight: record.weight,
+    length: record.length,
+    width: record.width,
+    height: record.height,
+    isDimensionsEstimated: record.isDimensionsEstimated,
     image: record.image,
     gallery: record.gallery,
     highlights: record.highlights,
@@ -893,6 +943,11 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
       barcode: item.barcode,
       image: item.image,
       weightUnit: item.weightUnit,
+      weight: item.weight,
+      length: item.length,
+      width: item.width,
+      height: item.height,
+      isDimensionsEstimated: item.isDimensionsEstimated,
       taxCode: item.taxCode,
       costPerItem: decimalToNumber(item.costPerItem),
       isDefault: item.isDefault,

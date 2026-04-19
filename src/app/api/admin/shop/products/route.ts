@@ -103,19 +103,24 @@ export async function POST(request: NextRequest) {
     if (existing) {
       return NextResponse.json({ error: 'Product with this slug already exists' }, { status: 409 });
     }
-    const product = await prisma.shopProduct.create({
-      data: buildAdminProductCreateData(data),
-      include: adminProductInclude,
-    });
-    await writeAdminAuditLog(prisma, session, {
-      scope: 'shop',
-      action: 'product.create',
-      entityType: 'shop.product',
-      entityId: product.id,
-      metadata: {
-        slug: product.slug,
-        status: product.status,
-      },
+    const product = await prisma.$transaction(async (tx) => {
+      const createdProduct = await tx.shopProduct.create({
+        data: buildAdminProductCreateData(data),
+        include: adminProductInclude,
+      });
+
+      await writeAdminAuditLog(tx, session, {
+        scope: 'shop',
+        action: 'product.create',
+        entityType: 'shop.product',
+        entityId: createdProduct.id,
+        metadata: {
+          slug: createdProduct.slug,
+          status: createdProduct.status,
+        },
+      });
+
+      return createdProduct;
     });
     return NextResponse.json(serializeAdminProductListItem(product));
   } catch (error) {

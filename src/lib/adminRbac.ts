@@ -39,6 +39,8 @@ type AuditEntry = {
   metadata?: Prisma.InputJsonValue;
 };
 
+type AdminAuditClient = PrismaClient | Prisma.TransactionClient;
+
 function getBootstrapAdminIdentity(): BootstrapAdminIdentity {
   return {
     email: (process.env.ADMIN_EMAIL || 'admin@onecompany.local').trim().toLowerCase(),
@@ -101,7 +103,7 @@ export async function ensureAdminBootstrap(prisma: PrismaClient) {
 }
 
 export async function writeAdminAuditLog(
-  prisma: PrismaClient,
+  prisma: AdminAuditClient,
   session: AdminSession,
   entry: AuditEntry
 ) {

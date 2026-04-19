@@ -3,7 +3,8 @@ import path from 'path';
 import type { SiteMedia, StoreId } from '@/types/site-media';
 import { defaultSiteMedia } from '@/config/defaultSiteMedia';
 
-const mediaPath = path.join(process.cwd(), 'public', 'config', 'site-media.json');
+const mediaPath = path.join(process.cwd(), 'data', 'admin-config', 'site-media.json');
+const legacyMediaPath = path.join(process.cwd(), 'public', 'config', 'site-media.json');
 
 async function ensureMediaFile() {
   try {
@@ -11,6 +12,13 @@ async function ensureMediaFile() {
   } catch {
     const dir = path.dirname(mediaPath);
     await fs.mkdir(dir, { recursive: true });
+
+    try {
+      const legacyData = await fs.readFile(legacyMediaPath, 'utf8');
+      await fs.writeFile(mediaPath, legacyData, 'utf8');
+      return;
+    } catch {}
+
     await fs.writeFile(mediaPath, JSON.stringify(defaultSiteMedia, null, 2), 'utf8');
   }
 }
@@ -26,7 +34,12 @@ function mergeStoreSection(storeId: StoreId, incoming: SiteMedia['stores'][Store
 
 export async function readSiteMedia(): Promise<SiteMedia> {
   try {
-    const raw = await fs.readFile(mediaPath, 'utf8');
+    let raw: string;
+    try {
+      raw = await fs.readFile(mediaPath, 'utf8');
+    } catch {
+      raw = await fs.readFile(legacyMediaPath, 'utf8');
+    }
     const parsed = JSON.parse(raw) as SiteMedia;
     return {
       heroPosters: {
@@ -60,5 +73,10 @@ export async function writeSiteMedia(payload: SiteMedia) {
     },
   };
   await fs.writeFile(mediaPath, JSON.stringify(merged, null, 2), 'utf8');
+
+  try {
+    await fs.unlink(legacyMediaPath);
+  } catch {}
+
   return merged;
 }

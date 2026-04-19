@@ -8,23 +8,34 @@ type BackupItem = {
   createdAt: string;
 };
 
+type BackupsResponse = {
+  items?: BackupItem[];
+  managedExternally?: boolean;
+  message?: string;
+  error?: string;
+};
+
 export default function AdminBackupsPage() {
   const [items, setItems] = useState<BackupItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [managedExternally, setManagedExternally] = useState(false);
+  const [managedMessage, setManagedMessage] = useState('');
 
   async function load() {
     setLoading(true);
     setError('');
     try {
       const response = await fetch('/api/admin/backups');
-      const data = await response.json().catch(() => ({}));
+      const data = (await response.json().catch(() => ({}))) as BackupsResponse;
       if (!response.ok) {
         setError(data.error || 'Не вдалося завантажити список бекапів');
         return;
       }
+      setManagedExternally(Boolean(data.managedExternally));
+      setManagedMessage(data.message || '');
       setItems(Array.isArray(data.items) ? (data.items as BackupItem[]) : []);
     } finally {
       setLoading(false);
@@ -37,7 +48,7 @@ export default function AdminBackupsPage() {
     setSuccess('');
     try {
       const response = await fetch('/api/admin/backups', { method: 'POST' });
-      const data = await response.json().catch(() => ({}));
+      const data = (await response.json().catch(() => ({}))) as BackupsResponse;
       if (!response.ok) {
         setError(data.error || 'Не вдалося створити бекап');
         return;
@@ -74,10 +85,10 @@ export default function AdminBackupsPage() {
             <button
               type="button"
               onClick={() => void createBackup()}
-              disabled={creating}
+              disabled={creating || managedExternally}
               className="rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
             >
-              {creating ? 'Створюємо…' : 'Зробити бекап зараз'}
+              {managedExternally ? 'Керується зовнішньо' : creating ? 'Створюємо…' : 'Зробити бекап зараз'}
             </button>
           </div>
         </div>
@@ -87,6 +98,9 @@ export default function AdminBackupsPage() {
         ) : null}
         {success ? (
           <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div>
+        ) : null}
+        {managedExternally && managedMessage ? (
+          <div className="mb-4 rounded-none bg-amber-900/20 p-3 text-sm text-amber-200">{managedMessage}</div>
         ) : null}
 
         <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">

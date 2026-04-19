@@ -4,7 +4,9 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import { assertAdminRequest } from '@/lib/adminAuth';
-import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
+import { buildAdminPgDumpInvocation, getAdminBackupRuntimePolicy } from '@/lib/adminBackups';
 
 const BACKUP_DIR = path.join(process.cwd(), 'backups');
 
@@ -16,6 +18,14 @@ export async function GET() {
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_READ);
+
+    if (String(process.env.NODE_ENV ?? '').trim().toLowerCase() === 'production') {
+      return NextResponse.json({
+        items: [],
+        managedExternally: true,
+        message: 'Production backups are managed through external backup automation.',
+      });
+    }
 
     await ensureBackupDir();
     const entries = await fs.readdir(BACKUP_DIR);
@@ -38,6 +48,12 @@ export async function GET() {
 
     return NextResponse.json({ items });
   } catch (error) {
+    if ((error as Error).message === 'UNAUTHORIZED') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if ((error as Error).message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
     console.error('Admin backups list', error);
     return NextResponse.json({ error: 'Не вдалося завантажити список бекапів' }, { status: 500 });
   }
@@ -46,28 +62,37 @@ export async function GET() {
 export async function POST(_request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
+    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
 
     const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) {
-      return NextResponse.json({ error: 'DATABASE_URL не налаштований на сервері' }, { status: 500 });
+    const runtimePolicy = getAdminBackupRuntimePolicy({
+      nodeEnv: process.env.NODE_ENV,
+      databaseUrl,
+    });
+    if (!runtimePolicy.allowed) {
+      return NextResponse.json({ error: runtimePolicy.error }, { status: runtimePolicy.status });
     }
 
     await ensureBackupDir();
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `onecompany-shop-${timestamp}.sql`;
     const fullPath = path.join(BACKUP_DIR, filename);
-
-    const args = [databaseUrl, '-f', fullPath];
+    const invocation = buildAdminPgDumpInvocation({
+      databaseUrl: databaseUrl!,
+      outputPath: fullPath,
+    });
 
     return await new Promise<NextResponse>((resolve) => {
-      const child = spawn('pg_dump', args, {
+      const child = spawn('pg_dump', invocation.args, {
         stdio: ['ignore', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          ...invocation.env,
+        },
       });
 
-      let stderr = '';
       child.stderr.on('data', (chunk) => {
-        stderr += chunk.toString();
+        void chunk;
       });
 
       child.on('error', (error) => {
@@ -82,10 +107,10 @@ export async function POST(_request: NextRequest) {
 
       child.on('close', async (code) => {
         if (code !== 0) {
-          console.error('pg_dump failed', { code, stderr });
+          console.error('pg_dump failed', { code });
           resolve(
             NextResponse.json(
-              { error: 'pg_dump завершився з помилкою. Перевірте налаштування БД.', details: stderr },
+              { error: 'pg_dump завершився з помилкою. Перевірте доступність БД та зовнішню backup automation.' },
               { status: 500 }
             )
           );
@@ -94,6 +119,20 @@ export async function POST(_request: NextRequest) {
 
         try {
           const stat = await fs.stat(fullPath);
+          try {
+            await writeAdminAuditLog(prisma, session, {
+              scope: 'backups',
+              action: 'backup.create',
+              entityType: 'system.backup',
+              entityId: filename,
+              metadata: {
+                filename,
+                sizeBytes: stat.size,
+              },
+            });
+          } catch (auditError) {
+            console.error('Failed to write backup audit log', auditError);
+          }
           resolve(
             NextResponse.json({
               filename,
@@ -113,6 +152,12 @@ export async function POST(_request: NextRequest) {
       });
     });
   } catch (error) {
+    if ((error as Error).message === 'UNAUTHORIZED') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if ((error as Error).message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
     console.error('Admin backup create', error);
     return NextResponse.json({ error: 'Не вдалося створити бекап' }, { status: 500 });
   }

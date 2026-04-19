@@ -3,60 +3,81 @@ import { cookies } from 'next/headers';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { assertAdminRequest } from '@/lib/adminAuth';
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
+import { prisma } from '@/lib/prisma';
+import { validateAdminUpload } from '@/lib/adminUploadSecurity';
+import { readVideoConfig, writeVideoConfig } from '@/lib/videoConfig';
 
-const configPath = path.join(process.cwd(), 'public', 'config', 'video-config.json');
 const videosDir = path.join(process.cwd(), 'public', 'videos');
+const VIDEO_MIME_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'] as const;
+const VIDEO_MAX_BYTES = 150 * 1024 * 1024;
 
 async function ensurePaths() {
-  // Ensure videos directory exists
   await fs.mkdir(videosDir, { recursive: true });
-
-  // Ensure config file exists
-  try {
-    await fs.access(configPath);
-  } catch {
-    const dir = path.dirname(configPath);
-    await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(
-      configPath,
-      JSON.stringify({ heroVideo: 'rollsbg-v3.mp4', videos: [] }, null, 2)
-    );
-  }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    assertAdminRequest(cookieStore);
+    const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
     await ensurePaths();
     const formData = await request.formData();
-    const file = formData.get('video') as File;
+    const file = formData.get('video');
     
-    if (!file) {
+    if (!(file instanceof File)) {
       return NextResponse.json(
         { error: 'No file uploaded' },
         { status: 400 }
       );
     }
 
+    const validated = validateAdminUpload({
+      originalName: file.name,
+      mimeType: file.type || 'application/octet-stream',
+      sizeBytes: file.size,
+      allowedMimeTypes: VIDEO_MIME_TYPES,
+      maxBytes: VIDEO_MAX_BYTES,
+    });
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const filename = `${Date.now()}-${file.name}`;
+    const filename = `${Date.now()}-${validated.sanitizedFilename}`;
     const filepath = path.join(videosDir, filename);
 
-  await fs.writeFile(filepath, buffer);
+    await fs.writeFile(filepath, buffer);
+    const currentConfig = await readVideoConfig();
+    const config = await writeVideoConfig({
+      videos: Array.from(new Set([filename, ...currentConfig.videos])),
+    });
 
-  const data = await fs.readFile(configPath, 'utf-8');
-    const config = JSON.parse(data);
-    
-    if (!config.videos.includes(filename)) {
-      config.videos.push(filename);
-      await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+    try {
+      await writeAdminAuditLog(prisma, session, {
+        scope: 'content',
+        action: 'video.upload',
+        entityType: 'site.video',
+        entityId: filename,
+        metadata: {
+          filename,
+          mimeType: validated.mimeType,
+          sizeBytes: validated.sizeBytes,
+          videosCount: config.videos.length,
+        },
+      });
+    } catch (auditError) {
+      console.error('Failed to write video upload audit log', auditError);
     }
 
     return NextResponse.json({ success: true, filename });
-  } catch {
+  } catch (error) {
+    if ((error as Error).message === 'UNAUTHORIZED') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if ((error as Error).message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (/file|type|large|extension/i.test((error as Error).message)) {
+      return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+    }
     return NextResponse.json(
       { error: 'Failed to upload video' },
       { status: 500 }
