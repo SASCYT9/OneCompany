@@ -51,6 +51,10 @@ test('operational catalog screens also sit on shared admin primitives', () => {
       path: 'src/app/admin/shop/pricing/page.tsx',
       markers: ['AdminPageHeader', 'AdminMetricGrid', 'AdminActionBar'],
     },
+    {
+      path: 'src/app/admin/shop/settings/page.tsx',
+      markers: ['AdminPageHeader', 'AdminMetricGrid', 'AdminActionBar', 'AdminEditorSection'],
+    },
   ];
 
   for (const expectation of pageExpectations) {

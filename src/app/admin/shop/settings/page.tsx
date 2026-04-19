@@ -4,17 +4,32 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowDown,
-  ArrowLeft,
   ArrowUp,
+  Download,
   Globe2,
-  RefreshCw,
   Percent,
   Plus,
+  RefreshCw,
   Save,
   Settings2,
   Trash2,
-  Download,
 } from 'lucide-react';
+
+import {
+  AdminActionBar,
+  AdminEditorSection,
+  AdminInlineAlert,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminPage,
+  AdminPageHeader,
+} from '@/components/admin/AdminPrimitives';
+import {
+  AdminCheckboxField as CheckboxField,
+  AdminInputField as InputField,
+  AdminSelectField as SelectField,
+  AdminTextareaField as TextareaField,
+} from '@/components/admin/AdminFormFields';
 
 type ShopCurrencyCode = 'EUR' | 'USD' | 'UAH';
 
@@ -557,6 +572,16 @@ export default function AdminShopSettingsPage() {
   });
   const [translationResult, setTranslationResult] = useState<EnTranslationResponse | null>(null);
 
+  const settingsMetrics = useMemo(
+    () => ({
+      currencies: form.enabledCurrencies.length,
+      shippingZones: form.shippingZones.length,
+      taxRules: form.taxRegions.length,
+      regionalRules: form.regionalPricingRules.filter((rule) => rule.enabled).length,
+    }),
+    [form.enabledCurrencies.length, form.regionalPricingRules, form.shippingZones.length, form.taxRegions.length]
+  );
+
   useEffect(() => {
     void load();
   }, []);
@@ -938,38 +963,83 @@ export default function AdminShopSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 p-6 text-white/60">
-        <Settings2 className="h-5 w-5 animate-pulse" />
-        Завантаження налаштувань магазину…
-      </div>
+      <AdminPage>
+        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+          <Settings2 className="h-4 w-4 animate-pulse" />
+          Завантаження налаштувань магазину…
+        </div>
+      </AdminPage>
     );
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="w-full px-6 md:px-12 py-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
-              <ArrowLeft className="h-4 w-4" />
-              Назад до каталогу
-            </Link>
-            <h2 className="mt-3 text-2xl font-semibold text-white">Налаштування магазину</h2>
-            <p className="mt-2 max-w-[1920px] text-sm text-white/45">
-              Валюти вітрини, правила доставки та податків, видимість B2B та знижка B2B за замовчуванням. Порядок правил важливий: застосовується перша збіжна зона доставки або податкове правило.
-            </p>
-          </div>
-          <div className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-3 text-right">
-            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Оновлено</div>
-            <div className="mt-2 text-sm text-white/80">{updatedAt ? new Date(updatedAt).toLocaleString() : '—'}</div>
-          </div>
+    <AdminPage className="space-y-6">
+      <div className="space-y-4">
+        <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-stone-400 transition hover:text-stone-100">
+          Назад до каталогу
+        </Link>
+        <AdminPageHeader
+          eyebrow="Catalog"
+          title="Налаштування магазину"
+          description="Валюти вітрини, правила доставки та податків, видимість B2B, платіжні реквізити та операційні інтеграції каталогу. Порядок правил важливий: застосовується перша збіжна зона доставки або податкове правило."
+          actions={
+            <div className="rounded-[24px] border border-white/10 bg-[#101010] px-4 py-3 text-right">
+              <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Оновлено</div>
+              <div className="mt-2 text-sm text-stone-200">{updatedAt ? new Date(updatedAt).toLocaleString() : '—'}</div>
+            </div>
+          }
+        />
+      </div>
+
+      <AdminMetricGrid>
+        <AdminMetricCard label="Enabled currencies" value={settingsMetrics.currencies} meta="Storefront currencies available in checkout" tone="accent" />
+        <AdminMetricCard label="Shipping zones" value={settingsMetrics.shippingZones} meta="Ordered matching rules for delivery quotes" />
+        <AdminMetricCard label="Tax rules" value={settingsMetrics.taxRules} meta="Active tax rule stack for checkout pricing" />
+        <AdminMetricCard label="Regional pricing" value={settingsMetrics.regionalRules} meta="Enabled regional price adjustment rules" />
+      </AdminMetricGrid>
+
+      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
+      {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
+
+      <AdminActionBar className="bg-[#101010]">
+        <div className="space-y-1">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Settings actions</div>
+          <div className="text-sm text-stone-300">Save the operational catalog defaults, reload from API, or export the current draft.</div>
         </div>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="submit"
+            form="admin-shop-settings-form"
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-5 py-2.5 text-sm font-medium text-black transition hover:bg-white disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {saving ? 'Saving…' : 'Save settings'}
+          </button>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="rounded-2xl border border-white/15 px-5 py-2.5 text-sm text-stone-200 transition hover:bg-white/5"
+          >
+            Reload
+          </button>
+          <button
+            type="button"
+            onClick={exportSettings}
+            className="inline-flex items-center gap-2 rounded-2xl border border-white/15 px-5 py-2.5 text-sm text-stone-200 transition hover:bg-white/5"
+          >
+            <Download className="h-4 w-4" />
+            Export
+          </button>
+        </div>
+      </AdminActionBar>
 
-        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
-        {success ? <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
+      <form id="admin-shop-settings-form" onSubmit={handleSubmit} className="space-y-6">
+          <AdminEditorSection
+            id="settings-core"
+            title="Core rules"
+            description="Storefront defaults, global B2B discount policy and operational notification settings."
+          >
             <div className="mb-5">
               <h3 className="text-lg font-medium text-white">Core rules</h3>
               <p className="mt-1 text-sm text-white/45">Storefront defaults, global B2B discount policy and team notifications.</p>
@@ -1041,7 +1111,7 @@ export default function AdminShopSettingsPage() {
                 onChange={(checked) => updateField('showTaxesIncludedNotice', checked)}
               />
             </div>
-          </section>
+          </AdminEditorSection>
 
           <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
@@ -2011,8 +2081,7 @@ export default function AdminShopSettingsPage() {
           </button>
         </section>
 
-      </div>
-    </div>
+    </AdminPage>
   );
 }
 
@@ -2028,96 +2097,5 @@ function SummaryRow({ label, value, strong = false }: SummaryRowProps) {
       <span className={`text-white/55 ${strong ? 'font-medium' : ''}`}>{label}</span>
       <span className={strong ? 'font-semibold text-white' : 'text-white/80'}>{value}</span>
     </div>
-  );
-}
-
-type InputFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
-};
-
-function InputField({ label, value, onChange, placeholder, disabled }: InputFieldProps) {
-  return (
-    <label className={`block ${disabled ? 'opacity-50 grayscale' : ''}`}>
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <input
-        type="text"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        disabled={disabled}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none disabled:bg-zinc-950/50 disabled:cursor-not-allowed"
-      />
-    </label>
-  );
-}
-
-type TextareaFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  rows?: number;
-};
-
-function TextareaField({ label, value, onChange, rows = 6 }: TextareaFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <textarea
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        rows={rows}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
-      />
-    </label>
-  );
-}
-
-type SelectFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
-};
-
-function SelectField({ label, value, onChange, options }: SelectFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-type CheckboxFieldProps = {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-};
-
-function CheckboxField({ label, checked, onChange }: CheckboxFieldProps) {
-  return (
-    <label className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2.5 text-sm text-white/80">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-        className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
-      />
-      {label}
-    </label>
   );
 }

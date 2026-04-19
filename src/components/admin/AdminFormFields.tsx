@@ -15,6 +15,7 @@ type InputFieldProps = BaseFieldProps & {
   step?: string;
   placeholder?: string;
   mono?: boolean;
+  disabled?: boolean;
 };
 
 export function AdminInputField({
@@ -26,6 +27,7 @@ export function AdminInputField({
   placeholder,
   helper,
   mono = false,
+  disabled = false,
   className,
 }: InputFieldProps) {
   return (
@@ -37,8 +39,9 @@ export function AdminInputField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        disabled={disabled}
         className={cn(
-          'w-full rounded-2xl border border-white/10 bg-[#101010] px-3.5 py-2.5 text-sm text-stone-100 placeholder:text-stone-500 focus:border-amber-200/30 focus:outline-none',
+          'w-full rounded-2xl border border-white/10 bg-[#101010] px-3.5 py-2.5 text-sm text-stone-100 placeholder:text-stone-500 focus:border-amber-200/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
           mono && 'font-mono text-[13px]'
         )}
       />
