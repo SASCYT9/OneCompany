@@ -20,6 +20,34 @@ const CONTENT_SECURITY_POLICY = [
   'upgrade-insecure-requests',
 ].join('; ');
 
+const MEDIA_ROUTE_TRACE_INCLUDES = ['public/media/**/*'];
+const MEDIA_ROUTE_TRACE_EXCLUDES = [
+  'public/images/**/*',
+  'public/videos/**/*',
+  'public/branding/**/*',
+  'public/logos/**/*',
+  'public/models/**/*',
+  'Design/**/*',
+  'backups/**/*',
+  'docs/**/*',
+  'tests/**/*',
+  'wiki/**/*',
+];
+
+const VIDEO_UPLOAD_TRACE_INCLUDES = ['public/videos/uploads/**/*'];
+const VIDEO_UPLOAD_TRACE_EXCLUDES = [
+  'public/images/**/*',
+  'public/videos/shop/**/*',
+  'public/branding/**/*',
+  'public/logos/**/*',
+  'public/models/**/*',
+  'Design/**/*',
+  'backups/**/*',
+  'docs/**/*',
+  'tests/**/*',
+  'wiki/**/*',
+];
+
 const nextConfig: NextConfig = {
   // Для Docker standalone output
   output: 'standalone',
@@ -27,6 +55,20 @@ const nextConfig: NextConfig = {
   // Оптимізація для продакшену
   compress: true,
   poweredByHeader: false, // Security: remove X-Powered-By header
+  outputFileTracingIncludes: {
+    'api/media': MEDIA_ROUTE_TRACE_INCLUDES,
+    'api/media/[id]': MEDIA_ROUTE_TRACE_INCLUDES,
+    'api/admin/shop/media': MEDIA_ROUTE_TRACE_INCLUDES,
+    'api/admin/shop/media/[id]': MEDIA_ROUTE_TRACE_INCLUDES,
+    'api/admin/upload-video': VIDEO_UPLOAD_TRACE_INCLUDES,
+  },
+  outputFileTracingExcludes: {
+    'api/media': MEDIA_ROUTE_TRACE_EXCLUDES,
+    'api/media/[id]': MEDIA_ROUTE_TRACE_EXCLUDES,
+    'api/admin/shop/media': MEDIA_ROUTE_TRACE_EXCLUDES,
+    'api/admin/shop/media/[id]': MEDIA_ROUTE_TRACE_EXCLUDES,
+    'api/admin/upload-video': VIDEO_UPLOAD_TRACE_EXCLUDES,
+  },
 
   // Images configuration - optimized for SEO & performance
   images: {

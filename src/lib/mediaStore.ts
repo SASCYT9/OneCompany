@@ -26,8 +26,8 @@ type MediaStorePaths = {
 let mediaMutationQueue: Promise<void> = Promise.resolve();
 
 function resolveMediaStorePaths(): MediaStorePaths {
-  const projectRoot = process.env.MEDIA_STORE_ROOT || process.cwd();
-  const mediaDir = path.join(projectRoot, 'public', 'media');
+  // Keep file tracing scoped to the media storage subtree.
+  const mediaDir = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'media');
   return {
     mediaDir,
     manifestPath: path.join(mediaDir, 'media.json'),
@@ -45,18 +45,18 @@ function withMediaMutationLock<T>(operation: () => Promise<T>) {
 
 async function ensureMediaDir() {
   const { mediaDir, manifestPath } = resolveMediaStorePaths();
-  await fs.mkdir(mediaDir, { recursive: true });
+  await fs.mkdir(/*turbopackIgnore: true*/ mediaDir, { recursive: true });
   try {
-    await fs.access(manifestPath);
+    await fs.access(/*turbopackIgnore: true*/ manifestPath);
   } catch {
-    await atomicWriteTextFile(manifestPath, JSON.stringify({ items: [] }, null, 2));
+    await atomicWriteTextFile(/*turbopackIgnore: true*/ manifestPath, JSON.stringify({ items: [] }, null, 2));
   }
 }
 
 export async function getManifest(): Promise<{ items: MediaItem[] }> {
   try {
     const { manifestPath } = resolveMediaStorePaths();
-    const raw = await fs.readFile(manifestPath, 'utf8');
+    const raw = await fs.readFile(/*turbopackIgnore: true*/ manifestPath, 'utf8');
     const parsed = JSON.parse(raw);
     if (!parsed.items) return { items: [] };
     return parsed;
@@ -68,7 +68,7 @@ export async function getManifest(): Promise<{ items: MediaItem[] }> {
 export async function saveManifest(items: MediaItem[]) {
   await ensureMediaDir();
   const { manifestPath } = resolveMediaStorePaths();
-  await atomicWriteTextFile(manifestPath, JSON.stringify({ items }, null, 2));
+  await atomicWriteTextFile(/*turbopackIgnore: true*/ manifestPath, JSON.stringify({ items }, null, 2));
 }
 
 export function detectKind(mime: string): MediaKind {
@@ -104,8 +104,8 @@ export async function addMediaFromBuffer(buffer: Buffer, originalName: string, m
     const id = nanoid(10);
     const base = sanitizeBase(path.basename(originalName, ext));
     const filename = `${base}-${id}${ext || guessExt(mimeType)}`;
-    const target = path.join(mediaDir, filename);
-    await fs.writeFile(target, buffer);
+    const target = path.join(/*turbopackIgnore: true*/ mediaDir, filename);
+    await fs.writeFile(/*turbopackIgnore: true*/ target, buffer);
 
     const item: MediaItem = {
       id,
@@ -131,7 +131,7 @@ export async function deleteMedia(id: string): Promise<boolean> {
     const item = manifest.items.find((i) => i.id === id);
     if (!item) return false;
     try {
-      await fs.unlink(path.join(mediaDir, item.filename));
+      await fs.unlink(path.join(/*turbopackIgnore: true*/ mediaDir, item.filename));
     } catch {}
     const next = manifest.items.filter((i) => i.id !== id);
     await saveManifest(next);

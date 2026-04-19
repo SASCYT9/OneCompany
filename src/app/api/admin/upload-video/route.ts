@@ -7,13 +7,14 @@ import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import { prisma } from '@/lib/prisma';
 import { validateAdminUpload } from '@/lib/adminUploadSecurity';
 import { readVideoConfig, writeVideoConfig } from '@/lib/videoConfig';
+import { buildUploadedVideoAssetPath, VIDEO_UPLOADS_SEGMENT } from '@/lib/videoUploadStorage';
 
-const videosDir = path.join(process.cwd(), 'public', 'videos');
+const videosDir = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'videos', VIDEO_UPLOADS_SEGMENT);
 const VIDEO_MIME_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'] as const;
 const VIDEO_MAX_BYTES = 150 * 1024 * 1024;
 
 async function ensurePaths() {
-  await fs.mkdir(videosDir, { recursive: true });
+  await fs.mkdir(/*turbopackIgnore: true*/ videosDir, { recursive: true });
 }
 
 export async function POST(request: NextRequest) {
@@ -42,12 +43,13 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     const filename = `${Date.now()}-${validated.sanitizedFilename}`;
-    const filepath = path.join(videosDir, filename);
+    const assetPath = buildUploadedVideoAssetPath(filename);
+    const filepath = path.join(/*turbopackIgnore: true*/ videosDir, filename);
 
-    await fs.writeFile(filepath, buffer);
+    await fs.writeFile(/*turbopackIgnore: true*/ filepath, buffer);
     const currentConfig = await readVideoConfig();
     const config = await writeVideoConfig({
-      videos: Array.from(new Set([filename, ...currentConfig.videos])),
+      videos: Array.from(new Set([assetPath, ...currentConfig.videos])),
     });
 
     try {
@@ -55,9 +57,10 @@ export async function POST(request: NextRequest) {
         scope: 'content',
         action: 'video.upload',
         entityType: 'site.video',
-        entityId: filename,
+        entityId: assetPath,
         metadata: {
-          filename,
+          filename: assetPath,
+          storageFilename: filename,
           mimeType: validated.mimeType,
           sizeBytes: validated.sizeBytes,
           videosCount: config.videos.length,
@@ -67,7 +70,7 @@ export async function POST(request: NextRequest) {
       console.error('Failed to write video upload audit log', auditError);
     }
 
-    return NextResponse.json({ success: true, filename });
+    return NextResponse.json({ success: true, filename: assetPath });
   } catch (error) {
     if ((error as Error).message === 'UNAUTHORIZED') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
