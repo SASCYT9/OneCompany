@@ -19,7 +19,7 @@ const HANDLE_TO_ALIASES: Record<string, string[]> = {
   'lamborghini-urus-performante': ['Lamborghini Urus Performante', 'Urus Performante'],
   'lamborghini-aventador-s': ['Lamborghini Aventador S', 'Aventador S'],
   'rolls-royce-cullinan': ['Rolls-Royce Cullinan', 'Cullinan'],
-  'rolls-royce-cullinan-series-ii': ['Rolls-Royce Cullinan Series II', 'Cullinan Series II', 'Rolls-Royce Cullinan'],
+  'rolls-royce-cullinan-series-ii': ['Rolls-Royce Cullinan Series II', 'Cullinan Series II'],
   'rolls-royce-ghost-series-ii': ['Rolls-Royce Ghost Series II', 'Ghost Series II'],
   'mercedes-g-wagon-w465-widetrack': ['Mercedes-Benz G-Class W465', 'Mercedes G-Wagon W465 Widetrack', 'G-Wagon W465'],
   'mercedes-g-wagon-w465-aerokit': ['Mercedes G-Wagon W465 Aerokit', 'G-Wagon Aerokit'],
@@ -236,7 +236,17 @@ export function isUrbanCatalogProduct(product: ShopProduct) {
     return true;
   }
 
-  return Boolean(getUrbanCollectionHandleForProduct(product));
+  // Only include products that have an explicit Shopify collection handle
+  // matching one of our known Urban collection cards. Do NOT use fuzzy
+  // title matching here — that pulls in Brabus and other non-Urban products
+  // that merely mention the same vehicle models.
+  if (product.collections?.some((item) =>
+    URBAN_COLLECTION_CARDS.some((card) => card.collectionHandle === item.handle)
+  )) {
+    return true;
+  }
+
+  return false;
 }
 
 export function getUrbanCatalogProducts(products: ShopProduct[]) {
