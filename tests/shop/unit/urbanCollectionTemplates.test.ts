@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { URBAN_COLLECTION_CARDS } from '../../../src/app/[locale]/shop/data/urbanCollectionsList';
+import { resolveUrbanThemeAssetUrl } from '../../../src/lib/urbanThemeAssets';
 
 const TEMPLATE_DIR = path.resolve(
   process.cwd(),
@@ -17,7 +18,19 @@ function parseJsoncTemplate(filePath: string) {
   let text = fs.readFileSync(filePath, 'utf8');
   text = text.replace(/^\uFEFF/, '');
   text = text.replace(/\/\*[\s\S]*?\*\//g, '');
-  return JSON.parse(text) as { sections?: Record<string, unknown> };
+  return JSON.parse(text) as {
+    sections?: Record<
+      string,
+      {
+        blocks?: Record<
+          string,
+          {
+            settings?: Record<string, unknown>;
+          }
+        >;
+      }
+    >;
+  };
 }
 
 test('every urban collection handle has a valid collection template file', () => {
@@ -48,4 +61,20 @@ test('every urban collection handle has a valid collection template file', () =>
 
   assert.deepEqual(missingTemplates, [], 'Missing Urban collection templates');
   assert.deepEqual(invalidTemplates, [], 'Invalid Urban collection templates');
+});
+
+test('w465 widetrack blueprint renders all four view cards with mapped local assets', () => {
+  const template = parseJsoncTemplate(
+    path.join(TEMPLATE_DIR, 'collection.mercedes-g-wagon-w465-widetrack.json')
+  );
+  const blueprintViews = Object.values(template.sections?.blueprint_kit?.blocks ?? {});
+  const resolvedUrls = blueprintViews.map((block) =>
+    resolveUrbanThemeAssetUrl(String(block.settings?.external_image_url ?? ''))
+  );
+
+  assert.equal(blueprintViews.length, 4);
+  assert.ok(
+    resolvedUrls.every((url) => url.startsWith('/images/shop/urban/')),
+    'Expected blueprint views to resolve to local Urban assets'
+  );
 });

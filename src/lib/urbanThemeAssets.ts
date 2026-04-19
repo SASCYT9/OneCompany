@@ -4,6 +4,10 @@ const KNOWN_THEME_ASSET_MAP: Record<string, string> = {
   'blueprint-cullinan-left.png': '/images/shop/urban/banners/models/cullinan/banner-1-1920.jpg',
   'blueprint-w465-front.jpg': '/images/shop/urban/banners/models/gwagonSoftKit/banner-1-1920.jpg',
   'blueprint-w465-left.jpg': '/images/shop/urban/banners/models/gwagonSoftKit/banner-1-1920.jpg',
+  'blueprint-w465-right.jpg':
+    '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-11-2560.webp',
+  'blueprint-w465-back.jpg':
+    '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-12-2560.webp',
 };
 
 export function resolveUrbanThemeAssetUrl(value: string): string {
