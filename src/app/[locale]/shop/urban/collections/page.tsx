@@ -54,9 +54,9 @@ export default async function UrbanCollectionsPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <div className="urban-back-to-stores">
-        <Link href={`/${locale}/shop/urban`} className="urban-back-to-stores__link">
-          ← {isUa ? 'Urban головна' : 'Urban home'}
+      <div className="w-full max-w-[1720px] mx-auto px-6 md:px-12 lg:px-16 pt-32 pb-4">
+        <Link href={`/${locale}/shop/urban`} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50 transition-all hover:border-white/20 hover:bg-white/[0.08] hover:text-white backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.3)] relative z-10">
+          <span>←</span> {isUa ? 'Urban головна' : 'Urban home'}
         </Link>
       </div>
       <UrbanCollectionsGrid locale={resolvedLocale} cards={cards} />
