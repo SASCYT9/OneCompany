@@ -347,8 +347,7 @@ function ProductCard({
   const canOrder = hasPrice && !pricing.requestQuote;
   const productUrl = buildShopProductPath(locale, entry.product);
   const productImage = resolveProductImage(entry.product.image, entry.modelHandles);
-  const familyLabel = isUa ? FAMILY_LABELS[entry.family].ua : FAMILY_LABELS[entry.family].en;
-  const leadTime = localizeShopText(locale, entry.product.leadTime);
+
   const availability =
     entry.product.stock === "inStock"
       ? isUa
@@ -402,20 +401,7 @@ function ProductCard({
 
         <p className="mt-2 text-sm leading-6 text-white/65">{entry.categoryLabel}</p>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 rounded-[22px] border border-white/8 bg-black/35 p-4 text-xs text-white/62">
-          <div>
-            <p className="uppercase tracking-[0.18em] text-white/35">
-              {isUa ? "Сімейство" : "Family"}
-            </p>
-            <p className="mt-1 text-white/78">{familyLabel}</p>
-          </div>
-          <div>
-            <p className="uppercase tracking-[0.18em] text-white/35">
-              {isUa ? "Термін" : "Lead time"}
-            </p>
-            <p className="mt-1 text-white/78">{leadTime || "—"}</p>
-          </div>
-        </div>
+
 
         <div className="mt-auto pt-5">
           <div className="flex items-end justify-between gap-4">
