@@ -2,7 +2,6 @@ import 'server-only';
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import type {
   UrbanBannerItem,
   UrbanBlueprintView,
@@ -30,11 +29,8 @@ type ThemeTemplate = {
   order?: string[];
 };
 
-const CURRENT_DIR = path.dirname(fileURLToPath(import.meta.url));
-
 const TEMPLATE_DIR = path.resolve(
-  CURRENT_DIR,
-  '../../../../../',
+  process.cwd(),
   'reference',
   'urban-shopify-theme',
   'templates'
