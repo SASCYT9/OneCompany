@@ -1,8 +1,13 @@
 import type { ShopProduct } from '@/lib/shopCatalog';
+import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollectionsList';
+import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import { buildShopStorefrontProductPathForProduct } from '@/lib/shopStorefrontRouting';
 
 type UrbanMatcherProduct = Pick<ShopProduct, 'brand' | 'title' | 'collection' | 'tags' | 'collections'>;
+
+const PRIORITY_URBAN_COLLECTION_PRODUCT_REGEX =
+  /(body\s?kit|bodykit|aero\s?kit|aerokit|softkit|widebody|full\s?kit|complete\s?(program|kit|package)|replacement bumper|bumper replacement|conversion kit|package|kit|обвіс|комплект|пакет|заміни бамперів|бодікит)/i;
 
 const HANDLE_TO_ALIASES: Record<string, string[]> = {
   'land-rover-defender-110': ['Land Rover Defender 110', 'Defender 110'],
@@ -170,6 +175,59 @@ export function getProductsForUrbanCollection(
       }
 
       return left.product.title.en.localeCompare(right.product.title.en);
+    })
+    .map((entry) => entry.product);
+}
+
+function getUrbanCollectionSortPrice(
+  product: ShopProduct,
+  viewerContext?: ShopViewerPricingContext
+) {
+  const price = viewerContext
+    ? resolveShopProductPricing(product, viewerContext).effectivePrice
+    : product.price;
+
+  return price.eur || price.usd || price.uah || 0;
+}
+
+function isPriorityUrbanCollectionProduct(product: ShopProduct) {
+  if (product.bundle) {
+    return true;
+  }
+
+  const haystack = [
+    product.title.en,
+    product.title.ua,
+    product.productType || '',
+    product.category.en,
+    product.category.ua,
+    ...(product.tags ?? []),
+  ].join(' ');
+
+  return PRIORITY_URBAN_COLLECTION_PRODUCT_REGEX.test(haystack);
+}
+
+export function sortUrbanCollectionProducts(
+  products: ShopProduct[],
+  viewerContext?: ShopViewerPricingContext
+) {
+  return products
+    .map((product, index) => ({
+      product,
+      index,
+      priority: isPriorityUrbanCollectionProduct(product) ? 1 : 0,
+      price: getUrbanCollectionSortPrice(product, viewerContext),
+    }))
+    .sort((left, right) => {
+      if (right.priority !== left.priority) {
+        return right.priority - left.priority;
+      }
+
+      if (right.price !== left.price) {
+        return right.price - left.price;
+      }
+
+      return left.index - right.index;
     })
     .map((entry) => entry.product);
 }

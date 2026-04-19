@@ -3,12 +3,37 @@
  * Detects GP Products placeholder images and resolves fallback images from collections.
  */
 
+import type { UrbanCollectionPageConfig } from '@/app/[locale]/shop/data/urbanCollectionPages';
 import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollectionsList';
 
 const FALLBACK_URBAN_IMAGE = '/images/shop/urban/hero/models/defender2020Plus/2025Updates/hero-1-1920.jpg';
 
 function stripQueryAndHash(url: string) {
   return url.split(/[?#]/, 1)[0] ?? url;
+}
+
+function normalizeUrbanImageUrl(url: string | null | undefined) {
+  const raw = String(url ?? '').replace(/^["']|["']$/g, '').trim();
+  if (!raw) return '';
+  return raw.startsWith('//') ? `https:${raw}` : raw;
+}
+
+function uniqueNonPlaceholderImages(urls: Array<string | null | undefined>) {
+  return Array.from(
+    new Set(
+      urls
+        .map((url) => normalizeUrbanImageUrl(url))
+        .filter((url) => url.length > 0 && !isUrbanPlaceholderImage(url))
+    )
+  );
+}
+
+function stableImageIndex(seed: string, length: number) {
+  let hash = 0;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
+  }
+  return length > 0 ? hash % length : 0;
 }
 
 /**
@@ -55,8 +80,7 @@ export function resolveUrbanProductImage(
   image: string | undefined | null,
   modelHandles: string[]
 ): string {
-  let raw = image ? image.replace(/^["']|["']$/g, '').trim() : '';
-  if (raw.startsWith('//')) raw = `https:${raw}`;
+  const raw = normalizeUrbanImageUrl(image);
 
   if (!raw || isUrbanPlaceholderImage(raw)) {
     for (const handle of modelHandles) {
@@ -64,6 +88,48 @@ export function resolveUrbanProductImage(
       if (card?.externalImageUrl) return card.externalImageUrl;
     }
     return FALLBACK_URBAN_IMAGE;
+  }
+
+  return raw;
+}
+
+export function buildUrbanCollectionImagePool(
+  config: UrbanCollectionPageConfig | null | undefined,
+  modelHandles: string[]
+): string[] {
+  const cardImages = modelHandles.map((handle) => {
+    const card = URBAN_COLLECTION_CARDS.find((item) => item.collectionHandle === handle);
+    return card?.externalImageUrl;
+  });
+
+  const configImages = config
+    ? [
+        config.hero.externalPosterUrl,
+        config.overview.externalImageUrl,
+        ...config.gallery.slides.map((slide) => slide.externalImageUrl),
+        ...config.bannerStack.banners
+          .filter((banner) => banner.mediaType === 'image')
+          .map((banner) => banner.externalImageUrl),
+        ...config.blueprint.views.map((view) => view.externalImageUrl),
+      ]
+    : [];
+
+  return uniqueNonPlaceholderImages([...cardImages, ...configImages]);
+}
+
+export function resolveUrbanCollectionCardImage(
+  image: string | undefined | null,
+  modelHandles: string[],
+  collectionImages: string[],
+  seed: string
+): string {
+  const raw = normalizeUrbanImageUrl(image);
+
+  if (!raw || isUrbanPlaceholderImage(raw)) {
+    if (collectionImages.length > 0) {
+      return collectionImages[stableImageIndex(seed || modelHandles.join('|'), collectionImages.length)]!;
+    }
+    return resolveUrbanProductImage(raw, modelHandles);
   }
 
   return raw;

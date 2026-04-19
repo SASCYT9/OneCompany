@@ -11,12 +11,15 @@ import { localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopProductPath } from '@/lib/urbanCollectionMatcher';
 import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
+import { resolveUrbanCollectionCardImage } from '@/lib/urbanImageUtils';
 import type { UrbanProductGridConfig } from '../data/urbanCollectionPages';
 
 type UrbanCollectionProductGridProps = {
   locale: SupportedLocale;
   title: string;
   brand: string;
+  collectionHandle: string;
+  collectionImages: string[];
   products: ShopProduct[];
   settings: UrbanProductGridConfig;
   viewerContext?: ShopViewerPricingContext;
@@ -104,6 +107,8 @@ export default function UrbanCollectionProductGrid({
   locale,
   title,
   brand,
+  collectionHandle,
+  collectionImages,
   products,
   settings,
   viewerContext,
@@ -184,10 +189,12 @@ export default function UrbanCollectionProductGrid({
               const productTitle = localizeShopProductTitle(locale, product);
               const productCollection = localizeShopText(locale, product.collection);
               
-              const rawImg = product.image ? product.image.replace(/^["']|["']$/g, '').trim() : '';
-              const safeImageUrl = rawImg.startsWith('//') 
-                ? `https:${rawImg}` 
-                : (rawImg || '/images/placeholders/product-fallback.jpg');
+              const safeImageUrl = resolveUrbanCollectionCardImage(
+                product.image,
+                [collectionHandle],
+                collectionImages,
+                product.slug
+              );
 
               return (
               <motion.article 

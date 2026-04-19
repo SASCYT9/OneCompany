@@ -2,10 +2,11 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { absoluteUrl, buildPageMetadata, resolveLocale } from '@/lib/seo';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
-import { getProductsForUrbanCollection } from '@/lib/urbanCollectionMatcher';
+import { getProductsForUrbanCollection, sortUrbanCollectionProducts } from '@/lib/urbanCollectionMatcher';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
+import { buildUrbanCollectionImagePool } from '@/lib/urbanImageUtils';
 import { URBAN_COLLECTION_CARDS } from '../../../data/urbanCollectionsList';
 import { getUrbanCollectionPageConfig } from '../../../data/urbanCollectionPages.server';
 import {
@@ -109,10 +110,12 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
     session?.b2bDiscountPercent ?? null
   );
 
-  const collectionProducts = getProductsForUrbanCollection(products, handle, card?.title, card?.brand).slice(
+  const matchedProducts = getProductsForUrbanCollection(products, handle, card?.title, card?.brand);
+  const collectionProducts = sortUrbanCollectionProducts(matchedProducts, viewerContext).slice(
     0,
     config.productGrid.productsPerPage
   );
+  const collectionImages = buildUrbanCollectionImagePool(config, [handle]);
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -146,6 +149,8 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
         locale={resolvedLocale}
         title={card?.title ?? config.overview.title}
         brand={card?.brand ?? ''}
+        collectionHandle={handle}
+        collectionImages={collectionImages}
         products={collectionProducts}
         settings={config.productGrid}
         viewerContext={viewerContext}
