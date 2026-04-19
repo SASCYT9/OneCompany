@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { nanoid } from 'nanoid';
+import { matchesHeaderSecret, resolveSecret } from '@/lib/requestSecrets';
 
 export type MediaKind = 'image' | 'video' | 'other';
 
@@ -109,12 +110,8 @@ function guessExt(mime: string) {
 }
 
 export function requireAdminSecret(req: Request): { ok: boolean; reason?: string } {
-  const header = req.headers.get('x-admin-secret') || '';
-  const envSecret = process.env.ADMIN_SECRET;
-  // In dev, allow fallback secret to ease local testing
-  const fallback = process.env.NODE_ENV !== 'production' ? 'dev-admin' : undefined;
-  const valid = envSecret || fallback;
-  if (!valid) return { ok: false, reason: 'Missing server secret' };
-  if (header !== valid) return { ok: false, reason: 'Unauthorized' };
+  const secret = resolveSecret('ADMIN_SECRET');
+  if (!secret) return { ok: false, reason: 'Missing server secret' };
+  if (!matchesHeaderSecret(req.headers, 'x-admin-secret', secret)) return { ok: false, reason: 'Unauthorized' };
   return { ok: true };
 }

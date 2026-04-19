@@ -11,6 +11,7 @@ import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct, ShopProductVariantSummary } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+import { htmlToPlainText } from "@/lib/sanitizeRichTextHtml";
 
 type Props = {
   locale: string;
@@ -34,9 +35,19 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | 
 
 function formatDescriptionDisplay(text: string) {
   if (!text) return "";
-  
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+  const plainText = htmlToPlainText(text);
+  if (!plainText) return "";
+
   // 1. Double newlines -> single newline for normalization
-  let html = text.replace(/\n\n+/g, "\n");
+  let html = escapeHtml(plainText).replace(/\n\n+/g, "\n");
   
   // 2. Identify common headings and wrap them
   const headingRegex = /(Характеристики та переваги|Особливості|Features and benefits|Applications|Застосування|Особливості та переваги|What's Included:?|Що в комплекті:?|Шо в комплекті:?|Fitment:?|Сумісність:?|Vehicle Fitment:?|Підходить для:?)/gi;

@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 import { fetchTurn14ItemsByBrand } from '@/lib/turn14';
 
@@ -8,6 +10,8 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     // Optionally check for a secret token here if protecting the cron route
     // const authHeader = req.headers.get('authorization'); ...
 

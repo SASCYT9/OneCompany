@@ -108,6 +108,7 @@ const NAV_GROUPS: NavGroup[] = [
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -116,10 +117,30 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const isAuth = sessionStorage.getItem('adminAuth') === 'true';
-    setIsAuthenticated(isAuth);
     const savedCollapsed = localStorage.getItem('adminSidebarCollapsed');
     if (savedCollapsed === 'true') setCollapsed(true);
+
+    let isMounted = true;
+    const loadAuthState = async () => {
+      try {
+        const response = await fetch('/api/admin/auth', { cache: 'no-store' });
+        const data = await response.json().catch(() => ({ authenticated: false }));
+        if (!isMounted) return;
+        setIsAuthenticated(Boolean(data.authenticated));
+      } catch {
+        if (!isMounted) return;
+        setIsAuthenticated(false);
+      } finally {
+        if (isMounted) {
+          setAuthReady(true);
+        }
+      }
+    };
+
+    void loadAuthState();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const toggleCollapsed = () => {
@@ -144,7 +165,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (response.ok) {
-        sessionStorage.setItem('adminAuth', 'true');
         setIsAuthenticated(true);
       } else {
         setError(data.error || 'Invalid password');
@@ -156,13 +176,25 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('adminAuth');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/auth', { method: 'DELETE' });
+    } catch {
+      // Ignore network errors and clear local state regardless.
+    }
     setIsAuthenticated(false);
     setPassword('');
   };
 
   // ─── Login Screen ───
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white/60 text-sm tracking-[0.2em] uppercase">
+        Authenticating...
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-black bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-900/10 via-black to-black flex items-center justify-center px-6">
@@ -296,7 +328,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <CurrencySwitcher collapsed={collapsed} />
 
           <button
-            onClick={handleLogout}
+                onClick={() => void handleLogout()}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-none text-white/40 hover:text-red-400 hover:bg-red-950/30 border border-red-900/50 text-red-500/[0.06] transition-all group ${collapsed ? 'justify-center' : ''}`}
             title="Вийти"
           >

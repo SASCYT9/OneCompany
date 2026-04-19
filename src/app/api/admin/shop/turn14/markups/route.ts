@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 
 const DEFAULT_MARKUP = 25; // 25% default markup for brands without a specific entry
@@ -9,6 +11,8 @@ const DEFAULT_MARKUP = 25; // 25% default markup for brands without a specific e
  */
 export async function GET() {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const markups = await prisma.turn14BrandMarkup.findMany({
       orderBy: { brandName: 'asc' }
     });
@@ -24,6 +28,8 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const body = await request.json();
     const { brandId, brandName, markupPct } = body;
 

@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import { CustomerGroup, Prisma, PrismaClient } from '@prisma/client';
 
 const scryptAsync = promisify(crypto.scrypt);
+const PASSWORD_SETUP_TTL_MS = 1000 * 60 * 60 * 24 * 3;
 
 export const shopCustomerProfileInclude = {
   account: true,
@@ -194,7 +195,6 @@ export async function createShopCustomerRegistration(
       account: {
         create: {
           passwordHash,
-          plainPassword: input.password,
         },
       },
     },
@@ -217,6 +217,97 @@ export async function findCustomerAccountByEmail(prisma: PrismaClient, email: st
       customer: true,
     },
   });
+}
+
+function hashPasswordSetupToken(token: string) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+export async function createShopCustomerPasswordSetup(
+  prisma: PrismaClient,
+  input: {
+    customerId: string;
+    preferredLocale?: string | null;
+  }
+) {
+  const rawToken = crypto.randomBytes(24).toString('base64url');
+  const tokenHash = hashPasswordSetupToken(rawToken);
+  const expiresAt = new Date(Date.now() + PASSWORD_SETUP_TTL_MS);
+  const locale = String(input.preferredLocale ?? '').trim() === 'ua' ? 'ua' : 'en';
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
+  const path = `/${locale}/shop/account/setup-password?token=${encodeURIComponent(rawToken)}`;
+
+  await prisma.shopCustomerPasswordSetupToken.upsert({
+    where: { customerId: input.customerId },
+    create: {
+      customerId: input.customerId,
+      tokenHash,
+      expiresAt,
+    },
+    update: {
+      tokenHash,
+      expiresAt,
+    },
+  });
+
+  return {
+    url: baseUrl ? `${baseUrl}${path}` : path,
+    expiresAt,
+  };
+}
+
+export async function consumeShopCustomerPasswordSetup(
+  prisma: PrismaClient,
+  input: {
+    token: string;
+    password: string;
+  }
+) {
+  const tokenHash = hashPasswordSetupToken(input.token);
+  const setupToken = await prisma.shopCustomerPasswordSetupToken.findUnique({
+    where: { tokenHash },
+    include: {
+      customer: {
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  });
+
+  if (!setupToken || setupToken.expiresAt.getTime() <= Date.now()) {
+    throw new Error('TOKEN_INVALID');
+  }
+
+  const passwordHash = await hashShopCustomerPassword(input.password);
+  const now = new Date();
+
+  await prisma.$transaction([
+    prisma.shopCustomerAccount.upsert({
+      where: { customerId: setupToken.customerId },
+      create: {
+        customerId: setupToken.customerId,
+        passwordHash,
+        emailVerifiedAt: now,
+      },
+      update: {
+        passwordHash,
+        emailVerifiedAt: now,
+      },
+    }),
+    prisma.shopCustomerPasswordSetupToken.delete({
+      where: { customerId: setupToken.customerId },
+    }),
+    prisma.shopCustomer.update({
+      where: { id: setupToken.customerId },
+      data: { updatedAt: now },
+    }),
+  ]);
+
+  return setupToken.customer;
 }
 
 export async function markCustomerLogin(prisma: PrismaClient, customerId: string) {

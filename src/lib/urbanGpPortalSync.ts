@@ -22,6 +22,7 @@ import {
   structuredUrbanFamilyTag,
   type UrbanCatalogFamily,
 } from '@/lib/urbanCatalogFacets';
+import { htmlToPlainText, sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 
 const GP_PORTAL_COLLECTION_URL =
   'https://gp-portal.eu/collections/automotive?filter.p.vendor=Urban&sort_by=best-selling';
@@ -872,8 +873,8 @@ export function prepareUrbanGpPortalProducts(
       return;
     }
 
-    const descriptionHtml = String(product.description ?? '').trim();
-    const descriptionText = stripHtml(descriptionHtml) || normalizeWhitespace(product.title);
+    const descriptionHtml = sanitizeRichTextHtml(String(product.description ?? '').trim());
+    const descriptionText = htmlToPlainText(descriptionHtml) || normalizeWhitespace(product.title);
     const price = buildUrbanGpPortalPriceSet(sourcePriceEur, options.currencyRates);
     const family = inferUrbanFamilyFromValues([
       String(product.type ?? product.product_type ?? ''),

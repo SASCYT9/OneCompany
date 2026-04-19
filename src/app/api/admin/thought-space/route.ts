@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import fs from 'fs';
 import path from 'path';
+import { assertAdminRequest } from '@/lib/adminAuth';
 
 export async function GET() {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const thoughtPath = path.join(process.cwd(), '.agents', 'THOUGHT_SPACE.md');
     
     if (!fs.existsSync(thoughtPath)) {

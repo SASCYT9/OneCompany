@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -6,6 +8,8 @@ import { prisma } from '@/lib/prisma';
  * Get CRM customer detail with orders and items
  */
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const cookieStore = await cookies();
+  assertAdminRequest(cookieStore);
   const { id } = await params;
 
   try {

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, CheckCircle2, RotateCcw, Save, UserRound, Database, DollarSign, Eye, EyeOff, Copy } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, RotateCcw, Save, UserRound, Database, DollarSign, Copy } from 'lucide-react';
 
 type CustomerGroup = 'B2C' | 'B2B_PENDING' | 'B2B_APPROVED';
 
@@ -30,7 +30,11 @@ type CustomerDetail = {
   account: {
     lastLoginAt: string | null;
     emailVerifiedAt: string | null;
-    plainPassword: string | null;
+    hasPassword: boolean;
+  } | null;
+  passwordSetup: {
+    expiresAt: string;
+    createdAt: string;
   } | null;
   defaultShippingAddress: {
     line1: string;
@@ -126,6 +130,8 @@ export default function AdminShopCustomerDetailPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [setupLinkUrl, setSetupLinkUrl] = useState<string | null>(null);
+  const [setupLinkExpiresAt, setSetupLinkExpiresAt] = useState<string | null>(null);
 
   // CRM data
   type CrmOrder = { id: string; number: number; name: string; orderStatus: string; paymentStatus: string; totalAmount: number; clientTotal: number; tag: string; orderDate: string | null; itemCount: number };
@@ -147,6 +153,8 @@ export default function AdminShopCustomerDetailPage() {
       const nextCustomer = data as CustomerDetail;
       setCustomer(nextCustomer);
       setForm(createForm(nextCustomer));
+      setSetupLinkUrl(null);
+      setSetupLinkExpiresAt(nextCustomer.passwordSetup?.expiresAt ?? null);
     } finally {
       setLoading(false);
     }
@@ -207,7 +215,7 @@ export default function AdminShopCustomerDetailPage() {
     }
   }
 
-  async function runAction(action: 'approve_b2b' | 'revert_b2c') {
+  async function runAction(action: 'approve_b2b' | 'revert_b2c' | 'create_setup_link') {
     if (!customer) return;
     setSaving(true);
     setError('');
@@ -226,7 +234,13 @@ export default function AdminShopCustomerDetailPage() {
       const nextCustomer = data as CustomerDetail;
       setCustomer(nextCustomer);
       setForm(createForm(nextCustomer));
-      setSuccess(action === 'approve_b2b' ? 'Customer approved for B2B.' : 'Customer reverted to B2C.');
+      if ((data as { setupLinkUrl?: string }).setupLinkUrl) {
+        setSetupLinkUrl((data as { setupLinkUrl?: string }).setupLinkUrl ?? null);
+        setSetupLinkExpiresAt((data as { setupLinkExpiresAt?: string }).setupLinkExpiresAt ?? null);
+        setSuccess('Password setup link generated.');
+      } else {
+        setSuccess(action === 'approve_b2b' ? 'Customer approved for B2B.' : 'Customer reverted to B2C.');
+      }
     } finally {
       setSaving(false);
     }
@@ -369,22 +383,13 @@ export default function AdminShopCustomerDetailPage() {
                     Last login {customer.account?.lastLoginAt ? new Date(customer.account.lastLoginAt).toLocaleString() : '—'}
                   </div>
                 </div>
-                {customer.account?.plainPassword ? (
-                  <PasswordCard password={customer.account.plainPassword} />
-                ) : (
-                  <div className="rounded-none border border-amber-500/20 bg-amber-500/5 px-3 py-3 text-sm flex flex-col items-start gap-2">
-                    <div className="text-[11px] uppercase tracking-[0.2em] text-amber-400/50">Пароль</div>
-                    <div className="text-amber-200/70">Немає збереженого пароля (зареєстровано до оновлення)</div>
-                    <button
-                      type="button"
-                      onClick={() => void runAction('generate_password' as any)}
-                      disabled={saving}
-                      className="mt-1 inline-flex items-center gap-1.5 rounded-none bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-400 border border-amber-400/20 hover:bg-amber-500/20 transition-all disabled:opacity-50"
-                    >
-                      Згенерувати доступ
-                    </button>
-                  </div>
-                )}
+                <SetupLinkCard
+                  hasPassword={Boolean(customer.account?.hasPassword)}
+                  setupLinkUrl={setupLinkUrl}
+                  setupLinkExpiresAt={setupLinkExpiresAt ?? customer.passwordSetup?.expiresAt ?? null}
+                  onGenerate={() => void runAction('create_setup_link')}
+                  saving={saving}
+                />
                 <div className="md:col-span-2">
                   <label className="block">
                     <span className="mb-1.5 block text-xs text-white/50">Internal notes</span>
@@ -590,41 +595,60 @@ function InputField(props: {
   );
 }
 
-function PasswordCard({ password }: { password: string }) {
-  const [visible, setVisible] = useState(false);
+function SetupLinkCard(props: {
+  hasPassword: boolean;
+  setupLinkUrl: string | null;
+  setupLinkExpiresAt: string | null;
+  saving: boolean;
+  onGenerate: () => void;
+}) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
-    void navigator.clipboard.writeText(password);
+    if (!props.setupLinkUrl) return;
+    void navigator.clipboard.writeText(props.setupLinkUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
 
   return (
-    <div className="rounded-none border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm">
-      <div className="text-[11px] uppercase tracking-[0.2em] text-emerald-400/50 mb-1.5">Пароль клієнта</div>
-      <div className="flex items-center gap-2">
-        <code className="flex-1 text-emerald-200 font-mono text-sm">
-          {visible ? password : '••••••••••'}
-        </code>
-        <button
-          type="button"
-          onClick={() => setVisible(!visible)}
-          className="p-1 rounded-none text-white/40 hover:text-white transition"
-          title={visible ? 'Сховати' : 'Показати'}
-        >
-          {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-        </button>
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="p-1 rounded-none text-white/40 hover:text-white transition"
-          title="Копіювати"
-        >
-          <Copy className="h-4 w-4" />
-        </button>
-        {copied && <span className="text-[10px] text-emerald-400">Скопійовано!</span>}
+    <div className="rounded-none border border-amber-500/20 bg-amber-500/5 px-3 py-3 text-sm flex flex-col items-start gap-3">
+      <div className="text-[11px] uppercase tracking-[0.2em] text-amber-400/50">Доступ до акаунта</div>
+      <div className="text-amber-100/80">
+        {props.hasPassword
+          ? 'Пароль уже встановлено. За потреби можна згенерувати нове одноразове setup link.'
+          : 'Пароль ще не налаштований. Створіть одноразове посилання для встановлення пароля.'}
       </div>
+      {props.setupLinkExpiresAt ? (
+        <div className="text-xs text-amber-200/60">
+          Активне посилання дійсне до {new Date(props.setupLinkExpiresAt).toLocaleString()}
+        </div>
+      ) : null}
+      <button
+        type="button"
+        onClick={props.onGenerate}
+        disabled={props.saving}
+        className="inline-flex items-center gap-1.5 rounded-none bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-300 border border-amber-400/20 hover:bg-amber-500/20 transition-all disabled:opacity-50"
+      >
+        {props.hasPassword ? 'Оновити setup link' : 'Створити setup link'}
+      </button>
+      {props.setupLinkUrl ? (
+        <div className="w-full rounded-none border border-white/10 bg-zinc-950/80 px-3 py-3">
+          <div className="mb-2 text-[11px] uppercase tracking-[0.2em] text-white/35">Одноразове посилання</div>
+          <div className="flex items-start gap-2">
+            <code className="flex-1 break-all text-xs text-white/80">{props.setupLinkUrl}</code>
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="p-1 rounded-none text-white/40 hover:text-white transition"
+              title="Копіювати"
+            >
+              <Copy className="h-4 w-4" />
+            </button>
+          </div>
+          {copied ? <div className="mt-2 text-[10px] text-emerald-400">Скопійовано.</div> : null}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -8,6 +8,8 @@ import {
   normalizePathname,
   resolveRemovedBlogRedirectPath,
 } from '@/lib/seoIndexPolicy';
+import { ADMIN_SESSION_COOKIE } from '@/lib/adminAuth';
+import { shouldAllowAdminApiRequest, shouldAllowAdminPageRequest } from '@/lib/adminProxyAuth';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -57,7 +59,7 @@ function detectLocale(req: NextRequest, isMigrated: boolean = false): 'ua' | 'en
   return 'en';
 }
 
-export default function proxy(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
   // 1. Block access from specific countries (Russia)
   const country = req.headers.get('x-vercel-ip-country');
   if (country && blockedCountries.includes(country)) {
@@ -67,6 +69,7 @@ export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const normalizedPathname = normalizePathname(pathname);
   const currentPath = normalizedPathname;
+  const adminCookie = req.cookies.get(ADMIN_SESSION_COOKIE)?.value ?? null;
 
   const removedBlogRedirectPath = resolveRemovedBlogRedirectPath(currentPath);
   if (removedBlogRedirectPath) {
@@ -79,6 +82,39 @@ export default function proxy(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = normalizedPathname;
     return NextResponse.redirect(url, 308);
+  }
+
+  if (currentPath.startsWith('/api/admin')) {
+    const result = await shouldAllowAdminApiRequest({
+      pathname: currentPath,
+      method: req.method,
+      cookieToken: adminCookie,
+    });
+
+    if (!result.allowed) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    return NextResponse.next();
+  }
+
+  if (currentPath === '/admin' || currentPath.startsWith('/admin/')) {
+    const result = await shouldAllowAdminPageRequest({
+      pathname: currentPath,
+      method: req.method,
+      cookieToken: adminCookie,
+    });
+
+    if (!result.allowed) {
+      const url = req.nextUrl.clone();
+      url.pathname = '/admin';
+      if (currentPath !== '/admin') {
+        url.searchParams.set('next', currentPath);
+      }
+      return NextResponse.redirect(url);
+    }
+
+    return NextResponse.next();
   }
 
   // Skip middleware for non-localized routes (admin, APIs, Telegram WebApp)

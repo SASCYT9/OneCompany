@@ -26,11 +26,11 @@ export async function POST(request: NextRequest) {
   const currencyPref = String(body.currencyPref ?? '').trim() || 'EUR';
 
   if (
-    !consumeRateLimit({
+    !(await consumeRateLimit({
       keyParts: ['shop-register', ip, email],
       windowMs: WINDOW_MS,
       maxPerWindow: MAX_PER_WINDOW,
-    })
+    }))
   ) {
     return NextResponse.json({ error: 'Too many registration attempts' }, { status: 429 });
   }

@@ -267,7 +267,7 @@ function StockPageContent() {
     Promise.all([
       fetch('/api/shop/turn14/fitment').then(r => r.json()),
       fetch('/api/shop/turn14/brands').then(r => r.json()),
-      fetch('/api/admin/stock/import').then(r => r.json()).catch(() => null),
+      fetch('/api/shop/stock/stats').then(r => r.json()).catch(() => null),
     ]).then(([fitmentRes, brandsRes, stockStats]) => {
       setYears(fitmentRes.data || []);
       setBrands(brandsRes.data || []);

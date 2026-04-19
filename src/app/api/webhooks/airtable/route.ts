@@ -9,6 +9,7 @@ import {
 } from '@/lib/airtable';
 import { syncAllCrmData } from '@/lib/crmSync';
 import crypto from 'crypto';
+import { matchesBearerSecret, matchesHeaderSecret, resolveSecret } from '@/lib/requestSecrets';
 
 /**
  * POST /api/webhooks/airtable
@@ -19,16 +20,18 @@ import crypto from 'crypto';
  */
 export async function POST(request: NextRequest) {
   try {
-    // ─── Auth guard: require webhook secret or cron token ───
-    const webhookSecret = process.env.AIRTABLE_WEBHOOK_SECRET || process.env.AIRTABLE_PAT;
-    const authHeader = request.headers.get('authorization');
-    const secretHeader = request.headers.get('x-webhook-secret');
-    const cronSecret = request.headers.get('x-cron-secret');
+    const webhookSecret = resolveSecret('AIRTABLE_WEBHOOK_SECRET');
+    const cronSecret = resolveSecret('CRON_SECRET');
 
     const isAuthorized =
-      (webhookSecret && secretHeader === webhookSecret) ||
-      (webhookSecret && authHeader === `Bearer ${webhookSecret}`) ||
-      (process.env.CRON_SECRET && cronSecret === process.env.CRON_SECRET);
+      matchesHeaderSecret(request.headers, 'x-webhook-secret', webhookSecret) ||
+      matchesBearerSecret(request.headers, webhookSecret) ||
+      matchesHeaderSecret(request.headers, 'x-cron-secret', cronSecret);
+
+    if (!webhookSecret && !cronSecret) {
+      console.warn('[Airtable Webhook] Missing AIRTABLE_WEBHOOK_SECRET / CRON_SECRET');
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
+    }
 
     if (!isAuthorized) {
       console.warn('[Airtable Webhook] Unauthorized request rejected');

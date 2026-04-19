@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
+import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 
 function determineCollections(product: any): { collectionEn: string; collectionUa: string; handle: string } {
   const t = (product.titleEn || '').toLowerCase();
@@ -31,6 +34,8 @@ function generateSlug(sku: string): string {
 
 export async function POST(req: Request) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const products = await req.json();
     let created = 0;
     let updated = 0;
@@ -61,10 +66,10 @@ export async function POST(req: Request) {
           titleEn: p.titleEn || p.title,
           seoTitleEn: p.titleEn || p.title,
           seoTitleUa: p.titleUk || p.titleEn || p.title,
-          bodyHtmlUa: p.descriptionUk || null,
-          bodyHtmlEn: p.descriptionEn || null,
-          longDescEn: p.descriptionEn || null,
-          longDescUa: p.descriptionUk || null,
+          bodyHtmlUa: p.descriptionUk ? sanitizeRichTextHtml(p.descriptionUk) : null,
+          bodyHtmlEn: p.descriptionEn ? sanitizeRichTextHtml(p.descriptionEn) : null,
+          longDescEn: p.descriptionEn ? sanitizeRichTextHtml(p.descriptionEn) : null,
+          longDescUa: p.descriptionUk ? sanitizeRichTextHtml(p.descriptionUk) : null,
           seoDescriptionEn: p.descriptionEn ? String(p.descriptionEn).replace(/<[^>]+>/g, '').slice(0, 300) : null,
           seoDescriptionUa: p.descriptionUk ? String(p.descriptionUk).replace(/<[^>]+>/g, '').slice(0, 300) : null,
           stock: 'inStock',

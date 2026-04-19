@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 import fs from 'fs';
 import path from 'path';
+import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 
 export async function POST() {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const filePath = path.join(process.cwd(), 'data', 'burger-products.json');
     if (!fs.existsSync(filePath)) {
       return NextResponse.json({ error: 'data/burger-products.json not found. Run scraper first.' }, { status: 400 });
@@ -33,8 +38,8 @@ export async function POST() {
           slug,
           sku,
           brand: 'Burger Motorsports',
-          bodyHtmlEn: p.descriptionEn || '',
-          bodyHtmlUa: p.descriptionUa || '',
+          bodyHtmlEn: sanitizeRichTextHtml(p.descriptionEn || ''),
+          bodyHtmlUa: sanitizeRichTextHtml(p.descriptionUa || ''),
           priceEur,
           priceUsd: p.priceUsd,
           tags: p.tags,

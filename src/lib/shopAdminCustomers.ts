@@ -8,6 +8,7 @@ import {
 
 export const shopCustomerAdminDetailInclude = {
   account: true,
+  passwordSetupToken: true,
   addresses: {
     orderBy: [{ isDefaultShipping: 'desc' }, { createdAt: 'asc' }],
   },
@@ -97,7 +98,13 @@ export function serializeShopCustomerAdminDetail(
       ? {
           lastLoginAt: record.account.lastLoginAt?.toISOString() ?? null,
           emailVerifiedAt: record.account.emailVerifiedAt?.toISOString() ?? null,
-          plainPassword: (record.account as any).plainPassword ?? null,
+          hasPassword: true,
+        }
+      : null,
+    passwordSetup: record.passwordSetupToken
+      ? {
+          expiresAt: record.passwordSetupToken.expiresAt.toISOString(),
+          createdAt: record.passwordSetupToken.createdAt.toISOString(),
         }
       : null,
     defaultShippingAddress: defaultShippingAddress

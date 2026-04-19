@@ -1,42 +1,48 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
+const configPath = path.join(process.cwd(), 'public', 'config', 'video-config.json');
+
 export type VideoConfig = {
   heroVideo: string;
   videos: string[];
-  heroEnabled?: boolean;
+  heroEnabled: boolean;
   heroVideoMobile?: string;
   heroPoster?: string;
 };
 
-const configPath = path.join(process.cwd(), 'public', 'config', 'video-config.json');
-const defaultConfig: VideoConfig = { heroVideo: 'rollsbg-v3.mp4', videos: [], heroEnabled: true, heroVideoMobile: 'hero-poster.jpg', heroPoster: 'hero-poster.jpg' };
+export const defaultVideoConfig: VideoConfig = {
+  heroVideo: 'rollsbg-v3.mp4',
+  videos: [],
+  heroEnabled: true,
+};
 
-async function ensureVideoConfigFile() {
+export async function ensureVideoConfigFile() {
   try {
     await fs.access(configPath);
   } catch {
     const dir = path.dirname(configPath);
     await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(configPath, JSON.stringify(defaultConfig, null, 2));
+    await fs.writeFile(configPath, JSON.stringify(defaultVideoConfig, null, 2));
   }
 }
 
 export async function readVideoConfig(): Promise<VideoConfig> {
   try {
-    const data = await fs.readFile(configPath, 'utf-8');
-    const parsed = JSON.parse(data) as VideoConfig;
-    return { ...defaultConfig, ...parsed };
+    const raw = await fs.readFile(configPath, 'utf8');
+    return {
+      ...defaultVideoConfig,
+      ...(JSON.parse(raw) as Partial<VideoConfig>),
+    };
   } catch {
-    // If file doesn't exist or fails to parse, return defaults
-    // Do not attempt to create file in production/read-only environments
-    return defaultConfig;
+    return defaultVideoConfig;
   }
 }
 
-export async function writeVideoConfig(config: VideoConfig) {
+export async function writeVideoConfig(update: Partial<VideoConfig>) {
   await ensureVideoConfigFile();
-  await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+  const current = await readVideoConfig();
+  const next = { ...current, ...update };
+  await fs.writeFile(configPath, JSON.stringify(next, null, 2));
+  return next;
 }
-
-export { configPath as videoConfigPath };

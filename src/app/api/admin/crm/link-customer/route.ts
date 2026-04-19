@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 import { fetchAirtableCustomers, fetchAllAirtableRecords, AirtableCustomer } from '@/lib/airtable';
 
@@ -13,6 +15,8 @@ import { fetchAirtableCustomers, fetchAllAirtableRecords, AirtableCustomer } fro
  */
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const { shopCustomerId, airtableCustomerId } = await request.json();
 
     if (!shopCustomerId || !airtableCustomerId) {

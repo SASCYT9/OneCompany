@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { resolveBundleInventory } from '@/lib/shopBundles';
+import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 
 export const adminBundleComponentCollectionSelect = {
   collectionId: true,
@@ -450,10 +451,10 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
     categoryEn: nullableString(source.categoryEn),
     shortDescUa: nullableString(source.shortDescUa),
     shortDescEn: nullableString(source.shortDescEn),
-    longDescUa: nullableString(source.longDescUa),
-    longDescEn: nullableString(source.longDescEn),
-    bodyHtmlUa: nullableString(source.bodyHtmlUa),
-    bodyHtmlEn: nullableString(source.bodyHtmlEn),
+    longDescUa: nullableString(source.longDescUa) ? sanitizeRichTextHtml(String(source.longDescUa)) : null,
+    longDescEn: nullableString(source.longDescEn) ? sanitizeRichTextHtml(String(source.longDescEn)) : null,
+    bodyHtmlUa: nullableString(source.bodyHtmlUa) ? sanitizeRichTextHtml(String(source.bodyHtmlUa)) : null,
+    bodyHtmlEn: nullableString(source.bodyHtmlEn) ? sanitizeRichTextHtml(String(source.bodyHtmlEn)) : null,
     leadTimeUa: nullableString(source.leadTimeUa),
     leadTimeEn: nullableString(source.leadTimeEn),
     stock: stringValue(source.stock, 'inStock') === 'preOrder' ? 'preOrder' : 'inStock',

@@ -1,5 +1,6 @@
 import { load } from 'cheerio';
 import type { Element } from 'domhandler';
+import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 
 export type ShopProductDescriptionSpec = {
   label: string;
@@ -207,7 +208,8 @@ function createEmptySections(): ShopProductDescriptionSections {
 
 function parseHtmlDescription(source: string): ShopProductDescriptionSections {
   const sections = createEmptySections();
-  const $ = load(`<body>${source}</body>`);
+  const sanitizedSource = sanitizeRichTextHtml(source);
+  const $ = load(`<body>${sanitizedSource}</body>`);
   const introFragments: string[] = [];
   let activeSection: SectionKind | null = null;
 

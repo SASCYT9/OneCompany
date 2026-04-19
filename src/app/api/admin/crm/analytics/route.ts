@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -9,6 +11,8 @@ import { prisma } from '@/lib/prisma';
  * - type: 'dashboard' | 'monthly' | 'top-customers' | 'top-products'
  */
 export async function GET(request: NextRequest) {
+  const cookieStore = await cookies();
+  assertAdminRequest(cookieStore);
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type') || 'dashboard';
 

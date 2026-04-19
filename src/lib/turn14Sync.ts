@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { fetchTurn14ItemPricing } from './turn14';
+import { htmlToPlainText, sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 
 // Approximate exchange rates for auto-conversion from USD
 // These serve as reasonable defaults for display pricing
@@ -26,6 +27,8 @@ export async function importTurn14ItemToDb(
   const sku = partNumber || `t14-${turn14Data.id}`;
   const productName = attributes.product_name || attributes.item_name || attributes.name || 'Auto Part';
   const description = typeof attributes.part_description === 'string' ? attributes.part_description : '';
+  const sanitizedDescriptionHtml = description ? sanitizeRichTextHtml(description) : '';
+  const descriptionText = sanitizedDescriptionHtml ? htmlToPlainText(sanitizedDescriptionHtml) : '';
   const thumbnail = attributes.thumbnail || null;
 
   // Build deterministic slug
@@ -95,9 +98,11 @@ export async function importTurn14ItemToDb(
       updates.titleEn = productName;
       updates.titleUa = productName; // Auto-migrate placeholder title
     }
-    if (description && !existingProduct.longDescEn) {
-      updates.longDescEn = description;
-      updates.longDescUa = description;
+    if (sanitizedDescriptionHtml && !existingProduct.longDescEn) {
+      updates.longDescEn = sanitizedDescriptionHtml;
+      updates.longDescUa = sanitizedDescriptionHtml;
+      updates.bodyHtmlEn = sanitizedDescriptionHtml;
+      updates.bodyHtmlUa = sanitizedDescriptionHtml;
     }
     if (thumbnail && !existingProduct.image) {
       updates.image = thumbnail;
@@ -161,14 +166,16 @@ export async function importTurn14ItemToDb(
       isPublished: true,
       titleEn: productName,
       titleUa: productName, // We can auto-translate later
-      shortDescEn: description.substring(0, 250) || null,
-      shortDescUa: description.substring(0, 250) || null,
-      longDescEn: description || null,
-      longDescUa: description || null,
+      shortDescEn: descriptionText.substring(0, 250) || null,
+      shortDescUa: descriptionText.substring(0, 250) || null,
+      longDescEn: sanitizedDescriptionHtml || null,
+      longDescUa: sanitizedDescriptionHtml || null,
+      bodyHtmlEn: sanitizedDescriptionHtml || null,
+      bodyHtmlUa: sanitizedDescriptionHtml || null,
       seoTitleEn: `${brand} ${productName}`.substring(0, 70),
       seoTitleUa: `${brand} ${productName}`.substring(0, 70),
-      seoDescriptionEn: description.substring(0, 160) || null,
-      seoDescriptionUa: description.substring(0, 160) || null,
+      seoDescriptionEn: descriptionText.substring(0, 160) || null,
+      seoDescriptionUa: descriptionText.substring(0, 160) || null,
       image: thumbnail,
       priceUsd: retailPrice > 0 ? retailPrice : null,
       priceEur: retailPrice > 0 ? roundMoney(retailPrice * USD_TO_EUR) : null,

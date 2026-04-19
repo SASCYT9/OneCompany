@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
+import { prisma } from '@/lib/prisma';
 
 /**
  * POST /api/admin/shop/turn14/stock-check
@@ -11,6 +11,8 @@ const prisma = new PrismaClient();
  */
 export async function POST(request: Request) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const { partNumbers } = await request.json();
 
     if (!Array.isArray(partNumbers) || partNumbers.length === 0) {

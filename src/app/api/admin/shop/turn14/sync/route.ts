@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 import { findTurn14BrandIdByName, fetchTurn14ItemsByBrand } from '@/lib/turn14';
 import { syncBrandFromTurn14 } from '@/lib/turn14Sync';
@@ -12,6 +14,8 @@ import { syncBrandFromTurn14 } from '@/lib/turn14Sync';
  */
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const body = await request.json();
     const brandName = body.brandName || 'Urban Automotive';
 

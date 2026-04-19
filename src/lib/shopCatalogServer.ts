@@ -21,6 +21,7 @@ import {
 } from '@/lib/shopAdminCatalog';
 import { resolveBundleInventory } from '@/lib/shopBundles';
 import { prisma } from '@/lib/prisma';
+import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 import { resolveUrbanThemeAssetUrl } from '@/lib/urbanThemeAssets';
 
 function moneySet(input: Partial<ShopMoneySet> | null | undefined): ShopMoneySet {
@@ -129,8 +130,8 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
     },
     shortDescription: { ua: row.shortDescUa ?? '', en: row.shortDescEn ?? '' },
     longDescription: {
-      ua: row.longDescUa ?? row.bodyHtmlUa ?? '',
-      en: row.longDescEn ?? row.bodyHtmlEn ?? '',
+      ua: sanitizeRichTextHtml(row.longDescUa ?? row.bodyHtmlUa ?? ''),
+      en: sanitizeRichTextHtml(row.longDescEn ?? row.bodyHtmlEn ?? ''),
     },
     leadTime: { ua: row.leadTimeUa ?? '', en: row.leadTimeEn ?? '' },
     stock: (bundleInventory?.stock ?? (row.stock === 'preOrder' ? 'preOrder' : 'inStock')) as ShopStock,

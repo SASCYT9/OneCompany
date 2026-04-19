@@ -1,9 +1,19 @@
 import crypto from 'crypto';
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+const DEFAULT_MAX_AGE_SECONDS = 60 * 60;
+
+function getTelegramBotToken() {
+  return (process.env.TELEGRAM_BOT_TOKEN || '').trim();
+}
+
+function getMaxAgeSeconds() {
+  const configured = Number.parseInt(process.env.TELEGRAM_INIT_DATA_MAX_AGE_SECONDS || '', 10);
+  return Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_MAX_AGE_SECONDS;
+}
 
 export function verifyInitData(initData: string): { isValid: boolean; userId?: number; userData?: unknown } {
-  if (!TELEGRAM_BOT_TOKEN) {
+  const telegramBotToken = getTelegramBotToken();
+  if (!telegramBotToken) {
     console.error('TELEGRAM_BOT_TOKEN is not set');
     return { isValid: false };
   }
@@ -11,8 +21,20 @@ export function verifyInitData(initData: string): { isValid: boolean; userId?: n
   try {
     const params = new URLSearchParams(initData);
     const hash = params.get('hash');
+    const authDateRaw = params.get('auth_date');
     
-    if (!hash) {
+    if (!hash || !authDateRaw) {
+      return { isValid: false };
+    }
+
+    const authDate = Number.parseInt(authDateRaw, 10);
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    if (
+      !Number.isFinite(authDate) ||
+      authDate <= 0 ||
+      nowSeconds - authDate > getMaxAgeSeconds() ||
+      authDate - nowSeconds > 300
+    ) {
       return { isValid: false };
     }
 
@@ -27,7 +49,7 @@ export function verifyInitData(initData: string): { isValid: boolean; userId?: n
     // Create secret key
     const secretKey = crypto
       .createHmac('sha256', 'WebAppData')
-      .update(TELEGRAM_BOT_TOKEN)
+      .update(telegramBotToken)
       .digest();
     
     // Calculate hash
@@ -36,7 +58,9 @@ export function verifyInitData(initData: string): { isValid: boolean; userId?: n
       .update(sortedParams)
       .digest('hex');
     
-    if (calculatedHash !== hash) {
+    const provided = Buffer.from(hash, 'hex');
+    const expected = Buffer.from(calculatedHash, 'hex');
+    if (provided.length !== expected.length || !crypto.timingSafeEqual(provided, expected)) {
       return { isValid: false };
     }
     

@@ -1,14 +1,14 @@
 // Admin Management API
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { matchesBearerSecret, resolveSecret } from '@/lib/requestSecrets';
 
 // Secret for initial setup
-const SETUP_SECRET = process.env.ADMIN_API_SECRET;
+const SETUP_SECRET = resolveSecret('ADMIN_API_SECRET');
 
 // GET - List admins or add first admin
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const secret = searchParams.get('secret');
   const action = searchParams.get('action');
   const telegramId = searchParams.get('id');
   const name = searchParams.get('name');
@@ -17,9 +17,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'ADMIN_API_SECRET not configured' }, { status: 500 });
   }
 
-  const authHeader = request.headers.get('authorization');
-  const bearer = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
-  if (secret !== SETUP_SECRET && bearer !== SETUP_SECRET) {
+  if (!matchesBearerSecret(request.headers, SETUP_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   
@@ -101,9 +99,9 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     message: 'Admin Management API',
     usage: {
-      list: '?action=list&secret=YOUR_SECRET',
-      add: '?action=add&id=TELEGRAM_ID&name=NAME&role=admin|superadmin&secret=YOUR_SECRET',
-      remove: '?action=remove&id=TELEGRAM_ID&secret=YOUR_SECRET',
+      list: 'Authorization: Bearer <ADMIN_API_SECRET> + ?action=list',
+      add: 'Authorization: Bearer <ADMIN_API_SECRET> + ?action=add&id=TELEGRAM_ID&name=NAME&role=admin|superadmin',
+      remove: 'Authorization: Bearer <ADMIN_API_SECRET> + ?action=remove&id=TELEGRAM_ID',
     },
     tip: 'Your Telegram ID: send /start to @userinfobot',
   });

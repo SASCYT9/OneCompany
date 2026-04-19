@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { syncAllCrmData, getCrmSyncStats, bridgeCrmItemsToShopOrders } from '@/lib/crmSync';
 
 /**
@@ -7,6 +9,8 @@ import { syncAllCrmData, getCrmSyncStats, bridgeCrmItemsToShopOrders } from '@/l
  */
 export async function GET() {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const stats = await getCrmSyncStats();
     return NextResponse.json(stats);
   } catch (error: any) {
@@ -16,6 +20,8 @@ export async function GET() {
 
 export async function POST() {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const result = await syncAllCrmData();
     const bridgeResult = await bridgeCrmItemsToShopOrders();
     return NextResponse.json({ success: true, ...result, bridge: bridgeResult });

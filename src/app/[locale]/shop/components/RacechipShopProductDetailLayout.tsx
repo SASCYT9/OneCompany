@@ -11,6 +11,7 @@ import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { useRouter } from "next/navigation";
+import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 
 type Props = {
   locale: SupportedLocale;
@@ -40,7 +41,9 @@ export default function RacechipShopProductDetailLayout({
   const [inCart, setInCart] = useState(false);
 
   const productTitle = isUa ? (product.titleUa || product.titleEn) : (product.titleEn || product.titleUa);
-  const longDesc = isUa ? (product.longDescUa || product.longDescEn) : (product.longDescEn || product.longDescUa);
+  const longDesc = sanitizeRichTextHtml(
+    isUa ? (product.longDescUa || product.longDescEn) : (product.longDescEn || product.longDescUa)
+  );
   
   // Format Breadcrumbs from tags
   const makeTag = product.tags?.find(t => t.startsWith("car_make:"))?.slice(9);

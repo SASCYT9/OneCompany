@@ -142,12 +142,6 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
       </div>
       <UrbanCinematicHero locale={resolvedLocale} config={config.hero} />
       <UrbanModelOverview locale={resolvedLocale} config={config.overview} />
-      <UrbanGalleryCarousel locale={resolvedLocale} config={config.gallery} />
-      {config.videoPointer ? (
-        <UrbanVideoPointer locale={resolvedLocale} config={config.videoPointer} />
-      ) : null}
-      <UrbanBannerStack locale={resolvedLocale} config={config.bannerStack} />
-      <UrbanBlueprintKit locale={resolvedLocale} config={config.blueprint} />
       <UrbanCollectionProductGrid
         locale={resolvedLocale}
         title={card?.title ?? config.overview.title}
@@ -156,6 +150,12 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
         settings={config.productGrid}
         viewerContext={viewerContext}
       />
+      <UrbanGalleryCarousel locale={resolvedLocale} config={config.gallery} />
+      {config.videoPointer ? (
+        <UrbanVideoPointer locale={resolvedLocale} config={config.videoPointer} />
+      ) : null}
+      <UrbanBannerStack locale={resolvedLocale} config={config.bannerStack} />
+      <UrbanBlueprintKit locale={resolvedLocale} config={config.blueprint} />
     </>
   );
 }

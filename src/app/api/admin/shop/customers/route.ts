@@ -5,7 +5,6 @@ import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
 import { listShopCustomersAdmin } from '@/lib/shopAdminCustomers';
 import { hashShopCustomerPassword } from '@/lib/shopCustomers';
 import { prisma } from '@/lib/prisma';
-import crypto from 'crypto';
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,9 +57,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate password: use provided or generate random 12-char
-    const actualPassword = password ? String(password).trim() : crypto.randomBytes(6).toString('base64url');
-    const passwordHash = await hashShopCustomerPassword(actualPassword);
+    const normalizedPassword = password ? String(password).trim() : '';
 
     const customer = await prisma.shopCustomer.create({
       data: {
@@ -73,12 +70,15 @@ export async function POST(request: NextRequest) {
         isActive: isActive !== false,
         preferredLocale: preferredLocale || 'en',
         b2bDiscountPercent: b2bDiscountPercent ? parseFloat(b2bDiscountPercent) : null,
-        account: {
-          create: {
-            passwordHash,
-            plainPassword: actualPassword,
-          },
-        },
+        ...(normalizedPassword
+          ? {
+              account: {
+                create: {
+                  passwordHash: await hashShopCustomerPassword(normalizedPassword),
+                },
+              },
+            }
+          : {}),
       },
       include: { account: true },
     });
@@ -92,7 +92,6 @@ export async function POST(request: NextRequest) {
         firstName: customer.firstName,
         lastName: customer.lastName,
         group: customer.group,
-        password: actualPassword,
       },
     });
   } catch (error: any) {

@@ -1,6 +1,7 @@
 // grammY Telegram Webhook Handler
 import { NextRequest, NextResponse } from 'next/server';
 import { handleUpdate } from '@/lib/bot';
+import { matchesBearerSecret, resolveSecret } from '@/lib/requestSecrets';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 
@@ -41,14 +42,10 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get('action');
-  const secret = searchParams.get('secret');
 
-  const adminSecret = process.env.ADMIN_API_SECRET;
-  const authHeader = request.headers.get('authorization');
-  const bearer = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+  const adminSecret = resolveSecret('ADMIN_API_SECRET');
   
-  // Require secret for webhook setup
-  if (!adminSecret || (secret !== adminSecret && bearer !== adminSecret)) {
+  if (!matchesBearerSecret(request.headers, adminSecret)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   
@@ -127,6 +124,6 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     message: 'grammY Telegram Webhook',
     actions: ['set', 'delete', 'info'],
-    usage: '?action=set&secret=YOUR_SECRET',
+    usage: 'Authorization: Bearer <ADMIN_API_SECRET> + ?action=set',
   });
 }

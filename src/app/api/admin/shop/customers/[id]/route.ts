@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
-import { approveCustomerB2B, revertCustomerToB2C } from '@/lib/shopCustomers';
+import { approveCustomerB2B, createShopCustomerPasswordSetup, revertCustomerToB2C } from '@/lib/shopCustomers';
 import {
   getShopCustomerAdminDetail,
   normalizeShopCustomerAdminPayload,
@@ -47,7 +47,7 @@ export async function PATCH(request: NextRequest, context: Params) {
 
     const existing = await prisma.shopCustomer.findUnique({
       where: { id },
-      select: { id: true, email: true, group: true, firstName: true, lastName: true },
+      select: { id: true, email: true, group: true, firstName: true, lastName: true, preferredLocale: true },
     });
 
     if (!existing) {
@@ -88,37 +88,28 @@ export async function PATCH(request: NextRequest, context: Params) {
       return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
     }
     
-    if (action === 'generate_password') {
-      const { hashPassword } = await import('@/lib/hashPassword');
-      const crypto = await import('crypto');
-      const newPassword = crypto.randomBytes(4).toString('hex'); // 8 characters
-      
-      const payload = {
-        passwordHash: hashPassword(newPassword),
-        plainPassword: newPassword,
-        emailVerifiedAt: new Date()
-      };
-
-      await prisma.shopCustomerAccount.upsert({
-        where: { customerId: id },
-        create: {
-          customerId: id,
-          ...payload
-        },
-        update: payload
+    if (action === 'generate_password' || action === 'create_setup_link') {
+      const setupLink = await createShopCustomerPasswordSetup(prisma, {
+        customerId: id,
+        preferredLocale: existing.preferredLocale,
       });
 
       await writeAdminAuditLog(prisma, session, {
         scope: 'shop',
-        action: 'customer.password.generate',
+        action: 'customer.password_setup.create',
         entityType: 'shop.customer',
         entityId: id,
         metadata: {
           email: existing.email,
+          expiresAt: setupLink.expiresAt.toISOString(),
         },
       });
 
-      return NextResponse.json(await getShopCustomerAdminDetail(prisma, id));
+      return NextResponse.json({
+        ...(await getShopCustomerAdminDetail(prisma, id)),
+        setupLinkUrl: setupLink.url,
+        setupLinkExpiresAt: setupLink.expiresAt.toISOString(),
+      });
     }
 
     const payload = normalizeShopCustomerAdminPayload(body);

@@ -1,17 +1,12 @@
 import { NextResponse } from 'next/server';
 import { fetchAirtableProductsWithStocks } from '@/lib/airtable';
 import { prisma } from '@/lib/prisma';
+import { matchesBearerSecret, resolveSecret } from '@/lib/requestSecrets';
 
 export async function GET(req: Request) {
-  // Validate CRON token
-  const url = new URL(req.url);
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  
-  if (
-    authHeader !== `Bearer ${cronSecret}` && 
-    url.searchParams.get('token') !== cronSecret
-  ) {
+  const cronSecret = resolveSecret('CRON_SECRET');
+
+  if (!matchesBearerSecret(req.headers, cronSecret)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

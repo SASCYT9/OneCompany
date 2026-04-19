@@ -11,6 +11,7 @@ import {
   localizeShopProductTitle,
   localizeShopText,
 } from "@/lib/shopText";
+import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import type { SupportedLocale } from "@/lib/seo";
@@ -536,7 +537,7 @@ export function BrabusShopProductDetailLayout({
                     <div className="b-acc-content">
                       <div 
                         className="b-acc-inner prospect-article" 
-                        dangerouslySetInnerHTML={{ __html: longDescription || shortDescription || "" }} 
+                        dangerouslySetInnerHTML={{ __html: longDescription || sanitizeRichTextHtml(shortDescription || "") }} 
                       />
                     </div>
                   </div>

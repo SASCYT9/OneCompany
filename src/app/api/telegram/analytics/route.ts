@@ -7,21 +7,11 @@ import {
   getResponseTimeStats,
   getTopSources,
 } from '@/lib/bot/analytics';
+import { matchesBearerSecret, resolveSecret } from '@/lib/requestSecrets';
 
 // Verify admin access
 function verifyAccess(req: NextRequest): boolean {
-  const authHeader = req.headers.get('authorization');
-  const secret = process.env.ADMIN_SECRET || process.env.TELEGRAM_ADMIN_SECRET;
-  
-  if (!secret) return false;
-  
-  // Check Bearer token or query param
-  if (authHeader?.startsWith('Bearer ')) {
-    return authHeader.slice(7) === secret;
-  }
-  
-  const url = new URL(req.url);
-  return url.searchParams.get('secret') === secret;
+  return matchesBearerSecret(req.headers, resolveSecret('ADMIN_SECRET', 'TELEGRAM_ADMIN_SECRET'));
 }
 
 // GET /api/telegram/analytics

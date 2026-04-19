@@ -12,12 +12,10 @@ import {
   normalizeTelegramChatId,
   sendTelegramToDestinations,
 } from '@/lib/telegramNotifications';
+import { consumeRateLimit, getRequestIp } from '@/lib/shopPublicRateLimit';
 import { prisma } from '@/lib/prisma';
-
-// Basic rate limiting (memory). For production replace with Redis or durable store.
-const WINDOW_MS = 60_000; // 1 minute
+const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 10;
-const hits: Record<string, { count: number; windowStart: number }> = {};
 
 type ContactType = 'auto' | 'moto';
 
@@ -53,18 +51,6 @@ type MotoFormData = ContactFormData & { motoModel: string };
 // Initialize Resend with a fallback key to prevent build-time errors if env var is missing.
 // The actual sending logic checks for the presence of the key.
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
-
-function rateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = hits[ip];
-  if (!entry || now - entry.windowStart > WINDOW_MS) {
-    hits[ip] = { count: 1, windowStart: now };
-    return true;
-  }
-  if (entry.count >= MAX_PER_WINDOW) return false;
-  entry.count++;
-  return true;
-}
 
 async function sendTelegram(message: string, type: ContactType, formData: ContactFormData) {
   const primaryChatId = normalizeTelegramChatId(type === 'auto'
@@ -159,8 +145,14 @@ function sanitize(str: string | undefined): string {
 }
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for') || 'local';
-  if (!rateLimit(ip)) {
+  const ip = getRequestIp(req.headers);
+  if (
+    !(await consumeRateLimit({
+      keyParts: ['contact-form', ip],
+      windowMs: WINDOW_MS,
+      maxPerWindow: MAX_PER_WINDOW,
+    }))
+  ) {
     return new Response(JSON.stringify({ error: 'Rate limited' }), { status: 429 });
   }
   try {

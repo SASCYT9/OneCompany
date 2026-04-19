@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ADMIN_SESSION_COOKIE, adminSessionCookieOptions, createSessionToken } from '@/lib/adminAuth';
+import { ADMIN_SESSION_COOKIE, adminSessionCookieOptions, createSessionToken, getAdminSession } from '@/lib/adminAuth';
 import { ensureAdminBootstrap } from '@/lib/adminRbac';
 import { consumeRateLimit, getRequestIp } from '@/lib/shopPublicRateLimit';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/hashPassword';
+import { cookies } from 'next/headers';
 
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW_PER_IP = 20;
@@ -24,16 +25,16 @@ export async function POST(request: NextRequest) {
   try {
     const ip = getRequestIp(request.headers);
     if (
-      !consumeRateLimit({
+      !(await consumeRateLimit({
         keyParts: ['admin-auth', ip],
         windowMs: WINDOW_MS,
         maxPerWindow: MAX_PER_WINDOW_PER_IP,
-      }) ||
-      !consumeRateLimit({
+      })) ||
+      !(await consumeRateLimit({
         keyParts: ['admin-auth-global'],
         windowMs: WINDOW_MS,
         maxPerWindow: MAX_PER_WINDOW_GLOBAL,
-      })
+      }))
     ) {
       return NextResponse.json({ error: 'Too many attempts' }, { status: 429 });
     }
@@ -118,3 +119,22 @@ export async function POST(request: NextRequest) {
 }
 
 export const runtime = 'nodejs';
+
+export async function GET() {
+  const cookieStore = await cookies();
+  const session = getAdminSession(cookieStore);
+
+  return NextResponse.json({
+    authenticated: Boolean(session),
+    session,
+  });
+}
+
+export async function DELETE() {
+  const response = NextResponse.json({ success: true });
+  response.cookies.set(ADMIN_SESSION_COOKIE, '', {
+    ...adminSessionCookieOptions,
+    maxAge: 0,
+  });
+  return response;
+}

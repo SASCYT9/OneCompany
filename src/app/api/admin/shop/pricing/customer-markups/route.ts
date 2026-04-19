@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 import { getAllCustomerMarkups, upsertCustomerMarkup, deleteCustomerMarkup } from '@/lib/turn14Pricing';
 import { fetchAirtableCustomers } from '@/lib/airtable';
@@ -9,6 +11,8 @@ import { fetchAirtableCustomers } from '@/lib/airtable';
  */
 export async function GET() {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const markups = await getAllCustomerMarkups();
 
     // Also fetch Airtable customers for dropdown
@@ -33,6 +37,8 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const body = await request.json();
     const { customerId, customerName, markupPct, notes } = body;
 
@@ -59,6 +65,8 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const { searchParams } = new URL(request.url);
     const customerId = searchParams.get('customerId');
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/authOptions';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 
 /**
  * POST /api/admin/stock/import
@@ -13,8 +13,10 @@ import { authOptions } from '@/lib/authOptions';
  * and sends the structured array here.
  */
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  const cookieStore = await cookies();
+  try {
+    assertAdminRequest(cookieStore);
+  } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -120,8 +122,10 @@ export async function POST(request: NextRequest) {
 
 // GET — stats for all distributors
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  const cookieStore = await cookies();
+  try {
+    assertAdminRequest(cookieStore);
+  } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -145,8 +149,10 @@ export const runtime = 'nodejs';
 
 // DELETE — remove all products for a distributor
 export async function DELETE(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  const cookieStore = await cookies();
+  try {
+    assertAdminRequest(cookieStore);
+  } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

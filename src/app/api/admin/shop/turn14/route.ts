@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { searchTurn14Items, findTurn14BrandIdByName } from '@/lib/turn14';
 
 /**
@@ -11,6 +13,8 @@ import { searchTurn14Items, findTurn14BrandIdByName } from '@/lib/turn14';
  * field as 0 — actual pricing must be managed through our markup system.
  */
 export async function GET(request: Request) {
+  const cookieStore = await cookies();
+  assertAdminRequest(cookieStore);
   const { searchParams } = new URL(request.url);
   const keyword = searchParams.get('q');
   const page = parseInt(searchParams.get('page') || '1', 10);

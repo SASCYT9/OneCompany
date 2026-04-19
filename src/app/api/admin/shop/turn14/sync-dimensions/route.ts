@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 import { getTurn14AccessToken } from '@/lib/turn14';
 
@@ -33,6 +35,8 @@ async function fetchAllTurn14ItemsMap(): Promise<Record<string, string>> {
 }
 
 export async function POST(req: Request) {
+  const cookieStore = await cookies();
+  assertAdminRequest(cookieStore);
   try {
     // 1. Get variants missing dimensions
     const variantsWithoutDimensions = await prisma.shopProductVariant.findMany({

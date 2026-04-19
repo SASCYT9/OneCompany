@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import {
   fetchAirtableOrders,
@@ -7,6 +8,7 @@ import {
   AirtableOrder,
   AirtableCustomer,
 } from '@/lib/airtable';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import crypto from 'crypto';
 
 /**
@@ -19,6 +21,8 @@ import crypto from 'crypto';
  */
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const body = await request.json().catch(() => ({}));
     const syncType = body.type || 'full'; // 'customers' | 'orders' | 'full'
 

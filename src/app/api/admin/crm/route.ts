@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import {
   fetchAirtableCustomers,
   fetchAirtableOrders,
   fetchAllAirtableRecords,
   fetchAirtableOrderItems,
 } from '@/lib/airtable';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -18,6 +20,8 @@ import { prisma } from '@/lib/prisma';
  */
 export async function GET(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'orders';
     const maxRecords = parseInt(searchParams.get('maxRecords') || '100', 10);

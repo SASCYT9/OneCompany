@@ -1,10 +1,12 @@
 // DO88 Bulk Import Route - v1
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import {
   buildAdminProductCreateData,
   buildAdminProductUpdateData,
   normalizeAdminProductPayload,
 } from '@/lib/shopAdminCatalog';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -18,6 +20,8 @@ import { prisma } from '@/lib/prisma';
  */
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const body = await request.json();
     const products = body.products;
 

@@ -70,7 +70,7 @@ const LandingPage = () => {
     let isMounted = true;
     const fetchConfig = async () => {
       try {
-        const res = await fetch('/api/admin/video-config', { cache: 'no-store' });
+        const res = await fetch('/api/video-config', { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
         if (isMounted && data?.heroVideo && typeof data.heroVideo === 'string') {

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Fetching all pages from Airtable may take some time
 
 export async function GET(req: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     const format = req.nextUrl.searchParams.get('format') || 'json';
     const skuPrefix = req.nextUrl.searchParams.get('sku_prefix');
     const brandFilter = req.nextUrl.searchParams.get('brand');

@@ -2,20 +2,11 @@
 // Call this endpoint periodically (e.g., every hour via Vercel Cron or external service)
 import { NextRequest, NextResponse } from 'next/server';
 import { sendAdminReminders, sendDailyDigest } from '@/lib/bot/reminders';
+import { matchesBearerSecret, resolveSecret } from '@/lib/requestSecrets';
 
 // Verify cron secret
 function verifyCronAccess(req: NextRequest): boolean {
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET || process.env.ADMIN_SECRET;
-  
-  if (!cronSecret) return false;
-  
-  if (authHeader?.startsWith('Bearer ')) {
-    return authHeader.slice(7) === cronSecret;
-  }
-  
-  const url = new URL(req.url);
-  return url.searchParams.get('secret') === cronSecret;
+  return matchesBearerSecret(req.headers, resolveSecret('CRON_SECRET', 'ADMIN_SECRET'));
 }
 
 // GET /api/telegram/cron?task=reminders

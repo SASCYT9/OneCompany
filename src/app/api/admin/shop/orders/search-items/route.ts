@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 import { searchTurn14Items } from '@/lib/turn14';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 
 export async function GET(request: Request) {
+  const cookieStore = await cookies();
+  assertAdminRequest(cookieStore);
   const { searchParams } = new URL(request.url);
   const keyword = searchParams.get('q');
   
@@ -12,7 +16,6 @@ export async function GET(request: Request) {
   }
 
   const query = keyword.trim();
-  const lowerQuery = query.toLowerCase();
 
   try {
     // 0. Fetch live NBU exchange rates from Global Settings

@@ -1,4 +1,5 @@
 import type { AdminShopProductPayload } from '@/lib/shopAdminCatalog';
+import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 
 type CsvRecord = Record<string, string>;
 type CsvRow = { rowNumber: number; record: CsvRecord };
@@ -338,10 +339,10 @@ function buildProductPayload(handle: string, rows: CsvRecord[], columns: string[
     categoryEn: categoryEn ?? firstNullableValue(rows, 'Type'),
     shortDescUa: excerpt(bodyHtml),
     shortDescEn: excerpt(bodyHtmlEn || bodyHtml),
-    longDescUa: htmlToPlainText(bodyHtml),
-    longDescEn: htmlToPlainText(bodyHtmlEn || bodyHtml),
-    bodyHtmlUa: nullableString(bodyHtml),
-    bodyHtmlEn: nullableString(bodyHtmlEn || bodyHtml),
+    longDescUa: sanitizeRichTextHtml(htmlToPlainText(bodyHtml)),
+    longDescEn: sanitizeRichTextHtml(htmlToPlainText(bodyHtmlEn || bodyHtml)),
+    bodyHtmlUa: nullableString(bodyHtml) ? sanitizeRichTextHtml(bodyHtml) : null,
+    bodyHtmlEn: nullableString(bodyHtmlEn || bodyHtml) ? sanitizeRichTextHtml(bodyHtmlEn || bodyHtml) : null,
     leadTimeUa: null,
     leadTimeEn: null,
     stock: (variants.some((variant) => (variant.inventoryQty ?? 0) > 0) ? 'inStock' : 'preOrder'),

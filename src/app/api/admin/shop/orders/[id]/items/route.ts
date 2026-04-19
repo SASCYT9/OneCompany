@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/authOptions';
+import { cookies } from 'next/headers';
+import { assertAdminRequest } from '@/lib/adminAuth';
+import { ADMIN_PERMISSIONS } from '@/lib/adminRbac';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 async function requireAdmin() {
-  const session = await getServerSession(authOptions);
-  if (!session) throw new Error('Unauthorized');
-  return session;
+  const cookieStore = await cookies();
+  return assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
 }
 
 async function recalcOrderTotals(orderId: string) {

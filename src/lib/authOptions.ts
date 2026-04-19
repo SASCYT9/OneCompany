@@ -91,11 +91,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (
-          !consumeRateLimit({
+          !(await consumeRateLimit({
             keyParts: ['shop-login', getRequestIpFromNextAuthRequest(request), email],
             windowMs: LOGIN_WINDOW_MS,
             maxPerWindow: LOGIN_MAX_PER_WINDOW,
-          })
+          }))
         ) {
           return null;
         }

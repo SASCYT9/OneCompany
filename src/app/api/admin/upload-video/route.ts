@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { assertAdminRequest } from '@/lib/adminAuth';
 
 const configPath = path.join(process.cwd(), 'public', 'config', 'video-config.json');
 const videosDir = path.join(process.cwd(), 'public', 'videos');
@@ -24,6 +26,8 @@ async function ensurePaths() {
 
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    assertAdminRequest(cookieStore);
     await ensurePaths();
     const formData = await request.formData();
     const file = formData.get('video') as File;

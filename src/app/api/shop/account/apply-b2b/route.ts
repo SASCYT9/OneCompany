@@ -14,11 +14,11 @@ export async function POST(request: NextRequest) {
     const ip = getRequestIp(request.headers);
 
     if (
-      !consumeRateLimit({
+      !(await consumeRateLimit({
         keyParts: ['shop-b2b-apply', ip, session.email],
         windowMs: WINDOW_MS,
         maxPerWindow: MAX_PER_WINDOW,
-      })
+      }))
     ) {
       return NextResponse.json({ error: 'Too many B2B requests' }, { status: 429 });
     }

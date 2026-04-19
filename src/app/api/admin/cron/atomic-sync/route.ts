@@ -1,19 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import Papa from 'papaparse';
+import { htmlToPlainText, sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
+import { matchesBearerSecret, resolveSecret } from '@/lib/requestSecrets';
 
 export const maxDuration = 300; // 5 minutes max duration for Vercel
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    // Optionally secure the cron endpoint. Vercel automatically passes a bearer token if configured.
-    // Ensure cron runs securely
-    const authHeader = request.headers.get('authorization');
-    if (
-      process.env.CRON_SECRET &&
-      authHeader !== `Bearer ${process.env.CRON_SECRET}`
-    ) {
+    const cronSecret = resolveSecret('CRON_SECRET');
+    if (!cronSecret) {
+      return NextResponse.json({ error: 'CRON_SECRET is not configured' }, { status: 500 });
+    }
+
+    if (!matchesBearerSecret(request.headers, cronSecret)) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
@@ -53,6 +54,8 @@ export async function GET(request: Request) {
       const stockVal = parseInt(row.stock || '0', 10);
       const title = row.title || `${brand} ${mpn}`;
       const description = row.description || null;
+      const sanitizedDescriptionHtml = description ? sanitizeRichTextHtml(String(description)) : null;
+      const descriptionText = sanitizedDescriptionHtml ? htmlToPlainText(sanitizedDescriptionHtml) : null;
       const categoryName = row.category || null;
       const imgLink = row.img_link || null;
       
@@ -115,11 +118,11 @@ export async function GET(request: Request) {
             titleEn: title,
             seoTitleUa: title,
             seoTitleEn: title,
-            bodyHtmlUa: description,
+            bodyHtmlUa: sanitizedDescriptionHtml,
             bodyHtmlEn: null,
-            longDescUa: description,
+            longDescUa: sanitizedDescriptionHtml,
             longDescEn: null,
-            seoDescriptionUa: description ? String(description).replace(/<[^>]+>/g, '').slice(0, 300) : null,
+            seoDescriptionUa: descriptionText ? descriptionText.slice(0, 300) : null,
             seoDescriptionEn: null,
             categoryUa: categoryName,
             categoryEn: categoryName,

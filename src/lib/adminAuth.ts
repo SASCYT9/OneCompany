@@ -25,12 +25,16 @@ type SessionTokenPayload = {
 };
 
 function getSecret(): string {
-  const rawSecret = process.env.ADMIN_SESSION_SECRET ?? DEFAULT_SECRET;
-  const secret = rawSecret.trim();
-  if (!secret) {
-    throw new Error('ADMIN_SESSION_SECRET is not set');
+  const configured = (process.env.ADMIN_SESSION_SECRET || '').trim();
+  if (configured) {
+    return configured;
   }
-  return secret;
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('ADMIN_SESSION_SECRET is required in production');
+  }
+
+  return DEFAULT_SECRET;
 }
 
 function signPayload(payload: string): string {
