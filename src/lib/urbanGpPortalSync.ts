@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '@prisma/client';
 import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollectionsList';
 import {
   buildAdminProductCreateData,
@@ -474,7 +474,7 @@ function normalizeGalleryImages(product: GpPortalProduct) {
 }
 
 function normalizeOptions(options: GpPortalProduct['options']) {
-  return (options ?? [])
+  const normalizedOptions: Array<AdminShopProductOptionInput | null> = (options ?? [])
     .map((option, index) => {
       if (typeof option === 'string') {
         const normalizedName = normalizeWhitespace(option);
@@ -495,8 +495,9 @@ function normalizeOptions(options: GpPortalProduct['options']) {
         position: Number(option?.position ?? index + 1) || index + 1,
         values: uniqueStrings((option?.values ?? []).map((value) => String(value ?? '').trim())),
       } satisfies AdminShopProductOptionInput;
-    })
-    .filter((option): option is AdminShopProductOptionInput => Boolean(option));
+    });
+
+  return normalizedOptions.filter((option): option is AdminShopProductOptionInput => option !== null);
 }
 
 function buildMedia(gallery: string[], title: string) {
@@ -721,16 +722,7 @@ async function defaultBackupCurrentCatalog(catalog: unknown[]) {
   return filePath;
 }
 
-async function ensureUrbanCollections(tx: {
-  shopCollection: {
-    upsert: (args: {
-      where: { handle: string };
-      update: Record<string, unknown>;
-      create: Record<string, unknown>;
-      select: { id: true };
-    }) => Promise<{ id: string }>;
-  };
-}) {
+async function ensureUrbanCollections(tx: Prisma.TransactionClient) {
   const collectionIdByHandle = new Map<string, string>();
 
   for (const [index, card] of URBAN_COLLECTION_CARDS.entries()) {
@@ -959,37 +951,7 @@ export function prepareUrbanGpPortalProducts(
 }
 
 export async function applyUrbanGpPortalSnapshot(
-  prisma: {
-    shopProduct: {
-      findMany: (args: Record<string, unknown>) => Promise<unknown[]>;
-      upsert: (args: {
-        where: { slug: string };
-        update: ReturnType<typeof buildAdminProductUpdateData>;
-        create: ReturnType<typeof buildAdminProductCreateData>;
-      }) => Promise<unknown>;
-    };
-    $transaction: <T>(callback: (tx: {
-      shopCollection: {
-        upsert: (args: {
-          where: { handle: string };
-          update: Record<string, unknown>;
-          create: Record<string, unknown>;
-          select: { id: true };
-        }) => Promise<{ id: string }>;
-      };
-      shopProduct: {
-        updateMany: (args: Record<string, unknown>) => Promise<{ count: number }>;
-        upsert: (args: {
-          where: { slug: string };
-          update: ReturnType<typeof buildAdminProductUpdateData>;
-          create: ReturnType<typeof buildAdminProductCreateData>;
-        }) => Promise<unknown>;
-      };
-    }) => Promise<T>, options?: {
-      timeout?: number;
-      maxWait?: number;
-    }) => Promise<T>;
-  },
+  prisma: PrismaClient,
   input: ApplyUrbanGpPortalSnapshotInput
 ): Promise<ApplyUrbanGpPortalSnapshotResult> {
   if (!input.commit) {
