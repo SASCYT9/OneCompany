@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import {
   URBAN_COLLECTION_CARDS,
@@ -27,26 +27,9 @@ function slugifyBrand(brand: string): string {
 
 export default function UrbanCollectionsGrid({ locale, cards: cardsProp }: UrbanCollectionsGridProps) {
   const isUa = locale === 'ua';
-  const rootRef = useRef<HTMLElement>(null);
-  const [visible, setVisible] = useState(false);
   const [filter, setFilter] = useState<string>('all');
 
   const baseCards = cardsProp ?? URBAN_COLLECTION_CARDS;
-
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setVisible(true);
-        }
-      },
-      { threshold: 0.05 }
-    );
-    obs.observe(root);
-    return () => obs.disconnect();
-  }, []);
 
   const filteredCards = filter === 'all'
     ? baseCards
@@ -59,11 +42,8 @@ export default function UrbanCollectionsGrid({ locale, cards: cardsProp }: Urban
 
   return (
     <section
-      ref={rootRef}
       id="UrbanCollGrid"
-      className={`mx-auto w-full max-w-[1720px] px-6 py-12 md:px-12 lg:px-16 xl:py-20 transition-all duration-1000 ${
-        visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-      }`}
+      className="mx-auto w-full max-w-[1720px] px-6 py-12 md:px-12 lg:px-16 xl:py-20"
     >
       <div className="relative aspect-[3/1] min-h-[440px] w-full overflow-hidden rounded-[32px] border border-white/10 bg-[#050505] shadow-[0_24px_90px_rgba(0,0,0,0.32)]">
         <div
