@@ -1,8 +1,21 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+
 import Link from 'next/link';
 import { Layers3, Pencil, Plus, RefreshCcw, Search, Trash2 } from 'lucide-react';
+
+import {
+  AdminEmptyState,
+  AdminFilterBar,
+  AdminInlineAlert,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminPage,
+  AdminPageHeader,
+  AdminStatusBadge,
+  AdminTableShell,
+} from '@/components/admin/AdminPrimitives';
 
 type ShopCollectionListItem = {
   id: string;
@@ -33,6 +46,7 @@ export default function AdminShopCollectionsPage() {
   const filteredCollections = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (!needle) return collections;
+
     return collections.filter((collection) =>
       [collection.handle, collection.titleEn, collection.titleUa, collection.brand]
         .filter(Boolean)
@@ -43,11 +57,12 @@ export default function AdminShopCollectionsPage() {
   async function load() {
     setLoading(true);
     setError('');
+
     try {
       const response = await fetch('/api/admin/shop/collections');
       const data = await response.json().catch(() => []);
       if (!response.ok) {
-        setError(data.error || 'Failed to load collections');
+        setError((data as { error?: string }).error || 'Failed to load collections');
         return;
       }
       setCollections(data as ShopCollectionListItem[]);
@@ -59,11 +74,12 @@ export default function AdminShopCollectionsPage() {
   async function handleSyncUrban() {
     setSyncing(true);
     setError('');
+
     try {
       const response = await fetch('/api/admin/shop/collections/sync-urban', { method: 'POST' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Failed to sync Urban collections');
+        setError((data as { error?: string }).error || 'Failed to sync Urban collections');
         return;
       }
       await load();
@@ -73,13 +89,16 @@ export default function AdminShopCollectionsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this collection? Products will keep legacy labels but lose the explicit mapping.')) return;
+    if (!confirm('Delete this collection? Products will keep legacy labels but lose the explicit mapping.')) {
+      return;
+    }
+
     setDeletingId(id);
     try {
       const response = await fetch(`/api/admin/shop/collections/${id}`, { method: 'DELETE' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Failed to delete collection');
+        setError((data as { error?: string }).error || 'Failed to delete collection');
         return;
       }
       await load();
@@ -90,122 +109,139 @@ export default function AdminShopCollectionsPage() {
 
   if (loading) {
     return (
-      <div className="p-6 text-white/60 flex items-center gap-2">
-        <Layers3 className="h-5 w-5 animate-pulse" />
-        Loading collections…
-      </div>
+      <AdminPage>
+        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+          <Layers3 className="h-4 w-4 animate-pulse" />
+          Loading collections…
+        </div>
+      </AdminPage>
     );
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="w-full px-6 md:px-12 py-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-white">Collections</h2>
-            <p className="mt-2 text-sm text-white/45">
-              Explicit collection management for Urban and future One Company storefronts.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
+    <AdminPage className="space-y-6">
+      <AdminPageHeader
+        eyebrow="Catalog"
+        title="Collections"
+        description="Explicit merchandising sets for Urban and future storefront collection landing pages."
+        actions={
+          <>
             <button
               type="button"
               onClick={handleSyncUrban}
               disabled={syncing}
-              className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06] disabled:opacity-50"
             >
               <RefreshCcw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
               {syncing ? 'Syncing…' : 'Sync Urban'}
             </button>
-            <Link href="/admin/shop/collections/new" className="flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
+            <Link
+              href="/admin/shop/collections/new"
+              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
+            >
               <Plus className="h-4 w-4" />
               New collection
             </Link>
-          </div>
-        </div>
+          </>
+        }
+      />
 
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-none border border-white/10 bg-white/[0.03] p-4">
-          <div className="grid gap-1 text-sm text-white/70 md:grid-cols-3 md:gap-8">
-            <div>{collections.length} collections</div>
-            <div>{collections.filter((item) => item.isUrban).length} Urban</div>
-            <div>{collections.reduce((sum, item) => sum + item.productsCount, 0)} mapped products</div>
-          </div>
-          <label className="flex min-w-[260px] items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
-            <Search className="h-4 w-4 text-white/35" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by handle, title or brand"
-              className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
-            />
-          </label>
-        </div>
+      <AdminMetricGrid className="xl:grid-cols-3">
+        <AdminMetricCard label="Collections" value={collections.length} meta="Published and hidden collection records" tone="accent" />
+        <AdminMetricCard label="Urban collections" value={collections.filter((item) => item.isUrban).length} meta="Explicit Urban landing sets" />
+        <AdminMetricCard
+          label="Mapped products"
+          value={collections.reduce((sum, item) => sum + item.productsCount, 0)}
+          meta="Product-collection assignments"
+        />
+      </AdminMetricGrid>
 
-        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+      <AdminFilterBar>
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-stone-100">
+          <Search className="h-4 w-4 text-stone-500" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search by handle, title, or brand"
+            className="w-full bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
+          />
+        </label>
+      </AdminFilterBar>
 
-        {filteredCollections.length === 0 ? (
-          <div className="rounded-none border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
-            No collections found yet.
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-none border border-white/10">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-white/10 bg-white/5">
-                  <th className="px-4 py-3 font-medium text-white/60">Collection</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Brand</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Flags</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Products</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Updated</th>
-                  <th className="px-4 py-3 font-medium text-white/60">Actions</th>
+      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
+
+      {filteredCollections.length === 0 ? (
+        <AdminEmptyState
+          title="No collections found"
+          description="Create a collection or run the Urban sync to populate structured product groupings."
+          action={
+            <Link
+              href="/admin/shop/collections/new"
+              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
+            >
+              <Plus className="h-4 w-4" />
+              Create collection
+            </Link>
+          }
+        />
+      ) : (
+        <AdminTableShell>
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/[0.03]">
+                <th className="px-4 py-3 font-medium text-stone-400">Collection</th>
+                <th className="px-4 py-3 font-medium text-stone-400">Brand</th>
+                <th className="px-4 py-3 font-medium text-stone-400">Flags</th>
+                <th className="px-4 py-3 font-medium text-stone-400">Products</th>
+                <th className="px-4 py-3 font-medium text-stone-400">Updated</th>
+                <th className="px-4 py-3 font-medium text-stone-400">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredCollections.map((collection) => (
+                <tr key={collection.id} className="border-b border-white/5 align-top transition hover:bg-white/[0.02]">
+                  <td className="px-4 py-4">
+                    <div className="font-medium text-stone-50">{collection.titleEn || collection.titleUa}</div>
+                    <div className="mt-1 font-mono text-xs text-stone-500">{collection.handle}</div>
+                    <div className="mt-1 text-xs text-stone-500">Sort {collection.sortOrder}</div>
+                  </td>
+                  <td className="px-4 py-4 text-stone-300">{collection.brand || '—'}</td>
+                  <td className="px-4 py-4">
+                    <div className="flex flex-wrap gap-2">
+                      <AdminStatusBadge tone={collection.isPublished ? 'success' : 'warning'}>
+                        {collection.isPublished ? 'Published' : 'Hidden'}
+                      </AdminStatusBadge>
+                      {collection.isUrban ? <AdminStatusBadge tone="default">Urban</AdminStatusBadge> : null}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-stone-300">{collection.productsCount}</td>
+                  <td className="px-4 py-4 text-stone-500">{new Date(collection.updatedAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/admin/shop/collections/${collection.id}`}
+                        className="rounded-2xl border border-white/10 p-2 text-stone-300 transition hover:bg-white/[0.06] hover:text-stone-50"
+                        title="Edit collection"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(collection.id)}
+                        disabled={deletingId === collection.id}
+                        className="rounded-2xl border border-red-500/20 p-2 text-red-300 transition hover:bg-red-950/30 disabled:opacity-50"
+                        title="Delete collection"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredCollections.map((collection) => (
-                  <tr key={collection.id} className="border-b border-white/5 align-top hover:bg-white/[0.03]">
-                    <td className="px-4 py-4">
-                      <div className="font-medium text-white">{collection.titleEn || collection.titleUa}</div>
-                      <div className="mt-1 font-mono text-xs text-white/45">{collection.handle}</div>
-                      <div className="mt-1 text-xs text-white/45">Sort {collection.sortOrder}</div>
-                    </td>
-                    <td className="px-4 py-4 text-white/70">{collection.brand || '—'}</td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-wrap gap-2 text-xs">
-                        <span className="rounded-none-full border border-white/10 bg-white/5 px-2.5 py-1 text-white/70">
-                          {collection.isPublished ? 'Published' : 'Hidden'}
-                        </span>
-                        {collection.isUrban ? (
-                          <span className="rounded-none-full border border-white/10 bg-white/5 px-2.5 py-1 text-white/70">
-                            Urban
-                          </span>
-                        ) : null}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-white/70">{collection.productsCount}</td>
-                    <td className="px-4 py-4 text-white/45">{new Date(collection.updatedAt).toLocaleDateString()}</td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        <Link href={`/admin/shop/collections/${collection.id}`} className="rounded-none border border-white/20 p-1.5 text-white/80 hover:bg-white/10" title="Edit">
-                          <Pencil className="h-4 w-4" />
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(collection.id)}
-                          disabled={deletingId === collection.id}
-                          className="rounded-none border border-red-500/30 p-1.5 text-red-400 hover:bg-red-950/30 border border-red-900/50 text-red-500/10 disabled:opacity-50"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
+              ))}
+            </tbody>
+          </table>
+        </AdminTableShell>
+      )}
+    </AdminPage>
   );
 }

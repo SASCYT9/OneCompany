@@ -1,9 +1,25 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
+
+import {
+  AdminEditorSection,
+  AdminEditorShell,
+  AdminInlineAlert,
+  AdminPage,
+  AdminStatusBadge,
+  type AdminEditorNavSection,
+} from '@/components/admin/AdminPrimitives';
+import {
+  AdminCheckboxField,
+  AdminInputField,
+  AdminSelectField,
+  AdminTextareaField,
+} from '@/components/admin/AdminFormFields';
 
 type CategoryOption = {
   id: string;
@@ -55,6 +71,13 @@ type CategoryFormState = {
   isPublished: boolean;
   sortOrder: string;
 };
+
+const CATEGORY_EDITOR_SECTIONS: AdminEditorNavSection[] = [
+  { id: 'overview', label: 'Overview', description: 'Identity, taxonomy placement, and publish state.' },
+  { id: 'descriptions', label: 'Descriptions', description: 'Localized long-form copy.' },
+  { id: 'structure', label: 'Structure', description: 'Child categories in the taxonomy tree.' },
+  { id: 'products', label: 'Assigned products', description: 'Products explicitly linked to this category.' },
+];
 
 function slugify(value: string) {
   return value
@@ -246,227 +269,156 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
   }
 
   if (loading) {
-    return <div className="p-6 text-white/60">Завантаження категорії…</div>;
+    return (
+      <AdminPage>
+        <div className="text-sm text-stone-400">Завантаження категорії…</div>
+      </AdminPage>
+    );
   }
 
   return (
-    <div className="h-full overflow-auto bg-[#090909]">
-      <div className="mx-auto w-full px-6 md:px-12 py-8">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <Link href="/admin/shop/categories" className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white">
-              <ArrowLeft className="h-4 w-4" />
-              Назад до категорій
-            </Link>
-            <h1 className="mt-3 text-3xl font-semibold text-white">
-              {isEditing ? 'Редагувати категорію' : 'Нова категорія'}
-            </h1>
-            <p className="mt-2 text-sm text-white/45">
-              Structured product categories for catalog filters, sync and future storefront navigation.
-            </p>
+    <AdminEditorShell
+      backHref="/admin/shop/categories"
+      backLabel="Back to categories"
+      title={isEditing ? 'Edit category' : 'New category'}
+      description="Catalog category editor for taxonomy structure, publish visibility, and future storefront category pages."
+      sections={CATEGORY_EDITOR_SECTIONS}
+      summary={
+        <div className="rounded-[28px] border border-white/10 bg-[#101010] p-5">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Category state</div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <AdminStatusBadge tone={form.isPublished ? 'success' : 'warning'}>
+              {form.isPublished ? 'Published' : 'Hidden'}
+            </AdminStatusBadge>
+            <AdminStatusBadge>{children.length} child nodes</AdminStatusBadge>
+            <AdminStatusBadge>{linkedProducts.length} linked products</AdminStatusBadge>
           </div>
         </div>
+      }
+    >
+      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
+      {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
 
-        {error ? <div className="mb-4 rounded-none border border-red-500/30 bg-red-950/30 border border-red-900/50 text-red-500/10 p-3 text-sm text-red-200">{error}</div> : null}
-        {success ? <div className="mb-4 rounded-none border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{success}</div> : null}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5">
-              <h2 className="text-lg font-medium text-white">Overview</h2>
-              <p className="mt-1 text-sm text-white/45">Category identity, tree placement and publish state.</p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <InputField label="Назва (EN)" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
-              <InputField label="Назва (UA)" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
-              <InputField label="Slug" value={form.slug} onChange={(value) => updateField('slug', slugify(value))} />
-              <SelectField
-                label="Батьківська категорія"
-                value={form.parentId}
-                onChange={(value) => updateField('parentId', value)}
-                options={[
-                  { value: '', label: 'No parent' },
-                  ...availableParents
-                    .filter((category) => category.id !== categoryId)
-                    .map((category) => ({
-                      value: category.id,
-                      label: category.titleEn || category.titleUa || category.slug,
-                    })),
-                ]}
-              />
-              <InputField label="Порядок сортування" type="number" value={form.sortOrder} onChange={(value) => updateField('sortOrder', value)} />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-6">
-              <CheckboxField label="Опубліковано" checked={form.isPublished} onChange={(checked) => updateField('isPublished', checked)} />
-            </div>
-          </section>
-
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5">
-              <h2 className="text-lg font-medium text-white">Descriptions</h2>
-              <p className="mt-1 text-sm text-white/45">Optional localized copy for future storefront category pages.</p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <TextareaField label="Опис (EN)" value={form.descriptionEn} onChange={(value) => updateField('descriptionEn', value)} rows={6} />
-              <TextareaField label="Опис (UA)" value={form.descriptionUa} onChange={(value) => updateField('descriptionUa', value)} rows={6} />
-            </div>
-          </section>
-
-          {isEditing ? (
-            <>
-              <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-                <div className="mb-5">
-                  <h2 className="text-lg font-medium text-white">Child categories</h2>
-                  <p className="mt-1 text-sm text-white/45">Use this to build catalog trees when deeper grouping is needed.</p>
-                </div>
-                {children.length ? (
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {children.map((child) => (
-                      <Link
-                        key={child.id}
-                        href={`/admin/shop/categories/${child.id}`}
-                        className="rounded-none border border-white/10 bg-black/40 p-4 text-sm text-white/80 hover:bg-white/5"
-                      >
-                        <div className="font-medium text-white">{child.titleEn || child.titleUa}</div>
-                        <div className="mt-1 font-mono text-xs text-white/45">{child.slug}</div>
-                        <div className="mt-2 text-xs text-white/50">Sort {child.sortOrder}</div>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-none border border-dashed border-white/10 bg-black/30 px-4 py-8 text-sm text-white/45">
-                    No child categories yet.
-                  </div>
-                )}
-              </section>
-
-              <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-                <div className="mb-5">
-                  <h2 className="text-lg font-medium text-white">Assigned products</h2>
-                  <p className="mt-1 text-sm text-white/45">Products are linked directly from the product editor or the sync action.</p>
-                </div>
-                {linkedProducts.length ? (
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {linkedProducts.map((product) => (
-                      <Link
-                        key={product.id}
-                        href={`/admin/shop/${product.id}`}
-                        className="rounded-none border border-white/10 bg-black/40 p-4 text-sm text-white/80 hover:bg-white/5"
-                      >
-                        <div className="font-medium text-white">{product.titleEn || product.titleUa}</div>
-                        <div className="mt-1 font-mono text-xs text-white/45">{product.slug}</div>
-                        <div className="mt-2 text-xs text-white/50">{product.brand || '—'}</div>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-none border border-dashed border-white/10 bg-black/30 px-4 py-8 text-sm text-white/45">
-                    No products assigned yet.
-                  </div>
-                )}
-              </section>
-            </>
-          ) : null}
-
-          <div className="flex flex-wrap gap-3 pb-6">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-none bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
-              <Save className="h-4 w-4" />
-              {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти категорію' : 'Створити категорію'}
-            </button>
-            <Link href="/admin/shop/categories" className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
-              Скасувати
-            </Link>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <AdminEditorSection
+          id="overview"
+          title="Overview"
+          description="Category identity, catalog tree placement, sort order, and publish visibility."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminInputField label="Title (EN)" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
+            <AdminInputField label="Title (UA)" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
+            <AdminInputField label="Slug" value={form.slug} onChange={(value) => updateField('slug', slugify(value))} />
+            <AdminSelectField
+              label="Parent category"
+              value={form.parentId}
+              onChange={(value) => updateField('parentId', value)}
+              options={[
+                { value: '', label: 'No parent' },
+                ...availableParents
+                  .filter((category) => category.id !== categoryId)
+                  .map((category) => ({
+                    value: category.id,
+                    label: category.titleEn || category.titleUa || category.slug,
+                  })),
+              ]}
+            />
+            <AdminInputField
+              label="Sort order"
+              type="number"
+              value={form.sortOrder}
+              onChange={(value) => updateField('sortOrder', value)}
+            />
           </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+          <div className="mt-4 flex flex-wrap gap-6">
+            <AdminCheckboxField label="Published" checked={form.isPublished} onChange={(checked) => updateField('isPublished', checked)} />
+          </div>
+        </AdminEditorSection>
 
-type InputFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-};
+        <AdminEditorSection
+          id="descriptions"
+          title="Descriptions"
+          description="Optional localized copy for future storefront category landing pages."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminTextareaField label="Description (EN)" value={form.descriptionEn} onChange={(value) => updateField('descriptionEn', value)} rows={6} />
+            <AdminTextareaField label="Description (UA)" value={form.descriptionUa} onChange={(value) => updateField('descriptionUa', value)} rows={6} />
+          </div>
+        </AdminEditorSection>
 
-function InputField({ label, value, onChange, type = 'text' }: InputFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
-      />
-    </label>
-  );
-}
+        {isEditing ? (
+          <AdminEditorSection
+            id="structure"
+            title="Child categories"
+            description="Use child nodes to build deeper catalog groupings without mixing tree management into list pages."
+          >
+            {children.length ? (
+              <div className="grid gap-3 md:grid-cols-2">
+                {children.map((child) => (
+                  <Link
+                    key={child.id}
+                    href={`/admin/shop/categories/${child.id}`}
+                    className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-stone-200 transition hover:bg-white/[0.04]"
+                  >
+                    <div className="font-medium text-stone-50">{child.titleEn || child.titleUa}</div>
+                    <div className="mt-1 font-mono text-xs text-stone-500">{child.slug}</div>
+                    <div className="mt-2 text-xs text-stone-500">Sort {child.sortOrder}</div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 px-4 py-8 text-sm text-stone-500">
+                No child categories yet.
+              </div>
+            )}
+          </AdminEditorSection>
+        ) : null}
 
-type TextareaFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  rows?: number;
-};
+        {isEditing ? (
+          <AdminEditorSection
+            id="products"
+            title="Assigned products"
+            description="Products are linked directly from the product editor or by future synchronization workflows."
+          >
+            {linkedProducts.length ? (
+              <div className="grid gap-3 md:grid-cols-2">
+                {linkedProducts.map((product) => (
+                  <Link
+                    key={product.id}
+                    href={`/admin/shop/${product.id}`}
+                    className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-stone-200 transition hover:bg-white/[0.04]"
+                  >
+                    <div className="font-medium text-stone-50">{product.titleEn || product.titleUa}</div>
+                    <div className="mt-1 font-mono text-xs text-stone-500">{product.slug}</div>
+                    <div className="mt-2 text-xs text-stone-500">{product.brand || '—'}</div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 px-4 py-8 text-sm text-stone-500">
+                No products assigned yet.
+              </div>
+            )}
+          </AdminEditorSection>
+        ) : null}
 
-function TextareaField({ label, value, onChange, rows = 5 }: TextareaFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <textarea
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        rows={rows}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
-      />
-    </label>
-  );
-}
-
-type SelectFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
-};
-
-function SelectField({ label, value, onChange, options }: SelectFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-      >
-        {options.map((option) => (
-          <option key={`${option.value}-${option.label}`} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-type CheckboxFieldProps = {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-};
-
-function CheckboxField({ label, checked, onChange }: CheckboxFieldProps) {
-  return (
-    <label className="inline-flex items-center gap-2 text-sm text-white/80">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-        className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
-      />
-      {label}
-    </label>
+        <div className="flex flex-wrap gap-3 pb-6">
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-5 py-2.5 text-sm font-medium text-black transition hover:bg-white disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {saving ? 'Saving…' : isEditing ? 'Save category' : 'Create category'}
+          </button>
+          <Link
+            href="/admin/shop/categories"
+            className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+          >
+            Cancel
+          </Link>
+        </div>
+      </form>
+    </AdminEditorShell>
   );
 }

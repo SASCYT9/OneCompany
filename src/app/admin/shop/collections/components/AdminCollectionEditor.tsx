@@ -1,9 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
+
+import {
+  AdminEditorSection,
+  AdminEditorShell,
+  AdminInlineAlert,
+  AdminPage,
+  AdminStatusBadge,
+  type AdminEditorNavSection,
+} from '@/components/admin/AdminPrimitives';
+import {
+  AdminCheckboxField,
+  AdminInputField,
+  AdminTextareaField,
+} from '@/components/admin/AdminFormFields';
 
 type CollectionFormState = {
   handle: string;
@@ -42,6 +57,12 @@ type CollectionResponse = {
     sortOrder: number;
   }>;
 };
+
+const COLLECTION_EDITOR_SECTIONS: AdminEditorNavSection[] = [
+  { id: 'overview', label: 'Overview', description: 'Identity, brand scope, and hero media.' },
+  { id: 'descriptions', label: 'Descriptions', description: 'Localized copy for collection landing pages.' },
+  { id: 'products', label: 'Assigned products', description: 'Products currently mapped to this collection.' },
+];
 
 function slugify(value: string) {
   return value
@@ -113,7 +134,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
         const response = await fetch(`/api/admin/shop/collections/${collectionId}`);
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data.error || 'Не вдалося завантажити колекцію');
+          throw new Error((data as { error?: string }).error || 'Не вдалося завантажити колекцію');
         }
         if (!cancelled) {
           const collection = data as CollectionResponse;
@@ -183,7 +204,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Не вдалося зберегти колекцію');
+        throw new Error((data as { error?: string }).error || 'Не вдалося зберегти колекцію');
       }
 
       setSuccess(isEditing ? 'Колекцію оновлено.' : 'Колекцію створено.');
@@ -191,7 +212,7 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
         router.push('/admin/shop/collections');
         router.refresh();
       } else {
-        setLinkedProducts((data.products ?? []) as CollectionResponse['products']);
+        setLinkedProducts(((data as { products?: CollectionResponse['products'] }).products ?? []) as CollectionResponse['products']);
       }
     } catch (saveError) {
       setError((saveError as Error).message);
@@ -201,162 +222,112 @@ export default function AdminCollectionEditor({ collectionId }: Props) {
   }
 
   if (loading) {
-    return <div className="p-6 text-white/60">Завантаження колекції…</div>;
+    return (
+      <AdminPage>
+        <div className="text-sm text-stone-400">Завантаження колекції…</div>
+      </AdminPage>
+    );
   }
 
   return (
-    <div className="h-full overflow-auto bg-[#090909]">
-      <div className="mx-auto w-full px-6 md:px-12 py-8">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <Link href="/admin/shop/collections" className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white">
-              <ArrowLeft className="h-4 w-4" />
-              Назад до колекцій
-            </Link>
-            <h1 className="mt-3 text-3xl font-semibold text-white">
-              {isEditing ? 'Редагувати колекцію' : 'Нова колекція'}
-            </h1>
-            <p className="mt-2 text-sm text-white/45">
-              Define collection handle, storefront copy, and assignment target for products.
-            </p>
+    <AdminEditorShell
+      backHref="/admin/shop/collections"
+      backLabel="Back to collections"
+      title={isEditing ? 'Edit collection' : 'New collection'}
+      description="Collection editor for merchandising groups, hero assets, Urban scope, and landing page copy."
+      sections={COLLECTION_EDITOR_SECTIONS}
+      summary={
+        <div className="rounded-[28px] border border-white/10 bg-[#101010] p-5">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Collection state</div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <AdminStatusBadge tone={form.isPublished ? 'success' : 'warning'}>
+              {form.isPublished ? 'Published' : 'Hidden'}
+            </AdminStatusBadge>
+            {form.isUrban ? <AdminStatusBadge>Urban</AdminStatusBadge> : null}
+            <AdminStatusBadge>{linkedProducts.length} mapped products</AdminStatusBadge>
           </div>
         </div>
+      }
+    >
+      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
+      {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
 
-        {error ? <div className="mb-4 rounded-none border border-red-500/30 bg-red-950/30 border border-red-900/50 text-red-500/10 p-3 text-sm text-red-200">{error}</div> : null}
-        {success ? <div className="mb-4 rounded-none border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{success}</div> : null}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5">
-              <h2 className="text-lg font-medium text-white">Overview</h2>
-              <p className="mt-1 text-sm text-white/45">Collection identity used in admin, storefront and sitemap.</p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <InputField label="Назва (EN)" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
-              <InputField label="Назва (UA)" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
-              <InputField label="Handle (символний ідентифікатор)" value={form.handle} onChange={(value) => updateField('handle', slugify(value))} />
-              <InputField label="Brand" value={form.brand} onChange={(value) => updateField('brand', value)} />
-              <InputField label="Порядок сортування" type="number" value={form.sortOrder} onChange={(value) => updateField('sortOrder', value)} />
-              <InputField label="URL головного зображення" value={form.heroImage} onChange={(value) => updateField('heroImage', value)} />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-6">
-              <CheckboxField label="Опубліковано" checked={form.isPublished} onChange={(checked) => updateField('isPublished', checked)} />
-              <CheckboxField label="Колекція Urban" checked={form.isUrban} onChange={(checked) => updateField('isUrban', checked)} />
-            </div>
-          </section>
-
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5">
-              <h2 className="text-lg font-medium text-white">Descriptions</h2>
-              <p className="mt-1 text-sm text-white/45">Optional collection copy for future landing pages and SEO.</p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <TextareaField label="Опис (EN)" value={form.descriptionEn} onChange={(value) => updateField('descriptionEn', value)} rows={6} />
-              <TextareaField label="Опис (UA)" value={form.descriptionUa} onChange={(value) => updateField('descriptionUa', value)} rows={6} />
-            </div>
-          </section>
-
-          {isEditing ? (
-            <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-              <div className="mb-5">
-                <h2 className="text-lg font-medium text-white">Assigned products</h2>
-                <p className="mt-1 text-sm text-white/45">Products are assigned from the product editor or via Urban sync.</p>
-              </div>
-              {linkedProducts.length ? (
-                <div className="grid gap-3 md:grid-cols-2">
-                  {linkedProducts.map((product) => (
-                    <Link
-                      key={product.id}
-                      href={`/admin/shop/${product.id}`}
-                      className="rounded-none border border-white/10 bg-black/40 p-4 text-sm text-white/80 hover:bg-white/5"
-                    >
-                      <div className="font-medium text-white">{product.titleEn || product.titleUa}</div>
-                      <div className="mt-1 font-mono text-xs text-white/45">{product.slug}</div>
-                      <div className="mt-2 text-xs text-white/50">{product.brand || '—'}</div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-none border border-dashed border-white/10 bg-black/30 px-4 py-8 text-sm text-white/45">
-                  No products assigned yet.
-                </div>
-              )}
-            </section>
-          ) : null}
-
-          <div className="flex flex-wrap gap-3 pb-6">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-none bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
-              <Save className="h-4 w-4" />
-              {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти колекцію' : 'Створити колекцію'}
-            </button>
-            <Link href="/admin/shop/collections" className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
-              Скасувати
-            </Link>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <AdminEditorSection
+          id="overview"
+          title="Overview"
+          description="Collection identity, brand labeling, hero image source, sort order, and publication flags."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminInputField label="Title (EN)" value={form.titleEn} onChange={(value) => updateField('titleEn', value)} />
+            <AdminInputField label="Title (UA)" value={form.titleUa} onChange={(value) => updateField('titleUa', value)} />
+            <AdminInputField label="Handle" value={form.handle} onChange={(value) => updateField('handle', slugify(value))} />
+            <AdminInputField label="Brand" value={form.brand} onChange={(value) => updateField('brand', value)} />
+            <AdminInputField label="Sort order" type="number" value={form.sortOrder} onChange={(value) => updateField('sortOrder', value)} />
+            <AdminInputField label="Hero image URL" value={form.heroImage} onChange={(value) => updateField('heroImage', value)} />
           </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+          <div className="mt-4 flex flex-wrap gap-6">
+            <AdminCheckboxField label="Published" checked={form.isPublished} onChange={(checked) => updateField('isPublished', checked)} />
+            <AdminCheckboxField label="Urban collection" checked={form.isUrban} onChange={(checked) => updateField('isUrban', checked)} />
+          </div>
+        </AdminEditorSection>
 
-type InputFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-};
+        <AdminEditorSection
+          id="descriptions"
+          title="Descriptions"
+          description="Optional localized editorial copy for collection landing pages and search metadata reuse."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminTextareaField label="Description (EN)" value={form.descriptionEn} onChange={(value) => updateField('descriptionEn', value)} rows={6} />
+            <AdminTextareaField label="Description (UA)" value={form.descriptionUa} onChange={(value) => updateField('descriptionUa', value)} rows={6} />
+          </div>
+        </AdminEditorSection>
 
-function InputField({ label, value, onChange, type = 'text' }: InputFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
-      />
-    </label>
-  );
-}
+        {isEditing ? (
+          <AdminEditorSection
+            id="products"
+            title="Assigned products"
+            description="Products are mapped from the product editor or by Urban collection synchronization."
+          >
+            {linkedProducts.length ? (
+              <div className="grid gap-3 md:grid-cols-2">
+                {linkedProducts.map((product) => (
+                  <Link
+                    key={product.id}
+                    href={`/admin/shop/${product.id}`}
+                    className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-stone-200 transition hover:bg-white/[0.04]"
+                  >
+                    <div className="font-medium text-stone-50">{product.titleEn || product.titleUa}</div>
+                    <div className="mt-1 font-mono text-xs text-stone-500">{product.slug}</div>
+                    <div className="mt-2 text-xs text-stone-500">{product.brand || '—'}</div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 px-4 py-8 text-sm text-stone-500">
+                No products assigned yet.
+              </div>
+            )}
+          </AdminEditorSection>
+        ) : null}
 
-type TextareaFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  rows?: number;
-};
-
-function TextareaField({ label, value, onChange, rows = 5 }: TextareaFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <textarea
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        rows={rows}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
-      />
-    </label>
-  );
-}
-
-type CheckboxFieldProps = {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-};
-
-function CheckboxField({ label, checked, onChange }: CheckboxFieldProps) {
-  return (
-    <label className="inline-flex items-center gap-2 text-sm text-white/80">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-        className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
-      />
-      {label}
-    </label>
+        <div className="flex flex-wrap gap-3 pb-6">
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-5 py-2.5 text-sm font-medium text-black transition hover:bg-white disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {saving ? 'Saving…' : isEditing ? 'Save collection' : 'Create collection'}
+          </button>
+          <Link
+            href="/admin/shop/collections"
+            className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+          >
+            Cancel
+          </Link>
+        </div>
+      </form>
+    </AdminEditorShell>
   );
 }

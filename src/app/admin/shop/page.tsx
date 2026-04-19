@@ -1,9 +1,31 @@
 'use client';
 
-import { useEffect, useMemo, useState, Suspense } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { Plus, Pencil, Trash2, Upload, Package, ShoppingCart, Search, Layers3, Warehouse, Coins, Settings2, FileClock, ImageIcon, FolderTree, Users, Boxes, Globe, Sparkles, Loader2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import {
+  Layers3,
+  Loader2,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  Upload,
+} from 'lucide-react';
+
+import {
+  AdminActionBar,
+  AdminEmptyState,
+  AdminFilterBar,
+  AdminInlineAlert,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminPage,
+  AdminPageHeader,
+  AdminStatusBadge,
+  AdminTableShell,
+} from '@/components/admin/AdminPrimitives';
 
 type ShopProductListItem = {
   id: string;
@@ -36,14 +58,16 @@ function priceLabel(product: ShopProductListItem) {
   return '—';
 }
 
-import { useRouter } from 'next/navigation';
+function getStatusTone(status: ShopProductListItem['status']) {
+  if (status === 'ACTIVE') return 'success';
+  if (status === 'ARCHIVED') return 'danger';
+  return 'warning';
+}
 
 function AdminShopPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
-  const pageParam = parseInt(searchParams.get('page') || '1', 10);
-  const limitParam = parseInt(searchParams.get('limit') || '50', 10);
+
   const searchParam = searchParams.get('search') || '';
   const brandParam = searchParams.get('brand') || 'ALL';
   const statusParam = searchParams.get('status') || 'ALL';
@@ -56,43 +80,23 @@ function AdminShopPageContent() {
   const [success, setSuccess] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [bulkUpdating, setBulkUpdating] = useState(false);
-
-  // Local state for debounced inputs
+  const [storefrontBackfilling, setStorefrontBackfilling] = useState(false);
   const [searchInput, setSearchInput] = useState(searchParam);
 
-  function toggleSelectAll() {
-    if (selectedIds.size === products.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(products.map(p => p.id)));
-    }
-  }
-
-  function toggleSelect(id: string) {
-    const next = new Set(selectedIds);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setSelectedIds(next);
-  }
-
-  async function handleBulkStatus(status: 'ACTIVE' | 'DRAFT' | 'ARCHIVED') {
-    if (selectedIds.size === 0) return;
-    setBulkUpdating(true);
-    try {
-      const ids = Array.from(selectedIds);
-      const res = await fetch('/api/admin/shop/products/bulk-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids, status })
-      });
-      if (res.ok) {
-        setSelectedIds(new Set());
-        await load();
-      }
-    } finally {
-      setBulkUpdating(false);
-    }
-  }
+  const commonBrands = [
+    'ADRO',
+    'Akrapovic',
+    'Brabus',
+    'Burger Motorsports',
+    'CSF',
+    'DO88',
+    'GiroDisc',
+    'MHT',
+    'Mishimoto',
+    'OHLINS',
+    'RaceChip',
+    'Urban Automotive',
+  ];
 
   function updateParams(newParams: Record<string, string | number | null>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -103,11 +107,61 @@ function AdminShopPageContent() {
         params.set(key, String(value));
       }
     }
-    // Reset to page 1 on filter change
-    if (!newParams.page && (newParams.search !== undefined || newParams.brand !== undefined || newParams.status !== undefined)) {
+
+    if (
+      !newParams.page &&
+      (newParams.search !== undefined || newParams.brand !== undefined || newParams.status !== undefined)
+    ) {
       params.set('page', '1');
     }
+
     router.push(`/admin/shop?${params.toString()}`);
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === products.length) {
+      setSelectedIds(new Set());
+      return;
+    }
+
+    setSelectedIds(new Set(products.map((product) => product.id)));
+  }
+
+  function toggleSelect(id: string) {
+    const next = new Set(selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setSelectedIds(next);
+  }
+
+  async function load() {
+    setLoading(true);
+    setError('');
+
+    try {
+      const query = new URLSearchParams(searchParams.toString());
+      const response = await fetch(`/api/admin/shop/products?${query.toString()}`);
+      if (response.status === 401) {
+        setError('Unauthorized');
+        return;
+      }
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError((data as { error?: string }).error || 'Failed to load products');
+        return;
+      }
+
+      setProducts((data as { products?: ShopProductListItem[] }).products || []);
+      if ((data as { metadata?: typeof metadata }).metadata) {
+        setMetadata((data as { metadata: typeof metadata }).metadata);
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -116,392 +170,401 @@ function AdminShopPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  async function load() {
-    setLoading(true);
-    setError('');
-    try {
-      const q = new URLSearchParams(searchParams.toString());
-      const response = await fetch(`/api/admin/shop/products?${q.toString()}`);
-      if (response.status === 401) {
-        setError('Unauthorized');
-        return;
-      }
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setError(data.error || 'Failed to load');
-        return;
-      }
-      setProducts(data.products || []);
-      if (data.metadata) {
-        setMetadata(data.metadata);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function handleDelete(id: string) {
     if (
       !confirm(
-        'Архівувати цей товар?\n\nТовар буде знято з публікації та переведено в ARCHIVED без жорсткого видалення з бази.'
+        'Archive this product?\n\nThe product will be unpublished and moved to ARCHIVED without being hard deleted.'
       )
     ) {
       return;
     }
+
     setDeletingId(id);
     setSuccess('');
     setError('');
+
     try {
       const response = await fetch(`/api/admin/shop/products/${id}`, { method: 'DELETE' });
       const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        setError(data.error || 'Archive failed');
+        setError((data as { error?: string }).error || 'Archive failed');
         return;
       }
-      setSuccess('Товар архівовано.');
+
+      setSuccess('Product archived.');
       await load();
     } finally {
       setDeletingId(null);
     }
   }
 
-  // All available brands in the catalog
-  const commonBrands = [ 'ADRO', 'Akrapovic', 'Brabus', 'Burger Motorsports', 'CSF', 'DO88', 'GiroDisc', 'MHT', 'Mishimoto', 'OHLINS', 'RaceChip', 'Urban Automotive' ];
+  async function handleBulkStatus(status: 'ACTIVE' | 'DRAFT' | 'ARCHIVED') {
+    if (selectedIds.size === 0) {
+      return;
+    }
+
+    setBulkUpdating(true);
+    try {
+      const response = await fetch('/api/admin/shop/products/bulk-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: Array.from(selectedIds), status }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError((data as { error?: string }).error || 'Bulk status update failed');
+        return;
+      }
+
+      setSelectedIds(new Set());
+      await load();
+    } finally {
+      setBulkUpdating(false);
+    }
+  }
+
+  async function handleStorefrontBackfill() {
+    if (
+      !confirm(
+        'Normalize storefront tags for the whole catalog?\n\nEach product will keep exactly one store:* tag based on Urban / Brabus / Main signals.'
+      )
+    ) {
+      return;
+    }
+
+    setStorefrontBackfilling(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await fetch('/api/admin/shop/products/backfill-storefront', { method: 'POST' });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setError((data as { error?: string }).error || 'Failed to normalize storefront tags');
+        return;
+      }
+
+      const payload = data as {
+        updatedCount?: number;
+        totalCount?: number;
+        storefrontCounts?: { urban?: number; brabus?: number; main?: number };
+      };
+
+      setSuccess(
+        `Storefront tags normalized: ${payload.updatedCount ?? 0} of ${payload.totalCount ?? 0} updated. Urban: ${
+          payload.storefrontCounts?.urban ?? 0
+        }, Brabus: ${payload.storefrontCounts?.brabus ?? 0}, Main: ${payload.storefrontCounts?.main ?? 0}.`
+      );
+      await load();
+    } catch (backfillError) {
+      setError((backfillError as Error).message || 'Failed to normalize storefront tags');
+    } finally {
+      setStorefrontBackfilling(false);
+    }
+  }
+
+  const selectedCount = selectedIds.size;
+  const selectionLabel =
+    selectedCount === 0 ? 'Nothing selected' : `${selectedCount} selected for a bulk status change.`;
 
   if (loading && products.length === 0) {
     return (
-      <div className="p-6 text-white/60 flex items-center gap-2">
-        <Package className="w-5 h-5 animate-pulse" />
-        Завантаження каталогу…
-      </div>
+      <AdminPage>
+        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading catalog…
+        </div>
+      </AdminPage>
     );
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="w-full px-4 md:px-8 py-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-white">Каталог магазину</h2>
-            <p className="mt-2 text-sm text-white/45">
-              Усі товари, варіанти та колекції. Тут додаємо / редагуємо товари, а детальне ціноутворення — у розділі
-              <span className="font-medium text-white"> Ціни (B2C/B2B)</span>.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {commonBrands.map((brand) => {
-                const isSelected = brandParam?.toLowerCase() === brand.toLowerCase();
-                // Shorten some long names for the buttons
-                const label = brand === 'Urban Automotive' ? 'Urban' : brand === 'Burger Motorsports' ? 'Burger' : brand;
-                
-                return (
-                  <button 
-                    key={brand}
-                    onClick={() => updateParams({ brand, search: '' })}
-                    className={`flex items-center gap-2 rounded-none border px-4 py-2 text-sm font-medium tracking-wide transition-all font-mono ${
-                      isSelected 
-                        ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' 
-                        : 'border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    <Package className="w-4 h-4" />
-                    {label}
-                  </button>
-                );
-              })}
-              <Link 
-                href="/admin/shop/turn14"
-                className="flex items-center gap-2 rounded-none border border-indigo-500/30 bg-zinc-100 text-black/10 px-5 py-2.5 text-sm font-medium tracking-wide text-zinc-400 hover:bg-zinc-100 text-black/20 transition-all font-mono ml-auto"
-              >
-                <Globe className="w-4 h-4" />
-                Turn14 Database
-              </Link>
-            </div>
-            
-            <div className="mt-4 rounded-none border border-white/10 bg-white/[0.02] px-4 py-2 text-xs text-white/55">
-              <span className="font-medium text-white/75">Що робить кожен модуль:</span> Замовлення — перегляд і обробка замовлень; Клієнти — база B2B/B2C; Склад — залишки по варіантах; Ціни — масове ціноутворення; Налаштування — валюти, доставка, податки; Аудит — журнал дій; Категорії — дерево категорій; Колекції — підбірки товарів; Комплекти — збирання комплектів; Медіа — бібліотека зображень; Імпорт CSV — імпорт з мапінгом колонок.
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link href="/admin/shop/orders" title="Перегляд і обробка замовлень клієнтів" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              <ShoppingCart className="w-4 h-4" />
-              Замовлення
-            </Link>
-            <Link href="/admin/shop/customers" title="База клієнтів B2B та B2C" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              <Users className="w-4 h-4" />
-              Клієнти
-            </Link>
-            <Link href="/admin/shop/inventory" title="Залишки та відстеження по варіантах" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              <Warehouse className="w-4 h-4" />
-              Склад
-            </Link>
-            <Link href="/admin/shop/pricing" title="Масове ціноутворення B2C та B2B" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              <Coins className="w-4 h-4" />
-              Ціни (B2C/B2B)
-            </Link>
-            <Link href="/admin/shop/settings" title="Валюти, зони доставки, податки, B2B" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              <Settings2 className="w-4 h-4" />
-              Налаштування
-            </Link>
-            <Link href="/admin/shop/audit" title="Журнал дій у магазині" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              <FileClock className="w-4 h-4" />
-              Аудит
-            </Link>
-            <Link href="/admin/shop/categories" title="Дерево категорій товарів" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              <FolderTree className="w-4 h-4" />
-              Категорії
-            </Link>
-            <Link href="/admin/shop/collections" title="Підбірки та колекції товарів" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              <Layers3 className="w-4 h-4" />
-              Колекції
-            </Link>
-            <Link href="/admin/shop/bundles" title="Комплекти з кількох товарів" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              <Boxes className="w-4 h-4" />
-              Комплекти
-            </Link>
-            <Link href="/admin/shop/media" title="Бібліотека зображень" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              <ImageIcon className="w-4 h-4" />
-              Медіа
-            </Link>
-            <Link href="/admin/shop/import" title="Імпорт товарів з CSV і мапінг колонок" className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700">
-              <Upload className="w-4 h-4" />
-              Імпорт CSV
-            </Link>
-            <Link href="/admin/shop/seo" title="Автоматична генерація SEO мета-тегів" className="flex items-center gap-2 rounded-none border border-teal-500/30 bg-teal-500/10 px-4 py-2 text-sm font-medium text-teal-400 hover:bg-teal-500/20 shadow-[0_0_15px_-3px_rgba(45,212,191,0.2)]">
-              <Sparkles className="w-4 h-4" />
-              SEO Machine
-            </Link>
-            <Link href="/admin/shop/new" title="Створити новий товар" className="flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">
-              <Plus className="w-4 h-4" />
-              Новий товар
-            </Link>
-          </div>
-        </div>
-
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-none border border-white/10 bg-white/[0.03] p-4">
-          <div className="grid gap-1 text-sm text-white/70 md:grid-cols-3 md:gap-8">
-            <div>Всього знайдено: {metadata.totalCount}</div>
-            <div>Сторінка {metadata.currentPage} із {metadata.totalPages}</div>
-            <div>Показано: {products.length} на сторінці</div>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <select
-              value={statusParam}
-              onChange={(e) => updateParams({ status: e.target.value })}
-              className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white"
+    <AdminPage className="space-y-6">
+      <AdminPageHeader
+        eyebrow="Catalog"
+        title="Products"
+        description="Primary catalog surface for product ownership, publication state, collections, media coverage, and fast edit access."
+        actions={
+          <>
+            <Link
+              href="/admin/shop/import"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
             >
-              <option value="ALL">Усі статуси</option>
-              <option value="ACTIVE">Активні</option>
-              <option value="DRAFT">Чернетки</option>
-              <option value="ARCHIVED">Архів</option>
-            </select>
-            <select
-              value={brandParam}
-              onChange={(e) => updateParams({ brand: e.target.value })}
-              className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white"
+              <Upload className="h-4 w-4" />
+              Import center
+            </Link>
+            <button
+              type="button"
+              onClick={handleStorefrontBackfill}
+              disabled={storefrontBackfilling}
+              className="inline-flex items-center gap-2 rounded-2xl border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2.5 text-sm text-amber-100 transition hover:bg-amber-100/[0.1] disabled:opacity-60"
             >
-              <option value="ALL">Всі Бренди</option>
-              {commonBrands.map(b => (
-                <option key={b} value={b}>{b}</option>
-              ))}
-            </select>
-            <label className="flex min-w-[260px] items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
-            <Search className="h-4 w-4 text-white/35" />
-            <input
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  updateParams({ search: searchInput });
-                }
-              }}
-              placeholder="Введіть пошук та натисніть Enter..."
-              className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
-            />
-            </label>
-          </div>
-        </div>
+              {storefrontBackfilling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Layers3 className="h-4 w-4" />}
+              Normalize storefronts
+            </button>
+            <Link
+              href="/admin/shop/new"
+              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
+            >
+              <Plus className="h-4 w-4" />
+              New product
+            </Link>
+          </>
+        }
+      />
 
-        {error && <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div>}
-        {success && <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div>}
+      <AdminMetricGrid>
+        <AdminMetricCard label="Products found" value={metadata.totalCount} meta="Current filtered result set" tone="accent" />
+        <AdminMetricCard label="Current page" value={`${metadata.currentPage}/${metadata.totalPages}`} meta={`Page size ${metadata.limit}`} />
+        <AdminMetricCard label="Visible now" value={products.length} meta="Rows rendered in this view" />
+        <AdminMetricCard label="Bulk selection" value={selectedCount} meta={selectionLabel} />
+      </AdminMetricGrid>
 
-        <div className="mb-4 rounded-none border border-white/10 bg-white/[0.02] p-4 text-xs text-white/55 space-y-1">
-          <p className="font-medium text-white/80">Як працювати з каталогом:</p>
-          <p>• <span className="font-semibold text-white">Редагувати товар</span> — клік по назві або іконка олівця у стовпчику дій.</p>
-          <p>• <span className="font-semibold text-white">Ціни B2C / B2B</span> — окремий розділ «Ціни (B2C/B2B)», де можна масово змінювати ціни за варіантами.</p>
-          <p>• <span className="font-semibold text-white">Архівація</span> — іконка кошика. Товар переводиться в ARCHIVED і знімається з публікації без жорсткого видалення.</p>
-        </div>
+      <AdminFilterBar>
+        <select
+          value={statusParam}
+          onChange={(event) => updateParams({ status: event.target.value })}
+          className="rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-stone-100 focus:border-amber-100/20 focus:outline-none"
+        >
+          <option value="ALL">All statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="DRAFT">Draft</option>
+          <option value="ARCHIVED">Archived</option>
+        </select>
 
-        {products.length === 0 ? (
-          <div className="rounded-none border border-white/10 bg-white/[0.03] py-16 text-center text-white/50">
-            Товарів не знайдено. Імпортуйте CSV або додайте товар вручну.
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-none border border-white/10">
-            <table className="w-full min-w-[800px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-white/10 bg-white/5">
-                  <th className="px-4 py-3 w-10">
-                    <input 
-                      type="checkbox" 
-                      checked={selectedIds.size === products.length && products.length > 0} 
-                      onChange={toggleSelectAll}
-                      className="rounded-none border-white/20 bg-black/40 text-emerald-500 focus:ring-emerald-500/30"
-                    />
-                  </th>
-                  <th className="px-4 py-3 text-white/60 font-medium">Товар</th>
-                  <th className="px-4 py-3 text-white/60 font-medium">Тип</th>
-                  <th className="px-4 py-3 text-white/60 font-medium">Статус</th>
-                  <th className="px-4 py-3 text-white/60 font-medium">Кількості</th>
-                  <th className="px-4 py-3 text-white/60 font-medium">Ціна</th>
-                  <th className="px-4 py-3 text-white/60 font-medium">Оновлено</th>
-                  <th className="px-4 py-3 text-white/60 font-medium w-28">Дії</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((product) => (
-                  <tr key={product.id} className={`border-b border-white/5 align-top hover:bg-white/[0.03] transition-colors ${selectedIds.has(product.id) ? 'bg-emerald-500/[0.03]' : ''}`}>
-                    <td className="px-4 py-4">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedIds.has(product.id)} 
-                        onChange={() => toggleSelect(product.id)}
-                        className="rounded-none border-white/20 bg-black/40 text-emerald-500 focus:ring-emerald-500/30"
-                      />
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="font-medium text-white">{product.titleEn || product.titleUa}</div>
-                      <div className="mt-1 text-xs font-mono text-white/45">{product.slug}</div>
-                      <div className="mt-1 text-xs text-white/45">
-                        {[product.brand, product.vendor, product.sku].filter(Boolean).join(' · ') || '—'}
-                      </div>
-                      {product.collectionHandles.length ? (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {product.collectionHandles.slice(0, 3).map((handle) => (
-                            <span
-                              key={handle}
-                              className="rounded-none-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60"
-                            >
-                              {handle}
-                            </span>
-                          ))}
-                          {product.collectionHandles.length > 3 ? (
-                            <span className="rounded-none-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/45">
-                              +{product.collectionHandles.length - 3}
-                            </span>
-                          ) : null}
-                        </div>
-                      ) : null}
-                    </td>
-                    <td className="px-4 py-4 text-white/70">
-                      {product.productType || product.scope}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="text-white/80">{product.status}</div>
-                      <div className="mt-1 text-xs text-white/45">{product.isPublished ? 'Опубліковано' : 'Приховано'}</div>
-                    </td>
-                    <td className="px-4 py-4 text-white/70">
-                      <div>{product.variantsCount} варіантів</div>
-                      <div className="mt-1 text-xs text-white/45">
-                        {product.mediaCount} медіа · {product.collectionsCount} колекцій · {product.stock}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-white/70">{priceLabel(product)}</td>
-                    <td className="px-4 py-4 text-white/45">
-                      {new Date(product.updatedAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        <Link href={`/admin/shop/${product.id}`} className="rounded-none border border-white/20 p-1.5 text-white/80 hover:bg-white/10" title="Редагувати">
-                          <Pencil className="h-4 w-4" />
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(product.id)}
-                          disabled={deletingId === product.id}
-                          className="rounded-none border border-red-500/30 p-1.5 text-red-400 hover:bg-red-950/30 border border-red-900/50 text-red-500/10 disabled:opacity-50"
-                          title="Архівувати"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <select
+          value={brandParam}
+          onChange={(event) => updateParams({ brand: event.target.value })}
+          className="rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-stone-100 focus:border-amber-100/20 focus:outline-none"
+        >
+          <option value="ALL">All brands</option>
+          {commonBrands.map((brand) => (
+            <option key={brand} value={brand}>
+              {brand}
+            </option>
+          ))}
+        </select>
 
-        {/* Pagination Controls */}
-        {metadata.totalPages > 1 && (
-          <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 text-sm text-white/60 mb-20">
-            <div>
-              Показано {(metadata.currentPage - 1) * metadata.limit + 1} - {Math.min(metadata.currentPage * metadata.limit, metadata.totalCount)} з {metadata.totalCount}
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                disabled={metadata.currentPage <= 1}
-                onClick={() => updateParams({ page: metadata.currentPage - 1 })}
-                className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50"
-              >
-                Попередня
-              </button>
-              <div className="px-4 text-white">{metadata.currentPage}</div>
-              <button
-                disabled={metadata.currentPage >= metadata.totalPages}
-                onClick={() => updateParams({ page: metadata.currentPage + 1 })}
-                className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50"
-              >
-                Наступна
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-stone-100">
+          <Search className="h-4 w-4 text-stone-500" />
+          <input
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                updateParams({ search: searchInput });
+              }
+            }}
+            placeholder="Search by slug, SKU, brand, or title and press Enter"
+            className="w-full bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
+          />
+        </label>
+      </AdminFilterBar>
 
-      {/* Floating Bulk Actions Bar */}
-      {selectedIds.size > 0 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 px-6 py-4 rounded-none border border-white/10 bg-black/90 backdrop-blur-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-bottom-4 duration-300">
-          <div className="flex flex-col">
-            <span className="text-xs font-bold text-white uppercase tracking-widest">{selectedIds.size} вибрано</span>
-            <button onClick={() => setSelectedIds(new Set())} className="text-[10px] text-white/40 hover:text-white text-left uppercase tracking-tighter">Скасувати</button>
+      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
+      {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
+
+      {selectedCount > 0 ? (
+        <AdminActionBar>
+          <div className="space-y-1">
+            <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Bulk action bar</div>
+            <div className="text-sm text-stone-200">{selectionLabel}</div>
           </div>
-          <div className="h-8 w-px bg-white/10" />
-          <div className="flex items-center gap-2">
-            <button 
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
               disabled={bulkUpdating}
               onClick={() => handleBulkStatus('ACTIVE')}
-              className="flex items-center gap-2 px-4 py-2 rounded-none bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-500/20 disabled:opacity-50 transition-all"
+              className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-200 transition hover:bg-emerald-500/15 disabled:opacity-50"
             >
-              {bulkUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Package className="w-3 h-3" />}
-              Активувати
+              {bulkUpdating ? 'Updating…' : 'Set Active'}
             </button>
-            <button 
+            <button
+              type="button"
               disabled={bulkUpdating}
               onClick={() => handleBulkStatus('DRAFT')}
-              className="flex items-center gap-2 px-4 py-2 rounded-none bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-widest hover:bg-amber-500/20 disabled:opacity-50 transition-all"
+              className="rounded-2xl border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2.5 text-sm text-amber-100 transition hover:bg-amber-100/[0.1] disabled:opacity-50"
             >
-              {bulkUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Layers3 className="w-3 h-3" />}
-              В Чернетки
+              {bulkUpdating ? 'Updating…' : 'Set Draft'}
             </button>
-            <button 
+            <button
+              type="button"
               disabled={bulkUpdating}
               onClick={() => handleBulkStatus('ARCHIVED')}
-              className="flex items-center gap-2 px-4 py-2 rounded-none bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500/20 disabled:opacity-50 transition-all"
+              className="rounded-2xl border border-red-500/20 bg-red-950/25 px-4 py-2.5 text-sm text-red-200 transition hover:bg-red-950/35 disabled:opacity-50"
             >
-              {bulkUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-              В Архів
+              {bulkUpdating ? 'Updating…' : 'Archive'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-300 transition hover:bg-white/[0.06]"
+            >
+              Clear selection
+            </button>
+          </div>
+        </AdminActionBar>
+      ) : null}
+
+      {products.length === 0 ? (
+        <AdminEmptyState
+          title="No products match this view"
+          description="Adjust filters, import a CSV batch, or add a product manually to seed the catalog."
+          action={
+            <Link
+              href="/admin/shop/new"
+              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
+            >
+              <Plus className="h-4 w-4" />
+              Create product
+            </Link>
+          }
+        />
+      ) : (
+        <AdminTableShell>
+          <table className="w-full min-w-[980px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/[0.03]">
+                <th className="w-12 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.size === products.length && products.length > 0}
+                    onChange={toggleSelectAll}
+                    className="rounded border-white/20 bg-black/40 text-emerald-500"
+                  />
+                </th>
+                <th className="px-4 py-3 font-medium text-stone-400">Product</th>
+                <th className="px-4 py-3 font-medium text-stone-400">Type</th>
+                <th className="px-4 py-3 font-medium text-stone-400">Status</th>
+                <th className="px-4 py-3 font-medium text-stone-400">Coverage</th>
+                <th className="px-4 py-3 font-medium text-stone-400">Price</th>
+                <th className="px-4 py-3 font-medium text-stone-400">Updated</th>
+                <th className="w-28 px-4 py-3 font-medium text-stone-400">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((product) => (
+                <tr
+                  key={product.id}
+                  className={`border-b border-white/5 align-top transition hover:bg-white/[0.02] ${
+                    selectedIds.has(product.id) ? 'bg-amber-100/[0.04]' : ''
+                  }`}
+                >
+                  <td className="px-4 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(product.id)}
+                      onChange={() => toggleSelect(product.id)}
+                      className="rounded border-white/20 bg-black/40 text-emerald-500"
+                    />
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="font-medium text-stone-50">{product.titleEn || product.titleUa}</div>
+                    <div className="mt-1 font-mono text-xs text-stone-500">{product.slug}</div>
+                    <div className="mt-1 text-xs text-stone-500">
+                      {[product.brand, product.vendor, product.sku].filter(Boolean).join(' · ') || '—'}
+                    </div>
+                    {product.collectionHandles.length ? (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {product.collectionHandles.slice(0, 3).map((handle) => (
+                          <span
+                            key={handle}
+                            className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-stone-300"
+                          >
+                            {handle}
+                          </span>
+                        ))}
+                        {product.collectionHandles.length > 3 ? (
+                          <span className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-stone-500">
+                            +{product.collectionHandles.length - 3}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </td>
+                  <td className="px-4 py-4 text-stone-300">{product.productType || product.scope}</td>
+                  <td className="px-4 py-4">
+                    <div className="flex flex-wrap gap-2">
+                      <AdminStatusBadge tone={getStatusTone(product.status)}>{product.status}</AdminStatusBadge>
+                      <AdminStatusBadge tone={product.isPublished ? 'success' : 'warning'}>
+                        {product.isPublished ? 'Published' : 'Hidden'}
+                      </AdminStatusBadge>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-stone-300">
+                    <div>{product.variantsCount} variants</div>
+                    <div className="mt-1 text-xs text-stone-500">
+                      {product.mediaCount} media · {product.collectionsCount} collections · {product.stock}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-stone-200">{priceLabel(product)}</td>
+                  <td className="px-4 py-4 text-stone-500">
+                    {new Date(product.updatedAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/admin/shop/${product.id}`}
+                        className="rounded-2xl border border-white/10 p-2 text-stone-300 transition hover:bg-white/[0.06] hover:text-stone-50"
+                        title="Edit product"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(product.id)}
+                        disabled={deletingId === product.id}
+                        className="rounded-2xl border border-red-500/20 p-2 text-red-300 transition hover:bg-red-950/30 disabled:opacity-50"
+                        title="Archive product"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </AdminTableShell>
+      )}
+
+      {metadata.totalPages > 1 ? (
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-4 text-sm text-stone-400">
+          <div>
+            Showing {(metadata.currentPage - 1) * metadata.limit + 1}-
+            {Math.min(metadata.currentPage * metadata.limit, metadata.totalCount)} of {metadata.totalCount}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={metadata.currentPage <= 1}
+              onClick={() => updateParams({ page: metadata.currentPage - 1 })}
+              className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2 text-stone-100 transition hover:bg-white/[0.06] disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="px-2 text-stone-100">{metadata.currentPage}</span>
+            <button
+              type="button"
+              disabled={metadata.currentPage >= metadata.totalPages}
+              onClick={() => updateParams({ page: metadata.currentPage + 1 })}
+              className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2 text-stone-100 transition hover:bg-white/[0.06] disabled:opacity-50"
+            >
+              Next
             </button>
           </div>
         </div>
-      )}
-    </div>
+      ) : null}
+    </AdminPage>
   );
 }
 
 export default function AdminShopPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-white/50">Завантаження каталогу...</div>}>
+    <Suspense fallback={<AdminPage><div className="text-sm text-stone-400">Loading catalog…</div></AdminPage>}>
       <AdminShopPageContent />
     </Suspense>
   );

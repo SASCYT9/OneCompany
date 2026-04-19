@@ -1,13 +1,30 @@
 'use client';
 
-import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronDown, ChevronUp, Copy, Plus, Save, Trash2, Upload, Wand2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Plus, Save, Trash2, Upload, Wand2 } from 'lucide-react';
+
+import {
+  AdminEditorSection,
+  AdminEditorShell,
+  AdminInlineAlert,
+  AdminPage,
+  AdminStatusBadge,
+} from '@/components/admin/AdminPrimitives';
+import {
+  AdminCheckboxField as CheckboxField,
+  AdminInputField as InputField,
+  AdminSelectField as SelectField,
+  AdminTextareaField as TextareaField,
+} from '@/components/admin/AdminFormFields';
+import { stripStorefrontTags, type ShopProductStorefront } from '@/lib/shopProductStorefront';
+import { ADMIN_PRODUCT_EDITOR_SECTIONS } from './adminProductEditorSections';
 
 type ProductStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
 type ProductMediaType = 'IMAGE' | 'VIDEO' | 'EXTERNAL_VIDEO';
 type InventoryPolicy = 'DENY' | 'CONTINUE';
+type ProductStorefront = ShopProductStorefront;
 
 type MediaFormItem = {
   id?: string;
@@ -144,6 +161,7 @@ type ProductFormState = {
   slug: string;
   sku: string;
   scope: 'auto' | 'moto';
+  storefront: ProductStorefront;
   brand: string;
   vendor: string;
   productType: string;
@@ -204,6 +222,7 @@ type ProductResponse = {
   slug: string;
   sku: string | null;
   scope: string;
+  storefront: ProductStorefront;
   brand: string | null;
   vendor: string | null;
   productType: string | null;
@@ -461,6 +480,7 @@ function createEmptyForm(): ProductFormState {
     slug: '',
     sku: '',
     scope: 'auto',
+    storefront: 'main',
     brand: '',
     vendor: '',
     productType: '',
@@ -522,12 +542,13 @@ function productToForm(product: ProductResponse): ProductFormState {
     slug: product.slug,
     sku: product.sku ?? '',
     scope: product.scope === 'moto' ? 'moto' : 'auto',
+    storefront: product.storefront ?? 'main',
     brand: product.brand ?? '',
     vendor: product.vendor ?? '',
     productType: product.productType ?? '',
     productCategory: product.productCategory ?? '',
     categoryId: product.categoryId ?? '',
-    tagsText: commaList(product.tags),
+    tagsText: commaList(stripStorefrontTags(product.tags)),
     collectionIds: product.collectionIds ?? product.collections.map((collection) => collection.id),
     status: product.status,
     titleUa: product.titleUa,
@@ -657,6 +678,7 @@ function buildPayload(form: ProductFormState) {
     slug: form.slug,
     sku: form.sku || null,
     scope: form.scope,
+    storefront: form.storefront,
     brand: form.brand || null,
     vendor: form.vendor || null,
     productType: form.productType || null,
@@ -1481,38 +1503,41 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   };
 
   if (loading) {
-    return <div className="p-6 text-white/60">Завантаження товару…</div>;
+    return (
+      <AdminPage>
+        <div className="text-sm text-stone-400">Завантаження товару…</div>
+      </AdminPage>
+    );
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="w-full px-4 md:px-12 py-6">
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <Link href="/admin/shop" className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm mb-4">
-              <ArrowLeft className="w-4 h-4" />
-              Назад до каталогу
-            </Link>
-            <h2 className="text-2xl font-semibold text-white">
-              {isEditing ? `Редагувати товар: ${form.titleEn || form.titleUa || form.slug}` : 'Новий товар'}
-            </h2>
-            <p className="mt-2 text-sm text-white/45">
-              Редактор товару у стилі Shopify: основні дані, медіа, варіанти, опції та додаткові поля для теми URBAN.
-            </p>
-          </div>
-          <div className="rounded-none border border-white/10 bg-white/5 px-4 py-3 text-right">
-            <div className="text-xs uppercase tracking-[0.24em] text-white/40">Стан у каталозі</div>
-            <div className="mt-2 text-sm text-white/80">
-              {form.status} · {form.isPublished ? 'Опублікований' : 'Прихований'} · {form.variants.length} варіант(и)
-            </div>
+    <AdminEditorShell
+      backHref="/admin/shop"
+      backLabel="Back to products"
+      title={isEditing ? `Edit product: ${form.titleEn || form.titleUa || form.slug}` : 'New product'}
+      description="Catalog editor for storefront ownership, pricing, media, variants, and Urban-specific merchandising fields."
+      sections={ADMIN_PRODUCT_EDITOR_SECTIONS}
+      summary={
+        <div className="rounded-[28px] border border-white/10 bg-[#101010] p-5">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Catalog state</div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <AdminStatusBadge tone={form.status === 'ACTIVE' ? 'success' : form.status === 'ARCHIVED' ? 'danger' : 'warning'}>
+              {form.status}
+            </AdminStatusBadge>
+            <AdminStatusBadge tone={form.isPublished ? 'success' : 'warning'}>
+              {form.isPublished ? 'Published' : 'Hidden'}
+            </AdminStatusBadge>
+            <AdminStatusBadge>{form.variants.length} variants</AdminStatusBadge>
           </div>
         </div>
+      }
+    >
+      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
+      {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
 
-        {error && <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div>}
-        {success && <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div>}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <EditorCard
+      <form onSubmit={handleSubmit} className="space-y-6">
+          <AdminEditorSection
+            id="overview"
             title="Огляд"
             description="Основна ідентичність товару в каталозі, стан публікації та привʼязка до колекцій."
           >
@@ -1542,6 +1567,16 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <InputField label="Базовий SKU" value={form.sku} onChange={(value) => updateField('sku', value)} />
               <InputField label="Бренд" value={form.brand} onChange={(value) => updateField('brand', value)} />
               <InputField label="Постачальник" value={form.vendor} onChange={(value) => updateField('vendor', value)} />
+              <SelectField
+                label="Storefront"
+                value={form.storefront}
+                onChange={(value) => updateField('storefront', value as ProductStorefront)}
+                options={[
+                  { label: 'Main', value: 'main' },
+                  { label: 'Urban', value: 'urban' },
+                  { label: 'Brabus', value: 'brabus' },
+                ]}
+              />
               <InputField label="Тип товару" value={form.productType} onChange={(value) => updateField('productType', value)} />
               <SelectField
                 label="Structured category"
@@ -1570,7 +1605,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <InputField
-                label="Tags"
+                label="Tags (без store:*)"
                 value={form.tagsText}
                 onChange={(value) => updateField('tagsText', value)}
                 placeholder="urban, defender, widetrack"
@@ -1679,9 +1714,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 Опубліковано: {form.publishedAt ? new Date(form.publishedAt).toLocaleString() : 'ще не встановлено'}
               </div>
             </div>
-          </EditorCard>
+          </AdminEditorSection>
 
-          <EditorCard
+          <AdminEditorSection
+            id="content"
             title="Опис і контент"
             description="Короткі й довгі описи українською та англійською, а також сирий HTML з імпорту Shopify."
           >
@@ -1697,9 +1733,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <InputField label="Термін постачання (EN)" value={form.leadTimeEn} onChange={(value) => updateField('leadTimeEn', value)} />
               <InputField label="Термін постачання (UA)" value={form.leadTimeUa} onChange={(value) => updateField('leadTimeUa', value)} />
             </div>
-          </EditorCard>
+          </AdminEditorSection>
 
-          <EditorCard
+          <AdminEditorSection
+            id="pricing"
             title="Ціни"
             description="Базові ціни для карток у магазині, пошуку та як дефолт для варіантів (B2C і B2B)."
           >
@@ -1722,9 +1759,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 <InputField label="B2B порівн. UAH" type="number" step="0.01" value={form.compareAtUahB2b} onChange={(value) => updateField('compareAtUahB2b', value)} />
               </div>
             </div>
-          </EditorCard>
+          </AdminEditorSection>
 
-          <EditorCard
+          <AdminEditorSection
+            id="dimensions"
             title="Габарити та Вага (Базові)"
             description="Використовуються для розрахунку об'ємної ваги та доставки, якщо поточний варіант не має власних значень."
           >
@@ -1747,9 +1785,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             <div className="mt-4 flex items-center">
               <CheckboxField label="Орієнтовні габарити (згенеровано ШІ / потребують перевірки)" checked={form.isDimensionsEstimated} onChange={(value) => updateField('isDimensionsEstimated', value)} />
             </div>
-          </EditorCard>
+          </AdminEditorSection>
 
-          <EditorCard
+          <AdminEditorSection
+            id="seo"
             title="SEO"
             description="SEO‑поля з імпорту Shopify, які напряму мапляться в наш каталог і метадані сторінки."
           >
@@ -1759,9 +1798,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <TextareaField label="SEO description (EN)" value={form.seoDescriptionEn} onChange={(value) => updateField('seoDescriptionEn', value)} rows={3} />
               <TextareaField label="SEO description (UA)" value={form.seoDescriptionUa} onChange={(value) => updateField('seoDescriptionUa', value)} rows={3} />
             </div>
-          </EditorCard>
+          </AdminEditorSection>
 
-          <EditorCard
+          <AdminEditorSection
+            id="media"
             title="Медіа"
             description="Порядок зображень та відео у вітрині, бібліотека файлів і привʼязка картинок до варіантів."
           >
@@ -1941,9 +1981,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 Додати медіа
               </button>
             </div>
-          </EditorCard>
+          </AdminEditorSection>
 
-          <EditorCard
+          <AdminEditorSection
+            id="options"
             title="Опції"
             description="Набори опцій (наприклад, колір / розмір), з яких формуються варіанти."
           >
@@ -1980,9 +2021,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 Додати опцію
               </button>
             </div>
-          </EditorCard>
+          </AdminEditorSection>
 
-          <EditorCard
+          <AdminEditorSection
+            id="variants"
             title="Варіанти"
             description="Ціни, залишки та опції на рівні SKU. Один варіант завжди має залишатися основним."
           >
@@ -2256,9 +2298,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 Додати варіант
               </button>
             </div>
-          </EditorCard>
+          </AdminEditorSection>
 
-          <EditorCard
+          <AdminEditorSection
+            id="metafields"
             title="Мета‑поля"
             description="Кастомні мета‑поля товару (як у Shopify), які використовуються темою URBAN та в CSV‑експорті."
           >
@@ -2293,10 +2336,11 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 Додати мета‑поле
               </button>
             </div>
-          </EditorCard>
+          </AdminEditorSection>
 
           {isEditing && (
-            <EditorCard
+            <AdminEditorSection
+              id="danger-zone"
               title="Небезпечні дії"
               description="Безпечне зняття товару з публікації та переведення в архів. Жорстке видалення більше не є дією за замовчуванням."
             >
@@ -2315,7 +2359,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   {hardDeleting ? 'Архівуємо…' : 'Архівувати товар'}
                 </button>
               </div>
-            </EditorCard>
+            </AdminEditorSection>
           )}
 
           <div className="flex flex-wrap gap-3 pb-6 md:pb-0 hidden md:flex">
@@ -2338,119 +2382,6 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             </Link>
           </div>
         </form>
-      </div>
-    </div>
-  );
-}
-
-type EditorCardProps = {
-  title: string;
-  description: string;
-  children: ReactNode;
-};
-
-function EditorCard({ title, description, children }: EditorCardProps) {
-  return (
-    <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-      <div className="mb-5">
-        <h3 className="text-lg font-medium text-white">{title}</h3>
-        <p className="mt-1 text-sm text-white/45">{description}</p>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-type InputFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-  step?: string;
-  placeholder?: string;
-  mono?: boolean;
-};
-
-function InputField({ label, value, onChange, type = 'text', step, placeholder, mono = false }: InputFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <input
-        type={type}
-        step={step}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        className={`w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none ${mono ? 'font-mono' : ''}`}
-      />
-    </label>
-  );
-}
-
-type TextareaFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  rows?: number;
-  mono?: boolean;
-};
-
-function TextareaField({ label, value, onChange, rows = 5, mono = false }: TextareaFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <textarea
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        rows={rows}
-        className={`w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none ${mono ? 'font-mono' : ''}`}
-      />
-    </label>
-  );
-}
-
-type SelectFieldProps = {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<{ label: string; value: string }>;
-};
-
-function SelectField({ label, value, onChange, options }: SelectFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-type CheckboxFieldProps = {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-};
-
-function CheckboxField({ label, checked, onChange }: CheckboxFieldProps) {
-  return (
-    <label className="inline-flex items-center gap-2 text-sm text-white/80">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-        className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
-      />
-      {label}
-    </label>
+    </AdminEditorShell>
   );
 }
