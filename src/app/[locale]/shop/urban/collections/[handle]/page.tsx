@@ -50,24 +50,50 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
 
   if (!config) {
     return (
-      <>
-        <div className="urban-back-to-stores">
-          <Link href={`/${locale}/shop/urban/collections`} className="urban-back-to-stores__link">
-            ← {isUa ? 'Усі колекції' : 'All collections'}
+      <div className="relative min-h-screen bg-black overflow-hidden flex flex-col pt-[100px]">
+        <div className="w-full max-w-[1720px] mx-auto px-6 md:px-12 lg:px-16 pb-4">
+          <Link href={`/${locale}/shop/urban/collections`} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50 transition-all hover:border-white/20 hover:bg-white/[0.08] hover:text-white backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.3)] relative z-50">
+            <span>←</span> {isUa ? 'Усі колекції' : 'All collections'}
           </Link>
         </div>
-        <section className="ucg" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 48 }}>
-          <h1 className="ucg__card-title" style={{ position: 'static', marginBottom: 16 }}>
-            {card?.title ?? handle}
-          </h1>
-          <p className="ucg__hero-sub" style={{ marginTop: 0 }}>
-            {isUa ? 'Сторінка колекції готується.' : 'Collection page coming soon.'}
-          </p>
-          <Link href={`/${locale}/shop/urban/collections`} className="urban-bp__cta" style={{ marginTop: 24 }}>
-            {isUa ? 'Усі колекції' : 'All collections'}
-          </Link>
+        <section className="relative flex flex-1 flex-col items-center justify-center p-6 text-center">
+          <div className="relative z-10 flex flex-col items-center -mt-20">
+            {card?.brand && (
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#c29d59] drop-shadow-md">
+                {card.brand}
+              </p>
+            )}
+            <h1 className="mb-6 text-4xl font-bold tracking-tight text-white drop-shadow-lg sm:text-6xl md:text-7xl uppercase">
+              {card?.title ?? handle}
+            </h1>
+            <p className="max-w-2xl text-balance text-lg font-light text-white/50">
+              {isUa 
+                ? 'Детальна сторінка цієї колекції наразі розробляється. Ви можете скористатися загальним каталогом бази Urban для перегляду усіх товарів.' 
+                : 'The detailed showcase for this collection is currently under development. You can browse the general Urban catalog database for products.'}
+            </p>
+            <div className="mt-10 flex flex-wrap justify-center gap-4">
+              <Link
+                href={`/${locale}/shop/urban/collections`}
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-8 text-xs font-semibold uppercase tracking-[0.15em] text-white transition duration-300 hover:border-white/25 hover:bg-white/10 backdrop-blur-md"
+              >
+                {isUa ? 'Усі колекції' : 'All collections'}
+              </Link>
+              <Link
+                href={`/${locale}/shop/urban/products`}
+                className="inline-flex min-h-12 items-center justify-center rounded-full bg-gradient-to-br from-[#c29d59] to-[#a48245] px-8 text-xs font-semibold uppercase tracking-[0.15em] text-black transition duration-300 hover:from-[#ead29d] hover:to-[#c29d59]"
+              >
+                {isUa ? 'В магазин' : 'To catalog'}
+              </Link>
+            </div>
+          </div>
+          <div className="absolute inset-0 z-0 bg-gradient-to-t from-black via-black/80 to-transparent" />
+          {card?.externalImageUrl && (
+            <div className="absolute inset-0 z-0 opacity-[0.2] blur-xl">
+              <img src={card.externalImageUrl} className="h-full w-full object-cover grayscale" alt="" />
+            </div>
+          )}
         </section>
-      </>
+      </div>
     );
   }
 
@@ -109,9 +135,9 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <div className="urban-back-to-stores">
-        <Link href={`/${locale}/shop/urban/collections`} className="urban-back-to-stores__link">
-          ← {isUa ? 'Усі колекції' : 'All collections'}
+      <div className="absolute left-6 top-6 z-[100] md:left-12 lg:left-16 pt-[80px]">
+        <Link href={`/${locale}/shop/urban/collections`} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.15em] text-white/70 transition-all hover:border-white/25 hover:bg-black/60 hover:text-white backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+          <span>←</span> {isUa ? 'Усі колекції' : 'All collections'}
         </Link>
       </div>
       <UrbanCinematicHero locale={resolvedLocale} config={config.hero} />
