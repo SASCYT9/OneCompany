@@ -5,8 +5,29 @@
 
 import type { UrbanCollectionPageConfig } from '@/app/[locale]/shop/data/urbanCollectionPages';
 import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollectionsList';
+import {
+  getUrbanCanonicalCollectionHandleOverride,
+  getUrbanProgramFallbackImage,
+} from '@/lib/urbanProductOverrides';
 
 const FALLBACK_URBAN_IMAGE = '/images/shop/urban/hero/models/defender2020Plus/2025Updates/hero-1-1920.jpg';
+const G_WAGON_COLLECTION_HANDLES = new Set([
+  'mercedes-g-wagon-softkit',
+  'mercedes-g-wagon-w465-widetrack',
+  'mercedes-g-wagon-w465-aerokit',
+]);
+const NON_G_WAGON_IMAGE_MARKERS = [
+  'defender',
+  'discovery',
+  'cullinan',
+  'ghost',
+  'range-rover',
+  'rangerover',
+  'urus',
+  'rsq8',
+  'golf',
+  'transporter',
+];
 
 function stripQueryAndHash(url: string) {
   return url.split(/[?#]/, 1)[0] ?? url;
@@ -26,14 +47,6 @@ function uniqueNonPlaceholderImages(urls: Array<string | null | undefined>) {
         .filter((url) => url.length > 0 && !isUrbanPlaceholderImage(url))
     )
   );
-}
-
-function stableImageIndex(seed: string, length: number) {
-  let hash = 0;
-  for (let index = 0; index < seed.length; index += 1) {
-    hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
-  }
-  return length > 0 ? hash % length : 0;
 }
 
 /**
@@ -72,25 +85,88 @@ export function isUrbanPlaceholderImage(url: string | null | undefined): boolean
   return false;
 }
 
+function resolveCanonicalModelHandles(modelHandles: string[], slug?: string | null) {
+  const overrideHandle = getUrbanCanonicalCollectionHandleOverride(slug);
+  return Array.from(
+    new Set([overrideHandle, ...modelHandles].filter((handle): handle is string => Boolean(handle)))
+  );
+}
+
+function isUrbanImageCompatibleWithHandle(url: string, handle: string) {
+  const normalized = stripQueryAndHash(normalizeUrbanImageUrl(url)).toLowerCase();
+  if (!normalized || isUrbanPlaceholderImage(normalized)) {
+    return false;
+  }
+
+  if (G_WAGON_COLLECTION_HANDLES.has(handle) && NON_G_WAGON_IMAGE_MARKERS.some((marker) => normalized.includes(marker))) {
+    return false;
+  }
+
+  if (handle === 'mercedes-g-wagon-softkit') {
+    return !normalized.includes('gwagonwidetrack2024') && !normalized.includes('gwagonaerokit2024');
+  }
+
+  if (handle === 'mercedes-g-wagon-w465-widetrack') {
+    return !normalized.includes('gwagonsoftkit') && !normalized.includes('gwagonaerokit2024');
+  }
+
+  if (handle === 'mercedes-g-wagon-w465-aerokit') {
+    return !normalized.includes('gwagonsoftkit') && !normalized.includes('gwagonwidetrack2024');
+  }
+
+  return true;
+}
+
+function isUrbanImageCompatibleWithModel(url: string, modelHandles: string[]) {
+  if (!modelHandles.length) {
+    return !isUrbanPlaceholderImage(url);
+  }
+
+  return modelHandles.some((handle) => isUrbanImageCompatibleWithHandle(url, handle));
+}
+
+function resolveUrbanProgramFallback(modelHandles: string[], collectionImages: string[]) {
+  for (const handle of modelHandles) {
+    const programFallback = getUrbanProgramFallbackImage(handle);
+    if (programFallback) {
+      return programFallback;
+    }
+  }
+
+  for (const handle of modelHandles) {
+    const card = URBAN_COLLECTION_CARDS.find((item) => item.collectionHandle === handle);
+    if (card?.externalImageUrl) {
+      return card.externalImageUrl;
+    }
+  }
+
+  const compatibleCollectionImage = uniqueNonPlaceholderImages(collectionImages).find((url) =>
+    isUrbanImageCompatibleWithModel(url, modelHandles)
+  );
+  if (compatibleCollectionImage) {
+    return compatibleCollectionImage;
+  }
+
+  return FALLBACK_URBAN_IMAGE;
+}
+
 /**
  * Given a product image URL and the model handles it belongs to,
  * returns a real image URL — either the original (if valid) or a collection fallback.
  */
 export function resolveUrbanProductImage(
   image: string | undefined | null,
-  modelHandles: string[]
+  modelHandles: string[],
+  slug?: string | null
 ): string {
+  const resolvedModelHandles = resolveCanonicalModelHandles(modelHandles, slug);
   const raw = normalizeUrbanImageUrl(image);
 
-  if (!raw || isUrbanPlaceholderImage(raw)) {
-    for (const handle of modelHandles) {
-      const card = URBAN_COLLECTION_CARDS.find((c) => c.collectionHandle === handle);
-      if (card?.externalImageUrl) return card.externalImageUrl;
-    }
-    return FALLBACK_URBAN_IMAGE;
+  if (raw && !isUrbanPlaceholderImage(raw) && isUrbanImageCompatibleWithModel(raw, resolvedModelHandles)) {
+    return raw;
   }
 
-  return raw;
+  return resolveUrbanProgramFallback(resolvedModelHandles, []);
 }
 
 export function buildUrbanCollectionImagePool(
@@ -121,18 +197,24 @@ export function resolveUrbanCollectionCardImage(
   image: string | undefined | null,
   modelHandles: string[],
   collectionImages: string[],
-  seed: string
+  seed: string,
+  gallery: Array<string | null | undefined> = []
 ): string {
+  const resolvedModelHandles = resolveCanonicalModelHandles(modelHandles, seed);
   const raw = normalizeUrbanImageUrl(image);
 
-  if (!raw || isUrbanPlaceholderImage(raw)) {
-    if (collectionImages.length > 0) {
-      return collectionImages[stableImageIndex(seed || modelHandles.join('|'), collectionImages.length)]!;
-    }
-    return resolveUrbanProductImage(raw, modelHandles);
+  if (raw && !isUrbanPlaceholderImage(raw) && isUrbanImageCompatibleWithModel(raw, resolvedModelHandles)) {
+    return raw;
   }
 
-  return raw;
+  const galleryCandidate = uniqueNonPlaceholderImages(gallery).find((url) =>
+    isUrbanImageCompatibleWithModel(url, resolvedModelHandles)
+  );
+  if (galleryCandidate) {
+    return galleryCandidate;
+  }
+
+  return resolveUrbanProgramFallback(resolvedModelHandles, collectionImages);
 }
 
 /**
@@ -142,21 +224,13 @@ export function filterUrbanGalleryImages(
   gallery: (string | null | undefined)[],
   modelHandles: string[]
 ): string[] {
-  const filtered = gallery
-    .map((g) => {
-      if (!g) return '';
-      const raw = g.replace(/^["']|["']$/g, '').trim();
-      return raw.startsWith('//') ? `https:${raw}` : raw;
-    })
-    .filter((url) => url.length > 0 && !isUrbanPlaceholderImage(url));
+  const resolvedModelHandles = resolveCanonicalModelHandles(modelHandles);
+  const filtered = uniqueNonPlaceholderImages(gallery).filter((url) =>
+    isUrbanImageCompatibleWithModel(url, resolvedModelHandles)
+  );
 
   if (filtered.length === 0) {
-    // All images were placeholders — return at least the collection fallback
-    for (const handle of modelHandles) {
-      const card = URBAN_COLLECTION_CARDS.find((c) => c.collectionHandle === handle);
-      if (card?.externalImageUrl) return [card.externalImageUrl];
-    }
-    return [FALLBACK_URBAN_IMAGE];
+    return [resolveUrbanProgramFallback(resolvedModelHandles, [])];
   }
 
   return filtered;

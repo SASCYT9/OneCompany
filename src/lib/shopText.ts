@@ -1,5 +1,6 @@
 import type { ShopProduct } from '@/lib/shopCatalog';
 import type { SupportedLocale } from '@/lib/seo';
+import { getUrbanProductTitleOverrideForLocale } from '@/lib/urbanProductOverrides';
 
 type LocalizedValue = {
   ua: string;
@@ -191,6 +192,11 @@ export function localizeShopText(
 }
 
 export function localizeShopProductTitle(locale: SupportedLocale, product: Pick<ShopProduct, 'slug' | 'title'>) {
+  const overrideTitle = getUrbanProductTitleOverrideForLocale(product.slug, locale);
+  if (overrideTitle) {
+    return overrideTitle;
+  }
+
   if (locale === 'en') {
     const translatedFromDb = normalizeWhitespace(product.title.en);
     if (translatedFromDb && !containsCyrillic(translatedFromDb)) {

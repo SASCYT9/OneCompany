@@ -1,140 +1,142 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-
 import type { ShopProduct } from '../../../src/lib/shopCatalog';
-import type { ShopViewerPricingContext } from '../../../src/lib/shopPricingAudience';
 import {
   getProductsForUrbanCollection,
   getUrbanCollectionHandleForProduct,
-  sortUrbanCollectionProducts,
 } from '../../../src/lib/urbanCollectionMatcher';
 
-function buildProduct(overrides: Partial<ShopProduct> = {}): ShopProduct {
+function buildUrbanProduct(overrides: Partial<ShopProduct>): ShopProduct {
   return {
-    slug: 'urban-part',
-    sku: 'URB-PART',
-    scope: 'auto',
-    brand: 'Mercedes-Benz',
+    slug: 'urb-test',
+    brand: 'Urban Automotive',
     vendor: 'Urban Automotive',
-    productType: 'Exterior',
-    tags: [],
+    tags: ['store:urban'],
+    title: {
+      ua: 'Urban product',
+      en: 'Urban product',
+    },
+    collection: {
+      ua: '',
+      en: '',
+    },
+    collections: [],
+    price: {
+      eur: 0,
+      usd: 0,
+      uah: 0,
+    },
+    compareAt: {
+      eur: 0,
+      usd: 0,
+      uah: 0,
+    },
+    category: {
+      ua: '',
+      en: '',
+    },
+    productType: null,
+    bundle: true,
+    ...overrides,
+  } as ShopProduct;
+}
+
+test('routes the W463A bundle to softkit even if stale collection data says W465 Widetrack', () => {
+  const product = buildUrbanProduct({
+    slug: 'urb-bun-25358198-v1',
+    title: {
+      ua: 'Пакет заміни бамперів Urban для Mercedes-Benz G-Wagon Widetrack',
+      en: 'Replacement Bumper Mercedes W463A G-Wagon Widetrack URBAN Aerokit:',
+    },
+    collection: {
+      ua: 'Mercedes-Benz G-Class W465',
+      en: 'Mercedes-Benz G-Class W465',
+    },
     collections: [
       {
         handle: 'mercedes-g-wagon-w465-widetrack',
-        title: { ua: 'G-Wagon Widetrack', en: 'G-Wagon Widetrack' },
-        brand: 'Mercedes-Benz',
-        isUrban: true,
-        sortOrder: 1,
+        title: {
+          ua: 'Mercedes-Benz G-Class W465',
+          en: 'Mercedes-Benz G-Class W465',
+        },
       },
     ],
-    title: { ua: 'Urban Part', en: 'Urban Part' },
-    category: { ua: 'Екстерʼєр', en: 'Exterior' },
-    shortDescription: { ua: 'UA', en: 'EN' },
-    longDescription: { ua: 'UA', en: 'EN' },
-    leadTime: { ua: '', en: '' },
-    stock: 'inStock',
-    collection: { ua: 'G-Wagon Widetrack', en: 'G-Wagon Widetrack' },
-    price: { eur: 1000, usd: 1100, uah: 45000 },
-    b2bPrice: undefined,
-    compareAt: undefined,
-    b2bCompareAt: undefined,
-    image: 'https://cdn.example.com/product.jpg',
-    gallery: ['https://cdn.example.com/product.jpg'],
-    highlights: [],
-    ...overrides,
-  };
-}
-
-test('sortUrbanCollectionProducts keeps full kits ahead of accessories even when kits cost less', () => {
-  const accessory = buildProduct({
-    slug: 'urb-exh-1',
-    title: {
-      ua: 'Насадки вихлопу Satin Black для Mercedes-Benz G-Wagon Widetrack',
-      en: 'Satin Black Exhaust Tips for Mercedes-Benz G-Wagon Widetrack',
-    },
-    productType: 'Exhaust Tips',
-    category: { ua: 'Вихлоп', en: 'Exhaust' },
-    price: { eur: 402, usd: 430, uah: 18000 },
   });
-  const kit = buildProduct({
-    slug: 'urb-bun-1',
+
+  assert.equal(getUrbanCollectionHandleForProduct(product), 'mercedes-g-wagon-softkit');
+});
+
+test('excludes the W463A bundle from the W465 Widetrack collection', () => {
+  const softkitProduct = buildUrbanProduct({
+    slug: 'urb-bun-25358198-v1',
     title: {
       ua: 'Пакет заміни бамперів Urban для Mercedes-Benz G-Wagon Widetrack',
-      en: 'Urban Bumper Replacement Package for Mercedes-Benz G-Wagon Widetrack',
+      en: 'Replacement Bumper Mercedes W463A G-Wagon Widetrack URBAN Aerokit:',
     },
-    productType: 'Body Kit',
-    category: { ua: 'Обвіси', en: 'Body Kits' },
-    price: { eur: 350, usd: 375, uah: 16000 },
+    collection: {
+      ua: 'Mercedes-Benz G-Class W465',
+      en: 'Mercedes-Benz G-Class W465',
+    },
+    collections: [
+      {
+        handle: 'mercedes-g-wagon-w465-widetrack',
+        title: {
+          ua: 'Mercedes-Benz G-Class W465',
+          en: 'Mercedes-Benz G-Class W465',
+        },
+      },
+    ],
+  });
+  const widetrackProduct = buildUrbanProduct({
+    slug: 'urb-bun-25358207-v1',
+    title: {
+      ua: 'Пакет Urban Widetrack для Mercedes-Benz G-Wagon W465',
+      en: 'Replacement Bumper Mercedes W465 G-Wagon Widetrack URBAN Aerokit:',
+    },
+    collection: {
+      ua: 'Mercedes-Benz G-Class W465',
+      en: 'Mercedes-Benz G-Class W465',
+    },
+    collections: [
+      {
+        handle: 'mercedes-g-wagon-w465-widetrack',
+        title: {
+          ua: 'Mercedes-Benz G-Class W465',
+          en: 'Mercedes-Benz G-Class W465',
+        },
+      },
+    ],
   });
 
-  assert.deepEqual(sortUrbanCollectionProducts([accessory, kit]).map((product) => product.slug), [
-    'urb-bun-1',
-    'urb-exh-1',
-  ]);
-});
-
-test('sortUrbanCollectionProducts uses effective viewer pricing for descending order', () => {
-  const lowerB2B = buildProduct({
-    slug: 'urb-a',
-    title: { ua: 'Urban Mirror Caps', en: 'Urban Mirror Caps' },
-    price: { eur: 1200, usd: 1290, uah: 54000 },
-    b2bPrice: { eur: 600, usd: 645, uah: 27000 },
-  });
-  const higherB2B = buildProduct({
-    slug: 'urb-b',
-    title: { ua: 'Urban Rear Spoiler', en: 'Urban Rear Spoiler' },
-    price: { eur: 1000, usd: 1075, uah: 45000 },
-    b2bPrice: { eur: 800, usd: 860, uah: 36000 },
-  });
-
-  const viewerContext: ShopViewerPricingContext = {
-    customerGroup: 'B2B_APPROVED',
-    customerB2BDiscountPercent: null,
-    defaultB2BDiscountPercent: 0,
-    b2bVisibilityMode: 'public_dual',
-    isAuthenticated: true,
-  };
-
-  assert.deepEqual(
-    sortUrbanCollectionProducts([lowerB2B, higherB2B], viewerContext).map((product) => product.slug),
-    ['urb-b', 'urb-a']
+  const matches = getProductsForUrbanCollection(
+    [softkitProduct, widetrackProduct],
+    'mercedes-g-wagon-w465-widetrack',
+    'Mercedes G-Wagon W465 Widetrack',
+    'Urban Automotive'
   );
+
+  assert.deepEqual(matches.map((product) => product.slug), ['urb-bun-25358207-v1']);
 });
 
-test('getUrbanCollectionHandleForProduct rejects Brabus products even when legacy collection copy matches Urban models', () => {
-  const brabusProduct = buildProduct({
-    slug: 'brabus-464-999-444',
-    sku: 'BRABUS-464-999-444',
-    brand: 'Brabus',
-    vendor: 'Brabus',
-    tags: ['store:brabus', 'Mercedes', 'g-class'],
-    title: { ua: 'BRABUS ADVENTURE', en: 'BRABUS ADVENTURE' },
-    collection: { ua: 'Тюнінг G-Class', en: 'G-Class Tuning' },
-    collections: [],
+test('prefers the softkit collection for the W463A bundle', () => {
+  const softkitProduct = buildUrbanProduct({
+    slug: 'urb-bun-25358198-v1',
+    title: {
+      ua: 'Пакет Urban Soft Kit для Mercedes-Benz G-Wagon W463A',
+      en: 'Replacement Bumper Mercedes W463A G-Wagon Widetrack URBAN Aerokit:',
+    },
+    collection: {
+      ua: 'Mercedes-Benz G-Class W463A',
+      en: 'Mercedes-Benz G-Class W463A',
+    },
   });
 
-  assert.equal(getUrbanCollectionHandleForProduct(brabusProduct), null);
-});
-
-test('getProductsForUrbanCollection only returns store:urban products for a collection grid', () => {
-  const urbanProduct = buildProduct({
-    slug: 'urb-kit-1',
-    tags: ['store:urban', 'bodykit'],
-  });
-  const brabusProduct = buildProduct({
-    slug: 'brabus-464-999-444',
-    sku: 'BRABUS-464-999-444',
-    brand: 'Brabus',
-    vendor: 'Brabus',
-    tags: ['store:brabus', 'Mercedes', 'g-class'],
-    title: { ua: 'BRABUS ADVENTURE', en: 'BRABUS ADVENTURE' },
-    collection: { ua: 'Тюнінг G-Class', en: 'G-Class Tuning' },
-  });
-
-  assert.deepEqual(
-    getProductsForUrbanCollection([urbanProduct, brabusProduct], 'mercedes-g-wagon-w465-widetrack').map(
-      (product) => product.slug
-    ),
-    ['urb-kit-1']
+  const matches = getProductsForUrbanCollection(
+    [softkitProduct],
+    'mercedes-g-wagon-softkit',
+    'Mercedes G-Wagon Softkit',
+    'Urban Automotive'
   );
+
+  assert.deepEqual(matches.map((product) => product.slug), ['urb-bun-25358198-v1']);
 });

@@ -4,8 +4,18 @@ import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollection
 import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import { resolveProductStorefront } from '@/lib/shopProductStorefront';
 import { buildShopStorefrontProductPathForProduct } from '@/lib/shopStorefrontRouting';
+import { getUrbanCanonicalCollectionHandleOverride } from '@/lib/urbanProductOverrides';
 
 type UrbanMatcherProduct = Pick<ShopProduct, 'slug' | 'brand' | 'vendor' | 'title' | 'collection' | 'tags' | 'collections'>;
+
+const MERCEDES_G_WAGON_SOFTKIT_HANDLE = 'mercedes-g-wagon-softkit';
+const MERCEDES_G_WAGON_W465_WIDETRACK_HANDLE = 'mercedes-g-wagon-w465-widetrack';
+const MERCEDES_G_WAGON_W465_AEROKIT_HANDLE = 'mercedes-g-wagon-w465-aerokit';
+const MERCEDES_G_WAGON_HANDLES = new Set([
+  MERCEDES_G_WAGON_SOFTKIT_HANDLE,
+  MERCEDES_G_WAGON_W465_WIDETRACK_HANDLE,
+  MERCEDES_G_WAGON_W465_AEROKIT_HANDLE,
+]);
 
 const PRIORITY_URBAN_COLLECTION_PRODUCT_REGEX =
   /(body\s?kit|bodykit|aero\s?kit|aerokit|softkit|widebody|full\s?kit|complete\s?(program|kit|package)|replacement bumper|bumper replacement|conversion kit|package|kit|обвіс|комплект|пакет|заміни бамперів|бодікит)/i;
@@ -27,9 +37,21 @@ const HANDLE_TO_ALIASES: Record<string, string[]> = {
   'rolls-royce-cullinan': ['Rolls-Royce Cullinan', 'Cullinan'],
   'rolls-royce-cullinan-series-ii': ['Rolls-Royce Cullinan Series II', 'Cullinan Series II'],
   'rolls-royce-ghost-series-ii': ['Rolls-Royce Ghost Series II', 'Ghost Series II'],
-  'mercedes-g-wagon-w465-widetrack': ['Mercedes-Benz G-Class W465', 'Mercedes G-Wagon W465 Widetrack', 'G-Wagon W465'],
+  'mercedes-g-wagon-w465-widetrack': [
+    'Mercedes-Benz G-Class W465',
+    'Mercedes G-Wagon W465 Widetrack',
+    'Mercedes G-Wagon Widetrack',
+    'G-Wagon W465',
+    'W465 Widetrack',
+  ],
   'mercedes-g-wagon-w465-aerokit': ['Mercedes G-Wagon W465 Aerokit', 'G-Wagon Aerokit'],
-  'mercedes-g-wagon-softkit': ['Mercedes G-Wagon Softkit', 'G-Wagon Softkit'],
+  'mercedes-g-wagon-softkit': [
+    'Mercedes G-Wagon Softkit',
+    'Mercedes G-Wagon Soft Kit',
+    'Mercedes-Benz G-Class W463A',
+    'G-Wagon Softkit',
+    'W463A Soft Kit',
+  ],
   'mercedes-eqc': ['Mercedes-Benz EQC', 'Mercedes EQC', 'EQC'],
   'audi-rsq8-facelift': ['Audi RSQ8 Facelift', 'RSQ8 Facelift'],
   'audi-rsq8': ['Audi RSQ8', 'RSQ8'],
@@ -61,8 +83,12 @@ const EXACT_COLLECTION_TO_HANDLE: Record<string, string> = {
   'rolls royce cullinan': 'rolls-royce-cullinan',
   'rolls royce ghost series ii': 'rolls-royce-ghost-series-ii',
   'mercedes benz g class w465': 'mercedes-g-wagon-w465-widetrack',
+  'mercedes benz g class w463a': 'mercedes-g-wagon-softkit',
+  'mercedes g wagon w463a': 'mercedes-g-wagon-softkit',
   'mercedes g wagon w465 aerokit': 'mercedes-g-wagon-w465-aerokit',
+  'mercedes g wagon w465 widetrack': 'mercedes-g-wagon-w465-widetrack',
   'mercedes g wagon softkit': 'mercedes-g-wagon-softkit',
+  'mercedes g wagon soft kit': 'mercedes-g-wagon-softkit',
   'mercedes benz eqc': 'mercedes-eqc',
   'mercedes eqc': 'mercedes-eqc',
   'audi rsq8 facelift': 'audi-rsq8-facelift',
@@ -127,7 +153,48 @@ function getSupportCandidates(product: UrbanMatcherProduct) {
   ]);
 }
 
+function inferCanonicalMercedesGwagonHandle(product: UrbanMatcherProduct) {
+  const slugOverride = getUrbanCanonicalCollectionHandleOverride(product.slug);
+  if (slugOverride && MERCEDES_G_WAGON_HANDLES.has(slugOverride)) {
+    return slugOverride;
+  }
+
+  const haystack = unique([
+    product.title.en,
+    product.title.ua,
+    product.collection.en,
+    product.collection.ua,
+    product.brand,
+    product.vendor,
+    ...(product.tags ?? []),
+    ...(product.collections ?? []).flatMap((item) => [item.handle, item.title.en, item.title.ua]),
+  ]).join(' ');
+
+  if (!/\bg wagon\b|\bg class\b|\bg63\b|\bw463a\b|\bw465\b/.test(haystack)) {
+    return null;
+  }
+
+  if (/\bw463a\b|\bsoft kit\b|\bsoftkit\b/.test(haystack)) {
+    return MERCEDES_G_WAGON_SOFTKIT_HANDLE;
+  }
+
+  if (/\bw465\b|\bwidetrack\b/.test(haystack)) {
+    return MERCEDES_G_WAGON_W465_WIDETRACK_HANDLE;
+  }
+
+  if (/\baero kit\b|\baerokit\b/.test(haystack)) {
+    return MERCEDES_G_WAGON_W465_AEROKIT_HANDLE;
+  }
+
+  return null;
+}
+
 function getUrbanMatchScore(product: UrbanMatcherProduct, handle: string, title?: string, brand?: string) {
+  const canonicalMercedesGwagonHandle = inferCanonicalMercedesGwagonHandle(product);
+  if (canonicalMercedesGwagonHandle && MERCEDES_G_WAGON_HANDLES.has(handle)) {
+    return canonicalMercedesGwagonHandle === handle ? 700 : 0;
+  }
+
   if (product.collections?.some((item) => item.handle === handle)) {
     return 500;
   }
@@ -241,6 +308,11 @@ export function sortUrbanCollectionProducts(
 export function getUrbanCollectionHandleForProduct(product: UrbanMatcherProduct) {
   if (getProductStorefront(product) !== 'urban') {
     return null;
+  }
+
+  const canonicalMercedesGwagonHandle = inferCanonicalMercedesGwagonHandle(product);
+  if (canonicalMercedesGwagonHandle) {
+    return canonicalMercedesGwagonHandle;
   }
 
   const explicitUrbanCollection = product.collections?.find((item) =>

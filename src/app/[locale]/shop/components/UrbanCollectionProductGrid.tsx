@@ -193,7 +193,8 @@ export default function UrbanCollectionProductGrid({
                 product.image,
                 [collectionHandle],
                 collectionImages,
-                product.slug
+                product.slug,
+                product.gallery
               );
 
               return (

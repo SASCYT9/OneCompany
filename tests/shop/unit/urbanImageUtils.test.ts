@@ -8,6 +8,14 @@ import {
   resolveUrbanProductImage,
 } from '../../../src/lib/urbanImageUtils';
 
+const W465_PROGRAM_FALLBACK =
+  '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-5-2560.webp';
+const SOFTKIT_PROGRAM_FALLBACK = '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-1-1920.jpg';
+const DEFENDER_IMAGE =
+  '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp';
+const W465_PRODUCT_IMAGE =
+  '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-5-2560.webp';
+
 test('treats Shopify Urban silhouette PNGs with query strings as placeholders', () => {
   const url =
     'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/Gwagon_e9292903-5bf9-49aa-92da-8264c9bb9586.png?v=1776081527';
@@ -182,10 +190,40 @@ test('resolves placeholder card images to a stable collection photo while preser
     'urb-bun-25358207-v1'
   );
 
-  assert.ok(imagePool.includes(first));
+  assert.equal(first, W465_PROGRAM_FALLBACK);
   assert.equal(first, second);
   assert.equal(
-    resolveUrbanCollectionCardImage('/images/shop/urban/real-product-shot.jpg', ['mercedes-g-wagon-w465-widetrack'], imagePool, 'real'),
+    resolveUrbanCollectionCardImage(
+      '/images/shop/urban/real-product-shot.jpg',
+      ['mercedes-g-wagon-w465-widetrack'],
+      imagePool,
+      'real'
+    ),
     '/images/shop/urban/real-product-shot.jpg'
   );
+});
+
+test('rejects cross-model Defender images for G-Wagon Soft Kit products', () => {
+  const resolved = resolveUrbanCollectionCardImage(
+    DEFENDER_IMAGE,
+    ['mercedes-g-wagon-softkit'],
+    [],
+    'urb-bun-25358198-v1'
+  );
+
+  assert.equal(resolved, SOFTKIT_PROGRAM_FALLBACK);
+});
+
+test('prefers the first compatible gallery image when the primary image is a cross-model mismatch', () => {
+  const imagePool = buildUrbanCollectionImagePool(buildCollectionConfig(), ['mercedes-g-wagon-w465-widetrack']);
+  const resolved = resolveUrbanCollectionCardImage(
+    DEFENDER_IMAGE,
+    ['mercedes-g-wagon-w465-widetrack'],
+    imagePool,
+    'urb-bun-25358207-v1',
+    [DEFENDER_IMAGE, W465_PRODUCT_IMAGE]
+  );
+
+  assert.equal(resolved, W465_PRODUCT_IMAGE);
+  assert.equal(resolveUrbanProductImage(DEFENDER_IMAGE, ['mercedes-g-wagon-softkit'], 'urb-bun-25358198-v1'), SOFTKIT_PROGRAM_FALLBACK);
 });

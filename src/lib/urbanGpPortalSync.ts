@@ -23,6 +23,11 @@ import {
   structuredUrbanFamilyTag,
   type UrbanCatalogFamily,
 } from '@/lib/urbanCatalogFacets';
+import {
+  getUrbanCanonicalCollectionHandleOverride,
+  getUrbanProductTitleOverrides,
+  getUrbanProgramFallbackImage,
+} from '@/lib/urbanProductOverrides';
 import { htmlToPlainText, sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 
 const GP_PORTAL_COLLECTION_URL =
@@ -105,6 +110,8 @@ export type PreparedUrbanGpPortalProduct = {
   slug: string;
   sku: string | null;
   title: string;
+  titleUa: string;
+  titleEn: string;
   descriptionHtml: string;
   descriptionText: string;
   manufacturer: string;
@@ -452,13 +459,13 @@ function inferCollectionHandlesFromSource(title: string, tags: string[]) {
 
   if (/\bghost\b/.test(haystack) && /\bseries ii\b/.test(haystack)) add('rolls-royce-ghost-series-ii');
 
-  if (/\bg[\s-]?wagon\b|\bg[\s-]?class\b|\bg63\b|\bw465\b/.test(haystack)) {
-    if (/\baero\s?kit\b|\baerokit\b/.test(haystack)) {
-      add('mercedes-g-wagon-w465-aerokit');
-    } else if (/\bsoftkit\b/.test(haystack)) {
+  if (/\bg[\s-]?wagon\b|\bg[\s-]?class\b|\bg63\b|\bw463a\b|\bw465\b/.test(haystack)) {
+    if (/\bw463a\b|\bsoft\s?kit\b|\bsoftkit\b/.test(haystack)) {
       add('mercedes-g-wagon-softkit');
-    } else {
+    } else if (/\bw465\b|\bwidetrack\b/.test(haystack)) {
       add('mercedes-g-wagon-w465-widetrack');
+    } else if (/\baero\s?kit\b|\baerokit\b/.test(haystack)) {
+      add('mercedes-g-wagon-w465-aerokit');
     }
   }
 
@@ -483,6 +490,56 @@ function buildCollectionLabel(handles: string[]) {
     .map((handle) => getUrbanCard(handle)?.title ?? null)
     .filter((label): label is string => Boolean(label))
     .join(' / ');
+}
+
+function isUrbanImageMismatchForCollection(image: string | null | undefined, handles: string[]) {
+  const normalized = stripQueryAndHash(String(image ?? '').trim().toLowerCase());
+  if (!normalized) {
+    return false;
+  }
+
+  const hasGwagonHandle = handles.some((handle) => handle.startsWith('mercedes-g-wagon'));
+  if (hasGwagonHandle && normalized.includes('defender')) {
+    return true;
+  }
+
+  if (handles.includes('mercedes-g-wagon-softkit')) {
+    return normalized.includes('gwagonwidetrack2024') || normalized.includes('gwagonaerokit2024');
+  }
+
+  if (handles.includes('mercedes-g-wagon-w465-widetrack')) {
+    return normalized.includes('gwagonsoftkit') || normalized.includes('gwagonaerokit2024');
+  }
+
+  if (handles.includes('mercedes-g-wagon-w465-aerokit')) {
+    return normalized.includes('gwagonsoftkit') || normalized.includes('gwagonwidetrack2024');
+  }
+
+  return false;
+}
+
+function remediateUrbanPreparedImages(params: {
+  image: string | null;
+  gallery: string[];
+  collectionHandles: string[];
+}) {
+  const filteredGallery = uniqueStrings(
+    params.gallery.filter((url) => !isUrbanImageMismatchForCollection(url, params.collectionHandles))
+  );
+  const fallbackImage =
+    params.collectionHandles
+      .map((handle) => getUrbanProgramFallbackImage(handle))
+      .find((image): image is string => Boolean(image)) ?? null;
+  const primaryImage =
+    params.image && !isUrbanImageMismatchForCollection(params.image, params.collectionHandles)
+      ? params.image
+      : null;
+  const resolvedImage = primaryImage ?? filteredGallery[0] ?? fallbackImage;
+
+  return {
+    image: resolvedImage,
+    gallery: resolvedImage ? uniqueStrings([resolvedImage, ...filteredGallery]) : filteredGallery,
+  };
 }
 
 function normalizeGalleryImages(product: GpPortalProduct) {
@@ -611,8 +668,8 @@ function buildAdminPayload(item: PreparedUrbanGpPortalProduct, collectionIds: st
     tags: replaceStorefrontTag(item.tags, 'urban'),
     collectionIds,
     status: 'ACTIVE',
-    titleUa: item.title,
-    titleEn: item.title,
+    titleUa: item.titleUa,
+    titleEn: item.titleEn,
     categoryUa: item.categoryUa,
     categoryEn: item.exactCategory,
     shortDescUa: item.descriptionText,
@@ -633,8 +690,8 @@ function buildAdminPayload(item: PreparedUrbanGpPortalProduct, collectionIds: st
     compareAtUsd: item.compareAtUsd,
     compareAtUah: item.compareAtUah,
     image: item.image,
-    seoTitleUa: item.title,
-    seoTitleEn: item.title,
+    seoTitleUa: item.titleUa,
+    seoTitleEn: item.titleEn,
     seoDescriptionUa: item.descriptionText,
     seoDescriptionEn: item.descriptionText,
     isPublished: true,
@@ -838,7 +895,10 @@ export function prepareUrbanGpPortalProducts(
       return;
     }
 
-    const collectionHandles = inferCollectionHandlesFromSource(product.title, tags);
+    const collectionHandleOverride = getUrbanCanonicalCollectionHandleOverride(product.handle);
+    const collectionHandles = collectionHandleOverride
+      ? [collectionHandleOverride]
+      : inferCollectionHandlesFromSource(product.title, tags);
     if (!collectionHandles.length) {
       unmappedVehicleModels.add(product.title);
       skippedItems.push({
@@ -869,7 +929,16 @@ export function prepareUrbanGpPortalProducts(
       ? [primaryModelHandle, ...collectionHandles.filter((handle) => handle !== primaryModelHandle)]
       : collectionHandles;
     const resolvedFallbackImage = getUrbanFallbackImage(orderedFallbackHandles);
-    const image = gallery[0] ?? resolvedFallbackImage;
+    const initialImage = gallery[0] ?? resolvedFallbackImage;
+    const titleOverrides = getUrbanProductTitleOverrides(product.handle);
+    const titleUa = normalizeWhitespace(titleOverrides?.ua ?? product.title);
+    const titleEn = normalizeWhitespace(titleOverrides?.en ?? product.title);
+    const remediatedImages = remediateUrbanPreparedImages({
+      image: initialImage,
+      gallery: gallery.length ? gallery : initialImage ? [initialImage] : [],
+      collectionHandles,
+    });
+    const image = remediatedImages.image;
 
     if (!image) {
       skippedItems.push({
@@ -909,7 +978,7 @@ export function prepareUrbanGpPortalProducts(
             featured_image: null,
           } satisfies GpPortalVariant,
         ];
-    const itemGallery = gallery.length ? gallery : [image];
+    const itemGallery = remediatedImages.gallery;
     const normalizedOptions = normalizeOptions(product.options);
     const normalizedVariants = variants.map((variant, index) =>
       buildVariant(variant, index, image, options.currencyRates)
@@ -918,7 +987,9 @@ export function prepareUrbanGpPortalProducts(
     importableItems.push({
       slug: product.handle,
       sku: normalizeWhitespace(String(normalizedVariants[0]?.sku ?? '')) || null,
-      title: normalizeWhitespace(product.title),
+      title: titleEn,
+      titleUa,
+      titleEn,
       descriptionHtml,
       descriptionText,
       manufacturer: URBAN_BRAND,
@@ -949,14 +1020,14 @@ export function prepareUrbanGpPortalProducts(
       compareAtUah: compareAt?.uah ?? null,
       variants: normalizedVariants,
       options: normalizedOptions,
-      media: buildMedia(itemGallery, product.title),
+      media: buildMedia(itemGallery, titleEn),
       sourceHandle: product.handle,
       sourceVendor: product.vendor ?? null,
       sourceType: normalizeWhitespace(String(product.type ?? product.product_type ?? '')) || null,
       sourceTags: tags,
       sourcePriceEur,
       sourceCompareAtEur,
-      fallbackImageUsed: itemGallery[0] === resolvedFallbackImage && !gallery.length,
+      fallbackImageUsed: image === resolvedFallbackImage,
     });
   });
 
