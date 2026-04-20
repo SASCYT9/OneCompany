@@ -247,7 +247,7 @@
   width: 100%; height: 100%;
   object-fit: cover;
   transition: transform .6s cubic-bezier(.25,1,.5,1), filter .4s;
-  filter: brightness(.85);
+  filter: brightness(.6);
 }
 .adro__collage-cell:hover img {
   transform: scale(1.06);
@@ -474,10 +474,62 @@
 
 /* ═══ RESPONSIVE ═══ */
 @media (max-width: 767px) {
-  .adro__reel { height: 45vh; min-height: 280px; }
-  .adro__close { min-height: 60vh; }
+  /* Hero */
+  .adro__hero-logo {
+    width: 160px !important;
+    display: block;
+    margin: 0 auto;
+  }
+  .adro__hero-h {
+    text-align: center;
+  }
+  .adro__hero-body {
+    padding: 1.5rem;
+  }
+  .adro__hero-sub {
+    font-size: .82rem;
+    max-width: 300px;
+  }
+
+  /* Reel */
+  .adro__reel { height: 40vh; min-height: 260px; }
+  .adro__reel-h { font-size: 1.5rem; }
+
+  /* Collage */
+  .adro__collage-text {
+    grid-column: span 2;
+    padding: 2.5rem 1.5rem;
+  }
+  .adro__collage-h {
+    font-size: 1.4rem;
+  }
+  .adro__collage-desc {
+    font-size: .75rem;
+  }
+
+  /* Catalog */
+  .adro__catalog {
+    padding: 3.5rem 1rem;
+  }
+  .adro__catalog-grid {
+    grid-template-columns: 1fr;
+  }
   .adro__card-img { height: 220px; }
-  .adro__collage-text { padding: 2rem 1.5rem; }
+  .adro__card-info {
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
+
+  /* CTA button */
+  .adro__cta {
+    font-size: .6rem;
+    padding: .75rem 1.5rem;
+  }
+
+  /* Back link */
+  .adro__back {
+    top: 60px;
+    padding: .75rem 1rem;
+  }
 }
 
 /* Focus */
