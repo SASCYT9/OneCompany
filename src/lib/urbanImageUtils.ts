@@ -12,6 +12,7 @@ import {
 } from '@/lib/urbanProductOverrides';
 import {
   buildUrbanCollectionMediaSet,
+  resolveUrbanCardVisualIntent,
   resolveUrbanVisualIntent,
   type UrbanCollectionMediaSet,
   type UrbanVisualIntent,
@@ -297,6 +298,36 @@ function getMatchingBlueprintForIntent(
   return null;
 }
 
+function ownImageMatchesIntent(url: string, intent: UrbanVisualIntent) {
+  if (isUrbanBlueprintImage(url)) {
+    const blueprintRole = classifyUrbanCollectionImageRole(url);
+    if (intent === 'front') return blueprintRole === 'front';
+    if (intent === 'rear') return blueprintRole === 'rear';
+    if (intent === 'side') return blueprintRole === 'side';
+    return intent === 'detail';
+  }
+
+  const role = classifyUrbanCollectionImageRole(url);
+
+  if (intent === 'front') {
+    return role === 'front' || role === 'hero';
+  }
+
+  if (intent === 'rear') {
+    return role === 'rear';
+  }
+
+  if (intent === 'side') {
+    return role === 'side';
+  }
+
+  if (intent === 'detail') {
+    return role === 'detail' || role === 'neutral';
+  }
+
+  return role === 'front' || role === 'hero';
+}
+
 export function buildUrbanCollectionPhotoGallery(
   config: UrbanCollectionPageConfig | null | undefined,
   collectionHandle?: string | null
@@ -354,13 +385,14 @@ export function resolveUrbanCollectionCardImage(
   const ownImages = uniqueNonPlaceholderImages([image, ...gallery]).filter((url) =>
     isUrbanImageCompatibleWithModel(url, resolvedModelHandles)
   );
+  const intent = product ? resolveUrbanCardVisualIntent(product) : 'detail';
+  const matchingOwnImages = ownImages.filter((url) => ownImageMatchesIntent(url, intent));
 
-  if (ownImages.length > 0) {
-    return ownImages[0]!;
+  if (matchingOwnImages.length > 0) {
+    return matchingOwnImages[0]!;
   }
 
   const mediaSet = buildUrbanCollectionMediaFromUrls(collectionImages);
-  const intent = product ? resolveUrbanVisualIntent(product) : 'detail';
   const realCandidate = getMatchingRealPhotoForIntent(mediaSet, intent);
   if (realCandidate && isUrbanImageCompatibleWithModel(realCandidate, resolvedModelHandles)) {
     return realCandidate;
@@ -381,6 +413,10 @@ export function resolveUrbanCollectionCardImage(
 
   if (stableFallback) {
     return stableFallback;
+  }
+
+  if (ownImages.length > 0) {
+    return ownImages[0]!;
   }
 
   return resolveUrbanProgramFallback(resolvedModelHandles, collectionImages);

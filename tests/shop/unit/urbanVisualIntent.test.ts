@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { UrbanCollectionPageConfig } from '../../../src/app/[locale]/shop/data/urbanCollectionPages';
 import { buildUrbanCollectionPhotoGallery, buildUrbanCollectionImagePool, resolveUrbanCollectionCardImage, resolveUrbanProductGallery } from '../../../src/lib/urbanImageUtils';
-import { resolveUrbanVisualIntent } from '../../../src/lib/urbanVisualIntent';
+import { resolveUrbanCardVisualIntent, resolveUrbanVisualIntent } from '../../../src/lib/urbanVisualIntent';
 
 function buildCollectionConfig(): UrbanCollectionPageConfig {
   return {
@@ -188,6 +188,44 @@ test('resolves Urban visual intent for front, rear, side, and package products',
   );
 });
 
+test('prefers directional intent for package cards before falling back to generic package cover', () => {
+  assert.equal(
+    resolveUrbanCardVisualIntent({
+      slug: 'front-package',
+      title: { ua: 'Передній пакет Urban', en: 'Urban Front Bumper Package' },
+      category: { ua: '', en: '' },
+      productType: 'Bundle',
+      tags: [],
+      bundle: { items: [], availableQuantity: 1 },
+    } as never),
+    'front'
+  );
+
+  assert.equal(
+    resolveUrbanCardVisualIntent({
+      slug: 'rear-package',
+      title: { ua: 'Задній пакет Urban', en: 'Urban Rear Bumper Package' },
+      category: { ua: '', en: '' },
+      productType: 'Bundle',
+      tags: [],
+      bundle: { items: [], availableQuantity: 1 },
+    } as never),
+    'rear'
+  );
+
+  assert.equal(
+    resolveUrbanCardVisualIntent({
+      slug: 'wheel-package',
+      title: { ua: 'Пакет коліс Urban', en: 'Urban Wheel Package' },
+      category: { ua: '', en: '' },
+      productType: 'Bundle',
+      tags: [],
+      bundle: { items: [], availableQuantity: 1 },
+    } as never),
+    'side'
+  );
+});
+
 test('builds package photo gallery from real collection photos only and preserves order', () => {
   const config = buildCollectionConfig();
   const gallery = buildUrbanCollectionPhotoGallery(config, config.handle);
@@ -223,6 +261,63 @@ test('prefers a matching real collection photo before blueprint fallback for sin
   );
 
   assert.equal(resolved, '/images/shop/urban/test/banner-rear.jpg');
+});
+
+test('package cards use directional collection covers instead of collapsing to one generic package image', () => {
+  const config = buildCollectionConfig();
+  const imagePool = buildUrbanCollectionImagePool(config, [config.handle]);
+
+  const frontPackage = resolveUrbanCollectionCardImage(
+    '/images/shop/urban/test/hero-front.jpg',
+    [config.handle],
+    imagePool,
+    'front-package',
+    [],
+    {
+      slug: 'front-package',
+      title: { ua: 'Передній пакет Urban', en: 'Urban Front Bumper Package' },
+      category: { ua: '', en: '' },
+      productType: 'Bundle',
+      tags: [],
+      bundle: { items: [], availableQuantity: 1 },
+    } as never
+  );
+
+  const rearPackage = resolveUrbanCollectionCardImage(
+    '/images/shop/urban/test/hero-front.jpg',
+    [config.handle],
+    imagePool,
+    'rear-package',
+    [],
+    {
+      slug: 'rear-package',
+      title: { ua: 'Задній пакет Urban', en: 'Urban Rear Bumper Package' },
+      category: { ua: '', en: '' },
+      productType: 'Bundle',
+      tags: [],
+      bundle: { items: [], availableQuantity: 1 },
+    } as never
+  );
+
+  const wheelPackage = resolveUrbanCollectionCardImage(
+    '/images/shop/urban/test/hero-front.jpg',
+    [config.handle],
+    imagePool,
+    'wheel-package',
+    [],
+    {
+      slug: 'wheel-package',
+      title: { ua: 'Пакет коліс Urban', en: 'Urban Wheel Package' },
+      category: { ua: '', en: '' },
+      productType: 'Bundle',
+      tags: [],
+      bundle: { items: [], availableQuantity: 1 },
+    } as never
+  );
+
+  assert.equal(frontPackage, '/images/shop/urban/test/hero-front.jpg');
+  assert.equal(rearPackage, '/images/shop/urban/test/banner-rear.jpg');
+  assert.equal(wheelPackage, '/images/shop/urban/test/overview-side.jpg');
 });
 
 test('uses blueprint fallback when a matching real photo is missing', () => {

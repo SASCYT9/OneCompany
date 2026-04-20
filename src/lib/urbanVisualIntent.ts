@@ -140,6 +140,26 @@ export function resolveUrbanVisualIntent(product: UrbanVisualProduct): UrbanVisu
   return 'detail';
 }
 
+export function resolveUrbanCardVisualIntent(product: UrbanVisualProduct): UrbanVisualIntent {
+  const haystack = normalizeText(
+    [
+      product.title.en,
+      product.title.ua,
+      product.category.en,
+      product.category.ua,
+      product.productType,
+      ...(product.tags ?? []),
+    ].join(' ')
+  );
+
+  if (REAR_REGEX.test(haystack)) return 'rear';
+  if (FRONT_REGEX.test(haystack)) return 'front';
+  if (SIDE_REGEX.test(haystack)) return 'side';
+  if (DETAIL_REGEX.test(haystack)) return 'detail';
+  if (product.bundle || PACKAGE_REGEX.test(haystack)) return 'package';
+  return 'detail';
+}
+
 export function buildUrbanCollectionMediaSet(
   config: UrbanCollectionPageConfig | null | undefined,
   collectionHandle?: string | null
