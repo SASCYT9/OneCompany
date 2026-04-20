@@ -153,12 +153,14 @@ export default function OurStoresPortal({ locale, isB2bApproved }: OurStoresPort
                   <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c20] to-[#0e0e11] opacity-50" />
                 )}
 
-                <div className="relative z-10 flex flex-col justify-end h-full">
-                  <div className="transform transition-all duration-500 lg:translate-y-4 lg:group-hover:translate-y-0">
-                    <h3 className="text-xl md:text-2xl font-light uppercase tracking-widest text-white/90 mb-2 drop-shadow-md">
-                      {localize(isUa, store.name, store.nameUk)}
+                <div className="relative z-10 flex h-full flex-col justify-end">
+                  <div className="flex flex-col gap-3 transform transition-all duration-500 lg:translate-y-4 lg:group-hover:translate-y-0">
+                    <h3 className="grid min-h-[2.2em] items-end text-xl font-light uppercase leading-[1.05] tracking-widest text-white/90 drop-shadow-md md:text-2xl">
+                      <span className="line-clamp-2 text-balance">
+                        {localize(isUa, store.name, store.nameUk)}
+                      </span>
                     </h3>
-                    <p className="text-xs md:text-sm text-white/60 font-light leading-relaxed max-w-[40ch] opacity-80 md:opacity-0 md:-translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-75 hidden sm:block">
+                    <p className="hidden max-w-[40ch] text-pretty text-xs font-light leading-relaxed text-white/60 opacity-80 transition-all duration-500 delay-75 line-clamp-3 sm:[display:-webkit-box] sm:min-h-[4.8em] md:text-sm md:-translate-y-4 md:opacity-0 group-hover:translate-y-0 group-hover:opacity-100">
                       {localize(isUa, store.description, store.descriptionUk)}
                     </p>
                   </div>

@@ -1,10 +1,11 @@
 /* ──────────────────────────────────────────────
    ADRO Home Data  (EN / UA)
-   «Carbon Phantom»
+   «Carbon Architecture»
    ────────────────────────────────────────────── */
 
 export const ADRO_HERO = {
-  heroImage: '/images/shop/adro/adro-hero-m4.jpg',
+  heroImage: '/images/shop/adro/adro-m4wb.png',
+  heroBackground: '/images/shop/adro/adro-hero-m4.jpg',
   subtitle:
     'Prepreg carbon fiber aerokits engineered with Computational Fluid Dynamics. F1-level aerodynamic testing meets handcrafted precision.',
   subtitleUk:
@@ -12,10 +13,9 @@ export const ADRO_HERO = {
 };
 
 export const ADRO_STATS = [
-  { val: '100%', en: 'Prepreg Carbon', ua: 'Препрег карбон' },
   { val: 'CFD', en: 'Aero Validation', ua: 'Аеро валідація' },
-  { val: '15+', en: 'Vehicle Models', ua: 'Моделей авто' },
-  { val: '2K+', en: 'Kits Shipped', ua: 'Кітів відправлено' },
+  { val: '100%', en: 'Prepreg Carbon', ua: 'Препрег карбон' },
+  { val: '15+', en: 'Vehicle Platforms', ua: 'Платформ авто' },
 ];
 
 export const ADRO_TECHNOLOGY = {

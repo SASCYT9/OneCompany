@@ -2,15 +2,13 @@ import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
 import {
   ADRO_HERO,
-  ADRO_STATS,
   ADRO_PRODUCT_LINES,
-  ADRO_TECHNOLOGY,
   ADRO_MATERIALS,
+  ADRO_HERITAGE,
 } from '../data/adroHomeData';
 
-import AdroCanvas from './canvas/AdroCanvas';
 import ScrollRevealClient from './ScrollRevealClient';
-import AdroMediaVault from './AdroMediaVault';
+import AdroVideoEmbed from './AdroVideoEmbed';
 
 type Props = { locale: SupportedLocale };
 
@@ -22,154 +20,158 @@ export default function AdroHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
 
   return (
-    <div className="adro-home" id="AdroHome">
-      <ScrollRevealClient selector="[data-adro-reveal]" revealClass="adro-vis" />
+    <div className="adro" id="AdroHome">
+      <ScrollRevealClient selector="[data-r]" revealClass="is-vis" />
 
-      {/* ── Flow Matrix Canvas ── */}
-      <AdroCanvas />
-
-      {/* ── Back to Stores ── */}
-      <div className="adro-back">
-        <Link href={`/${locale}/shop`} className="adro-back__link">
-          &larr; {L(isUa, 'BACK TO PLATFORMS', 'НАЗАД ДО БРЕНДІВ')}
+      {/* ── Back ── */}
+      <div className="adro__back">
+        <Link href={`/${locale}/shop`} className="adro__back-link">
+          &larr; {L(isUa, 'All Stores', 'Усі магазини')}
         </Link>
       </div>
 
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 1 — FLOW HERO
-      ════════════════════════════════════════════════════════════════ */}
-      <section className="adro-flow-hero">
-        <div className="adro-video-bg">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={ADRO_HERO.heroImage}
-            alt="ADRO Carbon Aerokit"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              opacity: 0.45,
-              filter: 'grayscale(60%) contrast(1.2) brightness(0.7)',
-            }}
-          />
-          <div className="adro-video-overlay"></div>
+      {/* ══════════════════════════════════════════════════
+          1 · HERO — full-bleed video, big type
+      ══════════════════════════════════════════════════ */}
+      <section className="adro__hero">
+        <div className="adro__hero-video">
+          <AdroVideoEmbed youtubeId="pyEBZ8jJvZg" />
         </div>
+        <div className="adro__hero-dim" />
 
-        <div className="adro-flow-content" data-adro-reveal>
-          <h1 className="sr-only">
-            {L(isUa, 'ADRO | Aerodynamics & Carbon Fiber Aero Kits', 'ADRO | Аеродинаміка та карбонові обвіси')}
+        <div className="adro__hero-body" data-r>
+          <p className="adro__eyebrow">One Company × ADRO</p>
+          <h1 className="adro__hero-h">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/shop/adro/adro-logo.svg" alt="ADRO" className="adro__hero-logo" />
           </h1>
-          <p className="adro-hero-title">
-            {L(isUa, 'Carbon', 'Карбоновий')}<br />
-            <em>{L(isUa, 'Phantom', 'Фантом')}</em>
+          <p className="adro__hero-sub">
+            {L(isUa,
+              'Prepreg carbon. CFD engineering. Handcrafted precision.',
+              'Препрег-карбон. CFD-інженерія. Ручна точність.'
+            )}
           </p>
-          <p className="adro-hero-subtitle">
-            {L(isUa, ADRO_HERO.subtitle, ADRO_HERO.subtitleUk)}
-          </p>
-
-          <Link href={`/${locale}/shop/adro/collections`} className="adro-btn">
-            {L(isUa, 'Explore Collection', 'Переглянути Колекцію')}
+          <Link href={`/${locale}/shop/adro/collections`} className="adro__cta">
+            {L(isUa, 'Explore Collection', 'Переглянути колекцію')}
+            <span className="adro__cta-arrow">→</span>
           </Link>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 2 — ENGINEERING EXCELLENCE
-      ════════════════════════════════════════════════════════════════ */}
-      <section className="adro-engineering">
-        <div className="adro-engineering-grid">
-          
-          <div className="adro-engineering-content" data-adro-reveal>
-            <div className="adro-engineering-header">
-              <span className="adro-overline">
-                {L(isUa, 'Aerodynamic Precision', 'Аеродинамічна точність')}
-              </span>
-              <h2>{L(isUa, ADRO_TECHNOLOGY.title, ADRO_TECHNOLOGY.titleUk)}</h2>
+      {/* ══════════════════════════════════════════════════
+          2 · SHOWREEL — cinematic GT3 video
+      ══════════════════════════════════════════════════ */}
+      <section className="adro__reel">
+        <div className="adro__reel-video">
+          <AdroVideoEmbed youtubeId="LNXs4OI_yNA" />
+        </div>
+        <div className="adro__reel-dim" />
+        <div className="adro__reel-body" data-r>
+          <p className="adro__eyebrow">Porsche 992 GT3</p>
+          <h2 className="adro__reel-h">
+            {L(isUa, 'Born for the Track', 'Народжений для треку')}
+          </h2>
+        </div>
+      </section>
+
+      <section className="adro__collage">
+        <div className="adro__collage-grid">
+          {/* Row 1 — 4 photos */}
+          {[
+            { src: '/images/shop/adro/swan-01.webp', alt: 'BMW M4 ADRO — Front quarter' },
+            { src: '/images/shop/adro/swan-02.webp', alt: 'BMW M4 ADRO — Rear angle' },
+            { src: '/images/shop/adro/swan-03.webp', alt: 'BMW M4 ADRO — Side profile' },
+            { src: '/images/shop/adro/swan-04.webp', alt: 'BMW M4 ADRO — Rear quarter' },
+          ].map((p, i) => (
+            <div key={`t${i}`} className="adro__collage-cell">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.src} alt={p.alt} loading="eager" />
             </div>
-            
-            <p className="adro-engineering-desc">
-              {L(isUa, ADRO_TECHNOLOGY.description, ADRO_TECHNOLOGY.descriptionUk)}
+          ))}
+
+          {/* Row 2 — photo, TEXT CARD (span 2), photo */}
+          <div className="adro__collage-cell">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/shop/adro/swan-05.webp" alt="BMW M4 ADRO — Detail" loading="lazy" />
+          </div>
+
+          <div className="adro__collage-text" data-r>
+            {/* Blurred logo watermark */}
+            <div className="adro__collage-watermark" aria-hidden="true">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/shop/adro/adro-logo.svg" alt="" />
+            </div>
+            <p className="adro__eyebrow">
+              {L(isUa, 'Material', 'Матеріал')}
             </p>
-
-            <div className="adro-metrics-grid">
-              {ADRO_STATS.map((s, i) => (
-                <div key={i} className="adro-metric-box">
-                  <span className="adro-metric-val">{s.val}</span>
-                  <span className="adro-metric-label">{L(isUa, s.en, s.ua)}</span>
-                </div>
-              ))}
-            </div>
+            <h2 className="adro__collage-h">Dry Carbon</h2>
+            <p className="adro__collage-desc">
+              {L(isUa,
+                'Technology used in professional motorsport. Autoclave-cured prepreg carbon delivers maximum strength, minimum weight, and a flawless finish.\n\nBuilt for those who accept no compromises.',
+                'Технологія, яка використовується у професійному автоспорті. Препрег-карбон з автоклавною обробкою забезпечує максимальну міцність, мінімальну вагу та бездоганний фініш.\n\nСтворено для тих, хто не приймає компромісів.'
+              )}
+            </p>
           </div>
 
-          <div className="adro-engineering-visual" data-adro-reveal style={{ transitionDelay: '0.2s' }}>
+          <div className="adro__collage-cell">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={ADRO_TECHNOLOGY.image} alt={L(isUa, ADRO_TECHNOLOGY.title, ADRO_TECHNOLOGY.titleUk)} />
+            <img src="/images/shop/adro/swan-06.webp" alt="BMW M4 ADRO — Widebody fender" loading="lazy" />
           </div>
 
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 3 — CARBON MACRO
-      ════════════════════════════════════════════════════════════════ */}
-      <section className="adro-macro">
-        <div className="adro-macro-inner">
-          <div className="adro-macro-image" data-adro-reveal>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={ADRO_MATERIALS.image} alt={L(isUa, ADRO_MATERIALS.title, ADRO_MATERIALS.titleUk)} />
-          </div>
-          <div className="adro-macro-content" data-adro-reveal style={{ transitionDelay: '0.2s' }}>
-            <h2>{L(isUa, ADRO_MATERIALS.title, ADRO_MATERIALS.titleUk)}</h2>
-            <p>{L(isUa, ADRO_MATERIALS.description, ADRO_MATERIALS.descriptionUk)}</p>
-            
-            <div className="adro-macro-specs">
-              {ADRO_MATERIALS.specs.map((s, i) => (
-                <div key={i} className="adro-ms-item">
-                  <span className="adro-ms-val">{s.val}</span>
-                  <span className="adro-ms-label">{L(isUa, s.label, s.labelUk)}</span>
-                </div>
-              ))}
+          {/* Row 3 — 4 photos */}
+          {[
+            { src: '/images/shop/adro/swan-08.webp', alt: 'BMW M4 ADRO — Carbon diffuser' },
+            { src: '/images/shop/adro/swan-09.webp', alt: 'BMW M4 ADRO — Wheel arch' },
+            { src: '/images/shop/adro/swan-10.webp', alt: 'BMW M4 ADRO — Sharp angle' },
+            { src: '/images/shop/adro/swan-11.webp', alt: 'BMW M4 ADRO — Full profile' },
+          ].map((p, i) => (
+            <div key={`b${i}`} className="adro__collage-cell">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.src} alt={p.alt} loading="lazy" />
             </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 3.5 — MEDIA VAULT
-      ════════════════════════════════════════════════════════════════ */}
-      <AdroMediaVault locale={locale} />
+      {/* ══════════════════════════════════════════════════
+          4 · CATALOG — vehicle cards
+      ══════════════════════════════════════════════════ */}
+      <section id="catalog" className="adro__catalog">
+        <div className="adro__catalog-head" data-r>
+          <p className="adro__eyebrow">
+            {L(isUa, 'Catalog', 'Каталог')}
+          </p>
+          <h2 className="adro__catalog-h">
+            {L(isUa, 'Choose Your Platform', 'Оберіть вашу платформу')}
+          </h2>
+        </div>
 
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 4 — VEHICLE PLATFORMS
-      ════════════════════════════════════════════════════════════════ */}
-      <section id="catalog" className="adro-platforms">
-        <div className="adro-platforms-inner">
-          <div className="adro-platforms-header" data-adro-reveal>
-            <h2>{L(isUa, 'Vehicle Platforms', 'Платформи Автомобілів')}</h2>
-          </div>
-          
-          <div className="adro-platform-grid">
-            {ADRO_PRODUCT_LINES.map((line, idx) => (
-              <Link key={line.id} href={`/${locale}${line.link}`} className="adro-platform-card" data-adro-reveal style={{ transitionDelay: `${(idx * 0.1)}s` }}>
-                <div className="adro-pc-image">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={line.image} alt={L(isUa, line.name, line.nameUk)} />
-                </div>
-                <div className="adro-pc-content">
-                  <span className="adro-pc-badge">{L(isUa, line.badge, line.badgeUk)}</span>
-                  <div style={{ padding: '1rem 0' }}>
-                    <h3 className="adro-pc-title">{L(isUa, line.name, line.nameUk)}</h3>
-                    <p className="adro-pc-desc">{L(isUa, line.description, line.descriptionUk)}</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+        <div className="adro__catalog-grid">
+          {ADRO_PRODUCT_LINES.map((line, idx) => (
+            <Link
+              key={line.id}
+              href={`/${locale}${line.link}`}
+              className="adro__card"
+              data-r
+              style={{ transitionDelay: `${idx * 0.07}s` }}
+            >
+              <div className="adro__card-img">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={line.image} alt={L(isUa, line.name, line.nameUk)} />
+              </div>
+              <div className="adro__card-info">
+                <span className="adro__card-badge">{L(isUa, line.badge, line.badgeUk)}</span>
+                <h3 className="adro__card-name">{L(isUa, line.name, line.nameUk)}</h3>
+                <p className="adro__card-desc">{L(isUa, line.description, line.descriptionUk)}</p>
+                <span className="adro__card-link">
+                  {L(isUa, 'Explore', 'Дослідити')} →
+                </span>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
+
 
     </div>
   );
