@@ -5,10 +5,17 @@
 
 import type { UrbanCollectionPageConfig } from '@/app/[locale]/shop/data/urbanCollectionPages';
 import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollectionsList';
+import type { ShopProduct } from '@/lib/shopCatalog';
 import {
   getUrbanCanonicalCollectionHandleOverride,
   getUrbanProgramFallbackImage,
 } from '@/lib/urbanProductOverrides';
+import {
+  buildUrbanCollectionMediaSet,
+  resolveUrbanVisualIntent,
+  type UrbanCollectionMediaSet,
+  type UrbanVisualIntent,
+} from '@/lib/urbanVisualIntent';
 
 const FALLBACK_URBAN_IMAGE = '/images/shop/urban/hero/models/defender2020Plus/2025Updates/hero-1-1920.jpg';
 const G_WAGON_COLLECTION_HANDLES = new Set([
@@ -28,6 +35,14 @@ const NON_G_WAGON_IMAGE_MARKERS = [
   'golf',
   'transporter',
 ];
+
+type UrbanMediaSelectionProduct = Pick<
+  ShopProduct,
+  'slug' | 'title' | 'category' | 'productType' | 'tags' | 'bundle'
+>;
+
+type UrbanMediaGalleryProduct = UrbanMediaSelectionProduct &
+  Pick<ShopProduct, 'image' | 'gallery'>;
 
 function stripQueryAndHash(url: string) {
   return url.split(/[?#]/, 1)[0] ?? url;
@@ -150,6 +165,145 @@ function resolveUrbanProgramFallback(modelHandles: string[], collectionImages: s
   return FALLBACK_URBAN_IMAGE;
 }
 
+function isUrbanBlueprintImage(url: string) {
+  const normalized = stripQueryAndHash(normalizeUrbanImageUrl(url)).toLowerCase();
+  return (
+    normalized.includes('blueprint-') ||
+    normalized.includes('/kits/models/')
+  );
+}
+
+function classifyUrbanCollectionImageRole(url: string) {
+  const normalized = stripQueryAndHash(normalizeUrbanImageUrl(url)).toLowerCase();
+
+  if (
+    normalized.includes('detail') ||
+    normalized.includes('mirror') ||
+    normalized.includes('badge') ||
+    normalized.includes('trim')
+  ) {
+    return 'detail' as const;
+  }
+  if (
+    normalized.includes('/back') ||
+    normalized.includes('-back') ||
+    normalized.includes('rear') ||
+    normalized.includes('diffuser') ||
+    normalized.includes('exhaust')
+  ) {
+    return 'rear' as const;
+  }
+  if (
+    normalized.includes('/left') ||
+    normalized.includes('/right') ||
+    normalized.includes('-left') ||
+    normalized.includes('-right') ||
+    normalized.includes('side') ||
+    normalized.includes('wheel') ||
+    normalized.includes('arch')
+  ) {
+    return 'side' as const;
+  }
+  if (
+    normalized.includes('/front') ||
+    normalized.includes('-front') ||
+    normalized.includes('front') ||
+    normalized.includes('grille') ||
+    normalized.includes('hood')
+  ) {
+    return 'front' as const;
+  }
+  if (normalized.includes('/hero/') || normalized.includes('hero-')) {
+    return 'hero' as const;
+  }
+  return 'neutral' as const;
+}
+
+function buildUrbanCollectionMediaFromUrls(collectionImages: string[]) {
+  const photoGallery: string[] = [];
+  const rolePhotos: UrbanCollectionMediaSet['rolePhotos'] = {
+    hero: [],
+    front: [],
+    rear: [],
+    side: [],
+    detail: [],
+    neutral: [],
+  };
+  const blueprintByIntent: UrbanCollectionMediaSet['blueprintByIntent'] = {
+    front: [],
+    rear: [],
+    side: [],
+  };
+
+  uniqueNonPlaceholderImages(collectionImages).forEach((url) => {
+    if (isUrbanBlueprintImage(url)) {
+      const role = classifyUrbanCollectionImageRole(url);
+      if (role === 'front') {
+        blueprintByIntent.front.push(url);
+      } else if (role === 'rear') {
+        blueprintByIntent.rear.push(url);
+      } else if (role === 'side') {
+        blueprintByIntent.side.push(url);
+      }
+      return;
+    }
+
+    photoGallery.push(url);
+    const role = classifyUrbanCollectionImageRole(url);
+    if (!rolePhotos[role].includes(url)) {
+      rolePhotos[role].push(url);
+    }
+  });
+
+  return {
+    photoGallery,
+    rolePhotos,
+    blueprintByIntent,
+  };
+}
+
+function getMatchingRealPhotoForIntent(
+  mediaSet: UrbanCollectionMediaSet,
+  intent: UrbanVisualIntent
+) {
+  if (intent === 'package') {
+    return mediaSet.rolePhotos.front[0] ?? mediaSet.rolePhotos.hero[0] ?? mediaSet.photoGallery[0] ?? null;
+  }
+  if (intent === 'front') {
+    return mediaSet.rolePhotos.front[0] ?? null;
+  }
+  if (intent === 'rear') {
+    return mediaSet.rolePhotos.rear[0] ?? null;
+  }
+  if (intent === 'side') {
+    return mediaSet.rolePhotos.side[0] ?? null;
+  }
+  return mediaSet.rolePhotos.detail[0] ?? mediaSet.rolePhotos.neutral[0] ?? mediaSet.rolePhotos.hero[0] ?? null;
+}
+
+function getMatchingBlueprintForIntent(
+  mediaSet: UrbanCollectionMediaSet,
+  intent: UrbanVisualIntent
+) {
+  if (intent === 'front') {
+    return mediaSet.blueprintByIntent.front[0] ?? null;
+  }
+  if (intent === 'rear') {
+    return mediaSet.blueprintByIntent.rear[0] ?? null;
+  }
+  if (intent === 'side') {
+    return mediaSet.blueprintByIntent.side[0] ?? null;
+  }
+  return null;
+}
+
+export function buildUrbanCollectionPhotoGallery(
+  config: UrbanCollectionPageConfig | null | undefined,
+  collectionHandle?: string | null
+) {
+  return buildUrbanCollectionMediaSet(config, collectionHandle).photoGallery;
+}
+
 /**
  * Given a product image URL and the model handles it belongs to,
  * returns a real image URL — either the original (if valid) or a collection fallback.
@@ -177,20 +331,15 @@ export function buildUrbanCollectionImagePool(
     const card = URBAN_COLLECTION_CARDS.find((item) => item.collectionHandle === handle);
     return card?.externalImageUrl;
   });
+  const mediaSet = buildUrbanCollectionMediaSet(config, modelHandles[0]);
 
-  const configImages = config
-    ? [
-        config.hero.externalPosterUrl,
-        config.overview.externalImageUrl,
-        ...config.gallery.slides.map((slide) => slide.externalImageUrl),
-        ...config.bannerStack.banners
-          .filter((banner) => banner.mediaType === 'image')
-          .map((banner) => banner.externalImageUrl),
-        ...config.blueprint.views.map((view) => view.externalImageUrl),
-      ]
-    : [];
-
-  return uniqueNonPlaceholderImages([...cardImages, ...configImages]);
+  return uniqueNonPlaceholderImages([
+    ...mediaSet.photoGallery,
+    ...cardImages,
+    ...mediaSet.blueprintByIntent.front,
+    ...mediaSet.blueprintByIntent.side,
+    ...mediaSet.blueprintByIntent.rear,
+  ]);
 }
 
 export function resolveUrbanCollectionCardImage(
@@ -198,23 +347,76 @@ export function resolveUrbanCollectionCardImage(
   modelHandles: string[],
   collectionImages: string[],
   seed: string,
-  gallery: Array<string | null | undefined> = []
+  gallery: Array<string | null | undefined> = [],
+  product?: UrbanMediaSelectionProduct
 ): string {
-  const resolvedModelHandles = resolveCanonicalModelHandles(modelHandles, seed);
-  const raw = normalizeUrbanImageUrl(image);
-
-  if (raw && !isUrbanPlaceholderImage(raw) && isUrbanImageCompatibleWithModel(raw, resolvedModelHandles)) {
-    return raw;
-  }
-
-  const galleryCandidate = uniqueNonPlaceholderImages(gallery).find((url) =>
+  const resolvedModelHandles = resolveCanonicalModelHandles(modelHandles, product?.slug ?? seed);
+  const ownImages = uniqueNonPlaceholderImages([image, ...gallery]).filter((url) =>
     isUrbanImageCompatibleWithModel(url, resolvedModelHandles)
   );
-  if (galleryCandidate) {
-    return galleryCandidate;
+
+  if (ownImages.length > 0) {
+    return ownImages[0]!;
+  }
+
+  const mediaSet = buildUrbanCollectionMediaFromUrls(collectionImages);
+  const intent = product ? resolveUrbanVisualIntent(product) : 'detail';
+  const realCandidate = getMatchingRealPhotoForIntent(mediaSet, intent);
+  if (realCandidate && isUrbanImageCompatibleWithModel(realCandidate, resolvedModelHandles)) {
+    return realCandidate;
+  }
+
+  const blueprintCandidate = getMatchingBlueprintForIntent(mediaSet, intent);
+  if (blueprintCandidate && isUrbanImageCompatibleWithModel(blueprintCandidate, resolvedModelHandles)) {
+    return blueprintCandidate;
+  }
+
+  const stableFallback =
+    mediaSet.rolePhotos.hero[0] ??
+    mediaSet.photoGallery[0] ??
+    uniqueNonPlaceholderImages(collectionImages).find((url) =>
+      isUrbanImageCompatibleWithModel(url, resolvedModelHandles)
+    ) ??
+    null;
+
+  if (stableFallback) {
+    return stableFallback;
   }
 
   return resolveUrbanProgramFallback(resolvedModelHandles, collectionImages);
+}
+
+export function resolveUrbanProductGallery(
+  product: UrbanMediaGalleryProduct,
+  modelHandles: string[],
+  config: UrbanCollectionPageConfig | null | undefined
+) {
+  const resolvedModelHandles = resolveCanonicalModelHandles(modelHandles, product.slug);
+  const ownImages = uniqueNonPlaceholderImages([product.image, ...(product.gallery ?? [])]).filter((url) =>
+    isUrbanImageCompatibleWithModel(url, resolvedModelHandles)
+  );
+  const intent = resolveUrbanVisualIntent(product);
+  const mediaSet = buildUrbanCollectionMediaSet(config, resolvedModelHandles[0]);
+
+  if (intent === 'package' && mediaSet.photoGallery.length > 0) {
+    return mediaSet.photoGallery;
+  }
+
+  if (ownImages.length > 0) {
+    return ownImages;
+  }
+
+  const realCandidate = getMatchingRealPhotoForIntent(mediaSet, intent);
+  if (realCandidate && isUrbanImageCompatibleWithModel(realCandidate, resolvedModelHandles)) {
+    return [realCandidate];
+  }
+
+  const blueprintCandidate = getMatchingBlueprintForIntent(mediaSet, intent);
+  if (blueprintCandidate && isUrbanImageCompatibleWithModel(blueprintCandidate, resolvedModelHandles)) {
+    return [blueprintCandidate];
+  }
+
+  return [resolveUrbanProgramFallback(resolvedModelHandles, mediaSet.photoGallery)];
 }
 
 /**

@@ -19,6 +19,7 @@ const URBAN_PROGRAM_FALLBACK_IMAGES: Record<string, string> = {
   'mercedes-g-wagon-w465-widetrack':
     '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-5-2560.webp',
 };
+const URBAN_COLLECTION_MEDIA_ROLE_OVERRIDES: Record<string, Partial<Record<string, string[]>>> = {};
 
 export function getUrbanCanonicalCollectionHandleOverride(slug: string | null | undefined) {
   return slug ? (URBAN_CANONICAL_COLLECTION_HANDLE_OVERRIDES[slug] ?? null) : null;
@@ -38,4 +39,8 @@ export function getUrbanProductTitleOverrideForLocale(
 
 export function getUrbanProgramFallbackImage(handle: string | null | undefined) {
   return handle ? (URBAN_PROGRAM_FALLBACK_IMAGES[handle] ?? null) : null;
+}
+
+export function getUrbanCollectionMediaRoleOverrides(handle: string | null | undefined) {
+  return handle ? (URBAN_COLLECTION_MEDIA_ROLE_OVERRIDES[handle] ?? null) : null;
 }

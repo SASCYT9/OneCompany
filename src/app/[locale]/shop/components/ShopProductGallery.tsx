@@ -76,14 +76,14 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
 
       {/* Thumbnails */}
       {images.length > 1 && (
-        <div className="grid grid-cols-4 gap-3 sm:grid-cols-5">
-          {images.slice(0, 5).map((image, index) => {
+        <div className="flex gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-color:rgba(194,157,89,0.55)_transparent] [scrollbar-width:thin]">
+          {images.map((image, index) => {
             const isActive = index === activeIndex;
             return (
               <button
                 key={index}
                 onClick={() => setActiveIndex(index)}
-                className={`relative aspect-square overflow-hidden rounded-2xl border bg-black/60 transition-all duration-300 ${
+                className={`relative aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-2xl border bg-black/60 transition-all duration-300 sm:h-28 sm:w-28 ${
                   isActive
                     ? 'border-[#c29d59]/50 shadow-[0_0_15px_-3px_rgba(194,157,89,0.2)]'
                     : 'border-white/10 hover:border-white/30'

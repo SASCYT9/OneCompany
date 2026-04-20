@@ -38,8 +38,14 @@ import {
   getUrbanCollectionHandleForProduct,
 } from '@/lib/urbanCollectionMatcher';
 import { URBAN_COLLECTION_CARDS } from '../data/urbanCollectionsList';
-import { isUrbanPlaceholderImage, resolveUrbanProductImage, filterUrbanGalleryImages } from '@/lib/urbanImageUtils';
+import {
+  buildUrbanCollectionImagePool,
+  resolveUrbanCollectionCardImage,
+  resolveUrbanProductGallery,
+  resolveUrbanProductImage,
+} from '@/lib/urbanImageUtils';
 import { ShopProductGallery } from './ShopProductGallery';
+import { getUrbanCollectionPageConfig } from '../data/urbanCollectionPages.server';
 
 import type { ShopProduct } from '@/lib/shopCatalog';
 
@@ -213,6 +219,9 @@ export default async function ShopProductDetailPage({
   const urbanCollectionCard = urbanCollectionHandle
     ? URBAN_COLLECTION_CARDS.find((item) => item.collectionHandle === urbanCollectionHandle)
     : null;
+  const urbanCollectionConfig = urbanCollectionHandle
+    ? getUrbanCollectionPageConfig(urbanCollectionHandle)
+    : null;
   const do88CollectionCard = do88CollectionHandle
     ? DO88_COLLECTION_CARDS.find((item) => item.categoryHandle === do88CollectionHandle)
     : null;
@@ -293,9 +302,21 @@ export default async function ShopProductDetailPage({
     return raw.startsWith('//') ? `https:${raw}` : raw;
   });
 
-  // For urban products, filter out placeholder images from gallery
   const resolvedGallery = isUrbanMode && urbanModelHandles.length > 0
-    ? filterUrbanGalleryImages(gallery, urbanModelHandles)
+    ? resolveUrbanProductGallery(
+        {
+          slug: product.slug,
+          title: product.title,
+          category: product.category,
+          productType: product.productType,
+          tags: product.tags ?? [],
+          bundle: product.bundle,
+          image: product.image,
+          gallery,
+        },
+        urbanModelHandles,
+        urbanCollectionConfig
+      )
     : gallery.filter(img => img.length > 0);
   let categoryRelatedProducts: ShopProduct[] = [];
   
@@ -323,15 +344,18 @@ export default async function ShopProductDetailPage({
     item,
     price: computeCrossPrices(resolveShopProductPricing(item, viewerContext).effectivePrice),
   }));
+  const urbanRelatedCollectionImages =
+    isUrbanMode && urbanCollectionHandle
+      ? buildUrbanCollectionImagePool(urbanCollectionConfig, [urbanCollectionHandle])
+      : [];
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://onecompany.global');
     
-  const rawImageStr = product.image ? product.image.replace(/^["']|["']$/g, '').trim() : '';
-  // For Urban products, resolve placeholder images to collection photos
+  const rawImageStr = resolvedGallery[0] ?? (product.image ? product.image.replace(/^["']|["']$/g, '').trim() : '');
   const resolvedImageStr = isUrbanMode && urbanModelHandles.length > 0
-    ? resolveUrbanProductImage(rawImageStr, urbanModelHandles)
+    ? resolveUrbanProductImage(rawImageStr, urbanModelHandles, product.slug)
     : (rawImageStr.startsWith('//') ? `https:${rawImageStr}` : rawImageStr);
   const safeImageUrl = resolvedImageStr.startsWith('//')
     ? `https:${resolvedImageStr}`
@@ -688,9 +712,31 @@ export default async function ShopProductDetailPage({
                 className="group overflow-hidden rounded-2xl border border-white/15 bg-white/[0.03] transition hover:border-white/35"
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
-                  {item.image && item.image.replace(/^[\"']|[\"']$/g, '').trim().length > 0 ? (
+                  {(isUrbanMode && urbanCollectionHandle
+                    ? resolveUrbanCollectionCardImage(
+                        item.image,
+                        [urbanCollectionHandle],
+                        urbanRelatedCollectionImages,
+                        item.slug,
+                        item.gallery,
+                        item
+                      )
+                    : item.image && item.image.replace(/^[\"']|[\"']$/g, '').trim().length > 0
+                      ? item.image.replace(/^[\"']|[\"']$/g, '').trim()
+                      : null) ? (
                     <Image
-                      src={item.image.replace(/^[\"']|[\"']$/g, '').trim()}
+                      src={
+                        isUrbanMode && urbanCollectionHandle
+                          ? resolveUrbanCollectionCardImage(
+                              item.image,
+                              [urbanCollectionHandle],
+                              urbanRelatedCollectionImages,
+                              item.slug,
+                              item.gallery,
+                              item
+                            )
+                          : item.image!.replace(/^[\"']|[\"']$/g, '').trim()
+                      }
                       alt={localizeShopProductTitle(resolvedLocale, item)}
                       fill
                       sizes="(max-width: 1280px) 100vw, 30vw"
