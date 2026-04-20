@@ -51,6 +51,19 @@ export function AdminActionBar({ children, className }: { children: ReactNode; c
   );
 }
 
+export function AdminEntityToolbar({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <section
+      className={cn(
+        'sticky top-4 z-20 rounded-[24px] border border-white/10 bg-[#121212]/95 px-4 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur',
+        className
+      )}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">{children}</div>
+    </section>
+  );
+}
+
 export function AdminMetricGrid({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cn('grid gap-3 md:grid-cols-2 xl:grid-cols-4', className)}>{children}</div>;
 }
@@ -92,6 +105,120 @@ export function AdminTableShell({ children, className }: { children: ReactNode; 
   return (
     <div className={cn('overflow-hidden rounded-[28px] border border-white/10 bg-[#0b0b0b]', className)}>
       {children}
+    </div>
+  );
+}
+
+export function AdminSplitDetailShell({
+  main,
+  sidebar,
+  className,
+}: {
+  main: ReactNode;
+  sidebar: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn('grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]', className)}>
+      <div className="min-w-0 space-y-6">{main}</div>
+      <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">{sidebar}</aside>
+    </div>
+  );
+}
+
+export function AdminInspectorCard({
+  title,
+  description,
+  children,
+  className,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn('rounded-[24px] border border-white/10 bg-[#101010] p-5', className)}>
+      <div className="space-y-1">
+        <h2 className="text-sm font-semibold tracking-tight text-stone-100">{title}</h2>
+        {description ? <p className="text-xs leading-5 text-stone-500">{description}</p> : null}
+      </div>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+export function AdminKeyValueGrid({
+  rows,
+  className,
+}: {
+  rows: Array<{ label: string; value: ReactNode }>;
+  className?: string;
+}) {
+  return (
+    <dl className={cn('grid gap-3', className)}>
+      {rows.map((row) => (
+        <div key={row.label} className="grid gap-1 rounded-2xl border border-white/8 bg-black/25 px-3 py-3">
+          <dt className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">{row.label}</dt>
+          <dd className="text-sm text-stone-200">{row.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+export function AdminTimelineList({
+  items,
+  empty,
+  className,
+}: {
+  items: Array<{
+    id: string;
+    title: ReactNode;
+    meta?: ReactNode;
+    body?: ReactNode;
+    tone?: 'default' | 'success' | 'warning' | 'danger';
+  }>;
+  empty: ReactNode;
+  className?: string;
+}) {
+  const toneClass = (tone?: 'default' | 'success' | 'warning' | 'danger') => {
+    switch (tone) {
+      case 'success':
+        return 'bg-emerald-400';
+      case 'warning':
+        return 'bg-amber-300';
+      case 'danger':
+        return 'bg-red-400';
+      default:
+        return 'bg-stone-500';
+    }
+  };
+
+  if (!items.length) {
+    return (
+      <div className={cn('rounded-[24px] border border-dashed border-white/10 bg-[#101010] px-4 py-10 text-sm text-stone-500', className)}>
+        {empty}
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn('space-y-3', className)}>
+      {items.map((item) => (
+        <div key={item.id} className="rounded-[24px] border border-white/10 bg-[#101010] px-4 py-4">
+          <div className="flex items-start gap-3">
+            <div className="mt-1 h-2.5 w-2.5 rounded-full border border-white/20 bg-black/40">
+              <div className={cn('h-full w-full rounded-full', toneClass(item.tone))} />
+            </div>
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="text-sm font-medium text-stone-100">{item.title}</div>
+              {item.meta ? <div className="text-xs text-stone-500">{item.meta}</div> : null}
+              {item.body ? <div className="pt-1 text-sm text-stone-300">{item.body}</div> : null}
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

@@ -3,7 +3,26 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Copy, ExternalLink, PackageCheck, Truck, Plus, Pencil, Trash2, Save, X, Package, DollarSign, AlertCircle } from 'lucide-react';
+import { Copy, DollarSign, ExternalLink, Package, PackageCheck, Save, Truck } from 'lucide-react';
+
+import {
+  AdminEntityToolbar,
+  AdminInspectorCard,
+  AdminKeyValueGrid,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminPage,
+  AdminPageHeader,
+  AdminSplitDetailShell,
+  AdminStatusBadge,
+  AdminTableShell,
+  AdminTimelineList,
+} from '@/components/admin/AdminPrimitives';
+import {
+  AdminInputField,
+  AdminSelectField,
+  AdminTextareaField,
+} from '@/components/admin/AdminFormFields';
 
 type OrderStatus =
   | 'PENDING_PAYMENT'
@@ -107,6 +126,17 @@ const SHIPMENT_STATUS_OPTIONS: Array<{ value: ShipmentStatus; label: string }> =
   { value: 'RETURNED', label: 'Повернено' },
 ];
 
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  PENDING_PAYMENT: 'Очікує оплату',
+  PENDING_REVIEW: 'На перевірці',
+  CONFIRMED: 'Підтверджено',
+  PROCESSING: 'В обробці',
+  SHIPPED: 'Відправлено',
+  DELIVERED: 'Доставлено',
+  CANCELLED: 'Скасовано',
+  REFUNDED: 'Повернено',
+};
+
 function emptyShipmentDraft(): ShipmentDraft {
   return {
     carrier: '',
@@ -133,40 +163,37 @@ function buildShipmentDraft(shipment: ShipmentRecord): ShipmentDraft {
   };
 }
 
-const ORDER_STATUS_LABELS: Record<string, string> = {
-  PENDING_PAYMENT: 'Очікує оплату',
-  PENDING_REVIEW: 'На перевірці',
-  CONFIRMED: 'Підтверджено',
-  PROCESSING: 'В обробці',
-  SHIPPED: 'Відправлено',
-  DELIVERED: 'Доставлено',
-  CANCELLED: 'Скасовано',
-  REFUNDED: 'Повернено',
-};
 function statusLabel(status: string) {
   return ORDER_STATUS_LABELS[status] ?? status.replace(/_/g, ' ');
 }
 
-function statusBadgeClass(status: string) {
+function statusTone(status: string): 'default' | 'success' | 'warning' | 'danger' {
   switch (status) {
-    case 'PENDING_PAYMENT':
-      return 'border-orange-500/30 bg-orange-500/10 text-orange-100';
-    case 'PENDING_REVIEW':
-      return 'border-amber-500/30 bg-amber-500/10 text-amber-100';
-    case 'CONFIRMED':
-      return 'border-sky-500/30 bg-sky-500/10 text-sky-100';
-    case 'PROCESSING':
-      return 'border-violet-500/30 bg-violet-500/10 text-violet-100';
-    case 'SHIPPED':
-      return 'border-cyan-500/30 bg-cyan-500/10 text-cyan-100';
     case 'DELIVERED':
-      return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-100';
+      return 'success';
     case 'CANCELLED':
-      return 'border-rose-500/30 bg-rose-500/10 text-rose-100';
     case 'REFUNDED':
-      return 'border-zinc-500/30 bg-zinc-500/10 text-zinc-100';
+      return 'danger';
+    case 'PENDING_PAYMENT':
+    case 'PENDING_REVIEW':
+    case 'PROCESSING':
+    case 'SHIPPED':
+      return 'warning';
     default:
-      return 'border-white/15 bg-white/5 text-white/70';
+      return 'default';
+  }
+}
+
+function shipmentTone(status: ShipmentStatus): 'default' | 'success' | 'warning' | 'danger' {
+  switch (status) {
+    case 'DELIVERED':
+      return 'success';
+    case 'CANCELLED':
+      return 'danger';
+    case 'IN_TRANSIT':
+      return 'warning';
+    default:
+      return 'default';
   }
 }
 
@@ -199,20 +226,8 @@ export default function AdminOrderDetailPage() {
   const [shipmentSavingId, setShipmentSavingId] = useState<string | null>(null);
   const [shipmentDeletingId, setShipmentDeletingId] = useState<string | null>(null);
 
-  // Item editing state
-  const [showAddItem, setShowAddItem] = useState(false);
-  const [newItemTitle, setNewItemTitle] = useState('');
-  const [newItemPrice, setNewItemPrice] = useState('');
-  const [newItemQty, setNewItemQty] = useState('1');
-  const [editingItemId, setEditingItemId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editPrice, setEditPrice] = useState('');
-  const [editQty, setEditQty] = useState('');
-  const [itemSaving, setItemSaving] = useState(false);
-
   const load = useCallback(async () => {
     if (!id) return;
-
     setLoading(true);
     setError('');
     setSuccess('');
@@ -227,20 +242,18 @@ export default function AdminOrderDetailPage() {
         setError(data.error || 'Не вдалося завантажити замовлення');
         return;
       }
-      setOrder(data as OrderDetail);
-      setNewStatus((data as OrderDetail).status);
-      setPaymentStatus((data as OrderDetail).paymentStatus);
-      setAmountPaid(String((data as OrderDetail).amountPaid));
-      setDeliveryMethod((data as OrderDetail).deliveryMethod ?? '');
-      setTtnNumber((data as OrderDetail).ttnNumber ?? '');
-      setShippingCalculatedCost((data as OrderDetail).shippingCalculatedCost != null ? String((data as OrderDetail).shippingCalculatedCost) : '');
+      const nextOrder = data as OrderDetail;
+      setOrder(nextOrder);
+      setNewStatus(nextOrder.status);
+      setPaymentStatus(nextOrder.paymentStatus);
+      setAmountPaid(String(nextOrder.amountPaid));
+      setDeliveryMethod(nextOrder.deliveryMethod ?? '');
+      setTtnNumber(nextOrder.ttnNumber ?? '');
+      setShippingCalculatedCost(
+        nextOrder.shippingCalculatedCost != null ? String(nextOrder.shippingCalculatedCost) : ''
+      );
       setShipmentDrafts(
-        Object.fromEntries(
-          (data as OrderDetail).shipments.map((shipment) => [
-            shipment.id,
-            buildShipmentDraft(shipment),
-          ])
-        )
+        Object.fromEntries(nextOrder.shipments.map((shipment) => [shipment.id, buildShipmentDraft(shipment)]))
       );
     } finally {
       setLoading(false);
@@ -253,16 +266,12 @@ export default function AdminOrderDetailPage() {
   }, [id, load]);
 
   const confirmationUrl = useMemo(() => {
-    if (!order || typeof window === 'undefined') {
-      return '';
-    }
-    const locale = 'ua';
-    return `${window.location.origin}/${locale}/shop/checkout/success?order=${encodeURIComponent(order.orderNumber)}&token=${encodeURIComponent(order.viewToken)}`;
+    if (!order || typeof window === 'undefined') return '';
+    return `${window.location.origin}/ua/shop/checkout/success?order=${encodeURIComponent(order.orderNumber)}&token=${encodeURIComponent(order.viewToken)}`;
   }, [order]);
 
   async function handleStatusChange(targetStatus?: string) {
     if (!id || !order) return;
-
     const nextStatus = targetStatus || newStatus;
     if (nextStatus === order.status) return;
 
@@ -280,7 +289,6 @@ export default function AdminOrderDetailPage() {
         setError(data.error || 'Не вдалося оновити');
         return;
       }
-
       await load();
       setStatusNote('');
       setSuccess(`Замовлення переведено в статус «${statusLabel(nextStatus)}».`);
@@ -289,60 +297,7 @@ export default function AdminOrderDetailPage() {
     }
   }
 
-  // Payment modal state
-  const [showPayModal, setShowPayModal] = useState(false);
-  const [payModalAmount, setPayModalAmount] = useState('');
-  const [payModalMode, setPayModalMode] = useState<'add' | 'set'>('add');
-
-  async function handleRecordPayment() {
-    if (!id || !order) return;
-    const inputAmount = parseFloat(payModalAmount);
-    if (isNaN(inputAmount) || inputAmount === 0) { setError('Введіть коректну суму'); return; }
-
-    let newAmountPaid: number;
-    if (payModalMode === 'add') {
-      newAmountPaid = (order.amountPaid || 0) + inputAmount;
-    } else {
-      newAmountPaid = inputAmount;
-    }
-
-    // Determine payment status
-    let newPaymentStatus = 'UNPAID';
-    if (newAmountPaid >= order.total) newPaymentStatus = 'PAID';
-    else if (newAmountPaid > 0) newPaymentStatus = 'PARTIALLY_PAID';
-
-    setUpdating(true);
-    setError('');
-    setSuccess('');
-    try {
-      const response = await fetch(`/api/admin/shop/orders/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paymentStatus: newPaymentStatus,
-          amountPaid: Math.max(0, newAmountPaid),
-        }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setError(data.error || 'Не вдалося записати оплату');
-        return;
-      }
-      setAmountPaid(String(Math.max(0, newAmountPaid)));
-      setPaymentStatus(newPaymentStatus);
-      await load();
-      setShowPayModal(false);
-      setPayModalAmount('');
-      if (newPaymentStatus === 'PAID') setSuccess('Борг повністю погашено!');
-      else if (payModalMode === 'add' && inputAmount > 0) setSuccess(`Записано оплату ${formatMoney(inputAmount, order.currency)}`);
-      else if (payModalMode === 'add' && inputAmount < 0) setSuccess(`Додано борг ${formatMoney(Math.abs(inputAmount), order.currency)}`);
-      else setSuccess('Суму оплати оновлено');
-    } finally {
-      setUpdating(false);
-    }
-  }
-
-  async function handleLogisticsUpdate() {
+  async function handlePaymentAndFulfillmentSave() {
     if (!id || !order) return;
     setUpdating(true);
     setError('');
@@ -361,11 +316,11 @@ export default function AdminOrderDetailPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Не вдалося оновити логістику/оплату');
+        setError(data.error || 'Не вдалося оновити оплату/логістику');
         return;
       }
       await load();
-      setSuccess('Дані логістики і оплати збережено.');
+      setSuccess('Оплату та fulfillment збережено.');
     } finally {
       setUpdating(false);
     }
@@ -375,10 +330,10 @@ export default function AdminOrderDetailPage() {
     if (!confirmationUrl) return;
     try {
       await navigator.clipboard.writeText(confirmationUrl);
-      setCopyState('Скопійовано');
+      setCopyState('Copied');
       window.setTimeout(() => setCopyState(''), 1500);
     } catch {
-      setCopyState('Помилка копіювання');
+      setCopyState('Copy failed');
       window.setTimeout(() => setCopyState(''), 1500);
     }
   }
@@ -398,7 +353,6 @@ export default function AdminOrderDetailPage() {
 
   async function handleCreateShipment() {
     if (!id) return;
-
     setShipmentSavingId('new');
     setError('');
     setSuccess('');
@@ -413,7 +367,6 @@ export default function AdminOrderDetailPage() {
         setError(data.error || 'Не вдалося створити відправлення');
         return;
       }
-
       setNewShipment(emptyShipmentDraft());
       await load();
       setSuccess(`Відправлення ${data.trackingNumber} створено.`);
@@ -425,7 +378,6 @@ export default function AdminOrderDetailPage() {
   async function handleUpdateShipment(shipmentId: string) {
     const draft = shipmentDrafts[shipmentId];
     if (!draft) return;
-
     setShipmentSavingId(shipmentId);
     setError('');
     setSuccess('');
@@ -440,7 +392,6 @@ export default function AdminOrderDetailPage() {
         setError(data.error || 'Не вдалося оновити відправлення');
         return;
       }
-
       await load();
       setSuccess(`Відправлення ${data.trackingNumber} оновлено.`);
     } finally {
@@ -450,7 +401,6 @@ export default function AdminOrderDetailPage() {
 
   async function handleDeleteShipment(shipmentId: string) {
     if (!confirm('Видалити це відправлення?')) return;
-
     setShipmentDeletingId(shipmentId);
     setError('');
     setSuccess('');
@@ -463,7 +413,6 @@ export default function AdminOrderDetailPage() {
         setError(data.error || 'Не вдалося видалити відправлення');
         return;
       }
-
       await load();
       setSuccess('Відправлення видалено.');
     } finally {
@@ -472,1158 +421,458 @@ export default function AdminOrderDetailPage() {
   }
 
   async function handleGenerateWhitepayFiatLink() {
-    if (!id || !order) return;
+    if (!id) return;
     setUpdating(true);
     setError('');
     setSuccess('');
     try {
-      const response = await fetch(`/api/admin/shop/orders/${id}/whitepay/fiat`, {
-        method: 'POST',
-      });
+      const response = await fetch(`/api/admin/shop/orders/${id}/whitepay/fiat`, { method: 'POST' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Не вдалося згенерувати посилання Whitepay Fiat');
+        setError(data.error || 'Не вдалося згенерувати Whitepay Fiat');
         return;
       }
-      await load();
-      setSuccess('Посилання на оплату Whitepay (Fiat) успішно згенеровано та СКОПІЙОВАНО в буфер обміну!');
       if (data.url) {
-        navigator.clipboard.writeText(data.url).catch(() => {});
+        await navigator.clipboard.writeText(data.url).catch(() => {});
         window.open(data.url, '_blank');
       }
+      setSuccess('Whitepay Fiat link generated.');
     } finally {
       setUpdating(false);
     }
   }
 
   async function handleGenerateWhitepayCryptoLink() {
-    if (!id || !order) return;
+    if (!id) return;
     setUpdating(true);
     setError('');
     setSuccess('');
     try {
-      const response = await fetch(`/api/admin/shop/orders/${id}/whitepay/crypto`, {
-        method: 'POST',
-      });
+      const response = await fetch(`/api/admin/shop/orders/${id}/whitepay/crypto`, { method: 'POST' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Не вдалося згенерувати посилання Whitepay Crypto');
+        setError(data.error || 'Не вдалося згенерувати Whitepay Crypto');
         return;
       }
-      await load();
-      setSuccess('Посилання на оплату Whitepay (Crypto) успішно згенеровано та СКОПІЙОВАНО в буфер обміну!');
       if (data.url) {
-        navigator.clipboard.writeText(data.url).catch(() => {});
+        await navigator.clipboard.writeText(data.url).catch(() => {});
         window.open(data.url, '_blank');
       }
+      setSuccess('Whitepay Crypto link generated.');
     } finally {
       setUpdating(false);
     }
   }
 
-
-
   if (loading) {
-    return <div className="p-6 text-white/60">Завантаження замовлення…</div>;
+    return (
+      <AdminPage>
+        <div className="rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+          Завантаження замовлення…
+        </div>
+      </AdminPage>
+    );
   }
 
   if (error && !order) {
     return (
-      <div className="p-6">
-        <p className="text-amber-400">{error}</p>
-        <Link href="/admin/shop/orders" className="mt-4 inline-block text-white/70 hover:text-white">
-          ← Назад до замовлень
+      <AdminPage className="space-y-4">
+        <div className="rounded-[24px] border border-red-500/20 bg-red-950/20 px-4 py-3 text-sm text-red-200">{error}</div>
+        <Link href="/admin/shop/orders" className="inline-block text-sm text-stone-300 hover:text-stone-100">
+          Back to orders
         </Link>
-      </div>
+      </AdminPage>
     );
   }
 
   if (!order) return null;
 
-  const addr = order.shippingAddress as Record<string, string>;
+  const address = order.shippingAddress as Record<string, string>;
+  const outstanding = Math.max(0, order.total - order.amountPaid);
 
   return (
-    <div className="relative min-h-full overflow-auto pb-20">
-      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/5 blur-[120px]" />
-      <div className="mx-auto max-w-[1920px] p-6 lg:p-10">
-        <Link
-          href="/admin/shop/orders"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-white/60 hover:text-white"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Назад до замовлень
-        </Link>
-
-        <div className="rounded-none border border-white/5 bg-white/[0.02] p-6 backdrop-blur-md">
-          <div className="flex flex-wrap items-start justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    void navigator.clipboard.writeText(order.orderNumber);
-                    setSuccess('Номер замовлення скопійовано!');
-                    setTimeout(() => setSuccess(''), 2000);
-                  }}
-                  className="font-mono text-xl font-semibold text-white hover:text-zinc-500 transition-colors cursor-pointer"
-                  title="Натисніть щоб скопіювати"
-                >
-                  {order.orderNumber}
-                </button>
-                <Copy className="h-3.5 w-3.5 text-white/20" />
-              </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className={`inline-flex rounded-none-full border px-2.5 py-1 text-xs capitalize ${statusBadgeClass(order.status)}`}>
-                  {statusLabel(order.status)}
-                </span>
-                {order.amountPaid != null && (
-                  order.amountPaid >= order.total
-                    ? <span className="inline-flex rounded-none-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300">Оплачено</span>
-                    : <span className="inline-flex rounded-none-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs text-rose-300">
-                        Борг: {formatMoney(order.total - order.amountPaid, order.currency)}
-                      </span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => { setPayModalAmount(''); setPayModalMode('add'); setShowPayModal(true); }}
-                  className="inline-flex items-center gap-2 rounded-none border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-medium text-indigo-300 shadow-[0_0_15px_-3px_rgba(99,102,241,0.2)] transition-all hover:border-indigo-500/50 hover:bg-indigo-500/20 hover:text-indigo-200"
-                >
-                  <DollarSign className="h-3.5 w-3.5" />
-                  Внести платіж
-                </button>
-                <span className="text-sm font-light text-white/40">
-                  Створено {new Date(order.createdAt).toLocaleString()}
-                </span>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={copyConfirmationLink}
-                className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
-              >
-                <Copy className="h-4 w-4" />
-                {copyState || 'Копіювати посилання для клієнта'}
-              </button>
-              <a
-                href={confirmationUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
-              >
-                <ExternalLink className="h-4 w-4" />
-                Відкрити перегляд для клієнта
-              </a>
-            </div>
+    <AdminPage className="space-y-6">
+      <AdminPageHeader
+        eyebrow="Order Detail"
+        title={order.orderNumber}
+        description={`${order.customerName} · ${order.email}`}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <AdminStatusBadge tone={statusTone(order.status)}>{statusLabel(order.status)}</AdminStatusBadge>
+            <AdminStatusBadge tone={outstanding > 0 ? 'warning' : 'success'}>
+              {outstanding > 0 ? `Outstanding ${formatMoney(outstanding, order.currency)}` : 'Paid or balanced'}
+            </AdminStatusBadge>
           </div>
+        }
+      />
 
-          {error ? <div className="mt-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
-          {success ? <div className="mt-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
-
-          <PaymentModal
-            order={order}
-            show={showPayModal}
-            onClose={() => setShowPayModal(false)}
-            amount={payModalAmount}
-            setAmount={setPayModalAmount}
-            mode={payModalMode}
-            setMode={setPayModalMode}
-            onSubmit={() => void handleRecordPayment()}
-            updating={updating}
+      <AdminEntityToolbar>
+        <div className="grid flex-1 gap-3 lg:grid-cols-[220px_minmax(0,1fr)]">
+          <AdminSelectField
+            label="Status"
+            value={newStatus}
+            onChange={setNewStatus}
+            options={[order.status, ...order.allowedTransitions].map((status) => ({
+              value: status,
+              label: statusLabel(status),
+            }))}
           />
+          <AdminTextareaField
+            label="Status note"
+            value={statusNote}
+            onChange={setStatusNote}
+            rows={2}
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void handleStatusChange()}
+            disabled={updating || newStatus === order.status}
+            className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+          >
+            <PackageCheck className="h-4 w-4" />
+            Apply status
+          </button>
+          {order.allowedTransitions.map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => void handleStatusChange(status)}
+              disabled={updating}
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-stone-200 transition hover:bg-white/10 disabled:opacity-50"
+            >
+              {statusLabel(status)}
+            </button>
+          ))}
+        </div>
+      </AdminEntityToolbar>
 
+      <AdminMetricGrid>
+        <AdminMetricCard label="Subtotal" value={formatMoney(order.subtotal, order.currency)} />
+        <AdminMetricCard label="Shipping" value={formatMoney(order.shippingCost, order.currency)} meta={order.shippingZoneName || 'No zone'} />
+        <AdminMetricCard label="Tax" value={formatMoney(order.taxAmount, order.currency)} meta={order.taxRegionName || 'No tax rule'} />
+        <AdminMetricCard label="Total" value={formatMoney(order.total, order.currency)} meta={`${order.items.length} items`} tone="accent" />
+      </AdminMetricGrid>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <SummaryCard label="Клієнт" value={order.customerName} detail={order.email} />
-            <SummaryCard label="Зона доставки" value={order.shippingZoneName || 'Не визначено'} detail={order.shippingZoneId || '—'} />
-            {order.amountPaid != null && order.amountPaid < order.total ? (
-              <div className="rounded-none border border-rose-500/20 bg-rose-500/10 p-4 shadow-[0_0_20px_-5px_rgba(244,63,94,0.15)]">
-                <div className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-rose-400">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  Неоплачений борг
-                </div>
-                <div className="mt-2.5 flex items-baseline gap-2">
-                  <div className="text-xl font-bold text-rose-300">{formatMoney(order.total - order.amountPaid, order.currency)}</div>
-                  <div className="text-xs text-rose-300/50">з {formatMoney(order.total, order.currency)}</div>
-                </div>
-                <div className="mt-1 text-xs text-rose-300/60">
-                  Сплачено: {formatMoney(order.amountPaid, order.currency)}
-                </div>
+      <AdminSplitDetailShell
+        main={
+          <>
+            {(error || success) && (
+              <div className={`rounded-[24px] border px-4 py-3 text-sm ${error ? 'border-red-500/20 bg-red-950/20 text-red-200' : 'border-emerald-500/20 bg-emerald-950/20 text-emerald-200'}`}>
+                {error || success}
               </div>
-            ) : (
-              <SummaryCard
-                label="Оплата"
-                value={order.amountPaid != null ? formatMoney(order.amountPaid, order.currency) : '—'}
-                detail={'Оплачено повністю'}
-              />
             )}
-            <SummaryCard label="Відправлення" value={String(order.shipments.length)} detail={`${order.events.length} подій у історії`} />
-          </div>
 
-          <div className="mt-6 rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
-            <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-              <div>
-                <span className="mb-1.5 block text-xs uppercase tracking-wider text-white/50">Примітка до статусу</span>
-                <textarea
-                  value={statusNote}
-                  onChange={(event) => setStatusNote(event.target.value)}
-                  rows={3}
-                  placeholder="Необов'язкова примітка до історії замовлення"
-                  className="box-border w-full resize-none rounded-none border border-white/10 bg-zinc-950/50 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20"
-                />
+            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+              <div className="mb-5">
+                <h2 className="text-xl font-semibold text-stone-100">Customer and shipping snapshot</h2>
+                <p className="mt-1 text-sm text-stone-500">Контакт, B2B context і адреса доставки для поточного fulfillment.</p>
               </div>
-              <div>
-                <span className="mb-1.5 block text-xs uppercase tracking-wider text-white/50">Зміна статусу вручну</span>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                  <select
-                    value={newStatus}
-                    onChange={(event) => setNewStatus(event.target.value)}
-                    className="flex-1 rounded-none border border-white/20 bg-black/40 px-3 py-2 text-sm text-white"
-                  >
-                    {[order.status, ...order.allowedTransitions].map((status) => (
-                      <option key={status} value={status}>
-                        {statusLabel(status)}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => void handleStatusChange()}
-                    disabled={updating || newStatus === order.status}
-                    className="rounded-none bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
-                  >
-                    {updating ? 'Зберігаємо…' : 'Застосувати'}
-                  </button>
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Customer</div>
+                  <div className="mt-3 space-y-2 text-sm text-stone-300">
+                    <div className="text-lg font-medium text-stone-100">{order.customerName}</div>
+                    <div>{order.email}</div>
+                    {order.phone ? <div>{order.phone}</div> : null}
+                    {order.customerGroupSnapshot ? (
+                      <div className="text-xs text-stone-500">
+                        {order.customerGroupSnapshot}
+                        {order.b2bDiscountPercent ? ` · ${order.b2bDiscountPercent}% discount` : ''}
+                        {order.discountNotes ? ` · ${order.discountNotes}` : ''}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <span className="mb-2 block text-xs uppercase tracking-wider text-white/50">Швидкі переходи</span>
-              <div className="flex flex-wrap gap-2">
-                {order.allowedTransitions.length ? (
-                  order.allowedTransitions.map((status) => (
-                    <button
-                      key={status}
-                      type="button"
-                      onClick={() => void handleStatusChange(status)}
-                      disabled={updating}
-                      className="inline-flex items-center gap-2 rounded-none-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10 disabled:opacity-50"
-                    >
-                      <PackageCheck className="h-3.5 w-3.5" />
-                      {statusLabel(status)}
-                    </button>
-                  ))
-                ) : (
-                  <span className="text-xs text-white/35">Немає доступних переходів</span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
-              <p className="mb-2 text-xs uppercase tracking-wider text-white/50">Контакт</p>
-              <p className="text-white text-lg font-medium">{order.customerName}</p>
-              <p className="mt-1 text-white/80">{order.email}</p>
-              {order.phone ? <p className="mt-1 text-white/70">{order.phone}</p> : null}
-              {order.customerGroupSnapshot && order.customerGroupSnapshot !== 'B2C' && (
-                <div className="mt-4 flex flex-wrap items-center gap-2 rounded-none border border-indigo-500/30 bg-zinc-100 text-black/10 px-3 py-2 text-xs font-medium text-zinc-500">
-                  <span>💎 Група: {order.customerGroupSnapshot}</span>
-                  {order.b2bDiscountPercent ? (
-                    <>
-                      <span className="text-white/20">•</span>
-                      <span>Знижка: {order.b2bDiscountPercent}%</span>
-                    </>
-                  ) : null}
-                  {order.discountNotes && (
-                    <>
-                      <span className="text-white/20">•</span>
-                      <span className="text-zinc-400/60 font-mono truncate max-w-[200px]" title={order.discountNotes}>{order.discountNotes}</span>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
-              <p className="mb-2 text-xs uppercase tracking-wider text-white/50">Адреса доставки</p>
-              <p className="text-white/90">{addr.line1}</p>
-              {addr.line2 ? <p className="text-white/80">{addr.line2}</p> : null}
-              <p className="text-white/90">
-                {addr.city}
-                {addr.region ? `, ${addr.region}` : ''} {addr.postcode ?? ''}
-              </p>
-              <p className="text-white/90">{addr.country}</p>
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs uppercase tracking-wider text-white/50">Оплата та Борг</p>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => void handleGenerateWhitepayFiatLink()}
-                    disabled={updating}
-                    className="rounded-none bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs text-indigo-300 hover:bg-indigo-500/20 hover:text-indigo-200 disabled:opacity-50 transition-colors shadow-[0_0_10px_-2px_rgba(99,102,241,0.2)]"
-                  >
-                    Whitepay Лінк (Картка)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleGenerateWhitepayCryptoLink()}
-                    disabled={updating}
-                    className="rounded-none bg-cyan-500/20 px-3 py-1 text-xs text-cyan-300 hover:bg-cyan-500/30 disabled:opacity-50 transition-colors shadow-[0_0_10px_-2px_rgba(6,182,212,0.2)]"
-                  >
-                    Whitepay Лінк (Крипто)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleLogisticsUpdate()}
-                    disabled={updating}
-                    className="rounded-none bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20 disabled:opacity-50 transition-colors"
-                  >
-                    Зберегти
-                  </button>
-                </div>
-              </div>
-              <div className="grid gap-3">
-                <label className="text-sm">
-                  <span className="mb-1 block text-white/70">Статус оплати</span>
-                  <select
-                    value={paymentStatus}
-                    onChange={(e) => setPaymentStatus(e.target.value)}
-                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
-                  >
-                    <option value="UNPAID">Не оплачено</option>
-                    <option value="PARTIALLY_PAID">Оплачено частково</option>
-                    <option value="PAID">Оплачено повністю</option>
-                  </select>
-                </label>
-                <label className="text-sm">
-                  <span className="mb-1 block text-white/70">Сплачена сума (з можливих {formatMoney(order.total, order.currency)})</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={amountPaid}
-                    onChange={(e) => setAmountPaid(e.target.value)}
-                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
-                  />
-                </label>
-              </div>
-            </div>
-
-            <div className="rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
-              <div className="mb-4 flex items-center justify-between">
-                <p className="text-xs uppercase tracking-wider text-white/50">Спецдоставка / ТТН</p>
-                <button
-                  type="button"
-                  onClick={() => void handleLogisticsUpdate()}
-                  disabled={updating}
-                  className="rounded-none bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20 disabled:opacity-50"
-                >
-                  Зберегти
-                </button>
-              </div>
-              <div className="grid gap-3">
-                <label className="text-sm">
-                  <span className="mb-1 block text-white/70">Тип доставки</span>
-                  <select
-                    value={deliveryMethod}
-                    onChange={(e) => setDeliveryMethod(e.target.value)}
-                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
-                  >
-                    <option value="">Не обрано</option>
-                    <option value="NOVA_POSHTA">Нова Пошта</option>
-                    <option value="SPECIAL_DELIVERY">Спецдоставка (OneCompany)</option>
-                    <option value="PICKUP">Самовивіз</option>
-                  </select>
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="text-sm">
-                    <span className="mb-1 block text-white/70">Номер ТТН</span>
-                    <input
-                      type="text"
-                      value={ttnNumber}
-                      onChange={(e) => setTtnNumber(e.target.value)}
-                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
-                    />
-                  </label>
-                  <label className="text-sm">
-                    <span className="mb-1 block text-white/70">Розрахована вартість</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={shippingCalculatedCost}
-                      onChange={(e) => setShippingCalculatedCost(e.target.value)}
-                      placeholder="Авто/Вручну"
-                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-white focus:border-white/30"
-                    />
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-xs uppercase tracking-wider text-white/50">Позиції ({order.items.length})</p>
-              <button
-                type="button"
-                onClick={() => setShowAddItem(!showAddItem)}
-                className="inline-flex items-center gap-1.5 rounded-none border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white hover:bg-white/10 transition-colors"
-              >
-                <Plus className="h-3 w-3" /> Додати позицію
-              </button>
-            </div>
-
-            {/* Add Item Form */}
-            {showAddItem && (
-              <div className="mb-4 rounded-none border border-emerald-500/20 bg-emerald-500/[0.03] p-4">
-                <p className="mb-3 text-xs uppercase tracking-wider text-emerald-400/70">Нова позиція</p>
-                <div className="grid gap-3 sm:grid-cols-[1fr_100px_80px_auto]">
-                  <input
-                    type="text" placeholder="Назва товару" value={newItemTitle}
-                    onChange={e => setNewItemTitle(e.target.value)}
-                    className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                  />
-                  <input
-                    type="number" step="0.01" placeholder="Ціна" value={newItemPrice}
-                    onChange={e => setNewItemPrice(e.target.value)}
-                    className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                  />
-                  <input
-                    type="number" min="1" placeholder="К-ть" value={newItemQty}
-                    onChange={e => setNewItemQty(e.target.value)}
-                    className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      disabled={itemSaving || !newItemTitle || !newItemPrice}
-                      onClick={async () => {
-                        setItemSaving(true);
-                        setError('');
-                        try {
-                          const res = await fetch(`/api/admin/shop/orders/${id}/items`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ title: newItemTitle, price: parseFloat(newItemPrice), quantity: parseInt(newItemQty) || 1 }),
-                          });
-                          if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
-                          setNewItemTitle(''); setNewItemPrice(''); setNewItemQty('1'); setShowAddItem(false);
-                          await load();
-                          setSuccess('Позицію додано.');
-                        } catch (e: any) { setError(e.message); }
-                        finally { setItemSaving(false); }
-                      }}
-                      className="rounded-none bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
-                    >
-                      <Save className="h-3.5 w-3.5" />
-                    </button>
-                    <button type="button" onClick={() => setShowAddItem(false)} className="rounded-none bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20">
-                      <X className="h-3.5 w-3.5" />
-                    </button>
+                <div className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Shipping address</div>
+                  <div className="mt-3 space-y-1 text-sm text-stone-300">
+                    <div>{address.line1 || '—'}</div>
+                    {address.line2 ? <div>{address.line2}</div> : null}
+                    <div>{[address.city, address.region, address.postcode].filter(Boolean).join(', ') || '—'}</div>
+                    <div>{address.country || '—'}</div>
                   </div>
                 </div>
               </div>
-            )}
+            </section>
 
-            <div className="space-y-3">
-              {order.items.map((item) => {
-                const snap = order.pricingSnapshot as any;
-                const itemDetails = snap?.itemDetails as any[] | undefined;
-                const detail = itemDetails?.find((d: any) => d.partNumber === item.productSlug?.replace(/^(admin-|turn14-|draft-)/, '') || d.title === item.title?.replace(/\s*\(.*\)\s*$/, ''));
-                const isEditing = editingItemId === item.id;
+            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+              <div className="mb-5">
+                <h2 className="text-xl font-semibold text-stone-100">Items</h2>
+                <p className="mt-1 text-sm text-stone-500">Current order composition and pricing at line level.</p>
+              </div>
+              <AdminTableShell>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[720px] text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                        <th className="px-4 py-4 font-medium">Item</th>
+                        <th className="px-4 py-4 font-medium">SKU</th>
+                        <th className="px-4 py-4 font-medium">Qty</th>
+                        <th className="px-4 py-4 font-medium">Price</th>
+                        <th className="px-4 py-4 font-medium">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/6">
+                      {order.items.map((item) => (
+                        <tr key={item.id} className="transition hover:bg-white/[0.03]">
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-3">
+                              {item.image ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={item.image} alt={item.title} className="h-10 w-10 rounded-xl border border-white/10 object-cover" />
+                              ) : (
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/25">
+                                  <Package className="h-4 w-4 text-stone-600" />
+                                </div>
+                              )}
+                              <div>
+                                <div className="font-medium text-stone-100">{item.title}</div>
+                                {item.productSlug ? <div className="mt-1 text-xs text-stone-500">{item.productSlug}</div> : null}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 font-mono text-xs text-stone-400">{item.productSlug || '—'}</td>
+                          <td className="px-4 py-4 text-stone-300">{item.quantity}</td>
+                          <td className="px-4 py-4 text-stone-300">{formatMoney(item.price, order.currency)}</td>
+                          <td className="px-4 py-4 font-medium text-stone-100">{formatMoney(item.total, order.currency)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </AdminTableShell>
+            </section>
 
-                return (
-                  <div key={item.id} className="rounded-none border border-white/5 bg-white/[0.02] p-3">
-                    {isEditing ? (
-                      <div className="grid gap-3 sm:grid-cols-[1fr_100px_80px_auto]">
-                        <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
-                          className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none" />
-                        <input type="number" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)}
-                          className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none" />
-                        <input type="number" min="1" value={editQty} onChange={e => setEditQty(e.target.value)}
-                          className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none" />
-                        <div className="flex gap-2">
-                          <button type="button" disabled={itemSaving}
-                            onClick={async () => {
-                              setItemSaving(true); setError('');
-                              try {
-                                const res = await fetch(`/api/admin/shop/orders/${id}/items`, {
-                                  method: 'PATCH',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ itemId: item.id, title: editTitle, price: parseFloat(editPrice), quantity: parseInt(editQty) }),
-                                });
-                                if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
-                                setEditingItemId(null); await load(); setSuccess('Позицію оновлено.');
-                              } catch (e: any) { setError(e.message); }
-                              finally { setItemSaving(false); }
-                            }}
-                            className="rounded-none bg-zinc-100 text-black px-3 py-2 text-xs hover:bg-zinc-100 text-black disabled:opacity-50"
-                          ><Save className="h-3.5 w-3.5" /></button>
-                          <button type="button" onClick={() => setEditingItemId(null)} className="rounded-none bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20">
-                            <X className="h-3.5 w-3.5" />
+            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+              <div className="mb-5">
+                <h2 className="text-xl font-semibold text-stone-100">Shipments</h2>
+                <p className="mt-1 text-sm text-stone-500">Tracking records and shipment state transitions tied to the order.</p>
+              </div>
+              <div className="space-y-4">
+                {order.shipments.map((shipment) => {
+                  const draft = shipmentDrafts[shipment.id];
+                  if (!draft) return null;
+                  return (
+                    <div key={shipment.id} className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4">
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <AdminStatusBadge tone={shipmentTone(shipment.status)}>{shipment.status.replace(/_/g, ' ')}</AdminStatusBadge>
+                          <span className="font-medium text-stone-100">{shipment.trackingNumber}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => void handleUpdateShipment(shipment.id)}
+                            disabled={shipmentSavingId === shipment.id}
+                            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-stone-200 transition hover:bg-white/10 disabled:opacity-50"
+                          >
+                            <Save className="h-3.5 w-3.5" />
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void handleDeleteShipment(shipment.id)}
+                            disabled={shipmentDeletingId === shipment.id}
+                            className="rounded-full border border-red-500/20 bg-red-950/20 px-3 py-2 text-xs text-red-200 transition hover:bg-red-950/30 disabled:opacity-50"
+                          >
+                            Delete
                           </button>
                         </div>
                       </div>
-                    ) : (
-                      <div className="flex flex-wrap items-start justify-between gap-4">
-                        <div className="flex min-w-0 flex-1 items-start gap-4">
-                          {item.image ? (
-                            <div className="w-12 h-12 rounded-none bg-white/5 border border-white/10 overflow-hidden flex-shrink-0 relative">
-                              <img src={item.image} alt={item.title} className="object-cover w-full h-full" />
-                            </div>
-                          ) : (
-                            <div className="w-12 h-12 rounded-none bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                              <Package className="w-5 h-5 text-white/20" />
-                            </div>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <div className="text-sm text-white font-medium truncate max-w-[400px]">{item.title}</div>
-                            <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-white/45">
-                              {detail?.partNumber ? (
-                                <span className="text-zinc-400 font-mono tracking-wider">{detail.partNumber}</span>
-                              ) : item.productSlug && (
-                                <span className="text-zinc-400 font-mono tracking-wider">
-                                  {item.productSlug.replace(/^(admin-|turn14-|draft-|crm-)\d*-?/, '').replace(/-[a-z0-9]{6,}$/, '') || item.productSlug}
-                                </span>
-                              )}
-                              {detail?.brand && <span className="text-white/40">{detail.brand}</span>}
-                              <span className="text-white/30 px-1">•</span>
-                              <span className="text-white/60">{item.quantity} × {formatMoney(item.price, order.currency)}</span>
-                              {detail?.turn14Id && <span className="text-white/25">T14: {detail.turn14Id}</span>}
-                            </div>
-                            {detail && (
-                              <div className="mt-2 flex flex-wrap gap-3 text-[10px] uppercase tracking-wider">
-                                {detail.baseCostUsd != null && (
-                                  <span className="rounded-none border border-blue-500/15 bg-zinc-100 text-black/5 px-2 py-0.5 text-zinc-500">Закупка: ${detail.baseCostUsd}</span>
-                                )}
-                                {detail.markupPct != null && (
-                                  <span className="rounded-none border border-amber-500/15 bg-amber-500/5 px-2 py-0.5 text-amber-300">Націнка: {detail.markupPct}%</span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <div className="text-white font-medium">{formatMoney(item.total, order.currency)}</div>
-                          </div>
-                          <div className="flex gap-1">
-                            <button type="button" title="Редагувати"
-                              onClick={() => { setEditingItemId(item.id); setEditTitle(item.title); setEditPrice(String(item.price)); setEditQty(String(item.quantity)); }}
-                              className="rounded-none border border-white/10 bg-white/5 p-1.5 text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-                            ><Pencil className="h-3 w-3" /></button>
-                            <button type="button" title="Видалити"
-                              onClick={async () => {
-                                if (!confirm('Видалити цю позицію?')) return;
-                                setItemSaving(true); setError('');
-                                try {
-                                  const res = await fetch(`/api/admin/shop/orders/${id}/items`, {
-                                    method: 'DELETE',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ itemId: item.id }),
-                                  });
-                                  if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
-                                  await load(); setSuccess('Позицію видалено.');
-                                } catch (e: any) { setError(e.message); }
-                                finally { setItemSaving(false); }
-                              }}
-                              className="rounded-none border border-red-500/20 bg-red-950/30 border border-red-900/50 text-red-500/5 p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-950/30 border border-red-900/50 text-red-500/10 transition-colors"
-                            ><Trash2 className="h-3 w-3" /></button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              {order.items.length === 0 && (
-                <div className="py-8 text-center text-sm text-white/30">
-                  Немає позицій. Натисніть «Додати позицію» щоб внести товари.
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Pricing breakdown from snapshot */}
-          {order.pricingSnapshot ? (() => {
-            const snap = order.pricingSnapshot as Record<string, any>;
-            const shippingCalc = snap?.shippingCalc;
-            return (
-            <div className="mt-4 rounded-none border border-indigo-500/10 bg-zinc-100 text-black/[0.02] p-4">
-              <p className="mb-3 text-xs uppercase tracking-wider text-zinc-400/60">Розрахунок ціни (Pricing Snapshot)</p>
-                <div className="grid gap-3 md:grid-cols-2 text-xs">
-                    {snap?.source && (
-                      <div className="rounded-none border border-white/10 bg-black/30 p-3">
-                        <div className="text-white/40 mb-1">Джерело</div>
-                        <div className="text-white/80">{snap.source === 'admin_manual' ? 'Створено адміном' : snap.source === 'turn14_catalog' ? 'Turn14 каталог' : String(snap.source)}</div>
-                        {snap.zone && <div className="text-white/50 mt-1">Зона: {String(snap.zone)}</div>}
-                        {snap.customerDiscount != null && Number(snap.customerDiscount) > 0 && (
-                          <div className="text-emerald-400/70 mt-1">Знижка клієнта: {String(snap.customerDiscount)}%</div>
-                        )}
-                      </div>
-                    )}
-                    {shippingCalc && (
-                      <div className="rounded-none border border-white/10 bg-black/30 p-3">
-                        <div className="text-white/40 mb-1">Доставка (розрахунок)</div>
-                        <div className="space-y-0.5 text-white/70">
-                          {shippingCalc.totalWeightKg != null && <div>Факт. вага: {Number(shippingCalc.totalWeightKg).toFixed(2)} кг</div>}
-                          {shippingCalc.totalVolWeightKg != null && <div>Об&apos;ємна вага: {Number(shippingCalc.totalVolWeightKg).toFixed(2)} кг</div>}
-                          {shippingCalc.volSurchargeKg != null && Number(shippingCalc.volSurchargeKg) > 0 && (
-                            <div>Об&apos;ємна доплата: {Number(shippingCalc.volSurchargeKg).toFixed(2)} кг</div>
-                          )}
-                          {shippingCalc.ratePerKg != null && <div>Ставка: ${String(shippingCalc.ratePerKg)}/кг</div>}
-                          {shippingCalc.volSurchargePerKg != null && <div>Об&apos;ємна ставка: ${String(shippingCalc.volSurchargePerKg)}/кг</div>}
-                          {shippingCalc.autoShippingTotal != null && (
-                            <div className="pt-1 border-t border-white/10 font-medium text-white/90">
-                              Авто-розрахунок: ${Number(shippingCalc.autoShippingTotal).toFixed(2)}
-                              {shippingCalc.overridden && <span className="text-amber-400/70 ml-2">(перевизначено)</span>}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {snap?.notes && (
-                      <div className="rounded-none border border-white/10 bg-black/30 p-3 md:col-span-2">
-                        <div className="text-white/40 mb-1">Примітки</div>
-                        <div className="text-white/70">{String(snap.notes)}</div>
-                      </div>
-                    )}
-                  </div>
-            </div>
-            );
-          })() : null}
-
-          <div className="mt-6 rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
-            <div className="grid gap-3 text-sm">
-              <SummaryRow label="Підсумок" value={formatMoney(order.subtotal, order.currency)} />
-              <SummaryRow label="Доставка" value={formatMoney(order.shippingCost, order.currency)} />
-              <SummaryRow label="Податок" value={formatMoney(order.taxAmount, order.currency)} />
-              <SummaryRow label="Всього" value={formatMoney(order.total, order.currency)} strong />
-            </div>
-            <div className="mt-4 text-xs text-white/40">
-              Оновлено {new Date(order.updatedAt).toLocaleString()}
-            </div>
-          </div>
-
-          <div className="mt-6 border-t border-white/10 pt-6">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <p className="text-xs uppercase tracking-wider text-white/50">Відправлення</p>
-              <span className="text-xs text-white/40">
-                Оновлення відстеження можуть автоматично змінювати статус замовлення.
-              </span>
-            </div>
-
-            <div className="space-y-4">
-              {order.shipments.map((shipment) => {
-                const draft = shipmentDrafts[shipment.id] ?? buildShipmentDraft(shipment);
-                return (
-                  <div key={shipment.id} className="rounded-none border border-white/10 bg-black/30 p-4">
-                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <div className="text-sm font-medium text-white">
-                          {shipment.carrier} · {shipment.trackingNumber}
-                        </div>
-                        <div className="mt-1 text-xs text-white/45">
-                          Створено {new Date(shipment.createdAt).toLocaleString()}
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {shipment.trackingUrl ? (
-                          <a
-                            href={shipment.trackingUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-white hover:bg-zinc-800"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" />
-                            Посилання на відстеження
-                          </a>
-                        ) : null}
-                        <button
-                          type="button"
-                          onClick={() => void handleDeleteShipment(shipment.id)}
-                          disabled={shipmentDeletingId === shipment.id}
-                          className="rounded-none border border-red-500/25 bg-red-950/30 border border-red-900/50 text-red-500/10 px-3 py-2 text-xs text-red-200 hover:bg-red-950/30 border border-red-900/50 text-red-500/15 disabled:opacity-50"
-                        >
-                          Видалити
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <Field label="Перевізник">
-                        <input
-                          value={draft.carrier}
-                          onChange={(event) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, carrier: event.target.value },
-                            }))
-                          }
-                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                        />
-                      </Field>
-                      <Field label="Рівень сервісу">
-                        <input
-                          value={draft.serviceLevel}
-                          onChange={(event) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, serviceLevel: event.target.value },
-                            }))
-                          }
-                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                        />
-                      </Field>
-                      <Field label="Номер відстеження">
-                        <input
-                          value={draft.trackingNumber}
-                          onChange={(event) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, trackingNumber: event.target.value },
-                            }))
-                          }
-                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                        />
-                      </Field>
-                      <Field label="URL відстеження">
-                        <input
-                          value={draft.trackingUrl}
-                          onChange={(event) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, trackingUrl: event.target.value },
-                            }))
-                          }
-                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                        />
-                      </Field>
-                      <Field label="Shipment status">
-                        <select
+                      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        <AdminInputField label="Carrier" value={draft.carrier} onChange={(value) => setShipmentDrafts((current) => ({ ...current, [shipment.id]: { ...draft, carrier: value } }))} />
+                        <AdminInputField label="Service level" value={draft.serviceLevel} onChange={(value) => setShipmentDrafts((current) => ({ ...current, [shipment.id]: { ...draft, serviceLevel: value } }))} />
+                        <AdminInputField label="Tracking number" value={draft.trackingNumber} onChange={(value) => setShipmentDrafts((current) => ({ ...current, [shipment.id]: { ...draft, trackingNumber: value } }))} />
+                        <AdminInputField label="Tracking URL" value={draft.trackingUrl} onChange={(value) => setShipmentDrafts((current) => ({ ...current, [shipment.id]: { ...draft, trackingUrl: value } }))} />
+                        <AdminSelectField
+                          label="Shipment status"
                           value={draft.status}
-                          onChange={(event) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, status: event.target.value as ShipmentStatus },
-                            }))
-                          }
-                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                        >
-                          {SHIPMENT_STATUS_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </Field>
-                      <Field label="Дата відправлення">
-                        <input
-                          type="datetime-local"
-                          value={draft.shippedAt}
-                          onChange={(event) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, shippedAt: event.target.value },
-                            }))
-                          }
-                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                          onChange={(value) => setShipmentDrafts((current) => ({ ...current, [shipment.id]: { ...draft, status: value as ShipmentStatus } }))}
+                          options={SHIPMENT_STATUS_OPTIONS}
                         />
-                      </Field>
-                      <Field label="Дата доставки">
-                        <input
-                          type="datetime-local"
-                          value={draft.deliveredAt}
-                          onChange={(event) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, deliveredAt: event.target.value },
-                            }))
-                          }
-                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                        />
-                      </Field>
-                      <Field label="Примітки">
-                        <input
+                        <AdminInputField label="Shipped at" value={draft.shippedAt} onChange={(value) => setShipmentDrafts((current) => ({ ...current, [shipment.id]: { ...draft, shippedAt: value } }))} type="datetime-local" />
+                        <AdminInputField label="Delivered at" value={draft.deliveredAt} onChange={(value) => setShipmentDrafts((current) => ({ ...current, [shipment.id]: { ...draft, deliveredAt: value } }))} type="datetime-local" />
+                      </div>
+                      <div className="mt-4">
+                        <AdminTextareaField
+                          label="Shipment notes"
                           value={draft.notes}
-                          onChange={(event) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, notes: event.target.value },
-                            }))
-                          }
-                          className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
+                          onChange={(value) => setShipmentDrafts((current) => ({ ...current, [shipment.id]: { ...draft, notes: value } }))}
+                          rows={3}
                         />
-                      </Field>
+                      </div>
                     </div>
+                  );
+                })}
 
-                    <div className="mt-4 flex justify-end">
+                <div className="rounded-[24px] border border-dashed border-white/10 px-4 py-4">
+                  <div className="mb-4 flex items-center gap-2 text-stone-100">
+                    <Truck className="h-4 w-4 text-amber-100/60" />
+                    <span className="font-medium">Create shipment</span>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <AdminInputField label="Carrier" value={newShipment.carrier} onChange={(value) => setNewShipment((current) => ({ ...current, carrier: value }))} />
+                    <AdminInputField label="Service level" value={newShipment.serviceLevel} onChange={(value) => setNewShipment((current) => ({ ...current, serviceLevel: value }))} />
+                    <AdminInputField label="Tracking number" value={newShipment.trackingNumber} onChange={(value) => setNewShipment((current) => ({ ...current, trackingNumber: value }))} />
+                    <AdminInputField label="Tracking URL" value={newShipment.trackingUrl} onChange={(value) => setNewShipment((current) => ({ ...current, trackingUrl: value }))} />
+                    <AdminSelectField label="Shipment status" value={newShipment.status} onChange={(value) => setNewShipment((current) => ({ ...current, status: value as ShipmentStatus }))} options={SHIPMENT_STATUS_OPTIONS} />
+                    <AdminInputField label="Shipped at" value={newShipment.shippedAt} onChange={(value) => setNewShipment((current) => ({ ...current, shippedAt: value }))} type="datetime-local" />
+                  </div>
+                  <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto]">
+                    <AdminTextareaField label="Shipment notes" value={newShipment.notes} onChange={(value) => setNewShipment((current) => ({ ...current, notes: value }))} rows={3} />
+                    <div className="flex items-end">
                       <button
                         type="button"
-                        onClick={() => void handleUpdateShipment(shipment.id)}
-                        disabled={shipmentSavingId === shipment.id}
-                        className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
+                        onClick={() => void handleCreateShipment()}
+                        disabled={shipmentSavingId === 'new'}
+                        className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
                       >
-                        <Truck className="h-4 w-4" />
-                        {shipmentSavingId === shipment.id ? 'Зберігаємо…' : 'Зберегти відправлення'}
+                        Create shipment
                       </button>
                     </div>
                   </div>
-                );
-              })}
-
-              <div className="rounded-none border border-dashed border-white/10 bg-black/20 p-4">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-medium text-white">Нове відправлення</div>
-                    <div className="mt-1 text-xs text-white/45">
-                      Add carrier and tracking data for this order.
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Перевізник">
-                    <input
-                      value={newShipment.carrier}
-                      onChange={(event) =>
-                        setNewShipment((current) => ({ ...current, carrier: event.target.value }))
-                      }
-                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                    />
-                  </Field>
-                  <Field label="Рівень сервісу">
-                    <input
-                      value={newShipment.serviceLevel}
-                      onChange={(event) =>
-                        setNewShipment((current) => ({ ...current, serviceLevel: event.target.value }))
-                      }
-                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                    />
-                  </Field>
-                  <Field label="Номер відстеження">
-                    <input
-                      value={newShipment.trackingNumber}
-                      onChange={(event) =>
-                        setNewShipment((current) => ({ ...current, trackingNumber: event.target.value }))
-                      }
-                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                    />
-                  </Field>
-                  <Field label="URL відстеження">
-                    <input
-                      value={newShipment.trackingUrl}
-                      onChange={(event) =>
-                        setNewShipment((current) => ({ ...current, trackingUrl: event.target.value }))
-                      }
-                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                    />
-                  </Field>
-                  <Field label="Shipment status">
-                    <select
-                      value={newShipment.status}
-                      onChange={(event) =>
-                        setNewShipment((current) => ({
-                          ...current,
-                          status: event.target.value as ShipmentStatus,
-                        }))
-                      }
-                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                    >
-                      {SHIPMENT_STATUS_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label="Дата відправлення">
-                    <input
-                      type="datetime-local"
-                      value={newShipment.shippedAt}
-                      onChange={(event) =>
-                        setNewShipment((current) => ({ ...current, shippedAt: event.target.value }))
-                      }
-                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                    />
-                  </Field>
-                  <Field label="Дата доставки">
-                    <input
-                      type="datetime-local"
-                      value={newShipment.deliveredAt}
-                      onChange={(event) =>
-                        setNewShipment((current) => ({ ...current, deliveredAt: event.target.value }))
-                      }
-                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                    />
-                  </Field>
-                  <Field label="Примітки">
-                    <input
-                      value={newShipment.notes}
-                      onChange={(event) =>
-                        setNewShipment((current) => ({ ...current, notes: event.target.value }))
-                      }
-                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-                    />
-                  </Field>
-                </div>
-
-                <div className="mt-4 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => void handleCreateShipment()}
-                    disabled={shipmentSavingId === 'new'}
-                    className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
-                  >
-                    <Truck className="h-4 w-4" />
-                    {shipmentSavingId === 'new' ? 'Створюємо…' : 'Створити відправлення'}
-                  </button>
                 </div>
               </div>
-            </div>
-          </div>
+            </section>
 
-          <div className="mt-6 border-t border-white/10 pt-6">
-            <p className="mb-3 text-xs uppercase tracking-wider text-white/50">Історія</p>
-            <div className="space-y-3">
-              {order.events.length ? (
-                order.events.map((event) => (
-                  <div key={event.id} className="rounded-none border border-white/10 bg-black/30 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="text-sm text-white">
-                        {event.fromStatus
-                          ? `${statusLabel(event.fromStatus)} → ${statusLabel(event.toStatus)}`
-                          : statusLabel(event.toStatus)}
-                      </div>
-                      <div className="text-xs text-white/45">{new Date(event.createdAt).toLocaleString()}</div>
-                    </div>
-                    <div className="mt-2 text-xs text-white/45">
-                      {event.actorType}
-                      {event.actorName ? ` · ${event.actorName}` : ''}
-                    </div>
-                    {event.note ? <div className="mt-2 text-sm text-white/75">{event.note}</div> : null}
-                  </div>
-                ))
-              ) : (
-                <div className="text-sm text-white/45">Подій поки немає.</div>
-              )}
-            </div>
-          </div>
-
-          {order.pricingSnapshot ? (
-            <div className="mt-6 border-t border-white/10 pt-6">
-              <p className="mb-3 text-xs uppercase tracking-wider text-white/50">Знімок розрахунку</p>
-              <pre className="overflow-x-auto rounded-none border border-white/10 bg-black/30 p-4 text-xs text-white/65">
-                {JSON.stringify(order.pricingSnapshot, null, 2)}
+            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+              <div className="mb-5">
+                <h2 className="text-xl font-semibold text-stone-100">Pricing snapshot</h2>
+                <p className="mt-1 text-sm text-stone-500">Stored pricing snapshot for audit and manual review.</p>
+              </div>
+              <pre className="overflow-x-auto rounded-[24px] border border-white/10 bg-black/25 p-4 text-[11px] text-stone-400">
+                {JSON.stringify(order.pricingSnapshot ?? {}, null, 2)}
               </pre>
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  );
-}
+            </section>
 
-type FieldProps = {
-  label: string;
-  children: React.ReactNode;
-};
+            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+              <div className="mb-5">
+                <h2 className="text-xl font-semibold text-stone-100">Timeline</h2>
+                <p className="mt-1 text-sm text-stone-500">Status transitions and admin notes captured on the order.</p>
+              </div>
+              <AdminTimelineList
+                items={order.events.map((event) => ({
+                  id: event.id,
+                  title: `${event.fromStatus ? `${statusLabel(event.fromStatus)} → ` : ''}${statusLabel(event.toStatus)}`,
+                  meta: `${event.actorName || event.actorType} · ${new Date(event.createdAt).toLocaleString()}`,
+                  body: event.note || undefined,
+                  tone: event.toStatus === 'DELIVERED' ? 'success' : event.toStatus === 'CANCELLED' ? 'danger' : 'warning',
+                }))}
+                empty="No order events yet."
+              />
+            </section>
+          </>
+        }
+        sidebar={
+          <>
+            <AdminInspectorCard
+              title="Order meta"
+              description="Identifiers, created dates and routing context."
+            >
+              <AdminKeyValueGrid
+                rows={[
+                  { label: 'Order id', value: order.id },
+                  { label: 'Created', value: new Date(order.createdAt).toLocaleString() },
+                  { label: 'Updated', value: new Date(order.updatedAt).toLocaleString() },
+                  { label: 'Shipping zone', value: order.shippingZoneName || '—' },
+                  { label: 'Tax rule', value: order.taxRegionName || '—' },
+                ]}
+              />
+            </AdminInspectorCard>
 
-function Field({ label, children }: FieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{label}</span>
-      {children}
-    </label>
-  );
-}
+            <AdminInspectorCard
+              title="Payment and fulfillment"
+              description="Manager-controlled payment state and manual logistics override."
+            >
+              <div className="space-y-4">
+                <AdminSelectField
+                  label="Payment status"
+                  value={paymentStatus}
+                  onChange={setPaymentStatus}
+                  options={[
+                    { value: 'UNPAID', label: 'Не оплачено' },
+                    { value: 'PARTIALLY_PAID', label: 'Оплачено частково' },
+                    { value: 'PAID', label: 'Оплачено повністю' },
+                  ]}
+                />
+                <AdminInputField label="Amount paid" value={amountPaid} onChange={setAmountPaid} type="number" step="0.01" />
+                <AdminSelectField
+                  label="Delivery method"
+                  value={deliveryMethod}
+                  onChange={setDeliveryMethod}
+                  options={[
+                    { value: '', label: 'Не обрано' },
+                    { value: 'NOVA_POSHTA', label: 'Нова Пошта' },
+                    { value: 'SPECIAL_DELIVERY', label: 'Спецдоставка (OneCompany)' },
+                    { value: 'PICKUP', label: 'Самовивіз' },
+                  ]}
+                />
+                <AdminInputField label="TTN number" value={ttnNumber} onChange={setTtnNumber} />
+                <AdminInputField
+                  label="Shipping override"
+                  value={shippingCalculatedCost}
+                  onChange={setShippingCalculatedCost}
+                  type="number"
+                  step="0.01"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handlePaymentAndFulfillmentSave()}
+                  disabled={updating}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+                >
+                  <Save className="h-4 w-4" />
+                  Save payment & fulfillment
+                </button>
+              </div>
+            </AdminInspectorCard>
 
-type SummaryCardProps = {
-  label: string;
-  value: string;
-  detail: string;
-};
-
-function PaymentModal({ order, show, onClose, amount, setAmount, mode, setMode, onSubmit, updating }: {
-  order: OrderDetail;
-  show: boolean;
-  onClose: () => void;
-  amount: string;
-  setAmount: (v: string) => void;
-  mode: 'add' | 'set';
-  setMode: (v: 'add' | 'set') => void;
-  onSubmit: () => void;
-  updating: boolean;
-}) {
-  if (!show) return null;
-  const currentPaid = order.amountPaid || 0;
-  const debt = order.total - currentPaid;
-  const paidPct = order.total > 0 ? Math.min(100, Math.round((currentPaid / order.total) * 100)) : 0;
-
-  const presets = [
-    { label: '25%', value: Math.round(debt * 0.25 * 100) / 100 },
-    { label: '50%', value: Math.round(debt * 0.5 * 100) / 100 },
-    { label: '100%', value: Math.round(debt * 100) / 100 },
-  ];
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="relative w-full max-w-md mx-4 rounded-none border border-white/10 bg-zinc-950 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-4 top-4 text-white/40 hover:text-white transition-colors">✕</button>
-
-        <h3 className="text-lg font-medium text-white mb-1">Записати оплату</h3>
-        <p className="text-sm text-white/50 mb-5">
-          Замовлення {order.orderNumber} · {formatMoney(order.total, order.currency)}
-        </p>
-
-        {/* Progress bar */}
-        <div className="mb-5">
-          <div className="flex items-center justify-between text-xs text-white/50 mb-2">
-            <span>Оплачено: {formatMoney(currentPaid, order.currency)}</span>
-            <span>{paidPct}%</span>
-          </div>
-          <div className="h-2 w-full rounded-none-full bg-white/10 overflow-hidden">
-            <div
-              className="h-full rounded-none-full transition-all duration-500"
-              style={{
-                width: paidPct + '%',
-                background: paidPct >= 100
-                  ? 'linear-gradient(90deg, #22c55e, #10b981)'
-                  : paidPct > 0
-                    ? 'linear-gradient(90deg, #3b82f6, #6366f1)'
-                    : 'transparent',
-              }}
-            />
-          </div>
-          {debt > 0 && (
-            <p className="text-xs text-amber-400 mt-1.5">Залишок боргу: {formatMoney(debt, order.currency)}</p>
-          )}
-        </div>
-
-        {/* Mode selector */}
-        <div className="flex gap-2 mb-4">
-          <button
-            type="button"
-            onClick={() => setMode('add')}
-            className={`flex-1 rounded-none border px-3 py-2 text-xs font-medium transition-colors ${mode === 'add' ? 'border-blue-500/50 bg-zinc-100 text-black/15 text-zinc-500' : 'border-white/10 bg-white/5 text-white/50 hover:bg-white/10'}`}
-          >
-            + Додати суму
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode('set')}
-            className={`flex-1 rounded-none border px-3 py-2 text-xs font-medium transition-colors ${mode === 'set' ? 'border-blue-500/50 bg-zinc-100 text-black/15 text-zinc-500' : 'border-white/10 bg-white/5 text-white/50 hover:bg-white/10'}`}
-          >
-            = Встановити суму
-          </button>
-        </div>
-
-        {/* Amount input */}
-        <div className="mb-4">
-          <label className="block text-xs text-white/60 mb-1.5">
-            {mode === 'add' ? 'Сума платежу (+ додати / − зняти)' : 'Нова загальна сплачена сума'}
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder={mode === 'add' ? 'Наприклад: 5000' : String(order.total)}
-            className="w-full rounded-none border border-white/15 bg-black/60 px-4 py-3 text-lg text-white placeholder-white/20 focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-colors"
-            autoFocus
-          />
-        </div>
-
-        {/* Quick presets (only in add mode and with debt) */}
-        {mode === 'add' && debt > 0 && (
-          <div className="flex gap-2 mb-4">
-            {presets.map((p) => (
-              <button
-                key={p.label}
-                type="button"
-                onClick={() => setAmount(String(p.value))}
-                className="flex-1 rounded-none border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-              >
-                {p.label} ({formatMoney(p.value, order.currency)})
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Preview */}
-        {amount && !isNaN(parseFloat(amount)) && (
-          <div className="mb-4 rounded-none border border-white/10 bg-white/[0.03] p-3 text-xs text-white/60">
-            {(() => {
-              const val = parseFloat(amount);
-              const newPaid = mode === 'add' ? currentPaid + val : val;
-              const newDebt = order.total - Math.max(0, newPaid);
-              return (
-                <>
-                  <div className="flex justify-between mb-1">
-                    <span>Нова сплачена сума:</span>
-                    <span className="text-white font-medium">{formatMoney(Math.max(0, newPaid), order.currency)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Залишок боргу:</span>
-                    <span className={newDebt <= 0 ? 'text-emerald-400 font-medium' : 'text-amber-400 font-medium'}>
-                      {newDebt <= 0 ? 'Погашено' : formatMoney(newDebt, order.currency)}
-                    </span>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        )}
-
-        {/* Action buttons */}
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 rounded-none border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/70 hover:bg-white/10 transition-colors"
-          >
-            Скасувати
-          </button>
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={updating || !amount || isNaN(parseFloat(amount))}
-            className="flex-1 rounded-none bg-zinc-100 text-black px-4 py-2.5 text-sm font-medium hover:bg-zinc-100 text-black disabled:opacity-40 disabled:hover:bg-zinc-100 text-black transition-colors"
-          >
-            {updating ? 'Зберігаю…' : 'Записати'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SummaryCard({ label, value, detail }: SummaryCardProps) {
-  return (
-    <div className="rounded-none border border-white/5 bg-white/[0.02] p-4 backdrop-blur-md">
-      <div className="text-xs uppercase tracking-[0.18em] text-white/40">{label}</div>
-      <div className="mt-3 text-lg font-semibold text-white">{value}</div>
-      <div className="mt-1 text-sm text-white/45">{detail}</div>
-    </div>
-  );
-}
-
-type SummaryRowProps = {
-  label: string;
-  value: string;
-  strong?: boolean;
-};
-
-function SummaryRow({ label, value, strong = false }: SummaryRowProps) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className={`text-white/55 ${strong ? 'font-medium' : ''}`}>{label}</span>
-      <span className={strong ? 'font-semibold text-white' : 'text-white/80'}>{value}</span>
-    </div>
+            <AdminInspectorCard
+              title="Customer link"
+              description="Customer-facing order confirmation and payment shortcuts."
+            >
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => void copyConfirmationLink()}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10"
+                >
+                  <Copy className="h-4 w-4" />
+                  {copyState || 'Copy customer link'}
+                </button>
+                <a
+                  href={confirmationUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Open customer view
+                </a>
+                <button
+                  type="button"
+                  onClick={() => void handleGenerateWhitepayFiatLink()}
+                  disabled={updating}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-200 transition hover:bg-indigo-500/15 disabled:opacity-50"
+                >
+                  <DollarSign className="h-4 w-4" />
+                  Whitepay Fiat
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleGenerateWhitepayCryptoLink()}
+                  disabled={updating}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-200 transition hover:bg-cyan-500/15 disabled:opacity-50"
+                >
+                  Whitepay Crypto
+                </button>
+              </div>
+            </AdminInspectorCard>
+          </>
+        }
+      />
+    </AdminPage>
   );
 }

@@ -2,7 +2,20 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, RefreshCcw, Search, Users, Database } from 'lucide-react';
+import { ArrowRight, Database, RefreshCcw, Search, Users } from 'lucide-react';
+
+import {
+  AdminActionBar,
+  AdminEmptyState,
+  AdminFilterBar,
+  AdminInlineAlert,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminPage,
+  AdminPageHeader,
+  AdminStatusBadge,
+  AdminTableShell,
+} from '@/components/admin/AdminPrimitives';
 
 type CustomerGroup = 'B2C' | 'B2B_PENDING' | 'B2B_APPROVED';
 
@@ -27,14 +40,14 @@ type CustomerListItem = {
   };
 };
 
-function groupBadge(group: CustomerGroup) {
+function groupTone(group: CustomerGroup): 'default' | 'success' | 'warning' {
   switch (group) {
     case 'B2B_APPROVED':
-      return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-100';
+      return 'success';
     case 'B2B_PENDING':
-      return 'border-amber-500/30 bg-amber-500/10 text-amber-100';
+      return 'warning';
     default:
-      return 'border-white/10 bg-white/5 text-white/70';
+      return 'default';
   }
 }
 
@@ -54,12 +67,7 @@ export default function AdminShopCustomersPage() {
       if (status === 'active' && !customer.isActive) return false;
       if (status === 'inactive' && customer.isActive) return false;
       if (!needle) return true;
-      return [
-        customer.email,
-        customer.fullName,
-        customer.companyName,
-        customer.phone,
-      ]
+      return [customer.email, customer.fullName, customer.companyName, customer.phone]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(needle));
     });
@@ -93,151 +101,154 @@ export default function AdminShopCustomersPage() {
 
   if (loading) {
     return (
-      <div className="p-6 text-white/60 flex items-center gap-2">
-        <Users className="h-5 w-5 animate-pulse" />
-        Loading customers…
-      </div>
+      <AdminPage>
+        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+          <Users className="h-4 w-4 animate-pulse" />
+          Loading customers…
+        </div>
+      </AdminPage>
     );
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="w-full px-6 md:px-12 py-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-white">Customers</h2>
-            <p className="mt-2 text-sm text-white/45">
-              Public shop customers, B2B approval state, carts and order activity.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Link
-              href="/admin/shop/customers/new"
-              className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300"
-            >
-              Створити клієнта
-            </Link>
-            <button
-              type="button"
-              onClick={() => void refresh()}
-              disabled={refreshing}
-              className="inline-flex items-center gap-2 rounded-none border border-white/[0.08] bg-transparent hover:bg-white/5 transition-all duration-300 px-4 py-2 text-sm font-medium text-white/80 hover:text-white disabled:opacity-50"
-            >
-              <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-          </div>
+    <AdminPage className="space-y-6">
+      <AdminPageHeader
+        eyebrow="Customers"
+        title="Customer Ops"
+        description="B2C і B2B клієнти, approval state, account readiness і активність замовлень в одному робочому центрі."
+        actions={
+          <Link
+            href="/admin/shop/customers/new"
+            className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200"
+          >
+            New customer
+          </Link>
+        }
+      />
+
+      <AdminMetricGrid>
+        <AdminMetricCard label="Customers" value={customers.length} meta="Public storefront accounts" />
+        <AdminMetricCard label="Pending B2B" value={customers.filter((item) => item.group === 'B2B_PENDING').length} meta="Need approval decision" tone="accent" />
+        <AdminMetricCard label="Approved B2B" value={customers.filter((item) => item.group === 'B2B_APPROVED').length} meta="Wholesale-ready accounts" />
+        <AdminMetricCard label="Order activity" value={customers.reduce((sum, item) => sum + item.counts.orders, 0)} meta="Orders across visible customers" />
+      </AdminMetricGrid>
+
+      <AdminActionBar>
+        <div className="text-sm text-stone-500">
+          Use the filters to isolate approval queues, inactive accounts, or CRM-linked customers.
         </div>
+        <button
+          type="button"
+          onClick={() => void refresh()}
+          disabled={refreshing}
+          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10 disabled:opacity-50"
+        >
+          <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </AdminActionBar>
 
-        <div className="mb-6 rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-6">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
-            <label className="flex items-center gap-2 rounded-none border border-white/[0.08] bg-black/40 px-3 py-2 text-sm text-white transition-colors focus-within:border-indigo-500/50">
-              <Search className="h-4 w-4 text-white/35" />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by email, name, company or phone"
-                className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
-              />
-            </label>
-            <select
-              value={group}
-              onChange={(event) => setGroup(event.target.value)}
-              className="rounded-none border border-white/[0.08] bg-black/40 px-3 py-2 text-sm text-white transition-colors focus:border-indigo-500/50 focus:outline-none"
-            >
-              <option value="ALL">All groups</option>
-              <option value="B2C">B2C</option>
-              <option value="B2B_PENDING">B2B pending</option>
-              <option value="B2B_APPROVED">B2B approved</option>
-            </select>
-            <select
-              value={status}
-              onChange={(event) => setStatus(event.target.value)}
-              className="rounded-none border border-white/[0.08] bg-black/40 px-3 py-2 text-sm text-white transition-colors focus:border-indigo-500/50 focus:outline-none"
-            >
-              <option value="ALL">All status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-          <div className="mt-4 grid gap-1 text-sm text-white/70 md:grid-cols-4 md:gap-8">
-            <div>{customers.length} customers</div>
-            <div>{customers.filter((item) => item.group === 'B2B_PENDING').length} pending B2B</div>
-            <div>{customers.filter((item) => item.group === 'B2B_APPROVED').length} approved B2B</div>
-            <div>{customers.reduce((sum, item) => sum + item.counts.orders, 0)} orders total</div>
-          </div>
-        </div>
+      <AdminFilterBar>
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-stone-200">
+          <Search className="h-4 w-4 text-stone-500" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search by email, name, company or phone"
+            className="w-full bg-transparent text-stone-100 placeholder:text-stone-500 focus:outline-none"
+          />
+        </label>
+        <FilterSelect
+          label="Group"
+          value={group}
+          onChange={setGroup}
+          options={[
+            { value: 'ALL', label: 'All groups' },
+            { value: 'B2C', label: 'B2C' },
+            { value: 'B2B_PENDING', label: 'B2B pending' },
+            { value: 'B2B_APPROVED', label: 'B2B approved' },
+          ]}
+        />
+        <FilterSelect
+          label="Status"
+          value={status}
+          onChange={setStatus}
+          options={[
+            { value: 'ALL', label: 'All status' },
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' },
+          ]}
+        />
+      </AdminFilterBar>
 
-        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
+      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
 
-        {filteredCustomers.length === 0 ? (
-          <div className="rounded-none border border-white/[0.08] bg-black/40 py-24 text-center text-white/40 tracking-wider text-sm shadow-2xl backdrop-blur-sm">
-            No customers found.
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-none border border-white/[0.08] bg-black/60 backdrop-blur-2xl shadow-2xl">
-            <table className="w-full text-left text-sm">
+      {filteredCustomers.length === 0 ? (
+        <AdminEmptyState
+          title="No customers match the current filters"
+          description="Спробуйте інший запит або створіть нового клієнта вручну."
+        />
+      ) : (
+        <AdminTableShell>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[920px] text-left text-sm">
               <thead>
-                <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Customer</th>
-                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Group</th>
-                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Status</th>
-                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">CRM</th>
-                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Activity</th>
-                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Updated</th>
-                  <th className="px-5 py-4 font-medium text-[10px] tracking-[0.15em] uppercase text-white/40">Actions</th>
+                <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                  <th className="px-4 py-4 font-medium">Customer</th>
+                  <th className="px-4 py-4 font-medium">Group</th>
+                  <th className="px-4 py-4 font-medium">Status</th>
+                  <th className="px-4 py-4 font-medium">CRM</th>
+                  <th className="px-4 py-4 font-medium">Activity</th>
+                  <th className="px-4 py-4 font-medium">Updated</th>
+                  <th className="px-4 py-4 font-medium">Open</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.04]">
+              <tbody className="divide-y divide-white/6">
                 {filteredCustomers.map((customer) => (
-                  <tr key={customer.id} className="border-b border-white/5 align-top hover:bg-white/[0.03] transition-colors">
-                    <td className="px-5 py-5">
-                      <div className="font-medium text-white tracking-wide">{customer.fullName}</div>
-                      <div className="mt-1 text-xs text-white/45">{customer.email}</div>
-                      <div className="mt-1 text-[11px] uppercase tracking-widest font-medium text-white/30">
+                  <tr key={customer.id} className="align-top transition hover:bg-white/[0.03]">
+                    <td className="px-4 py-4">
+                      <div className="font-medium text-stone-100">{customer.fullName}</div>
+                      <div className="mt-1 text-xs text-stone-500">{customer.email}</div>
+                      <div className="mt-1 text-[11px] uppercase tracking-[0.18em] text-stone-600">
                         {[customer.companyName, customer.phone].filter(Boolean).join(' · ') || '—'}
                       </div>
                     </td>
-                    <td className="px-5 py-5">
-                      <span className={`inline-flex rounded-none border px-2 py-0.5 text-[10px] tracking-wider font-semibold uppercase ${groupBadge(customer.group)}`}>
-                        {customer.group.replace('B2B_', 'B2B ')}
-                      </span>
+                    <td className="px-4 py-4">
+                      <AdminStatusBadge tone={groupTone(customer.group)}>{customer.group.replace('B2B_', 'B2B ')}</AdminStatusBadge>
                     </td>
-                    <td className="px-5 py-5 text-white/70">
+                    <td className="px-4 py-4">
                       {customer.isActive ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-medium tracking-wide">
-                          <span className="w-1.5 h-1.5 rounded-none-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-                          Активний
-                        </span>
+                        <AdminStatusBadge tone="success">Active</AdminStatusBadge>
                       ) : (
-                        <span className="text-xs text-white/40 tracking-wide">Неактивний</span>
+                        <AdminStatusBadge tone="default">Inactive</AdminStatusBadge>
                       )}
                     </td>
-                    <td className="px-5 py-5">
+                    <td className="px-4 py-4">
                       {customer.notes?.includes('[Airtable:') ? (
-                        <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-medium text-emerald-400">
-                          <Database className="w-3 h-3" /> Linked
+                        <span className="inline-flex items-center gap-1.5 text-xs text-emerald-300">
+                          <Database className="h-3.5 w-3.5" />
+                          Linked
                         </span>
                       ) : (
-                        <span className="text-[10px] text-white/20">—</span>
+                        <span className="text-xs text-stone-600">—</span>
                       )}
                     </td>
-                    <td className="px-5 py-5 text-white/70">
-                      <div className="font-medium tracking-wide">{customer.counts.orders} orders</div>
-                      <div className="mt-1 text-[11px] uppercase tracking-widest font-medium text-white/30">
-                        {customer.counts.carts} carts · {customer.counts.addresses} address
+                    <td className="px-4 py-4 text-stone-300">
+                      <div className="font-medium">{customer.counts.orders} orders</div>
+                      <div className="mt-1 text-xs text-stone-500">
+                        {customer.counts.carts} carts · {customer.counts.addresses} addresses
                       </div>
                     </td>
-                    <td className="px-5 py-5 text-[13px] text-white/40 tracking-wider">
+                    <td className="px-4 py-4 text-xs text-stone-500">
                       {new Date(customer.updatedAt).toLocaleDateString()}
                     </td>
-                    <td className="px-5 py-5">
+                    <td className="px-4 py-4">
                       <Link
                         href={`/admin/shop/customers/${customer.id}`}
-                        className="inline-flex items-center gap-2 rounded-none border border-white/[0.08] bg-transparent hover:bg-white/5 px-3 py-2 text-xs font-medium uppercase tracking-widest text-white/70 hover:text-white transition-all duration-300"
+                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-stone-200 transition hover:bg-white/10"
                       >
-                        Відкрити
-                        <ArrowRight className="h-3.5 w-3.5 text-white/40" />
+                        Open
+                        <ArrowRight className="h-3.5 w-3.5 text-stone-500" />
                       </Link>
                     </td>
                   </tr>
@@ -245,8 +256,37 @@ export default function AdminShopCustomersPage() {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
-    </div>
+        </AdminTableShell>
+      )}
+    </AdminPage>
+  );
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+}) {
+  return (
+    <label className="block min-w-[180px]">
+      <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-stone-500">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-stone-100 focus:border-white/20 focus:outline-none"
+      >
+        {options.map((option) => (
+          <option key={`${label}-${option.value}`} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

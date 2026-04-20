@@ -1,9 +1,29 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, CheckCircle2, RotateCcw, Save, UserRound, Database, DollarSign, Copy } from 'lucide-react';
+import { CheckCircle2, Copy, Database, RotateCcw, Save, UserRound } from 'lucide-react';
+
+import {
+  AdminEntityToolbar,
+  AdminInspectorCard,
+  AdminKeyValueGrid,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminPage,
+  AdminPageHeader,
+  AdminSplitDetailShell,
+  AdminStatusBadge,
+  AdminTableShell,
+  AdminTimelineList,
+} from '@/components/admin/AdminPrimitives';
+import {
+  AdminCheckboxField,
+  AdminInputField,
+  AdminSelectField,
+  AdminTextareaField,
+} from '@/components/admin/AdminFormFields';
 
 type CustomerGroup = 'B2C' | 'B2B_PENDING' | 'B2B_APPROVED';
 
@@ -102,6 +122,19 @@ type CustomerForm = {
   group: CustomerGroup;
 };
 
+type CrmOrder = {
+  id: string;
+  number: number;
+  name: string;
+  orderStatus: string;
+  paymentStatus: string;
+  totalAmount: number;
+  clientTotal: number;
+  tag: string;
+  orderDate: string | null;
+  itemCount: number;
+};
+
 function createForm(customer: CustomerDetail): CustomerForm {
   return {
     firstName: customer.firstName,
@@ -121,6 +154,17 @@ function createForm(customer: CustomerDetail): CustomerForm {
   };
 }
 
+function customerGroupTone(group: CustomerGroup): 'default' | 'success' | 'warning' {
+  switch (group) {
+    case 'B2B_APPROVED':
+      return 'success';
+    case 'B2B_PENDING':
+      return 'warning';
+    default:
+      return 'default';
+  }
+}
+
 export default function AdminShopCustomerDetailPage() {
   const params = useParams();
   const id = params?.id as string;
@@ -132,9 +176,7 @@ export default function AdminShopCustomerDetailPage() {
   const [success, setSuccess] = useState('');
   const [setupLinkUrl, setSetupLinkUrl] = useState<string | null>(null);
   const [setupLinkExpiresAt, setSetupLinkExpiresAt] = useState<string | null>(null);
-
-  // CRM data
-  type CrmOrder = { id: string; number: number; name: string; orderStatus: string; paymentStatus: string; totalAmount: number; clientTotal: number; tag: string; orderDate: string | null; itemCount: number };
+  const [copiedSetupLink, setCopiedSetupLink] = useState(false);
   const [crmOrders, setCrmOrders] = useState<CrmOrder[]>([]);
   const [crmLoading, setCrmLoading] = useState(false);
   const [customerMarkup, setCustomerMarkup] = useState<{ markupPct: number; notes: string | null } | null>(null);
@@ -164,7 +206,6 @@ export default function AdminShopCustomerDetailPage() {
     void load();
   }, [load]);
 
-  // Fetch CRM data when customer loads
   useEffect(() => {
     if (!customer?.notes) return;
     const match = customer.notes.match(/\[Airtable:(rec[a-zA-Z0-9]+)\]/);
@@ -172,23 +213,40 @@ export default function AdminShopCustomerDetailPage() {
     const airtableId = match[1];
 
     setCrmLoading(true);
-    // Fetch CRM orders
     fetch(`/api/admin/crm?type=orders&maxRecords=50&filter=${encodeURIComponent(`FIND("${airtableId}", ARRAYJOIN({Клиент}))`)}`)
-      .then(r => r.json()).then(d => setCrmOrders((d.records || []).map((rec: any) => ({
-        id: rec.id, number: rec.fields?.['Номер'] || 0, name: rec.fields?.['Название'] || '',
-        orderStatus: rec.fields?.['Статус заказа'] || '', paymentStatus: rec.fields?.['Статус оплаты'] || '',
-        totalAmount: rec.fields?.['Сумма позиций (точная)'] || 0, clientTotal: rec.fields?.['Итого к оплате клиентом'] || 0,
-        tag: rec.fields?.['Тэг'] || '', orderDate: rec.fields?.['Дата заказа'] || null,
-        itemCount: rec.fields?.['Кол-во позиций'] || 0,
-      })))).catch(() => {}).finally(() => setCrmLoading(false));
+      .then((response) => response.json())
+      .then((data) =>
+        setCrmOrders(
+          (data.records || []).map((record: any) => ({
+            id: record.id,
+            number: record.fields?.['Номер'] || 0,
+            name: record.fields?.['Название'] || '',
+            orderStatus: record.fields?.['Статус заказа'] || '',
+            paymentStatus: record.fields?.['Статус оплаты'] || '',
+            totalAmount: record.fields?.['Сумма позиций (точная)'] || 0,
+            clientTotal: record.fields?.['Итого к оплате клиентом'] || 0,
+            tag: record.fields?.['Тэг'] || '',
+            orderDate: record.fields?.['Дата заказа'] || null,
+            itemCount: record.fields?.['Кол-во позиций'] || 0,
+          }))
+        )
+      )
+      .catch(() => {})
+      .finally(() => setCrmLoading(false));
 
-    // Fetch customer markup
     fetch('/api/admin/shop/pricing/customer-markups')
-      .then(r => r.json()).then(d => {
-        const mk = (d.markups || []).find((m: any) => m.customerId === airtableId);
-        if (mk) setCustomerMarkup({ markupPct: mk.markupPct, notes: mk.notes });
-      }).catch(() => {});
+      .then((response) => response.json())
+      .then((data) => {
+        const markup = (data.markups || []).find((item: any) => item.customerId === airtableId);
+        if (markup) setCustomerMarkup({ markupPct: markup.markupPct, notes: markup.notes });
+      })
+      .catch(() => {});
   }, [customer?.notes]);
+
+  const totalOrderValue = useMemo(
+    () => customer?.orders.reduce((sum, order) => sum + order.total, 0) ?? 0,
+    [customer?.orders]
+  );
 
   async function save() {
     if (!customer || !form) return;
@@ -246,409 +304,414 @@ export default function AdminShopCustomerDetailPage() {
     }
   }
 
+  function updateForm<K extends keyof CustomerForm>(field: K, value: CustomerForm[K]) {
+    setForm((current) => (current ? { ...current, [field]: value } : current));
+  }
+
+  async function copySetupLink() {
+    if (!setupLinkUrl) return;
+    await navigator.clipboard.writeText(setupLinkUrl);
+    setCopiedSetupLink(true);
+    window.setTimeout(() => setCopiedSetupLink(false), 1500);
+  }
+
   if (loading) {
     return (
-      <div className="p-6 text-white/60 flex items-center gap-2">
-        <UserRound className="h-5 w-5 animate-pulse" />
-        Loading customer…
-      </div>
+      <AdminPage>
+        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+          <UserRound className="h-4 w-4 animate-pulse" />
+          Loading customer…
+        </div>
+      </AdminPage>
     );
   }
 
   if (!customer || !form) {
     return (
-      <div className="p-6">
-        <div className="rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error || 'Customer not found'}</div>
-        <Link href="/admin/shop/customers" className="mt-4 inline-block text-sm text-white/70 hover:text-white">
-          ← Back to customers
+      <AdminPage className="space-y-4">
+        <div className="rounded-[24px] border border-red-500/20 bg-red-950/20 px-4 py-3 text-sm text-red-200">
+          {error || 'Customer not found'}
+        </div>
+        <Link href="/admin/shop/customers" className="inline-block text-sm text-stone-300 hover:text-stone-100">
+          Back to customers
         </Link>
-      </div>
+      </AdminPage>
     );
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="mx-auto max-w-6xl p-6">
-        <Link href="/admin/shop/customers" className="mb-6 inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
-          <ArrowLeft className="h-4 w-4" />
-          Back to customers
-        </Link>
-
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-white">{customer.fullName}</h2>
-            <p className="mt-2 text-sm text-white/45">
-              {customer.email} {customer.companyName ? `· ${customer.companyName}` : ''}
-            </p>
+    <AdminPage className="space-y-6">
+      <AdminPageHeader
+        eyebrow="Customer Detail"
+        title={customer.fullName}
+        description={`${customer.email}${customer.companyName ? ` · ${customer.companyName}` : ''}`}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <AdminStatusBadge tone={customerGroupTone(customer.group)}>{customer.group.replace('B2B_', 'B2B ')}</AdminStatusBadge>
+            {customer.isActive ? <AdminStatusBadge tone="success">Active</AdminStatusBadge> : <AdminStatusBadge tone="default">Inactive</AdminStatusBadge>}
           </div>
-          <div className="flex flex-wrap gap-3">
-            {customer.group !== 'B2B_APPROVED' ? (
-              <button
-                type="button"
-                onClick={() => void runAction('approve_b2b')}
-                disabled={saving}
-                className="inline-flex items-center gap-2 rounded-none border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100 hover:bg-emerald-500/15 disabled:opacity-50"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Approve B2B
-              </button>
-            ) : null}
-            {customer.group !== 'B2C' ? (
-              <button
-                type="button"
-                onClick={() => void runAction('revert_b2c')}
-                disabled={saving}
-                className="inline-flex items-center gap-2 rounded-none border border-white/15 bg-white/[0.04] px-4 py-2 text-sm text-white hover:bg-white/[0.08] disabled:opacity-50"
-              >
-                <RotateCcw className="h-4 w-4" />
-                Revert to B2C
-              </button>
-            ) : null}
+        }
+      />
+
+      <AdminEntityToolbar>
+        <div className="flex flex-wrap items-center gap-3">
+          {customer.group !== 'B2B_APPROVED' ? (
             <button
               type="button"
-              onClick={() => void save()}
+              onClick={() => void runAction('approve_b2b')}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100 transition hover:bg-emerald-500/15 disabled:opacity-50"
             >
-              <Save className="h-4 w-4" />
-              {saving ? 'Saving…' : 'Save'}
+              <CheckCircle2 className="h-4 w-4" />
+              Approve B2B
             </button>
-          </div>
+          ) : null}
+          {customer.group !== 'B2C' ? (
+            <button
+              type="button"
+              onClick={() => void runAction('revert_b2c')}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10 disabled:opacity-50"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Revert to B2C
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => void runAction('create_setup_link')}
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-500/10 px-4 py-2 text-sm text-amber-100 transition hover:bg-amber-500/15 disabled:opacity-50"
+          >
+            Access setup
+          </button>
         </div>
+        <button
+          type="button"
+          onClick={() => void save()}
+          disabled={saving}
+          className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+        >
+          <Save className="h-4 w-4" />
+          {saving ? 'Saving…' : 'Save'}
+        </button>
+      </AdminEntityToolbar>
 
-        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
-        {success ? <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div> : null}
+      <AdminMetricGrid>
+        <AdminMetricCard label="Orders" value={customer.orders.length} meta="Commerce history" />
+        <AdminMetricCard label="Addresses" value={customer.addresses.length} meta="Shipping + billing records" />
+        <AdminMetricCard label="Carts" value={customer.carts.length} meta="Open storefront activity" />
+        <AdminMetricCard label="Order value" value={totalOrderValue.toFixed(2)} meta={customer.currencyPref || 'EUR'} />
+      </AdminMetricGrid>
 
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <section className="space-y-6">
-            <div className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-              <h3 className="mb-4 text-lg font-medium text-white">Profile</h3>
+      <AdminSplitDetailShell
+        main={
+          <>
+            {(error || success) && (
+              <div className={`rounded-[24px] border px-4 py-3 text-sm ${error ? 'border-red-500/20 bg-red-950/20 text-red-200' : 'border-emerald-500/20 bg-emerald-950/20 text-emerald-200'}`}>
+                {error || success}
+              </div>
+            )}
+
+            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+              <div className="mb-5">
+                <h2 className="text-xl font-semibold text-stone-100">Profile and commercial context</h2>
+                <p className="mt-1 text-sm text-stone-500">Редагування account profile, B2B terms, балансів і локалі.</p>
+              </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <InputField label="Ім'я" value={form.firstName} onChange={(value) => setForm((current) => current ? { ...current, firstName: value } : current)} />
-                <InputField label="Last name" value={form.lastName} onChange={(value) => setForm((current) => current ? { ...current, lastName: value } : current)} />
-                <InputField label="Телефон" value={form.phone} onChange={(value) => setForm((current) => current ? { ...current, phone: value } : current)} />
-                <InputField label="Компанія" value={form.companyName} onChange={(value) => setForm((current) => current ? { ...current, companyName: value } : current)} />
-                <InputField label="ІПН" value={form.vatNumber} onChange={(value) => setForm((current) => current ? { ...current, vatNumber: value } : current)} />
-                <InputField label="Знижка B2B %" value={form.b2bDiscountPercent} onChange={(value) => setForm((current) => current ? { ...current, b2bDiscountPercent: value } : current)} />
-                <InputField label="Рівень знижки (Tier)" value={form.discountTier} onChange={(value) => setForm((current) => current ? { ...current, discountTier: value } : current)} />
-                <InputField label="Баланс (Борг/Кредит)" value={form.balance} onChange={(value) => setForm((current) => current ? { ...current, balance: value } : current)} />
-                <InputField label="Регіон" value={form.region} onChange={(value) => setForm((current) => current ? { ...current, region: value } : current)} />
-                <label className="block">
-                  <span className="mb-1.5 block text-xs text-white/50">Бажана валюта</span>
-                  <select
-                    value={form.currencyPref}
-                    onChange={(event) => setForm((current) => current ? { ...current, currencyPref: event.target.value } : current)}
-                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
-                  >
-                    <option value="EUR">EUR</option>
-                    <option value="USD">USD</option>
-                    <option value="UAH">UAH</option>
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1.5 block text-xs text-white/50">Preferred locale</span>
-                  <select
-                    value={form.preferredLocale}
-                    onChange={(event) => setForm((current) => current ? { ...current, preferredLocale: event.target.value } : current)}
-                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
-                  >
-                    <option value="en">en</option>
-                    <option value="ua">ua</option>
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1.5 block text-xs text-white/50">Group</span>
-                  <select
-                    value={form.group}
-                    onChange={(event) => setForm((current) => current ? { ...current, group: event.target.value as CustomerGroup } : current)}
-                    className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none"
-                  >
-                    <option value="B2C">B2C</option>
-                    <option value="B2B_PENDING">B2B pending</option>
-                    <option value="B2B_APPROVED">B2B approved</option>
-                  </select>
-                </label>
-                <label className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
-                  <input
-                    type="checkbox"
-                    checked={form.isActive}
-                    onChange={(event) => setForm((current) => current ? { ...current, isActive: event.target.checked } : current)}
-                    className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
-                  />
-                  Active customer
-                </label>
-                <div className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white/70">
-                  <div>Joined {new Date(customer.createdAt).toLocaleString()}</div>
-                  <div className="mt-1 text-white/45">
-                    Last login {customer.account?.lastLoginAt ? new Date(customer.account.lastLoginAt).toLocaleString() : '—'}
-                  </div>
-                </div>
-                <SetupLinkCard
-                  hasPassword={Boolean(customer.account?.hasPassword)}
-                  setupLinkUrl={setupLinkUrl}
-                  setupLinkExpiresAt={setupLinkExpiresAt ?? customer.passwordSetup?.expiresAt ?? null}
-                  onGenerate={() => void runAction('create_setup_link')}
-                  saving={saving}
+                <AdminInputField label="First name" value={form.firstName} onChange={(value) => updateForm('firstName', value)} />
+                <AdminInputField label="Last name" value={form.lastName} onChange={(value) => updateForm('lastName', value)} />
+                <AdminInputField label="Phone" value={form.phone} onChange={(value) => updateForm('phone', value)} />
+                <AdminInputField label="Company" value={form.companyName} onChange={(value) => updateForm('companyName', value)} />
+                <AdminInputField label="VAT number" value={form.vatNumber} onChange={(value) => updateForm('vatNumber', value)} />
+                <AdminInputField label="Discount %" value={form.b2bDiscountPercent} onChange={(value) => updateForm('b2bDiscountPercent', value)} type="number" />
+                <AdminInputField label="Discount tier" value={form.discountTier} onChange={(value) => updateForm('discountTier', value)} />
+                <AdminInputField label="Balance" value={form.balance} onChange={(value) => updateForm('balance', value)} type="number" step="0.01" />
+                <AdminInputField label="Region" value={form.region} onChange={(value) => updateForm('region', value)} />
+                <AdminSelectField
+                  label="Preferred currency"
+                  value={form.currencyPref}
+                  onChange={(value) => updateForm('currencyPref', value)}
+                  options={[
+                    { value: 'EUR', label: 'EUR' },
+                    { value: 'USD', label: 'USD' },
+                    { value: 'UAH', label: 'UAH' },
+                  ]}
+                />
+                <AdminSelectField
+                  label="Preferred locale"
+                  value={form.preferredLocale}
+                  onChange={(value) => updateForm('preferredLocale', value)}
+                  options={[
+                    { value: 'en', label: 'EN' },
+                    { value: 'ua', label: 'UA' },
+                  ]}
+                />
+                <AdminSelectField
+                  label="Customer group"
+                  value={form.group}
+                  onChange={(value) => updateForm('group', value as CustomerGroup)}
+                  options={[
+                    { value: 'B2C', label: 'B2C' },
+                    { value: 'B2B_PENDING', label: 'B2B pending' },
+                    { value: 'B2B_APPROVED', label: 'B2B approved' },
+                  ]}
                 />
                 <div className="md:col-span-2">
-                  <label className="block">
-                    <span className="mb-1.5 block text-xs text-white/50">Internal notes</span>
-                    <textarea
-                      value={form.notes}
-                      onChange={(event) => setForm((current) => current ? { ...current, notes: event.target.value } : current)}
-                      rows={5}
-                      className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
-                    />
-                  </label>
+                  <AdminCheckboxField
+                    label="Active customer account"
+                    checked={form.isActive}
+                    onChange={(checked) => updateForm('isActive', checked)}
+                    helper="Inactive customers keep their history but should not be treated as live accounts."
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <AdminTextareaField label="Internal notes" value={form.notes} onChange={(value) => updateForm('notes', value)} rows={5} />
                 </div>
               </div>
-            </div>
+            </section>
 
-            <div className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-white">Історія замовлень</h3>
+            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+              <div className="mb-5 flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-stone-100">Orders</h2>
+                  <p className="mt-1 text-sm text-stone-500">Storefront orders and the fastest route to open the full order detail.</p>
+                </div>
                 <Link
                   href={`/admin/shop/orders/create?customerId=${customer.id}`}
-                  className="inline-flex items-center gap-1.5 rounded-none bg-white px-3 py-1.5 text-xs font-semibold text-black hover:bg-white/90 transition-all"
+                  className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200"
                 >
-                  + Створити замовлення
+                  New order
                 </Link>
               </div>
-              <div className="space-y-3">
-                {customer.orders.length ? customer.orders.map((order) => (
-                  <div key={order.id} className="rounded-none border border-white/10 bg-black/30 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-white">{order.orderNumber}</span>
-                          <span className={`inline-flex rounded-none-full border px-2 py-0.5 text-[10px] uppercase tracking-wider ${
-                            order.status === 'DELIVERED' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' :
-                            order.status === 'SHIPPED' ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300' :
-                            order.status === 'PROCESSING' ? 'border-violet-500/30 bg-violet-500/10 text-violet-300' :
-                            order.status === 'CONFIRMED' ? 'border-sky-500/30 bg-sky-500/10 text-sky-300' :
-                            order.status === 'CANCELLED' ? 'border-rose-500/30 bg-rose-500/10 text-rose-300' :
-                            'border-amber-500/30 bg-amber-500/10 text-amber-300'
-                          }`}>
-                            {order.status.replace(/_/g, ' ')}
-                          </span>
-                        </div>
-                        <div className="mt-1 text-xs text-white/45">
-                          {new Date(order.createdAt).toLocaleString()} · {order.itemCount} поз.
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-mono text-white">{order.currency} {order.total.toFixed(2)}</div>
-                        <Link href={`/admin/shop/orders/${order.id}`} className="mt-1 inline-block text-xs text-white/60 hover:text-white">
-                          Відкрити →
-                        </Link>
-                      </div>
-                    </div>
+              {customer.orders.length ? (
+                <AdminTableShell>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[720px] text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                          <th className="px-4 py-4 font-medium">Order</th>
+                          <th className="px-4 py-4 font-medium">Status</th>
+                          <th className="px-4 py-4 font-medium">Items</th>
+                          <th className="px-4 py-4 font-medium">Total</th>
+                          <th className="px-4 py-4 font-medium">Open</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/6">
+                        {customer.orders.map((order) => (
+                          <tr key={order.id} className="transition hover:bg-white/[0.03]">
+                            <td className="px-4 py-4">
+                              <div className="font-medium text-stone-100">{order.orderNumber}</div>
+                              <div className="mt-1 text-xs text-stone-500">{new Date(order.createdAt).toLocaleString()}</div>
+                            </td>
+                            <td className="px-4 py-4">
+                              <AdminStatusBadge tone={order.status === 'DELIVERED' ? 'success' : order.status === 'CANCELLED' ? 'danger' : 'warning'}>
+                                {order.status.replace(/_/g, ' ')}
+                              </AdminStatusBadge>
+                            </td>
+                            <td className="px-4 py-4 text-stone-300">{order.itemCount}</td>
+                            <td className="px-4 py-4 text-stone-100">
+                              {order.currency} {order.total.toFixed(2)}
+                            </td>
+                            <td className="px-4 py-4">
+                              <Link href={`/admin/shop/orders/${order.id}`} className="text-sm text-stone-300 transition hover:text-stone-100">
+                                Open →
+                              </Link>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                )) : (
-                  <div className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/45">Замовлень поки немає.</div>
-                )}
-              </div>
-            </div>
+                </AdminTableShell>
+              ) : (
+                <div className="rounded-[24px] border border-dashed border-white/10 px-4 py-10 text-sm text-stone-500">No orders yet.</div>
+              )}
+            </section>
 
-            {/* CRM Orders */}
-            <div className="rounded-none border border-indigo-500/10 bg-zinc-100 text-black/[0.02] p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                  <Database className="w-4 h-4 text-zinc-400" /> CRM Замовлення
-                </h3>
-                {crmLoading && <span className="text-[10px] text-white/20 animate-pulse">Завантаження...</span>}
+            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+              <div className="mb-5">
+                <h2 className="text-xl font-semibold text-stone-100">Addresses and carts</h2>
+                <p className="mt-1 text-sm text-stone-500">Stored shipping data and current storefront activity.</p>
               </div>
-              <div className="space-y-2">
-                {crmOrders.length > 0 ? crmOrders.map(o => (
-                  <div key={o.id} className="rounded-none border border-white/10 bg-black/30 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-sm text-white">#{o.number}</span>
-                          <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-none-full border ${
-                            o.orderStatus === 'Выполнен' ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5' :
-                            o.orderStatus === 'Отменен' ? 'border-red-500/20 text-red-400 bg-red-950/30 border border-red-900/50 text-red-500/5' :
-                            'border-amber-500/20 text-amber-400 bg-amber-500/5'
-                          }`}>{o.orderStatus}</span>
-                          <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-none-full border ${
-                            o.paymentStatus === 'Оплачено' ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5' :
-                            'border-white/10 text-white/30 bg-white/[0.02]'
-                          }`}>{o.paymentStatus}</span>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Addresses</h3>
+                  {customer.addresses.length ? (
+                    customer.addresses.map((address) => (
+                      <div key={address.id} className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4 text-sm text-stone-300">
+                        <div className="font-medium text-stone-100">{address.label}</div>
+                        <div className="mt-2 space-y-1">
+                          <div>{address.line1}</div>
+                          {address.line2 ? <div>{address.line2}</div> : null}
+                          <div>{[address.city, address.region, address.postcode].filter(Boolean).join(', ')}</div>
+                          <div>{address.country}</div>
                         </div>
-                        <p className="mt-1 text-xs text-white/40 truncate">{o.name}</p>
-                        {o.orderDate && <p className="text-[10px] text-white/20 mt-0.5">{new Date(o.orderDate).toLocaleDateString('uk-UA')}</p>}
+                        <div className="mt-3 text-xs text-stone-500">
+                          {address.isDefaultShipping ? 'Default shipping' : '—'}
+                          {address.isDefaultBilling ? ' · Default billing' : ''}
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium text-white">${o.clientTotal.toLocaleString()}</div>
-                        <div className="text-[10px] text-white/30">{o.itemCount} позицій</div>
+                    ))
+                  ) : (
+                    <div className="rounded-[24px] border border-dashed border-white/10 px-4 py-8 text-sm text-stone-500">No saved addresses.</div>
+                  )}
+                </div>
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Carts</h3>
+                  {customer.carts.length ? (
+                    customer.carts.map((cart) => (
+                      <div key={cart.id} className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4 text-sm text-stone-300">
+                        <div className="font-medium text-stone-100">
+                          {cart.currency} · {cart.locale}
+                        </div>
+                        <div className="mt-2 text-xs text-stone-500">
+                          {cart.itemCount} items · updated {new Date(cart.updatedAt).toLocaleString()}
+                        </div>
+                        <div className="mt-2 font-mono text-[11px] text-stone-500">{cart.token}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-[24px] border border-dashed border-white/10 px-4 py-8 text-sm text-stone-500">No active carts.</div>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+              <div className="mb-5 flex items-center gap-2">
+                <Database className="h-4 w-4 text-amber-100/60" />
+                <div>
+                  <h2 className="text-xl font-semibold text-stone-100">CRM and pricing context</h2>
+                  <p className="mt-1 text-sm text-stone-500">Airtable-linked orders and customer-specific markup signals.</p>
+                </div>
+              </div>
+              <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+                <div className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Customer markup</div>
+                  {customerMarkup ? (
+                    <div className="mt-3 space-y-2">
+                      <div className="text-2xl font-semibold text-emerald-300">{customerMarkup.markupPct}%</div>
+                      <div className="text-sm text-stone-400">
+                        Custom pricing override{customerMarkup.notes ? ` · ${customerMarkup.notes}` : ''}
                       </div>
                     </div>
+                  ) : (
+                    <div className="mt-3 text-sm text-stone-500">Uses default pricing rules.</div>
+                  )}
+                </div>
+                <div className="space-y-3">
+                  {crmLoading ? (
+                    <div className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-8 text-sm text-stone-500">Loading CRM orders…</div>
+                  ) : crmOrders.length ? (
+                    crmOrders.map((order) => (
+                      <div key={order.id} className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <div className="font-medium text-stone-100">#{order.number}</div>
+                            <div className="mt-1 text-xs text-stone-500">{order.name}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-stone-100">${order.clientTotal.toLocaleString()}</div>
+                            <div className="mt-1 text-xs text-stone-500">{order.itemCount} items</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-[24px] border border-dashed border-white/10 px-4 py-8 text-sm text-stone-500">
+                      No linked CRM orders or Airtable reference was not found in notes.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+          </>
+        }
+        sidebar={
+          <>
+            <AdminInspectorCard
+              title="Account state"
+              description="Identity, activation, locale and password readiness."
+            >
+              <AdminKeyValueGrid
+                rows={[
+                  { label: 'Email', value: customer.email },
+                  { label: 'Locale', value: customer.preferredLocale.toUpperCase() },
+                  { label: 'Last login', value: customer.account?.lastLoginAt ? new Date(customer.account.lastLoginAt).toLocaleString() : 'Never' },
+                  { label: 'Email verified', value: customer.account?.emailVerifiedAt ? new Date(customer.account.emailVerifiedAt).toLocaleString() : 'No' },
+                  { label: 'Created', value: new Date(customer.createdAt).toLocaleString() },
+                ]}
+              />
+            </AdminInspectorCard>
+
+            <AdminInspectorCard
+              title="Password setup"
+              description="One-time access link for first login or password reset."
+            >
+              <div className="space-y-3 text-sm text-stone-300">
+                <div>
+                  {customer.account?.hasPassword
+                    ? 'Password already exists. You can still issue a fresh setup link.'
+                    : 'Password is not configured yet.'}
+                </div>
+                {setupLinkExpiresAt ? (
+                  <div className="text-xs text-stone-500">
+                    Active setup link expires at {new Date(setupLinkExpiresAt).toLocaleString()}
                   </div>
-                )) : !crmLoading ? (
-                  <div className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/45">Немає CRM замовлень або клієнт не прив&apos;язаний до Airtable.</div>
+                ) : null}
+                {setupLinkUrl ? (
+                  <div className="rounded-2xl border border-white/10 bg-black/25 px-3 py-3">
+                    <div className="break-all font-mono text-xs text-stone-200">{setupLinkUrl}</div>
+                    <button
+                      type="button"
+                      onClick={() => void copySetupLink()}
+                      className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-stone-200 transition hover:bg-white/10"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      {copiedSetupLink ? 'Copied' : 'Copy link'}
+                    </button>
+                  </div>
                 ) : null}
               </div>
-            </div>
+            </AdminInspectorCard>
 
-            {/* Customer Markup */}
-            <div className="rounded-none border border-emerald-500/10 bg-emerald-500/[0.02] p-5">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-emerald-400" /> Ціноутворення
-                </h3>
-                <Link href="/admin/shop/pricing" className="text-xs text-emerald-400/60 hover:text-emerald-400">Редагувати →</Link>
-              </div>
-              {customerMarkup ? (
-                <div className="flex items-center gap-4">
-                  <div className="text-2xl font-light text-emerald-400">{customerMarkup.markupPct}%</div>
-                  <div className="text-xs text-white/30">Персональна націнка (×{(1 + customerMarkup.markupPct / 100).toFixed(2)})</div>
-                  {customerMarkup.notes && <span className="text-[10px] px-2 py-0.5 bg-white/[0.03] border border-white/10 rounded-none-full text-white/40">{customerMarkup.notes}</span>}
-                </div>
-              ) : (
-                <p className="text-sm text-white/40">Використовується стандартна націнка бренду.</p>
-              )}
-            </div>
-          </section>
-
-          <section className="space-y-6">
-            <div className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-              <h3 className="mb-4 text-lg font-medium text-white">Addresses</h3>
-              <div className="space-y-3">
-                {customer.addresses.length ? customer.addresses.map((address) => (
-                  <div key={address.id} className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/75">
-                    <div className="font-medium text-white">{address.label}</div>
-                    <div className="mt-1">{address.line1}</div>
-                    {address.line2 ? <div>{address.line2}</div> : null}
-                    <div>{[address.city, address.region, address.postcode].filter(Boolean).join(', ')}</div>
-                    <div>{address.country}</div>
-                    <div className="mt-2 text-xs text-white/45">
-                      {address.isDefaultShipping ? 'Default shipping' : '—'} {address.isDefaultBilling ? '· Default billing' : ''}
-                    </div>
-                  </div>
-                )) : (
-                  <div className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/45">No addresses saved.</div>
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-              <h3 className="mb-4 text-lg font-medium text-white">Active carts</h3>
-              <div className="space-y-3">
-                {customer.carts.length ? customer.carts.map((cart) => (
-                  <div key={cart.id} className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/75">
-                    <div className="font-medium text-white">{cart.currency} · {cart.locale}</div>
-                    <div className="mt-1 text-xs text-white/45">
-                      {cart.itemCount} items · updated {new Date(cart.updatedAt).toLocaleString()}
-                    </div>
-                    <div className="mt-1 text-xs font-mono text-white/35">{cart.token}</div>
-                  </div>
-                )) : (
-                  <div className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/45">No carts found.</div>
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-              <h3 className="mb-4 text-lg font-medium text-white">Audit trail</h3>
-              <div className="space-y-3">
-                {customer.auditLog.length ? customer.auditLog.map((entry) => (
-                  <div key={entry.id} className="rounded-none border border-white/10 bg-black/30 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="text-sm font-medium text-white">{entry.action}</div>
-                      <div className="text-xs text-white/45">{new Date(entry.createdAt).toLocaleString()}</div>
-                    </div>
-                    <div className="mt-1 text-xs text-white/45">
-                      {entry.actorName || entry.actorEmail}
-                    </div>
-                    {entry.metadata ? (
-                      <pre className="mt-3 overflow-x-auto rounded-none border border-white/10 bg-zinc-950 p-3 text-xs text-white/55">
-                        {JSON.stringify(entry.metadata, null, 2)}
-                      </pre>
-                    ) : null}
-                  </div>
-                )) : (
-                  <div className="rounded-none border border-white/10 bg-black/30 p-4 text-sm text-white/45">No audit events yet.</div>
-                )}
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function InputField(props: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-white/50">{props.label}</span>
-      <input
-        value={props.value}
-        onChange={(event) => props.onChange(event.target.value)}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/30 focus:outline-none"
-      />
-    </label>
-  );
-}
-
-function SetupLinkCard(props: {
-  hasPassword: boolean;
-  setupLinkUrl: string | null;
-  setupLinkExpiresAt: string | null;
-  saving: boolean;
-  onGenerate: () => void;
-}) {
-  const [copied, setCopied] = useState(false);
-
-  function handleCopy() {
-    if (!props.setupLinkUrl) return;
-    void navigator.clipboard.writeText(props.setupLinkUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  return (
-    <div className="rounded-none border border-amber-500/20 bg-amber-500/5 px-3 py-3 text-sm flex flex-col items-start gap-3">
-      <div className="text-[11px] uppercase tracking-[0.2em] text-amber-400/50">Доступ до акаунта</div>
-      <div className="text-amber-100/80">
-        {props.hasPassword
-          ? 'Пароль уже встановлено. За потреби можна згенерувати нове одноразове setup link.'
-          : 'Пароль ще не налаштований. Створіть одноразове посилання для встановлення пароля.'}
-      </div>
-      {props.setupLinkExpiresAt ? (
-        <div className="text-xs text-amber-200/60">
-          Активне посилання дійсне до {new Date(props.setupLinkExpiresAt).toLocaleString()}
-        </div>
-      ) : null}
-      <button
-        type="button"
-        onClick={props.onGenerate}
-        disabled={props.saving}
-        className="inline-flex items-center gap-1.5 rounded-none bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-300 border border-amber-400/20 hover:bg-amber-500/20 transition-all disabled:opacity-50"
-      >
-        {props.hasPassword ? 'Оновити setup link' : 'Створити setup link'}
-      </button>
-      {props.setupLinkUrl ? (
-        <div className="w-full rounded-none border border-white/10 bg-zinc-950/80 px-3 py-3">
-          <div className="mb-2 text-[11px] uppercase tracking-[0.2em] text-white/35">Одноразове посилання</div>
-          <div className="flex items-start gap-2">
-            <code className="flex-1 break-all text-xs text-white/80">{props.setupLinkUrl}</code>
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="p-1 rounded-none text-white/40 hover:text-white transition"
-              title="Копіювати"
+            <AdminInspectorCard
+              title="Default shipping"
+              description="Primary shipping address snapshot used for customer context."
             >
-              <Copy className="h-4 w-4" />
-            </button>
-          </div>
-          {copied ? <div className="mt-2 text-[10px] text-emerald-400">Скопійовано.</div> : null}
-        </div>
-      ) : null}
-    </div>
+              <AdminKeyValueGrid
+                rows={[
+                  { label: 'Line 1', value: customer.defaultShippingAddress?.line1 || '—' },
+                  { label: 'Line 2', value: customer.defaultShippingAddress?.line2 || '—' },
+                  { label: 'City', value: customer.defaultShippingAddress?.city || '—' },
+                  { label: 'Region', value: customer.defaultShippingAddress?.region || '—' },
+                  { label: 'Country', value: customer.defaultShippingAddress?.country || '—' },
+                ]}
+              />
+            </AdminInspectorCard>
+
+            <AdminInspectorCard
+              title="Audit trail"
+              description="Recent admin actions affecting this customer."
+            >
+              <AdminTimelineList
+                items={customer.auditLog.map((entry) => ({
+                  id: entry.id,
+                  title: entry.action,
+                  meta: `${entry.actorName || entry.actorEmail} · ${new Date(entry.createdAt).toLocaleString()}`,
+                  body: entry.metadata ? (
+                    <pre className="overflow-x-auto rounded-2xl border border-white/10 bg-black/25 p-3 text-[11px] text-stone-400">
+                      {JSON.stringify(entry.metadata, null, 2)}
+                    </pre>
+                  ) : undefined,
+                }))}
+                empty="No audit events yet."
+              />
+            </AdminInspectorCard>
+          </>
+        }
+      />
+    </AdminPage>
   );
 }

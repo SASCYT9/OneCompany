@@ -1,15 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  ArrowLeft,
   Search,
-  Package,
-  Calculator,
-  Truck,
-  DollarSign,
   Plus,
   Trash2,
   RefreshCw,
@@ -18,7 +12,16 @@ import {
   AlertCircle,
   Database,
 } from 'lucide-react';
-import { calcItemPrice, calcShipping, lbsToKg, SHIPPING_ZONES, type ShippingZone } from '@/lib/shippingCalc';
+import { calcItemPrice, lbsToKg, SHIPPING_ZONES, type ShippingZone } from '@/lib/shippingCalc';
+import {
+  AdminActionBar,
+  AdminEditorSection,
+  AdminEditorShell,
+  AdminInlineAlert,
+  AdminInspectorCard,
+  AdminKeyValueGrid,
+  AdminStatusBadge,
+} from '@/components/admin/AdminPrimitives';
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -491,22 +494,96 @@ export default function AdminCreateOrderPage() {
       )
     : customers;
 
+  const sections = [
+    { id: 'customer', label: 'Customer', description: 'Вибір клієнта та знижки B2B/B2C.' },
+    { id: 'items', label: 'Items & sourcing', description: 'Позиції замовлення та пошук у Local + Turn14.' },
+    { id: 'shipping', label: 'Shipping', description: 'Розрахунок логістики по зоні та override.' },
+    { id: 'summary', label: 'Totals & submit', description: 'Підсумок, нотатки та створення замовлення.' },
+  ];
+
   return (
-    <div className="h-full overflow-auto">
-      <div className="mx-auto max-w-[1920px] p-6">
-        <Link href="/admin/shop/orders" className="mb-6 inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
-          <ArrowLeft className="h-4 w-4" /> Назад до замовлень
-        </Link>
+    <AdminEditorShell
+      backHref="/admin/shop/orders"
+      backLabel="Назад до замовлень"
+      title="Нове замовлення"
+      description="Створити B2B/B2C замовлення з підбором позицій, логістичним розрахунком і контрольованою фінальною сумою."
+      sections={sections}
+      summary={
+        <div className="space-y-4">
+          <AdminInspectorCard
+            title="Замовлення"
+            description="Операційний зріз поточного draft. Менеджер бачить клієнта, обсяг позицій і фінальний total до відправки."
+          >
+            <AdminKeyValueGrid
+              rows={[
+                {
+                  label: 'Клієнт',
+                  value: selectedCustomer ? `${selectedCustomer.fullName} · ${selectedCustomer.group}` : 'Не обрано',
+                },
+                { label: 'Позицій', value: String(items.filter((item) => item.title).length || items.length) },
+                { label: 'Subtotal', value: fmtUsd(subtotal) },
+                { label: 'Shipping', value: fmtUsd(finalShipping) },
+                { label: 'Grand total', value: fmtUsd(grandTotal) },
+              ]}
+            />
+          </AdminInspectorCard>
 
-        <h1 className="mb-2 text-2xl font-semibold text-white">Нове замовлення</h1>
-        <p className="mb-8 text-sm text-white/45">Створити B2B замовлення з розрахунком доставки</p>
+          <AdminInspectorCard title="Статус submit" description="Фінальний крок створює order draft через існуючий API flow.">
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {selectedCustomer ? (
+                  <AdminStatusBadge tone="success">{selectedCustomer.group}</AdminStatusBadge>
+                ) : (
+                  <AdminStatusBadge tone="warning">Клієнта не вибрано</AdminStatusBadge>
+                )}
+                <AdminStatusBadge tone={shippingOverride !== '' ? 'warning' : 'default'}>
+                  {shippingOverride !== '' ? 'Shipping override active' : 'Auto shipping'}
+                </AdminStatusBadge>
+              </div>
 
-        <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
-          {/* ─── LEFT COLUMN (main) ────────────────────────── */}
-          <div className="space-y-6">
+              {submitResult ? (
+                <AdminInlineAlert tone={submitResult.success ? 'success' : 'error'}>
+                  {submitResult.message}
+                </AdminInlineAlert>
+              ) : null}
 
-            {/* ── Section: Customer ──────────────────────── */}
-            <Section icon={<Search className="h-4 w-4 text-zinc-400" />} title="Клієнт">
+              <button
+                type="button"
+                onClick={submitOrder}
+                disabled={submitting}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-stone-100 px-4 py-3 text-sm font-semibold text-black transition hover:bg-stone-200 disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" />
+                {submitting ? 'Створення...' : 'Створити замовлення'}
+              </button>
+            </div>
+          </AdminInspectorCard>
+        </div>
+      }
+    >
+      <AdminActionBar>
+        <div className="space-y-1">
+          <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-stone-500">Order workbench</div>
+          <div className="text-sm text-stone-300">
+            {selectedCustomer ? `${selectedCustomer.fullName} · ${selectedCustomer.email}` : 'Оберіть клієнта для order draft'}
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <AdminStatusBadge tone={items.some((item) => item.title) ? 'success' : 'warning'}>
+            {items.filter((item) => item.title).length || items.length} line items
+          </AdminStatusBadge>
+          <AdminStatusBadge tone={shippingOverride !== '' ? 'warning' : 'default'}>
+            {shippingOverride !== '' ? 'Manual shipping' : 'Auto shipping'}
+          </AdminStatusBadge>
+          <AdminStatusBadge tone="default">{fmtUsd(grandTotal)}</AdminStatusBadge>
+        </div>
+      </AdminActionBar>
+
+      <AdminEditorSection
+        id="customer"
+        title="Клієнт"
+        description="Вибір account owner визначає discount, region-based shipping zone і подальший контекст замовлення."
+      >
               {selectedCustomer ? (
                 <div className="flex items-center justify-between rounded-none border border-emerald-500/20 bg-emerald-500/5 p-4">
                   <div>
@@ -543,10 +620,13 @@ export default function AdminCreateOrderPage() {
                   )}
                 </div>
               )}
-            </Section>
+      </AdminEditorSection>
 
-            {/* ── Section: Items ─────────────────────────── */}
-            <Section icon={<Package className="h-4 w-4 text-amber-400" />} title="Позиції">
+      <AdminEditorSection
+        id="items"
+        title="Позиції та sourcing"
+        description="Додавайте локальні або Turn14 позиції, розраховуйте markup/discount і формуйте логістичні параметри прямо в draft."
+      >
               {items.map((item, idx) => (
                 <div key={item.key} className="rounded-none border border-white/10 bg-black/20 p-4 mb-4">
                   <div className="flex items-start justify-between gap-3 mb-3">
@@ -722,14 +802,13 @@ export default function AdminCreateOrderPage() {
                 className="flex w-full items-center justify-center gap-2 rounded-none border border-dashed border-white/15 py-3 text-xs uppercase tracking-wider text-white/40 hover:border-white/30 hover:text-white/60">
                 <Plus className="h-4 w-4" /> Додати позицію
               </button>
-            </Section>
-          </div>
+      </AdminEditorSection>
 
-          {/* ─── RIGHT COLUMN (summary) ────────────────────── */}
-          <div className="space-y-6">
-
-            {/* ── Section: Shipping ──────────────────────── */}
-            <Section icon={<Truck className="h-4 w-4 text-cyan-400" />} title="Доставка">
+      <AdminEditorSection
+        id="shipping"
+        title="Доставка"
+        description="Outbound zone, volumetric surcharge і manual override живуть окремим операційним блоком, щоб total був прозорий до submit."
+      >
               <label className="block mb-3">
                 <span className="mb-1 block text-xs text-white/50">Зона доставки</span>
                 <select value={zone} onChange={e => setZone(e.target.value as ShippingZone)}
@@ -773,10 +852,13 @@ export default function AdminCreateOrderPage() {
                   </button>
                 )}
               </div>
-            </Section>
+      </AdminEditorSection>
 
-            {/* ── Section: Order Summary ─────────────────── */}
-            <Section icon={<DollarSign className="h-4 w-4 text-emerald-400" />} title="Підсумок">
+      <AdminEditorSection
+        id="summary"
+        title="Підсумок і submit"
+        description="Остаточна перевірка сум, приміток і статусу перед створенням order detail record."
+      >
               <div className="space-y-2 text-sm">
                 <Row label="Товари" value={fmtUsd(subtotal)} />
                 <Row label="Доставка" value={fmtUsd(finalShipping)} highlight={shippingOverride !== ''} />
@@ -797,39 +879,25 @@ export default function AdminCreateOrderPage() {
               </div>
 
               {submitResult && (
-                <div className={`mt-3 flex items-start gap-2 rounded-none border p-3 text-sm ${
-                  submitResult.success
-                    ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-200'
-                    : 'border-red-500/20 bg-red-950/30 border border-red-900/50 text-red-500/5 text-red-200'
-                }`}>
-                  {submitResult.success ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
-                  {submitResult.message}
-                </div>
+                <AdminInlineAlert tone={submitResult.success ? 'success' : 'error'} className="mt-3">
+                  <div className="flex items-start gap-2">
+                    {submitResult.success ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
+                    {submitResult.message}
+                  </div>
+                </AdminInlineAlert>
               )}
 
               <button type="button" onClick={submitOrder} disabled={submitting}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-none bg-white px-4 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-50">
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-50">
                 <Save className="h-4 w-4" />
                 {submitting ? 'Створення...' : 'Створити замовлення'}
               </button>
-            </Section>
-          </div>
-        </div>
-      </div>
-    </div>
+      </AdminEditorSection>
+    </AdminEditorShell>
   );
 }
 
 // ─── Sub-components ──────────────────────────────────────────
-
-function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-none border border-white/10 bg-white/[0.03] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.2)]">
-      <h3 className="mb-4 flex items-center gap-2 text-lg font-medium text-white">{icon}{title}</h3>
-      {children}
-    </div>
-  );
-}
 
 function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (

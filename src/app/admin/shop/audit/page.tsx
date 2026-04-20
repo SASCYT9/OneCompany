@@ -2,7 +2,19 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, FileClock, RefreshCcw, Search } from 'lucide-react';
+import { ExternalLink, RefreshCcw } from 'lucide-react';
+
+import {
+  AdminEmptyState,
+  AdminFilterBar,
+  AdminInlineAlert,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminPage,
+  AdminPageHeader,
+  AdminStatusBadge,
+  AdminTableShell,
+} from '@/components/admin/AdminPrimitives';
 
 type AuditLogItem = {
   id: string;
@@ -15,6 +27,17 @@ type AuditLogItem = {
   metadata: unknown;
   createdAt: string;
 };
+
+function resolveAuditEntityHref(log: AuditLogItem) {
+  if (!log.entityId) return null;
+
+  const entityType = log.entityType.toLowerCase();
+  if (entityType.includes('order')) return `/admin/shop/orders/${log.entityId}`;
+  if (entityType.includes('customer')) return `/admin/shop/customers/${log.entityId}`;
+  if (entityType.includes('import')) return `/admin/shop/import/jobs/${log.entityId}`;
+  if (entityType.includes('product')) return `/admin/shop/${log.entityId}`;
+  return null;
+}
 
 export default function AdminShopAuditPage() {
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
@@ -69,104 +92,157 @@ export default function AdminShopAuditPage() {
     );
   }, [logs, query]);
 
-  if (loading) {
-    return (
-      <div className="p-6 text-white/60 flex items-center gap-2">
-        <FileClock className="h-5 w-5 animate-pulse" />
-        Завантаження журналу аудиту…
-      </div>
-    );
-  }
+  const groupedLogs = useMemo(() => {
+    return filteredLogs.reduce<Record<string, AuditLogItem[]>>((accumulator, log) => {
+      const key = log.entityType || 'unknown';
+      accumulator[key] = accumulator[key] ? [...accumulator[key], log] : [log];
+      return accumulator;
+    }, {});
+  }, [filteredLogs]);
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="w-full px-6 md:px-12 py-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <Link href="/admin/shop" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white">
-              <ArrowLeft className="h-4 w-4" />
-              Back to catalog
-            </Link>
-            <h2 className="mt-3 text-2xl font-semibold text-white">Журнал аудиту магазину</h2>
-            <p className="mt-2 text-sm text-white/45">
-              Всі дії з каталогом, складом, цінами, налаштуваннями та замовленнями в адмінці магазину.
-            </p>
-          </div>
+    <AdminPage className="space-y-6">
+      <AdminPageHeader
+        eyebrow="System Traceability"
+        title="Shop Audit Trail"
+        description="Структурований журнал змін по каталогу, цінам, імпортам і замовленням. Тут зручно шукати хто, що і коли змінював."
+        actions={
           <button
             type="button"
             onClick={() => setReloadKey((current) => current + 1)}
-            className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-stone-300 transition hover:border-white/25 hover:text-stone-100"
           >
-            <RefreshCcw className="h-4 w-4" />
-            Оновити
+            <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
           </button>
-        </div>
+        }
+      />
 
-        <div className="mb-4 grid gap-4 rounded-none border border-white/10 bg-white/[0.03] p-4 md:grid-cols-[1fr_240px]">
-          <label className="flex items-center gap-2 rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white">
-            <Search className="h-4 w-4 text-white/35" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by actor, action, entity, metadata"
-              className="w-full bg-transparent text-white placeholder:text-white/25 focus:outline-none"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1.5 block text-xs text-white/50">Тип сутності</span>
-            <select
-              value={entityType}
-              onChange={(event) => setEntityType(event.target.value)}
-              className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-white/30 focus:outline-none"
-            >
-              <option value="">Усі типи</option>
-              {entityTypes.map((entry) => (
-                <option key={entry} value={entry}>
-                  {entry}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+      <AdminMetricGrid>
+        <AdminMetricCard label="Audit events" value={filteredLogs.length} meta="Поточний фільтр" />
+        <AdminMetricCard label="Entity types" value={Object.keys(groupedLogs).length} meta="Групи сутностей у видачі" />
+        <AdminMetricCard
+          label="Latest event"
+          value={filteredLogs[0] ? filteredLogs[0].action : '—'}
+          meta={filteredLogs[0] ? new Date(filteredLogs[0].createdAt).toLocaleString() : 'Подій ще немає'}
+        />
+        <AdminMetricCard
+          label="Latest actor"
+          value={filteredLogs[0] ? filteredLogs[0].actorName || filteredLogs[0].actorEmail : '—'}
+          meta={filteredLogs[0]?.entityType ?? '—'}
+        />
+      </AdminMetricGrid>
 
-        <div className="mb-4 rounded-none border border-white/10 bg-white/[0.03] p-4 text-sm text-white/70">
-          {filteredLogs.length} записів у журналі
-        </div>
+      <AdminFilterBar>
+        <label className="min-w-[260px] flex-1">
+          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Search</span>
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="actor, action, entity, metadata"
+            className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 placeholder:text-stone-600 focus:border-white/20 focus:outline-none"
+          />
+        </label>
 
-        {error ? <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div> : null}
-
-        {filteredLogs.length === 0 ? (
-          <div className="rounded-none border border-white/10 bg-white/[0.03] py-16 text-center text-white/45">
-            Подій аудиту не знайдено.
-          </div>
-        ) : (
-          <div className="space-y-3 pb-6">
-            {filteredLogs.map((log) => (
-              <div key={log.id} className="rounded-none border border-white/10 bg-white/[0.03] p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-medium text-white">{log.action}</div>
-                    <div className="mt-1 text-xs text-white/45">
-                      {log.entityType}
-                      {log.entityId ? ` · ${log.entityId}` : ''}
-                    </div>
-                  </div>
-                  <div className="text-xs text-white/45">{new Date(log.createdAt).toLocaleString()}</div>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-3 text-xs text-white/60">
-                  <span>Виконавець: {log.actorName ? `${log.actorName} · ` : ''}{log.actorEmail}</span>
-                  <span>Область: {log.scope}</span>
-                </div>
-                {log.metadata ? (
-                  <pre className="mt-3 overflow-x-auto rounded-none border border-white/10 bg-black/30 p-3 text-xs text-white/65">
-                    {JSON.stringify(log.metadata, null, 2)}
-                  </pre>
-                ) : null}
-              </div>
+        <label className="w-full md:w-[260px]">
+          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Entity type</span>
+          <select
+            value={entityType}
+            onChange={(event) => setEntityType(event.target.value)}
+            className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 focus:border-white/20 focus:outline-none"
+          >
+            <option value="">Усі типи</option>
+            {entityTypes.map((entry) => (
+              <option key={entry} value={entry}>
+                {entry}
+              </option>
             ))}
-          </div>
-        )}
-      </div>
-    </div>
+          </select>
+        </label>
+      </AdminFilterBar>
+
+      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
+
+      {loading ? (
+        <AdminEmptyState
+          title="Завантаження аудиту"
+          description="Підтягуємо останні дії адміністраторів, імпортів, замовлень і каталогу."
+        />
+      ) : filteredLogs.length === 0 ? (
+        <AdminEmptyState
+          title="Подій аудиту не знайдено"
+          description="Спробуйте скинути фільтри або перевірте пізніше, коли з’являться нові операційні події."
+        />
+      ) : (
+        <div className="space-y-6">
+          {Object.entries(groupedLogs).map(([group, groupItems]) => (
+            <section key={group} className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold tracking-tight text-stone-100">{group}</h2>
+                  <p className="text-sm text-stone-500">{groupItems.length} подій у цій групі</p>
+                </div>
+                <AdminStatusBadge>{groupItems.length} records</AdminStatusBadge>
+              </div>
+
+              <AdminTableShell>
+                <table className="min-w-full text-left text-sm text-stone-200">
+                  <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">Action</th>
+                      <th className="px-4 py-3 font-medium">Actor</th>
+                      <th className="px-4 py-3 font-medium">Entity</th>
+                      <th className="px-4 py-3 font-medium">Timestamp</th>
+                      <th className="px-4 py-3 font-medium text-right">Trace</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groupItems.map((log) => {
+                      const entityHref = resolveAuditEntityHref(log);
+                      return (
+                        <tr key={log.id} className="border-t border-white/8 align-top">
+                          <td className="px-4 py-4">
+                            <div className="font-medium text-stone-100">{log.action}</div>
+                            {log.metadata ? (
+                              <pre className="mt-2 max-h-40 overflow-auto rounded-2xl border border-white/10 bg-black/25 p-3 text-[11px] text-stone-500">
+                                {JSON.stringify(log.metadata, null, 2)}
+                              </pre>
+                            ) : null}
+                          </td>
+                          <td className="px-4 py-4 text-stone-300">
+                            <div>{log.actorName ? `${log.actorName}` : log.actorEmail}</div>
+                            <div className="mt-1 text-xs text-stone-500">{log.actorEmail}</div>
+                          </td>
+                          <td className="px-4 py-4 text-stone-300">
+                            <div>{log.entityType}</div>
+                            <div className="mt-1 text-xs text-stone-500">{log.entityId || '—'}</div>
+                          </td>
+                          <td className="px-4 py-4 text-stone-400">{new Date(log.createdAt).toLocaleString()}</td>
+                          <td className="px-4 py-4">
+                            <div className="flex justify-end">
+                              {entityHref ? (
+                                <Link
+                                  href={entityHref}
+                                  className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+                                >
+                                  Open entity
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </Link>
+                              ) : (
+                                <span className="text-xs text-stone-600">No entity route</span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </AdminTableShell>
+            </section>
+          ))}
+        </div>
+      )}
+    </AdminPage>
   );
 }
