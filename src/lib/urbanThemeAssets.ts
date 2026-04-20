@@ -1,15 +1,19 @@
 const ABSOLUTE_URL_RE = /^[a-z][a-z0-9+.-]*:\/\//i;
 const SMGASSETS_IMG_BASE = 'https://smgassets.blob.core.windows.net/customers/urban/dist/img';
 const KNOWN_THEME_ASSET_MAP: Record<string, string> = {
-  'blueprint-w465-front.jpg': '/images/shop/urban/banners/models/gwagonSoftKit/banner-1-1920.jpg',
-  'blueprint-w465-left.jpg': '/images/shop/urban/banners/models/gwagonSoftKit/banner-1-1920.jpg',
-  'blueprint-w465-right.jpg':
-    '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-11-2560.webp',
-  'blueprint-w465-back.jpg':
-    '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-12-2560.webp',
 };
 
 const COLLECTION_THEME_ASSET_MAP: Record<string, Record<string, string>> = {
+  'mercedes-g-wagon-w465-widetrack': {
+    'blueprint-w465-front.jpg':
+      '/images/shop/urban/cols/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-widetrack-front-grille.webp',
+    'blueprint-w465-left.jpg':
+      '/images/shop/urban/hero/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-widetrack-studio-1920.webp',
+    'blueprint-w465-right.jpg':
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-11-2560.webp',
+    'blueprint-w465-back.jpg':
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-12-2560.webp',
+  },
   'rolls-royce-cullinan': {
     'blueprint-cullinan-front.png': '/images/shop/urban/banners/models/cullinan/banner-1-1920.jpg',
     'blueprint-cullinan-left.png': '/images/shop/urban/banners/models/cullinan/banner-3-1920.jpg',
