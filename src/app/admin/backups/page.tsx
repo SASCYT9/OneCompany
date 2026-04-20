@@ -1,6 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+import { Database, Loader2, RefreshCw } from 'lucide-react';
+
+import {
+  AdminActionBar,
+  AdminEmptyState,
+  AdminInlineAlert,
+  AdminInspectorCard,
+  AdminKeyValueGrid,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminPage,
+  AdminPageHeader,
+  AdminSplitDetailShell,
+  AdminStatusBadge,
+  AdminTableShell,
+} from '@/components/admin/AdminPrimitives';
 
 type BackupItem = {
   filename: string;
@@ -15,139 +32,211 @@ type BackupsResponse = {
   error?: string;
 };
 
+function formatBytes(bytes: number) {
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function formatDate(value: string | null) {
+  if (!value) {
+    return '—';
+  }
+
+  return new Date(value).toLocaleString('uk-UA');
+}
+
 export default function AdminBackupsPage() {
   const [items, setItems] = useState<BackupItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [managedExternally, setManagedExternally] = useState(false);
   const [managedMessage, setManagedMessage] = useState('');
 
-  async function load() {
+  const loadBackups = async () => {
     setLoading(true);
-    setError('');
+    setError(null);
+
     try {
-      const response = await fetch('/api/admin/backups');
-      const data = (await response.json().catch(() => ({}))) as BackupsResponse;
+      const response = await fetch('/api/admin/backups', { cache: 'no-store' });
+      const payload = (await response.json().catch(() => ({}))) as BackupsResponse;
+
       if (!response.ok) {
-        setError(data.error || 'Не вдалося завантажити список бекапів');
-        return;
+        throw new Error(payload.error || 'Failed to load backups');
       }
-      setManagedExternally(Boolean(data.managedExternally));
-      setManagedMessage(data.message || '');
-      setItems(Array.isArray(data.items) ? (data.items as BackupItem[]) : []);
+
+      setItems(Array.isArray(payload.items) ? payload.items : []);
+      setManagedExternally(Boolean(payload.managedExternally));
+      setManagedMessage(payload.message || '');
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Failed to load backups');
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  async function createBackup() {
+  useEffect(() => {
+    void loadBackups();
+  }, []);
+
+  const createBackup = async () => {
     setCreating(true);
-    setError('');
-    setSuccess('');
+    setError(null);
+    setSuccess(null);
+
     try {
       const response = await fetch('/api/admin/backups', { method: 'POST' });
-      const data = (await response.json().catch(() => ({}))) as BackupsResponse;
+      const payload = (await response.json().catch(() => ({}))) as BackupsResponse;
+
       if (!response.ok) {
-        setError(data.error || 'Не вдалося створити бекап');
-        return;
+        throw new Error(payload.error || 'Failed to create backup');
       }
-      setSuccess('Бекап успішно створено.');
-      await load();
+
+      setSuccess('Backup created successfully.');
+      await loadBackups();
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : 'Failed to create backup');
     } finally {
       setCreating(false);
     }
-  }
+  };
 
-  useEffect(() => {
-    void load();
-  }, []);
+  const totalSize = useMemo(
+    () => items.reduce((sum, item) => sum + item.sizeBytes, 0),
+    [items]
+  );
+
+  const latestBackup = items[0] ?? null;
+
+  const policyTone = managedExternally ? 'warning' : error ? 'danger' : items.length ? 'success' : 'default';
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="w-full px-4 md:px-8 py-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-white">Бекапи бази даних</h2>
-            <p className="mt-2 text-sm text-white/45">
-              Ручні дампи PostgreSQL для магазину. Перед масовими змінами в каталозі, цінах або імпортом CSV варто зробити свіжий бекап.
-            </p>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
-            >
-              Оновити список
-            </button>
-            <button
-              type="button"
-              onClick={() => void createBackup()}
-              disabled={creating || managedExternally}
-              className="rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50"
-            >
-              {managedExternally ? 'Керується зовнішньо' : creating ? 'Створюємо…' : 'Зробити бекап зараз'}
-            </button>
-          </div>
+    <AdminPage className="space-y-6">
+      <AdminPageHeader
+        eyebrow="System"
+        title="Backups and recovery"
+        description="Operational recovery workspace for local database dumps, runtime backup policy, and restore guardrails."
+        actions={
+          <AdminStatusBadge tone={managedExternally ? 'warning' : error ? 'danger' : items.length ? 'success' : 'default'}>
+            {managedExternally ? 'Managed externally' : error ? 'Needs attention' : items.length ? 'Local backups ready' : 'No backups yet'}
+          </AdminStatusBadge>
+        }
+      />
+
+      <AdminMetricGrid>
+        <AdminMetricCard label="Backup files" value={items.length.toString()} meta="Local dump files discovered in the workspace" tone="accent" />
+        <AdminMetricCard label="Total size" value={formatBytes(totalSize)} meta="Combined size of currently available local dumps" />
+        <AdminMetricCard label="Latest backup" value={latestBackup ? formatDate(latestBackup.createdAt) : '—'} meta={latestBackup ? latestBackup.filename : 'No local backup recorded'} />
+        <AdminMetricCard label="Policy" value={managedExternally ? 'External' : 'Local'} meta={managedExternally ? 'Runtime backup creation is disabled here' : 'Local backup creation is available'} />
+      </AdminMetricGrid>
+
+      <AdminActionBar>
+        <div className="flex flex-wrap items-center gap-2">
+          {error ? <AdminInlineAlert tone="warning">{error}</AdminInlineAlert> : null}
+          {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
+          {!error && !success && managedExternally && managedMessage ? (
+            <AdminInlineAlert tone="warning">{managedMessage}</AdminInlineAlert>
+          ) : null}
         </div>
 
-        {error ? (
-          <div className="mb-4 rounded-none bg-red-900/20 p-3 text-sm text-red-300">{error}</div>
-        ) : null}
-        {success ? (
-          <div className="mb-4 rounded-none bg-green-900/20 p-3 text-sm text-green-200">{success}</div>
-        ) : null}
-        {managedExternally && managedMessage ? (
-          <div className="mb-4 rounded-none bg-amber-900/20 p-3 text-sm text-amber-200">{managedMessage}</div>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void loadBackups()}
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-100"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Reload
+          </button>
+          <button
+            type="button"
+            onClick={() => void createBackup()}
+            disabled={creating || managedExternally}
+            className="inline-flex items-center gap-2 rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber-100 transition disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Database className="h-3.5 w-3.5" />}
+            {managedExternally ? 'Externally managed' : creating ? 'Creating backup' : 'Create backup now'}
+          </button>
+        </div>
+      </AdminActionBar>
 
-        <div className="rounded-none border border-white/10 bg-white/[0.03] p-4">
-          {loading ? (
-            <div className="py-8 text-sm text-white/60">Завантаження списку бекапів…</div>
+      <AdminSplitDetailShell
+        main={
+          loading ? (
+            <div className="flex min-h-[320px] items-center justify-center rounded-[28px] border border-white/10 bg-[#101010] text-sm text-stone-400">
+              <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+              Loading backups…
+            </div>
           ) : items.length === 0 ? (
-            <div className="py-8 text-sm text-white/50">
-              Поки що немає жодного бекапу. Натисніть «Зробити бекап зараз», щоб створити перший дамп бази даних.
-            </div>
+            <AdminEmptyState
+              title={managedExternally ? 'Backups are managed outside the runtime' : 'No local backups yet'}
+              description={
+                managedExternally
+                  ? managedMessage || 'This environment expects backup automation to run outside the app runtime.'
+                  : 'Create the first local backup to capture a recoverable database snapshot before the next risky catalog or import operation.'
+              }
+            />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[320px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-white/10 bg-white/5">
-                    <th className="px-4 py-3 text-white/60 font-medium">Файл</th>
-                    <th className="px-4 py-3 text-white/60 font-medium">Розмір</th>
-                    <th className="px-4 py-3 text-white/60 font-medium">Створено</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => (
-                    <tr key={item.filename} className="border-b border-white/5 hover:bg-white/[0.03]">
-                      <td className="px-4 py-3 font-mono text-xs text-white/80">{item.filename}</td>
-                      <td className="px-4 py-3 text-white/70">
-                        {(item.sizeBytes / (1024 * 1024)).toFixed(2)} MB
-                      </td>
-                      <td className="px-4 py-3 text-white/70">
-                        {new Date(item.createdAt).toLocaleString()}
-                      </td>
+            <AdminTableShell>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                    <tr>
+                      <th className="px-5 py-4 font-medium">Filename</th>
+                      <th className="px-5 py-4 font-medium">Size</th>
+                      <th className="px-5 py-4 font-medium">Created</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                  </thead>
+                  <tbody>
+                    {items.map((item) => (
+                      <tr key={item.filename} className="border-b border-white/6 hover:bg-white/[0.03]">
+                        <td className="px-5 py-4 font-mono text-xs text-stone-200">{item.filename}</td>
+                        <td className="px-5 py-4 text-stone-400">{formatBytes(item.sizeBytes)}</td>
+                        <td className="px-5 py-4 text-stone-400">{formatDate(item.createdAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </AdminTableShell>
+          )
+        }
+        sidebar={
+          <>
+            <AdminInspectorCard
+              title="Runtime policy"
+              description="Backup creation policy derived from the current runtime and environment configuration."
+            >
+              <div className="space-y-4">
+                <AdminStatusBadge tone={policyTone}>
+                  {managedExternally ? 'Production managed externally' : error ? 'Backup creation failed' : items.length ? 'Local backups available' : 'No backups yet'}
+                </AdminStatusBadge>
+                <AdminKeyValueGrid
+                  rows={[
+                    { label: 'Latest backup', value: latestBackup ? formatDate(latestBackup.createdAt) : '—' },
+                    { label: 'Managed externally', value: managedExternally ? 'Yes' : 'No' },
+                    { label: 'Workspace retention', value: 'Controlled by runtime policy and local pruning' },
+                  ]}
+                />
+                {managedMessage ? <div className="text-xs leading-5 text-stone-500">{managedMessage}</div> : null}
+              </div>
+            </AdminInspectorCard>
 
-        <div className="mt-6 rounded-none border border-white/10 bg-white/[0.02] p-4 text-xs text-white/60 space-y-1">
-          <p className="font-medium text-white/80">Архітектура та бекапи на проді (Vercel):</p>
-          <p>• На Vercel немає <code className="rounded-none bg-white/10 px-1">pg_dump</code> у рантаймі, тому кнопка «Зробити бекап зараз» на проді не спрацює. Для продакшну налаштуйте бекапи через <strong>GitHub Actions</strong> та зовнішнє сховище (артефакти, S3 тощо).</p>
-          <p>• Детальна інструкція: політика зберігання, приклад workflow, відновлення — у документі <code className="rounded-none bg-white/10 px-1">docs/BACKUPS.md</code> у репозиторії.</p>
-          <p className="font-medium text-white/80 mt-3">Як відновити з бекапу (DevOps):</p>
-          <p>• Бекапи зберігаються в папці <code className="rounded-none bg-white/10 px-1">backups/</code> на сервері (якщо є доступ). На Vercel ця папка ефемерна.</p>
-          <p>• Відновлення: <code className="rounded-none bg-white/10 px-1">psql</code> або <code className="rounded-none bg-white/10 px-1">pg_restore</code>. Перед відновленням зробіть поточний дамп стану БД.</p>
-        </div>
-      </div>
-    </div>
+            <AdminInspectorCard
+              title="Recovery notes"
+              description="Operational reminders for backup handling and restore readiness."
+            >
+              <AdminKeyValueGrid
+                rows={[
+                  { label: 'Runtime limit', value: 'Vercel runtimes do not ship pg_dump in production.' },
+                  { label: 'Prod strategy', value: 'Use external automation and storage for production dumps.' },
+                  { label: 'Restore path', value: 'Use psql or pg_restore after taking a fresh safety dump.' },
+                ]}
+              />
+            </AdminInspectorCard>
+          </>
+        }
+      />
+    </AdminPage>
   );
 }
-

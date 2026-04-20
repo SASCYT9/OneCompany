@@ -1,22 +1,44 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import {
-  Bell, Shield, Globe, Store, Palette, Search, Save,
-  CheckCircle2, Mail, Phone, MapPin, DollarSign, Percent,
-  Loader2, AlertTriangle, RefreshCw
+  Bell,
+  Globe,
+  Loader2,
+  Mail,
+  MapPin,
+  Palette,
+  Phone,
+  RefreshCw,
+  Save,
+  Search,
+  Shield,
+  Store,
 } from 'lucide-react';
 
-type SettingsSection = 'notifications' | 'company' | 'shop' | 'seo' | 'appearance' | 'security';
+import {
+  AdminDangerZone,
+  AdminEmptyState,
+  AdminInlineAlert,
+  AdminInsightPanel,
+  AdminInspectorCard,
+  AdminKeyValueGrid,
+  AdminPage,
+  AdminPageHeader,
+  AdminSettingsNav,
+  AdminSettingsShell,
+  AdminStatusBadge,
+  AdminStickyActionBar,
+} from '@/components/admin/AdminPrimitives';
+import {
+  AdminCheckboxField,
+  AdminInputField,
+  AdminSelectField,
+  AdminTextareaField,
+} from '@/components/admin/AdminFormFields';
 
-const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] = [
-  { id: 'notifications', label: 'Сповіщення', icon: <Bell className="w-4 h-4" /> },
-  { id: 'company', label: 'Компанія', icon: <Store className="w-4 h-4" /> },
-  { id: 'shop', label: 'Магазин', icon: <DollarSign className="w-4 h-4" /> },
-  { id: 'seo', label: 'SEO', icon: <Search className="w-4 h-4" /> },
-  { id: 'appearance', label: 'Зовнішній вигляд', icon: <Palette className="w-4 h-4" /> },
-  { id: 'security', label: 'Безпека', icon: <Shield className="w-4 h-4" /> },
-];
+type SettingsSection = 'notifications' | 'company' | 'shop' | 'seo' | 'appearance' | 'security';
 
 type AppSettings = {
   soundEnabled: boolean;
@@ -36,6 +58,15 @@ type AppSettings = {
   darkMode: boolean;
 };
 
+const SETTINGS_SECTIONS: Array<{ id: SettingsSection; label: string; description: string }> = [
+  { id: 'notifications', label: 'Notifications', description: 'Push alerts and operator sound feedback.' },
+  { id: 'company', label: 'Company', description: 'Core business identity and contact details.' },
+  { id: 'shop', label: 'Shop defaults', description: 'Default currency, language, markup, and VAT visibility.' },
+  { id: 'seo', label: 'SEO', description: 'Search metadata and Open Graph defaults.' },
+  { id: 'appearance', label: 'Appearance', description: 'Brand accents, logo, and admin UI preferences.' },
+  { id: 'security', label: 'Security', description: 'Admin session handling and reset controls.' },
+];
+
 const DEFAULT_SETTINGS: AppSettings = {
   soundEnabled: false,
   companyName: 'OneCompany',
@@ -47,473 +78,518 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultLanguage: 'ua',
   showPricesWithVat: false,
   metaTitle: 'OneCompany — Premium Tuning & Performance Parts',
-  metaDescription: 'Офіційний дистриб\'ютор Urban Automotive, KW Suspension, FI Exhaust. Оригінальні деталі для BMW, Porsche, Mercedes та інших.',
+  metaDescription:
+    "Офіційний дистриб'ютор Urban Automotive, KW Suspension, FI Exhaust. Оригінальні деталі для BMW, Porsche, Mercedes та інших.",
   ogImage: '/branding/one-company-logo.png',
   accentColor: '#6366f1',
   logoUrl: '/branding/one-company-logo.png',
   darkMode: true,
 };
 
-export default function SettingsPage() {
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+function createSnapshot(value: AppSettings) {
+  return JSON.stringify(value);
+}
+
+export default function AdminSettingsPage() {
   const [activeSection, setActiveSection] = useState<SettingsSection>('notifications');
-  const [permissionStatus, setPermissionStatus] = useState('default');
-  const [saved, setSaved] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const [draft, setDraft] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [permissionStatus, setPermissionStatus] = useState<'default' | 'granted' | 'denied'>('default');
 
-  // ─── Load settings from DB on mount ───
-  const fetchSettings = useCallback(async () => {
+  const hasChanges = useMemo(() => createSnapshot(settings) !== createSnapshot(draft), [settings, draft]);
+
+  const loadSettings = useCallback(async () => {
     setLoading(true);
     setError(null);
+
     try {
-      const res = await fetch('/api/admin/settings/app');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: AppSettings = await res.json();
-      let merged = { ...DEFAULT_SETTINGS, ...data };
+      const response = await fetch('/api/admin/settings/app', { cache: 'no-store' });
+      const payload = (await response.json().catch(() => ({}))) as Partial<AppSettings> & { error?: string };
 
-      // One-time migration: if the DB has defaults and localStorage has real data, merge it
+      if (!response.ok) {
+        throw new Error(payload.error || 'Failed to load settings');
+      }
+
+      let merged = { ...DEFAULT_SETTINGS, ...payload };
+
       try {
-        const raw = localStorage.getItem('adminSettings');
-        if (raw) {
-          const local = JSON.parse(raw) as Partial<AppSettings>;
-          const isDbDefault = data.companyName === DEFAULT_SETTINGS.companyName
-            && data.contactEmail === DEFAULT_SETTINGS.contactEmail
-            && data.metaTitle === DEFAULT_SETTINGS.metaTitle;
+        const localRaw = localStorage.getItem('adminSettings');
+        if (localRaw) {
+          const localSettings = JSON.parse(localRaw) as Partial<AppSettings>;
+          const isServerDefault =
+            payload.companyName === DEFAULT_SETTINGS.companyName &&
+            payload.contactEmail === DEFAULT_SETTINGS.contactEmail &&
+            payload.metaTitle === DEFAULT_SETTINGS.metaTitle;
 
-          if (isDbDefault && Object.keys(local).length > 0) {
-            // DB has defaults — overlay localStorage values and auto-save
-            merged = { ...merged, ...local };
-            setHasChanges(true); // Mark for save to persist migration
+          if (isServerDefault && Object.keys(localSettings).length > 0) {
+            merged = { ...merged, ...localSettings };
           }
         }
-      } catch {}
+      } catch {
+        // Keep settings resilient if legacy local storage is malformed.
+      }
 
       setSettings(merged);
-    } catch (err) {
-      console.error('Failed to load settings:', err);
-      setError('Не вдалося завантажити налаштування');
-      // Hard fallback: try loading from localStorage directly
+      setDraft(merged);
+      setSaved(false);
+    } catch (loadError) {
+      const message = loadError instanceof Error ? loadError.message : 'Failed to load settings';
+      setError(message);
+
       try {
-        const raw = localStorage.getItem('adminSettings');
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          setSettings({ ...DEFAULT_SETTINGS, ...parsed });
-          setHasChanges(true);
+        const localRaw = localStorage.getItem('adminSettings');
+        if (localRaw) {
+          const localSettings = JSON.parse(localRaw) as Partial<AppSettings>;
+          const merged = { ...DEFAULT_SETTINGS, ...localSettings };
+          setSettings(merged);
+          setDraft(merged);
         }
-      } catch {}
+      } catch {
+        // Nothing else to do here.
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchSettings();
+    void loadSettings();
 
     if ('Notification' in window) {
       setPermissionStatus(Notification.permission);
     }
-  }, [fetchSettings]);
+  }, [loadSettings]);
 
-  const update = (key: keyof AppSettings, value: unknown) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-    setHasChanges(true);
+  const updateDraft = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
+    setDraft((current) => ({
+      ...current,
+      [key]: value,
+    }));
+    setSaved(false);
   };
 
-  // ─── Save settings to DB ───
   const handleSave = async () => {
     setSaving(true);
     setError(null);
+
     try {
-      const res = await fetch('/api/admin/settings/app', {
+      const response = await fetch('/api/admin/settings/app', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(draft),
       });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `HTTP ${res.status}`);
+      const payload = (await response.json().catch(() => ({}))) as Partial<AppSettings> & { error?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.error || 'Failed to save settings');
       }
 
-      const data: AppSettings = await res.json();
-      setSettings({ ...DEFAULT_SETTINGS, ...data });
-
-      // Clean up legacy localStorage data after successful save
-      localStorage.removeItem('adminSettings');
-
+      const merged = { ...DEFAULT_SETTINGS, ...payload };
+      setSettings(merged);
+      setDraft(merged);
       setSaved(true);
-      setHasChanges(false);
-      setTimeout(() => setSaved(false), 2000);
-    } catch (err) {
-      console.error('Failed to save settings:', err);
-      setError('Не вдалося зберегти налаштування');
+      localStorage.removeItem('adminSettings');
+      window.setTimeout(() => setSaved(false), 2_000);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Failed to save settings');
     } finally {
       setSaving(false);
     }
   };
 
   const requestNotificationPermission = async () => {
-    if (!('Notification' in window)) return;
+    if (!('Notification' in window)) {
+      return;
+    }
+
     try {
       const permission = await Notification.requestPermission();
       setPermissionStatus(permission);
       if (permission === 'granted') {
         new Notification('OneCompany Admin', {
-          body: 'Сповіщення увімкнено!',
+          body: 'Notifications are now enabled.',
           icon: '/branding/one-company-logo.png',
         });
       }
-    } catch {}
+    } catch {
+      setError('Notification permission could not be updated');
+    }
   };
 
-  // ─── Loading state ───
+  const handleReset = async () => {
+    setDraft(DEFAULT_SETTINGS);
+    setSettings(DEFAULT_SETTINGS);
+    setSaved(false);
+    localStorage.removeItem('adminSettings');
+
+    try {
+      const response = await fetch('/api/admin/settings/app', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(DEFAULT_SETTINGS),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reset settings');
+      }
+    } catch (resetError) {
+      setError(resetError instanceof Error ? resetError.message : 'Failed to reset settings');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/auth', { method: 'DELETE' });
+      window.location.reload();
+    } catch {
+      setError('Failed to close admin session');
+    }
+  };
+
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-white/40">
-          <Loader2 className="w-6 h-6 animate-spin" />
-          <span className="text-sm">Завантаження налаштувань…</span>
+      <AdminPage>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="flex items-center gap-3 text-sm text-stone-400">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading global settings…
+          </div>
         </div>
-      </div>
+      </AdminPage>
     );
   }
 
-  return (
-    <div className="h-full overflow-y-auto">
-      <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-8 text-white pb-20">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Налаштування</h1>
-            <p className="text-sm text-white/40 mt-1">Конфігурація додатку, магазину та зовнішнього вигляду.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            {error && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-red-950/30 border border-red-900/50 text-red-500/10 border border-red-500/20 rounded-none text-red-400 text-xs">
-                <AlertTriangle className="w-3.5 h-3.5" />
-                {error}
-                <button onClick={fetchSettings} className="ml-1 hover:text-red-300 transition-colors">
-                  <RefreshCw className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
+  if (!settings && !draft) {
+    return (
+      <AdminPage>
+        <AdminEmptyState
+          title="Settings are unavailable"
+          description={error || 'The system settings payload could not be loaded.'}
+          action={
             <button
-              onClick={handleSave}
-              disabled={(!hasChanges && !saved) || saving}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-none text-sm font-medium transition-all ${
-                saved
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  : saving
-                    ? 'bg-white/10 text-white/50 border border-white/10 cursor-wait'
-                    : hasChanges
-                      ? 'bg-white text-black hover:bg-zinc-200'
-                      : 'bg-white/5 text-white/30 border border-white/10 cursor-not-allowed'
-              }`}
+              type="button"
+              onClick={() => void loadSettings()}
+              className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-stone-200 transition hover:bg-white/[0.06]"
             >
-              {saving ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Зберігаю…</>
-              ) : saved ? (
-                <><CheckCircle2 className="w-4 h-4" /> Збережено</>
-              ) : (
-                <><Save className="w-4 h-4" /> Зберегти</>
-              )}
+              Retry
             </button>
-          </div>
-        </div>
+          }
+        />
+      </AdminPage>
+    );
+  }
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar Sections */}
-          <nav className="lg:w-56 shrink-0">
-            <div className="sticky top-8 space-y-1">
-              {SECTIONS.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => setActiveSection(s.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-none text-sm transition-all text-left ${
-                    activeSection === s.id
-                      ? 'bg-white/[0.08] text-white font-medium'
-                      : 'text-white/40 hover:text-white/60 hover:bg-white/[0.03]'
-                  }`}
-                >
-                  <span className={activeSection === s.id ? 'text-zinc-400' : ''}>{s.icon}</span>
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </nav>
+  const activeLabel = SETTINGS_SECTIONS.find((section) => section.id === activeSection)?.label ?? 'Settings';
 
-          {/* Content */}
-          <div className="flex-1 min-w-0 space-y-6">
-
-            {/* ─── Notifications ─── */}
-            {activeSection === 'notifications' && (
-              <SettingsCard title="Сповіщення" subtitle="Налаштування push-сповіщень та звукових ефектів." icon={<Bell className="w-5 h-5" />} color="blue">
-                <SettingsRow label="Push-сповіщення" description="Отримуйте сповіщення навіть коли вкладка у фоні.">
-                  <button
-                    onClick={requestNotificationPermission}
-                    disabled={permissionStatus === 'granted'}
-                    className={`px-4 py-2 rounded-none text-sm font-medium transition-all ${
-                      permissionStatus === 'granted'
-                        ? 'bg-emerald-500/10 text-emerald-400 cursor-default'
-                        : 'bg-white text-black hover:bg-zinc-200'
-                    }`}
-                  >
-                    {permissionStatus === 'granted' ? '✓ Увімкнено' : permissionStatus === 'denied' ? 'Заблоковано' : 'Увімкнути'}
-                  </button>
-                </SettingsRow>
-                <SettingsRow label="Звукові ефекти" description="Звук при надходженні нового запиту.">
-                  <Toggle value={settings.soundEnabled} onChange={v => update('soundEnabled', v)} />
-                </SettingsRow>
-              </SettingsCard>
-            )}
-
-            {/* ─── Company ─── */}
-            {activeSection === 'company' && (
-              <SettingsCard title="Компанія" subtitle="Основна інформація про ваш бізнес." icon={<Store className="w-5 h-5" />} color="purple">
-                <SettingsInput label="Назва компанії" icon={<Store className="w-4 h-4" />}
-                  value={settings.companyName} onChange={v => update('companyName', v)} />
-                <SettingsInput label="Email для зв'язку" icon={<Mail className="w-4 h-4" />}
-                  value={settings.contactEmail} onChange={v => update('contactEmail', v)} type="email" />
-                <SettingsInput label="Телефон" icon={<Phone className="w-4 h-4" />}
-                  value={settings.contactPhone} onChange={v => update('contactPhone', v)} type="tel" />
-                <SettingsInput label="Адреса" icon={<MapPin className="w-4 h-4" />}
-                  value={settings.address} onChange={v => update('address', v)} />
-              </SettingsCard>
-            )}
-
-            {/* ─── Shop ─── */}
-            {activeSection === 'shop' && (
-              <SettingsCard title="Магазин" subtitle="Валюта, маржинальність та мова каталогу." icon={<DollarSign className="w-5 h-5" />} color="emerald">
-                <SettingsRow label="Валюта за замовчуванням" description="Основна валюта для відображення цін.">
-                  <select
-                    value={settings.defaultCurrency}
-                    onChange={e => update('defaultCurrency', e.target.value)}
-                    className="bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-none focus:outline-none focus:border-white/30 min-w-[120px]"
-                  >
-                    <option value="USD" className="bg-[#121216]">USD ($)</option>
-                    <option value="EUR" className="bg-[#121216]">EUR (€)</option>
-                    <option value="UAH" className="bg-[#121216]">UAH (₴)</option>
-                  </select>
-                </SettingsRow>
-                <SettingsRow label="Маржа за замовчуванням" description="Відсоток надбавки на закупівельну ціну.">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={settings.defaultMarkup}
-                      onChange={e => update('defaultMarkup', Number(e.target.value))}
-                      className="w-20 bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-none focus:outline-none focus:border-white/30 text-center"
-                    />
-                    <Percent className="w-4 h-4 text-white/30" />
-                  </div>
-                </SettingsRow>
-                <SettingsRow label="Мова інтерфейсу" description="Мова каталогу та кабінету клієнта.">
-                  <select
-                    value={settings.defaultLanguage}
-                    onChange={e => update('defaultLanguage', e.target.value)}
-                    className="bg-white/[0.03] border border-white/10 text-sm text-white px-3 py-2 rounded-none focus:outline-none focus:border-white/30 min-w-[140px]"
-                  >
-                    <option value="ua" className="bg-[#121216]">🇺🇦 Українська</option>
-                    <option value="en" className="bg-[#121216]">🇬🇧 English</option>
-                  </select>
-                </SettingsRow>
-                <SettingsRow label="Ціни з ПДВ" description="Показувати ціни з урахуванням ПДВ.">
-                  <Toggle value={settings.showPricesWithVat} onChange={v => update('showPricesWithVat', v)} />
-                </SettingsRow>
-              </SettingsCard>
-            )}
-
-            {/* ─── SEO ─── */}
-            {activeSection === 'seo' && (
-              <SettingsCard title="SEO" subtitle="Мета-теги та Open Graph для пошукових систем." icon={<Search className="w-5 h-5" />} color="amber">
-                <SettingsInput label="Meta Title" icon={<Globe className="w-4 h-4" />}
-                  value={settings.metaTitle} onChange={v => update('metaTitle', v)}
-                  hint={`${settings.metaTitle.length}/60 символів`} />
-                <div className="px-6 py-4">
-                  <label className="block text-xs uppercase tracking-widest text-white/40 mb-2">Meta Description</label>
-                  <textarea
-                    value={settings.metaDescription}
-                    onChange={e => update('metaDescription', e.target.value)}
-                    rows={3}
-                    className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-4 py-3 rounded-none focus:outline-none focus:border-white/30 resize-none"
-                  />
-                  <p className="text-[10px] text-white/25 mt-1">{settings.metaDescription.length}/160 символів</p>
-                </div>
-                <SettingsInput label="OG Image URL" icon={<Palette className="w-4 h-4" />}
-                  value={settings.ogImage} onChange={v => update('ogImage', v)} />
-                
-                {/* SEO Preview */}
-                <div className="px-6 py-4 border-t border-white/5">
-                  <p className="text-[10px] uppercase tracking-widest text-white/30 mb-3">Попередній перегляд Google</p>
-                  <div className="bg-white rounded-none p-4 max-w-lg">
-                    <p className="text-[#1a0dab] text-lg font-normal leading-tight truncate">{settings.metaTitle || 'OneCompany'}</p>
-                    <p className="text-[#006621] text-sm mt-1 truncate">onecompany.com.ua</p>
-                    <p className="text-[#545454] text-sm mt-1 line-clamp-2 leading-relaxed">{settings.metaDescription || 'Опис сайту...'}</p>
-                  </div>
-                </div>
-              </SettingsCard>
-            )}
-
-            {/* ─── Appearance ─── */}
-            {activeSection === 'appearance' && (
-              <SettingsCard title="Зовнішній вигляд" subtitle="Кольори, тема та логотип." icon={<Palette className="w-5 h-5" />} color="pink">
-                <SettingsRow label="Акцентний колір" description="Основний колір інтерфейсу адмін-панелі.">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={settings.accentColor}
-                      onChange={e => update('accentColor', e.target.value)}
-                      className="w-10 h-10 rounded-none border border-white/10 cursor-pointer bg-transparent"
-                    />
-                    <span className="text-xs text-white/40 font-mono">{settings.accentColor}</span>
-                  </div>
-                </SettingsRow>
-                <SettingsInput label="URL логотипу" icon={<Palette className="w-4 h-4" />}
-                  value={settings.logoUrl} onChange={v => update('logoUrl', v)} />
-                <SettingsRow label="Темна тема" description="Завжди використовувати темну тему.">
-                  <Toggle value={settings.darkMode} onChange={v => update('darkMode', v)} />
-                </SettingsRow>
-              </SettingsCard>
-            )}
-
-            {/* ─── Security ─── */}
-            {activeSection === 'security' && (
-              <SettingsCard title="Безпека" subtitle="Управління сесією та доступами." icon={<Shield className="w-5 h-5" />} color="red">
-                <SettingsRow label="Адмін-сесія" description="Ви зараз авторизовані як адміністратор.">
-                  <button
-                    onClick={() => {
-                      sessionStorage.removeItem('adminAuth');
-                      window.location.reload();
-                    }}
-                    className="px-4 py-2 bg-red-950/30 border border-red-900/50 text-red-500/10 text-red-400 hover:bg-red-950/30 border border-red-900/50 text-red-500/20 rounded-none text-sm font-medium transition-colors"
-                  >
-                    Вийти
-                  </button>
-                </SettingsRow>
-                <SettingsRow label="Скинути до стандартних" description="Повернути всі налаштування до значень за замовчуванням.">
-                  <button
-                    onClick={async () => {
-                      if (!confirm('Скинути всі налаштування до стандартних?')) return;
-                      try {
-                        const res = await fetch('/api/admin/settings/app', {
-                          method: 'PATCH',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify(DEFAULT_SETTINGS),
-                        });
-                        if (res.ok) {
-                          setSettings(DEFAULT_SETTINGS);
-                          setHasChanges(false);
-                          localStorage.removeItem('adminSettings');
-                        }
-                      } catch {}
-                    }}
-                    className="px-4 py-2 bg-white/5 text-white/60 hover:bg-white/10 rounded-none text-sm font-medium transition-colors border border-white/10"
-                  >
-                    Скинути
-                  </button>
-                </SettingsRow>
-              </SettingsCard>
-            )}
-
-            {/* App Info */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="p-4 bg-white/[0.02] rounded-none border border-white/5">
-                <div className="text-[9px] uppercase tracking-widest text-white/25 mb-2">Версія</div>
-                <div className="text-white font-mono text-sm">2.2.0</div>
-              </div>
-              <div className="p-4 bg-white/[0.02] rounded-none border border-white/5">
-                <div className="text-[9px] uppercase tracking-widest text-white/25 mb-2">Сховище</div>
-                <div className="flex items-center gap-2 text-emerald-400 text-sm">
-                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-none-full animate-pulse" />
-                  PostgreSQL
-                </div>
-              </div>
-              <div className="p-4 bg-white/[0.02] rounded-none border border-white/5">
-                <div className="text-[9px] uppercase tracking-widest text-white/25 mb-2">PWA</div>
-                <div className="text-white/60 text-sm">Standalone</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════
-// Sub-components
-// ═══════════════════════════════
-
-function SettingsCard({ title, subtitle, icon, color, children }: {
-  title: string; subtitle: string; icon: React.ReactNode; color: string; children: React.ReactNode;
-}) {
-  const colors: Record<string, string> = {
-    blue: 'bg-zinc-100 text-black/10 text-zinc-400',
-    purple: 'bg-zinc-100 text-black/10 text-zinc-400',
-    emerald: 'bg-emerald-500/10 text-emerald-400',
-    amber: 'bg-amber-500/10 text-amber-400',
-    pink: 'bg-zinc-100 text-black/10 text-zinc-400',
-    red: 'bg-red-950/30 border border-red-900/50 text-red-500/10 text-red-400',
-  };
   return (
-    <div className="bg-white/[0.02] border border-white/5 rounded-none overflow-hidden">
-      <div className="p-6 border-b border-white/5">
-        <div className="flex items-center gap-3 mb-1">
-          <div className={`p-2 rounded-none ${colors[color] || colors.blue}`}>{icon}</div>
-          <h2 className="text-lg font-medium text-white">{title}</h2>
-        </div>
-        <p className="text-sm text-white/40 pl-[52px]">{subtitle}</p>
-      </div>
-      <div className="divide-y divide-white/5">{children}</div>
-    </div>
-  );
-}
-
-function SettingsRow({ label, description, children }: {
-  label: string; description: string; children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between px-6 py-4 gap-4">
-      <div className="min-w-0">
-        <div className="text-sm font-medium text-white/80">{label}</div>
-        <div className="text-xs text-white/30 mt-0.5">{description}</div>
-      </div>
-      <div className="shrink-0">{children}</div>
-    </div>
-  );
-}
-
-function SettingsInput({ label, icon, value, onChange, type = 'text', hint }: {
-  label: string; icon: React.ReactNode; value: string; onChange: (v: string) => void; type?: string; hint?: string;
-}) {
-  return (
-    <div className="px-6 py-4">
-      <label className="flex items-center gap-2 text-xs uppercase tracking-widest text-white/40 mb-2">
-        <span className="text-white/20">{icon}</span>
-        {label}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full bg-white/[0.03] border border-white/10 text-sm text-white px-4 py-2.5 rounded-none focus:outline-none focus:border-white/30 transition-colors"
+    <AdminPage className="space-y-6">
+      <AdminPageHeader
+        eyebrow="System"
+        title="Global settings"
+        description="Structured business defaults for notifications, company identity, shop behavior, SEO, appearance, and security."
       />
-      {hint && <p className="text-[10px] text-white/25 mt-1">{hint}</p>}
-    </div>
-  );
-}
 
-function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      onClick={() => onChange(!value)}
-      className={`w-12 h-6 rounded-none-full transition-colors relative ${value ? 'bg-zinc-100 text-black' : 'bg-white/10'}`}
-    >
-      <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-none-full transition-transform border border-white/5 ${
-        value ? 'translate-x-6' : 'translate-x-0'
-      }`} />
-    </button>
+      <AdminStickyActionBar>
+        <div className="flex flex-wrap items-center gap-2">
+          <AdminStatusBadge tone={hasChanges ? 'warning' : 'success'}>
+            {hasChanges ? 'Unsaved changes' : saved ? 'Saved' : 'In sync'}
+          </AdminStatusBadge>
+          <AdminStatusBadge tone={permissionStatus === 'granted' ? 'success' : permissionStatus === 'denied' ? 'danger' : 'warning'}>
+            Notifications {permissionStatus}
+          </AdminStatusBadge>
+          <AdminStatusBadge>{activeLabel}</AdminStatusBadge>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void loadSettings()}
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-100"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Reload
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!hasChanges || saving}
+            className="inline-flex items-center gap-2 rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber-100 transition disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+            {saving ? 'Saving' : 'Save changes'}
+          </button>
+        </div>
+      </AdminStickyActionBar>
+
+      {error ? <AdminInlineAlert tone="warning">{error}</AdminInlineAlert> : null}
+
+      <AdminSettingsShell
+        navigation={
+          <AdminSettingsNav
+            items={SETTINGS_SECTIONS}
+            activeId={activeSection}
+            onChange={(section) => setActiveSection(section as SettingsSection)}
+          />
+        }
+        content={
+          <>
+            {activeSection === 'notifications' ? (
+              <AdminInsightPanel
+                title="Notifications"
+                description="Manage operator-facing notification behavior without mixing it with broader system settings."
+              >
+                <div className="grid gap-6 md:grid-cols-2">
+                  <AdminCheckboxField
+                    label="Enable sound feedback"
+                    checked={draft.soundEnabled}
+                    onChange={(value) => updateDraft('soundEnabled', value)}
+                    helper="Play a sound cue when new requests enter the admin queue."
+                  />
+                  <div className="rounded-2xl border border-white/8 bg-black/25 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-medium text-stone-100">Push notifications</div>
+                        <div className="mt-1 text-xs leading-5 text-stone-500">
+                          Browser-level notification permission for this workstation.
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void requestNotificationPermission()}
+                        disabled={permissionStatus === 'granted'}
+                        className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-100 disabled:opacity-40"
+                      >
+                        {permissionStatus === 'granted' ? 'Enabled' : permissionStatus === 'denied' ? 'Blocked' : 'Request'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </AdminInsightPanel>
+            ) : null}
+
+            {activeSection === 'company' ? (
+              <AdminInsightPanel
+                title="Company identity"
+                description="These values power business metadata and shared contact references across the admin and storefront."
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <AdminInputField
+                    label="Company name"
+                    value={draft.companyName}
+                    onChange={(value) => updateDraft('companyName', value)}
+                    helper="Internal and customer-facing business name."
+                  />
+                  <AdminInputField
+                    label="Contact email"
+                    type="email"
+                    value={draft.contactEmail}
+                    onChange={(value) => updateDraft('contactEmail', value)}
+                    helper="Public-facing email for storefront contact blocks."
+                  />
+                  <AdminInputField
+                    label="Contact phone"
+                    value={draft.contactPhone}
+                    onChange={(value) => updateDraft('contactPhone', value)}
+                    helper="Displayed in contact and support contexts."
+                  />
+                  <AdminInputField
+                    label="Address"
+                    value={draft.address}
+                    onChange={(value) => updateDraft('address', value)}
+                    helper="Primary office or warehouse address."
+                  />
+                </div>
+              </AdminInsightPanel>
+            ) : null}
+
+            {activeSection === 'shop' ? (
+              <AdminInsightPanel
+                title="Shop defaults"
+                description="These defaults shape how catalog pricing and language behave before route-level overrides."
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <AdminSelectField
+                    label="Default currency"
+                    value={draft.defaultCurrency}
+                    onChange={(value) => updateDraft('defaultCurrency', value)}
+                    options={[
+                      { value: 'USD', label: 'USD ($)' },
+                      { value: 'EUR', label: 'EUR (€)' },
+                      { value: 'UAH', label: 'UAH (₴)' },
+                    ]}
+                  />
+                  <AdminSelectField
+                    label="Default language"
+                    value={draft.defaultLanguage}
+                    onChange={(value) => updateDraft('defaultLanguage', value)}
+                    options={[
+                      { value: 'ua', label: 'Українська' },
+                      { value: 'en', label: 'English' },
+                    ]}
+                  />
+                  <AdminInputField
+                    label="Default markup"
+                    type="number"
+                    step="1"
+                    value={String(draft.defaultMarkup)}
+                    onChange={(value) => updateDraft('defaultMarkup', Number(value || 0))}
+                    helper="Base markup percent used by admin pricing defaults."
+                  />
+                  <AdminCheckboxField
+                    label="Show prices with VAT"
+                    checked={draft.showPricesWithVat}
+                    onChange={(value) => updateDraft('showPricesWithVat', value)}
+                    helper="Use VAT-inclusive messaging as the default storefront posture."
+                  />
+                </div>
+              </AdminInsightPanel>
+            ) : null}
+
+            {activeSection === 'seo' ? (
+              <AdminInsightPanel
+                title="Search and social metadata"
+                description="System-wide metadata defaults for Google and Open Graph surfaces."
+              >
+                <div className="grid gap-4">
+                  <AdminInputField
+                    label="Meta title"
+                    value={draft.metaTitle}
+                    onChange={(value) => updateDraft('metaTitle', value)}
+                    helper={`${draft.metaTitle.length}/60 characters`}
+                  />
+                  <AdminTextareaField
+                    label="Meta description"
+                    value={draft.metaDescription}
+                    onChange={(value) => updateDraft('metaDescription', value)}
+                    helper={`${draft.metaDescription.length}/160 characters`}
+                    rows={4}
+                  />
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <AdminInputField
+                      label="Open Graph image"
+                      value={draft.ogImage}
+                      onChange={(value) => updateDraft('ogImage', value)}
+                    />
+                    <AdminInputField
+                      label="Logo URL"
+                      value={draft.logoUrl}
+                      onChange={(value) => updateDraft('logoUrl', value)}
+                    />
+                  </div>
+                  <div className="rounded-2xl border border-white/8 bg-white p-4">
+                    <div className="text-lg text-[#1a0dab]">{draft.metaTitle || 'OneCompany'}</div>
+                    <div className="mt-1 text-sm text-[#006621]">onecompany.com.ua</div>
+                    <div className="mt-1 text-sm leading-6 text-[#545454]">{draft.metaDescription || 'Description preview'}</div>
+                  </div>
+                </div>
+              </AdminInsightPanel>
+            ) : null}
+
+            {activeSection === 'appearance' ? (
+              <AdminInsightPanel
+                title="Appearance"
+                description="Keep the internal UI anchored to the brand while preserving usability and clarity."
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <AdminInputField
+                    label="Accent color"
+                    value={draft.accentColor}
+                    onChange={(value) => updateDraft('accentColor', value)}
+                    helper="Hex value used for internal accent treatments."
+                  />
+                  <AdminInputField
+                    label="Logo URL"
+                    value={draft.logoUrl}
+                    onChange={(value) => updateDraft('logoUrl', value)}
+                    helper="Used by admin and fallback OG surfaces."
+                  />
+                  <AdminCheckboxField
+                    label="Dark mode"
+                    checked={draft.darkMode}
+                    onChange={(value) => updateDraft('darkMode', value)}
+                    helper="Keep the admin UI in the dark operations theme."
+                  />
+                </div>
+              </AdminInsightPanel>
+            ) : null}
+
+            {activeSection === 'security' ? (
+              <>
+                <AdminInsightPanel
+                  title="Session and access posture"
+                  description="Operational view of current admin session controls."
+                >
+                  <AdminKeyValueGrid
+                    rows={[
+                      { label: 'Session state', value: 'Authenticated' },
+                      { label: 'Notification permission', value: permissionStatus },
+                      { label: 'Settings flow', value: hasChanges ? 'Unsaved changes pending' : 'Synchronized with server' },
+                    ]}
+                  />
+                </AdminInsightPanel>
+
+                <AdminDangerZone
+                  title="Danger zone"
+                  description="These actions affect the entire admin control layer. Use them deliberately."
+                >
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => void handleReset()}
+                      className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.18em] text-stone-200 transition hover:bg-white/[0.06]"
+                    >
+                      Reset to defaults
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleLogout()}
+                      className="rounded-full border border-red-500/25 bg-red-950/20 px-4 py-2 text-xs uppercase tracking-[0.18em] text-red-100 transition hover:bg-red-950/35"
+                    >
+                      End admin session
+                    </button>
+                  </div>
+                </AdminDangerZone>
+              </>
+            ) : null}
+          </>
+        }
+        sidebar={
+          <>
+            <AdminInspectorCard
+              title="Configuration snapshot"
+              description="High-level summary of the current system defaults."
+            >
+              <AdminKeyValueGrid
+                rows={[
+                  { label: 'Currency', value: draft.defaultCurrency },
+                  { label: 'Language', value: draft.defaultLanguage.toUpperCase() },
+                  { label: 'Markup', value: `${draft.defaultMarkup}%` },
+                  { label: 'VAT mode', value: draft.showPricesWithVat ? 'Visible' : 'Hidden' },
+                ]}
+              />
+            </AdminInspectorCard>
+
+            <AdminInspectorCard
+              title="Brand surfaces"
+              description="The most visible global metadata surfaces exposed to customers."
+            >
+              <AdminKeyValueGrid
+                rows={[
+                  { label: 'Company', value: draft.companyName },
+                  { label: 'Contact', value: `${draft.contactEmail} · ${draft.contactPhone}` },
+                  { label: 'Meta title', value: draft.metaTitle },
+                  { label: 'Accent', value: draft.accentColor },
+                ]}
+              />
+            </AdminInspectorCard>
+          </>
+        }
+      />
+    </AdminPage>
   );
 }

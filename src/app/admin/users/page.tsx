@@ -1,8 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Shield, Plus, X, Loader2, Eye, EyeOff } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useMemo, useState } from 'react';
+
+import { Loader2, Plus, RefreshCw, Shield } from 'lucide-react';
+
+import {
+  AdminActionBar,
+  AdminEmptyState,
+  AdminInlineAlert,
+  AdminInspectorCard,
+  AdminKeyValueGrid,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminPage,
+  AdminPageHeader,
+  AdminSplitDetailShell,
+  AdminStatusBadge,
+  AdminTableShell,
+} from '@/components/admin/AdminPrimitives';
+import { AdminCheckboxField, AdminInputField } from '@/components/admin/AdminFormFields';
 
 type AdminRole = {
   id: string;
@@ -17,336 +33,628 @@ type AdminUser = {
   name: string | null;
   isActive: boolean;
   lastLoginAt: string | null;
-  roles: Array<{ role: { id: string; name: string; key: string } }>;
+  createdAt: string;
+  updatedAt: string;
+  roles: Array<{ id: string; key: string; name: string }>;
 };
+
+type CreateAdminForm = {
+  email: string;
+  name: string;
+  password: string;
+  roleIds: string[];
+};
+
+type EditAdminForm = {
+  name: string;
+  isActive: boolean;
+  roleIds: string[];
+};
+
+const EMPTY_CREATE_FORM: CreateAdminForm = {
+  email: '',
+  name: '',
+  password: '',
+  roleIds: [],
+};
+
+const EMPTY_EDIT_FORM: EditAdminForm = {
+  name: '',
+  isActive: true,
+  roleIds: [],
+};
+
+function formatDate(value: string | null) {
+  if (!value) {
+    return 'Never';
+  }
+
+  return new Date(value).toLocaleString('uk-UA');
+}
+
+function snapshotEditForm(form: EditAdminForm) {
+  return JSON.stringify({
+    ...form,
+    roleIds: [...form.roleIds].sort(),
+  });
+}
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [roles, setRoles] = useState<AdminRole[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  // Modal state
-  const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<EditAdminForm>(EMPTY_EDIT_FORM);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState<CreateAdminForm>(EMPTY_CREATE_FORM);
   const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({
-    email: '',
-    name: '',
-    password: '',
-    roleIds: [] as string[],
-  });
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const loadData = async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      const [usersRes, rolesRes] = await Promise.all([
-        fetch('/api/admin/users'),
-        fetch('/api/admin/roles'),
+      const [usersResponse, rolesResponse] = await Promise.all([
+        fetch('/api/admin/users', { cache: 'no-store' }),
+        fetch('/api/admin/roles', { cache: 'no-store' }),
       ]);
-      if (!usersRes.ok) throw new Error('Failed to load access list');
-      setUsers(await usersRes.json());
-      if (rolesRes.ok) {
-        setRoles(await rolesRes.json());
+
+      const usersPayload = (await usersResponse.json().catch(() => ([]))) as AdminUser[] | { error?: string };
+      const rolesPayload = (await rolesResponse.json().catch(() => ([]))) as AdminRole[] | { error?: string };
+
+      if (!usersResponse.ok) {
+        throw new Error(!Array.isArray(usersPayload) ? usersPayload.error || 'Failed to load users' : 'Failed to load users');
       }
-    } catch (err: any) {
-      setError(err.message || 'Error loading data');
+
+      if (!rolesResponse.ok) {
+        throw new Error(!Array.isArray(rolesPayload) ? rolesPayload.error || 'Failed to load roles' : 'Failed to load roles');
+      }
+
+      const nextUsers = Array.isArray(usersPayload) ? usersPayload : [];
+      const nextRoles = Array.isArray(rolesPayload) ? rolesPayload : [];
+
+      setUsers(nextUsers);
+      setRoles(nextRoles);
+
+      if (!selectedUserId && nextUsers.length) {
+        setSelectedUserId(nextUsers[0].id);
+      }
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Failed to load admin access data');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, []);
 
-  const toggleRole = (roleId: string) => {
-    setForm(prev => ({
-      ...prev,
-      roleIds: prev.roleIds.includes(roleId)
-        ? prev.roleIds.filter(id => id !== roleId)
-        : [...prev.roleIds, roleId],
+  const selectedUser = useMemo(
+    () => users.find((user) => user.id === selectedUserId) ?? null,
+    [selectedUserId, users]
+  );
+
+  useEffect(() => {
+    if (!selectedUser && users.length > 0) {
+      setSelectedUserId(users[0].id);
+      return;
+    }
+
+    if (selectedUser) {
+      setEditForm({
+        name: selectedUser.name ?? '',
+        isActive: selectedUser.isActive,
+        roleIds: selectedUser.roles.map((role) => role.id),
+      });
+      setSaveError(null);
+    }
+  }, [selectedUser, users]);
+
+  const filteredUsers = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+
+    return users.filter((user) => {
+      if (statusFilter === 'active' && !user.isActive) {
+        return false;
+      }
+
+      if (statusFilter === 'inactive' && user.isActive) {
+        return false;
+      }
+
+      if (!needle) {
+        return true;
+      }
+
+      return [user.name || '', user.email, ...user.roles.map((role) => role.name)]
+        .join(' ')
+        .toLowerCase()
+        .includes(needle);
+    });
+  }, [query, statusFilter, users]);
+
+  const editDirty = useMemo(() => {
+    if (!selectedUser) {
+      return false;
+    }
+
+    const baseline = snapshotEditForm({
+      name: selectedUser.name ?? '',
+      isActive: selectedUser.isActive,
+      roleIds: selectedUser.roles.map((role) => role.id),
+    });
+
+    return baseline !== snapshotEditForm(editForm);
+  }, [editForm, selectedUser]);
+
+  const totalUsers = users.length;
+  const activeUsers = users.filter((user) => user.isActive).length;
+  const inactiveUsers = totalUsers - activeUsers;
+
+  const toggleRole = (roleId: string, scope: 'create' | 'edit') => {
+    if (scope === 'create') {
+      setCreateForm((current) => ({
+        ...current,
+        roleIds: current.roleIds.includes(roleId)
+          ? current.roleIds.filter((id) => id !== roleId)
+          : [...current.roleIds, roleId],
+      }));
+      return;
+    }
+
+    setEditForm((current) => ({
+      ...current,
+      roleIds: current.roleIds.includes(roleId)
+        ? current.roleIds.filter((id) => id !== roleId)
+        : [...current.roleIds, roleId],
     }));
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCreating(true);
-    setCreateError('');
+  const handleSaveSelected = async () => {
+    if (!selectedUser) {
+      return;
+    }
+
+    setSaving(true);
+    setSaveError(null);
 
     try {
-      const res = await fetch('/api/admin/users', {
-        method: 'POST',
+      const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(editForm),
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to create user');
+      const payload = (await response.json().catch(() => ({}))) as { error?: string; user?: AdminUser };
+
+      if (!response.ok || !payload.user) {
+        throw new Error(payload.error || 'Failed to update admin user');
       }
 
-      setShowModal(false);
-      setForm({ email: '', name: '', password: '', roleIds: [] });
-      await loadData();
-    } catch (err: any) {
-      setCreateError(err.message || 'Failed');
+      setUsers((current) =>
+        current.map((user) => (user.id === payload.user?.id ? payload.user : user))
+      );
+      setSelectedUserId(payload.user.id);
+    } catch (saveRequestError) {
+      setSaveError(saveRequestError instanceof Error ? saveRequestError.message : 'Failed to update admin user');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCreate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setCreating(true);
+    setCreateError(null);
+
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(createForm),
+      });
+
+      const payload = (await response.json().catch(() => ({}))) as { error?: string; id?: string; user?: AdminUser };
+
+      if (!response.ok) {
+        throw new Error(payload.error || 'Failed to create admin user');
+      }
+
+      if (payload.user) {
+        setUsers((current) => [payload.user!, ...current]);
+        setSelectedUserId(payload.user.id);
+      } else {
+        await loadData();
+        if (payload.id) {
+          setSelectedUserId(payload.id);
+        }
+      }
+
+      setCreateForm(EMPTY_CREATE_FORM);
+      setCreateOpen(false);
+    } catch (createRequestError) {
+      setCreateError(createRequestError instanceof Error ? createRequestError.message : 'Failed to create admin user');
     } finally {
       setCreating(false);
     }
   };
 
   return (
-    <div className="w-full px-4 md:px-12 py-8 pb-32 h-full overflow-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl tracking-tight text-white flex items-center gap-3">
-            <Shield className="w-6 h-6 text-white/70" />
-            Доступи та Адміністратори
-          </h1>
-          <p className="mt-2 text-sm text-white/50">
-            Керування індивідуальними обліковими записами менеджерів та їх ролями.
-          </p>
-        </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-white text-black text-sm font-medium rounded-none hover:bg-white/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Створити доступ
-        </button>
-      </div>
-
-      {error ? (
-        <div className="p-4 bg-red-900/20 text-red-300 rounded-none border border-red-500/20 mb-6">
-          {error}
-        </div>
-      ) : null}
-
-      <div className="border border-white/10 bg-black/40 rounded-none overflow-hidden">
-        {loading ? (
-          <div className="p-6 text-white/50 text-center flex items-center justify-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Завантаження бази...
-          </div>
-        ) : (
-          <table className="w-full text-left text-sm text-white/80">
-            <thead className="bg-white/5 border-b border-white/10 uppercase text-[10px] tracking-wider text-white/50">
-              <tr>
-                <th className="px-6 py-4 font-medium">Користувач</th>
-                <th className="px-6 py-4 font-medium">Ролі</th>
-                <th className="px-6 py-4 font-medium text-center">Статус</th>
-                <th className="px-6 py-4 font-medium">Останній вхід</th>
-                <th className="px-6 py-4 font-medium text-right">Дії</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-white">{user.name || 'Без імені'}</div>
-                    <div className="text-white/50 text-[11px] mt-0.5">{user.email}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {user.roles.length ? user.roles.map((r, i) => (
-                        <span key={i} className="inline-flex items-center px-2 py-0.5 border border-white/10 bg-white/5 rounded-none-full text-[10px] uppercase text-white/70">
-                          {r.role.name}
-                        </span>
-                      )) : (
-                        <span className="text-white/30 text-xs">Немає</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {user.isActive ? (
-                      <span className="inline-flex items-center justify-center w-2 h-2 rounded-none-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
-                    ) : (
-                      <span className="inline-flex items-center justify-center w-2 h-2 rounded-none-full bg-red-950/30 border border-red-900/50 text-red-500"></span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-white/50 text-xs">
-                    {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Ніколи'}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="text-[11px] uppercase tracking-wider text-white hover:text-zinc-400 transition-colors">
-                      Редагувати
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {users.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-white/40">
-                    Жодних адміністраторів не знайдено
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* ═══ Create Admin Modal ═══ */}
-      <AnimatePresence>
-        {showModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowModal(false)}
+    <AdminPage className="space-y-6">
+      <AdminPageHeader
+        eyebrow="System"
+        title="Users and access"
+        description="Workbench for internal admin accounts, activation state, and role assignments. Email stays immutable after creation."
+        actions={
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber-100 transition hover:bg-amber-100/[0.1]"
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.2 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md mx-4 bg-zinc-900 border border-white/10 rounded-none shadow-2xl overflow-hidden"
+            <Plus className="h-3.5 w-3.5" />
+            Create user
+          </button>
+        }
+      />
+
+      <AdminMetricGrid>
+        <AdminMetricCard label="Admin users" value={totalUsers.toString()} meta="Total internal access records" tone="accent" />
+        <AdminMetricCard label="Active" value={activeUsers.toString()} meta="Accounts that can authenticate" />
+        <AdminMetricCard label="Inactive" value={inactiveUsers.toString()} meta="Accounts disabled for sign-in" />
+        <AdminMetricCard label="Roles" value={roles.length.toString()} meta="Available permission bundles" />
+      </AdminMetricGrid>
+
+      <AdminActionBar>
+        <div className="flex min-w-[260px] flex-1 items-center gap-3 rounded-full border border-white/10 bg-black/25 px-4 py-3">
+          <Shield className="h-4 w-4 text-stone-500" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search by name, email, or role…"
+            className="w-full bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {([
+            { id: 'all', label: 'All' },
+            { id: 'active', label: 'Active' },
+            { id: 'inactive', label: 'Inactive' },
+          ] as const).map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              onClick={() => setStatusFilter(filter.id)}
+              className={`rounded-full border px-3 py-2 text-xs uppercase tracking-[0.18em] transition ${
+                statusFilter === filter.id
+                  ? 'border-amber-100/15 bg-amber-100/[0.06] text-amber-100'
+                  : 'border-white/10 bg-white/[0.03] text-stone-400 hover:text-stone-100'
+              }`}
             >
-              {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-                <h2 className="text-lg font-medium text-white">Новий адміністратор</h2>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-none hover:bg-white/10 text-white/50 hover:text-white transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+              {filter.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => void loadData()}
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-100"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Reload
+          </button>
+        </div>
+      </AdminActionBar>
+
+      {error ? <AdminInlineAlert tone="warning">{error}</AdminInlineAlert> : null}
+
+      <AdminSplitDetailShell
+        main={
+          loading ? (
+            <div className="flex min-h-[320px] items-center justify-center rounded-[28px] border border-white/10 bg-[#101010] text-sm text-stone-400">
+              <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+              Loading admin users…
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <AdminEmptyState
+              title="No users match the current filter"
+              description="Adjust the access filter or create a new admin account to populate the workbench."
+            />
+          ) : (
+            <AdminTableShell>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                    <tr>
+                      <th className="px-5 py-4 font-medium">User</th>
+                      <th className="px-5 py-4 font-medium">Roles</th>
+                      <th className="px-5 py-4 font-medium">Status</th>
+                      <th className="px-5 py-4 font-medium">Last login</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((user) => {
+                      const selected = user.id === selectedUserId;
+                      return (
+                        <tr
+                          key={user.id}
+                          className={`cursor-pointer border-b border-white/6 transition hover:bg-white/[0.03] ${
+                            selected ? 'bg-amber-100/[0.04]' : 'bg-transparent'
+                          }`}
+                          onClick={() => setSelectedUserId(user.id)}
+                        >
+                          <td className="px-5 py-4">
+                            <div className="text-sm font-medium text-stone-100">{user.name || 'Unnamed manager'}</div>
+                            <div className="mt-1 text-xs text-stone-500">{user.email}</div>
+                          </td>
+                          <td className="px-5 py-4">
+                            <div className="flex flex-wrap gap-2">
+                              {user.roles.length ? (
+                                user.roles.map((role) => (
+                                  <AdminStatusBadge key={role.id}>{role.name}</AdminStatusBadge>
+                                ))
+                              ) : (
+                                <span className="text-xs text-stone-500">No roles</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-5 py-4">
+                            <AdminStatusBadge tone={user.isActive ? 'success' : 'danger'}>
+                              {user.isActive ? 'Active' : 'Inactive'}
+                            </AdminStatusBadge>
+                          </td>
+                          <td className="px-5 py-4 text-sm text-stone-400">{formatDate(user.lastLoginAt)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
+            </AdminTableShell>
+          )
+        }
+        sidebar={
+          selectedUser ? (
+            <>
+              <AdminInspectorCard
+                title="Account snapshot"
+                description="Immutable identity data and high-level access posture for the selected admin."
+              >
+                <AdminKeyValueGrid
+                  rows={[
+                    { label: 'Email', value: selectedUser.email },
+                    { label: 'Created', value: formatDate(selectedUser.createdAt) },
+                    { label: 'Last login', value: formatDate(selectedUser.lastLoginAt) },
+                    { label: 'Status', value: selectedUser.isActive ? 'Active' : 'Inactive' },
+                  ]}
+                />
+              </AdminInspectorCard>
 
-              {/* Form */}
-              <form onSubmit={handleCreate} className="p-6 space-y-5">
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-white/40 mb-2 font-medium">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={form.email}
-                    onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
-                    placeholder="manager@onecompany.com.ua"
-                    className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-none text-white placeholder:text-white/25 focus:outline-none focus:border-indigo-500/50 transition-colors text-sm"
+              <AdminInspectorCard
+                title="Edit access"
+                description="Update display name, activation state, and role assignments. Email stays immutable after creation."
+              >
+                <div className="space-y-4">
+                  <AdminInputField
+                    label="Display name"
+                    value={editForm.name}
+                    onChange={(value) => setEditForm((current) => ({ ...current, name: value }))}
+                    helper="Shown in audit logs and admin identity surfaces."
                   />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-white/40 mb-2 font-medium">
-                    Ім&apos;я
-                  </label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
-                    placeholder="Олександр"
-                    className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-none text-white placeholder:text-white/25 focus:outline-none focus:border-indigo-500/50 transition-colors text-sm"
+                  <AdminCheckboxField
+                    label="Account is active"
+                    checked={editForm.isActive}
+                    onChange={(value) => setEditForm((current) => ({ ...current, isActive: value }))}
+                    helper="Inactive accounts remain on record but cannot sign in."
                   />
-                </div>
 
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-white/40 mb-2 font-medium">
-                    Пароль *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      minLength={6}
-                      value={form.password}
-                      onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
-                      placeholder="Мінімум 6 символів"
-                      className="w-full px-4 py-3 pr-12 bg-black/50 border border-white/10 rounded-none text-white placeholder:text-white/25 focus:outline-none focus:border-indigo-500/50 transition-colors text-sm"
-                    />
+                  <div className="space-y-2">
+                    <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400">Roles</div>
+                    <div className="space-y-2">
+                      {roles.map((role) => {
+                        const checked = editForm.roleIds.includes(role.id);
+                        return (
+                          <label
+                            key={role.id}
+                            className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-3 py-3 transition ${
+                              checked
+                                ? 'border-amber-100/15 bg-amber-100/[0.06]'
+                                : 'border-white/10 bg-black/20 hover:bg-white/[0.03]'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleRole(role.id, 'edit')}
+                              className="mt-1 h-4 w-4 rounded border-white/20 bg-[#101010]"
+                            />
+                            <span className="min-w-0">
+                              <span className="block text-sm font-medium text-stone-100">{role.name}</span>
+                              <span className="mt-1 block text-xs leading-5 text-stone-500">
+                                {role.key} · {role.permissions.length} permissions
+                              </span>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {saveError ? <AdminInlineAlert tone="warning">{saveError}</AdminInlineAlert> : null}
+
+                  <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                      onClick={() => {
+                        if (!selectedUser) {
+                          return;
+                        }
+                        setEditForm({
+                          name: selectedUser.name ?? '',
+                          isActive: selectedUser.isActive,
+                          roleIds: selectedUser.roles.map((role) => role.id),
+                        });
+                        setSaveError(null);
+                      }}
+                      className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.18em] text-stone-200 transition hover:bg-white/[0.06]"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      Reset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleSaveSelected()}
+                      disabled={!editDirty || saving}
+                      className="rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber-100 transition disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {saving ? 'Saving…' : 'Save access'}
                     </button>
                   </div>
                 </div>
+              </AdminInspectorCard>
 
-                {/* Roles */}
-                {roles.length > 0 && (
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-white/40 mb-2 font-medium">
-                      Ролі
-                    </label>
-                    <div className="space-y-2">
-                      {roles.map((role) => (
-                        <label
-                          key={role.id}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-none border cursor-pointer transition-colors ${
-                            form.roleIds.includes(role.id)
-                              ? 'border-indigo-500/40 bg-zinc-100 text-black/10'
-                              : 'border-white/10 bg-black/30 hover:bg-white/5'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={form.roleIds.includes(role.id)}
-                            onChange={() => toggleRole(role.id)}
-                            className="sr-only"
-                          />
-                          <div className={`w-4 h-4 rounded-none border flex items-center justify-center transition-colors ${
-                            form.roleIds.includes(role.id)
-                              ? 'bg-zinc-100 text-black border-indigo-500'
-                              : 'border-white/30'
-                          }`}>
-                            {form.roleIds.includes(role.id) && (
-                              <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 12 12" fill="none">
-                                <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                            )}
-                          </div>
-                          <div>
-                            <div className="text-sm text-white font-medium">{role.name}</div>
-                            <div className="text-[10px] text-white/40 uppercase tracking-wider">{role.key}</div>
-                          </div>
-                        </label>
-                      ))}
+              <AdminInspectorCard
+                title="Role reference"
+                description="Available permission bundles for internal operators."
+              >
+                <div className="space-y-3">
+                  {roles.map((role) => (
+                    <div key={role.id} className="rounded-2xl border border-white/8 bg-black/25 px-3 py-3">
+                      <div className="text-sm font-medium text-stone-100">{role.name}</div>
+                      <div className="mt-1 text-xs leading-5 text-stone-500">
+                        {role.key} · {role.permissions.length} permissions
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {createError && (
-                  <div className="p-3 bg-red-900/20 text-red-300 rounded-none border border-red-500/20 text-sm">
-                    {createError}
-                  </div>
-                )}
-
-                <div className="flex items-center gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="flex-1 py-3 text-sm text-white/60 hover:text-white border border-white/10 rounded-none hover:bg-white/5 transition-colors"
-                  >
-                    Скасувати
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={creating}
-                    className="flex-1 py-3 text-sm font-medium bg-white text-black rounded-none hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                  >
-                    {creating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Створення...
-                      </>
-                    ) : (
-                      'Створити'
-                    )}
-                  </button>
+                  ))}
                 </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+              </AdminInspectorCard>
+            </>
+          ) : (
+            <AdminInspectorCard
+              title="Create the first admin"
+              description="There are no admin accounts yet. Use the primary action to create the first internal access record."
+            >
+              <button
+                type="button"
+                onClick={() => setCreateOpen(true)}
+                className="rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber-100 transition hover:bg-amber-100/[0.1]"
+              >
+                Create user
+              </button>
+            </AdminInspectorCard>
+          )
+        }
+      />
+
+      {createOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 py-8 backdrop-blur">
+          <div className="w-full max-w-2xl rounded-[32px] border border-white/10 bg-[#0d0d0d] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.4)]">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-amber-100/55">System</div>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-stone-50">Create admin user</h2>
+                <p className="mt-2 text-sm leading-6 text-stone-400">
+                  Define the immutable email, initial password, and starting role set for a new internal operator.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setCreateOpen(false);
+                  setCreateError(null);
+                  setCreateForm(EMPTY_CREATE_FORM);
+                }}
+                className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-100"
+              >
+                Close
+              </button>
+            </div>
+
+            <form onSubmit={handleCreate} className="mt-6 space-y-5">
+              <div className="grid gap-4 md:grid-cols-2">
+                <AdminInputField
+                  label="Email"
+                  type="email"
+                  value={createForm.email}
+                  onChange={(value) => setCreateForm((current) => ({ ...current, email: value }))}
+                  helper="This identifier is immutable after the user is created."
+                />
+                <AdminInputField
+                  label="Display name"
+                  value={createForm.name}
+                  onChange={(value) => setCreateForm((current) => ({ ...current, name: value }))}
+                />
+              </div>
+
+              <AdminInputField
+                label="Initial password"
+                type="password"
+                value={createForm.password}
+                onChange={(value) => setCreateForm((current) => ({ ...current, password: value }))}
+                helper="Minimum six characters. Rotate later through standard auth policies if needed."
+              />
+
+              <div className="space-y-2">
+                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400">Initial roles</div>
+                <div className="grid gap-2 md:grid-cols-2">
+                  {roles.map((role) => {
+                    const checked = createForm.roleIds.includes(role.id);
+                    return (
+                      <label
+                        key={role.id}
+                        className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-3 py-3 transition ${
+                          checked ? 'border-amber-100/15 bg-amber-100/[0.06]' : 'border-white/10 bg-black/20 hover:bg-white/[0.03]'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleRole(role.id, 'create')}
+                          className="mt-1 h-4 w-4 rounded border-white/20 bg-[#101010]"
+                        />
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium text-stone-100">{role.name}</span>
+                          <span className="mt-1 block text-xs leading-5 text-stone-500">
+                            {role.key} · {role.permissions.length} permissions
+                          </span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {createError ? <AdminInlineAlert tone="warning">{createError}</AdminInlineAlert> : null}
+
+              <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCreateOpen(false);
+                    setCreateError(null);
+                    setCreateForm(EMPTY_CREATE_FORM);
+                  }}
+                  className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber-100 transition disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {creating ? 'Creating…' : 'Create user'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+    </AdminPage>
   );
 }

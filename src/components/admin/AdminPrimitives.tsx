@@ -109,6 +109,196 @@ export function AdminTableShell({ children, className }: { children: ReactNode; 
   );
 }
 
+export function AdminDashboardSection({
+  title,
+  description,
+  action,
+  children,
+  className,
+}: {
+  title: string;
+  description?: string;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn('space-y-4', className)}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold tracking-tight text-stone-100">{title}</h2>
+          {description ? <p className="text-sm leading-6 text-stone-400">{description}</p> : null}
+        </div>
+        {action ? <div className="flex items-center gap-2">{action}</div> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export function AdminInsightPanel({
+  title,
+  description,
+  tone = 'default',
+  children,
+  className,
+}: {
+  title: string;
+  description?: string;
+  tone?: 'default' | 'warning' | 'success';
+  children: ReactNode;
+  className?: string;
+}) {
+  const toneClass =
+    tone === 'warning'
+      ? 'border-amber-200/15'
+      : tone === 'success'
+        ? 'border-emerald-400/15'
+        : 'border-white/10';
+
+  return (
+    <section className={cn('rounded-[28px] border bg-[#101010] p-5 md:p-6', toneClass, className)}>
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold tracking-tight text-stone-100">{title}</h3>
+        {description ? <p className="text-xs leading-5 text-stone-500">{description}</p> : null}
+      </div>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+export function AdminQuickActionGrid({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cn('grid gap-3 md:grid-cols-2 xl:grid-cols-3', className)}>{children}</div>;
+}
+
+export function AdminQuickActionCard({
+  href,
+  eyebrow,
+  title,
+  description,
+  className,
+}: {
+  href: string;
+  eyebrow?: string;
+  title: string;
+  description: string;
+  className?: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        'group rounded-[24px] border border-white/10 bg-[#101010] px-5 py-5 transition hover:border-amber-100/15 hover:bg-white/[0.03]',
+        className
+      )}
+    >
+      <div className="space-y-2">
+        {eyebrow ? <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-amber-100/55">{eyebrow}</div> : null}
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-base font-semibold tracking-tight text-stone-50">{title}</div>
+            <p className="mt-1 text-sm leading-6 text-stone-400">{description}</p>
+          </div>
+          <ArrowLeft className="h-4 w-4 rotate-180 text-stone-500 transition group-hover:text-stone-100" />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+export function AdminSettingsShell({
+  navigation,
+  content,
+  sidebar,
+  className,
+}: {
+  navigation: ReactNode;
+  content: ReactNode;
+  sidebar?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn('grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)_300px]', className)}>
+      <aside className="xl:sticky xl:top-24 xl:self-start">{navigation}</aside>
+      <div className="min-w-0 space-y-6">{content}</div>
+      {sidebar ? <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">{sidebar}</aside> : null}
+    </div>
+  );
+}
+
+export function AdminSettingsNav({
+  items,
+  activeId,
+  onChange,
+  className,
+}: {
+  items: Array<{ id: string; label: string; description?: string }>;
+  activeId: string;
+  onChange: (id: string) => void;
+  className?: string;
+}) {
+  return (
+    <nav className={cn('rounded-[28px] border border-white/10 bg-[#101010] p-3', className)}>
+      <div className="space-y-1">
+        {items.map((item) => {
+          const active = item.id === activeId;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onChange(item.id)}
+              className={cn(
+                'w-full rounded-2xl border px-3 py-3 text-left transition',
+                active
+                  ? 'border-amber-100/15 bg-amber-100/[0.06] text-stone-50'
+                  : 'border-transparent text-stone-400 hover:border-white/10 hover:bg-white/[0.03] hover:text-stone-100'
+              )}
+            >
+              <span className="block text-sm font-medium">{item.label}</span>
+              {item.description ? <span className="mt-1 block text-xs leading-5 text-stone-500">{item.description}</span> : null}
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+export function AdminStickyActionBar({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <section
+      className={cn(
+        'sticky top-4 z-20 rounded-[24px] border border-white/10 bg-[#121212]/95 px-4 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur',
+        className
+      )}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">{children}</div>
+    </section>
+  );
+}
+
+export function AdminDangerZone({
+  title,
+  description,
+  children,
+  className,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn('rounded-[28px] border border-red-500/20 bg-red-950/20 p-5 md:p-6', className)}>
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold tracking-tight text-red-100">{title}</h3>
+        <p className="text-sm leading-6 text-red-100/75">{description}</p>
+      </div>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
 export function AdminSplitDetailShell({
   main,
   sidebar,
