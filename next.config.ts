@@ -5,6 +5,54 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const isProd = process.env.NODE_ENV === 'production';
 
+const STATIC_REMOTE_IMAGE_HOSTS = [
+  'cdn.shopify.com',
+  'www.racechip.eu',
+  'www.brabus.com',
+  'burgertuning.com',
+  'www.burgertuning.com',
+  'www.jb4tech.com',
+  'www.do88.se',
+  'gp-portal.eu',
+  'images.unsplash.com',
+  'kwsuspension.shop',
+  'fiexhaust.shop',
+  'eventuri.shop',
+  'smgassets.blob.core.windows.net',
+  'parts.ford.com',
+  'www.akrapovic.com',
+  'www.brembo.com',
+  'cobrasport.com',
+  'www.aim-sportline.com',
+  'fuel-it.com',
+  'www.fuel-it.com',
+  'onecompany.global',
+  'one-company.com.ua',
+  'd3pd3d30e33rxi.cloudfront.net',
+];
+
+function parseHostname(value: string | null | undefined) {
+  const normalized = String(value ?? '').trim();
+  if (!normalized) {
+    return null;
+  }
+
+  try {
+    return new URL(normalized.startsWith('http') ? normalized : `https://${normalized}`).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+const configuredRemoteImageHosts = (process.env.NEXT_IMAGE_REMOTE_HOSTS || '')
+  .split(',')
+  .map((entry) => parseHostname(entry))
+  .filter((hostname): hostname is string => Boolean(hostname));
+
+const remoteImageHosts = Array.from(
+  new Set([...STATIC_REMOTE_IMAGE_HOSTS, ...configuredRemoteImageHosts])
+);
+
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -76,10 +124,10 @@ const nextConfig: NextConfig = {
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
+      ...remoteImageHosts.map((hostname) => ({
+        protocol: 'https' as const,
+        hostname,
+      })),
     ],
     formats: ['image/avif', 'image/webp'], // Modern image formats
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],

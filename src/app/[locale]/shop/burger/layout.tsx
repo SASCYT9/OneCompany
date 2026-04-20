@@ -6,5 +6,5 @@ type Props = {
 };
 
 export default function ShopBurgerLayout({ children }: Props) {
-  return <div className="burger-shop">{children}</div>;
+  return <div className="bm-home">{children}</div>;
 }

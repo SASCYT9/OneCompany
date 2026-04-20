@@ -4,7 +4,7 @@
    ────────────────────────────────────────────── */
 
 export const IPE_HERO = {
-  heroImage: '/images/shop/ipe/ipe-porsche-gt3.jpg',
+  heroImage: '/images/shop/ipe/ipe-lamborghini-svj.jpg',
   subtitle:
     'Hand-crafted titanium and stainless steel exhaust systems with signature Valvetronic technology. F1-pitch sound on demand.',
   subtitleUk:

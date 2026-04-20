@@ -74,18 +74,21 @@ export default function UrbanCollectionsGrid({ locale, cards: cardsProp }: Urban
       </div>
 
       {URBAN_COLLECTIONS_GRID_SETTINGS.showFilters && (
-        <div className="mt-10 flex flex-wrap justify-center gap-3">
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-x-1 gap-y-2">
           <button
             type="button"
-            className={`inline-flex min-h-12 items-center justify-center rounded-full border px-6 text-[13px] font-medium uppercase tracking-[0.15em] transition duration-300 ${
+            className={`relative px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 ${
               filter === 'all'
-                ? 'border-[#c29d59]/50 bg-gradient-to-br from-[#c29d59]/20 to-[#c29d59]/5 text-[#ead29d] shadow-[0_8px_30px_rgba(194,157,89,0.2)]'
-                : 'border-white/10 bg-white/[0.03] text-white/60 hover:border-white/25 hover:bg-white/10 hover:text-white'
+                ? 'text-white'
+                : 'text-white/35 hover:text-white/70'
             }`}
             data-filter="all"
             onClick={() => setFilter('all')}
           >
             {isUa ? 'Всі' : 'All'}
+            {filter === 'all' && (
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-5 bg-[#c29d59] rounded-full" />
+            )}
           </button>
           
           {URBAN_COLLECTION_BRANDS.map((brand) => {
@@ -95,75 +98,91 @@ export default function UrbanCollectionsGrid({ locale, cards: cardsProp }: Urban
               <button
                 key={brand}
                 type="button"
-                className={`inline-flex min-h-12 items-center justify-center rounded-full border px-6 text-[13px] font-medium uppercase tracking-[0.15em] transition duration-300 ${
+                className={`relative px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] transition-all duration-300 ${
                   isActive
-                    ? 'border-[#c29d59]/50 bg-gradient-to-br from-[#c29d59]/20 to-[#c29d59]/5 text-[#ead29d] shadow-[0_8px_30px_rgba(194,157,89,0.2)]'
-                    : 'border-white/10 bg-white/[0.03] text-white/60 hover:border-white/25 hover:bg-white/10 hover:text-white'
+                    ? 'text-white'
+                    : 'text-white/35 hover:text-white/70'
                 }`}
                 data-filter={key}
                 onClick={() => setFilter(key)}
               >
                 {brand}
+                {isActive && (
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-5 bg-[#c29d59] rounded-full" />
+                )}
               </button>
             );
           })}
         </div>
       )}
 
-      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {filteredCards.map((card) => (
-          <div
-            key={card.collectionHandle}
-            className="group relative flex aspect-[4/5] w-full flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#050505] shadow-[0_20px_70px_rgba(0,0,0,0.28)] transition-all duration-500 hover:-translate-y-2 hover:border-[#c29d59]/40 hover:shadow-[0_30px_90px_rgba(194,157,89,0.15)]"
-            data-brand={slugifyBrand(card.brand)}
-          >
-            <Link
-              href={`/${locale}/shop/urban/collections/${card.collectionHandle}`}
-              className="absolute inset-0 z-20"
-              aria-label={card.title}
-            />
-            <div className="absolute inset-0 z-0 h-full w-full overflow-hidden bg-[#0a0a0a]">
-              <img
-                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 group-hover:opacity-90"
-                src={card.externalImageUrl}
-                alt=""
-                loading="lazy"
-              />
-            </div>
-            <div className="absolute inset-0 z-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
-            
-            {card.productCount && (
-              <div className="absolute right-5 top-5 z-10 rounded-full border border-white/20 bg-black/50 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
-                {card.productCount}
+      {/* ── Unified seamless mosaic grid ── */}
+      <div className="mt-12 overflow-hidden rounded-2xl border border-white/[0.08]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6">
+          {filteredCards.map((card, idx) => {
+            /* Row 1: 2 hero cards (3 cols each)
+               Row 2+: 3 equal columns (2 cols each) */
+            const isHeroCard = idx < 2;
+            const colSpan = isHeroCard
+              ? 'sm:col-span-1 lg:col-span-3'
+              : 'sm:col-span-1 lg:col-span-2';
+            const heightClass = isHeroCard
+              ? 'h-[320px] sm:h-[360px] lg:h-[420px]'
+              : 'h-[300px] sm:h-[340px] lg:h-[360px]';
+
+            return (
+              <div
+                key={card.collectionHandle}
+                className={`group relative flex w-full flex-col overflow-hidden bg-[#060606] border-b border-r border-white/[0.05] last:border-r-0 transition-all duration-500 ${colSpan} ${heightClass}`}
+                data-brand={slugifyBrand(card.brand)}
+              >
+                <Link
+                  href={`/${locale}/shop/urban/collections/${card.collectionHandle}`}
+                  className="absolute inset-0 z-20"
+                  aria-label={card.title}
+                />
+                <img
+                  className="absolute inset-0 h-full w-full object-cover object-center opacity-75 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-[1.03]"
+                  src={card.externalImageUrl}
+                  alt=""
+                  loading={idx < 4 ? 'eager' : 'lazy'}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/70" />
+                
+                {card.productCount && (
+                  <div className="absolute right-4 top-4 z-10 bg-black/30 px-2.5 py-1 text-[10px] font-semibold text-white/70 backdrop-blur-sm">
+                    {card.productCount}
+                  </div>
+                )}
+                
+                <div className="relative z-10 mt-auto px-5 pb-5 md:px-7 md:pb-7">
+                  {card.brand && (
+                    <p className="mb-1 text-[9px] font-semibold uppercase tracking-[0.25em] text-[#c29d59]/70 transition-colors duration-300 group-hover:text-[#c29d59]">
+                      {card.brand}
+                    </p>
+                  )}
+                  <h2 className={`font-bold leading-tight text-white transition-colors duration-300 group-hover:text-[#ead29d] ${isHeroCard ? 'text-2xl lg:text-3xl' : 'text-lg lg:text-xl'}`}>
+                    {card.title}
+                  </h2>
+                  <div className="mt-3 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/0 transition-all duration-400 group-hover:text-white/70 group-hover:gap-3">
+                    {exploreLabel}
+                    <svg
+                      viewBox="0 0 24 24"
+                      width={13}
+                      height={13}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      className="transition-transform duration-300 group-hover:translate-x-1"
+                    >
+                      <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                </div>
               </div>
-            )}
-            
-            <div className="relative z-10 mt-auto p-6 md:p-8">
-              {card.brand && (
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#c29d59]">
-                  {card.brand}
-                </p>
-              )}
-              <h2 className="text-2xl font-bold leading-tight text-white drop-shadow-lg transition-colors duration-300 group-hover:text-[#ead29d]">
-                {card.title}
-              </h2>
-              <div className="mt-5 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-white/70 transition-colors duration-300 group-hover:text-white">
-                {exploreLabel}
-                <svg
-                  viewBox="0 0 24 24"
-                  width={16}
-                  height={16}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  className="transition-transform duration-300 group-hover:translate-x-1"
-                >
-                  <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
     </section>
   );
