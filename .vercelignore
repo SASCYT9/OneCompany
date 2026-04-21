@@ -8,7 +8,9 @@ node_modules
 /backups/
 /Design/
 /data/
-/scripts/
+/scripts/**
+!/scripts/
+!/scripts/cleanup-prisma-temp-engines.js
 /tests/
 /public/logos.rar
 /.shop-products-dev-cache.json
