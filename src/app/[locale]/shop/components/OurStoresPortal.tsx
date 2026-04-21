@@ -10,102 +10,251 @@ type OurStoresPortalProps = {
   isB2bApproved: boolean;
 };
 
-function localize(isUa: boolean, en: string, ua: string) {
+function t(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
 
-const getCardSpan = (id: string) => {
-  switch (id) {
-    case 'urban':
-    case 'brabus':
-      return 'md:col-span-2 md:row-span-2 min-h-[400px] md:min-h-[500px]'; // 2x2 Feature
-    case 'do88':
-    case 'racechip':
-      return 'md:col-span-2 md:row-span-1 min-h-[250px] md:min-h-[300px]'; // 2x1 Wide
-    case 'akrapovic':
-      return 'md:col-span-2 md:row-span-1 min-h-[250px] md:min-h-[300px]'; // 2x1 Wide
-    case 'csf':
-    case 'ohlins':
-    case 'girodisc':
-    case 'ipe':
-    case 'burger':
-    case 'fi':
-    case 'kw':
-    case 'eventuri':
-    default:
-      return 'col-span-1 md:col-span-1 md:row-span-1 min-h-[250px] md:min-h-[300px]'; // 1x1 Standard
-  }
-};
+function resolveHref(locale: string, store: (typeof OUR_STORES)[number]) {
+  const map: Record<string, string> = {
+    urban: `/${locale}/shop/urban`,
+    do88: `/${locale}/shop/do88`,
+    brabus: `/${locale}/shop/brabus`,
+    burger: `/${locale}/shop/burger`,
+    akrapovic: `/${locale}/shop/akrapovic`,
+    racechip: `/${locale}/shop/racechip`,
+    csf: `/${locale}/shop/csf`,
+    ohlins: `/${locale}/shop/ohlins`,
+    girodisc: `/${locale}/shop/girodisc`,
+    ipe: `/${locale}/shop/ipe`,
+    adro: `/${locale}/shop/adro`,
+  };
+  return map[store.id] ?? store.href ?? "#";
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  Fixed layout: 6-column seamless grid, exactly like Urban     */
+/*  collections. Every row fills all 6 columns.                   */
+/*                                                                */
+/*  Row 1 (hero):  Urban (3) + DO88 (3)                     = 6  */
+/*  Row 2:         Brabus (2) + Akrapovič (2) + Burger (2)  = 6  */
+/*  Row 3:         RaceChip (2) + CSF (2) + Öhlins (2)     = 6  */
+/*  Row 4:         GiroDisc (2) + iPE (2) + ADRO (2)        = 6  */
+/*  Row 5:         KW (2) + FI (2) + Eventuri (2)           = 6  */
+/* ══════════════════════════════════════════════════════════════ */
+
+const HERO_IDS = ['urban', 'akrapovic', 'brabus'];
+const BOTTOM_IDS = ['kw', 'fi', 'eventuri'];
+
+/* Layout:
+   Row 1 (3-col hero): Urban + Akrapovič + Brabus
+   Rows 2-3 (4-col):   DO88, Burger, RaceChip, CSF, Öhlins, GiroDisc, iPE, ADRO
+   Row 4 (3-col):      KW, FI, Eventuri
+*/
+const STORE_ORDER = [
+  'urban', 'akrapovic', 'brabus',
+  'do88', 'burger', 'racechip', 'csf',
+  'ohlins', 'girodisc', 'ipe', 'adro',
+  'kw', 'fi', 'eventuri',
+];
+
+/* ── Reusable store card ─────────────────────────────────────── */
+
+function StoreCard({
+  store,
+  locale,
+  isUa,
+  exploreLabel,
+  height,
+  sizes,
+  eager,
+}: {
+  store: (typeof OUR_STORES)[number];
+  locale: string;
+  isUa: boolean;
+  exploreLabel: string;
+  height: string;
+  sizes: string;
+  eager?: boolean;
+}) {
+  const href = resolveHref(locale, store);
+  const isExternal = store.external === true;
+  const isLogoAsset = store.imageUrl?.startsWith("/logos/") ?? false;
+
+  return (
+    <div
+      className={`group relative flex w-full flex-col overflow-hidden bg-[#060606] border-b border-r border-white/[0.05] transition-all duration-500 ${height}`}
+    >
+      {isExternal ? (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-20" aria-label={t(isUa, store.name, store.nameUk)} />
+      ) : (
+        <Link href={href} className="absolute inset-0 z-20" aria-label={t(isUa, store.name, store.nameUk)} />
+      )}
+
+      {store.imageUrl && (
+        <Image
+          src={store.imageUrl}
+          alt=""
+          fill
+          sizes={sizes}
+          className={`object-cover object-center transition-all duration-700 ease-out group-hover:scale-[1.03] ${
+            isLogoAsset ? "opacity-80 grayscale invert !object-contain p-12" : "opacity-75 group-hover:opacity-100"
+          }`}
+          loading={eager ? "eager" : "lazy"}
+          unoptimized={isLogoAsset}
+        />
+      )}
+
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/70" />
+
+      <div className="relative z-10 mt-auto px-5 pb-5 md:px-7 md:pb-7">
+        <h3 className="text-lg font-bold leading-tight text-white transition-colors duration-300 group-hover:text-[#ead29d] lg:text-xl">
+          {t(isUa, store.name, store.nameUk)}
+        </h3>
+        <p className="mt-1.5 line-clamp-2 max-w-[40ch] text-xs font-light leading-relaxed text-white/50 md:text-sm">
+          {t(isUa, store.description, store.descriptionUk)}
+        </p>
+        <div className="mt-3 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/0 transition-all duration-400 group-hover:text-white/70 group-hover:gap-3">
+          {exploreLabel}
+          <svg viewBox="0 0 24 24" width={13} height={13} fill="none" stroke="currentColor" strokeWidth={2} className="transition-transform duration-300 group-hover:translate-x-1">
+            <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function OurStoresPortal({ locale, isB2bApproved }: OurStoresPortalProps) {
   const isUa = locale === "ua";
+  const storesMap = new Map(OUR_STORES.filter((s) => !s.isHidden).map((s) => [s.id, s]));
+  const storeCount = storesMap.size;
+
+  const ordered = STORE_ORDER
+    .map((id) => storesMap.get(id))
+    .filter(Boolean) as (typeof OUR_STORES)[number][];
+
+  const heroStores = ordered.filter(s => HERO_IDS.includes(s.id));
+  const mainStores = ordered.filter(s => !HERO_IDS.includes(s.id) && !BOTTOM_IDS.includes(s.id));
+  const bottomStores = ordered.filter(s => BOTTOM_IDS.includes(s.id));
+
+  const exploreLabel = isUa ? "Дослідити" : "Explore";
 
   return (
-    <div className="relative min-h-screen bg-[#050505] text-white pt-24 pb-20 selection:bg-white/20">
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/[0.03] via-[#050505] to-[#050505] pointer-events-none" />
-      
-      <div className="relative z-10 w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Navigation & Header */}
-        <div className="flex justify-between items-start mb-16 lg:mb-24">
-          <div className="max-w-2xl">
-            <div className="w-16 h-[1px] bg-gradient-to-r from-white/80 to-transparent mb-6" />
-            <p className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-3 font-semibold">
-              {isUa ? "Глобальний портал" : "Global Portal"}
-            </p>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tighter uppercase leading-none mb-6 text-white/90">
-              {isUa ? "Наші Магазини" : "Our Stores"}
-            </h1>
-            <p className="text-sm md:text-base text-white/50 leading-relaxed max-w-lg font-light">
-              {isUa
-                ? "Офіційні магазини One Company. Досліджуйте простір преміальних автомобільних брендів та тюнінг-ательє."
-                : "Official One Company stores. Explore the space of premium automotive brands and tuning ateliers."}
+    <div className="relative min-h-screen bg-[#050505] text-white selection:bg-white/20">
+      {/* Ambient */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute -top-40 left-1/2 h-[700px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,_rgba(194,157,89,0.06)_0%,_transparent_70%)]" />
+      </div>
+
+      {/* ─── HERO ─────────────────────────────────────────────── */}
+      <section className="relative flex min-h-[50vh] items-center justify-center overflow-hidden">
+        <Image
+          src="/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover brightness-[0.25] saturate-[0.5]"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/60 via-transparent to-[#050505]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/40 via-transparent to-[#050505]/40" />
+
+        <div className="relative z-10 flex flex-col items-center gap-5 px-4 text-center">
+          <h1 className="text-2xl font-extralight uppercase leading-none tracking-[0.15em] text-white/90 sm:text-3xl md:text-4xl">
+            {t(isUa, "Our Stores", "Наші Магазини")}
+          </h1>
+          <div className="flex items-center gap-3">
+            <div className="h-px w-16 bg-gradient-to-r from-transparent to-[#C29D59]/70 sm:w-24" />
+            <div className="h-1.5 w-1.5 rotate-45 bg-[#C29D59]/50" />
+            <div className="h-px w-16 bg-gradient-to-l from-transparent to-[#C29D59]/70 sm:w-24" />
+          </div>
+          <p className="max-w-lg text-sm font-light leading-relaxed text-white/50 md:text-base">
+            {t(isUa,
+              "Official One Company stores. Explore the world of premium automotive brands and tuning ateliers.",
+              "Офіційні магазини One Company. Досліджуйте простір преміальних автомобільних брендів та тюнінг-ательє."
+            )}
+          </p>
+          <div className="mt-8 animate-bounce text-white/25">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── COLLAGE ──────────────────────────────────────────── */}
+      <section className="relative z-10 mx-auto w-full max-w-[1720px] px-4 pb-24 pt-4 sm:px-6 lg:px-8 xl:px-16">
+        {/* Section label */}
+        <div className="mb-8 flex items-end justify-between">
+          <div>
+            <div className="mb-4 h-px w-12 bg-gradient-to-r from-white/60 to-transparent" />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.4em] text-white/30">
+              {t(isUa, "Explore", "Досліджуйте")}
             </p>
           </div>
-          
-          <Link 
-            href={`/${locale}`} 
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-xs font-medium tracking-widest uppercase text-white/70 hover:text-white backdrop-blur-md transition-all duration-300"
-          >
-            ← {isUa ? "Головна" : "Home"}
-          </Link>
+          <p className="text-[11px] uppercase tracking-[0.3em] text-white/25">
+            {storeCount} {t(isUa, "stores", "магазинів")}
+          </p>
         </div>
 
-        {/* B2B Stock Portal */}
+        {/* Seamless grid */}
+        <div className="overflow-hidden rounded-2xl border border-white/[0.08]">
+
+          {/* Row 1 — hero: Urban + Akrapovič + Brabus (3 col) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3">
+            {heroStores.map((store, idx) => (
+              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[280px] sm:h-[360px] lg:h-[460px]" sizes="(max-width: 768px) 100vw, 33vw" eager />
+            ))}
+          </div>
+
+          {/* Rows 2–3 — main: 4 columns */}
+          <div className="grid grid-cols-2 lg:grid-cols-4">
+            {mainStores.map((store) => (
+              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[260px] sm:h-[320px] lg:h-[420px]" sizes="(max-width: 768px) 50vw, 25vw" />
+            ))}
+          </div>
+
+          {/* Row 4 — bottom: KW + FI + Eventuri (3 col) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3">
+            {bottomStores.map((store) => (
+              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[260px] sm:h-[320px] lg:h-[400px]" sizes="(max-width: 768px) 100vw, 33vw" />
+            ))}
+          </div>
+
+        </div>
+
+        {/* ─── B2B STOCK ──────────────────────────────────────── */}
         {isB2bApproved && (
-          <div className="mb-6 lg:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <Link 
+          <div className="mt-12 lg:mt-16">
+            <Link
               href={`/${locale}/shop/stock`}
-              className="group relative flex flex-col justify-end w-full min-h-[280px] md:min-h-[360px] p-6 md:p-10 rounded-[28px] md:rounded-[36px] overflow-hidden border border-white/10 bg-[#0a0a0c] transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_80px_rgba(255,255,255,0.05)]"
+              className="group relative flex flex-col justify-end w-full min-h-[260px] p-6 md:min-h-[340px] md:p-10 rounded-2xl md:rounded-3xl overflow-hidden border border-white/[0.06] bg-[#0a0a0c] transition-all duration-500 hover:border-emerald-500/25 hover:shadow-[0_0_80px_rgba(16,185,129,0.06)]"
             >
               <Image
                 src="/images/shop/stores/one-company-stock-porsche.png"
                 alt="One Company Stock"
                 fill
                 sizes="100vw"
-                className="object-cover opacity-40 transition-transform duration-700 ease-out group-hover:scale-105 group-hover:opacity-60"
+                className="object-cover opacity-35 transition-all duration-700 ease-out group-hover:scale-105 group-hover:opacity-55"
                 priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
-              
-              <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6 max-w-4xl">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold tracking-[0.2em] uppercase mb-4">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    {isUa ? "B2B Доступ Відкрито" : "B2B Access Granted"}
+              <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-8">
+                <div className="max-w-2xl">
+                  <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400">
+                    <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                    {t(isUa, "B2B Access Granted", "B2B Доступ Відкрито")}
                   </div>
-                  <h2 className="text-3xl md:text-5xl font-light uppercase tracking-tight text-white mb-2 group-hover:text-emerald-50 transition-colors">
-                    One Company Stock
-                  </h2>
-                  <p className="text-sm md:text-base text-white/60 font-light max-w-2xl leading-relaxed">
-                    {isUa 
-                      ? "Спеціалізований B2B-портал складу. Отримуйте миттєвий доступ до залишків, гуртових цін та оформлюйте замовлення на преміальні запчастини з наявністю."
-                      : "Specialized B2B stock portal. Get instant access to inventory, wholesale pricing, and place orders for premium parts in stock."}
+                  <h2 className="mb-2 text-3xl font-light uppercase tracking-tight text-white md:text-5xl">One Company Stock</h2>
+                  <p className="max-w-2xl text-sm font-light leading-relaxed text-white/55 md:text-base">
+                    {t(isUa,
+                      "Specialized B2B stock portal. Get instant access to inventory, wholesale pricing, and place orders for premium parts in stock.",
+                      "Спеціалізований B2B-портал складу. Отримуйте миттєвий доступ до залишків, гуртових цін та оформлюйте замовлення."
+                    )}
                   </p>
                 </div>
-                
-                <div className="shrink-0 flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full border border-white/10 bg-black/40 text-white/70 backdrop-blur-md group-hover:bg-white group-hover:text-black group-hover:scale-110 transition-all duration-500">
-                  <svg className="w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/60 backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-black md:h-14 md:w-14">
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <line x1="5" y1="12" x2="19" y2="12" />
                     <polyline points="12 5 19 12 12 19" />
                   </svg>
@@ -114,90 +263,7 @@ export default function OurStoresPortal({ locale, isB2bApproved }: OurStoresPort
             </Link>
           </div>
         )}
-
-        {/* Bento Grid layout */}
-        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 auto-rows-min gap-4 md:gap-6 lg:gap-8 grid-flow-dense">
-          {OUR_STORES.filter(store => !store.isHidden).map((store, i) => {
-            const href = store.id === "urban" ? `/${locale}/shop/urban`
-              : store.id === "do88" ? `/${locale}/shop/do88`
-              : store.id === "brabus" ? `/${locale}/shop/brabus`
-              : store.id === "burger" ? `/${locale}/shop/burger`
-              : store.id === "akrapovic" ? `/${locale}/shop/akrapovic`
-              : store.id === "racechip" ? `/${locale}/shop/racechip`
-              : store.id === "csf" ? `/${locale}/shop/csf`
-              : store.id === "ohlins" ? `/${locale}/shop/ohlins`
-              : store.id === "girodisc" ? `/${locale}/shop/girodisc`
-              : store.id === "ipe" ? `/${locale}/shop/ipe`
-              : store.href || "#";
-              
-            const isExternal = store.external === true;
-            const isLogoAsset = store.imageUrl?.startsWith("/logos/") ?? false;
-            const spanClass = getCardSpan(store.id);
-            const delay = i * 100;
-
-            const content = (
-              <div className="relative w-full h-full flex flex-col justify-end p-6 md:p-8 rounded-[24px] md:rounded-[32px] overflow-hidden border border-white/5 bg-[#0a0a0c] group-hover:border-white/20 transition-all duration-500">
-                {store.imageUrl ? (
-                  <>
-                    <Image
-                      src={store.imageUrl}
-                      alt={localize(isUa, store.name, store.nameUk)}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className={`object-cover transition-transform duration-1000 ease-out group-hover:scale-105 ${isLogoAsset ? 'opacity-90 grayscale invert p-12 object-contain' : 'opacity-50 group-hover:opacity-75'}`}
-                      unoptimized={isLogoAsset}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent transition-opacity duration-500 group-hover:opacity-80" />
-                  </>
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c20] to-[#0e0e11] opacity-50" />
-                )}
-
-                <div className="relative z-10 flex h-full flex-col justify-end">
-                  <div className="flex flex-col gap-3 transform transition-all duration-500 lg:translate-y-4 lg:group-hover:translate-y-0">
-                    <h3 className="grid min-h-[2.2em] items-end text-xl font-light uppercase leading-[1.05] tracking-widest text-white/90 drop-shadow-md md:text-2xl">
-                      <span className="line-clamp-2 text-balance">
-                        {localize(isUa, store.name, store.nameUk)}
-                      </span>
-                    </h3>
-                    <p className="hidden max-w-[40ch] text-pretty text-xs font-light leading-relaxed text-white/60 opacity-80 transition-all duration-500 delay-75 line-clamp-3 sm:[display:-webkit-box] sm:min-h-[4.8em] md:text-sm md:-translate-y-4 md:opacity-0 group-hover:translate-y-0 group-hover:opacity-100">
-                      {localize(isUa, store.description, store.descriptionUk)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="absolute top-6 right-6 md:top-8 md:right-8 opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all duration-500 flex items-center justify-center w-10 h-10 rounded-full bg-white text-black">
-                  {isExternal ? (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-            );
-
-            const containerClass = `group block w-full h-full outline-none transform-gpu animate-in fade-in zoom-in-95 duration-700 fill-mode-both ${spanClass}`;
-
-            if (isExternal) {
-              return (
-                <a key={store.id} href={href} target="_blank" rel="noopener noreferrer" className={containerClass} style={{ animationDelay: `${delay}ms` }}>
-                  {content}
-                </a>
-              );
-            }
-            return (
-              <Link key={store.id} href={href} className={containerClass} style={{ animationDelay: `${delay}ms` }}>
-                {content}
-              </Link>
-            );
-          })}
-        </div>
-
-      </div>
+      </section>
     </div>
   );
 }

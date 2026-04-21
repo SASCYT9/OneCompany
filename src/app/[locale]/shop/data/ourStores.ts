@@ -18,6 +18,8 @@ export type OurStore = {
   isHidden?: boolean;
   /** URL зображення для картки магазину */
   imageUrl?: string;
+  /** Grid layout span: 'feature' = 2-col wide hero, 'wide' = 2-col in mixed row, 'standard' = 1-col */
+  gridSpan?: 'feature' | 'wide' | 'standard';
 };
 
 /** Список магазинів. Для Urban href будуємо як /{locale}/shop/urban, для інших — з поля href. */
@@ -32,6 +34,7 @@ export const OUR_STORES: OurStore[] = [
       "Преміальні обвіси та стилізація. Офіційний постачальник Urban в Україні.",
     href: "",
     imageUrl: "/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp",
+    gridSpan: 'feature',
   },
   {
     id: "do88",
@@ -43,6 +46,7 @@ export const OUR_STORES: OurStore[] = [
       "Преміальні системи охолодження, інтеркулери та силіконові патрубки розроблені у Швеції.",
     href: "/shop/do88",
     imageUrl: "/branding/do88/do88_car_hero_m4_drift_1774441428540.png",
+    gridSpan: 'standard',
   },
   {
     id: "brabus",
@@ -54,6 +58,7 @@ export const OUR_STORES: OurStore[] = [
       "Преміальний тюнінг та стиль життя. Офіційний постачальник Brabus в Україні.",
     href: "/shop/brabus",
     imageUrl: "/images/shop/brabus/hq/brabus-portal-hero.png",
+    gridSpan: 'feature',
   },
   {
     id: "burger",
@@ -63,6 +68,7 @@ export const OUR_STORES: OurStore[] = [
     descriptionUk: "Всесвітньо відомий plug & play performance тюнінг з 2007 року. JB4 тюнери та високоточні деталі.",
     href: "/shop/burger",
     imageUrl: "/images/shop/burger/hero-engine.jpg",
+    gridSpan: 'standard',
   },
   {
     id: "akrapovic",
@@ -72,6 +78,7 @@ export const OUR_STORES: OurStore[] = [
     descriptionUk: "Титанові та карбонові вихлопні системи ручної роботи. Звук досконалості з 1990 року.",
     href: "/shop/akrapovic",
     imageUrl: "/images/shop/akrapovic/hero-fallback.jpg",
+    gridSpan: 'wide',
   },
   {
     id: "racechip",
@@ -81,6 +88,7 @@ export const OUR_STORES: OurStore[] = [
     descriptionUk: "Преміальні ECU тюнінг-модулі з App Control. GTS 5 чіп-тюнінг для 50+ марок авто.",
     href: "/shop/racechip",
     imageUrl: "/images/shop/racechip/hero-racechip.jpg",
+    gridSpan: 'wide',
   },
   {
     id: "csf",
@@ -90,6 +98,7 @@ export const OUR_STORES: OurStore[] = [
     descriptionUk: "Високопродуктивні алюмінієві радіатори, інтеркулери та масляні охолоджувачі, спроєктовані для максимального розсіювання тепла.",
     href: "/shop/csf",
     imageUrl: "/images/shop/csf/hero-fallback.jpg",
+    gridSpan: 'standard',
   },
   {
     id: "ohlins",
@@ -169,5 +178,6 @@ export const OUR_STORES: OurStore[] = [
       "Преміальні аерокіти з препрег-карбону з CFD-інженерією рівня F1. Не для всіх.",
     href: "/shop/adro",
     imageUrl: "/images/shop/adro/adro-hero-m4.jpg",
+    gridSpan: 'wide',
   },
 ];

@@ -53,9 +53,11 @@ export default function BrabusVideoBackground({
       {/* Lightened Gradient Overlays for better visibility */}
       {overlayStyle === "hero" && (
         <>
-          {/* Subtle gradient behind text on the left */}
-          <div className="absolute inset-0 z-10 bg-[linear-gradient(105deg,rgba(0,0,0,0.7)_0%,rgba(0,0,0,0.2)_40%,transparent_60%)]" />
-          <div className="absolute inset-0 z-10 bg-[linear-gradient(to_top,rgba(0,0,0,0.6)_0%,transparent_30%)]" />
+          {/* Centered radial vignette — darkens edges, keeps center clear for video */}
+          <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.35)_0%,rgba(0,0,0,0.7)_100%)]" />
+          {/* Bottom gradient for text readability */}
+          <div className="absolute inset-0 z-10 bg-[linear-gradient(to_top,rgba(0,0,0,0.65)_0%,transparent_40%)]" />
+          {/* Top accent line */}
           <div className="absolute top-0 left-0 right-0 h-[1px] z-20 bg-[linear-gradient(90deg,transparent,#c29d59_15%,#c29d59_85%,transparent)]" />
         </>
       )}

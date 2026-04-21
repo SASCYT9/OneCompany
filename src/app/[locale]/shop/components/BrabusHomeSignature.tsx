@@ -42,7 +42,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
       <div className="br-home" id="BrabusHome">
 
         {/* ════════════════════════════════════════════════════════════════════
-            SECTION 1 — CINEMATIC HERO (full viewport)
+            SECTION 1 — CINEMATIC HERO (full viewport, centered minimal)
         ════════════════════════════════════════════════════════════════════ */}
         <section className="br-hero" id="br-hero">
           <BrabusVideoBackground 
@@ -51,43 +51,46 @@ export default function BrabusHomeSignature({ locale }: Props) {
             overlayStyle="hero" 
           />
 
-          {/* Content — left-aligned, vertically centered */}
-          <div className="br-hero__content" data-br-reveal>
-            {/* BRABUS® wordmark */}
-            <div className="br-hero__wordmark">
-              BRABUS<sup>®</sup>
+          {/* Centered content — logo-driven, minimal */}
+          <div className="br-hero__content br-hero__content--center" data-br-reveal>
+
+            {/* Large BRABUS SVG logo */}
+            <div className="br-hero__stagger" style={{ '--stagger-i': 0 } as React.CSSProperties}>
+              <Image
+                src="/logos/brabus.svg"
+                alt="BRABUS"
+                width={400}
+                height={68}
+                className="br-hero__logo"
+                priority
+              />
             </div>
 
-            <div className="br-hero__divider" aria-hidden />
+            {/* Bronze diamond divider */}
+            <div className="br-hero__diamond br-hero__stagger" style={{ '--stagger-i': 1 } as React.CSSProperties} aria-hidden>
+              <span className="br-hero__diamond-line" />
+              <span className="br-hero__diamond-dot" />
+              <span className="br-hero__diamond-line" />
+            </div>
 
-            <h1 className="br-hero__title">
-              {L(isUa, 'Beyond', 'За межами')}<br />
-              {L(isUa, 'Perfection', 'досконалості')}
+            {/* Tagline */}
+            <h1 className="br-hero__tagline br-hero__stagger" style={{ '--stagger-i': 2 } as React.CSSProperties}>
+              {L(isUa, 'Beyond Perfection', 'За межами досконалості')}
             </h1>
 
-            <p className="br-hero__eyebrow">
+            {/* Eyebrow */}
+            <p className="br-hero__eyebrow br-hero__eyebrow--center br-hero__stagger" style={{ '--stagger-i': 3 } as React.CSSProperties}>
               One Company × Brabus
             </p>
 
-            <p className="br-hero__subtitle">
-              {L(isUa,
-                BRABUS_HERO.subtitle,
-                BRABUS_HERO.subtitleUk
-              )}
-            </p>
-
-            <div className="br-hero__buttons">
+            {/* Single CTA */}
+            <div className="br-hero__stagger" style={{ '--stagger-i': 4 } as React.CSSProperties}>
               <Link
                 href={locHref(locale, BRABUS_HERO.primaryButtonLink)}
                 className="br-btn br-btn--ghost"
               >
-                {L(isUa, BRABUS_HERO.primaryButtonLabel, BRABUS_HERO.primaryButtonLabelUk)}
-              </Link>
-              <Link
-                href={locHref(locale, BRABUS_HERO.secondaryButtonLink)}
-                className="br-btn br-btn--ghost"
-              >
-                {L(isUa, BRABUS_HERO.secondaryButtonLabel, BRABUS_HERO.secondaryButtonLabelUk)}
+                {L(isUa, 'Explore Range', 'Модельний ряд')}
+                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
               </Link>
             </div>
           </div>
@@ -162,134 +165,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
           </div>
         </section>
 
-        {/* ════════════════════════════════════════════════════════════════════
-            SECTION 3.5 — WIDESTAR VIDEO SHOWCASE
-            Three cinematic hero cards: G-Class, Porsche, Range Rover
-        ════════════════════════════════════════════════════════════════════ */}
-        <section className="br-widestar" data-br-reveal>
-          <div className="br-widestar__header">
-            <span className="br-label">
-              {L(isUa, 'Brabus Widestar', 'Brabus Widestar')}
-            </span>
-            <h2 className="br-section-title">
-              {L(isUa, 'The Vehicles We Build For', 'Автомобілі, для яких ми створюємо')}
-            </h2>
-            <div className="br-header-line" />
-            <p className="br-section-sub">
-              {L(isUa,
-                'Aerodynamic body kits, forged wheels, and performance upgrades — available for order with worldwide delivery.',
-                'Аеродинамічні обвіси, ковані диски та збільшення потужності — доступні для замовлення з доставкою по всьому світу.'
-              )}
-            </p>
-          </div>
 
-          <div className="br-widestar__grid">
-            {/* ── G-Class Widestar ── */}
-            <div data-br-reveal>
-              <BrabusTiltCard
-                href={locHref(locale, '/shop/brabus/collections/g-class')}
-                className="br-widestar__card"
-              >
-                <div className="br-widestar__card-media">
-                  <Image
-                    src="/images/shop/brabus/hq/brabus-supercars-126.jpg"
-                    alt="Brabus Widestar G-Class"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="br-widestar__card-img"
-                    unoptimized
-                  />
-                </div>
-                <div className="br-widestar__card-overlay" />
-                <div className="br-widestar__card-content">
-                  <span className="br-widestar__card-badge">Widestar</span>
-                  <h3 className="br-widestar__card-title">G-Class</h3>
-                  <p className="br-widestar__card-sub">
-                    {L(isUa,
-                      'W465 · Up to 900 HP · Carbon Widestar body kit',
-                      'W465 · До 900 к.с. · Карбоновий обвіс Widestar'
-                    )}
-                  </p>
-                  <span className="br-widestar__card-cta">
-                    {L(isUa, 'Shop Components', 'Каталог деталей')}
-                    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-                  </span>
-                </div>
-                <div className="br-widestar__card-accent" />
-              </BrabusTiltCard>
-            </div>
-
-            {/* ── Porsche 911 ── */}
-            <div data-br-reveal>
-              <BrabusTiltCard
-                href={locHref(locale, '/shop/brabus/collections/porsche')}
-                className="br-widestar__card"
-              >
-                <div className="br-widestar__card-media">
-                  <Image
-                    src="/images/shop/brabus/hq/brabus-supercars-84.jpg"
-                    alt="Brabus Rocket R Porsche 911"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="br-widestar__card-img"
-                    unoptimized
-                  />
-                </div>
-                <div className="br-widestar__card-overlay" />
-                <div className="br-widestar__card-content">
-                  <span className="br-widestar__card-badge">Rocket R</span>
-                  <h3 className="br-widestar__card-title">Porsche 911</h3>
-                  <p className="br-widestar__card-sub">
-                    {L(isUa,
-                      'Turbo S · 900 HP · Full carbon aero programme',
-                      'Turbo S · 900 к.с. · Повна карбонова аеро програма'
-                    )}
-                  </p>
-                  <span className="br-widestar__card-cta">
-                    {L(isUa, 'Shop Components', 'Каталог деталей')}
-                    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-                  </span>
-                </div>
-                <div className="br-widestar__card-accent" />
-              </BrabusTiltCard>
-            </div>
-
-            {/* ── Range Rover ── */}
-            <div data-br-reveal>
-              <BrabusTiltCard
-                href={locHref(locale, '/shop/brabus/collections/range-rover')}
-                className="br-widestar__card"
-              >
-                <div className="br-widestar__card-media">
-                  <Image
-                    src="/images/shop/brabus/hq/brabus-supercars-148.jpg"
-                    alt="Brabus Range Rover 600"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="br-widestar__card-img"
-                    unoptimized
-                  />
-                </div>
-                <div className="br-widestar__card-overlay" />
-                <div className="br-widestar__card-content">
-                  <span className="br-widestar__card-badge">Signature</span>
-                  <h3 className="br-widestar__card-title">Range Rover</h3>
-                  <p className="br-widestar__card-sub">
-                    {L(isUa,
-                      '600 HP · Carbon body kit · Bespoke interior',
-                      '600 к.с. · Карбоновий обвіс · Ексклюзивний інтер\'єр'
-                    )}
-                  </p>
-                  <span className="br-widestar__card-cta">
-                    {L(isUa, 'Shop Components', 'Каталог деталей')}
-                    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-                  </span>
-                </div>
-                <div className="br-widestar__card-accent" />
-              </BrabusTiltCard>
-            </div>
-          </div>
-        </section>
 
         {/* ════════════════════════════════════════════════════════════════════
             SECTION 3 — FLEET GRID (Featured Models — portrait cards)
@@ -559,6 +435,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
         .br-hero {
           position: relative; width: 100%; height: 100dvh; min-height: 700px;
           overflow: hidden; display: flex; align-items: center;
+          justify-content: center;
         }
         .br-hero__media {
           position: absolute; inset: 0; z-index: 0;
@@ -582,48 +459,79 @@ export default function BrabusHomeSignature({ locale }: Props) {
           height: 1px; z-index: 5;
           background: linear-gradient(90deg, transparent, var(--br-red) 15%, var(--br-red) 85%, transparent);
         }
+
+        /* ── Hero content — centered ── */
         .br-hero__content {
           position: relative; z-index: 20;
           padding: 0 clamp(2rem, 6vw, 8rem);
           max-width: 680px;
         }
-        .br-hero__wordmark {
-          font-size: 1.1rem; font-weight: 600; letter-spacing: .35em;
-          text-transform: uppercase; margin-bottom: 1rem;
+        .br-hero__content--center {
+          display: flex; flex-direction: column; align-items: center;
+          text-align: center;
+          max-width: 900px;
         }
-        .br-hero__wordmark sup { font-size: .5em; }
-        .br-hero__divider {
-          width: 50px; height: 1px;
-          background: linear-gradient(90deg, transparent, var(--br-red), transparent);
-          background-size: 200% 100%;
-          animation: br-shimmer 2.5s linear infinite;
+
+        /* Logo */
+        .br-hero__logo {
+          width: clamp(260px, 30vw, 420px);
+          height: auto;
+          filter: invert(1) brightness(2);
+          margin-bottom: 2.5rem;
+        }
+
+        /* Tagline — small, elegant */
+        .br-hero__tagline {
+          font-family: var(--font-stack-condensed), var(--font-stack-display), sans-serif;
+          font-size: clamp(1rem, 2vw, 1.4rem);
+          font-weight: 300; text-transform: uppercase;
+          letter-spacing: 0.25em; line-height: 1.4;
+          color: rgba(255,255,255,.6);
+          margin: 0 0 1.5rem;
+        }
+
+        /* Bronze diamond divider */
+        .br-hero__diamond {
+          display: flex; align-items: center; gap: .75rem;
           margin-bottom: 1.5rem;
         }
-        @keyframes br-shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
+        .br-hero__diamond-line {
+          display: block; width: clamp(40px, 6vw, 80px); height: 1px;
+          background: linear-gradient(90deg, transparent, var(--br-red));
         }
-        .br-hero__title {
-          font-family: var(--font-stack-condensed), var(--font-stack-display), sans-serif;
-          font-size: clamp(3rem, 7vw, 5.5rem);
-          font-weight: 400; text-transform: uppercase;
-          letter-spacing: 0.04em; line-height: 0.95;
-          margin: 0 0 1rem;
+        .br-hero__diamond-line:last-child {
+          background: linear-gradient(90deg, var(--br-red), transparent);
         }
+        .br-hero__diamond-dot {
+          display: block; width: 7px; height: 7px;
+          background: var(--br-red);
+          transform: rotate(45deg);
+          opacity: .7;
+        }
+
+        /* Eyebrow */
         .br-hero__eyebrow {
           font-size: .65rem; font-weight: 400; text-transform: uppercase;
           letter-spacing: .25em; color: var(--br-muted);
           margin: 0 0 1rem;
         }
-        .br-hero__subtitle {
-          font-size: .82rem; font-weight: 300; color: var(--br-muted);
-          letter-spacing: .02em; line-height: 1.7;
-          max-width: 440px; margin: 0 0 2rem;
-        }
-        .br-hero__buttons {
-          display: flex; gap: 1rem; flex-wrap: wrap;
+        .br-hero__eyebrow--center {
+          margin: 0 0 2.5rem;
+          color: rgba(255,255,255,.35);
+          letter-spacing: .3em;
+          font-size: .6rem;
         }
 
+        /* Stagger entrance animation */
+        .br-hero__stagger {
+          opacity: 0;
+          transform: translateY(25px);
+          animation: br-stagger-in .9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation-delay: calc(0.3s + var(--stagger-i, 0) * 0.18s);
+        }
+        @keyframes br-stagger-in {
+          to { opacity: 1; transform: translateY(0); }
+        }
 
 
         /* Scroll indicator */
