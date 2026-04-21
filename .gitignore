@@ -57,6 +57,7 @@ public/brabus-images/
 
 data/.chrome-scraper-profile/
 temp_pgsql/
+temp_env.txt
 *.sql
 .env*.local
 .shop-products-dev-cache.json

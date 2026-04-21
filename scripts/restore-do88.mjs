@@ -2,10 +2,16 @@ import 'dotenv/config';
 import fs from 'fs';
 import { PrismaClient } from '../node_modules/.prisma/client/index.js';
 
+const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error('DIRECT_URL or DATABASE_URL is required to run restore-do88.mjs');
+}
+
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: "postgres://bf7d0275e2bb3ccb33f5725fe2b25fea7069faebb9e79230445f5853b74ecaae:sk_wleM8vpJZfUAYDaJbCknI@db.prisma.io:5432/postgres?sslmode=require&pgbouncer=true"
+      url: databaseUrl,
     }
   }
 });
