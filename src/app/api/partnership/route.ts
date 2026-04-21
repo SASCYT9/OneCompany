@@ -3,8 +3,6 @@ import { PartnershipEmail } from '@/components/emails/PartnershipEmail';
 import { formatPartnershipMessage } from '@/lib/telegram';
 import type { NextRequest } from 'next/server';
 import { Resend } from 'resend';
-import * as fs from 'fs';
-import * as path from 'path';
 import {
   buildTelegramActionButtons,
   getConfiguredContactTopicDestination,
@@ -61,8 +59,7 @@ async function sendTelegram(message: string, formData: PartnershipRequestBody) {
 async function sendEmail(
   subject: string,
   formData: PartnershipRequestBody,
-  messageId?: string,
-  logoSrc?: string
+  messageId?: string
 ) {
   const from = process.env.EMAIL_FROM;
   // Send to AUTO email as default for partnerships
@@ -82,7 +79,6 @@ async function sendEmail(
     phone: formData.phone,
     message: formData.message,
     messageId,
-    logoSrc,
   }));
 
   try {
@@ -187,35 +183,8 @@ export async function POST(req: NextRequest) {
     // Send Email
     try {
       const emailSubject = `New Partnership Request: ${formData.companyName}`;
-      
-      let logoDataUri: string | undefined = undefined;
-      try {
-        const pngPublicPath = path.join(process.cwd(), 'public', 'branding', 'one-company-logo.png');
-        const pngDesignPath = path.join(process.cwd(), 'Design', 'png', 'ONE COMPANY_logo-01.png');
-        const svgPublicPath = path.join(process.cwd(), 'public', 'branding', 'one-company-logo.svg');
-        const svgDesignPath = path.join(process.cwd(), 'Design', 'svg', 'ONE COMPANY_logo-01.svg');
-        if (fs.existsSync(pngPublicPath)) {
-          const png = fs.readFileSync(pngPublicPath);
-          const base64 = png.toString('base64');
-          logoDataUri = `data:image/png;base64,${base64}`;
-        } else if (fs.existsSync(pngDesignPath)) {
-          const png = fs.readFileSync(pngDesignPath);
-          const base64 = png.toString('base64');
-          logoDataUri = `data:image/png;base64,${base64}`;
-        } else if (fs.existsSync(svgPublicPath)) {
-          const svg = fs.readFileSync(svgPublicPath, 'utf8');
-          const base64 = Buffer.from(svg).toString('base64');
-          logoDataUri = `data:image/svg+xml;base64,${base64}`;
-        } else if (fs.existsSync(svgDesignPath)) {
-          const svg = fs.readFileSync(svgDesignPath, 'utf8');
-          const base64 = Buffer.from(svg).toString('base64');
-          logoDataUri = `data:image/svg+xml;base64,${base64}`;
-        }
-      } catch (err) {
-        console.warn('Could not read logo for email inline:', err instanceof Error ? err.message : err);
-      }
 
-      const emailResult = await sendEmail(emailSubject, formData, savedMessage.id, logoDataUri);
+      const emailResult = await sendEmail(emailSubject, formData, savedMessage.id);
 
       if (emailResult.ok) {
         console.log('✅ Email notification sent successfully');

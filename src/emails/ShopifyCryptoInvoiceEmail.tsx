@@ -23,6 +23,7 @@ interface ShopifyCryptoInvoiceEmailProps {
   publicDomain?: string;
   accentColor?: string;
   logoUrl?: string;
+  logoWidth?: number;
   locale?: 'ua' | 'en';
 }
 
@@ -58,6 +59,7 @@ export const ShopifyCryptoInvoiceEmail = ({
   publicDomain,
   accentColor = '#c29d59',
   logoUrl,
+  logoWidth,
   locale = 'ua',
 }: ShopifyCryptoInvoiceEmailProps) => {
   const t = translations[locale] || translations.ua;
@@ -76,9 +78,13 @@ export const ShopifyCryptoInvoiceEmail = ({
               {logoUrl ? (
                 <Img
                   src={logoUrl}
-                  height="40"
+                  width={logoWidth}
+                  height={logoWidth ? undefined : '40'}
                   alt={storeName}
-                  style={logoImage}
+                  style={{
+                    ...logoImage,
+                    ...(logoWidth ? { width: `${logoWidth}px`, height: 'auto', maxWidth: '100%' } : {}),
+                  }}
                 />
               ) : (
                 storeName.toUpperCase()

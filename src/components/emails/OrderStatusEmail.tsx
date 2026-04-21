@@ -99,7 +99,7 @@ export const OrderStatusEmail = ({
         <Container style={container}>
           <Section style={logoContainer}>
             <Img
-              src={logoSrc || `${baseUrl}/branding/email-logo.png`}
+              src={logoSrc || `${baseUrl}/branding/email-logo.jpg`}
               width="150"
               height="55"
               alt="One Company"

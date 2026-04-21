@@ -1,9 +1,15 @@
-'use client';
-
-import Image from 'next/image';
 import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
-import { useEffect } from 'react';
+import {
+  RACECHIP_HERO,
+  RACECHIP_STATS,
+  RACECHIP_PRODUCT_LINES,
+  RACECHIP_APP,
+  RACECHIP_ENGINEERING,
+  RACECHIP_HERITAGE,
+} from '../data/racechipHomeData';
+import ScrollRevealClient from './ScrollRevealClient';
+import '../racechip/racechip-shop.css';
 
 type Props = { locale: SupportedLocale };
 
@@ -13,212 +19,207 @@ function L(isUa: boolean, en: string, ua: string) {
 
 export default function RacechipHomeSignature({ locale }: Props) {
   const isUa = locale === 'ua';
-  useEffect(() => {
-    // Simple intersection observer for reveal animations
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('rc-vis');
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-
-    document.querySelectorAll('[data-rc-reveal]').forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
 
   return (
-    <div className="rc-home bg-[#080808] text-white min-h-screen font-sans selection:bg-[#c29d59] selection:text-white relative">
-      {/* Global Asphalt Noise — covers entire page */}
-      <div className="fixed inset-0 bg-[url('/noise.png')] bg-repeat opacity-[0.15] mix-blend-overlay pointer-events-none z-[1]"></div>
-      
-      {/* ─── Back to Stores ─── */}
-      <div className="fixed top-[60px] left-0 z-50 p-6">
-        <Link href={`/${locale}/shop`} className="text-[10px] text-zinc-500 hover:text-white uppercase tracking-[0.2em] font-light transition-colors">
-          ← {L(isUa, 'All our stores', 'Усі наші магазини')}
+    <div className="rc" id="RacechipHome">
+      <ScrollRevealClient selector="[data-rc]" revealClass="is-vis" />
+
+      {/* ── Back to Stores ── */}
+      <div className="rc__back">
+        <Link href={`/${locale}/shop`} className="rc__back-link">
+          &larr; {L(isUa, 'All Stores', 'Усі магазини')}
         </Link>
       </div>
 
-      {/* ════════════════════════════════════════════════════════════════════
-          SECTION 1 — CINEMATIC HERO
-      ════════════════════════════════════════════════════════════════════ */}
-      <section className="relative w-full h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden">
-        
-        {/* MEDIA CONTEXT */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/shop/racechip/hero-stealth-fixed.png"
-            alt="Racechip Concept Pure"
-            fill
-            className="object-cover object-center"
-            unoptimized
-            priority
-          />
-          {/* Subtle vignette so the text remains legible without hiding the car */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-black/40 to-black/70 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay pointer-events-none"></div>
-        </div>
+      {/* ════════════════════════════════════════════════════════════════
+          1 · CINEMATIC HERO
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="rc__hero">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/shop/racechip/hero-stealth-fixed.png"
+          alt=""
+          className="rc__hero-img"
+        />
+        <div className="rc__hero-dim" />
 
-        {/* CONTENT */}
-        <div className="relative z-10 px-6 md:px-16 lg:px-24 mx-auto w-full max-w-5xl flex flex-col items-center text-center -mt-20" data-rc-reveal>
-          <div className="text-[#c29d59] text-[10px] md:text-xs font-light tracking-[0.3em] uppercase mb-6 flex items-center gap-4 drop-shadow-md">
-            {L(isUa, "ELEVATE. PERFORM. EXPERIENCE.", "ПІДНІМАЙ. ДОСЯГАЙ. ВІДЧУВАЙ.")}
-          </div>
-          
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-thin uppercase tracking-[0.05em] leading-tight mb-8 drop-shadow-2xl text-white">
-            {L(isUa, "THE APEX", "ВЕРШИНА")} <span className="font-light">{L(isUa, "OF POWER.", "ДИНАМІКИ.")}</span>
+        <div className="rc__hero-body">
+          <p className="rc__eyebrow" data-rc>
+            {L(isUa, RACECHIP_HERO.eyebrow, RACECHIP_HERO.eyebrowUk)}
+          </p>
+
+          <h1 className="rc__hero-wordmark" data-rc data-rc-delay="1">
+            <span className="rc__wordmark-text">
+              RACECHIP
+            </span>
+            <span className="rc__wordmark-r">®</span>
+            <span className="rc__wordmark-sub">Chiptuning — Made in Germany</span>
           </h1>
 
-          <p className="text-zinc-300 text-sm md:text-lg max-w-2xl leading-relaxed mb-12 font-light drop-shadow-md">
-            {L(isUa,
-              "Unlock hidden performance with RaceChip. Precision engineered for driving dynamics.",
-              "Розкрийте прихований потенціал з RaceChip. Точна інженерія для максимальної динаміки керування."
-            )}
+          <p className="rc__hero-sub" data-rc data-rc-delay="2">
+            {L(isUa, RACECHIP_HERO.subtitle, RACECHIP_HERO.subtitleUk)}
           </p>
 
-          <Link
-            href={`/${locale}/shop/racechip/catalog`}
-            className="relative inline-flex items-center justify-center px-10 py-4 bg-[#c29d59]/80 backdrop-blur-md border border-[#c29d59]/50 text-white font-light text-[11px] tracking-[0.2em] uppercase overflow-hidden group rounded-sm shadow-[0_0_30px_rgba(194,157,89,0.3)] hover:bg-white hover:text-black hover:border-white transition-all duration-500"
-          >
-            <span className="relative z-10 flex items-center gap-4">
-              {L(isUa, "CONFIGURE YOUR VEHICLE", "ВІДКРИТИ КАТАЛОГ")}
+          <div data-rc data-rc-delay="3">
+            <Link
+              href={`/${locale}${RACECHIP_HERO.primaryButtonLink}`}
+              className="rc__cta"
+            >
+              {L(isUa, RACECHIP_HERO.primaryButtonLabel, RACECHIP_HERO.primaryButtonLabelUk)}
+              <span className="rc__cta-arrow">→</span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="rc__scroll-hint" aria-hidden="true">
+          <span>Scroll</span>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          2 · PRODUCT LINEUP
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="rc__lineup">
+        <div className="rc__lineup-inner">
+          <div className="rc__lineup-header" data-rc>
+            <h2 className="rc__lineup-title">
+              {L(isUa, 'Product Range', 'Модельний ряд')}
+            </h2>
+            <span className="rc__lineup-count">
+              {RACECHIP_PRODUCT_LINES.length} {L(isUa, 'products', 'продуктів')}
             </span>
+          </div>
+
+          <div className="rc__lineup-grid">
+            {RACECHIP_PRODUCT_LINES.map((line, idx) => (
+              <Link
+                key={line.title}
+                href={`/${locale}${line.link}`}
+                className="rc__card"
+                data-rc
+                data-rc-delay={`${Math.min(idx + 1, 4)}`}
+              >
+                <div className="rc__card-img">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={line.imageUrl}
+                    alt={L(isUa, line.title, line.titleUk)}
+                    loading="lazy"
+                  />
+                  <span className="rc__card-badge">
+                    {L(isUa, line.badge, line.badgeUk)}
+                  </span>
+                </div>
+                <div className="rc__card-body">
+                  <h3>{L(isUa, line.title, line.titleUk)}</h3>
+                  <p className="rc__card-sub">
+                    {L(isUa, line.subtitle, line.subtitleUk)}
+                  </p>
+                  <p className="rc__card-desc">
+                    {L(isUa, line.description, line.descriptionUk)}
+                  </p>
+                  <span className="rc__card-link">
+                    {L(isUa, 'Explore', 'Дослідити')} <span>→</span>
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          3 · APP CONTROL FEATURE
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="rc__feature">
+        <div className="rc__feature-glow" />
+        <div className="rc__feature-inner">
+          <div className="rc__feature-media" data-rc>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={RACECHIP_APP.imageUrl}
+              alt="RaceChip App Control Interface"
+              loading="lazy"
+            />
+          </div>
+          <div data-rc data-rc-delay="1">
+            <div className="rc__feature-label">
+              <span>{L(isUa, RACECHIP_APP.label, RACECHIP_APP.labelUk)}</span>
+            </div>
+            <h2 className="rc__feature-title">
+              {L(isUa, RACECHIP_APP.title, RACECHIP_APP.titleUk)}
+            </h2>
+            <p className="rc__feature-desc">
+              {L(isUa, RACECHIP_APP.description, RACECHIP_APP.descriptionUk)}
+            </p>
+            <ul className="rc__feature-list">
+              {RACECHIP_APP.features.map((f, i) => (
+                <li key={i}>{L(isUa, f.en, f.uk)}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          4 · PRECISION ENGINEERING
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="rc__feature rc__feature--reverse">
+        <div className="rc__feature-glow" />
+        <div className="rc__feature-inner">
+          <div className="rc__feature-text" data-rc>
+            <div className="rc__feature-label">
+              <span>{L(isUa, RACECHIP_ENGINEERING.label, RACECHIP_ENGINEERING.labelUk)}</span>
+            </div>
+            <h2 className="rc__feature-title">
+              {L(isUa, RACECHIP_ENGINEERING.title, RACECHIP_ENGINEERING.titleUk)}
+            </h2>
+            <p className="rc__feature-desc">
+              {L(isUa, RACECHIP_ENGINEERING.description, RACECHIP_ENGINEERING.descriptionUk)}
+            </p>
+            <ul className="rc__feature-list">
+              {RACECHIP_ENGINEERING.features.map((f, i) => (
+                <li key={i}>{L(isUa, f.en, f.uk)}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="rc__feature-media" data-rc data-rc-delay="1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={RACECHIP_ENGINEERING.imageUrl}
+              alt="RaceChip GTS Black Carbon Module"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          5 · HERITAGE
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="rc__heritage" data-rc>
+        <div className="rc__heritage-inner">
+          <h2 className="rc__heritage-title">
+            {L(isUa, RACECHIP_HERITAGE.title, RACECHIP_HERITAGE.titleUk)}
+          </h2>
+          <p className="rc__heritage-desc">
+            {L(isUa, RACECHIP_HERITAGE.description, RACECHIP_HERITAGE.descriptionUk)}
+          </p>
+          <Link href={`/${locale}/shop/racechip/catalog`} className="rc__cta">
+            {L(isUa, 'Browse Full Catalog', 'Переглянути повний каталог')}
+            <span className="rc__cta-arrow">→</span>
           </Link>
         </div>
-
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════════
-          SECTION 2 — APP CONTROL FEATURE
-      ════════════════════════════════════════════════════════════════════ */}
-      <section className="relative py-16 md:py-24 px-6 md:px-16 lg:px-24 overflow-hidden flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#c29d59]/5 blur-[120px] rounded-full pointer-events-none z-0"></div>
-        
-        <div className="w-full lg:w-1/2 relative z-10 mx-auto" data-rc-reveal>
-          <div className="aspect-video bg-[#111] rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(194,157,89,0.15)] relative">
-            <div className="absolute inset-0 w-full h-full p-2">
-              <Image 
-                src="/images/shop/racechip/app-stealth-realui.png" 
-                alt="RaceChip App Control Interface" 
-                fill
-                className="object-cover rounded-xl transition-transform hover:scale-110"
-                style={{ transitionDuration: '2s' }}
-                unoptimized
-              />
-            </div>
-          </div>
-        </div>
+      {/* ── Footer CTA ── */}
+      <div className="rc__footer-cta">
+        <Link href={`/${locale}/shop/racechip/catalog`}>
+          {L(isUa, 'Explore the Full Range', 'Переглянути повний модельний ряд')}
+          <span className="rc__cta-arrow">→</span>
+        </Link>
+      </div>
 
-        <div className="w-full lg:w-[45%] relative z-10" data-rc-reveal>
-          <div className="flex items-center gap-4 mb-8">
-            <span className="w-8 h-[1px] bg-[#c29d59]/50"></span>
-            <span className="text-[#c29d59] text-[9px] font-light uppercase tracking-[0.3em] rounded-[2px]">
-              {L(isUa, "Smart Control", "Розумне Керування")}
-            </span>
-          </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-thin uppercase tracking-[0.05em] mb-8 text-white">
-            {L(isUa, "Control At Your Fingertips.", "Керування під рукою.")}
-          </h2>
-          <p className="text-zinc-400 text-sm md:text-base mb-12 leading-relaxed max-w-md font-light">
-            {L(isUa,
-              "Choose between Efficiency, Sport, and Race modes dynamically from your smartphone. The RaceChip app allows you to adapt your car's performance to any driving situation instantly.",
-              "Миттєво перемикайте режими Efficiency, Sport та Race зі свого смартфону. Додаток RaceChip дозволяє динамічно адаптувати характер вашого авто до будь-якої ситуації на дорозі."
-            )}
-          </p>
-
-          <ul className="flex flex-col gap-6 mb-12 border-t border-white/10 pt-8">
-            {[
-              L(isUa, "Dynamic mode switching on the fly", "Динамічне перемикання режимів на льоту"),
-              L(isUa, "Warm-up timer integration", "Інтегрований таймер прогріву двигуна"),
-              L(isUa, "Automatic software updates", "Автоматичні оновлення програмного забезпечення")
-            ].map((item, idx) => (
-              <li key={idx} className="flex items-center gap-5 text-[11px] md:text-xs font-light text-zinc-300 uppercase tracking-[0.2em]">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#c29d59]/80 shadow-[0_0_10px_rgba(194,157,89,0.8)] flex-shrink-0"></div>
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════════════════
-          SECTION 3 — PRECISION ENGINEERING
-      ════════════════════════════════════════════════════════════════════ */}
-      <section className="relative py-16 md:py-32 px-6 md:px-16 lg:px-24 overflow-hidden flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-24">
-        {/* Glow on the left for Section 3 */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#c29d59]/5 blur-[120px] rounded-full pointer-events-none z-0"></div>
-        
-        {/* TEXT CONTENT (NOW ON THE LEFT) */}
-        <div className="w-full lg:w-[45%] relative z-10" data-rc-reveal>
-          <div className="flex items-center gap-4 mb-8">
-            <span className="w-8 h-[1px] bg-[#c29d59]/50"></span>
-            <span className="text-[#c29d59] text-[9px] font-light uppercase tracking-[0.3em] rounded-[2px]">
-              {L(isUa, "German Engineering", "Німецька Інженерія")}
-            </span>
-          </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-thin uppercase tracking-[0.05em] mb-8 text-white">
-            {L(isUa, "Power Meets Precision.", "Абсолютна Точність та Динаміка.")}
-          </h2>
-          <p className="text-zinc-400 text-sm md:text-base mb-12 leading-relaxed max-w-md font-light">
-            {L(isUa,
-              "Precision engineered in Germany. The RaceChip GTS Black interfaces seamlessly with your engine's sensors via a high-grade, plug-and-play wiring harness, safely unlocking hidden power reserves without permanently altering the factory ECU.",
-              "Справжня німецька інженерія. RaceChip GTS Black підключається безпосередньо до датчиків двигуна через професійну систему Plug & Drive. Він безпечно розкриває прихований потенціал автомобіля, не залишаючи жодних слідів у заводському блоці управління (ECU)."
-            )}
-          </p>
-
-          <ul className="flex flex-col gap-6 mb-12 border-t border-white/10 pt-8">
-            {[
-              L(isUa, "Plug & Drive installation in 15 minutes", "Встановлення Plug & Drive за 15 хвилин"),
-              L(isUa, "Preserves factory engine warranty limits", "Зберігає ліміти заводської гарантії"),
-              L(isUa, "Invisible to official dealership diagnostics", "Залишається невидимим для офіційної діагностики")
-            ].map((item, idx) => (
-              <li key={idx} className="flex items-center gap-5 text-[11px] md:text-xs font-light text-zinc-300 uppercase tracking-[0.2em]">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#c29d59]/80 shadow-[0_0_10px_rgba(194,157,89,0.8)] flex-shrink-0"></div>
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* IMAGE (NOW ON THE RIGHT) */}
-        <div className="w-full lg:w-1/2 relative z-10 mx-auto" data-rc-reveal>
-          <div className="aspect-square lg:aspect-[4/3] bg-[#0a0a0a]/50 rounded-2xl overflow-hidden border border-white/5 shadow-[0_0_80px_rgba(0,0,0,0.5)] relative group backdrop-blur-sm">
-            <div className="absolute inset-0 w-full h-full p-1 opacity-90 transition-opacity duration-700 group-hover:opacity-100">
-              <Image 
-                src="/images/shop/racechip/gts-black-macro.png" 
-                alt="RaceChip GTS Black Carbon Module" 
-                fill
-                className="object-cover rounded-xl transition-transform group-hover:scale-[1.03]"
-                style={{ transitionDuration: '3s' }}
-                unoptimized
-              />
-            </div>
-            {/* Edge highlights */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-transparent to-white/5 pointer-events-none rounded-2xl mix-blend-overlay"></div>
-            <div className="absolute inset-0 shadow-[inset_0_0_30px_rgba(194,157,89,0.02)] pointer-events-none rounded-2xl"></div>
-          </div>
-        </div>
-
-      </section>
-      {/* CSS for reveal logic block */}
-      <style jsx global>{`
-        [data-rc-reveal] {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: opacity 1s cubic-bezier(0.19, 1, 0.22, 1), transform 1s cubic-bezier(0.19, 1, 0.22, 1);
-        }
-        [data-rc-reveal].rc-vis {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        @keyframes slowZoom {
-          from { transform: scale(1.02); }
-          to { transform: scale(1.1); }
-        }
-      `}</style>
     </div>
   );
 }

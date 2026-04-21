@@ -30,47 +30,65 @@ export default function BurgerStoreHome({ locale }: Props) {
       </div>
 
       {/* ════════════════════════════════════════
-          HERO — Split composition
+          HERO — Full-bleed cinematic with logo
       ════════════════════════════════════════ */}
       <section className="bm-hero">
-        <div className="bm-hero__left">
-          <div className="bm-hero__badge" data-bm-reveal>
-            Burger Motorsports
-          </div>
+        {/* Background image */}
+        <div className="bm-hero__bg">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/shop/burger/hero-engine-bay-moody.jpg"
+            alt=""
+            aria-hidden="true"
+          />
+        </div>
+        <div className="bm-hero__dim" />
+
+        {/* Typographic watermark */}
+        <div className="bm-hero__watermark" aria-hidden="true">
+          BURGER
+        </div>
+
+        {/* Centered content */}
+        <div className="bm-hero__body">
+          <p className="bm-hero__eyebrow" data-bm-reveal>
+            One Company × Burger Motorsports
+          </p>
 
           <h1 className="sr-only">
-            {L(isUa,
-              'Burger Motorsports | JB4 Performance Tuning | Official Dealer',
-              'Burger Motorsports | JB4 Performance Tuning | Офіційний Дилер'
-            )}
+            Burger Motorsports — JB4 Performance Tuning
           </h1>
 
-          <p className="bm-hero__title" data-bm-reveal style={{ transitionDelay: '0.1s' }}>
-            {L(isUa, 'Unlock', 'Розблокуй')}<br />
-            <em>{L(isUa, 'Hidden Power', 'Приховану Потужність')}</em>
+          {/* Brand logo */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logos/burger-motorsport.svg"
+            alt="Burger Motorsports"
+            className="bm-hero__logo"
+            data-bm-reveal
+            style={{ transitionDelay: '0.1s' }}
+          />
+
+          <p className="bm-hero__tagline" data-bm-reveal style={{ transitionDelay: '0.15s' }}>
+            {L(isUa, 'JB4 Performance Tuning', 'JB4 Performance Tuning')}
           </p>
 
           <p className="bm-hero__sub" data-bm-reveal style={{ transitionDelay: '0.2s' }}>
             {L(isUa, BURGER_HERO.subtitle, BURGER_HERO.subtitleUk)}
           </p>
 
-          <div className="bm-hero__actions" data-bm-reveal style={{ transitionDelay: '0.3s' }}>
+          <div data-bm-reveal style={{ transitionDelay: '0.3s' }}>
             <Link href={`/${locale}/shop/burger/products`} className="bm-cta-primary">
               {L(isUa, 'Explore Catalog', 'Каталог')}
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              <span className="cta-arrow">→</span>
             </Link>
           </div>
         </div>
 
-        <div className="bm-hero__right" data-bm-reveal style={{ transitionDelay: '0.15s' }}>
-          <Image
-            src="/images/shop/burger/hero-engine.jpg"
-            alt="JB4 Performance"
-            fill
-            priority
-            className="bm-hero__img"
-          />
-          <div className="bm-hero__img-grain" />
+        {/* Scroll indicator */}
+        <div className="bm-hero__scroll" aria-hidden="true">
+          <span>Scroll</span>
+          <span className="bm-hero__scroll-line" />
         </div>
       </section>
 
@@ -168,7 +186,7 @@ export default function BurgerStoreHome({ locale }: Props) {
         <div className="bm-products__cta" data-bm-reveal>
           <Link href={`/${locale}/shop/burger/products`} className="bm-cta-primary">
             {L(isUa, 'Browse Full Catalog', 'Переглянути весь каталог')}
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <span className="cta-arrow">→</span>
           </Link>
         </div>
       </section>

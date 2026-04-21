@@ -6,17 +6,23 @@ import { sendShopifyCryptoInvoice } from '@/lib/services/emailService';
 export const dynamic = 'force-dynamic';
 
 // Map Shopify internal domains to pretty brand names and public domains
-const STORE_BRANDING: Record<string, { displayName: string; publicDomain: string; accentColor: string; logoUrl?: string }> = {
-  '1t4mqk-bv.myshopify.com': { displayName: 'Eventuri Shop', publicDomain: 'eventuri.shop', accentColor: '#E2001A', logoUrl: 'https://onecompany.global/brands/eventuri-logo-dark.png' },
-  'eventuri-ua.myshopify.com': { displayName: 'Eventuri Shop', publicDomain: 'eventuri.shop', accentColor: '#E2001A', logoUrl: 'https://onecompany.global/brands/eventuri-logo-dark.png' },
-  'dvstz5-vy.myshopify.com': { displayName: 'Fi Exhaust', publicDomain: 'fiexhaust.shop', accentColor: '#F47920', logoUrl: 'https://onecompany.global/brands/fi-logo-dark.png' },
-  'fiexaust.myshopify.com': { displayName: 'Fi Exhaust', publicDomain: 'fiexhaust.shop', accentColor: '#F47920', logoUrl: 'https://onecompany.global/brands/fi-logo-dark.png' },
-  'dhs4v6-0y.myshopify.com': { displayName: 'KW Suspension', publicDomain: 'kwsuspension.shop', accentColor: '#FFD100', logoUrl: 'https://onecompany.global/images/shop/stores/kw-logo.png' },
+const STORE_BRANDING: Record<string, { displayName: string; publicDomain: string; accentColor: string; logoUrl?: string; logoWidth?: number }> = {
+  '1t4mqk-bv.myshopify.com': { displayName: 'Eventuri Shop', publicDomain: 'eventuri.shop', accentColor: '#E2001A', logoUrl: 'https://onecompany.global/brands/eventuri-logo-email.jpg' },
+  'eventuri-ua.myshopify.com': { displayName: 'Eventuri Shop', publicDomain: 'eventuri.shop', accentColor: '#E2001A', logoUrl: 'https://onecompany.global/brands/eventuri-logo-email.jpg' },
+  'dvstz5-vy.myshopify.com': { displayName: 'Fi Exhaust', publicDomain: 'fiexhaust.shop', accentColor: '#F47920', logoUrl: 'https://onecompany.global/brands/fi-logo-dark.jpg' },
+  'fiexaust.myshopify.com': { displayName: 'Fi Exhaust', publicDomain: 'fiexhaust.shop', accentColor: '#F47920', logoUrl: 'https://onecompany.global/brands/fi-logo-dark.jpg' },
+  'dhs4v6-0y.myshopify.com': { displayName: 'KW Suspension', publicDomain: 'kwsuspension.shop', accentColor: '#FFD100', logoUrl: 'https://onecompany.global/images/shop/stores/kw-logo.jpg' },
   // Add more stores here as they are onboarded
 };
 
 function getStoreBranding(domain: string) {
-  return STORE_BRANDING[domain] || { displayName: 'One Company', publicDomain: 'onecompany.global', accentColor: '#c29d59', logoUrl: 'https://onecompany.global/branding/email-logo.png' };
+  return STORE_BRANDING[domain] || {
+    displayName: 'One Company',
+    publicDomain: 'onecompany.global',
+    accentColor: '#c29d59',
+    logoUrl: 'https://onecompany.global/branding/email-logo-light.jpg',
+    logoWidth: 150,
+  };
 }
 
 function verifyShopifyWebhook(rawBody: string, hmacHeader: string | null, secret: string): boolean {
@@ -127,6 +133,7 @@ export async function POST(req: NextRequest) {
       publicDomain: branding.publicDomain,
       accentColor: branding.accentColor,
       logoUrl: branding.logoUrl,
+      logoWidth: branding.logoWidth,
       locale: emailLocale,
     });
 

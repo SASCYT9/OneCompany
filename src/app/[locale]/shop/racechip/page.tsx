@@ -1,9 +1,4 @@
-import { prisma } from '@/lib/prisma';
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
-import { getShopProductsServer } from '@/lib/shopCatalogServer';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
-import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import RacechipHomeSignature from '../components/RacechipHomeSignature';
 
 type Props = {
@@ -33,9 +28,5 @@ export default async function RaceChipHomePage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  return (
-    <div className="bg-[#080808] min-h-screen font-sans">
-      <RacechipHomeSignature locale={resolvedLocale} />
-    </div>
-  );
+  return <RacechipHomeSignature locale={resolvedLocale} />;
 }
