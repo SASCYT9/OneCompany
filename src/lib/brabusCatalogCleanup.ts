@@ -79,6 +79,9 @@ const TITLE_FIXES_EN: Array<[RegExp, string]> = [
 
 const TITLE_FIXES_UA: Array<[RegExp, string]> = [
   [/BRABUS комплект карбонових деталей та аудіосистеми/gi, 'Карбоновий пакет кузова та звуку BRABUS'],
+  [/BRABUS комплект кузова з карбону/gi, 'Карбоновий кузовний пакет BRABUS'],
+  [/BRABUS комплект обвісу/gi, 'Кузовний пакет BRABUS'],
+  [/Комплект карбонових обвісів Brabus для/gi, 'Карбоновий кузовний пакет BRABUS для'],
   [/FrontgrillВставки Carbon/gi, 'Карбонові вставки решітки радіатора'],
   [/BRABUS Sound Package/gi, 'Звуковий пакет BRABUS'],
   [/BRABUS Body & Sound Package/gi, 'Пакет BRABUS «Кузов і звук»'],
