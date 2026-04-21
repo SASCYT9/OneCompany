@@ -17,7 +17,7 @@ import pg from 'pg';
 
 config(); // Load .env
 
-// Fix Supabase SSL cert issue for local scripts
+// Allow ad-hoc local script runs against managed Postgres endpoints
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // ── Config ──────────────────────────────────────────────────

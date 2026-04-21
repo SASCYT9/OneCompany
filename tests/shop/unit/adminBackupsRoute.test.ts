@@ -30,7 +30,7 @@ test('getAdminBackupRuntimePolicy requires a database url outside production', (
 
 test('buildAdminPgDumpInvocation maps database url into pg env vars instead of argv', () => {
   const invocation = buildAdminPgDumpInvocation({
-    databaseUrl: 'postgresql://db_user:db_password@example.supabase.co:6543/onecompany?sslmode=require',
+    databaseUrl: 'postgresql://db_user:db_password@db.example.com:5432/onecompany?sslmode=require',
     outputPath: 'D:/OneCompany/backups/test.sql',
   });
 
@@ -41,9 +41,9 @@ test('buildAdminPgDumpInvocation maps database url into pg env vars instead of a
     '--no-owner',
     '--no-privileges',
     '--host',
-    'example.supabase.co',
+    'db.example.com',
     '--port',
-    '6543',
+    '5432',
     '--username',
     'db_user',
     '--dbname',

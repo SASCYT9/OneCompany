@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * GiroDisc Missing Products — Direct DB Insert (bypasses Supabase REST quota)
+ * GiroDisc Missing Products — Direct DB Insert
  * Uses DIRECT_URL (port 5432) to avoid pooler timeout issues.
  */
 import dotenv from 'dotenv';

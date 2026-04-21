@@ -74,10 +74,11 @@ export default function OhlinsHomeSignature({ locale }: Props) {
           <h1 className="sr-only">
             {L(isUa, 'Öhlins Racing | Premium Suspension Systems & Shock Absorbers', 'Öhlins Racing | Преміальні системи підвіски та амортизатори')}
           </h1>
-          <p className="oh-hero-title" data-oh-reveal style={{ transitionDelay: '0.1s' }}>
-            {L(isUa, OHLINS_HERO.title, OHLINS_HERO.titleUa)}<br />
-            <em>{L(isUa, 'PERFORMANCE', 'ДОСКОНАЛІСТЬ')}</em>
-          </p>
+          <div className="oh-hero-wordmark" data-oh-reveal style={{ transitionDelay: '0.1s' }}>
+            <span className="oh-wordmark-text">ÖHLINS</span>
+            <span className="oh-wordmark-r">®</span>
+            <span className="oh-wordmark-sub">Racing — Advanced Suspension Technology</span>
+          </div>
 
           <p className="oh-hero-subtitle" data-oh-reveal style={{ transitionDelay: '0.2s' }}>
             {L(isUa, OHLINS_HERO.description, OHLINS_HERO.descriptionUa)}

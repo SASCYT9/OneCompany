@@ -19,7 +19,7 @@
 - Localization files in `src/lib/messages/` are the translation source of truth for UI copy.
 
 ## 4. Technical Guardrails
-- Stack: Next.js 14 App Router, React, Tailwind, Framer Motion, Prisma, PostgreSQL/Supabase.
+- Stack: Next.js 14 App Router, React, Tailwind, Framer Motion, Prisma, PostgreSQL.
 - Prefer Server Components by default. Use Client Components only for interactivity.
 - Use Server Actions or Route Handlers according to the existing architecture.
 - No general-purpose UI frameworks like Material UI or Chakra.

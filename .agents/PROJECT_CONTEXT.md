@@ -8,7 +8,7 @@
 - Next.js 14 App Router
 - React + Tailwind CSS + Framer Motion
 - Prisma ORM
-- PostgreSQL / Supabase
+- PostgreSQL
 - Zustand and React Query where client state is justified
 
 ## Architecture Defaults

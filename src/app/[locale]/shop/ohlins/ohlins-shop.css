@@ -144,25 +144,47 @@
   border-radius: 30px; /* Softer pill shape */
 }
 
-.oh-hero-title {
-  font-size: clamp(3.5rem, 8vw, 8rem);
-  font-weight: 300; /* Slightly heavier to feel less cold/thin */
-  line-height: 1.05;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  color: var(--oh-white);
+/* Öhlins branded wordmark */
+.oh-hero-wordmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
   margin-bottom: 2rem;
-  text-shadow: 0 5px 20px rgba(0,0,0,0.3);
+  position: relative;
 }
-.oh-hero-title em {
-  font-style: normal;
-  color: transparent;
-  -webkit-text-stroke: 1px var(--oh-gold);
-  text-stroke: 1px var(--oh-gold);
-  font-weight: 400;
-  background: linear-gradient(135deg, var(--oh-gold) 0%, #e0c896 50%, var(--oh-gold) 100%);
+.oh-wordmark-text {
+  font-family: 'Arial Black', 'Impact', 'Helvetica Neue', sans-serif;
+  font-weight: 900;
+  font-size: clamp(3.5rem, 8vw, 7rem);
+  letter-spacing: 0.08em;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--oh-gold) 0%, #e0c896 40%, var(--oh-gold) 80%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 0 40px rgba(194, 157, 89, 0.2));
+  transition: filter 0.4s ease;
+}
+.oh-hero-wordmark:hover .oh-wordmark-text {
+  filter: drop-shadow(0 0 60px rgba(194, 157, 89, 0.35));
+}
+.oh-wordmark-r {
+  font-size: clamp(0.7rem, 1.2vw, 1rem);
+  color: var(--oh-gold);
+  opacity: 0.5;
+  vertical-align: super;
+  margin-left: 0.2em;
+  font-weight: 400;
+}
+.oh-wordmark-sub {
+  font-family: 'Inter', 'Arial', sans-serif;
+  font-size: clamp(0.6rem, 1.1vw, 0.8rem);
+  font-weight: 400;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .oh-hero-subtitle {

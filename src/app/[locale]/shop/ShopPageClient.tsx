@@ -1,12 +1,12 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { SupportedLocale } from '@/lib/seo';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { getBrandMetadata, getLocalizedCountry } from '@/lib/brands';
 import { SHOP_PRODUCTS, type ShopScope, type ShopMoneySet } from '@/lib/shopCatalog';
+import { ShopProductImage } from '@/components/shop/ShopProductImage';
 import { localizeShopDescription, localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
@@ -354,7 +354,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
                 }`}
               >
                 <div className="absolute inset-0 overflow-hidden rounded-2xl">
-                  <Image
+                  <ShopProductImage
                     src={brand.image}
                     alt={brand.name}
                     fill
@@ -420,7 +420,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
                 }`}
               >
                 <div className="absolute inset-0">
-                  <Image
+                  <ShopProductImage
                     src={category.image}
                     alt={category.label}
                     fill
@@ -516,7 +516,7 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
                     className="group overflow-hidden rounded-[30px] border border-black/10 bg-white transition hover:-translate-y-0.5 hover:border-black/30 hover:shadow-[0_28px_50px_rgba(20,14,8,0.16)]"
                   >
                     <div className="relative aspect-[4/5] overflow-hidden">
-                      <Image
+                      <ShopProductImage
                         src={product.image}
                         alt={productTitle}
                         fill

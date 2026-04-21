@@ -23,10 +23,42 @@ import {
   isLikelyBrabusOverviewProductLike,
   scoreBrabusProductCandidateLike,
 } from '@/lib/brabusCatalogCleanup';
+import { isBrabusLocalImage, resolveBrabusFallbackImage } from '@/lib/brabusImageFallbacks';
 import { resolveBundleInventory } from '@/lib/shopBundles';
 import { prisma } from '@/lib/prisma';
 import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 import { resolveUrbanThemeAssetUrl } from '@/lib/urbanThemeAssets';
+
+const publicAssetExistsCache = new Map<string, boolean>();
+
+function uniqueStrings(values: Array<string | null | undefined>) {
+  return Array.from(new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean)));
+}
+
+function hasPublicAsset(webPath: string) {
+  const normalized = String(webPath ?? '').trim();
+  if (!normalized.startsWith('/')) {
+    return false;
+  }
+
+  const cached = publicAssetExistsCache.get(normalized);
+  if (cached != null) {
+    return cached;
+  }
+
+  const assetPath = path.join(process.cwd(), 'public', normalized.replace(/^\/+/, ''));
+  const exists = fs.existsSync(assetPath);
+  publicAssetExistsCache.set(normalized, exists);
+  return exists;
+}
+
+function resolveCatalogAssetUrl(input: string | null | undefined, fallbackSrc?: string) {
+  const resolved = resolveUrbanThemeAssetUrl(String(input ?? ''));
+  if (fallbackSrc && isBrabusLocalImage(resolved) && !hasPublicAsset(resolved)) {
+    return fallbackSrc;
+  }
+  return resolved;
+}
 
 function moneySet(input: Partial<ShopMoneySet> | null | undefined): ShopMoneySet {
   return {
@@ -49,6 +81,33 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
   const sortedMedia = [...row.media].sort((a, b) => a.position - b.position);
   const galleryFromMedia = sortedMedia.map((item) => item.src);
   const legacyGallery = Array.isArray(row.gallery) ? row.gallery.filter((item): item is string => typeof item === 'string') : [];
+  const rawPrimaryImage = row.image ?? primaryVariant?.image ?? galleryFromMedia[0] ?? '';
+  const brabusFallbackImage = resolveBrabusFallbackImage({
+    brand: row.brand ?? row.vendor ?? '',
+    slug: row.slug,
+    sku: row.sku ?? primaryVariant?.sku ?? '',
+    tags: row.tags ?? [],
+    title: {
+      ua: row.titleUa,
+      en: row.titleEn,
+    },
+    collection: {
+      ua: row.collectionUa ?? '',
+      en: row.collectionEn ?? '',
+    },
+    image: rawPrimaryImage,
+  });
+  const resolvedPrimaryImage = resolveCatalogAssetUrl(rawPrimaryImage, brabusFallbackImage);
+  const resolvedGallery = uniqueStrings(
+    (legacyGallery.length ? legacyGallery : galleryFromMedia).map((url) =>
+      resolveCatalogAssetUrl(url, brabusFallbackImage)
+    )
+  );
+  const productGallery = resolvedGallery.length
+    ? resolvedGallery
+    : resolvedPrimaryImage
+      ? [resolvedPrimaryImage]
+      : [];
   const productB2BPrice = moneySet({
     eur: num(row.priceEurB2b ?? primaryVariant?.priceEurB2b),
     usd: num(row.priceUsdB2b ?? primaryVariant?.priceUsdB2b),
@@ -69,7 +128,7 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
             slug: item.componentProduct.slug,
             scope: item.componentProduct.scope === 'moto' ? 'moto' : 'auto',
             brand: item.componentProduct.brand ?? '',
-            image: resolveUrbanThemeAssetUrl(item.componentProduct.image ?? ''),
+            image: resolveCatalogAssetUrl(item.componentProduct.image ?? ''),
             title: {
               ua: item.componentProduct.titleUa,
               en: item.componentProduct.titleEn,
@@ -174,8 +233,8 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
       productB2BCompareAt.eur > 0 || productB2BCompareAt.usd > 0 || productB2BCompareAt.uah > 0
         ? productB2BCompareAt
         : undefined,
-    image: resolveUrbanThemeAssetUrl(row.image ?? primaryVariant?.image ?? galleryFromMedia[0] ?? ''),
-    gallery: (legacyGallery.length ? legacyGallery : galleryFromMedia).map((url) => resolveUrbanThemeAssetUrl(url)),
+    image: resolvedPrimaryImage,
+    gallery: productGallery,
     highlights: highlightsArr,
     variants: row.variants.map((variant) => {
       const variantB2BPrice = moneySet({
@@ -198,7 +257,7 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
           (value): value is string => Boolean(value)
         ),
         inventoryQty: variant.inventoryQty,
-        image: variant.image ? resolveUrbanThemeAssetUrl(variant.image) : null,
+        image: variant.image ? resolveCatalogAssetUrl(variant.image, brabusFallbackImage) : null,
         isDefault: variant.isDefault,
         price: moneySet({
           eur: num(variant.priceEur),
@@ -319,7 +378,7 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
     return globalProductsPromise;
   }
 
-  // File cache for local development to prevent massive Supabase egress
+  // File cache for local development to avoid repeated filesystem checks
   const isDev = process.env.NODE_ENV === 'development';
   const cachePath = isDev ? path.join(process.cwd(), '.shop-products-dev-cache.json') : '';
   

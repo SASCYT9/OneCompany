@@ -19,7 +19,7 @@ const staticPageConfig: Record<string, { priority: number; changeFrequency: Meta
   "/shop/ohlins": { priority: 0.82, changeFrequency: "weekly" },
   "/shop/ohlins/collections": { priority: 0.8, changeFrequency: "weekly" },
   "/shop/girodisc": { priority: 0.82, changeFrequency: "weekly" },
-  "/shop/girodisc/collections": { priority: 0.8, changeFrequency: "weekly" },
+  "/shop/girodisc/catalog": { priority: 0.8, changeFrequency: "weekly" },
   "/shop/ipe": { priority: 0.82, changeFrequency: "weekly" },
   "/shop/ipe/collections": { priority: 0.8, changeFrequency: "weekly" },
   "/auto": { priority: 0.9, changeFrequency: "daily" },

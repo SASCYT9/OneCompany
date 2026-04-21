@@ -12,5 +12,5 @@ type Props = {
 export default async function GirodiscProductsRedirect({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  redirect(`/${resolvedLocale}/shop/girodisc/collections`);
+  redirect(`/${resolvedLocale}/shop/girodisc/catalog`);
 }
