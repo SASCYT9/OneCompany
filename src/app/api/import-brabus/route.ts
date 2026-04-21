@@ -46,7 +46,8 @@ export async function POST(req: Request) {
 
     for (let i = 0; i < products.length; i++) {
       const p = products[i];
-      const slug = buildBrabusProductSlug(p.sku);
+      const sku = String(p.sku ?? '').trim();
+      const slug = buildBrabusProductSlug(sku);
 
       try {
         const colls = determineCollections(p);
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
 
         const data = {
           slug,
-          sku: p.sku,
+          sku,
           scope: 'auto',
           brand: 'Brabus',
           vendor: 'Brabus',
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
           where: {
             OR: [
               { slug },
-              { sku: p.sku },
+              { sku: { equals: sku, mode: 'insensitive' } },
             ],
           },
           select: {
@@ -118,7 +119,7 @@ export async function POST(req: Request) {
                 deleteMany: {},
                 create: [{
                   title: 'Default Title',
-                  sku: p.sku,
+                  sku,
                   position: 1,
                   inventoryQty: 0,
                   priceEur: priceEur,
@@ -137,7 +138,7 @@ export async function POST(req: Request) {
               variants: {
                 create: [{
                   title: 'Default Title',
-                  sku: p.sku,
+                  sku,
                   position: 1,
                   inventoryQty: 0,
                   priceEur: priceEur,

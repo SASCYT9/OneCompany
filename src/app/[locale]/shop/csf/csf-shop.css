@@ -247,7 +247,6 @@
   max-width: 280px;
   height: auto;
   margin-bottom: 1.5rem;
-  filter: brightness(2);
   user-select: none;
 }
 
@@ -418,6 +417,7 @@
     grid-template-columns: repeat(3, 1fr);
     padding: 0 4rem 7rem;
     gap: 2rem;
+    align-items: stretch;
   }
 }
 
@@ -431,6 +431,7 @@
   border-radius: var(--csf-radius);
   overflow: hidden;
   transition: border-color 0.4s var(--csf-ease), background 0.4s var(--csf-ease), box-shadow 0.4s var(--csf-ease);
+  height: 100%;
 }
 .csf__tech-card:hover {
   border-color: var(--csf-border-hover);
@@ -456,6 +457,9 @@
 .csf__tech-card-body {
   padding: 1.5rem;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 .csf__tech-card-body h3 {
   font-size: 1.125rem;
@@ -469,6 +473,7 @@
   line-height: 1.65;
   margin: 0;
   font-weight: 300;
+  flex-grow: 1;
 }
 
 /* Spec badges under tech card */
@@ -597,30 +602,35 @@
   border-radius: var(--csf-radius);
   overflow: hidden;
   transition: border-color 0.4s var(--csf-ease), background 0.4s var(--csf-ease), box-shadow 0.4s var(--csf-ease);
-  background: rgba(255, 255, 255, 0.01);
+  background: rgba(255, 255, 255, 0.015);
 }
 .csf__product-card:hover {
   border-color: var(--csf-border-hover);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   box-shadow: 0 8px 40px rgba(0,0,0,0.3);
 }
 
 .csf__product-img {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: var(--csf-bg-alt);
+  background: linear-gradient(135deg, #151518 0%, #1a1a1f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
 }
 .csf__product-img img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  opacity: 0.85;
+  object-fit: contain;
+  opacity: 0.9;
   transition: transform 0.8s var(--csf-ease), opacity 0.4s var(--csf-ease);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
 }
 .csf__product-card:hover .csf__product-img img {
-  transform: scale(1.04);
+  transform: scale(1.06);
   opacity: 1;
 }
 
@@ -636,6 +646,7 @@
   letter-spacing: 0.08em;
   font-weight: 700;
   border-radius: 2px;
+  z-index: 2;
 }
 
 .csf__product-body {
@@ -643,6 +654,7 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  text-align: center;
 }
 .csf__product-body h3 {
   font-size: 1.125rem;
@@ -666,6 +678,7 @@
   font-weight: 600;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   opacity: 0.7;
   transition: opacity 0.3s var(--csf-ease);

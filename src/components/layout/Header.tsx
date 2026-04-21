@@ -65,7 +65,7 @@ export function Header() {
           ? `/${locale}/shop/girodisc/catalog`
           : ['brabus', 'burger', 'urban'].includes(currentBrand) 
             ? `/${locale}/shop/${currentBrand}/products` 
-            : ['do88', 'akrapovic', 'adro'].includes(currentBrand)
+            : ['do88', 'akrapovic', 'adro', 'csf'].includes(currentBrand)
               ? `/${locale}/shop/${currentBrand}/collections`
               : `/${locale}/shop/${currentBrand}#catalog`,
       label: isUa ? `Каталог ${formatBrandName(currentBrand)}` : `${formatBrandName(currentBrand)} Catalog`,

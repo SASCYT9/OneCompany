@@ -68,6 +68,10 @@ function dedupeStrings(values: Array<string | null | undefined>) {
   return [...unique];
 }
 
+function normalizeSkuKey(value: string | null | undefined) {
+  return String(value ?? '').trim().toLowerCase();
+}
+
 function normalizeProduct(row: BrabusRow) {
   const cleanTitleUa = cleanBrabusTitle('ua', row.titleUa) || row.titleUa;
   const cleanTitleEn = cleanBrabusTitle('en', row.titleEn) || row.titleEn;
@@ -310,7 +314,7 @@ function auditProducts(products: Array<{
 }>) {
   const bySku = new Map<string, typeof products>();
   for (const product of products) {
-    const key = String(product.sku ?? '').trim();
+    const key = normalizeSkuKey(product.sku);
     if (!key) continue;
     const list = bySku.get(key) ?? [];
     list.push(product);
@@ -394,7 +398,7 @@ async function main() {
 
   const groups = new Map<string, BrabusRow[]>();
   for (const row of rows) {
-    const sku = String(row.sku ?? '').trim();
+    const sku = normalizeSkuKey(row.sku);
     if (!sku) continue;
     const list = groups.get(sku) ?? [];
     list.push(row);

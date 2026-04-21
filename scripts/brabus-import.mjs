@@ -377,13 +377,14 @@ async function importProducts(products, isDryRun) {
   for (let i = 0; i < products.length; i++) {
     const p = products[i];
     try {
+      const sku = String(p.sku ?? '').trim();
       // Use titleDe (short name) rather than titleDeFull (which includes subtitle)
       const rawTitle = p.titleDe || p.titleDeFull || '';
       const titleEn = translateTitleEn(rawTitle) || rawTitle;
       const titleUa = translateTitleUa(rawTitle) || rawTitle;
       const descEn = p.descriptionEn || translateDescription(p.descriptionDe, 'en');
       const descUa = p.descriptionUa || translateDescription(p.descriptionDe, 'ua');
-      const slug = generateSlug(p.sku);
+      const slug = generateSlug(sku);
       
       // Collection
       const coll = determineCollection(p);
@@ -430,7 +431,7 @@ async function importProducts(products, isDryRun) {
 
       const productData = {
         slug,
-        sku: p.sku,
+        sku,
         scope: 'auto',
         brand: 'Brabus',
         vendor: 'Brabus',
@@ -461,7 +462,7 @@ async function importProducts(products, isDryRun) {
         where: {
           OR: [
             { slug },
-            { sku: p.sku },
+            { sku: { equals: sku, mode: 'insensitive' } },
           ],
         },
         select: { id: true },
@@ -482,7 +483,7 @@ async function importProducts(products, isDryRun) {
               deleteMany: {},
               create: [{
                 title: 'Default',
-                sku: p.sku,
+                sku,
                 position: 1,
                 inventoryQty: 0,
                 priceEur: p.priceEur || 0,
@@ -517,7 +518,7 @@ async function importProducts(products, isDryRun) {
             variants: {
               create: [{
                 title: 'Default',
-                sku: p.sku,
+                sku,
                 position: 1,
                 inventoryQty: 0,
                 priceEur: p.priceEur || 0,
