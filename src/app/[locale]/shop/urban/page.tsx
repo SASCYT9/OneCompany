@@ -17,8 +17,8 @@ export async function generateMetadata({
     title: resolvedLocale === 'ua' ? 'Urban Automotive | One Company' : 'Urban Automotive | One Company',
     description:
       resolvedLocale === 'ua'
-        ? 'Преміальні обвіси Urban Automotive. Офіційний постачальник в Україні.'
-        : 'Premium Urban Automotive body kits. Official supplier in Ukraine.',
+        ? 'Преміальні обвіси Urban Automotive. Виразний widebody-дизайн і вивірена стилістика OEM+.'
+        : 'Premium Urban Automotive body kits. Distinctive widebody design with refined OEM+ presence.',
   });
 }
 
@@ -27,8 +27,8 @@ export default async function ShopUrbanPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
 
   const description = resolvedLocale === 'ua'
-    ? 'Преміальні обвіси Urban Automotive. Офіційний постачальник в Україні.'
-    : 'Premium Urban Automotive body kits. Official supplier in Ukraine.';
+    ? 'Преміальні обвіси Urban Automotive. Виразний widebody-дизайн і вивірена стилістика OEM+.'
+    : 'Premium Urban Automotive body kits. Distinctive widebody design with refined OEM+ presence.';
 
   return (
     <>

@@ -30,8 +30,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title,
     description:
       resolvedLocale === 'ua'
-        ? `Програма BRABUS ${config?.titleUk ?? card?.title ?? handle}. Офіційний постачальник в Україні.`
-        : `BRABUS ${config?.title ?? card?.title ?? handle} programme. Official supplier in Ukraine.`,
+        ? `Програма BRABUS ${config?.titleUk ?? card?.title ?? handle}. Аеродинаміка, ковані диски та індивідуальні апгрейди преміум-класу.`
+        : `BRABUS ${config?.title ?? card?.title ?? handle} programme. Aerodynamic kits, forged wheels, and premium bespoke upgrades.`,
   });
 }
 

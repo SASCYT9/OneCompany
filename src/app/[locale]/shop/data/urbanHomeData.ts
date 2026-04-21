@@ -27,9 +27,9 @@ export const URBAN_HERO = {
   title: 'Premium Urban Styling.',
   titleUk: 'Преміальні обвіси Urban',
   subtitle:
-    'Official Urban Automotive supplier in Ukraine: full Urban body kit range. Premium quality and status. Full turnkey support.',
+    'Full Urban body kit range, premium quality, and turnkey support for bold exterior builds.',
   subtitleUk:
-    'Офіційний постачальник Urban Automotive в Україні: повний модельний ряд обвісів Urban, преміальна якість та статус, повний супровід під ключ.',
+    'Повний модельний ряд обвісів Urban, преміальна якість та супровід під ключ для виразних екстерʼєрних проєктів.',
   primaryButtonLabel: 'Explore Urban Range',
   primaryButtonLabelUk: 'Переглянути модельний ряд Urban',
   primaryButtonLink: URBAN_COLLECTIONS_INDEX_PATH,

@@ -29,9 +29,9 @@ export const OUR_STORES: OurStore[] = [
     name: "Urban Automotive",
     nameUk: "Urban Automotive",
     description:
-      "Premium body kits and styling. Official Urban supplier in Ukraine.",
+      "Premium body kits and styling. Distinctive widebody design with refined OEM+ presence.",
     descriptionUk:
-      "Преміальні обвіси та стилізація. Офіційний постачальник Urban в Україні.",
+      "Преміальні обвіси та стилізація. Виразний widebody-дизайн і вивірена стилістика OEM+.",
     href: "",
     imageUrl: "/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp",
     gridSpan: 'feature',
@@ -53,9 +53,9 @@ export const OUR_STORES: OurStore[] = [
     name: "Brabus",
     nameUk: "Brabus",
     description:
-      "Premium tuning and lifestyle. Official Brabus supplier in Ukraine.",
+      "Premium tuning and lifestyle. Aerodynamic kits, forged wheels, and unmistakable presence.",
     descriptionUk:
-      "Преміальний тюнінг та стиль життя. Офіційний постачальник Brabus в Україні.",
+      "Преміальний тюнінг та lifestyle. Аеродинаміка, ковані диски та впізнаваний характер.",
     href: "/shop/brabus",
     imageUrl: "/images/shop/brabus/hq/brabus-portal-hero.png",
     gridSpan: 'feature',

@@ -19,8 +19,8 @@ export async function generateMetadata({
         : 'ADRO — Premium Carbon Fiber Aerokits | One Company',
     description:
       resolvedLocale === 'ua'
-        ? 'Преміальні карбонові аерокіти ADRO з CFD-валідацією рівня F1. Препрег карбон для BMW, Porsche, Toyota, Tesla. Офіційний дистриб\'ютор в Україні.'
-        : 'Premium ADRO carbon fiber aerokits with F1-level CFD validation. Prepreg carbon for BMW, Porsche, Toyota, Tesla. Official distributor in Ukraine.',
+        ? 'Преміальні карбонові аерокіти ADRO з CFD-валідацією рівня F1. Препрег-карбон для BMW, Porsche, Toyota та Tesla.'
+        : 'Premium ADRO carbon fiber aerokits with F1-level CFD validation. Prepreg carbon for BMW, Porsche, Toyota, and Tesla.',
   });
 }
 

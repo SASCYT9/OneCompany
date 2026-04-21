@@ -20,8 +20,8 @@ export async function generateMetadata({
         : 'Akrapovič — Titanium Exhaust Systems | One Company',
     description:
       resolvedLocale === 'ua'
-        ? 'Преміальні титанові та карбонові вихлопні системи Akrapovič. Офіційний постачальник в Україні. BMW, Porsche, Mercedes, Audi, Lamborghini, Ferrari.'
-        : 'Premium titanium & carbon fibre Akrapovič exhaust systems. Official supplier in Ukraine. BMW, Porsche, Mercedes, Audi, Lamborghini, Ferrari.',
+        ? 'Преміальні титанові та карбонові вихлопні системи Akrapovič для BMW, Porsche, Mercedes, Audi, Lamborghini та Ferrari.'
+        : 'Premium titanium & carbon fibre Akrapovič exhaust systems for BMW, Porsche, Mercedes, Audi, Lamborghini, and Ferrari.',
   });
 }
 
@@ -30,8 +30,8 @@ export default async function ShopAkrapovicPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
 
   const description = resolvedLocale === 'ua'
-    ? 'Преміальні титанові та карбонові вихлопні системи Akrapovič. Офіційний постачальник в Україні. BMW, Porsche, Mercedes, Audi, Lamborghini, Ferrari.'
-    : 'Premium titanium & carbon fibre Akrapovič exhaust systems. Official supplier in Ukraine. BMW, Porsche, Mercedes, Audi, Lamborghini, Ferrari.';
+    ? 'Преміальні титанові та карбонові вихлопні системи Akrapovič для BMW, Porsche, Mercedes, Audi, Lamborghini та Ferrari.'
+    : 'Premium titanium & carbon fibre Akrapovič exhaust systems for BMW, Porsche, Mercedes, Audi, Lamborghini, and Ferrari.';
 
   return (
     <>

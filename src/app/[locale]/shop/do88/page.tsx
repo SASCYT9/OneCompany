@@ -22,8 +22,8 @@ export async function generateMetadata({
     title: resolvedLocale === 'ua' ? 'DO88 Performance | One Company' : 'DO88 Performance | One Company',
     description:
       resolvedLocale === 'ua'
-        ? 'Преміальні системи охолодження DO88 зі Швеції. Офіційний постачальник в Україні.'
-        : 'Premium DO88 performance cooling systems from Sweden. Official supplier in Ukraine.',
+        ? 'Преміальні системи охолодження DO88 зі Швеції. Інтеркулери, радіатори та силіконові патрубки для максимальної ефективності.'
+        : 'Premium DO88 performance cooling systems from Sweden. Intercoolers, radiators, and silicone hoses built for maximum efficiency.',
   });
 }
 
@@ -32,8 +32,8 @@ export default async function ShopDo88Page({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
 
   const description = resolvedLocale === 'ua'
-    ? 'Преміальні системи охолодження DO88 зі Швеції. Офіційний постачальник в Україні.'
-    : 'Premium DO88 performance cooling systems from Sweden. Official supplier in Ukraine.';
+    ? 'Преміальні системи охолодження DO88 зі Швеції. Інтеркулери, радіатори та силіконові патрубки для максимальної ефективності.'
+    : 'Premium DO88 performance cooling systems from Sweden. Intercoolers, radiators, and silicone hoses built for maximum efficiency.';
 
   return (
     <>

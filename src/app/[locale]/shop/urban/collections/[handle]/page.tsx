@@ -36,8 +36,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title: resolvedLocale === 'ua' ? `${card?.title ?? handle} | Urban | One Company` : title,
     description:
       resolvedLocale === 'ua'
-        ? `Програма Urban для ${card?.title ?? handle}. Офіційний постачальник в Україні.`
-        : `Urban programme for ${card?.title ?? handle}. Official supplier in Ukraine.`,
+        ? `Програма Urban для ${card?.title ?? handle}. Фірмові обвіси, карбон і виразні деталі екстерʼєру.`
+        : `Urban programme for ${card?.title ?? handle}. Signature body kits, carbon details, and bold exterior styling.`,
   });
 }
 

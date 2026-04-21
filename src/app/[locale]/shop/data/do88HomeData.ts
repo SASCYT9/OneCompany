@@ -19,9 +19,9 @@ export const DO88_HERO = {
   title: 'Performance Cooling.',
   titleUk: 'Продуктивне охолодження.',
   subtitle:
-    'Official DO88 supplier in Ukraine. Premium cooling systems, intercoolers, and silicone hoses from Sweden. Engineered for maximum performance.',
+    'Premium cooling systems, intercoolers, and silicone hoses from Sweden. Engineered for maximum performance.',
   subtitleUk:
-    'Офіційний постачальник DO88 в Україні. Преміальні системи охолодження, інтеркулери та силіконові патрубки зі Швеції. Створено для максимальної продуктивності.',
+    'Преміальні системи охолодження, інтеркулери та силіконові патрубки зі Швеції. Створено для максимальної продуктивності.',
   primaryButtonLabel: 'Explore DO88 Range',
   primaryButtonLabelUk: 'Переглянути каталог DO88',
   primaryButtonLink: '/shop/stock?distributor=DO88',

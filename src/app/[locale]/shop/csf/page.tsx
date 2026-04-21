@@ -16,12 +16,12 @@ export async function generateMetadata({
   return buildPageMetadata(resolvedLocale, 'shop/csf', {
     title:
       resolvedLocale === 'ua'
-        ? 'CSF Racing | Офіційний дилер в Україні | One Company'
-        : 'CSF Racing | Official Dealer in Ukraine | One Company',
+        ? 'CSF Racing | Системи Охолодження | One Company'
+        : 'CSF Racing | Performance Cooling | One Company',
     description:
       resolvedLocale === 'ua'
-        ? 'Високопродуктивні радіатори, інтеркулери та системи охолодження CSF Racing. Офіційна продукція.'
-        : 'High-performance radiators, intercoolers, and cooling systems by CSF Racing. Official products.',
+        ? 'Високопродуктивні радіатори, інтеркулери та системи охолодження CSF Racing для дороги й треку.'
+        : 'High-performance radiators, intercoolers, and cooling systems by CSF Racing for road and track.',
   });
 }
 

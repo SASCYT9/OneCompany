@@ -19,8 +19,8 @@ export async function generateMetadata({
         : 'iPE Exhaust — Titanium Exhaust Systems | One Company',
     description:
       resolvedLocale === 'ua'
-        ? 'Преміальні титанові вихлопні системи Innotech Performance Exhaust (iPE) з фірмовим F1-звучанням. Офіційний дистриб\'ютор в Україні.'
-        : 'Premium titanium Innotech Performance Exhaust (iPE) systems with signature F1-pitch sound. Official distributor in Ukraine.',
+        ? 'Преміальні титанові вихлопні системи Innotech Performance Exhaust (iPE) з фірмовим F1-звучанням і valvetronic-керуванням.'
+        : 'Premium titanium Innotech Performance Exhaust (iPE) systems with signature F1-pitch sound and valvetronic control.',
   });
 }
 

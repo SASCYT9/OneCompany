@@ -20,9 +20,9 @@ export const BRABUS_HERO = {
   title: 'Beyond Perfection.',
   titleUk: 'За межами досконалості.',
   subtitle:
-    'Official Brabus supplier in Ukraine. Aerodynamic kits, forged wheels, performance upgrades — the legendary 1-Second-Wow effect.',
+    'Aerodynamic kits, forged wheels, and performance upgrades — the legendary 1-Second-Wow effect.',
   subtitleUk:
-    'Офіційний постачальник Brabus в Україні. Аеродинамічні обвіси, ковані диски, збільшення потужності — легендарний ефект 1-Second-Wow.',
+    'Аеродинамічні обвіси, ковані диски та збільшення потужності — легендарний ефект 1-Second-Wow.',
   primaryButtonLabel: 'Explore Range',
   primaryButtonLabelUk: 'Модельний ряд',
   primaryButtonLink: '/shop/brabus/collections',

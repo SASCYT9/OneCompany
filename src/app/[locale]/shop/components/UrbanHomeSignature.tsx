@@ -153,7 +153,7 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
             {isUa ? 'Засн. 2015 — Бірмінгем, Англія' : 'Est. 2015 — Birmingham, England'}
           </span>
           <span className="uh7-hero__side-text uh7-hero__side-text--r" aria-hidden>
-            {isUa ? 'Офіційний постачальник Urban в Україні' : 'Official Urban Supplier in Ukraine'}
+            {isUa ? 'Фірмова програма Widetrack' : 'Signature Widetrack Programme'}
           </span>
           <div className="uh7-hero__glow" aria-hidden />
           <div className="uh7-hero__content">
@@ -201,8 +201,8 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
             {isUa
-              ? 'Офіційні програми Urban Automotive в Україні'
-              : 'Official Urban Automotive programmes in Ukraine'}
+              ? 'Дизайнерські програми Urban Automotive'
+              : 'Urban Automotive design programmes'}
           </div>
           <div className="uh7-trust__item">
             <svg className="uh7-trust__icon" viewBox="0 0 24 24">

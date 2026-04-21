@@ -29,8 +29,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title,
     description:
       resolvedLocale === 'ua'
-        ? `Програма ADRO для ${line?.nameUk ?? handle}. Офіційний постачальник в Україні.`
-        : `ADRO aerodynamic program for ${line?.name ?? handle}. Official supplier in Ukraine.`,
+        ? `Програма ADRO для ${line?.nameUk ?? handle}. Препрег-карбон і CFD-аеродинаміка рівня F1.`
+        : `ADRO aerodynamic program for ${line?.name ?? handle}. Prepreg carbon and F1-level CFD aero.`,
   });
 }
 

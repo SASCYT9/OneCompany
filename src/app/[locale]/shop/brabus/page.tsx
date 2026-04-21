@@ -17,8 +17,8 @@ export async function generateMetadata({
     title: resolvedLocale === 'ua' ? 'Brabus | One Company' : 'Brabus | One Company',
     description:
       resolvedLocale === 'ua'
-        ? 'Преміальний тюнінг Brabus. Офіційний постачальник в Україні.'
-        : 'Premium Brabus tuning. Official supplier in Ukraine.',
+        ? 'Преміальний тюнінг Brabus. Аеродинамічні обвіси, ковані диски та фірмовий ефект 1-Second-Wow.'
+        : 'Premium Brabus tuning. Aerodynamic kits, forged wheels, and the signature 1-Second-Wow effect.',
   });
 }
 
@@ -27,8 +27,8 @@ export default async function ShopBrabusPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
 
   const description = resolvedLocale === 'ua'
-    ? 'Преміальний тюнінг Brabus. Офіційний постачальник в Україні.'
-    : 'Premium Brabus tuning. Official supplier in Ukraine.';
+    ? 'Преміальний тюнінг Brabus. Аеродинамічні обвіси, ковані диски та фірмовий ефект 1-Second-Wow.'
+    : 'Premium Brabus tuning. Aerodynamic kits, forged wheels, and the signature 1-Second-Wow effect.';
 
   return (
     <>

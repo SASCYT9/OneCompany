@@ -36,8 +36,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title: resolvedLocale === 'ua' ? `${card?.titleUk ?? card?.title ?? handle} | DO88 | One Company` : title,
     description:
       resolvedLocale === 'ua'
-        ? `Високопродуктивні ${card?.title ?? handle} DO88 зі Швеції. Офіційний постачальник в Україні.`
-        : `High-performance DO88 ${card?.title ?? handle}. Official supplier in Ukraine.`,
+        ? `Високопродуктивні ${card?.titleUk ?? card?.title ?? handle} DO88 зі Швеції. Інтеркулери, радіатори та компоненти для стабільного охолодження.`
+        : `High-performance DO88 ${card?.title ?? handle} from Sweden. Intercoolers, radiators, and cooling components built for stable temperatures.`,
   });
 }
 
