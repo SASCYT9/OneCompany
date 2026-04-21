@@ -1,14 +1,15 @@
 "use client";
 
 import type { CSSProperties } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
+import { ShopProductImage } from '@/components/shop/ShopProductImage';
 import type { SupportedLocale } from '@/lib/seo';
 import type { ShopProduct } from '@/lib/shopCatalog';
 import { localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopProductPathBrabus } from '@/lib/brabusCollectionMatcher';
+import { resolveBrabusFallbackImage } from '@/lib/brabusImageFallbacks';
 import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import BrabusSpotlightGrid from './BrabusSpotlightGrid';
@@ -149,6 +150,7 @@ export default function BrabusCollectionProductGrid({
                 : null;
               const productTitle = localizeShopProductTitle(locale, product);
               const productCollection = localizeShopText(locale, product.collection);
+              const productFallbackImage = resolveBrabusFallbackImage(product);
 
               return (
               <article key={product.slug} className="group bg-[#0a0a0a] rounded-xl overflow-hidden flex flex-col hover:bg-[#111] transition-colors duration-300 border border-[#1f1f1f] hover:border-[#333]">
@@ -158,8 +160,9 @@ export default function BrabusCollectionProductGrid({
                   aria-label={productTitle}
                 >
                   <div className="relative aspect-[4/3] bg-[#0f0f0f] overflow-hidden flex items-center justify-center">
-                    <Image
-                      src={product.image || '/images/placeholders/product-fallback.jpg'}
+                    <ShopProductImage
+                      src={product.image || '/images/placeholders/product-fallback.svg'}
+                      fallbackSrc={productFallbackImage}
                       alt={productTitle}
                       fill
                       sizes="(max-width: 768px) 100vw, 25vw"

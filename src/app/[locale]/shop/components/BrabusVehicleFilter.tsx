@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
+import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { buildShopProductPathBrabus } from "@/lib/brabusCollectionMatcher";
+import { resolveBrabusFallbackImage } from "@/lib/brabusImageFallbacks";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import BrabusSpotlightGrid from "./BrabusSpotlightGrid";
@@ -42,7 +43,9 @@ const MODEL_LABELS: Record<string, Record<string, string>> = {
   "C-Klasse": { en: "C-Class", ua: "C-Клас" },
   "CLS-Klasse": { en: "CLS-Class", ua: "CLS-Клас" },
   "E-Klasse": { en: "E-Class", ua: "E-Клас" },
+  "EQC-Klasse": { en: "EQC", ua: "EQC" },
   "EQC": { en: "EQC", ua: "EQC" },
+  "EQS-Klasse": { en: "EQS", ua: "EQS" },
   "EQS SUV": { en: "EQS SUV", ua: "EQS SUV" },
   "GLB-Klasse": { en: "GLB-Class", ua: "GLB-Клас" },
   "GLC-Klasse": { en: "GLC-Class", ua: "GLC-Клас" },
@@ -111,6 +114,10 @@ function computePricesFromEur(
   return { uah: baseUah, eur: baseEur, usd: baseUsd };
 }
 
+function resolveBrabusModelKey(product: ShopProduct, modelKeysSet: Set<string>) {
+  return product.tags?.find((tag) => modelKeysSet.has(tag)) || null;
+}
+
 export default function BrabusVehicleFilter({
   locale,
   products,
@@ -154,10 +161,7 @@ export default function BrabusVehicleFilter({
     const models = new Map<string, number>();
     for (const p of products) {
       if (!p.tags?.includes(activeBrand)) continue;
-      // Look for klasse tags like G-Klasse, S-Klasse etc. or brand-specific identifiers
-      const modelTag = p.tags.find(t => MODEL_KEYS_SET.has(t));
-      // Also check productType or collection for non-Mercedes brands
-      const modelKey = modelTag || p.productType || "";
+      const modelKey = resolveBrabusModelKey(p, MODEL_KEYS_SET);
       if (modelKey) models.set(modelKey, (models.get(modelKey) || 0) + 1);
     }
     return [...models.entries()]
@@ -185,7 +189,7 @@ export default function BrabusVehicleFilter({
 
     // Model filter
     if (activeModel !== "all") {
-      result = result.filter(p => p.tags?.includes(activeModel));
+      result = result.filter((p) => resolveBrabusModelKey(p, MODEL_KEYS_SET) === activeModel);
     }
 
     // Search
@@ -443,6 +447,7 @@ export default function BrabusVehicleFilter({
                   );
 
                   const productTitle = localizeShopProductTitle(locale, product);
+                  const productFallbackImage = resolveBrabusFallbackImage(product);
 
                   return (
                     <article key={product.slug} className="group relative bg-[#050505]/60 backdrop-blur-xl rounded-none overflow-hidden flex flex-col hover:bg-[rgba(10,10,10,0.85)] transition-all duration-500 border border-white/[0.04] shadow-2xl">
@@ -453,8 +458,9 @@ export default function BrabusVehicleFilter({
                         {/* Image */}
                         <div className="relative aspect-[4/3] bg-transparent overflow-hidden flex items-center justify-center p-8 border-b border-white/[0.02]">
                           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(194,157,89,0.15)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                          <Image
-                            src={product.image || "/images/placeholders/product-fallback.jpg"}
+                          <ShopProductImage
+                            src={product.image || "/images/placeholders/product-fallback.svg"}
+                            fallbackSrc={productFallbackImage}
                             alt={productTitle}
                             fill
                             sizes="(max-width: 768px) 100vw, 33vw"

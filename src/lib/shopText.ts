@@ -11,8 +11,32 @@ export function containsCyrillic(value: string | null | undefined) {
   return /[А-Яа-яІіЇїЄєҐґ]/.test(String(value ?? ''));
 }
 
+const HTML_ENTITY_MAP: Record<string, string> = {
+  amp: '&',
+  apos: "'",
+  nbsp: ' ',
+  quot: '"',
+  '#39': "'",
+  '#x27': "'",
+  '#34': '"',
+  '#x22': '"',
+  '#38': '&',
+  '#x26': '&',
+  '#160': ' ',
+  '#xa0': ' ',
+  '#8217': '’',
+  '#x2019': '’',
+};
+
+export function decodeHtmlEntities(value: string | null | undefined) {
+  return String(value ?? '').replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (match, entity) => {
+    const normalized = String(entity).toLowerCase();
+    return HTML_ENTITY_MAP[normalized] ?? match;
+  });
+}
+
 function normalizeWhitespace(value: string | null | undefined) {
-  return String(value ?? '').replace(/\s+/g, ' ').trim();
+  return decodeHtmlEntities(value).replace(/\s+/g, ' ').trim();
 }
 
 const UK_UA_TO_EN_GLOSSARY: Array<[RegExp, string]> = [

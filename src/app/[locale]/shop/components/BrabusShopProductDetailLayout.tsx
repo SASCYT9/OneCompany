@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Maximize2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
+import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
 import {
   localizeShopDescription,
   localizeShopProductTitle,
   localizeShopText,
 } from "@/lib/shopText";
+import { resolveBrabusFallbackImage } from "@/lib/brabusImageFallbacks";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
@@ -52,6 +53,7 @@ export function BrabusShopProductDetailLayout({
   const cleanImages = gallery
     .map((img) => img?.replace(/^["']|["']$/g, "").trim())
     .filter(Boolean) as string[];
+  const productFallbackImage = resolveBrabusFallbackImage(product);
 
   // Build spec items
   const specItems: { label: string; value: string }[] = [];
@@ -413,8 +415,9 @@ export function BrabusShopProductDetailLayout({
               <div className="b-carousel">
                 {/* Main Active Image */}
                 <div className="b-carousel__main group" onClick={() => setIsFullscreen(true)}>
-                  <Image
+                  <ShopProductImage
                     src={cleanImages[currentIdx]}
+                    fallbackSrc={productFallbackImage}
                     alt={`${productTitle} - ${currentIdx + 1}`}
                     fill
                     sizes="(max-width: 1024px) 100vw, 60vw"
@@ -445,7 +448,7 @@ export function BrabusShopProductDetailLayout({
                         onClick={() => setCurrentIdx(i)}
                         aria-label={`View image ${i + 1}`}
                       >
-                        <Image src={img} alt="" fill sizes="120px" />
+                        <ShopProductImage src={img} fallbackSrc={productFallbackImage} alt="" fill sizes="120px" />
                       </button>
                     ))}
                   </div>
@@ -600,8 +603,9 @@ export function BrabusShopProductDetailLayout({
               {relatedProducts.map((rp) => (
                 <Link key={rp.slug} href={`/${resolvedLocale}/shop/brabus/products/${rp.slug}`} className="b-rc">
                   <div className="b-rc-img">
-                    <Image
+                    <ShopProductImage
                       src={rp.image?.replace(/^["']|["']$/g, "").trim() || ""}
+                      fallbackSrc={resolveBrabusFallbackImage(rp)}
                       alt={localizeShopProductTitle(resolvedLocale, rp)}
                       fill
                     />
@@ -627,8 +631,9 @@ export function BrabusShopProductDetailLayout({
         
         {isFullscreen && cleanImages.length > 0 && (
           <div className="b-fs__stage" onClick={(e) => e.stopPropagation()}>
-            <Image
+            <ShopProductImage
               src={cleanImages[currentIdx]}
+              fallbackSrc={productFallbackImage}
               alt={`${productTitle} Fullscreen`}
               fill
               sizes="100vw"

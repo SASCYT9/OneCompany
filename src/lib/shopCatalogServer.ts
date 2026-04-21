@@ -19,6 +19,10 @@ import {
   adminProductInclude,
   type AdminShopProductRecord,
 } from '@/lib/shopAdminCatalog';
+import {
+  isLikelyBrabusOverviewProductLike,
+  scoreBrabusProductCandidateLike,
+} from '@/lib/brabusCatalogCleanup';
 import { resolveBundleInventory } from '@/lib/shopBundles';
 import { prisma } from '@/lib/prisma';
 import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
@@ -243,6 +247,63 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
   };
 }
 
+function normalizeCatalogProducts(products: ShopProduct[]) {
+  const normalized: ShopProduct[] = [];
+  const brabusBySku = new Map<string, ShopProduct>();
+
+  for (const product of products) {
+    if (isLikelyBrabusOverviewProductLike({
+      sku: product.sku,
+      titleEn: product.title.en,
+      priceEur: product.price.eur,
+      priceUsd: product.price.usd,
+      priceUah: product.price.uah,
+    })) {
+      continue;
+    }
+
+    const isBrabus = product.brand === 'Brabus' || product.vendor === 'Brabus';
+    const skuKey = String(product.sku ?? '').trim().toLowerCase();
+
+    if (!isBrabus || !skuKey) {
+      normalized.push(product);
+      continue;
+    }
+
+    const existing = brabusBySku.get(skuKey);
+    const candidateScore = scoreBrabusProductCandidateLike({
+      sku: product.sku,
+      slug: product.slug,
+      titleEn: product.title.en,
+      titleUa: product.title.ua,
+      image: product.image,
+      gallery: product.gallery,
+      priceEur: product.price.eur,
+      priceUsd: product.price.usd,
+      priceUah: product.price.uah,
+    });
+    const existingScore = existing
+      ? scoreBrabusProductCandidateLike({
+          sku: existing.sku,
+          slug: existing.slug,
+          titleEn: existing.title.en,
+          titleUa: existing.title.ua,
+          image: existing.image,
+          gallery: existing.gallery,
+          priceEur: existing.price.eur,
+          priceUsd: existing.price.usd,
+          priceUah: existing.price.uah,
+        })
+      : Number.NEGATIVE_INFINITY;
+
+    if (!existing || candidateScore > existingScore) {
+      brabusBySku.set(skuKey, product);
+    }
+  }
+
+  return [...normalized, ...brabusBySku.values()];
+}
+
 let globalProductsCache: ShopProduct[] | null = null;
 let lastCacheTime = 0;
 let globalProductsPromise: Promise<ShopProduct[]> | null = null;
@@ -268,7 +329,7 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
       // Use file cache if it's less than 3 hours old
       if (now - stat.mtimeMs < 1000 * 60 * 60 * 3) {
         const fileContent = fs.readFileSync(cachePath, 'utf8');
-        globalProductsCache = JSON.parse(fileContent);
+        globalProductsCache = normalizeCatalogProducts(JSON.parse(fileContent));
         lastCacheTime = stat.mtimeMs;
         return globalProductsCache as ShopProduct[];
       }
@@ -290,8 +351,9 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
       return [...SHOP_PRODUCTS];
     }
 
+    const dbProducts = normalizeCatalogProducts(dbRows.map((row) => mapDbToCatalog(row)));
     const bySlug = new Map<string, ShopProduct>();
-    dbRows.forEach((row) => bySlug.set(row.slug, mapDbToCatalog(row)));
+    dbProducts.forEach((product) => bySlug.set(product.slug, product));
     SHOP_PRODUCTS.forEach((p) => {
       if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
     });

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag } from 'lucide-react';
+import { ShopProductImage } from '@/components/shop/ShopProductImage';
 
 type Props = {
   images: string[];
@@ -32,7 +32,7 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
             className="absolute inset-0"
           >
             {activeImage && activeImage.length > 0 ? (
-              <Image
+              <ShopProductImage
                 src={activeImage}
                 alt={`${productTitle} - Image ${activeIndex + 1}`}
                 fill
@@ -90,7 +90,7 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
                 }`}
               >
                 {image && image.length > 0 && (
-                  <Image
+                  <ShopProductImage
                     src={image}
                     alt={`${productTitle} thumbnail ${index + 1}`}
                     fill

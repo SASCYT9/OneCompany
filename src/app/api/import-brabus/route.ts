@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { assertAdminRequest } from '@/lib/adminAuth';
+import {
+  buildBrabusProductSlug,
+  buildBrabusSeoDescription,
+  cleanBrabusHtmlDescription,
+  cleanBrabusTitle,
+} from '@/lib/brabusCatalogCleanup';
 import { prisma } from '@/lib/prisma';
 import { replaceStorefrontTag } from '@/lib/shopProductStorefront';
 import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
@@ -29,10 +35,6 @@ function determineCollections(product: any): { collectionEn: string; collectionU
   return { collectionEn: 'Brabus Accessories', collectionUa: 'Аксесуари Brabus', handle: 'accessories' };
 }
 
-function generateSlug(sku: string): string {
-  return `brabus-${sku.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}`;
-}
-
 export async function POST(req: Request) {
   try {
     const cookieStore = await cookies();
@@ -44,12 +46,20 @@ export async function POST(req: Request) {
 
     for (let i = 0; i < products.length; i++) {
       const p = products[i];
-      const slug = generateSlug(p.sku);
+      const slug = buildBrabusProductSlug(p.sku);
 
       try {
         const colls = determineCollections(p);
         const priceEur = p.priceEUR_final;
         const mainImage = p.images && p.images.length > 0 ? p.images[0] : null;
+        const titleUa = cleanBrabusTitle('ua', p.titleUk || p.titleEn || p.title);
+        const titleEn = cleanBrabusTitle('en', p.titleEn || p.title);
+        const bodyHtmlUa = p.descriptionUk
+          ? cleanBrabusHtmlDescription('ua', sanitizeRichTextHtml(p.descriptionUk))
+          : null;
+        const bodyHtmlEn = p.descriptionEn
+          ? cleanBrabusHtmlDescription('en', sanitizeRichTextHtml(p.descriptionEn))
+          : null;
 
         const tags = replaceStorefrontTag(['Brabus', 'Tuning', colls.handle], 'brabus');
         if (p.category) tags.push(p.category);
@@ -63,16 +73,16 @@ export async function POST(req: Request) {
           productType: 'Premium Tuning',
           productCategory: p.category,
           status: 'ACTIVE' as const,
-          titleUa: p.titleUk || p.titleEn || p.title,
-          titleEn: p.titleEn || p.title,
-          seoTitleEn: p.titleEn || p.title,
-          seoTitleUa: p.titleUk || p.titleEn || p.title,
-          bodyHtmlUa: p.descriptionUk ? sanitizeRichTextHtml(p.descriptionUk) : null,
-          bodyHtmlEn: p.descriptionEn ? sanitizeRichTextHtml(p.descriptionEn) : null,
-          longDescEn: p.descriptionEn ? sanitizeRichTextHtml(p.descriptionEn) : null,
-          longDescUa: p.descriptionUk ? sanitizeRichTextHtml(p.descriptionUk) : null,
-          seoDescriptionEn: p.descriptionEn ? String(p.descriptionEn).replace(/<[^>]+>/g, '').slice(0, 300) : null,
-          seoDescriptionUa: p.descriptionUk ? String(p.descriptionUk).replace(/<[^>]+>/g, '').slice(0, 300) : null,
+          titleUa,
+          titleEn,
+          seoTitleEn: titleEn,
+          seoTitleUa: titleUa,
+          bodyHtmlUa,
+          bodyHtmlEn,
+          longDescEn: bodyHtmlEn,
+          longDescUa: bodyHtmlUa,
+          seoDescriptionEn: buildBrabusSeoDescription('en', { longHtml: bodyHtmlEn, title: titleEn }) || null,
+          seoDescriptionUa: buildBrabusSeoDescription('ua', { longHtml: bodyHtmlUa, title: titleUa }) || null,
           stock: 'inStock',
           collectionUa: colls.collectionUa,
           collectionEn: colls.collectionEn,
@@ -82,13 +92,28 @@ export async function POST(req: Request) {
           tags,
         };
 
-        const existing = await prisma.shopProduct.findUnique({ where: { slug } });
+        const existingCandidates = await prisma.shopProduct.findMany({
+          where: {
+            OR: [
+              { slug },
+              { sku: p.sku },
+            ],
+          },
+          select: {
+            id: true,
+            slug: true,
+            updatedAt: true,
+          },
+          orderBy: { updatedAt: 'desc' },
+        });
+        const existing = existingCandidates.find((candidate) => candidate.slug === slug) ?? existingCandidates[0];
 
         if (existing) {
           await prisma.shopProduct.update({
-            where: { slug },
+            where: { id: existing.id },
             data: {
               ...data,
+              slug,
               variants: {
                 deleteMany: {},
                 create: [{

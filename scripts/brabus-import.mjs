@@ -319,8 +319,8 @@ function determineCollection(product) {
   };
 }
 
-function generateSlug(sku, klasse) {
-  const base = `brabus-${klasse.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${sku.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+function generateSlug(sku) {
+  const base = `brabus-${sku.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
   return base.replace(/-+/g, '-').replace(/^-|-$/g, '');
 }
 
@@ -371,7 +371,7 @@ async function deleteOldBrabusProducts() {
 async function importProducts(products, isDryRun) {
   console.log(`\n📦 Importing ${products.length} products...`);
   
-  let created = 0, errors = 0;
+  let created = 0, updated = 0, errors = 0;
   const collectionCache = {};
 
   for (let i = 0; i < products.length; i++) {
@@ -383,7 +383,7 @@ async function importProducts(products, isDryRun) {
       const titleUa = translateTitleUa(rawTitle) || rawTitle;
       const descEn = p.descriptionEn || translateDescription(p.descriptionDe, 'en');
       const descUa = p.descriptionUa || translateDescription(p.descriptionDe, 'ua');
-      const slug = generateSlug(p.sku, p.klasse);
+      const slug = generateSlug(p.sku);
       
       // Collection
       const coll = determineCollection(p);
@@ -428,69 +428,119 @@ async function importProducts(products, isDryRun) {
         }
       }
 
-      // Create product
-      await prisma.shopProduct.create({
-        data: {
-          slug,
-          sku: p.sku,
-          scope: 'auto',
-          brand: 'Brabus',
-          vendor: 'Brabus',
-          productType: 'Premium Tuning',
-          productCategory: p.klasse,
-          status: 'ACTIVE',
-          titleUa: titleUa || p.titleDe,
-          titleEn: titleEn || p.titleDe,
-          bodyHtmlUa: descUa || null,
-          bodyHtmlEn: descEn || null,
-          shortDescUa: titleUa,
-          shortDescEn: titleEn,
-          stock: 'inStock',
-          collectionUa: coll.titleUa,
-          collectionEn: coll.titleEn,
-          priceEur: p.priceEur || 0,
-          image: mainImage,
-          gallery: gallery.length > 0 ? gallery : undefined,
-          isPublished: true,
-          tags: ['Brabus', 'Tuning', p.baseBrand, p.klasse, p.chassis || '', p.categoryDe || ''].filter(Boolean),
-          seoTitleEn: `${titleEn} | BRABUS Tuning`,
-          seoTitleUa: `${titleUa} | BRABUS Тюнінг`,
-          seoDescriptionEn: descEn.substring(0, 160) || `${titleEn} — premium BRABUS tuning for ${p.klasse}`,
-          seoDescriptionUa: descUa.substring(0, 160) || `${titleUa} — преміум тюнінг BRABUS для ${p.klasse}`,
-          // Link to collection
-          collections: {
-            create: {
-              collectionId: collectionCache[coll.handle],
-            },
-          },
-          // Create default variant
-          variants: {
-            create: [{
-              title: 'Default',
-              sku: p.sku,
-              position: 1,
-              inventoryQty: 0,
-              priceEur: p.priceEur || 0,
-              requiresShipping: true,
-              image: mainImage,
-              isDefault: true,
-            }],
-          },
-          // Create media entries for gallery
-          media: gallery.length > 0 ? {
-            create: gallery.map((img, idx) => ({
-              src: img,
-              altText: `${titleEn} - Image ${idx + 1}`,
-              position: idx + 1,
-              mediaType: 'IMAGE',
-            })),
-          } : undefined,
+      const productData = {
+        slug,
+        sku: p.sku,
+        scope: 'auto',
+        brand: 'Brabus',
+        vendor: 'Brabus',
+        productType: 'Premium Tuning',
+        productCategory: p.klasse,
+        status: 'ACTIVE',
+        titleUa: titleUa || p.titleDe,
+        titleEn: titleEn || p.titleDe,
+        bodyHtmlUa: descUa || null,
+        bodyHtmlEn: descEn || null,
+        shortDescUa: titleUa,
+        shortDescEn: titleEn,
+        stock: 'inStock',
+        collectionUa: coll.titleUa,
+        collectionEn: coll.titleEn,
+        priceEur: p.priceEur || 0,
+        image: mainImage,
+        gallery: gallery.length > 0 ? gallery : undefined,
+        isPublished: true,
+        tags: ['Brabus', 'Tuning', p.baseBrand, p.klasse, p.chassis || '', p.categoryDe || ''].filter(Boolean),
+        seoTitleEn: `${titleEn} | BRABUS Tuning`,
+        seoTitleUa: `${titleUa} | BRABUS Тюнінг`,
+        seoDescriptionEn: descEn.substring(0, 160) || `${titleEn} — premium BRABUS tuning for ${p.klasse}`,
+        seoDescriptionUa: descUa.substring(0, 160) || `${titleUa} — преміум тюнінг BRABUS для ${p.klasse}`,
+      };
+
+      const existingProduct = await prisma.shopProduct.findFirst({
+        where: {
+          OR: [
+            { slug },
+            { sku: p.sku },
+          ],
         },
+        select: { id: true },
       });
 
-      created++;
+      if (existingProduct) {
+        await prisma.shopProduct.update({
+          where: { id: existingProduct.id },
+          data: {
+            ...productData,
+            collections: {
+              deleteMany: {},
+              create: {
+                collectionId: collectionCache[coll.handle],
+              },
+            },
+            variants: {
+              deleteMany: {},
+              create: [{
+                title: 'Default',
+                sku: p.sku,
+                position: 1,
+                inventoryQty: 0,
+                priceEur: p.priceEur || 0,
+                requiresShipping: true,
+                image: mainImage,
+                isDefault: true,
+              }],
+            },
+            media: {
+              deleteMany: {},
+              ...(gallery.length > 0 ? {
+                create: gallery.map((img, idx) => ({
+                  src: img,
+                  altText: `${titleEn} - Image ${idx + 1}`,
+                  position: idx + 1,
+                  mediaType: 'IMAGE',
+                })),
+              } : {}),
+            },
+          },
+        });
+        updated++;
+      } else {
+        await prisma.shopProduct.create({
+          data: {
+            ...productData,
+            collections: {
+              create: {
+                collectionId: collectionCache[coll.handle],
+              },
+            },
+            variants: {
+              create: [{
+                title: 'Default',
+                sku: p.sku,
+                position: 1,
+                inventoryQty: 0,
+                priceEur: p.priceEur || 0,
+                requiresShipping: true,
+                image: mainImage,
+                isDefault: true,
+              }],
+            },
+            media: gallery.length > 0 ? {
+              create: gallery.map((img, idx) => ({
+                src: img,
+                altText: `${titleEn} - Image ${idx + 1}`,
+                position: idx + 1,
+                mediaType: 'IMAGE',
+              })),
+            } : undefined,
+          },
+        });
+        created++;
+      }
+
       if (i % 50 === 0) {
-        console.log(`  [${i + 1}/${products.length}] Created: ${created} | Errors: ${errors}`);
+        console.log(`  [${i + 1}/${products.length}] Created: ${created} | Updated: ${updated} | Errors: ${errors}`);
       }
     } catch (err) {
       errors++;
@@ -502,7 +552,7 @@ async function importProducts(products, isDryRun) {
     }
   }
 
-  return { created, errors };
+  return { created, updated, errors };
 }
 
 // ─── MAIN ───────────────────────────────────────────────────────────
@@ -540,6 +590,7 @@ async function main() {
   console.log(`\n═══════════════════════════════════════════════`);
   console.log(`✅ Import complete!`);
   console.log(`  Created: ${result.created}`);
+  console.log(`  Updated: ${result.updated}`);
   console.log(`  Errors: ${result.errors}`);
   console.log(`  Mode: ${isDryRun ? 'DRY RUN' : 'LIVE'}`);
   console.log('═══════════════════════════════════════════════');

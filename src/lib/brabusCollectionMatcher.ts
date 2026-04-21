@@ -8,7 +8,7 @@ const COLLECTION_TAG_MAP: Record<string, { tags: string[]; matchAny?: boolean }>
   'g-class': { tags: ['G-Klasse'] },
   's-class': { tags: ['S-Klasse'] },
   'porsche': { tags: ['Porsche'] },
-  'rolls-royce': { tags: ['Rolls-Royce', 'Bentley'], matchAny: true },
+  'rolls-royce': { tags: ['Rolls-Royce'] },
   'wheels': { tags: ['Monoblock', 'Felge'] },
   // Specific model handles
   'g-class-w463a': { tags: ['G-Klasse', 'W 463A'] },
