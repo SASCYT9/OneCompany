@@ -55,6 +55,9 @@ const SKU_BRAND_PREFIX_MAP: Record<string, string> = {
   vac: 'VAC Motorsports',
   whp: 'Whipple',
 };
+const BRAND_DISPLAY_ALIASES: Record<string, string> = {
+  kw: 'KW Suspension',
+};
 
 let cachedStockFeed:
   | {
@@ -137,7 +140,30 @@ function normalizeBrand(value: unknown) {
     .map((entry) => entry.trim())
     .filter(Boolean);
 
-  return parts.length > 0 && parts.every(looksLikeAirtableRecordId) ? '' : normalized;
+  if (parts.length > 0 && parts.every(looksLikeAirtableRecordId)) {
+    return '';
+  }
+
+  const compact = normalized.replace(/\s+/g, ' ').trim();
+  const parenthesized = compact.match(/^(.+?)\s*\(([^)]+)\)$/);
+  if (parenthesized) {
+    const baseName = parenthesized[1]?.trim() || '';
+    const shortCode = parenthesized[2]?.trim() || '';
+
+    if (baseName && shortCode && baseName.toLowerCase() !== shortCode.toLowerCase()) {
+      return baseName;
+    }
+
+    const aliased =
+      BRAND_DISPLAY_ALIASES[shortCode.toLowerCase()] || BRAND_DISPLAY_ALIASES[baseName.toLowerCase()];
+    if (aliased) {
+      return aliased;
+    }
+
+    return baseName || shortCode;
+  }
+
+  return BRAND_DISPLAY_ALIASES[compact.toLowerCase()] || compact;
 }
 
 function escapeRegExp(value: string) {

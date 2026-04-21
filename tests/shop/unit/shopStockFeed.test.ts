@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildStockFeedCsv, filterStockFeedItems, type StockFeedItem } from '../../../src/lib/shopStockFeed';
+import {
+  buildStockFeedCsv,
+  filterStockFeedItems,
+  type StockFeedItem,
+  buildStockFeedPayload,
+} from '../../../src/lib/shopStockFeed';
 
 const SAMPLE_ITEMS: StockFeedItem[] = [
   {
@@ -47,4 +52,22 @@ test('buildStockFeedCsv produces a UTF-8 BOM CSV with escaped values', () => {
   assert.match(csv, /"Eventuri ""Carbon"", Intake"/);
   assert.match(csv, /"Clubsport\r?\nCoilover"/);
   assert.match(csv, /"USD"/);
+});
+
+test('payload preserves cleaned human-readable brand labels', () => {
+  const payload = buildStockFeedPayload([
+    {
+      airtableId: 'rec_kw',
+      brand: 'KW Suspension',
+      title: 'KW V3 COILOVER KIT',
+      ourSku: 'kw_3522000S',
+      sku: '3522000S',
+      stockQuantity: 0,
+      stockStatus: 'out_of_stock',
+      price: 2000,
+      priceCurrencyHint: '',
+    },
+  ]);
+
+  assert.equal(payload.items[0]?.brand, 'KW Suspension');
 });
