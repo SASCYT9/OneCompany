@@ -11,6 +11,8 @@ const SAMPLE_ITEMS: StockFeedItem[] = [
     title: 'Eventuri "Carbon", Intake',
     stockQuantity: 4,
     price: 1250.5,
+    priceCurrencyHint: 'USD',
+    stockStatus: 'in_stock',
   },
   {
     airtableId: 'rec_2',
@@ -20,6 +22,8 @@ const SAMPLE_ITEMS: StockFeedItem[] = [
     title: 'Clubsport\nCoilover',
     stockQuantity: 1,
     price: 999,
+    priceCurrencyHint: 'EUR',
+    stockStatus: 'in_stock',
   },
 ];
 
@@ -36,7 +40,11 @@ test('filters stock feed items by brand and title fallback text', () => {
 test('buildStockFeedCsv produces a UTF-8 BOM CSV with escaped values', () => {
   const csv = buildStockFeedCsv(SAMPLE_ITEMS);
 
-  assert.match(csv, /^\uFEFFairtable_id,our_sku,manufacturer_sku,brand,title,quantity,price_uah\r\n/);
+  assert.match(
+    csv,
+    /^\uFEFFbrand,title,our_sku,manufacturer_sku,stock_qty,stock_status,ua_market_rrp,price_currency_hint,airtable_id\r\n/
+  );
   assert.match(csv, /"Eventuri ""Carbon"", Intake"/);
   assert.match(csv, /"Clubsport\r?\nCoilover"/);
+  assert.match(csv, /"USD"/);
 });

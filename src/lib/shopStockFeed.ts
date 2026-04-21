@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { allAutomotiveBrands, allMotoBrands } from '@/lib/brands';
 
 export type StockFeedItem = {
   airtableId: string;
@@ -8,6 +9,8 @@ export type StockFeedItem = {
   brand: string;
   stockQuantity: number;
   price: number;
+  priceCurrencyHint: string;
+  stockStatus: 'in_stock' | 'out_of_stock';
 };
 
 type StockFeedFilterInput = {
@@ -25,6 +28,33 @@ const AIRTABLE_STOCK_FIELDS = [
   'РРЦ в Украине',
 ] as const;
 const STOCK_FEED_CACHE_TTL_MS = 1000 * 60 * 5;
+const KNOWN_BRAND_NAMES = [...allAutomotiveBrands, ...allMotoBrands]
+  .map((brand) => brand.name.trim())
+  .filter(Boolean)
+  .sort((left, right) => right.length - left.length);
+const SKU_BRAND_PREFIX_MAP: Record<string, string> = {
+  acl: 'ACL',
+  akr: 'Akrapovic',
+  apr: 'APR',
+  bra: 'Brabus',
+  csf: 'CSF',
+  do: 'do88',
+  ebc: 'EBC',
+  end: 'Endless',
+  eve: 'Eventuri',
+  gir: 'Girodisc',
+  gth: 'GTHaus',
+  hei: 'Heico',
+  hnr: 'H&R',
+  kw: 'KW Suspension',
+  nit: 'Nitron Suspension',
+  nov: 'Novitec',
+  prg: 'Pierburg',
+  ptf: 'ProTuning Freaks',
+  rem: 'Remus',
+  vac: 'VAC Motorsports',
+  whp: 'Whipple',
+};
 
 let cachedStockFeed:
   | {
@@ -55,13 +85,40 @@ function parseNumeric(value: unknown): number {
     return Number.isFinite(value) ? value : 0;
   }
 
-  const normalized = normalizeText(value).replace(/\s+/g, '').replace(',', '.');
-  const matchedNumber = normalized.match(/-?\d+(?:\.\d+)?/);
-  if (!matchedNumber) {
+  const normalized = normalizeText(value).replace(/[^\d,.\-]/g, '');
+  if (!normalized) {
     return 0;
   }
 
-  const parsed = Number(matchedNumber[0]);
+  const commaCount = (normalized.match(/,/g) || []).length;
+  const dotCount = (normalized.match(/\./g) || []).length;
+  let canonical = normalized;
+
+  if (commaCount > 0 && dotCount > 0) {
+    const lastComma = normalized.lastIndexOf(',');
+    const lastDot = normalized.lastIndexOf('.');
+    const decimalSeparator = lastComma > lastDot ? ',' : '.';
+    const thousandsSeparator = decimalSeparator === ',' ? '.' : ',';
+
+    canonical = canonical.split(thousandsSeparator).join('');
+    if (decimalSeparator === ',') {
+      canonical = canonical.replace(',', '.');
+    }
+  } else if (commaCount > 0) {
+    const parts = normalized.split(',');
+    canonical =
+      parts.length === 2 && parts[1] && parts[1].length <= 2
+        ? `${parts[0]}.${parts[1]}`
+        : parts.join('');
+  } else if (dotCount > 0) {
+    const parts = normalized.split('.');
+    canonical =
+      parts.length === 2 && parts[1] && parts[1].length <= 2
+        ? normalized
+        : parts.join('');
+  }
+
+  const parsed = Number(canonical);
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
@@ -81,6 +138,75 @@ function normalizeBrand(value: unknown) {
     .filter(Boolean);
 
   return parts.length > 0 && parts.every(looksLikeAirtableRecordId) ? '' : normalized;
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function inferBrandFromKnownNames(title: string) {
+  const normalizedTitle = title.trim();
+  if (!normalizedTitle) {
+    return '';
+  }
+
+  for (const brandName of KNOWN_BRAND_NAMES) {
+    const pattern = new RegExp(`(^|\\b)${escapeRegExp(brandName)}(\\b|$)`, 'i');
+    if (pattern.test(normalizedTitle)) {
+      return brandName;
+    }
+  }
+
+  return '';
+}
+
+function inferBrandFromSku(ourSku: string, manufacturerSku: string) {
+  const candidates = [ourSku, manufacturerSku]
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+
+  for (const candidate of candidates) {
+    const prefix = candidate.split(/[_-]/)[0] || '';
+    if (prefix && SKU_BRAND_PREFIX_MAP[prefix]) {
+      return SKU_BRAND_PREFIX_MAP[prefix];
+    }
+  }
+
+  return '';
+}
+
+function resolveBrand(value: unknown, title: string, ourSku: string, manufacturerSku: string) {
+  const normalizedBrand = normalizeBrand(value);
+  if (normalizedBrand) {
+    return normalizedBrand;
+  }
+
+  return inferBrandFromSku(ourSku, manufacturerSku) || inferBrandFromKnownNames(title);
+}
+
+function detectCurrencyHint(value: unknown) {
+  const normalized = normalizeText(value).toUpperCase();
+  if (!normalized) {
+    return '';
+  }
+
+  if (normalized.includes('₴') || normalized.includes('UAH')) {
+    return 'UAH';
+  }
+
+  if (normalized.includes('$') || normalized.includes('USD')) {
+    return 'USD';
+  }
+
+  if (normalized.includes('€') || normalized.includes('EUR')) {
+    return 'EUR';
+  }
+
+  if (normalized.includes('£') || normalized.includes('GBP')) {
+    return 'GBP';
+  }
+
+  return '';
 }
 
 function normalizeFilter(value?: string | null) {
@@ -108,6 +234,9 @@ async function fetchAirtableStockFeed(): Promise<StockFeedItem[]> {
     for (const field of AIRTABLE_STOCK_FIELDS) {
       url.searchParams.append('fields[]', field);
     }
+    url.searchParams.set('cellFormat', 'string');
+    url.searchParams.set('userLocale', 'en');
+    url.searchParams.set('timeZone', 'Europe/Kiev');
     if (offset) {
       url.searchParams.append('offset', offset);
     }
@@ -130,14 +259,21 @@ async function fetchAirtableStockFeed(): Promise<StockFeedItem[]> {
 
     for (const record of payload.records ?? []) {
       const fields = record.fields ?? {};
+      const title = normalizeText(fields['Название']);
+      const manufacturerSku = normalizeText(fields['Парт-номер производителя']);
+      const ourSku = normalizeText(fields['Наш парт-номер']);
+      const stockQuantity = Math.trunc(parseNumeric(fields['Кол-во в наличии']));
+      const price = parseNumeric(fields['РРЦ в Украине']);
       items.push({
         airtableId: record.id,
-        title: normalizeText(fields['Название']),
-        sku: normalizeText(fields['Парт-номер производителя']),
-        ourSku: normalizeText(fields['Наш парт-номер']),
-        brand: normalizeBrand(fields['Бренд']),
-        stockQuantity: Math.trunc(parseNumeric(fields['Кол-во в наличии'])),
-        price: parseNumeric(fields['РРЦ в Украине']),
+        title,
+        sku: manufacturerSku,
+        ourSku,
+        brand: resolveBrand(fields['Бренд'], title, ourSku, manufacturerSku),
+        stockQuantity,
+        price,
+        priceCurrencyHint: detectCurrencyHint(fields['РРЦ в Украине']),
+        stockStatus: stockQuantity > 0 ? 'in_stock' : 'out_of_stock',
       });
     }
 
@@ -201,16 +337,28 @@ export async function getStockFeedItems(input: StockFeedFilterInput = {}) {
 }
 
 export function buildStockFeedCsv(items: StockFeedItem[]) {
-  const header = ['airtable_id', 'our_sku', 'manufacturer_sku', 'brand', 'title', 'quantity', 'price_uah'];
+  const header = [
+    'brand',
+    'title',
+    'our_sku',
+    'manufacturer_sku',
+    'stock_qty',
+    'stock_status',
+    'ua_market_rrp',
+    'price_currency_hint',
+    'airtable_id',
+  ];
   const rows = items.map((item) =>
     [
-      csvEscape(item.airtableId),
-      csvEscape(item.ourSku),
-      csvEscape(item.sku),
       csvEscape(item.brand),
       csvEscape(item.title),
+      csvEscape(item.ourSku),
+      csvEscape(item.sku),
       item.stockQuantity,
+      csvEscape(item.stockStatus),
       item.price,
+      csvEscape(item.priceCurrencyHint),
+      csvEscape(item.airtableId),
     ].join(',')
   );
 
@@ -223,6 +371,17 @@ export function buildStockFeedPayload(items: StockFeedItem[]) {
     source: 'airtable' as const,
     total_items: items.length,
     timestamp: new Date().toISOString(),
+    columns: [
+      'brand',
+      'title',
+      'our_sku',
+      'manufacturer_sku',
+      'stock_qty',
+      'stock_status',
+      'ua_market_rrp',
+      'price_currency_hint',
+      'airtable_id',
+    ],
     items,
   };
 }
