@@ -29,32 +29,17 @@ import { prisma } from '@/lib/prisma';
 import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 import { resolveUrbanThemeAssetUrl } from '@/lib/urbanThemeAssets';
 
-const publicAssetExistsCache = new Map<string, boolean>();
+const BRABUS_LOCAL_ASSETS_DEPLOYED = process.env.BRABUS_LOCAL_ASSETS_DEPLOYED === '1';
+const shouldUseDeployedBrabusFallback =
+  process.env.NODE_ENV === 'production' && !BRABUS_LOCAL_ASSETS_DEPLOYED;
 
 function uniqueStrings(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean)));
 }
 
-function hasPublicAsset(webPath: string) {
-  const normalized = String(webPath ?? '').trim();
-  if (!normalized.startsWith('/')) {
-    return false;
-  }
-
-  const cached = publicAssetExistsCache.get(normalized);
-  if (cached != null) {
-    return cached;
-  }
-
-  const assetPath = path.join(process.cwd(), 'public', normalized.replace(/^\/+/, ''));
-  const exists = fs.existsSync(assetPath);
-  publicAssetExistsCache.set(normalized, exists);
-  return exists;
-}
-
 function resolveCatalogAssetUrl(input: string | null | undefined, fallbackSrc?: string) {
   const resolved = resolveUrbanThemeAssetUrl(String(input ?? ''));
-  if (fallbackSrc && isBrabusLocalImage(resolved) && !hasPublicAsset(resolved)) {
+  if (fallbackSrc && isBrabusLocalImage(resolved) && shouldUseDeployedBrabusFallback) {
     return fallbackSrc;
   }
   return resolved;

@@ -54,7 +54,7 @@ try {
   }
 
   console.log('[STEP] Generating Prisma client...');
-  execSync('npx prisma generate', { stdio: 'inherit' });
+  execSync('npm run prisma:generate', { stdio: 'inherit' });
 
   // Lightweight build sanity without emitting .next (Next has no official dry mode, so we run build).
   console.log('[STEP] Running Next.js production build sanity...');

@@ -5,10 +5,11 @@
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('.next',{recursive:true, force:true}); console.log('.next removed');\"",
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "prisma:generate": "prisma generate && node scripts/cleanup-prisma-temp-engines.js",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
+    "postinstall": "npm run prisma:generate",
     "db:migrate": "prisma migrate deploy",
     "test:shop:unit": "tsx --test tests/shop/unit/**/*.test.ts",
     "test:shop:integration": "tsx --test tests/shop/integration/**/*.test.ts",
