@@ -36,6 +36,16 @@ test('allows cron admin endpoints to reach their header-secret handlers', async 
   assert.equal(result.allowed, true);
 });
 
+test('allows the legacy stock feed endpoint without an existing admin session', async () => {
+  const result = await shouldAllowAdminApiRequest({
+    pathname: '/api/admin/shop/feed/stock',
+    method: 'GET',
+    cookieToken: null,
+  });
+
+  assert.equal(result.allowed, true);
+});
+
 test('requires auth for nested admin pages but keeps the login shell reachable', async () => {
   const lockedPage = await shouldAllowAdminPageRequest({
     pathname: '/admin/shop/orders',

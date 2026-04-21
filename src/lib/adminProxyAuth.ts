@@ -1,6 +1,6 @@
 const DEFAULT_SECRET = 'dev-admin-session-secret';
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
-const PUBLIC_ADMIN_API_PATHS = new Set(['/api/admin/auth']);
+const PUBLIC_ADMIN_API_PATHS = new Set(['/api/admin/auth', '/api/admin/shop/feed/stock']);
 const PUBLIC_ADMIN_PAGE_PATHS = new Set(['/admin']);
 const SERVICE_ADMIN_API_PREFIXES = ['/api/admin/cron/'];
 

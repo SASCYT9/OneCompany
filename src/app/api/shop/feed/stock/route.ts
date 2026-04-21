@@ -8,7 +8,10 @@ export async function GET(req: NextRequest) {
   try {
     return await createStockFeedResponse(req.nextUrl.searchParams);
   } catch (error: any) {
-    console.error('[Stock Feed Error]', error?.message || error);
-    return NextResponse.json({ error: 'Failed to generate stock feed from Airtable', details: error?.message }, { status: 500 });
+    console.error('[Public Stock Feed Error]', error?.message || error);
+    return NextResponse.json(
+      { error: 'Failed to generate stock feed from Airtable', details: error?.message },
+      { status: 500 }
+    );
   }
 }
