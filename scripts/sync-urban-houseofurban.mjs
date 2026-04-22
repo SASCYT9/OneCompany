@@ -603,7 +603,7 @@ async function main() {
     fetchOfficialProducts(),
     prisma.shopProduct.findMany({
       where: {
-        brand: { equals: 'Urban Automotive', mode: 'insensitive' },
+        vendor: { equals: 'Urban Automotive', mode: 'insensitive' },
       },
       orderBy: { slug: 'asc' },
       select: {

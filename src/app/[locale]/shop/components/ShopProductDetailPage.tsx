@@ -459,8 +459,8 @@ export default async function ShopProductDetailPage({
           </span>
         </div>
 
-        <section className="grid items-start gap-10 lg:grid-cols-[1.2fr_1fr]">
-          <div className="sticky top-32 space-y-4">
+        <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+          <div className="sticky top-32 min-w-0 space-y-4">
             <ShopProductGallery 
               images={[safeImageUrl, ...resolvedGallery.filter(img => img !== safeImageUrl && img && img.length > 0)]} 
               productTitle={productTitle}
@@ -470,7 +470,7 @@ export default async function ShopProductDetailPage({
             />
           </div>
 
-          <div className="space-y-6 rounded-3xl border border-white/15 bg-white/[0.03] p-6 backdrop-blur-xl sm:p-7">
+          <div className="min-w-0 space-y-6 rounded-3xl border border-white/15 bg-white/[0.03] p-6 backdrop-blur-xl sm:p-7">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/20 bg-white/[0.06] p-1.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

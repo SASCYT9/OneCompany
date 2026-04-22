@@ -140,3 +140,81 @@ test('prefers the softkit collection for the W463A bundle', () => {
 
   assert.deepEqual(matches.map((product) => product.slug), ['urb-bun-25358198-v1']);
 });
+
+test('prefers the aerokit collection when the primary collection says W465 Aerokit', () => {
+  const aerokitProduct = buildUrbanProduct({
+    slug: 'urb-roo-25358202-v1',
+    title: {
+      ua: 'Даховий світловий модуль Urban для Mercedes-Benz G-Wagon W465 Aerokit',
+      en: 'Mercedes W465 G-Wagon Aerokit / Widetrack Roof Light Cluster with Urban Emblem',
+    },
+    collection: {
+      ua: 'Mercedes G-Wagon W465 Aerokit',
+      en: 'Mercedes G-Wagon W465 Aerokit',
+    },
+    collections: [
+      {
+        handle: 'mercedes-g-wagon-w465-widetrack',
+        title: {
+          ua: 'G-Wagon Widetrack',
+          en: 'G-Wagon Widetrack',
+        },
+      },
+      {
+        handle: 'mercedes-g-wagon-w465-aerokit',
+        title: {
+          ua: 'G-Wagon Aerokit',
+          en: 'G-Wagon Aerokit',
+        },
+      },
+    ],
+  });
+
+  assert.equal(getUrbanCollectionHandleForProduct(aerokitProduct), 'mercedes-g-wagon-w465-aerokit');
+});
+
+test('includes shared W465 accessories in both aerokit and widetrack collections', () => {
+  const sharedProduct = buildUrbanProduct({
+    slug: 'urb-roo-25358202-v1',
+    title: {
+      ua: 'Даховий світловий модуль Urban для Mercedes-Benz G-Wagon W465 Aerokit',
+      en: 'Mercedes W465 G-Wagon Aerokit / Widetrack Roof Light Cluster with Urban Emblem',
+    },
+    collection: {
+      ua: 'Mercedes G-Wagon W465 Aerokit',
+      en: 'Mercedes G-Wagon W465 Aerokit',
+    },
+    collections: [
+      {
+        handle: 'mercedes-g-wagon-w465-widetrack',
+        title: {
+          ua: 'G-Wagon Widetrack',
+          en: 'G-Wagon Widetrack',
+        },
+      },
+      {
+        handle: 'mercedes-g-wagon-w465-aerokit',
+        title: {
+          ua: 'G-Wagon Aerokit',
+          en: 'G-Wagon Aerokit',
+        },
+      },
+    ],
+  });
+
+  const aerokitMatches = getProductsForUrbanCollection(
+    [sharedProduct],
+    'mercedes-g-wagon-w465-aerokit',
+    'Mercedes G-Wagon W465 Aerokit',
+    'Mercedes-Benz'
+  );
+  const widetrackMatches = getProductsForUrbanCollection(
+    [sharedProduct],
+    'mercedes-g-wagon-w465-widetrack',
+    'Mercedes G-Wagon W465 Widetrack',
+    'Mercedes-Benz'
+  );
+
+  assert.deepEqual(aerokitMatches.map((product) => product.slug), ['urb-roo-25358202-v1']);
+  assert.deepEqual(widetrackMatches.map((product) => product.slug), ['urb-roo-25358202-v1']);
+});

@@ -159,6 +159,23 @@ function inferCanonicalMercedesGwagonHandle(product: UrbanMatcherProduct) {
     return slugOverride;
   }
 
+  const primaryCollectionHaystack = unique([
+    product.collection.en,
+    product.collection.ua,
+  ]).join(' ');
+
+  if (/\bw463a\b|\bsoft kit\b|\bsoftkit\b/.test(primaryCollectionHaystack)) {
+    return MERCEDES_G_WAGON_SOFTKIT_HANDLE;
+  }
+
+  if (/\baero kit\b|\baerokit\b/.test(primaryCollectionHaystack)) {
+    return MERCEDES_G_WAGON_W465_AEROKIT_HANDLE;
+  }
+
+  if (/\bwidetrack\b/.test(primaryCollectionHaystack)) {
+    return MERCEDES_G_WAGON_W465_WIDETRACK_HANDLE;
+  }
+
   const haystack = unique([
     product.title.en,
     product.title.ua,
@@ -178,12 +195,19 @@ function inferCanonicalMercedesGwagonHandle(product: UrbanMatcherProduct) {
     return MERCEDES_G_WAGON_SOFTKIT_HANDLE;
   }
 
-  if (/\bw465\b|\bwidetrack\b/.test(haystack)) {
-    return MERCEDES_G_WAGON_W465_WIDETRACK_HANDLE;
+  const hasAerokit = /\baero kit\b|\baerokit\b/.test(haystack);
+  const hasWidetrack = /\bwidetrack\b/.test(haystack);
+
+  if (hasAerokit && hasWidetrack) {
+    return null;
   }
 
-  if (/\baero kit\b|\baerokit\b/.test(haystack)) {
+  if (hasAerokit) {
     return MERCEDES_G_WAGON_W465_AEROKIT_HANDLE;
+  }
+
+  if (/\bw465\b/.test(haystack) || hasWidetrack) {
+    return MERCEDES_G_WAGON_W465_WIDETRACK_HANDLE;
   }
 
   return null;
@@ -192,7 +216,19 @@ function inferCanonicalMercedesGwagonHandle(product: UrbanMatcherProduct) {
 function getUrbanMatchScore(product: UrbanMatcherProduct, handle: string, title?: string, brand?: string) {
   const canonicalMercedesGwagonHandle = inferCanonicalMercedesGwagonHandle(product);
   if (canonicalMercedesGwagonHandle && MERCEDES_G_WAGON_HANDLES.has(handle)) {
-    return canonicalMercedesGwagonHandle === handle ? 700 : 0;
+    if (canonicalMercedesGwagonHandle === handle) {
+      return 700;
+    }
+
+    if (canonicalMercedesGwagonHandle === MERCEDES_G_WAGON_SOFTKIT_HANDLE) {
+      return 0;
+    }
+
+    if (product.collections?.some((item) => item.handle === handle)) {
+      return 500;
+    }
+
+    return 0;
   }
 
   if (product.collections?.some((item) => item.handle === handle)) {
@@ -315,14 +351,6 @@ export function getUrbanCollectionHandleForProduct(product: UrbanMatcherProduct)
     return canonicalMercedesGwagonHandle;
   }
 
-  const explicitUrbanCollection = product.collections?.find((item) =>
-    URBAN_COLLECTION_CARDS.some((card) => card.collectionHandle === item.handle)
-  );
-
-  if (explicitUrbanCollection) {
-    return explicitUrbanCollection.handle;
-  }
-
   const collectionCandidates = getCollectionCandidates(product);
 
   for (const candidate of collectionCandidates) {
@@ -330,6 +358,14 @@ export function getUrbanCollectionHandleForProduct(product: UrbanMatcherProduct)
     if (exactHandle) {
       return exactHandle;
     }
+  }
+
+  const explicitUrbanCollection = product.collections?.find((item) =>
+    URBAN_COLLECTION_CARDS.some((card) => card.collectionHandle === item.handle)
+  );
+
+  if (explicitUrbanCollection) {
+    return explicitUrbanCollection.handle;
   }
 
   let bestHandle: string | null = null;

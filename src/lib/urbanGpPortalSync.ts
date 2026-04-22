@@ -37,7 +37,9 @@ const URBAN_BRAND = 'Urban Automotive';
 const USD_IMPORT_FLOOR = 200;
 const MAX_COLLECTION_PAGES = 30;
 const STOP_AFTER_STALE_PAGES = 2;
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 5;
+const GP_PORTAL_PRODUCT_REQUEST_THROTTLE_MS = 150;
+const GP_PORTAL_RETRY_BASE_DELAY_MS = 1_000;
 const URBAN_SYNC_TRANSACTION_TIMEOUT_MS = 120_000;
 const URBAN_SYNC_TRANSACTION_MAX_WAIT_MS = 15_000;
 const URBAN_CARD_BY_HANDLE = new Map(
@@ -320,9 +322,30 @@ function buildPagedCollectionUrl(collectionUrl: string, page: number) {
 
 function buildRetryableHeaders(accept: string): HeadersInit {
   return {
-    'user-agent': 'OneCompany Urban GP Portal Sync',
+    'user-agent':
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
     accept,
+    'accept-language': 'en-GB,en;q=0.9,uk;q=0.8',
+    referer: `${GP_PORTAL_BASE_URL}/`,
+    'cache-control': 'no-cache',
   };
+}
+
+function getRetryDelayMs(response: Response, attempt: number) {
+  const retryAfter = response.headers.get('retry-after');
+  if (retryAfter) {
+    const retryAfterSeconds = Number(retryAfter);
+    if (Number.isFinite(retryAfterSeconds)) {
+      return Math.max(0, Math.ceil(retryAfterSeconds * 1000));
+    }
+
+    const retryAfterDate = Date.parse(retryAfter);
+    if (Number.isFinite(retryAfterDate)) {
+      return Math.max(0, retryAfterDate - Date.now());
+    }
+  }
+
+  return GP_PORTAL_RETRY_BASE_DELAY_MS * 2 ** attempt;
 }
 
 function exactCategoryFromProduct(product: GpPortalProduct, family: UrbanCatalogFamily) {
@@ -460,19 +483,46 @@ function inferCollectionHandlesFromSource(title: string, tags: string[]) {
   if (/\bghost\b/.test(haystack) && /\bseries ii\b/.test(haystack)) add('rolls-royce-ghost-series-ii');
 
   if (/\bg[\s-]?wagon\b|\bg[\s-]?class\b|\bg63\b|\bw463a\b|\bw465\b/.test(haystack)) {
-    if (/\bw463a\b|\bsoft\s?kit\b|\bsoftkit\b/.test(haystack)) {
+    const hasSoftkit = /\bw463a\b|\bsoft\s?kit\b|\bsoftkit\b/.test(haystack);
+    const hasAerokit = /\baero\s?kit\b|\baerokit\b/.test(haystack);
+    const hasWidetrack = /\bwidetrack\b/.test(haystack);
+    const hasW465 = /\bw465\b/.test(haystack);
+
+    if (hasSoftkit) {
       add('mercedes-g-wagon-softkit');
-    } else if (/\bw465\b|\bwidetrack\b/.test(haystack)) {
-      add('mercedes-g-wagon-w465-widetrack');
-    } else if (/\baero\s?kit\b|\baerokit\b/.test(haystack)) {
-      add('mercedes-g-wagon-w465-aerokit');
+    } else {
+      if (hasAerokit) {
+        add('mercedes-g-wagon-w465-aerokit');
+      }
+
+      if (hasWidetrack || (hasW465 && !hasAerokit)) {
+        add('mercedes-g-wagon-w465-widetrack');
+      }
+
+      if (!hasAerokit && !hasWidetrack && !hasW465) {
+        add('mercedes-g-wagon-w465-aerokit');
+      }
     }
   }
 
   if (/\beqc\b/.test(haystack)) add('mercedes-eqc');
 
   if (/\brsq8\b/.test(haystack)) {
-    add(/\bfacelift\b|\b2024\b|\b2025\b/.test(haystack) ? 'audi-rsq8-facelift' : 'audi-rsq8');
+    const preFaceliftPattern = /\bpre[\s-]?facelift\b/i;
+    const hasPreFacelift = preFaceliftPattern.test(haystack);
+    const haystackWithoutPreFacelift = haystack.replace(/\bpre[\s-]?facelift\b/gi, ' ');
+    const hasFacelift = /\bfacelift\b|\b2024\b|\b2025\b/.test(haystackWithoutPreFacelift);
+
+    if (hasPreFacelift && hasFacelift) {
+      add('audi-rsq8');
+      add('audi-rsq8-facelift');
+    } else if (hasPreFacelift) {
+      add('audi-rsq8');
+    } else if (hasFacelift) {
+      add('audi-rsq8-facelift');
+    } else {
+      add('audi-rsq8');
+    }
   }
 
   if (/\brs6\b|\brs7\b/.test(haystack)) add('audi-rs6-rs7');
@@ -763,32 +813,13 @@ function buildAdminPayload(item: PreparedUrbanGpPortalProduct, collectionIds: st
 function getUrbanCatalogWhere() {
   return {
     scope: 'auto',
-    OR: [
-      {
-        metafields: {
-          some: {
-            namespace: 'custom',
-            key: 'urban_sync_source',
-            value: 'gp-portal',
-          },
-        },
+    metafields: {
+      some: {
+        namespace: 'custom',
+        key: 'urban_sync_source',
+        value: 'gp-portal',
       },
-      {
-        vendor: {
-          in: ['Urban', URBAN_BRAND],
-        },
-      },
-      {
-        brand: {
-          in: ['Urban', URBAN_BRAND],
-        },
-      },
-      {
-        slug: {
-          startsWith: 'urb-',
-        },
-      },
-    ],
+    },
   };
 }
 
@@ -1167,7 +1198,7 @@ async function fetchWithRetry({
       }
 
       retryState.retryCount += 1;
-      await sleepImpl(250 * 2 ** attempt);
+      await sleepImpl(getRetryDelayMs(response, attempt));
       attempt += 1;
       continue;
     }
@@ -1217,7 +1248,11 @@ export async function crawlGpPortalCollectionProducts({
     newCandidateHandles.forEach((handle) => seenHandles.add(handle));
 
     let newValidProducts = 0;
-    for (const handle of newCandidateHandles) {
+    for (const [index, handle] of newCandidateHandles.entries()) {
+      if (index > 0) {
+        await sleepImpl(GP_PORTAL_PRODUCT_REQUEST_THROTTLE_MS);
+      }
+
       const productResponse = await fetchWithRetry({
         url: `${baseUrl}/products/${handle}.js`,
         accept: 'application/json,text/plain;q=0.9,*/*;q=0.8',

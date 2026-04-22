@@ -271,6 +271,79 @@ test('prepareUrbanGpPortalProducts reports exact categories without UA mapping',
   assert.deepEqual(prepared.unmappedCategories, ['Hyper Vent']);
 });
 
+test('prepareUrbanGpPortalProducts maps shared W465 Aerokit/Widetrack products to both Mercedes collections', () => {
+  const products: GpPortalProduct[] = [
+    {
+      id: 7,
+      handle: 'urb-roo-25358202-v1',
+      title: 'Mercedes W465 G-Wagon Aerokit / Widetrack Roof Light Cluster with Urban Emblem',
+      vendor: 'Urban',
+      description: '<p>Roof light cluster.</p>',
+      price: 488000,
+      compare_at_price: null,
+      featured_image: 'https://cdn.shopify.com/s/files/gwagon-aerokit.jpg?v=1',
+      images: ['https://cdn.shopify.com/s/files/gwagon-aerokit.jpg?v=1'],
+      tags: ['G-Class W465'],
+      product_type: 'Roof Lights',
+      options: [],
+      variants: [],
+    },
+  ];
+
+  const prepared = prepareUrbanGpPortalProducts(products, {
+    currencyRates: CURRENCY_RATES,
+  });
+
+  assert.equal(prepared.blockers.length, 0);
+  assert.deepEqual(prepared.importableItems[0]?.collectionHandles, [
+    'mercedes-g-wagon-w465-aerokit',
+    'mercedes-g-wagon-w465-widetrack',
+  ]);
+});
+
+test('prepareUrbanGpPortalProducts maps RSQ8 pre-facelift and shared facelift/pre-facelift products correctly', () => {
+  const products: GpPortalProduct[] = [
+    {
+      id: 8,
+      handle: 'urb-spl-25358229-v1',
+      title: 'Audi RSQ8 Pre-Facelift Front Splitter - Visual Carbon Fibre with URBAN Emblem',
+      vendor: 'Urban',
+      description: '<p>Pre-facelift front splitter.</p>',
+      price: 379000,
+      compare_at_price: null,
+      featured_image: 'https://cdn.shopify.com/s/files/rsq8-pre.jpg?v=1',
+      images: ['https://cdn.shopify.com/s/files/rsq8-pre.jpg?v=1'],
+      tags: ['RS Q8'],
+      product_type: 'Splitters',
+      options: [],
+      variants: [],
+    },
+    {
+      id: 9,
+      handle: 'urb-spo-25358233-v1',
+      title: 'Audi RSQ8 Facelift/Pre-Facelift Lower Rear Lip Spoiler - Satin',
+      vendor: 'Urban',
+      description: '<p>Shared spoiler.</p>',
+      price: 181500,
+      compare_at_price: null,
+      featured_image: 'https://cdn.shopify.com/s/files/rsq8-shared.jpg?v=1',
+      images: ['https://cdn.shopify.com/s/files/rsq8-shared.jpg?v=1'],
+      tags: ['RS Q8'],
+      product_type: 'Spoilers',
+      options: [],
+      variants: [],
+    },
+  ];
+
+  const prepared = prepareUrbanGpPortalProducts(products, {
+    currencyRates: CURRENCY_RATES,
+  });
+
+  assert.equal(prepared.blockers.length, 0);
+  assert.deepEqual(prepared.importableItems[0]?.collectionHandles, ['audi-rsq8']);
+  assert.deepEqual(prepared.importableItems[1]?.collectionHandles, ['audi-rsq8', 'audi-rsq8-facelift']);
+});
+
 test('crawlGpPortalCollectionProducts paginates, deduplicates, and validates only Urban vendor products', async () => {
   const htmlPage1 = `
     <a href="/products/urb-a">A</a>
