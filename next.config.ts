@@ -4,6 +4,7 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const isProd = process.env.NODE_ENV === 'production';
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true';
 
 const STATIC_REMOTE_IMAGE_HOSTS = [
   'cdn.shopify.com',
@@ -102,7 +103,7 @@ const VIDEO_UPLOAD_TRACE_EXCLUDES = [
 
 const nextConfig: NextConfig = {
   // Для Docker standalone output
-  output: 'standalone',
+  output: isVercel ? undefined : 'standalone',
 
   // Оптимізація для продакшену
   compress: true,
