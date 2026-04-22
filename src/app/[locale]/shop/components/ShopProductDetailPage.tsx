@@ -46,6 +46,7 @@ import {
 } from '@/lib/urbanImageUtils';
 import { ShopProductGallery } from './ShopProductGallery';
 import { getUrbanCollectionPageConfig } from '../data/urbanCollectionPages.server';
+import { findRelatedProducts } from '@/lib/shopRelatedProducts';
 
 import type { ShopProduct } from '@/lib/shopCatalog';
 
@@ -337,9 +338,9 @@ export default async function ShopProductDetailPage({
 
   const relatedProducts = (
     categoryRelatedProducts.length
-      ? categoryRelatedProducts
-      : allProducts.filter((item) => item.slug !== product.slug && item.scope === product.scope)
-  ).slice(0, 3);
+      ? categoryRelatedProducts.slice(0, 3)
+      : findRelatedProducts(product, allProducts, 3)
+  );
   const relatedProductsWithPricing = relatedProducts.map((item) => ({
     item,
     price: computeCrossPrices(resolveShopProductPricing(item, viewerContext).effectivePrice),
@@ -489,32 +490,18 @@ export default async function ShopProductDetailPage({
             <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">{productTitle}</h1>
             {descriptionSections.introHtml ? (
               <div
-                className="prose prose-invert max-w-none text-sm leading-relaxed text-white/75 sm:text-base"
+                className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-white/70 sm:text-[15px] [&_h2]:hidden [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-xs [&_h3]:font-medium [&_h3]:uppercase [&_h3]:tracking-[0.2em] [&_h3]:text-[#c29d59]/90 [&_p]:text-pretty [&_strong]:font-medium [&_strong]:text-white/90 [&_ul]:mt-3 [&_ul]:space-y-2 [&_ul]:pl-0 [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:list-none [&_li]:before:mt-[9px] [&_li]:before:block [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-[#c29d59]/70"
                 dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
               />
             ) : null}
 
             <div className="space-y-4">
-              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)]">
+              {detailFeatureItems.length > 0 ? (
                 <DetailListPanel
-                  title={isUa ? 'Що входить' : 'What is included'}
-                  items={detailIncludedItems}
-                  accentClassName="border-[#c29d59]/25 bg-[#c29d59]/[0.05]"
-                  className="shadow-sm"
+                  title={isUa ? 'Ключові характеристики' : 'Key features'}
+                  items={detailFeatureItems}
                 />
-                <div className="grid gap-4">
-                  <DetailListPanel
-                    title={isUa ? 'Що не входить' : 'What is not included'}
-                    items={detailExcludedItems}
-                  />
-                  {detailFeatureItems.length > 0 ? (
-                    <DetailListPanel
-                      title={isUa ? 'Ключові характеристики' : 'Key features'}
-                      items={detailFeatureItems}
-                    />
-                  ) : null}
-                </div>
-              </div>
+              ) : null}
               {detailSpecs.length > 0 ? (
                 <DetailSpecPanel
                   title={isUa ? 'Технічна довідка' : 'Reference details'}

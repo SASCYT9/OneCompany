@@ -28,6 +28,7 @@ import { resolveBundleInventory } from '@/lib/shopBundles';
 import { prisma } from '@/lib/prisma';
 import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 import { resolveUrbanThemeAssetUrl } from '@/lib/urbanThemeAssets';
+import { resolveEnglishCategory } from '@/lib/shopCategoryTranslation';
 
 const BRABUS_LOCAL_ASSETS_DEPLOYED = process.env.BRABUS_LOCAL_ASSETS_DEPLOYED === '1';
 const shouldUseDeployedBrabusFallback =
@@ -174,12 +175,12 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
     title: { ua: row.titleUa, en: row.titleEn },
     category: {
       ua: row.categoryUa ?? row.category?.titleUa ?? '',
-      en: row.categoryEn ?? row.category?.titleEn ?? '',
+      en: resolveEnglishCategory(row.categoryEn, row.categoryUa) || row.category?.titleEn || '',
     },
     shortDescription: { ua: row.shortDescUa ?? '', en: row.shortDescEn ?? '' },
     longDescription: {
-      ua: sanitizeRichTextHtml(row.longDescUa ?? row.bodyHtmlUa ?? ''),
-      en: sanitizeRichTextHtml(row.longDescEn ?? row.bodyHtmlEn ?? ''),
+      ua: sanitizeRichTextHtml(row.bodyHtmlUa ?? row.longDescUa ?? ''),
+      en: sanitizeRichTextHtml(row.bodyHtmlEn ?? row.longDescEn ?? ''),
     },
     leadTime: { ua: row.leadTimeUa ?? '', en: row.leadTimeEn ?? '' },
     stock: (bundleInventory?.stock ?? (row.stock === 'preOrder' ? 'preOrder' : 'inStock')) as ShopStock,
