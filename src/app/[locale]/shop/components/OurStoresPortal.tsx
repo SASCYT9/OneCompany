@@ -147,7 +147,7 @@ export default function OurStoresPortal({ locale, isB2bApproved }: OurStoresPort
       </div>
 
       {/* ─── HERO ─────────────────────────────────────────────── */}
-      <section className="relative flex min-h-[50vh] items-center justify-center overflow-hidden">
+      <section className="relative flex min-h-[50vh] items-center justify-center overflow-hidden pt-20 sm:pt-24">
         <Image
           src="/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp"
           alt=""

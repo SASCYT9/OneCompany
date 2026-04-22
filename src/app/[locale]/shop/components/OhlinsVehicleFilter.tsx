@@ -8,6 +8,8 @@ import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight, Activity } from 
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
+import { detectOhlinsCategory, detectOhlinsMake } from "@/lib/ohlinsCatalog";
+import { computeShopDisplayPrices, hasAnyShopPrice, pickShopSortableAmount } from "@/lib/shopDisplayPrices";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
@@ -19,70 +21,6 @@ type Props = {
   products: ShopProduct[];
   viewerContext?: ShopViewerPricingContext;
 };
-
-/* ─── SLUG PREFIX → CAR MAKE mapping ─── */
-const SLUG_PREFIX_TO_MAKE: Record<string, string> = {
-  aus: "Audi", auv: "Audi", alv: "Alpine",
-  bms: "BMW", bmv: "BMW", bmz: "BMW",
-  fos: "Ford", fov: "Ford",
-  hos: "Honda", hov: "Honda",
-  hys: "Hyundai",
-  inv: "INEOS",
-  isv: "Lexus",
-  jev: "Jeep",
-  les: "Lexus", lof: "Lotus", lov: "Lotus",
-  mas: "Maserati",
-  mcs: "Mini", mev: "Mercedes-Benz", mes: "Mercedes-Benz",
-  mis: "Mitsubishi", mir: "Mitsubishi", miz: "Mitsubishi",
-  nis: "Nissan", nir: "Nissan",
-  pof: "Porsche", por: "Porsche", pos: "Porsche", pov: "Porsche", poz: "Porsche",
-  sef: "SEAT",
-  sur: "Subaru", sus: "Subaru", suv: "Suzuki",
-  tes: "Tesla", tos: "Toyota", tov: "Toyota",
-  vaf: "VW/Audi", vws: "Volkswagen",
-};
-
-/* ─── CATEGORY detection from title ─── */
-const CATEGORY_PATTERNS: { match: RegExp; label: string; labelUa: string }[] = [
-  { match: /road\s*[&]\s*track|койловер/i, label: "Road & Track", labelUa: "Road & Track" },
-  { match: /advanced\s*track\s*day|trackday/i, label: "Advanced Trackday", labelUa: "Advanced Trackday" },
-  { match: /motorsport|grp?\s*n|cup|tcr|race/i, label: "Motorsport", labelUa: "Motorsport" },
-  { match: /off[\s-]*road|adventure|hilux|jimny|grenadier/i, label: "Off-Road & Adventure", labelUa: "Off-Road & Adventure" },
-  { match: /електронн|electronic|edc|pasm/i, label: "Electronics (EDC)", labelUa: "Електроніка (EDC)" },
-  { match: /верхня опора|top mount/i, label: "Top Mounts", labelUa: "Верхні опори" },
-  { match: /пружин|spring/i, label: "Springs", labelUa: "Пружини" },
-];
-
-function detectMake(product: ShopProduct): string | null {
-  // 1. Try slug prefix
-  const slugBody = product.slug.replace(/^ohlins-/, "");
-  const prefix = slugBody.split("-")[0]?.toLowerCase();
-  if (prefix && SLUG_PREFIX_TO_MAKE[prefix]) return SLUG_PREFIX_TO_MAKE[prefix];
-
-  // 2. Try title text matching for known brands
-  const title = (product.title?.en || "") + " " + (product.title?.ua || "");
-  const brands = [
-    "BMW", "Porsche", "Audi", "Mercedes", "Ford", "Honda", "Nissan", "Toyota",
-    "Subaru", "Mitsubishi", "Volkswagen", "VW", "Hyundai", "Lexus", "Mazda",
-    "Mini", "Lotus", "Alpine", "Maserati", "Tesla", "SEAT", "Jeep", "Suzuki", "INEOS",
-  ];
-  for (const brand of brands) {
-    if (title.toUpperCase().includes(brand.toUpperCase())) {
-      if (brand === "VW") return "Volkswagen";
-      if (brand === "Mercedes") return "Mercedes-Benz";
-      return brand;
-    }
-  }
-  return null;
-}
-
-function detectCategory(product: ShopProduct): { label: string; labelUa: string } | null {
-  const text = `${product.title?.en ?? ""} ${product.title?.ua ?? ""} ${product.shortDescription?.en ?? ""}`;
-  for (const pattern of CATEGORY_PATTERNS) {
-    if (pattern.match.test(text)) return { label: pattern.label, labelUa: pattern.labelUa };
-  }
-  return null;
-}
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | "USD" | "UAH") {
   const formatter = new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "en-US", {
@@ -146,8 +84,8 @@ export default function OhlinsVehicleFilter({
   const enrichedProducts = useMemo(() => {
     return products.map((p) => ({
       product: p,
-      make: detectMake(p),
-      category: detectCategory(p),
+      make: detectOhlinsMake(p),
+      category: detectOhlinsCategory(p),
     }));
   }, [products]);
 
@@ -202,15 +140,23 @@ export default function OhlinsVehicleFilter({
     }
 
     const sortedList = [...list].sort((a, b) => {
-      const priceA = a.product.price?.eur || 0;
-      const priceB = b.product.price?.eur || 0;
+      const priceA = pickShopSortableAmount(
+        viewerContext ? resolveShopProductPricing(a.product, viewerContext).effectivePrice : a.product.price,
+        currency,
+        rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
+      );
+      const priceB = pickShopSortableAmount(
+        viewerContext ? resolveShopProductPricing(b.product, viewerContext).effectivePrice : b.product.price,
+        currency,
+        rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
+      );
       if (sortOrder === "price_asc") return priceA - priceB;
       if (sortOrder === "price_desc") return priceB - priceA;
       return 0;
     });
 
     return sortedList;
-  }, [enrichedProducts, activeMake, activeCategory, searchQuery, sortOrder, locale]);
+  }, [enrichedProducts, activeMake, activeCategory, searchQuery, sortOrder, locale, viewerContext, currency, rates]);
 
   const displayedProducts = useMemo(() => {
     return filtered.slice(0, visibleCount);
@@ -219,25 +165,30 @@ export default function OhlinsVehicleFilter({
   const getDisplayPrice = (p: ShopProduct) => {
     if (!mounted) return null;
     const pricing = viewerContext ? resolveShopProductPricing(p, viewerContext) : null;
-    const ep = pricing?.effectivePrice;
-    const priceUsd = ep?.usd ?? p.price.usd ?? 0;
-    const priceEur = ep?.eur ?? p.price.eur ?? 0;
-    const priceUah = ep?.uah ?? p.price.uah ?? 0;
+    const displayRates = rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH };
+    const price = pricing?.effectivePrice ?? p.price;
+    const computed = computeShopDisplayPrices(price, displayRates);
 
-    if (priceEur <= 0) return null;
+    if (!hasAnyShopPrice(price, displayRates)) return null;
 
-    const usd = priceUsd > 0 ? priceUsd : (rates?.USD ? Math.round(priceEur * rates.USD) : 0);
-    const uah = priceUah > 0 ? priceUah : (rates?.UAH ? Math.round(priceEur * rates.UAH) : 0);
+    const primary =
+      currency === "USD" && computed.usd > 0
+        ? formatPrice(locale, computed.usd, "USD")
+        : currency === "UAH" && computed.uah > 0
+          ? formatPrice(locale, computed.uah, "UAH")
+          : currency === "EUR" && computed.eur > 0
+            ? formatPrice(locale, computed.eur, "EUR")
+            : computed.uah > 0
+              ? formatPrice(locale, computed.uah, "UAH")
+              : computed.usd > 0
+                ? formatPrice(locale, computed.usd, "USD")
+                : formatPrice(locale, computed.eur, "EUR");
 
     return {
-      eur: formatPrice(locale, priceEur, "EUR"),
-      usd: usd > 0 ? formatPrice(locale, usd, "USD") : null,
-      uah: uah > 0 ? formatPrice(locale, uah, "UAH") : null,
-      primary: currency === "USD" && usd > 0
-        ? formatPrice(locale, usd, "USD")
-        : currency === "UAH" && uah > 0
-          ? formatPrice(locale, uah, "UAH")
-          : formatPrice(locale, priceEur, "EUR"),
+      eur: computed.eur > 0 ? formatPrice(locale, computed.eur, "EUR") : null,
+      usd: computed.usd > 0 ? formatPrice(locale, computed.usd, "USD") : null,
+      uah: computed.uah > 0 ? formatPrice(locale, computed.uah, "UAH") : null,
+      primary,
     };
   };
 
@@ -524,11 +475,15 @@ export default function OhlinsVehicleFilter({
                               />
                             </div>
                           ) : (
-                            <div className="w-16 h-16 opacity-20 text-white">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="M12 6v6l4 2" />
-                              </svg>
+                            <div className="absolute inset-0 p-8">
+                              <Image
+                                src="/images/shop/ohlins/factory-fallback.jpg"
+                                alt={productTitle}
+                                fill
+                                sizes="(max-width: 768px) 100vw, 33vw"
+                                className="object-contain opacity-70 transition-transform group-hover:scale-105 group-hover:opacity-90"
+                                style={{ transitionDuration: '1s' }}
+                              />
                             </div>
                           )}
                         </div>
@@ -552,7 +507,7 @@ export default function OhlinsVehicleFilter({
                             </span>
                             {priceData && (
                               <div className="flex items-center gap-2 mt-1.5 text-[9px] tracking-widest font-light text-zinc-600">
-                                <span className={currency === "EUR" ? "text-zinc-400" : ""}>{priceData.eur}</span>
+                                {priceData.eur ? <span className={currency === "EUR" ? "text-zinc-400" : ""}>{priceData.eur}</span> : null}
                                 {priceData.usd && (<><span className="text-zinc-800">·</span><span className={currency === "USD" ? "text-zinc-400" : ""}>{priceData.usd}</span></>)}
                                 {priceData.uah && (<><span className="text-zinc-800">·</span><span className={currency === "UAH" ? "text-zinc-400" : ""}>{priceData.uah}</span></>)}
                               </div>

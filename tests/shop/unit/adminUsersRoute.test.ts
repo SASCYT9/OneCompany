@@ -1,13 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import path from 'node:path';
-import { pathToFileURL } from 'node:url';
-
-const routePath = pathToFileURL(path.join(process.cwd(), 'src/app/api/admin/users/[id]/route.ts')).href;
-
-async function importUsersPatchRoute(caseKey: string) {
-  return import(`${routePath}?case=${caseKey}-${Date.now()}`);
-}
+import { createPatchAdminUserRoute } from '../../../src/app/api/admin/users/[id]/route';
 
 function createRequest(body: unknown) {
   return new Request('http://localhost/api/admin/users/user_1', {
@@ -110,49 +103,31 @@ test('PATCH /api/admin/users/[id] handles update, activation, and auth error flo
     },
   };
 
-  t.mock.module('next/headers', {
-    namedExports: {
-      cookies: async () => ({ get: () => undefined }),
+  const patchRoute = createPatchAdminUserRoute({
+    cookies: async () => ({ get: () => undefined }),
+    assertAdminRequest: () => {
+      if (state.auth === 'unauthorized') {
+        throw new Error('UNAUTHORIZED');
+      }
+      if (state.auth === 'forbidden') {
+        throw new Error('FORBIDDEN');
+      }
+      return session;
     },
-  });
-  t.mock.module('@/lib/adminAuth', {
-    namedExports: {
-      assertAdminRequest: () => {
-        if (state.auth === 'unauthorized') {
-          throw new Error('UNAUTHORIZED');
-        }
-        if (state.auth === 'forbidden') {
-          throw new Error('FORBIDDEN');
-        }
-        return session;
+    prisma: {
+      adminUser: {
+        findUnique: async () => state.currentUser,
       },
+      adminRole: {
+        findMany: async () => state.validRoles,
+      },
+      $transaction: async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx),
     },
-  });
-  t.mock.module('@/lib/prisma', {
-    namedExports: {
-      prisma: {
-        adminUser: {
-          findUnique: async () => state.currentUser,
-        },
-        adminRole: {
-          findMany: async () => state.validRoles,
-        },
-        $transaction: async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx),
-      },
+    writeAdminAuditLog: async (...args: unknown[]) => {
+      calls.audit.push(args);
     },
+    requiredPermission: 'shop.settings.write',
   });
-  t.mock.module('@/lib/adminRbac', {
-    namedExports: {
-      ADMIN_PERMISSIONS: {
-        SHOP_SETTINGS_WRITE: 'shop.settings.write',
-      },
-      writeAdminAuditLog: async (...args: unknown[]) => {
-        calls.audit.push(args);
-      },
-    },
-  });
-
-  const routeModule = await importUsersPatchRoute('stateful');
 
   await t.test('updates name and replaces role assignments atomically', async () => {
     resetCalls();
@@ -168,7 +143,7 @@ test('PATCH /api/admin/users/[id] handles update, activation, and auth error flo
       ],
     });
 
-    const response = await routeModule.PATCH(createRequest({
+    const response = await patchRoute(createRequest({
       name: '  Updated manager  ',
       isActive: false,
       roleIds: ['role_b', 'role_b', 'role_a'],
@@ -210,7 +185,7 @@ test('PATCH /api/admin/users/[id] handles update, activation, and auth error flo
       roles: [{ id: 'role_a', key: 'catalog', name: 'Catalog' }],
     });
 
-    const response = await routeModule.PATCH(createRequest({
+    const response = await patchRoute(createRequest({
       isActive: true,
       roleIds: ['role_a'],
     }), createContext());
@@ -230,7 +205,7 @@ test('PATCH /api/admin/users/[id] handles update, activation, and auth error flo
     resetCalls();
     state.auth = 'unauthorized';
 
-    const response = await routeModule.PATCH(createRequest({
+    const response = await patchRoute(createRequest({
       name: 'Blocked',
       roleIds: [],
     }), createContext());
@@ -244,7 +219,7 @@ test('PATCH /api/admin/users/[id] handles update, activation, and auth error flo
     resetCalls();
     state.auth = 'forbidden';
 
-    const response = await routeModule.PATCH(createRequest({
+    const response = await patchRoute(createRequest({
       name: 'Blocked',
       roleIds: [],
     }), createContext());

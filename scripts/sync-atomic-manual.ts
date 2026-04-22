@@ -5,6 +5,24 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+function parseAtomicPrice(row: Record<string, unknown>): number | undefined {
+  const candidates = [row.price_uah, row.price, row.retail, row.rrp];
+
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined) continue;
+
+    const normalized = String(candidate).trim().replace(',', '.');
+    if (!normalized) continue;
+
+    const parsed = Number.parseFloat(normalized);
+    if (!Number.isNaN(parsed)) {
+      return Math.round(parsed);
+    }
+  }
+
+  return undefined;
+}
+
 async function main() {
   console.log('🚀 Starting Atomic Shop CSV Sync (Manual Script)');
   const feedUrl = 'https://feed.atomic-shop.ua/feed_tts.csv';
@@ -47,8 +65,7 @@ async function main() {
     const categoryName = row.category || null;
     const imgLink = row.img_link || null;
 
-    const rawPrice = row.price_uah || row.price || row.rrp;
-    const priceUah = rawPrice ? parseFloat(rawPrice) : undefined;
+    const priceUah = parseAtomicPrice(row);
 
     const variants = await prisma.shopProductVariant.findMany({
       where: {

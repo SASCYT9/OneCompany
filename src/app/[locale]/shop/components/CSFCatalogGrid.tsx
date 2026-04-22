@@ -8,6 +8,7 @@ import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
+import { computeShopDisplayPrices, hasAnyShopPrice, pickShopSortableAmount } from "@/lib/shopDisplayPrices";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
@@ -93,15 +94,23 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
     }
 
     result = [...result].sort((a, b) => {
-      const priceA = a.price?.eur || 0;
-      const priceB = b.price?.eur || 0;
+      const priceA = pickShopSortableAmount(
+        a.price,
+        currency,
+        rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
+      );
+      const priceB = pickShopSortableAmount(
+        b.price,
+        currency,
+        rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
+      );
       if (sortOrder === "price_desc") return priceB - priceA;
       if (sortOrder === "price_asc") return priceA - priceB;
       return priceB - priceA;
     });
 
     return result;
-  }, [activeCategory, searchQuery, sortOrder, products, locale, isUa]);
+  }, [activeCategory, searchQuery, sortOrder, products, locale, isUa, currency, rates]);
 
   if (!mounted) return null;
 
@@ -278,10 +287,28 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                 {filteredProducts.map((product) => {
                   const productTitle = localizeShopProductTitle(locale, product);
                   const { label: cat } = getCategoryLabel(product);
-                  const priceEur = product.price?.eur || 0;
-                  const priceUsd = product.price?.usd || 0;
-                  const priceUah = product.price?.uah || 0;
-                  const hasPrice = priceEur > 0 || priceUsd > 0 || priceUah > 0;
+                  const computedPrice = computeShopDisplayPrices(
+                    product.price,
+                    rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
+                  );
+                  const hasPrice = hasAnyShopPrice(
+                    product.price,
+                    rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
+                  );
+                  const primaryPrice =
+                    currency === "EUR" && computedPrice.eur > 0
+                      ? formatPrice(locale, computedPrice.eur, "EUR")
+                      : currency === "USD" && computedPrice.usd > 0
+                        ? formatPrice(locale, computedPrice.usd, "USD")
+                        : currency === "UAH" && computedPrice.uah > 0
+                          ? formatPrice(locale, computedPrice.uah, "UAH")
+                          : computedPrice.uah > 0
+                            ? formatPrice(locale, computedPrice.uah, "UAH")
+                            : computedPrice.usd > 0
+                              ? formatPrice(locale, computedPrice.usd, "USD")
+                              : computedPrice.eur > 0
+                                ? formatPrice(locale, computedPrice.eur, "EUR")
+                                : null;
 
                   return (
                     <article
@@ -300,7 +327,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(255,255,255,0.03)_0%,transparent_70%)]" />
                           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(200,16,46,0.05)_0%,transparent_50%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                           <ShopProductImage
-                            src={product.image || "/images/placeholders/product-fallback.svg"}
+                            src={product.image || "/images/shop/csf/factory-fallback.jpg"}
                             alt={productTitle}
                             fill
                             sizes="(max-width: 768px) 100vw, 33vw"
@@ -327,9 +354,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                           <div className="mt-auto pt-3 border-t border-white/[0.04]">
                             {hasPrice ? (
                               <span className="text-sm tracking-widest font-medium text-white tabular-nums">
-                                {currency === "EUR" && formatPrice(locale, priceEur, "EUR")}
-                                {currency === "USD" && formatPrice(locale, priceUsd, "USD")}
-                                {currency === "UAH" && formatPrice(locale, priceUah, "UAH")}
+                                {primaryPrice}
                               </span>
                             ) : (
                               <span className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[#c8102e]/60">

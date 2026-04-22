@@ -33,13 +33,53 @@ import { resolveEnglishCategory } from '@/lib/shopCategoryTranslation';
 const BRABUS_LOCAL_ASSETS_DEPLOYED = process.env.BRABUS_LOCAL_ASSETS_DEPLOYED === '1';
 const shouldUseDeployedBrabusFallback =
   process.env.NODE_ENV === 'production' && !BRABUS_LOCAL_ASSETS_DEPLOYED;
+const FEED_MANAGED_BRANDS = new Set(['ADRO', 'AKRAPOVIC', 'CSF', 'OHLINS']);
+const BRAND_FALLBACK_IMAGES: Record<string, string> = {
+  ADRO: '/images/shop/adro/adro-hero-m4.jpg',
+  AKRAPOVIC: '/images/shop/akrapovic/factory-fallback.jpg',
+  CSF: '/images/shop/csf/factory-fallback.jpg',
+  OHLINS: '/images/shop/ohlins/factory-fallback.jpg',
+};
 
 function uniqueStrings(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean)));
 }
 
+function normalizeBrandImageKey(value: string | null | undefined) {
+  return String(value ?? '').trim().toUpperCase();
+}
+
+function hasCatalogPrice(
+  product: Pick<ShopProduct, 'price'> | Pick<AdminShopProductRecord, 'priceEur' | 'priceUsd' | 'priceUah'>
+) {
+  if ('price' in product) {
+    return [product.price.eur, product.price.usd, product.price.uah].some((value) => Number(value) > 0);
+  }
+
+  return [product.priceEur, product.priceUsd, product.priceUah].some((value) => Number(value) > 0);
+}
+
+function isFeedManagedBrandValue(value: string | null | undefined) {
+  return FEED_MANAGED_BRANDS.has(normalizeBrandImageKey(value));
+}
+
+function isFeedManagedCatalogProduct(product: Pick<ShopProduct, 'brand' | 'vendor'>) {
+  return isFeedManagedBrandValue(product.brand) || isFeedManagedBrandValue(product.vendor);
+}
+
+function resolveBrandFallbackImage(brand: string | null | undefined, vendor?: string | null) {
+  return (
+    BRAND_FALLBACK_IMAGES[normalizeBrandImageKey(brand)] ??
+    BRAND_FALLBACK_IMAGES[normalizeBrandImageKey(vendor)] ??
+    undefined
+  );
+}
+
 function resolveCatalogAssetUrl(input: string | null | undefined, fallbackSrc?: string) {
   const resolved = resolveUrbanThemeAssetUrl(String(input ?? ''));
+  if (!resolved && fallbackSrc) {
+    return fallbackSrc;
+  }
   if (fallbackSrc && isBrabusLocalImage(resolved) && shouldUseDeployedBrabusFallback) {
     return fallbackSrc;
   }
@@ -68,6 +108,7 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
   const galleryFromMedia = sortedMedia.map((item) => item.src);
   const legacyGallery = Array.isArray(row.gallery) ? row.gallery.filter((item): item is string => typeof item === 'string') : [];
   const rawPrimaryImage = row.image ?? primaryVariant?.image ?? galleryFromMedia[0] ?? '';
+  const brandFallbackImage = resolveBrandFallbackImage(row.brand, row.vendor);
   const brabusFallbackImage = resolveBrabusFallbackImage({
     brand: row.brand ?? row.vendor ?? '',
     slug: row.slug,
@@ -83,10 +124,11 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
     },
     image: rawPrimaryImage,
   });
-  const resolvedPrimaryImage = resolveCatalogAssetUrl(rawPrimaryImage, brabusFallbackImage);
+  const catalogFallbackImage = brabusFallbackImage ?? brandFallbackImage;
+  const resolvedPrimaryImage = resolveCatalogAssetUrl(rawPrimaryImage, catalogFallbackImage);
   const resolvedGallery = uniqueStrings(
     (legacyGallery.length ? legacyGallery : galleryFromMedia).map((url) =>
-      resolveCatalogAssetUrl(url, brabusFallbackImage)
+      resolveCatalogAssetUrl(url, catalogFallbackImage)
     )
   );
   const productGallery = resolvedGallery.length
@@ -297,6 +339,10 @@ function normalizeCatalogProducts(products: ShopProduct[]) {
   const brabusBySku = new Map<string, ShopProduct>();
 
   for (const product of products) {
+    if (isFeedManagedCatalogProduct(product) && !hasCatalogPrice(product)) {
+      continue;
+    }
+
     if (isLikelyBrabusOverviewProductLike({
       sku: product.sku,
       titleEn: product.title.en,
@@ -399,7 +445,19 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
     const dbProducts = normalizeCatalogProducts(dbRows.map((row) => mapDbToCatalog(row)));
     const bySlug = new Map<string, ShopProduct>();
     dbProducts.forEach((product) => bySlug.set(product.slug, product));
+    const liveFeedBrands = new Set(
+      dbProducts
+        .filter((product) => isFeedManagedCatalogProduct(product) && hasCatalogPrice(product))
+        .flatMap((product) => [product.brand, product.vendor].map((value) => normalizeBrandImageKey(value)))
+        .filter((value) => FEED_MANAGED_BRANDS.has(value))
+    );
     SHOP_PRODUCTS.forEach((p) => {
+      if (
+        isFeedManagedCatalogProduct(p) &&
+        [p.brand, p.vendor].some((value) => liveFeedBrands.has(normalizeBrandImageKey(value)))
+      ) {
+        return;
+      }
       if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
     });
 

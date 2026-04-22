@@ -48,7 +48,13 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
   const isUa = locale === 'ua';
   const nextHref = sanitizeNextPath(searchParams.get('next'), `/${locale}/shop/account`);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+
+  /* If NextAuth redirected here with ?error=auth, show a message immediately */
+  const errorParam = searchParams.get('error');
+  const initialError = errorParam
+    ? (isUa ? 'Невірний email або пароль' : 'Invalid email or password')
+    : '';
+  const [error, setError] = useState(initialError);
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -59,11 +65,16 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
   });
 
   async function handleLogin() {
-    const result = await signIn('credentials', {
-      redirect: false,
-      email: form.email.trim().toLowerCase(),
-      password: form.password,
-    });
+    let result;
+    try {
+      result = await signIn('credentials', {
+        redirect: false,
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
+    } catch {
+      throw new Error(isUa ? 'Помилка з\'єднання. Спробуйте ще раз.' : 'Connection error. Please try again.');
+    }
 
     if (!result?.ok) {
       throw new Error(isUa ? 'Невірний email або пароль' : 'Invalid email or password');

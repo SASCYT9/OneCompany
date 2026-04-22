@@ -63,9 +63,9 @@ export const AKRAPOVIC_SOUNDS: SoundEntry[] = [
     weightSaving: '-8.5 kg',
   },
   {
-    id: 'lamborghini-huracan',
+    id: 'lamborghini-aventador',
     make: 'Lamborghini',
-    model: 'Huracán Performante',
+    model: 'Aventador LP 700-4',
     image: '/images/shop/akrapovic/sound-lamborghini.jpg',
     exhaustType: 'Slip-On Line (Titanium)',
     exhaustTypeUk: 'Slip-On Line (Титан)',

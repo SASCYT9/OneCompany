@@ -392,6 +392,10 @@ export function resolveUrbanCollectionCardImage(
     return matchingOwnImages[0]!;
   }
 
+  if (!product) {
+    return resolveUrbanProgramFallback(resolvedModelHandles, collectionImages);
+  }
+
   const mediaSet = buildUrbanCollectionMediaFromUrls(collectionImages);
   const realCandidate = getMatchingRealPhotoForIntent(mediaSet, intent);
   if (realCandidate && isUrbanImageCompatibleWithModel(realCandidate, resolvedModelHandles)) {

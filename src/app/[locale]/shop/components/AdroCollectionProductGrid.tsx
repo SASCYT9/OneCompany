@@ -7,6 +7,7 @@ import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
 import type { SupportedLocale } from '@/lib/seo';
 import type { ShopProduct } from '@/lib/shopCatalog';
+import { computeShopDisplayPrices, hasAnyShopPrice } from '@/lib/shopDisplayPrices';
 import { localizeShopProductTitle } from '@/lib/shopText';
 import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
@@ -32,49 +33,25 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 
   return locale === 'ua' ? `${formatted} ${currency}` : `${currency} ${formatted}`;
 }
 
-function computePricesFromUah(
+function computeDisplayPrices(
   price: ShopProduct['price'],
   rates: { EUR: number; USD: number; UAH?: number } | null,
 ) {
-  const baseUah = price.uah;
-  const baseEur = price.eur;
-  const baseUsd = price.usd;
-  const eurToUah = rates?.UAH ?? (rates?.EUR ? rates.EUR : 0);
+  return computeShopDisplayPrices(price, rates);
+}
 
-  // EUR-origin products
-  if (baseEur > 0 && baseUah === 0 && rates) {
-    const usdRate = rates.USD || 1;
-    return {
-      eur: baseEur,
-      uah: Math.round(baseEur * eurToUah),
-      usd: Math.round(baseEur * usdRate),
-    };
-  }
-
-  // USD-origin products
-  if (baseUsd > 0 && baseUah === 0 && baseEur === 0 && rates) {
-    const usdToUah = eurToUah / (rates.USD || 1);
-    return {
-      usd: baseUsd,
-      uah: Math.round(baseUsd * usdToUah),
-      eur: Math.round(baseUsd / (rates.USD || 1)),
-    };
-  }
-
-  // UAH-origin products
-  if (rates && baseUah > 0) {
-    return {
-      uah: baseUah,
-      eur: Math.round(baseUah / eurToUah),
-      usd: Math.round((baseUah / eurToUah) * (rates.USD || 1)),
-    };
-  }
-
-  return {
-    uah: baseUah,
-    eur: price.eur,
-    usd: price.usd,
-  };
+function pickPrimaryPriceLabel(
+  locale: SupportedLocale,
+  currency: 'EUR' | 'USD' | 'UAH',
+  price: ShopProduct['price'],
+) {
+  if (currency === 'USD' && price.usd > 0) return formatPrice(locale, price.usd, 'USD');
+  if (currency === 'EUR' && price.eur > 0) return formatPrice(locale, price.eur, 'EUR');
+  if (currency === 'UAH' && price.uah > 0) return formatPrice(locale, price.uah, 'UAH');
+  if (price.uah > 0) return formatPrice(locale, price.uah, 'UAH');
+  if (price.usd > 0) return formatPrice(locale, price.usd, 'USD');
+  if (price.eur > 0) return formatPrice(locale, price.eur, 'EUR');
+  return null;
 }
 
 export default function AdroCollectionProductGrid({
@@ -115,14 +92,20 @@ export default function AdroCollectionProductGrid({
                 : { effectivePrice: product.price, effectiveCompareAt: product.compareAt, audience: 'b2c', b2bVisible: false };
               
               const isB2B = pricing.audience === 'b2b' && pricing.b2bVisible;
+              const displayRates = rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH };
 
-              const computed = computePricesFromUah(
+              const computed = computeDisplayPrices(
                 pricing.effectivePrice,
-                rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH },
+                displayRates,
               );
 
               const computedCompare = pricing.effectiveCompareAt
-                ? computePricesFromUah(pricing.effectiveCompareAt, rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH })
+                ? computeDisplayPrices(pricing.effectiveCompareAt, displayRates)
+                : null;
+              const hasPrice = hasAnyShopPrice(pricing.effectivePrice, displayRates);
+              const primaryPrice = pickPrimaryPriceLabel(locale, currency, computed);
+              const comparePrice = computedCompare
+                ? pickPrimaryPriceLabel(locale, currency, computedCompare)
                 : null;
               
               const productTitle = localizeShopProductTitle(locale, product);
@@ -135,7 +118,7 @@ export default function AdroCollectionProductGrid({
                 >
                   <div className="relative aspect-[4/3] bg-[#080808] overflow-hidden flex items-center justify-center p-6">
                     <Image
-                      src={product.image || '/images/placeholders/product-fallback.jpg'}
+                      src={product.image || '/images/shop/adro/adro-hero-m4.jpg'}
                       alt={productTitle}
                       fill
                       sizes="(max-width: 768px) 100vw, 25vw"
@@ -152,23 +135,19 @@ export default function AdroCollectionProductGrid({
                     <div className="flex-grow"></div>
 
                     <div className="flex flex-col gap-1 mb-5">
-                      {isB2B && computedCompare ? (
+                      {isB2B && comparePrice ? (
                         <span className="text-[10px] text-zinc-600 line-through tracking-wider">
-                          {currency === 'USD' && formatPrice(locale, computedCompare.usd, 'USD')}
-                          {currency === 'EUR' && formatPrice(locale, computedCompare.eur, 'EUR')}
-                          {currency === 'UAH' && formatPrice(locale, computedCompare.uah, 'UAH')}
+                          {comparePrice}
                         </span>
                       ) : null}
                       
-                      {computed.usd === 0 && computed.eur === 0 && computed.uah === 0 ? (
+                      {!hasPrice || !primaryPrice ? (
                         <span className="text-sm font-light text-zinc-500 tracking-wide">
                           {isUa ? "Ціна за запитом" : "Price on Request"}
                         </span>
                       ) : (
                         <span className={`text-sm tracking-wide ${isB2B ? 'text-emerald-500 font-medium' : 'text-white font-light'}`}>
-                          {currency === 'USD' && formatPrice(locale, computed.usd, 'USD')}
-                          {currency === 'EUR' && formatPrice(locale, computed.eur, 'EUR')}
-                          {currency === 'UAH' && formatPrice(locale, computed.uah, 'UAH')}
+                          {primaryPrice}
                         </span>
                       )}
                     </div>

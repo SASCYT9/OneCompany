@@ -132,11 +132,11 @@ export function resolveUrbanVisualIntent(product: UrbanVisualProduct): UrbanVisu
     ].join(' ')
   );
 
-  if (PACKAGE_REGEX.test(haystack)) return 'package';
   if (REAR_REGEX.test(haystack)) return 'rear';
   if (FRONT_REGEX.test(haystack)) return 'front';
   if (SIDE_REGEX.test(haystack)) return 'side';
   if (DETAIL_REGEX.test(haystack)) return 'detail';
+  if (PACKAGE_REGEX.test(haystack)) return 'package';
   return 'detail';
 }
 

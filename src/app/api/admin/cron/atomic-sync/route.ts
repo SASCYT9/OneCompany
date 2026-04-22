@@ -7,6 +7,24 @@ import { matchesBearerSecret, resolveSecret } from '@/lib/requestSecrets';
 export const maxDuration = 300; // 5 minutes max duration for Vercel
 export const dynamic = 'force-dynamic';
 
+function parseAtomicPrice(row: Record<string, unknown>): number | undefined {
+  const candidates = [row.price_uah, row.price, row.retail, row.rrp];
+
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined) continue;
+
+    const normalized = String(candidate).trim().replace(',', '.');
+    if (!normalized) continue;
+
+    const parsed = Number.parseFloat(normalized);
+    if (!Number.isNaN(parsed)) {
+      return Math.round(parsed);
+    }
+  }
+
+  return undefined;
+}
+
 export async function GET(request: Request) {
   try {
     const cronSecret = resolveSecret('CRON_SECRET');
@@ -59,9 +77,7 @@ export async function GET(request: Request) {
       const categoryName = row.category || null;
       const imgLink = row.img_link || null;
       
-      // Parse price if it exists (assuming it might be named 'price' or 'price_uah')
-      const rawPrice = row.price_uah || row.price || row.rrp;
-      const priceUah = rawPrice ? parseFloat(rawPrice) : undefined;
+      const priceUah = parseAtomicPrice(row);
 
       // Find variant by SKU/MPN
       const variants = await prisma.shopProductVariant.findMany({

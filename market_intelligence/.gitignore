@@ -1,0 +1,6 @@
+.venv/
+exports/
+.pytest_cache/
+__pycache__/
+app/__pycache__/
+tests/__pycache__/

@@ -72,6 +72,10 @@ async function loadCurrentCustomerTokenState(customerId: string) {
 
 export const authOptions: NextAuthOptions = {
   secret: NEXTAUTH_SECRET || 'dev-shop-customer-secret',
+  pages: {
+    signIn: '/en/shop/account/login',
+    error: '/en/shop/account/login',
+  },
   session: {
     strategy: 'jwt',
   },

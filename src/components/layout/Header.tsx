@@ -53,6 +53,11 @@ export function Header() {
 
   const shopNavItems = [
     {
+      key: "home",
+      href: `/${locale}`,
+      label: isUa ? "Головна" : "Home",
+    },
+    {
       key: "stores",
       href: `/${locale}/shop`,
       label: isUa ? "Магазини" : "Stores",
