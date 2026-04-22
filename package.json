@@ -30,6 +30,8 @@
     "shop:urban:gp-only": "tsx scripts/reconcile-urban-catalog.ts --commit --gp-only",
     "shop:urban:ua-copy:dry": "tsx scripts/curate-urban-ua-copy.ts --dry-run",
     "shop:urban:ua-copy": "tsx scripts/curate-urban-ua-copy.ts --commit",
+    "shop:ipe:import:dry": "tsx scripts/import-ipe-catalog.ts --dry-run",
+    "shop:ipe:import": "tsx scripts/import-ipe-catalog.ts --commit",
     "seo:structure-check": "tsx scripts/seo-structure-audit.ts --baseUrl=https://onecompany.global --locales=ua,en --maxDepth=4",
     "fetch:logos": "tsx scripts/fetch-brand-logos.ts",
     "fetch:logos:js": "node scripts/fetch-brand-logos.js",

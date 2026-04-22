@@ -38,3 +38,21 @@ test('buildShopStorefrontProductPath still supports legacy brand storefront rout
     '/ua/shop/akrapovic/products/akr-slip-on'
   );
 });
+
+test('buildShopStorefrontProductPath resolves iPE aliases to the ipe storefront', () => {
+  assert.equal(
+    buildShopStorefrontProductPath('ua', {
+      slug: 'ipe-system',
+      brand: 'iPE exhaust',
+    }),
+    '/ua/shop/ipe/products/ipe-system'
+  );
+
+  assert.equal(
+    resolveShopStorefrontSegment({
+      slug: 'ipe-system',
+      vendor: 'Innotech Performance Exhaust',
+    }),
+    'ipe'
+  );
+});

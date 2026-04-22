@@ -5,8 +5,8 @@
 - Main domains: storefront, admin, catalog, orders, B2B accounts, Turn14 sync, SEO.
 
 ## Stack
-- Next.js 14 App Router
-- React + Tailwind CSS + Framer Motion
+- Next.js 16 App Router
+- React 19 + Tailwind CSS + Framer Motion
 - Prisma ORM
 - PostgreSQL / Supabase
 - Zustand and React Query where client state is justified

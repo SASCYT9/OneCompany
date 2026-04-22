@@ -7,6 +7,7 @@ import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
+import { isIpeProduct } from '@/lib/ipeBrand';
 import IpeVehicleFilter from '../../components/IpeVehicleFilter';
 
 type Props = {
@@ -49,7 +50,7 @@ export default async function IpeCollectionsPage({ params }: Props) {
     session?.b2bDiscountPercent ?? null
   );
 
-  const ipeProducts = products.filter(p => p.brand?.toLowerCase() === 'ipe' || p.tags?.includes('iPE'));
+  const ipeProducts = products.filter(isIpeProduct);
 
   return (
     <div className="relative min-h-screen bg-black">
