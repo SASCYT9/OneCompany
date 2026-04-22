@@ -68,8 +68,12 @@ const CONTENT_SECURITY_POLICY = [
   'upgrade-insecure-requests',
 ].join('; ');
 
-const MEDIA_ROUTE_TRACE_INCLUDES = ['public/media/**/*'];
+const MEDIA_ROUTE_TRACE_INCLUDES = [
+  'public/media/media.json',
+  'public/media/*',
+];
 const MEDIA_ROUTE_TRACE_EXCLUDES = [
+  'public/media/shop/**/*',
   'public/images/**/*',
   'public/videos/**/*',
   'public/branding/**/*',
