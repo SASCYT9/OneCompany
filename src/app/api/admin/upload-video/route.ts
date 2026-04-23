@@ -7,8 +7,13 @@ import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import { prisma } from '@/lib/prisma';
 import { validateAdminUpload } from '@/lib/adminUploadSecurity';
 import { readVideoConfig, writeVideoConfig } from '@/lib/videoConfig';
-import { buildUploadedVideoAssetPath, VIDEO_UPLOADS_SEGMENT } from '@/lib/videoUploadStorage';
-import { isVercelRuntime, VERCEL_FILE_STORAGE_MESSAGE } from '@/lib/vercelFileStorage';
+import {
+  buildUploadedVideoAssetPath,
+  buildUploadedVideoBlobAssetPath,
+  buildUploadedVideoStorageFilename,
+  VIDEO_UPLOADS_SEGMENT,
+} from '@/lib/videoUploadStorage';
+import { getRuntimeStorageProvider, putPublicBlob } from '@/lib/runtimeBlobStorage';
 
 const videosDir = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'videos', VIDEO_UPLOADS_SEGMENT);
 const VIDEO_MIME_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'] as const;
@@ -19,13 +24,9 @@ async function ensurePaths() {
 }
 
 export async function POST(request: NextRequest) {
-  if (isVercelRuntime) {
-    return NextResponse.json({ error: VERCEL_FILE_STORAGE_MESSAGE }, { status: 501 });
-  }
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
-    await ensurePaths();
     const formData = await request.formData();
     const file = formData.get('video');
     
@@ -46,11 +47,21 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const filename = `${Date.now()}-${validated.sanitizedFilename}`;
-    const assetPath = buildUploadedVideoAssetPath(filename);
-    const filepath = path.join(/*turbopackIgnore: true*/ videosDir, filename);
+    const filename = buildUploadedVideoStorageFilename(file.name, validated.mimeType);
+    const storageProvider = getRuntimeStorageProvider();
+    let assetPath: string;
 
-    await fs.writeFile(/*turbopackIgnore: true*/ filepath, buffer);
+    if (storageProvider === 'vercel-blob') {
+      const pathname = buildUploadedVideoBlobAssetPath(filename);
+      const uploaded = await putPublicBlob(pathname, buffer, validated.mimeType);
+      assetPath = uploaded.url;
+    } else {
+      await ensurePaths();
+      assetPath = buildUploadedVideoAssetPath(filename);
+      const filepath = path.join(/*turbopackIgnore: true*/ videosDir, filename);
+      await fs.writeFile(/*turbopackIgnore: true*/ filepath, buffer);
+    }
+
     const currentConfig = await readVideoConfig();
     const config = await writeVideoConfig({
       videos: Array.from(new Set([assetPath, ...currentConfig.videos])),
@@ -65,6 +76,7 @@ export async function POST(request: NextRequest) {
         metadata: {
           filename: assetPath,
           storageFilename: filename,
+          storageProvider,
           mimeType: validated.mimeType,
           sizeBytes: validated.sizeBytes,
           videosCount: config.videos.length,

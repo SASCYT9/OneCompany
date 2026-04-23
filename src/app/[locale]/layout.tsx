@@ -17,6 +17,7 @@ import { ScrollToTop } from '@/components/ScrollToTop';
 import { ShopCurrencyProvider } from '@/components/shop/CurrencyContext';
 import { prisma } from '@/lib/prisma';
 import { getOrCreateShopSettings, getShopSettingsRuntime, type ShopSettingsRuntime } from '@/lib/shopAdminSettings';
+import { resolveImageAssetReference, resolveVideoAssetReference } from '@/lib/runtimeAssetPaths';
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ua' }];
@@ -40,6 +41,9 @@ export default async function LocaleLayout({ children, params }: Props) {
   // Get messages for this locale
   const messages = await getMessages();
   const videoConfig = await readVideoConfig();
+  const heroVideoSrc = resolveVideoAssetReference(videoConfig.heroVideo);
+  const heroVideoMobileSrc = resolveVideoAssetReference(videoConfig.heroVideoMobile);
+  const heroPosterSrc = resolveImageAssetReference(videoConfig.heroPoster);
   let shopSettingsRuntime: ShopSettingsRuntime | null = null;
   
   // Fetch Shop Settings for company requisites
@@ -66,8 +70,8 @@ export default async function LocaleLayout({ children, params }: Props) {
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
         <LocaleLangSetter locale={locale} />
-        {videoConfig.heroPoster && (
-          <link rel="preload" href={`/images/${videoConfig.heroPoster}`} as="image" />
+        {heroPosterSrc && (
+          <link rel="preload" href={heroPosterSrc} as="image" />
         )}
         <LoadingScreen />
         <ShopCurrencyProvider
@@ -79,7 +83,14 @@ export default async function LocaleLayout({ children, params }: Props) {
             className={cn('flex flex-col min-h-screen', locale === 'ua' && 'locale-ua')}
             lang={locale === 'ua' ? 'uk' : 'en'}
           >
-            <HeroVideoWrapper src={`/videos/${videoConfig.heroVideo}`} mobileSrc={videoConfig.heroVideoMobile ? `/videos/${videoConfig.heroVideoMobile}` : undefined} poster={videoConfig.heroPoster ? `/images/${videoConfig.heroPoster}` : undefined} serverEnabled={videoConfig.heroEnabled ?? true} />
+            {heroVideoSrc ? (
+              <HeroVideoWrapper
+                src={heroVideoSrc}
+                mobileSrc={heroVideoMobileSrc}
+                poster={heroPosterSrc}
+                serverEnabled={videoConfig.heroEnabled ?? true}
+              />
+            ) : null}
             {/* Font debug overlay removed */}
             <Header />
             <main id="main-content" className="flex-grow relative z-10">

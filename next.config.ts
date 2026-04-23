@@ -45,6 +45,21 @@ function parseHostname(value: string | null | undefined) {
   }
 }
 
+function normalizeAbsoluteUrl(value: string | null | undefined) {
+  const normalized = String(value ?? '').trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const candidate = normalized.startsWith('http') ? normalized : `https://${normalized}`;
+
+  try {
+    return new URL(candidate).toString();
+  } catch {
+    return null;
+  }
+}
+
 const configuredRemoteImageHosts = (process.env.NEXT_IMAGE_REMOTE_HOSTS || '')
   .split(',')
   .map((entry) => parseHostname(entry))
@@ -53,6 +68,17 @@ const configuredRemoteImageHosts = (process.env.NEXT_IMAGE_REMOTE_HOSTS || '')
 const remoteImageHosts = Array.from(
   new Set([...STATIC_REMOTE_IMAGE_HOSTS, ...configuredRemoteImageHosts])
 );
+
+const normalizedSiteUrl =
+  normalizeAbsoluteUrl(process.env.NEXT_PUBLIC_SITE_URL) ??
+  'https://onecompany.global/';
+const normalizedNextAuthUrl =
+  normalizeAbsoluteUrl(process.env.NEXTAUTH_URL) ??
+  normalizeAbsoluteUrl(process.env.VERCEL_URL) ??
+  normalizedSiteUrl;
+const normalizedNextAuthUrlInternal =
+  normalizeAbsoluteUrl(process.env.NEXTAUTH_URL_INTERNAL) ??
+  normalizedNextAuthUrl;
 
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
@@ -124,6 +150,11 @@ const fileBackedMediaTracingExcludes: Record<string, string[]> | undefined = isV
 const nextConfig: NextConfig = {
   // Для Docker standalone output
   output: isVercel ? undefined : 'standalone',
+
+  env: {
+    NEXTAUTH_URL: normalizedNextAuthUrl,
+    NEXTAUTH_URL_INTERNAL: normalizedNextAuthUrlInternal,
+  },
 
   // Оптимізація для продакшену
   compress: true,

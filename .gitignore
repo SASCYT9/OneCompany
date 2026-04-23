@@ -48,6 +48,8 @@ next-env.d.ts
 /src/generated/prisma
 
 public/videos/originals/
+public/media/
+public/videos/uploads/
 # Original uncompressed videos (keep compressed versions in git)
 public/videos/shop/racechip/app-control-original.mp4
 public/videos/shop/urban/urban-hero-new-original.mp4
@@ -77,3 +79,4 @@ docs/
 __pycache__/
 *.part
 *.rar
+.env*.local

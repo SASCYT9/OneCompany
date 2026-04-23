@@ -15,6 +15,7 @@ import { readVideoConfig } from '@/lib/videoConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import "../globals.css";
 import { buildPageMetadata, SupportedLocale } from '@/lib/seo';
+import { resolveImageAssetReference, resolveVideoAssetReference } from '@/lib/runtimeAssetPaths';
 
 // Fonts
 const fontDisplay = Unbounded({
@@ -66,6 +67,9 @@ export default async function LocaleLayout({ children, params }: Props) {
   // Get messages for this locale
   const messages = await getMessages();
   const videoConfig = await readVideoConfig();
+  const heroVideoSrc = resolveVideoAssetReference(videoConfig.heroVideo);
+  const heroVideoMobileSrc = resolveVideoAssetReference(videoConfig.heroVideoMobile);
+  const heroPosterSrc = resolveImageAssetReference(videoConfig.heroPoster);
 
   return (
     <html 
@@ -101,8 +105,8 @@ export default async function LocaleLayout({ children, params }: Props) {
               disableTransitionOnChange
             >
               <LocaleLangSetter locale={locale} />
-              {videoConfig.heroPoster && (
-                <link rel="preload" href={`/images/${videoConfig.heroPoster}`} as="image" />
+              {heroPosterSrc && (
+                <link rel="preload" href={heroPosterSrc} as="image" />
               )}
               <LoadingScreen />
               
@@ -110,12 +114,14 @@ export default async function LocaleLayout({ children, params }: Props) {
                 data-server-hero-enabled={videoConfig.heroEnabled ? 'true' : 'false'}
                 className="flex flex-col min-h-screen"
               >
-                <HeroVideoWrapper 
-                  src={`/videos/${videoConfig.heroVideo}`} 
-                  mobileSrc={videoConfig.heroVideoMobile ? `/videos/${videoConfig.heroVideoMobile}` : undefined} 
-                  poster={videoConfig.heroPoster ? `/images/${videoConfig.heroPoster}` : undefined} 
-                  serverEnabled={videoConfig.heroEnabled ?? true} 
-                />
+                {heroVideoSrc ? (
+                  <HeroVideoWrapper
+                    src={heroVideoSrc}
+                    mobileSrc={heroVideoMobileSrc}
+                    poster={heroPosterSrc}
+                    serverEnabled={videoConfig.heroEnabled ?? true}
+                  />
+                ) : null}
                 <Header />
                 <main id="main-content" className="flex-grow relative z-10">
                   {children}

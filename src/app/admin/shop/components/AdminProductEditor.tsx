@@ -18,6 +18,7 @@ import {
   AdminSelectField as SelectField,
   AdminTextareaField as TextareaField,
 } from '@/components/admin/AdminFormFields';
+import { isLibraryBackedAssetReference } from '@/lib/runtimeAssetPaths';
 import { stripStorefrontTags, type ShopProductStorefront } from '@/lib/shopProductStorefront';
 import { ADMIN_PRODUCT_EDITOR_SECTIONS } from './adminProductEditorSections';
 
@@ -124,6 +125,8 @@ type CategoryOption = {
 type ShopLibraryMediaItem = {
   id: string;
   kind: 'image' | 'video' | 'other';
+  provider: 'local' | 'vercel-blob';
+  pathname: string;
   filename: string;
   url: string;
   originalName: string;
@@ -1964,7 +1967,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       ]}
                     />
                     <div className="md:col-span-4 rounded-none border border-white/10 bg-zinc-950/70 p-3 text-xs text-white/45">
-                      {item.src.trim().startsWith('/media/')
+                      {isLibraryBackedAssetReference(item.src)
                         ? 'Library-backed asset. Variants using this source stay in sync if you change the URL here.'
                         : 'Custom external source. Variants can still link to this media item by matching the same URL.'}
                     </div>

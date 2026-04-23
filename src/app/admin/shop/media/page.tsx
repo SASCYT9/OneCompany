@@ -25,6 +25,8 @@ type ShopLibraryMediaUsage = {
 type ShopLibraryMediaItem = {
   id: string;
   kind: 'image' | 'video' | 'other';
+  provider: 'local' | 'vercel-blob';
+  pathname: string;
   filename: string;
   url: string;
   originalName: string;
@@ -322,6 +324,10 @@ export default function AdminShopMediaPage() {
                       <span className="text-stone-200">
                         {new Date(item.uploadedAt).toLocaleDateString()}
                       </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span>Storage</span>
+                      <span className="text-stone-200">{item.provider}</span>
                     </div>
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-stone-400">
                       {usageLabel(item)}

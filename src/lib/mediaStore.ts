@@ -1,15 +1,28 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
-import { nanoid } from 'nanoid';
 import { atomicWriteTextFile } from '@/lib/adminJsonStorage';
 import { matchesHeaderSecret, resolveSecret } from '@/lib/requestSecrets';
+import {
+  buildMediaLibraryBlobPathname,
+  buildStoredFilename,
+  decodeBlobBackedAssetId,
+  deleteBlob,
+  encodeBlobBackedAssetId,
+  getRuntimeStorageProvider,
+  putPublicBlob,
+  listAllBlobsByPrefix,
+  type RuntimeStorageProvider,
+} from '@/lib/runtimeBlobStorage';
+import { inferMediaKind, MEDIA_LIBRARY_PATH_PREFIX } from '@/lib/runtimeAssetPaths';
 
 export type MediaKind = 'image' | 'video' | 'other';
 
 export interface MediaItem {
   id: string;
   kind: MediaKind;
+  provider: RuntimeStorageProvider;
+  pathname: string;
   filename: string; // stored filename under /public/media
   url: string; // public URL starting with /media
   originalName: string;
@@ -54,32 +67,48 @@ async function ensureMediaDir() {
 }
 
 export async function getManifest(): Promise<{ items: MediaItem[] }> {
+  if (getRuntimeStorageProvider() === 'vercel-blob') {
+    return { items: await listMedia() };
+  }
+
   try {
     const { manifestPath } = resolveMediaStorePaths();
     const raw = await fs.readFile(/*turbopackIgnore: true*/ manifestPath, 'utf8');
     const parsed = JSON.parse(raw);
     if (!parsed.items) return { items: [] };
-    return parsed;
+    return {
+      items: (parsed.items as Array<Partial<MediaItem>>).map((item) => {
+        const filename = String(item.filename ?? '');
+        return {
+          id: String(item.id ?? ''),
+          kind: (item.kind as MediaKind | undefined) ?? inferMediaKind(filename),
+          provider: item.provider === 'vercel-blob' ? 'vercel-blob' : 'local',
+          pathname: String(item.pathname ?? buildMediaLibraryBlobPathname(filename)),
+          filename,
+          url: String(item.url ?? `/media/${filename}`),
+          originalName: String(item.originalName ?? filename),
+          size: Number(item.size ?? 0),
+          uploadedAt: String(item.uploadedAt ?? new Date(0).toISOString()),
+          checksum: typeof item.checksum === 'string' ? item.checksum : undefined,
+        };
+      }),
+    };
   } catch {
     return { items: [] };
   }
 }
 
 export async function saveManifest(items: MediaItem[]) {
+  if (getRuntimeStorageProvider() === 'vercel-blob') {
+    return;
+  }
   await ensureMediaDir();
   const { manifestPath } = resolveMediaStorePaths();
   await atomicWriteTextFile(/*turbopackIgnore: true*/ manifestPath, JSON.stringify({ items }, null, 2));
 }
 
 export function detectKind(mime: string): MediaKind {
-  if (mime.startsWith('image/')) return 'image';
-  if (mime.startsWith('video/')) return 'video';
-  return 'other';
-}
-
-export function sanitizeBase(name: string) {
-  const base = name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-_\.]/g, '').toLowerCase();
-  return base.replace(/\.+/g, '.');
+  return inferMediaKind(mime);
 }
 
 function computeChecksum(buffer: Buffer) {
@@ -87,6 +116,23 @@ function computeChecksum(buffer: Buffer) {
 }
 
 export async function addMediaFromBuffer(buffer: Buffer, originalName: string, mimeType: string): Promise<MediaItem> {
+  if (getRuntimeStorageProvider() === 'vercel-blob') {
+    const filename = buildStoredFilename(originalName, mimeType);
+    const pathname = buildMediaLibraryBlobPathname(filename);
+    const uploaded = await putPublicBlob(pathname, buffer, mimeType);
+    return {
+      id: encodeBlobBackedAssetId(uploaded.pathname),
+      kind: detectKind(mimeType || filename),
+      provider: 'vercel-blob',
+      pathname: uploaded.pathname,
+      filename,
+      url: uploaded.url,
+      originalName,
+      size: buffer.byteLength,
+      uploadedAt: new Date().toISOString(),
+    };
+  }
+
   return withMediaMutationLock(async () => {
     await ensureMediaDir();
     const { mediaDir } = resolveMediaStorePaths();
@@ -97,19 +143,15 @@ export async function addMediaFromBuffer(buffer: Buffer, originalName: string, m
       return duplicate;
     }
 
-    const ext = (() => {
-      const parts = originalName.split('.');
-      return parts.length > 1 ? '.' + parts.pop()!.toLowerCase() : '';
-    })();
-    const id = nanoid(10);
-    const base = sanitizeBase(path.basename(originalName, ext));
-    const filename = `${base}-${id}${ext || guessExt(mimeType)}`;
+    const filename = buildStoredFilename(originalName, mimeType);
     const target = path.join(/*turbopackIgnore: true*/ mediaDir, filename);
     await fs.writeFile(/*turbopackIgnore: true*/ target, buffer);
 
     const item: MediaItem = {
-      id,
+      id: filename,
       kind: detectKind(mimeType),
+      provider: 'local',
+      pathname: buildMediaLibraryBlobPathname(filename),
       filename,
       url: `/media/${filename}`,
       originalName,
@@ -124,6 +166,15 @@ export async function addMediaFromBuffer(buffer: Buffer, originalName: string, m
 }
 
 export async function deleteMedia(id: string): Promise<boolean> {
+  if (getRuntimeStorageProvider() === 'vercel-blob') {
+    try {
+      await deleteBlob(decodeBlobBackedAssetId(id));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   return withMediaMutationLock(async () => {
     await ensureMediaDir();
     const { mediaDir } = resolveMediaStorePaths();
@@ -140,17 +191,28 @@ export async function deleteMedia(id: string): Promise<boolean> {
 }
 
 export async function listMedia(): Promise<MediaItem[]> {
+  if (getRuntimeStorageProvider() === 'vercel-blob') {
+    const blobs = await listAllBlobsByPrefix(MEDIA_LIBRARY_PATH_PREFIX);
+    return blobs
+      .map((blob) => {
+        const filename = path.posix.basename(blob.pathname);
+        return {
+          id: encodeBlobBackedAssetId(blob.pathname),
+          kind: inferMediaKind(filename),
+          provider: 'vercel-blob' as const,
+          pathname: blob.pathname,
+          filename,
+          url: blob.url,
+          originalName: filename,
+          size: blob.size,
+          uploadedAt: blob.uploadedAt.toISOString(),
+        };
+      })
+      .sort((left, right) => right.uploadedAt.localeCompare(left.uploadedAt));
+  }
+
   const { items } = await getManifest();
   return items;
-}
-
-function guessExt(mime: string) {
-  if (mime === 'video/mp4') return '.mp4';
-  if (mime === 'video/webm') return '.webm';
-  if (mime === 'image/png') return '.png';
-  if (mime === 'image/jpeg') return '.jpg';
-  if (mime === 'image/webp') return '.webp';
-  return '';
 }
 
 export function requireAdminSecret(req: Request): { ok: boolean; reason?: string } {

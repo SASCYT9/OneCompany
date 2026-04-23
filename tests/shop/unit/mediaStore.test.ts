@@ -46,6 +46,8 @@ test('addMediaFromBuffer deduplicates identical uploads by checksum', async () =
     assert.equal(first.id, second.id);
     const manifest = await getManifest();
     assert.equal(manifest.items.length, 1);
+    assert.equal(manifest.items[0]?.provider, 'local');
+    assert.equal(manifest.items[0]?.pathname, `media/library/${manifest.items[0]?.filename}`);
   } finally {
     process.chdir(previousCwd);
   }

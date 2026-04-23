@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { inferVideoMimeType } from '@/lib/runtimeAssetPaths';
 
 const STORAGE_KEY = 'heroVideoDisabled';
 
@@ -78,9 +79,9 @@ export function HeroVideoWrapper({
             onCanPlay={() => setVideoReady(true)}
           >
             {mobileSrc && (
-              <source src={mobileSrc} media="(max-width: 768px)" type="video/mp4" />
+              <source src={mobileSrc} media="(max-width: 768px)" type={inferVideoMimeType(mobileSrc)} />
             )}
-            <source src={src} type="video/mp4" />
+            <source src={src} type={inferVideoMimeType(src)} />
             <track kind="captions" />
           </video>
         )}

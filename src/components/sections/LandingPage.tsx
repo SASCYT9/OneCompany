@@ -9,6 +9,7 @@ import AnimatedButton from '@/components/ui/AnimatedButton';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import MagneticButton from '@/components/ui/MagneticButton';
 import AnimatedCard from '@/components/ui/AnimatedCard';
+import { inferVideoMimeType, resolveVideoAssetReference } from '@/lib/runtimeAssetPaths';
 
 // Top automotive brands with logos
 const topAutomotiveBrands = [
@@ -45,7 +46,9 @@ const topMotoBrands = [
 
 const LandingPage = () => {
   const heroRef = useRef<HTMLDivElement>(null);
-  const [heroVideo, setHeroVideo] = useState<string>('hero-fixed.mp4');
+  const [heroVideo, setHeroVideo] = useState<string>(
+    resolveVideoAssetReference('rollsbg-v3.mp4') || '/videos/rollsbg-v3.mp4'
+  );
   const t = useTranslations('landing');
 
   useEffect(() => {
@@ -74,7 +77,7 @@ const LandingPage = () => {
         if (!res.ok) return;
         const data = await res.json();
         if (isMounted && data?.heroVideo && typeof data.heroVideo === 'string') {
-          setHeroVideo(data.heroVideo);
+          setHeroVideo(resolveVideoAssetReference(data.heroVideo) || '/videos/rollsbg-v3.mp4');
         }
       } catch {
         // silently ignore and keep default video
@@ -101,7 +104,7 @@ const LandingPage = () => {
           playsInline
           className="absolute inset-0 w-full h-full object-cover"
         >
-          <source src={`/videos/${heroVideo}`} type="video/mp4" />
+          <source src={heroVideo} type={inferVideoMimeType(heroVideo)} />
         </video>
         
         {/* Dark Overlay */}

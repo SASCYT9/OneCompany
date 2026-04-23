@@ -29,6 +29,69 @@ function countTrackedFiles(targetPath) {
   return output.split(/\r?\n/).filter(Boolean).length;
 }
 
+function dirSizeBytes(targetPath) {
+  if (!fs.existsSync(targetPath)) {
+    return 0;
+  }
+
+  return fs.readdirSync(targetPath, { withFileTypes: true }).reduce((total, entry) => {
+    const resolved = path.join(targetPath, entry.name);
+    if (entry.isDirectory()) {
+      return total + dirSizeBytes(resolved);
+    }
+    return total + fs.statSync(resolved).size;
+  }, 0);
+}
+
+function formatMb(bytes) {
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function countMeaningfulFiles(targetPath, ignoreNames = []) {
+  if (!fs.existsSync(targetPath)) {
+    return 0;
+  }
+
+  return fs.readdirSync(targetPath, { withFileTypes: true }).reduce((total, entry) => {
+    const resolved = path.join(targetPath, entry.name);
+    if (entry.isDirectory()) {
+      return total + countMeaningfulFiles(resolved, ignoreNames);
+    }
+    if (ignoreNames.includes(entry.name)) {
+      return total;
+    }
+    return total + 1;
+  }, 0);
+}
+
+function ensureDirectoryWithinBudget(targetPath, limitBytes, label) {
+  if (!fs.existsSync(targetPath)) {
+    return;
+  }
+
+  const size = dirSizeBytes(targetPath);
+  if (size <= limitBytes) {
+    return;
+  }
+
+  console.error(`\n[FAIL] ${label} exceeds the allowed deployment budget.`);
+  console.error(`[DETAIL] ${targetPath} = ${formatMb(size)} (limit ${formatMb(limitBytes)}).`);
+  console.error('[DETAIL] Move these assets to external object storage before deploying.');
+  process.exit(1);
+}
+
+function ensureDirectoryEmpty(targetPath, label, ignoreNames = []) {
+  const fileCount = countMeaningfulFiles(targetPath, ignoreNames);
+  if (fileCount === 0) {
+    return;
+  }
+
+  console.error(`\n[FAIL] ${label} still contains runtime-managed files.`);
+  console.error(`[DETAIL] ${targetPath} has ${fileCount} file(s) that should have been migrated to Blob storage.`);
+  console.error('[DETAIL] Run the Blob migration, remove tracked legacy files from git, and redeploy.');
+  process.exit(1);
+}
+
 try {
   const status = run('git status --porcelain');
   if (status) {
@@ -51,6 +114,18 @@ try {
       console.error('[DETAIL] Preview deploys will miss these images unless you migrate them to tracked storage or Git LFS.');
       process.exit(1);
     }
+  }
+
+  const blobStorageEnabled = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  const publicMediaDir = path.join(process.cwd(), 'public', 'media');
+  const publicVideoUploadsDir = path.join(process.cwd(), 'public', 'videos', 'uploads');
+
+  if (blobStorageEnabled) {
+    ensureDirectoryEmpty(publicMediaDir, 'File-backed media library', ['media.json', '.gitkeep']);
+    ensureDirectoryEmpty(publicVideoUploadsDir, 'Uploaded video library', ['.gitkeep']);
+  } else {
+    ensureDirectoryWithinBudget(publicMediaDir, 50 * 1024 * 1024, 'File-backed media library');
+    ensureDirectoryWithinBudget(publicVideoUploadsDir, 50 * 1024 * 1024, 'Uploaded video library');
   }
 
   console.log('[STEP] Generating Prisma client...');
