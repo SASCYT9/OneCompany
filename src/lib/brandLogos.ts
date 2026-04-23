@@ -99,6 +99,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'GBracing': '/logos/gbracing.png',
   'Gilles Tooling': '/logos/gilles-tooling.jpg',
   'Girodisc': '/logos/girodisc.webp',
+  'G-Sport by GESi': '/logos/gsport-by-gesi.png',
   'GPR Stabilizer': '/logos/gpr-stabilizer.png',
   'Gruppe-M': '/logos/gruppe-m-white.png',
   'GTHaus': '/logos/gthaus-white.png',
@@ -164,6 +165,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
   'Onyx Concept': '/logos/onyx-concept.png',
   'OZ Racing': '/logos/oz-racing.png',
   'P3 Carbon': '/logos/p3-carbon.png',
+  'Paktechz Design': '/logos/paktechz.png',
   'Paragon brakes': '/logos/paragon-brakes.webp',
   'Paramount transmissions': '/logos/paramount-transmissions.png',
   'Power Division': '/logos/power-division.png',
@@ -268,7 +270,16 @@ export function getBrandLogo(brandName: string): string {
       return value;
     }
   }
+
+  // Try normalized comparison for names with punctuation/spacing differences.
+  const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const normalizedName = normalize(brandName);
+  for (const [key, value] of Object.entries(BRAND_LOGO_MAP)) {
+    if (normalize(key) === normalizedName) {
+      return value;
+    }
+  }
   
-  // Return placeholder
-  return '/images/logo-placeholder.svg';
+  // Return an existing local fallback asset instead of a broken path.
+  return '/branding/one-company-logo.svg';
 }

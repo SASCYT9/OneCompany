@@ -56,7 +56,7 @@ export function BrandExpandableCard({ name, logo, categoryLabel }: Props) {
               alt={name}
               fill
               className="object-contain opacity-60 group-hover:opacity-100 transition-opacity duration-300"
-              onError={() => setImgSrc('/logos/placeholder.svg')}
+              onError={() => setImgSrc('/branding/one-company-logo.svg')}
             />
           </div>
           <div className="mt-3 text-sm font-light text-white/80 group-hover:text-white transition-colors">{name}</div>
@@ -95,7 +95,7 @@ export function BrandExpandableCard({ name, logo, categoryLabel }: Props) {
                       alt=""
                       fill
                       className="object-contain p-2 opacity-80"
-                      onError={() => setModalImgSrc('/logos/placeholder.svg')}
+                      onError={() => setModalImgSrc('/branding/one-company-logo.svg')}
                     />
                   </div>
                   <div>
