@@ -101,6 +101,26 @@ const VIDEO_UPLOAD_TRACE_EXCLUDES = [
   'wiki/**/*',
 ];
 
+const fileBackedMediaTracingIncludes: Record<string, string[]> | undefined = isVercel
+  ? undefined
+  : {
+      'api/media': MEDIA_ROUTE_TRACE_INCLUDES,
+      'api/media/[id]': MEDIA_ROUTE_TRACE_INCLUDES,
+      'api/admin/shop/media': MEDIA_ROUTE_TRACE_INCLUDES,
+      'api/admin/shop/media/[id]': MEDIA_ROUTE_TRACE_INCLUDES,
+      'api/admin/upload-video': VIDEO_UPLOAD_TRACE_INCLUDES,
+    };
+
+const fileBackedMediaTracingExcludes: Record<string, string[]> | undefined = isVercel
+  ? undefined
+  : {
+      'api/media': MEDIA_ROUTE_TRACE_EXCLUDES,
+      'api/media/[id]': MEDIA_ROUTE_TRACE_EXCLUDES,
+      'api/admin/shop/media': MEDIA_ROUTE_TRACE_EXCLUDES,
+      'api/admin/shop/media/[id]': MEDIA_ROUTE_TRACE_EXCLUDES,
+      'api/admin/upload-video': VIDEO_UPLOAD_TRACE_EXCLUDES,
+    };
+
 const nextConfig: NextConfig = {
   // Для Docker standalone output
   output: isVercel ? undefined : 'standalone',
@@ -108,20 +128,9 @@ const nextConfig: NextConfig = {
   // Оптимізація для продакшену
   compress: true,
   poweredByHeader: false, // Security: remove X-Powered-By header
-  outputFileTracingIncludes: {
-    'api/media': MEDIA_ROUTE_TRACE_INCLUDES,
-    'api/media/[id]': MEDIA_ROUTE_TRACE_INCLUDES,
-    'api/admin/shop/media': MEDIA_ROUTE_TRACE_INCLUDES,
-    'api/admin/shop/media/[id]': MEDIA_ROUTE_TRACE_INCLUDES,
-    'api/admin/upload-video': VIDEO_UPLOAD_TRACE_INCLUDES,
-  },
-  outputFileTracingExcludes: {
-    'api/media': MEDIA_ROUTE_TRACE_EXCLUDES,
-    'api/media/[id]': MEDIA_ROUTE_TRACE_EXCLUDES,
-    'api/admin/shop/media': MEDIA_ROUTE_TRACE_EXCLUDES,
-    'api/admin/shop/media/[id]': MEDIA_ROUTE_TRACE_EXCLUDES,
-    'api/admin/upload-video': VIDEO_UPLOAD_TRACE_EXCLUDES,
-  },
+  // Local media libraries live on disk and can exceed Vercel's 250 MB function limit.
+  outputFileTracingIncludes: fileBackedMediaTracingIncludes,
+  outputFileTracingExcludes: fileBackedMediaTracingExcludes,
 
   // Images configuration - optimized for SEO & performance
   images: {

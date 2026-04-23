@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma';
 import { validateAdminUpload } from '@/lib/adminUploadSecurity';
 import { readVideoConfig, writeVideoConfig } from '@/lib/videoConfig';
 import { buildUploadedVideoAssetPath, VIDEO_UPLOADS_SEGMENT } from '@/lib/videoUploadStorage';
+import { isVercelRuntime, VERCEL_FILE_STORAGE_MESSAGE } from '@/lib/vercelFileStorage';
 
 const videosDir = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'videos', VIDEO_UPLOADS_SEGMENT);
 const VIDEO_MIME_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'] as const;
@@ -18,6 +19,9 @@ async function ensurePaths() {
 }
 
 export async function POST(request: NextRequest) {
+  if (isVercelRuntime) {
+    return NextResponse.json({ error: VERCEL_FILE_STORAGE_MESSAGE }, { status: 501 });
+  }
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);

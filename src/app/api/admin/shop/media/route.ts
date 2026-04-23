@@ -6,6 +6,7 @@ import { ADMIN_PERMISSIONS, writeAdminAuditLog } from '@/lib/adminRbac';
 import { validateAdminUpload } from '@/lib/adminUploadSecurity';
 import { listShopLibraryMedia } from '@/lib/shopAdminMedia';
 import { prisma } from '@/lib/prisma';
+import { isVercelRuntime, VERCEL_FILE_STORAGE_MESSAGE } from '@/lib/vercelFileStorage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,6 +21,9 @@ const SHOP_MEDIA_MIME_TYPES = [
 const SHOP_MEDIA_MAX_BYTES = 50 * 1024 * 1024;
 
 export async function GET() {
+  if (isVercelRuntime) {
+    return NextResponse.json({ error: VERCEL_FILE_STORAGE_MESSAGE }, { status: 501 });
+  }
   try {
     const cookieStore = await cookies();
     assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
@@ -38,6 +42,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (isVercelRuntime) {
+    return NextResponse.json({ error: VERCEL_FILE_STORAGE_MESSAGE }, { status: 501 });
+  }
   try {
     const cookieStore = await cookies();
     const session = assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);

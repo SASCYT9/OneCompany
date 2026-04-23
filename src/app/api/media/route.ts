@@ -1,15 +1,22 @@
 import { NextResponse } from 'next/server';
 import { addMediaFromBuffer, listMedia, requireAdminSecret } from '@/lib/mediaStore';
+import { isVercelRuntime, VERCEL_FILE_STORAGE_MESSAGE } from '@/lib/vercelFileStorage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  if (isVercelRuntime) {
+    return NextResponse.json({ error: VERCEL_FILE_STORAGE_MESSAGE }, { status: 501 });
+  }
   const items = await listMedia();
   return NextResponse.json({ items });
 }
 
 export async function POST(req: Request) {
+  if (isVercelRuntime) {
+    return NextResponse.json({ error: VERCEL_FILE_STORAGE_MESSAGE }, { status: 501 });
+  }
   const auth = requireAdminSecret(req);
   if (!auth.ok) return NextResponse.json({ error: auth.reason || 'Unauthorized' }, { status: 401 });
 

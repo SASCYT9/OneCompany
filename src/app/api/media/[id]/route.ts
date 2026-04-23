@@ -1,11 +1,15 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { deleteMedia, requireAdminSecret } from '@/lib/mediaStore';
+import { isVercelRuntime, VERCEL_FILE_STORAGE_MESSAGE } from '@/lib/vercelFileStorage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // Adapted to Next.js 16 route handler type where params may be a Promise.
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  if (isVercelRuntime) {
+    return NextResponse.json({ error: VERCEL_FILE_STORAGE_MESSAGE }, { status: 501 });
+  }
   const auth = requireAdminSecret(request);
   if (!auth.ok) return NextResponse.json({ error: auth.reason || 'Unauthorized' }, { status: 401 });
   const { id } = await context.params;
