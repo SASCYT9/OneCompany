@@ -540,67 +540,6 @@ const curated = [
       ],
     }),
   },
-  {
-    slugs: ['urban-g-wagon-w465-widetrack', 'urb-bun-25358207-v1', 'urban-050-2000', 'urban-050-0170'],
-    source:
-      'Frijns Unlimited official Urban product page: https://www.frijnsunlimited.com/products/urban/mercedes-1232/g-wagon-widetrack--1234',
-    shortDescEn:
-      'Official Urban Widetrack package for Mercedes-Benz G-Wagon W465 with wide-track arches, exposed carbon bonnet, splitter, rear bumper, diffuser and the full Urban widebody presence.',
-    shortDescUa:
-      'Офіційний Urban Widetrack package для Mercedes-Benz G-Wagon W465 з wide-track arches, exposed carbon bonnet, splitter, rear bumper, diffuser і повною Urban widebody presence.',
-    htmlEn: buildHtml({
-      intro: [
-        'Official Urban Widetrack package reference for the Mercedes-Benz G-Wagon W465.',
-        'Frijns Unlimited describes this conversion as the most complete and aggressive G-Wagon styling package to date, built around a multi-part carbon package and the trademark Urban widened stance.',
-      ],
-      included: [
-        'Replacement carbon fibre front bonnet',
-        'Exposed carbon bumper splitter with integral DRLs',
-        'Replacement carbon fibre rear bumper',
-        'Exposed carbon rear diffuser',
-        'Wide track arch kit',
-        'Exposed carbon fibre arches',
-        'Exposed carbon fibre lower sills',
-        'Exposed carbon fibre step end caps',
-      ],
-      excluded: [
-        'Indicator surrounds, bullnose bonnet, C-pillar vents, rear wheel cover, roof light pod, upper rear wing and wing mirrors unless selected separately',
-        '23" forged alloy wheels unless selected separately',
-        'Installation / fitting work',
-      ],
-      features: [
-        'Frijns Unlimited describes the Widetrack conversion as a 52-component carbon-fibre package',
-        'Official Urban widebody presentation for the W465 platform',
-        'Finish options include satin black, gloss black and exposed carbon themes',
-      ],
-    }),
-    htmlUa: buildHtmlUa({
-      intro: [
-        'Офіційна reference для Urban Widetrack package на Mercedes-Benz G-Wagon W465.',
-        'Frijns Unlimited описує цю конверсію як найповніший і найагресивніший G-Wagon styling package Urban, побудований навколо багатокомпонентного carbon package і фірмової widened stance.',
-      ],
-      included: [
-        'Replacement carbon fibre front bonnet',
-        'Exposed carbon bumper splitter з integral DRLs',
-        'Replacement carbon fibre rear bumper',
-        'Exposed carbon rear diffuser',
-        'Wide track arch kit',
-        'Exposed carbon fibre arches',
-        'Exposed carbon fibre lower sills',
-        'Exposed carbon fibre step end caps',
-      ],
-      excluded: [
-        'Indicator surrounds, bullnose bonnet, C-pillar vents, rear wheel cover, roof light pod, upper rear wing і wing mirrors, якщо вони не обрані окремо',
-        '23" forged alloy wheels, якщо вони не обрані окремо',
-        'Роботи з монтажу / встановлення',
-      ],
-      features: [
-        'Frijns Unlimited описує Widetrack як 52-компонентний carbon-fibre package',
-        'Офіційна Urban widebody presentation для платформи W465',
-        'Доступні finish-варіанти satin black, gloss black і exposed carbon',
-      ],
-    }),
-  },
 ];
 
 async function main() {

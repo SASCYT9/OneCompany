@@ -1,0 +1,126 @@
+{
+  "officialProducts": 344,
+  "priceRows": 1565,
+  "manifestRows": 1565,
+  "matchedHandles": 124,
+  "importableHandles": 124,
+  "applyingHandles": 124,
+  "existingDraftsOrProducts": 0,
+  "manifestStatusCounts": {
+    "auto": 0,
+    "review": 70,
+    "unresolved": 1495
+  },
+  "sample": [
+    {
+      "handle": "audi-a6-c8-2-0t-45-tfsi-exhaust",
+      "slug": "ipe-audi-a6-c8-2-0t-45-tfsi-exhaust",
+      "matchScore": 0.629,
+      "variants": 8,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "audi-a6-c8-3-0t-55-tfsi-exhaust",
+      "slug": "ipe-audi-a6-c8-3-0t-55-tfsi-exhaust",
+      "matchScore": 0.72,
+      "variants": 10,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "audi-a7c8-2-0t-45-tfsi-exhaust",
+      "slug": "ipe-audi-a7c8-2-0t-45-tfsi-exhaust",
+      "matchScore": 0.724,
+      "variants": 10,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "audi-r8-v10-2020-exhaust-system",
+      "slug": "ipe-audi-r8-v10-2020-exhaust-system",
+      "matchScore": 0.545,
+      "variants": 2,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "audi-rs3-sedan-sportback-8v-2-exhaust",
+      "slug": "ipe-audi-rs3-sedan-sportback-8v-2-exhaust",
+      "matchScore": 0.655,
+      "variants": 10,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "audi-rs3-sportback-8v-exhaust",
+      "slug": "ipe-audi-rs3-sportback-8v-exhaust",
+      "matchScore": 0.626,
+      "variants": 4,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "audi-rs3-sportback-8v-titanium-exhaust",
+      "slug": "ipe-audi-rs3-sportback-8v-titanium-exhaust",
+      "matchScore": 0.528,
+      "variants": 3,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "audi-rs4-b9-opf",
+      "slug": "ipe-audi-rs4-b9-opf",
+      "matchScore": 0.49,
+      "variants": 5,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "audi-rs5-coupe-b9-exhaust",
+      "slug": "ipe-audi-rs5-coupe-b9-exhaust",
+      "matchScore": 0.644,
+      "variants": 6,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "audi-s3-sedan-8v-exhaust",
+      "slug": "ipe-audi-s3-sedan-8v-exhaust",
+      "matchScore": 0.551,
+      "variants": 12,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    }
+  ]
+}

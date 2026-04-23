@@ -89,6 +89,15 @@ export function isUrbanPlaceholderImage(url: string | null | undefined): boolean
     return true;
   }
 
+  // House of Urban sync accidentally imported generic Shopify studio PNGs for G-Wagon.
+  // They are not valid product media for the storefront and should always fall back.
+  if (
+    normalized.includes('cdn.shopify.com/s/files/1/0733/4058/4242/files/gwagon_') &&
+    normalizedPath.endsWith('.png')
+  ) {
+    return true;
+  }
+
   // Block GP Products generic vehicle placeholder PNGs that masquerade as real model images
   // e.g., /L460.png, /Gwagon_e9292903-5bf9...png, /Transporter.png
   if (

@@ -1,0 +1,28 @@
+{
+  "officialProducts": 397,
+  "priceRows": 1565,
+  "manifestRows": 1565,
+  "matchedHandles": 19,
+  "importableHandles": 1,
+  "applyingHandles": 1,
+  "existingDraftsOrProducts": 0,
+  "manifestStatusCounts": {
+    "auto": 0,
+    "review": 29,
+    "unresolved": 1536
+  },
+  "sample": [
+    {
+      "handle": "ferrari-296-gtb-exhaust-system",
+      "slug": "ipe-ferrari-296-gtb-exhaust-system",
+      "matchScore": 0.784,
+      "variants": 4,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby",
+        "ua-translation-pending"
+      ],
+      "action": "create"
+    }
+  ]
+}

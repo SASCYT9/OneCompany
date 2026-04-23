@@ -16,6 +16,8 @@ const URBAN_PRODUCT_TITLE_OVERRIDES: Record<string, { ua: string; en: string }> 
 
 const URBAN_PROGRAM_FALLBACK_IMAGES: Record<string, string> = {
   'mercedes-g-wagon-softkit': '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-1-1920.jpg',
+  'mercedes-g-wagon-w465-aerokit':
+    '/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-1-2560.webp',
   'mercedes-g-wagon-w465-widetrack':
     '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-5-2560.webp',
 };

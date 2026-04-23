@@ -1,0 +1,734 @@
+[
+  {
+    "handle": "ferrari-296-gtb-exhaust-system",
+    "slug": "ipe-ferrari-296-gtb-exhaust-system",
+    "officialUrl": "https://ipeofficial.com/products/ferrari-296-gtb-exhaust-system",
+    "matchScore": 0.784,
+    "status": "draft-review",
+    "reviewReasons": [
+      "product-match-review-threshold",
+      "unresolved-price-rows-nearby",
+      "ua-translation-pending"
+    ],
+    "matchedRows": [
+      {
+        "rowIndex": 619,
+        "sku": "0F2960-NVN00-4",
+        "priceKind": "absolute",
+        "brand": "Ferrari",
+        "model": "296 GTB",
+        "description": "Cat Back System",
+        "officialHandle": "ferrari-296-gtb-exhaust-system",
+        "officialUrl": "https://ipeofficial.com/products/ferrari-296-gtb-exhaust-system",
+        "score": 0.783,
+        "status": "review",
+        "breakdown": {
+          "vehicle": 0.92,
+          "system": 1,
+          "option": 0.5,
+          "material": 1,
+          "overlap": 0.356,
+          "section": 0,
+          "total": 0.783
+        },
+        "candidates": [
+          {
+            "handle": "ferrari-296-gtb-exhaust-system",
+            "score": 0.783
+          },
+          {
+            "handle": "ferrari-458-italia-exhaust",
+            "score": 0.588
+          },
+          {
+            "handle": "ferrari-458-italia-titanium-exhaust",
+            "score": 0.588
+          },
+          {
+            "handle": "ferrira-488-gtb-titanium",
+            "score": 0.542
+          },
+          {
+            "handle": "porsche-911-gt3-992-catback-system",
+            "score": 0.492
+          }
+        ]
+      },
+      {
+        "rowIndex": 620,
+        "sku": "0F2960-TNVN00-4",
+        "priceKind": "absolute",
+        "brand": "Ferrari",
+        "model": "296 GTB",
+        "description": "Titanium Cat Back System",
+        "officialHandle": "ferrari-296-gtb-exhaust-system",
+        "officialUrl": "https://ipeofficial.com/products/ferrari-296-gtb-exhaust-system",
+        "score": 0.784,
+        "status": "review",
+        "breakdown": {
+          "vehicle": 0.92,
+          "system": 1,
+          "option": 0.5,
+          "material": 1,
+          "overlap": 0.373,
+          "section": 0,
+          "total": 0.784
+        },
+        "candidates": [
+          {
+            "handle": "ferrari-296-gtb-exhaust-system",
+            "score": 0.784
+          },
+          {
+            "handle": "ferrira-488-gtb-titanium",
+            "score": 0.643
+          },
+          {
+            "handle": "ferrari-458-italia-titanium-exhaust",
+            "score": 0.588
+          },
+          {
+            "handle": "porsche-911-gt3-992-catback-system",
+            "score": 0.493
+          },
+          {
+            "handle": "ferrari-458-italia-exhaust",
+            "score": 0.488
+          }
+        ]
+      }
+    ],
+    "unresolvedRows": [
+      {
+        "rowIndex": 1,
+        "sku": "0FPSG-TNVN00-2",
+        "priceKind": "absolute",
+        "brand": "Ferrari",
+        "model": "Purosangue",
+        "description": "Titanium Cat Back System (H Pipe)",
+        "officialHandle": "ferrari-296-gtb-exhaust-system",
+        "officialUrl": "https://ipeofficial.com/products/ferrari-296-gtb-exhaust-system",
+        "score": 0.531,
+        "status": "unresolved",
+        "breakdown": {
+          "vehicle": 0.47,
+          "system": 1,
+          "option": 0,
+          "material": 1,
+          "overlap": 0.169,
+          "section": 0,
+          "total": 0.531
+        },
+        "candidates": [
+          {
+            "handle": "ferrari-296-gtb-exhaust-system",
+            "score": 0.531
+          },
+          {
+            "handle": "ferrira-488-gtb-titanium",
+            "score": 0.511
+          },
+          {
+            "handle": "ferrari-458-italia-titanium-exhaust",
+            "score": 0.51
+          },
+          {
+            "handle": "ferrari-812-superfast-gts-titanium-exhaust-system",
+            "score": 0.429
+          },
+          {
+            "handle": "porsche-911-gt3-992-catback-system",
+            "score": 0.415
+          }
+        ]
+      },
+      {
+        "rowIndex": 153,
+        "sku": "0AS40-NVN00-2",
+        "priceKind": "absolute",
+        "brand": "Audi",
+        "model": "S5 F5 3.0 TFSI Sportback | S4 B9 3.0 TFSI Sedan | S5 F5 3.0 TFSI Coupe",
+        "description": "Cat Back System ※Non-OPF Version",
+        "officialHandle": "ferrari-296-gtb-exhaust-system",
+        "officialUrl": "https://ipeofficial.com/products/ferrari-296-gtb-exhaust-system",
+        "score": 0.437,
+        "status": "unresolved",
+        "breakdown": {
+          "vehicle": 0.02,
+          "system": 1,
+          "option": 0.5,
+          "material": 1,
+          "overlap": 0.051,
+          "section": 0,
+          "total": 0.437
+        },
+        "candidates": [
+          {
+            "handle": "ferrari-296-gtb-exhaust-system",
+            "score": 0.437
+          },
+          {
+            "handle": "lamborghini-huracan-sto-exhaust-system",
+            "score": 0.428
+          },
+          {
+            "handle": "lamborghini-huracan-tecnica-exhaust-system",
+            "score": 0.428
+          },
+          {
+            "handle": "audi-rs3-sedan-sportback-8v-2-exhaust",
+            "score": 0.419
+          },
+          {
+            "handle": "porsche-911-gt3-992-catback-system",
+            "score": 0.41
+          }
+        ]
+      },
+      {
+        "rowIndex": 154,
+        "sku": "1AS50-03-N0AS-7S",
+        "priceKind": "absolute",
+        "brand": "Audi",
+        "model": "S5 F5 3.0 TFSI Sportback | S4 B9 3.0 TFSI Sedan | S5 F5 3.0 TFSI Coupe",
+        "description": "Tips (Chrome Silver) Cat Back System",
+        "officialHandle": "ferrari-296-gtb-exhaust-system",
+        "officialUrl": "https://ipeofficial.com/products/ferrari-296-gtb-exhaust-system",
+        "score": 0.439,
+        "status": "unresolved",
+        "breakdown": {
+          "vehicle": 0.02,
+          "system": 1,
+          "option": 0.5,
+          "material": 1,
+          "overlap": 0.068,
+          "section": 0,
+          "total": 0.439
+        },
+        "candidates": [
+          {
+            "handle": "ferrari-296-gtb-exhaust-system",
+            "score": 0.439
+          },
+          {
+            "handle": "lamborghini-huracan-sto-exhaust-system",
+            "score": 0.428
+          },
+          {
+            "handle": "lamborghini-huracan-tecnica-exhaust-system",
+            "score": 0.428
+          },
+          {
+            "handle": "audi-rs3-sedan-sportback-8v-2-exhaust",
+            "score": 0.42
+          },
+          {
+            "handle": "lamborghini-huracan-performante-exhaust",
+            "score": 0.404
+          }
+        ]
+      },
+      {
+        "rowIndex": 617,
+        "sku": "0F2960-A0N00-3",
+        "priceKind": "absolute",
+        "brand": "Ferrari",
+        "model": "296 GTB",
+        "description": "Catted Downpipe Ferrari Downpipe",
+        "officialHandle": "ferrari-296-gtb-exhaust-system",
+        "officialUrl": "https://ipeofficial.com/products/ferrari-296-gtb-exhaust-system",
+        "score": 0.498,
+        "status": "unresolved",
+        "breakdown": {
+          "vehicle": 0.92,
+          "system": 0,
+          "option": 0.25,
+          "material": 1,
+          "overlap": 0.39,
+          "section": 0,
+          "total": 0.498
+        },
+        "candidates": [
+          {
+            "handle": "ferrari-296-gtb-exhaust-system",
+            "score": 0.498
+          },
+          {
+            "handle": "mercedes-benz-gle450-c292-w167-exhaust-system",
+            "score": 0.417
+          },
+          {
+            "handle": "mercedes-benz-gle450-w167-c167-cat-pipe-only",
+            "score": 0.417
+          },
+          {
+            "handle": "bmw-420i-425i-g22-g23-g26-exhaust",
+            "score": 0.374
+          },
+          {
+            "handle": "lamborghini-aventador-svj-lp770-4",
+            "score": 0.371
+          }
+        ]
+      },
+      {
+        "rowIndex": 618,
+        "sku": "0F2960-B0N00-3",
+        "priceKind": "absolute",
+        "brand": "Ferrari",
+        "model": "296 GTB",
+        "description": "Catless Downpipe",
+        "officialHandle": "ferrari-296-gtb-exhaust-system",
+        "officialUrl": "https://ipeofficial.com/products/ferrari-296-gtb-exhaust-system",
+        "score": 0.497,
+        "status": "unresolved",
+        "breakdown": {
+          "vehicle": 0.92,
+          "system": 0,
+          "option": 0.25,
+          "material": 1,
+          "overlap": 0.373,
+          "section": 0,
+          "total": 0.497
+        },
+        "candidates": [
+          {
+            "handle": "ferrari-296-gtb-exhaust-system",
+            "score": 0.497
+          },
+          {
+            "handle": "lamborghini-aventador-svj-lp770-4",
+            "score": 0.422
+          },
+          {
+            "handle": "mercedes-benz-gle450-c292-w167-exhaust-system",
+            "score": 0.417
+          },
+          {
+            "handle": "mercedes-benz-gle450-w167-c167-cat-pipe-only",
+            "score": 0.417
+          },
+          {
+            "handle": "bmw-420i-425i-g22-g23-g26-exhaust",
+            "score": 0.374
+          }
+        ]
+      },
+      {
+        "rowIndex": 623,
+        "sku": "0F599-NVN0S-2",
+        "priceKind": "absolute",
+        "brand": "Ferrari",
+        "model": "599 GTB Fiorano",
+        "description": "Cat Back System (Silver)",
+        "officialHandle": "ferrari-296-gtb-exhaust-system",
+        "officialUrl": "https://ipeofficial.com/products/ferrari-296-gtb-exhaust-system",
+        "score": 0.645,
+        "status": "unresolved",
+        "breakdown": {
+          "vehicle": 0.6,
+          "system": 1,
+          "option": 0.5,
+          "material": 1,
+          "overlap": 0.102,
+          "section": 0,
+          "total": 0.645
+        },
+        "candidates": [
+          {
+            "handle": "ferrari-296-gtb-exhaust-system",
+            "score": 0.645
+          },
+          {
+            "handle": "ferrari-458-italia-exhaust",
+            "score": 0.59
+          },
+          {
+            "handle": "ferrari-458-italia-titanium-exhaust",
+            "score": 0.59
+          },
+          {
+            "handle": "ferrira-488-gtb-titanium",
+            "score": 0.537
+          },
+          {
+            "handle": "ferrari-599-gtb-fiorano-exhaust",
+            "score": 0.504
+          }
+        ]
+      }
+    ],
+    "mediaPlan": [
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/1_2a3cf8e8-6787-4323-8f93-245211c1be3e.jpg?v=1770603408",
+        "publicPath": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/01.jpg",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\ferrari-296-gtb-exhaust-system\\01.jpg",
+        "position": 1
+      },
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/2_97335261-177a-4734-b625-ed39c3195c12.jpg?v=1770603408",
+        "publicPath": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/02.jpg",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\ferrari-296-gtb-exhaust-system\\02.jpg",
+        "position": 2
+      },
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/3_c6022444-ca1e-4f71-a5dc-0121f1a6747f.jpg?v=1770603408",
+        "publicPath": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/03.jpg",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\ferrari-296-gtb-exhaust-system\\03.jpg",
+        "position": 3
+      },
+      {
+        "remoteUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/7.jpg?v=1770603408",
+        "publicPath": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/04.jpg",
+        "absolutePath": "D:\\OneCompany\\public\\media\\shop\\ipe\\ferrari-296-gtb-exhaust-system\\04.jpg",
+        "position": 4
+      }
+    ],
+    "variants": [
+      {
+        "title": "Titanium / Catback System / Catted Downpipe (OPF)",
+        "sku": "0F2960-TNVN00-4",
+        "priceUsd": 8300,
+        "optionValues": [
+          "Titanium",
+          "Catback System",
+          "Catted Downpipe (OPF)"
+        ],
+        "optionNames": [
+          "Material",
+          "Exhaust System",
+          "Downpipe (Stainless Steel)"
+        ],
+        "baseSku": "0F2960-TNVN00-4",
+        "deltaSkus": [],
+        "imageUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/1_2a3cf8e8-6787-4323-8f93-245211c1be3e.jpg?v=1770603408",
+        "reviewReasons": [
+          "base-price-row-ambiguous"
+        ],
+        "confidence": 0.863,
+        "defaultVariant": false
+      },
+      {
+        "title": "Titanium / Catback System / Catless Downpipe (OPF)",
+        "sku": "0F2960-TNVN00-4",
+        "priceUsd": 8300,
+        "optionValues": [
+          "Titanium",
+          "Catback System",
+          "Catless Downpipe (OPF)"
+        ],
+        "optionNames": [
+          "Material",
+          "Exhaust System",
+          "Downpipe (Stainless Steel)"
+        ],
+        "baseSku": "0F2960-TNVN00-4",
+        "deltaSkus": [],
+        "imageUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/1_2a3cf8e8-6787-4323-8f93-245211c1be3e.jpg?v=1770603408",
+        "reviewReasons": [
+          "base-price-row-ambiguous"
+        ],
+        "confidence": 0.863,
+        "defaultVariant": false
+      },
+      {
+        "title": "Stainless steel / Catback System / Catted Downpipe (OPF)",
+        "sku": "0F2960-TNVN00-4",
+        "priceUsd": 8300,
+        "optionValues": [
+          "Stainless steel",
+          "Catback System",
+          "Catted Downpipe (OPF)"
+        ],
+        "optionNames": [
+          "Material",
+          "Exhaust System",
+          "Downpipe (Stainless Steel)"
+        ],
+        "baseSku": "0F2960-TNVN00-4",
+        "deltaSkus": [],
+        "imageUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/1_2a3cf8e8-6787-4323-8f93-245211c1be3e.jpg?v=1770603408",
+        "reviewReasons": [
+          "base-price-row-ambiguous"
+        ],
+        "confidence": 0.863,
+        "defaultVariant": false
+      },
+      {
+        "title": "Stainless steel / Catback System / Catless Downpipe (OPF)",
+        "sku": "0F2960-TNVN00-4",
+        "priceUsd": 8300,
+        "optionValues": [
+          "Stainless steel",
+          "Catback System",
+          "Catless Downpipe (OPF)"
+        ],
+        "optionNames": [
+          "Material",
+          "Exhaust System",
+          "Downpipe (Stainless Steel)"
+        ],
+        "baseSku": "0F2960-TNVN00-4",
+        "deltaSkus": [],
+        "imageUrl": "https://cdn.shopify.com/s/files/1/0606/7683/3510/files/1_2a3cf8e8-6787-4323-8f93-245211c1be3e.jpg?v=1770603408",
+        "reviewReasons": [
+          "base-price-row-ambiguous"
+        ],
+        "confidence": 0.863,
+        "defaultVariant": false
+      }
+    ],
+    "payload": {
+      "slug": "ipe-ferrari-296-gtb-exhaust-system",
+      "sku": "0F2960-TNVN00-4",
+      "scope": "auto",
+      "storefront": "main",
+      "brand": "iPE exhaust",
+      "vendor": "Innotech Performance Exhaust",
+      "productType": "Exhaust Systems",
+      "productCategory": "Exhaust Systems",
+      "categoryId": null,
+      "tags": [
+        "cat-back",
+        "Exhaust Systems",
+        "iPE Official",
+        "Exhaust",
+        "Ferrari",
+        "iPE",
+        "iPE exhaust",
+        "Innotech Performance Exhaust",
+        "2021",
+        "2022",
+        "2023",
+        "2024",
+        "2025",
+        "ferrari 296GTB",
+        "Stainless Steel",
+        "catless",
+        "catted",
+        "non-opf",
+        "opf",
+        "store:main"
+      ],
+      "collectionIds": [],
+      "status": "DRAFT",
+      "titleUa": "Ferrari 296 GTB Exhaust System",
+      "titleEn": "Ferrari 296 GTB Exhaust System",
+      "categoryUa": "Вихлопні системи",
+      "categoryEn": "Exhaust Systems",
+      "shortDescUa": null,
+      "shortDescEn": "Ferrari 296 GTB Exhaust System Product DescriptionThe iPE exhaust system for the Ferrari 296 GTB is crafted from T304 stainless steel, matching OEM standards while enhancing performance and sound...",
+      "longDescUa": null,
+      "longDescEn": "Ferrari 296 GTB Exhaust System Product DescriptionThe iPE exhaust system for the Ferrari 296 GTB is crafted from T304 stainless steel, matching OEM standards while enhancing performance and sound. This system includes both the catalytic converter and valvetronic components, reducing weight by 14.7% (2.75kg).Ferrari 296 GTB Exhaust System Exhaust system productdetails▶ Catted Downpipe :▸ Catted Downpipe▸ Stainless Steel Heat Shield▶ Catless Downpipe:▸ Catless Downpipe▸ Stainless Steel Heat Shield▶ Stainless steel Back System:▸ Electric Valvetronic Muffler▸Stainless Steel Heat Shield▶Titanium Cat Back System※This model is remain with factory exhaust valve system※This model reused factory muffler outlet pipe and tips※Please confirm OPF/Non OPF version before placing an order",
+      "bodyHtmlUa": null,
+      "bodyHtmlEn": "<p><span>Ferrari 296 GTB Exhaust System Product Description</span></p><p><span>The iPE exhaust system for the Ferrari 296 GTB is crafted from T304 stainless steel, matching OEM standards while enhancing performance and sound. This system includes both the catalytic converter and valvetronic components, reducing weight by 14.7% (2.75kg).</span></p><p><a></a><a></a><a></a><a></a><a></a><a></a><a></a><a></a><a></a><span><span><span><span><span><span><span><span><strong><span>Ferrari 296 GTB Exhaust System Exhaust system product</span></strong></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span>details</span></span></span></span></span></span></span></span></span></span></p><p><span><span><span><span><span><span><span><span><span><a></a><a></a><a></a><a></a><span><span><span><span>▶</span></span></span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span><span><span><span><span> Catted Downpipe :<br></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span><span><span><span><span>▸</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span><span><span><span><span> Catted Downpipe</span></span></span></span></span></span></span></span></span></span></span></span></span></span></p><p><span><span><span><span><span><span><span><span><span><span><span><span><span><span>▸</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span><span><span><span><span> Stainless Steel Heat Shield<br><br></span></span></span></span></span></span></span></span></span></span></span></span></span></span><a></a><span><span><span><span><span><span><span><span><span><span><span><span><span><span>▶</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span> Catless Downpipe:</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span><span><span><span></span></span></span></span></span></span></span></span></span></span></span></span></span></p><p><span><span><span><span><span><span><span><span><span><span><span><span><span><span>▸</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span><span><span><span><span> Catless Downpipe</span></span></span></span></span></span></span></span></span></span></span></span></span></span></p><p><span><span><span><span><span><span><span><span><span><span><span><span><span><span>▸</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span><span><span><span><span> Stainless Steel Heat Shield<br></span></span></span></span></span></span></span></span></span></span></span></span></span></span><a></a><a></a><span><!-- [if !supportLineBreakNewLine]--><span><span><span><span><span><span><span><span><span><span><span><span><span><span>▶</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span><span><span><span><span> Stainless steel Back System:</span></span></span></span></span></span></span></span></span></span></span></span></span></span></p><p><span><span><span><span><span><span><span><span><span><span><span><span><span><a></a><a></a><span><span>▸</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span><span><span><span><span> Electric Valvetronic Muffler</span></span></span></span></span></span></span></span></span></span></span></span></span></span></p><p><span><span><span><span><span><span><span><span><span><span><span><span><span><span>▸</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span><span><span><span><span>Stainless Steel Heat Shield</span></span></span></span></span></span></span></span></span></span></span></span></span></span></p><p><span><span><span><span><span><span><span><span><span><span><span><span><span><span>▶</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span><span><span><span><span><span>Titanium Cat Back System</span></span></span></span></span></span></span></span></span></span></span></span></span></span></p><p><span><span><span><span><span><span><span><span><span><span>※<span>This model is remain with factory exhaust valve system</span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span></span></span></span></span></span></span></span></span></span></p><p><span><span><span><span><span><span><span><span><span><span>※<span>This model reused factory muffler outlet pipe and tips</span></span></span></span></span></span></span></span></span></span></span><span><span><span><span><span><span><span><span><span></span></span></span></span></span></span></span></span></span></p><p><span><span><span><span><span><span><span><span><span><span>※<span>Please confirm OPF/Non OPF version before placing an order</span></span></span></span></span></span></span></span></span></span></span></p>",
+      "leadTimeUa": null,
+      "leadTimeEn": null,
+      "stock": "preOrder",
+      "collectionUa": "Ferrari",
+      "collectionEn": "Ferrari",
+      "priceEur": null,
+      "priceUsd": 8300,
+      "priceUah": null,
+      "priceEurB2b": null,
+      "priceUsdB2b": null,
+      "priceUahB2b": null,
+      "compareAtEur": null,
+      "compareAtUsd": null,
+      "compareAtUah": null,
+      "compareAtEurB2b": null,
+      "compareAtUsdB2b": null,
+      "compareAtUahB2b": null,
+      "weight": null,
+      "length": null,
+      "width": null,
+      "height": null,
+      "isDimensionsEstimated": false,
+      "image": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/01.jpg",
+      "seoTitleUa": "Ferrari 296 GTB Exhaust System",
+      "seoTitleEn": "Ferrari 296 GTB Exhaust System",
+      "seoDescriptionUa": null,
+      "seoDescriptionEn": "Ferrari 296 GTB Exhaust System Product DescriptionThe iPE exhaust system for the Ferrari 296 GTB is crafted from T304 stainless steel, matching OEM standards while enhancing performance and sound...",
+      "isPublished": false,
+      "publishedAt": null,
+      "gallery": [
+        "/media/shop/ipe/ferrari-296-gtb-exhaust-system/01.jpg",
+        "/media/shop/ipe/ferrari-296-gtb-exhaust-system/02.jpg",
+        "/media/shop/ipe/ferrari-296-gtb-exhaust-system/03.jpg",
+        "/media/shop/ipe/ferrari-296-gtb-exhaust-system/04.jpg"
+      ],
+      "highlights": null,
+      "media": [
+        {
+          "src": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/01.jpg",
+          "altText": "Ferrari 296 GTB Exhaust System 1",
+          "position": 1,
+          "mediaType": "IMAGE"
+        },
+        {
+          "src": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/02.jpg",
+          "altText": "Ferrari 296 GTB Exhaust System 2",
+          "position": 2,
+          "mediaType": "IMAGE"
+        },
+        {
+          "src": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/03.jpg",
+          "altText": "Ferrari 296 GTB Exhaust System 3",
+          "position": 3,
+          "mediaType": "IMAGE"
+        },
+        {
+          "src": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/04.jpg",
+          "altText": "Ferrari 296 GTB Exhaust System 4",
+          "position": 4,
+          "mediaType": "IMAGE"
+        }
+      ],
+      "options": [
+        {
+          "name": "Material",
+          "position": 1,
+          "values": [
+            "Titanium",
+            "Stainless steel"
+          ]
+        },
+        {
+          "name": "Exhaust System",
+          "position": 2,
+          "values": [
+            "Catback System"
+          ]
+        },
+        {
+          "name": "Downpipe (Stainless Steel)",
+          "position": 3,
+          "values": [
+            "Catted Downpipe (OPF)",
+            "Catless Downpipe (OPF)"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "title": "Titanium / Catback System / Catted Downpipe (OPF)",
+          "sku": "0F2960-TNVN00-4",
+          "position": 1,
+          "option1Value": "Titanium",
+          "option2Value": "Catback System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "inventoryQty": 0,
+          "inventoryPolicy": "CONTINUE",
+          "priceUsd": 8300,
+          "priceEur": null,
+          "priceUah": null,
+          "requiresShipping": true,
+          "taxable": true,
+          "image": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/01.jpg",
+          "isDefault": true
+        },
+        {
+          "title": "Titanium / Catback System / Catless Downpipe (OPF)",
+          "sku": "0F2960-TNVN00-4",
+          "position": 2,
+          "option1Value": "Titanium",
+          "option2Value": "Catback System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "inventoryQty": 0,
+          "inventoryPolicy": "CONTINUE",
+          "priceUsd": 8300,
+          "priceEur": null,
+          "priceUah": null,
+          "requiresShipping": true,
+          "taxable": true,
+          "image": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/01.jpg",
+          "isDefault": false
+        },
+        {
+          "title": "Stainless steel / Catback System / Catted Downpipe (OPF)",
+          "sku": "0F2960-TNVN00-4",
+          "position": 3,
+          "option1Value": "Stainless steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catted Downpipe (OPF)",
+          "inventoryQty": 0,
+          "inventoryPolicy": "CONTINUE",
+          "priceUsd": 8300,
+          "priceEur": null,
+          "priceUah": null,
+          "requiresShipping": true,
+          "taxable": true,
+          "image": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/01.jpg",
+          "isDefault": false
+        },
+        {
+          "title": "Stainless steel / Catback System / Catless Downpipe (OPF)",
+          "sku": "0F2960-TNVN00-4",
+          "position": 4,
+          "option1Value": "Stainless steel",
+          "option2Value": "Catback System",
+          "option3Value": "Catless Downpipe (OPF)",
+          "inventoryQty": 0,
+          "inventoryPolicy": "CONTINUE",
+          "priceUsd": 8300,
+          "priceEur": null,
+          "priceUah": null,
+          "requiresShipping": true,
+          "taxable": true,
+          "image": "/media/shop/ipe/ferrari-296-gtb-exhaust-system/01.jpg",
+          "isDefault": false
+        }
+      ],
+      "metafields": [
+        {
+          "namespace": "custom",
+          "key": "official_handle",
+          "value": "ferrari-296-gtb-exhaust-system",
+          "valueType": "single_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "official_url",
+          "value": "https://ipeofficial.com/products/ferrari-296-gtb-exhaust-system",
+          "valueType": "single_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "crawl_date",
+          "value": "2026-04-22T13:42:15.380Z",
+          "valueType": "single_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "match_score",
+          "value": "0.784",
+          "valueType": "single_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "source_pdf_name",
+          "value": "2025 Price List_USD.pdf",
+          "valueType": "single_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "variant_map_json",
+          "value": "{\n  \"handle\": \"ferrari-296-gtb-exhaust-system\",\n  \"variants\": [\n    {\n      \"title\": \"Titanium / Catback System / Catted Downpipe (OPF)\",\n      \"sku\": \"0F2960-TNVN00-4\",\n      \"priceUsd\": 8300,\n      \"optionValues\": [\n        \"Titanium\",\n        \"Catback System\",\n        \"Catted Downpipe (OPF)\"\n      ],\n      \"baseSku\": \"0F2960-TNVN00-4\",\n      \"deltaSkus\": [],\n      \"reviewReasons\": [\n        \"base-price-row-ambiguous\"\n      ]\n    },\n    {\n      \"title\": \"Titanium / Catback System / Catless Downpipe (OPF)\",\n      \"sku\": \"0F2960-TNVN00-4\",\n      \"priceUsd\": 8300,\n      \"optionValues\": [\n        \"Titanium\",\n        \"Catback System\",\n        \"Catless Downpipe (OPF)\"\n      ],\n      \"baseSku\": \"0F2960-TNVN00-4\",\n      \"deltaSkus\": [],\n      \"reviewReasons\": [\n        \"base-price-row-ambiguous\"\n      ]\n    },\n    {\n      \"title\": \"Stainless steel / Catback System / Catted Downpipe (OPF)\",\n      \"sku\": \"0F2960-TNVN00-4\",\n      \"priceUsd\": 8300,\n      \"optionValues\": [\n        \"Stainless steel\",\n        \"Catback System\",\n        \"Catted Downpipe (OPF)\"\n      ],\n      \"baseSku\": \"0F2960-TNVN00-4\",\n      \"deltaSkus\": [],\n      \"reviewReasons\": [\n        \"base-price-row-ambiguous\"\n      ]\n    },\n    {\n      \"title\": \"Stainless steel / Catback System / Catless Downpipe (OPF)\",\n      \"sku\": \"0F2960-TNVN00-4\",\n      \"priceUsd\": 8300,\n      \"optionValues\": [\n        \"Stainless steel\",\n        \"Catback System\",\n        \"Catless Downpipe (OPF)\"\n      ],\n      \"baseSku\": \"0F2960-TNVN00-4\",\n      \"deltaSkus\": [],\n      \"reviewReasons\": [\n        \"base-price-row-ambiguous\"\n      ]\n    }\n  ]\n}",
+          "valueType": "multi_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "matched_row_indexes",
+          "value": "619,620",
+          "valueType": "multi_line_text_field"
+        },
+        {
+          "namespace": "custom",
+          "key": "review_reasons",
+          "value": "product-match-review-threshold\nunresolved-price-rows-nearby\nua-translation-pending",
+          "valueType": "multi_line_text_field"
+        }
+      ]
+    }
+  }
+]

@@ -144,10 +144,6 @@ const CURATED_FLAGSHIP_SLUGS = new Set([
   'urb-bod-25353069-v1',
   'urban-250-1002',
   'urb-bun-25358198-v1',
-  'urban-g-wagon-w465-widetrack',
-  'urb-bun-25358207-v1',
-  'urban-050-2000',
-  'urban-050-0170',
 ]);
 
 const UA_BRAND_STYLE_REPLACEMENTS: Array<[RegExp, string]> = [

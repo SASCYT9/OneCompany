@@ -1,0 +1,15 @@
+{
+  "officialProducts": 397,
+  "priceRows": 1565,
+  "manifestRows": 1565,
+  "matchedHandles": 1,
+  "importableHandles": 0,
+  "applyingHandles": 0,
+  "existingDraftsOrProducts": 0,
+  "manifestStatusCounts": {
+    "auto": 0,
+    "review": 1,
+    "unresolved": 1564
+  },
+  "sample": []
+}

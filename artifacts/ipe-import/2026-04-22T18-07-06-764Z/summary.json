@@ -1,0 +1,115 @@
+{
+  "officialProducts": 397,
+  "priceRows": 1565,
+  "manifestRows": 1565,
+  "matchedHandles": 19,
+  "importableHandles": 9,
+  "applyingHandles": 9,
+  "existingDraftsOrProducts": 0,
+  "manifestStatusCounts": {
+    "auto": 0,
+    "review": 29,
+    "unresolved": 1536
+  },
+  "sample": [
+    {
+      "handle": "ferrari-296-gtb-exhaust-system",
+      "slug": "ipe-ferrari-296-gtb-exhaust-system",
+      "matchScore": 0.784,
+      "variants": 4,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "ferrari-458-italia-exhaust",
+      "slug": "ipe-ferrari-458-italia-exhaust",
+      "matchScore": 0.755,
+      "variants": 1,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "ferrari-458-italia-titanium-exhaust",
+      "slug": "ipe-ferrari-458-italia-titanium-exhaust",
+      "matchScore": 0.756,
+      "variants": 1,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "ferrira-488-gtb-titanium",
+      "slug": "ipe-ferrira-488-gtb-titanium",
+      "matchScore": 0.754,
+      "variants": 1,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "porsche-macan-2-0t-95b-2-exhaust",
+      "slug": "ipe-porsche-macan-2-0t-95b-2-exhaust",
+      "matchScore": 0.763,
+      "variants": 1,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "volkswagen-golf-r-mk7-exhaust",
+      "slug": "ipe-volkswagen-golf-r-mk7-exhaust",
+      "matchScore": 0.757,
+      "variants": 4,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "volkswagen-golf-r-mk8-exhaust-system",
+      "slug": "ipe-volkswagen-golf-r-mk8-exhaust-system",
+      "matchScore": 0.77,
+      "variants": 2,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "volkswagen-golf-r-variant-mk8-exhaust-system",
+      "slug": "ipe-volkswagen-golf-r-variant-mk8-exhaust-system",
+      "matchScore": 0.756,
+      "variants": 2,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    },
+    {
+      "handle": "volkswagen-tiguan-r-exhaust-system",
+      "slug": "ipe-volkswagen-tiguan-r-exhaust-system",
+      "matchScore": 0.764,
+      "variants": 2,
+      "reviewReasons": [
+        "product-match-review-threshold",
+        "unresolved-price-rows-nearby"
+      ],
+      "action": "create"
+    }
+  ]
+}
