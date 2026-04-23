@@ -13,12 +13,18 @@ import { computeShopDisplayPrices, hasAnyShopPrice, pickShopSortableAmount } fro
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+import {
+  buildShopSearchText,
+  matchesShopSearchQuery,
+  type ShopAlternativeSearchItem,
+} from "@/lib/shopSearch";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type Props = {
   locale: SupportedLocale;
   products: ShopProduct[];
+  alternativeSearchItems?: ShopAlternativeSearchItem[];
   viewerContext?: ShopViewerPricingContext;
 };
 
@@ -31,9 +37,27 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | 
   return locale === "ua" ? `${formatted} ${currency}` : `${currency} ${formatted}`;
 }
 
+function formatResultCount(locale: SupportedLocale, count: number) {
+  if (locale !== "ua") {
+    return `${count} result${count === 1 ? "" : "s"}`;
+  }
+
+  const lastDigit = count % 10;
+  const lastTwoDigits = count % 100;
+  const suffix =
+    lastDigit === 1 && lastTwoDigits !== 11
+      ? ""
+      : lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)
+        ? "и"
+        : "ів";
+
+  return `${count} результат${suffix}`;
+}
+
 export default function OhlinsVehicleFilter({
   locale,
   products,
+  alternativeSearchItems = [],
   viewerContext,
 }: Props) {
   const isUa = locale === "ua";
@@ -82,11 +106,44 @@ export default function OhlinsVehicleFilter({
 
   // Pre-compute makes and categories for each product
   const enrichedProducts = useMemo(() => {
-    return products.map((p) => ({
-      product: p,
-      make: detectOhlinsMake(p),
-      category: detectOhlinsCategory(p),
-    }));
+    return products.map((p) => {
+      const make = detectOhlinsMake(p);
+      const category = detectOhlinsCategory(p);
+      const collectionParts = p.collections?.flatMap((collection) => [
+        collection.handle,
+        collection.title.ua,
+        collection.title.en,
+        collection.brand ?? "",
+      ]) ?? [];
+
+      return {
+        product: p,
+        make,
+        category,
+        searchText: buildShopSearchText([
+          localizeShopProductTitle("ua", p),
+          localizeShopProductTitle("en", p),
+          p.title.ua,
+          p.title.en,
+          p.sku,
+          p.slug,
+          p.brand,
+          p.vendor,
+          p.productType,
+          p.category.ua,
+          p.category.en,
+          p.collection.ua,
+          p.collection.en,
+          p.shortDescription.ua,
+          p.shortDescription.en,
+          make ?? "",
+          category?.label ?? "",
+          category?.labelUa ?? "",
+          ...collectionParts,
+          ...(p.tags ?? []),
+        ]),
+      };
+    });
   }, [products]);
 
   // 1. EXTRACT ALL MAKES
@@ -94,21 +151,21 @@ export default function OhlinsVehicleFilter({
     const makes = new Map<string, number>();
     for (const ep of enrichedProducts) {
       if (!ep.make) continue;
-      if (searchQuery && !localizeShopProductTitle(locale, ep.product).toLowerCase().includes(searchQuery.toLowerCase())) continue;
+      if (searchQuery && !matchesShopSearchQuery(ep.searchText, searchQuery)) continue;
       if (activeCategory !== "all" && ep.category?.label !== activeCategory) continue;
       makes.set(ep.make, (makes.get(ep.make) || 0) + 1);
     }
     return [...makes.entries()]
       .map(([key, count]) => ({ key, label: key, count }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [enrichedProducts, searchQuery, locale, activeCategory]);
+  }, [enrichedProducts, searchQuery, activeCategory]);
 
   // 2. EXTRACT ALL CATEGORIES
   const availableCategories = useMemo(() => {
     const cats = new Map<string, { count: number; labelUa: string }>();
     for (const ep of enrichedProducts) {
       if (!ep.category) continue;
-      if (searchQuery && !localizeShopProductTitle(locale, ep.product).toLowerCase().includes(searchQuery.toLowerCase())) continue;
+      if (searchQuery && !matchesShopSearchQuery(ep.searchText, searchQuery)) continue;
       if (activeMake !== "all" && ep.make !== activeMake) continue;
       const existing = cats.get(ep.category.label);
       cats.set(ep.category.label, {
@@ -119,7 +176,7 @@ export default function OhlinsVehicleFilter({
     return [...cats.entries()]
       .map(([key, val]) => ({ key, label: key, labelUa: val.labelUa, count: val.count }))
       .sort((a, b) => b.count - a.count);
-  }, [enrichedProducts, searchQuery, locale, activeMake]);
+  }, [enrichedProducts, searchQuery, activeMake]);
 
   // 3. FILTER RESULTS
   const filtered = useMemo(() => {
@@ -132,11 +189,7 @@ export default function OhlinsVehicleFilter({
       list = list.filter((ep) => ep.category?.label === activeCategory);
     }
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter((ep) => {
-        const title = localizeShopProductTitle(locale, ep.product).toLowerCase();
-        return title.includes(q) || ep.product.sku?.toLowerCase().includes(q) || ep.product.slug.toLowerCase().includes(q);
-      });
+      list = list.filter((ep) => matchesShopSearchQuery(ep.searchText, searchQuery));
     }
 
     const sortedList = [...list].sort((a, b) => {
@@ -156,7 +209,17 @@ export default function OhlinsVehicleFilter({
     });
 
     return sortedList;
-  }, [enrichedProducts, activeMake, activeCategory, searchQuery, sortOrder, locale, viewerContext, currency, rates]);
+  }, [enrichedProducts, activeMake, activeCategory, searchQuery, sortOrder, viewerContext, currency, rates]);
+
+  const alternativeMatches = useMemo(() => {
+    if (!searchQuery.trim() || filtered.length > 0) {
+      return [];
+    }
+
+    return alternativeSearchItems
+      .filter((item) => matchesShopSearchQuery(item.searchText, searchQuery))
+      .slice(0, 8);
+  }, [alternativeSearchItems, filtered.length, searchQuery]);
 
   const displayedProducts = useMemo(() => {
     return filtered.slice(0, visibleCount);
@@ -263,7 +326,7 @@ export default function OhlinsVehicleFilter({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={isUa ? "Пошук моделі..." : "Search Model..."}
+            placeholder={isUa ? "Модель, SKU або код шасі..." : "Model, SKU or chassis code..."}
             className="w-full rounded-none bg-[#0a0a0c] px-12 py-4 text-[11px] font-light tracking-[0.1em] text-white outline-none placeholder-zinc-500"
           />
           {searchQuery ? (
@@ -305,10 +368,7 @@ export default function OhlinsVehicleFilter({
 
       <div className="mt-6 flex items-center justify-between">
         <p className="text-[10px] font-light tracking-widest text-zinc-500 sm:text-xs">
-          {filtered.length}{" "}
-          {isUa
-            ? `результат${filtered.length === 1 ? "" : filtered.length < 5 ? "и" : "ів"}`
-            : `result${filtered.length === 1 ? "" : "s"}`}
+          {formatResultCount(locale, filtered.length)}
           {hasActiveFilters ? (
             <>
               {" "}
@@ -353,7 +413,7 @@ export default function OhlinsVehicleFilter({
               ) : null}
             </button>
             <p className="text-xs tracking-wide text-zinc-500">
-              {filtered.length} {isUa ? "результатів" : "results"}
+              {formatResultCount(locale, filtered.length)}
             </p>
           </div>
 
@@ -408,7 +468,7 @@ export default function OhlinsVehicleFilter({
           <main className="w-full">
 
             {filtered.length === 0 ? (
-              <div className="py-32 text-center bg-[#111] border border-zinc-900 rounded-2xl flex flex-col items-center shadow-2xl">
+              <div className="flex flex-col items-center border border-zinc-900 bg-[#111] px-5 py-24 text-center shadow-2xl sm:px-8">
                 <div
                   className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-white/5"
                   style={{ boxShadow: `0 0 30px ${GOLD_DIM}` }}
@@ -419,13 +479,80 @@ export default function OhlinsVehicleFilter({
                   {isUa ? "Нічого не знайдено" : "No Components Found"}
                 </h3>
                 <p className="text-zinc-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
-                  {searchQuery
-                    ? (isUa ? `На жаль, за запитом "${searchQuery}" ми нічого не знайшли.` : `No results for "${searchQuery}"`)
+                  {searchQuery && alternativeMatches.length > 0
+                    ? (isUa
+                      ? `У каталозі Öhlins немає результатів за "${searchQuery}", але є збіги в інших брендах.`
+                      : `No Öhlins results for "${searchQuery}", but there are matches from other brands.`)
+                    : searchQuery
+                      ? (isUa
+                        ? `У каталозі Öhlins немає результатів за "${searchQuery}". Спробуйте марку авто, SKU або продуктовий тип.`
+                        : `No Öhlins results for "${searchQuery}". Try a vehicle make, SKU, or product type.`)
                     : (isUa ? "Компоненти для цієї комбінації відсутні." : "Components for this combination are currently unavailable.")}
                 </p>
+
+                {alternativeMatches.length > 0 ? (
+                  <div className="mb-8 w-full max-w-3xl text-left">
+                    <div className="mb-3 flex items-center justify-between gap-4">
+                      <p className="text-[10px] font-light uppercase tracking-[0.24em]" style={{ color: GOLD }}>
+                        {isUa ? "Альтернативи" : "Alternatives"}
+                      </p>
+                      <p className="text-[10px] font-light uppercase tracking-[0.18em] text-zinc-600">
+                        {alternativeMatches.length} {isUa ? "збігів" : "matches"}
+                      </p>
+                    </div>
+                    <div className="border-y border-white/10">
+                      {alternativeMatches.map((item) => {
+                        const alternativeTitle = item.title[locale] || item.title.en || item.title.ua;
+                        return (
+                          <Link
+                            key={item.slug}
+                            href={item.href}
+                            className="grid min-h-[88px] grid-cols-[64px_1fr] items-center gap-4 border-b border-white/10 py-4 transition-colors last:border-b-0 hover:bg-white/[0.03] sm:grid-cols-[72px_1fr_auto]"
+                          >
+                            <div className="relative h-16 w-16 overflow-hidden bg-black/50">
+                              {item.image ? (
+                                <div
+                                  aria-label={alternativeTitle}
+                                  className="absolute inset-2 bg-contain bg-center bg-no-repeat opacity-85"
+                                  role="img"
+                                  style={{ backgroundImage: `url(${item.image})` }}
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center border border-white/5 text-[10px] uppercase tracking-[0.16em] text-zinc-500">
+                                  {item.brand.slice(0, 3)}
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[10px] uppercase tracking-[0.18em]" style={{ color: GOLD }}>
+                                {item.brand}
+                              </p>
+                              <h4 className="mt-1 line-clamp-2 text-sm font-light leading-snug text-zinc-200">
+                                {alternativeTitle}
+                              </h4>
+                              {item.sku ? (
+                                <p className="mt-1 truncate text-[10px] uppercase tracking-[0.12em] text-zinc-600">
+                                  {item.sku}
+                                </p>
+                              ) : null}
+                            </div>
+                            <span
+                              className="col-span-2 inline-flex items-center justify-center gap-2 border px-4 py-2 text-[10px] font-light uppercase tracking-[0.24em] transition-colors sm:col-span-1"
+                              style={{ borderColor: `${GOLD}50`, color: GOLD }}
+                            >
+                              {isUa ? "Дивитися" : "View"}
+                              <ArrowRight size={12} strokeWidth={2} />
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
                 <button
-                  onClick={() => { setActiveMake("all"); setActiveCategory("all"); setSearchQuery(""); }}
-                  className="px-8 py-3.5 text-black text-[12px] uppercase tracking-widest font-bold rounded-lg transition-all duration-300"
+                  onClick={resetFilters}
+                  className="px-8 py-3.5 text-black text-[12px] uppercase tracking-widest font-bold rounded-[2px] transition-all duration-300"
                   style={{ background: `linear-gradient(to right, ${GOLD}, #d4b271)`, boxShadow: `0 4px 15px ${GOLD_DIM}` }}
                 >
                   {isUa ? "Скинути фільтри" : "Reset Filters"}

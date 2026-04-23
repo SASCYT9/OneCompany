@@ -44,6 +44,13 @@ const BRAND_FALLBACK_IMAGES: Record<string, string> = {
   CSF: '/images/shop/csf/factory-fallback.jpg',
   OHLINS: '/images/shop/ohlins/factory-fallback.jpg',
 };
+const LOCAL_SHOP_BRAND_IMAGE_PREFIXES: Record<string, string> = {
+  ADRO: '/images/shop/adro/',
+  AKRAPOVIC: '/images/shop/akrapovic/',
+  BRABUS: '/images/shop/brabus/',
+  CSF: '/images/shop/csf/',
+  OHLINS: '/images/shop/ohlins/',
+};
 
 function uniqueStrings(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean)));
@@ -71,12 +78,88 @@ function isFeedManagedCatalogProduct(product: Pick<ShopProduct, 'brand' | 'vendo
   return isFeedManagedBrandValue(product.brand) || isFeedManagedBrandValue(product.vendor);
 }
 
+function resolveFeedManagedBrandKey(brand: string | null | undefined, vendor?: string | null) {
+  const brandKey = normalizeBrandImageKey(brand);
+  if (FEED_MANAGED_BRANDS.has(brandKey)) {
+    return brandKey;
+  }
+
+  const vendorKey = normalizeBrandImageKey(vendor);
+  return FEED_MANAGED_BRANDS.has(vendorKey) ? vendorKey : null;
+}
+
 function resolveBrandFallbackImage(brand: string | null | undefined, vendor?: string | null) {
   return (
     BRAND_FALLBACK_IMAGES[normalizeBrandImageKey(brand)] ??
     BRAND_FALLBACK_IMAGES[normalizeBrandImageKey(vendor)] ??
     undefined
   );
+}
+
+export function resolveFeedManagedCatalogImage(
+  input: string | null | undefined,
+  brand: string | null | undefined,
+  vendor?: string | null
+) {
+  const src = String(input ?? '').trim();
+  const brandKey = resolveFeedManagedBrandKey(brand, vendor);
+  const fallbackImage = resolveBrandFallbackImage(brand, vendor);
+
+  if (!brandKey || !fallbackImage) {
+    return src;
+  }
+
+  if (!src) {
+    return fallbackImage;
+  }
+
+  const expectedLocalPrefix = LOCAL_SHOP_BRAND_IMAGE_PREFIXES[brandKey];
+  if (expectedLocalPrefix && src.startsWith(expectedLocalPrefix)) {
+    return src;
+  }
+
+  const isOtherKnownBrandAsset = Object.entries(LOCAL_SHOP_BRAND_IMAGE_PREFIXES).some(
+    ([key, prefix]) => key !== brandKey && src.startsWith(prefix)
+  );
+
+  return isOtherKnownBrandAsset ? fallbackImage : src;
+}
+
+function normalizeFeedManagedProductImages(product: ShopProduct): ShopProduct {
+  if (!isFeedManagedCatalogProduct(product)) {
+    return product;
+  }
+
+  const image = resolveFeedManagedCatalogImage(product.image, product.brand, product.vendor);
+  const gallery = product.gallery
+    ? uniqueStrings(product.gallery.map((src) => resolveFeedManagedCatalogImage(src, product.brand, product.vendor)))
+    : product.gallery;
+  const variants = product.variants?.map((variant) => {
+    const variantImage = variant.image
+      ? resolveFeedManagedCatalogImage(variant.image, product.brand, product.vendor)
+      : variant.image;
+
+    return variantImage === variant.image ? variant : { ...variant, image: variantImage };
+  });
+
+  const imageChanged = image !== product.image;
+  const galleryChanged =
+    Boolean(gallery) &&
+    (gallery?.length !== product.gallery?.length || gallery?.some((src, index) => src !== product.gallery?.[index]));
+  const variantsChanged =
+    Boolean(variants) &&
+    variants?.some((variant, index) => variant.image !== product.variants?.[index]?.image);
+
+  if (!imageChanged && !galleryChanged && !variantsChanged) {
+    return product;
+  }
+
+  return {
+    ...product,
+    image,
+    gallery,
+    variants,
+  };
 }
 
 function normalizeCatalogAssetInput(input: string | null | undefined) {
@@ -389,7 +472,9 @@ function normalizeCatalogProducts(products: ShopProduct[]) {
   const normalized: ShopProduct[] = [];
   const brabusBySku = new Map<string, ShopProduct>();
 
-  for (const product of products) {
+  for (const rawProduct of products) {
+    const product = normalizeFeedManagedProductImages(rawProduct);
+
     if (isFeedManagedCatalogProduct(product) && !hasCatalogPrice(product)) {
       continue;
     }

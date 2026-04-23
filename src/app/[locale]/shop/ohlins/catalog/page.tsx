@@ -5,6 +5,9 @@ import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
+import { buildShopSearchText, hasShopVehicleSearchSignal, type ShopAlternativeSearchItem } from '@/lib/shopSearch';
+import { buildShopStorefrontProductPathForProduct } from '@/lib/shopStorefrontRouting';
+import { localizeShopProductTitle } from '@/lib/shopText';
 import Link from 'next/link';
 import OhlinsVehicleFilter from '../../components/OhlinsVehicleFilter';
 
@@ -31,6 +34,20 @@ export async function generateMetadata({
   });
 }
 
+function isOhlinsProduct(product: { brand?: string | null; vendor?: string | null }) {
+  const brand = product.brand?.toLowerCase();
+  const vendor = product.vendor?.toLowerCase();
+  return brand === 'ohlins' || brand === 'öhlins' || vendor === 'ohlins';
+}
+
+function resolveAlternativeSearchImage(image: string | null | undefined) {
+  const value = image?.trim();
+  if (!value || value.includes('image-coming-soon')) {
+    return null;
+  }
+  return value;
+}
+
 export default async function OhlinsCatalogPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
@@ -48,9 +65,56 @@ export default async function OhlinsCatalogPage({ params }: Props) {
     session?.b2bDiscountPercent ?? null
   );
 
-  const ohlinsProducts = products.filter(
-    (p) => p.brand?.toLowerCase() === 'ohlins' || p.brand?.toLowerCase() === 'öhlins' || p.vendor?.toLowerCase() === 'ohlins'
-  );
+  const ohlinsProducts = products.filter(isOhlinsProduct);
+  const alternativeSearchItems = products.reduce<ShopAlternativeSearchItem[]>((items, product) => {
+    if (isOhlinsProduct(product)) {
+      return items;
+    }
+
+    const titleUa = localizeShopProductTitle('ua', product);
+    const titleEn = localizeShopProductTitle('en', product);
+    const collectionParts = product.collections?.flatMap((collection) => [
+      collection.handle,
+      collection.title.ua,
+      collection.title.en,
+      collection.brand ?? '',
+    ]) ?? [];
+    const searchText = buildShopSearchText([
+      titleUa,
+      titleEn,
+      product.title.ua,
+      product.title.en,
+      product.sku,
+      product.slug,
+      product.brand,
+      product.vendor,
+      product.productType,
+      product.category.ua,
+      product.category.en,
+      product.collection.ua,
+      product.collection.en,
+      ...collectionParts,
+      ...(product.tags ?? []),
+    ]);
+
+    if (!hasShopVehicleSearchSignal(searchText)) {
+      return items;
+    }
+
+    items.push({
+      slug: product.slug,
+      href: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+      brand: product.brand,
+      sku: product.sku,
+      image: resolveAlternativeSearchImage(product.image),
+      title: {
+        ua: titleUa,
+        en: titleEn,
+      },
+      searchText,
+    });
+    return items;
+  }, []);
 
   const isUa = resolvedLocale === 'ua';
 
@@ -87,6 +151,7 @@ export default async function OhlinsCatalogPage({ params }: Props) {
             <OhlinsVehicleFilter
               locale={resolvedLocale}
               products={ohlinsProducts}
+              alternativeSearchItems={alternativeSearchItems}
               viewerContext={viewerContext}
             />
           </Suspense>
