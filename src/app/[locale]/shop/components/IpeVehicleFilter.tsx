@@ -63,6 +63,9 @@ const SPEC_LABELS: Record<string, Record<string, string>> = {
   "OBDII": { en: "OBDII", ua: "OBDII" },
 };
 
+const FILTER_LIST_SCROLL_CLASS =
+  "flex flex-col max-h-[220px] overflow-y-auto overscroll-contain pr-1";
+
 function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | "USD" | "UAH") {
   const formatter = new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "en-US", {
     maximumFractionDigits: 0,
@@ -368,7 +371,7 @@ export default function IpeVehicleFilter({
               className={`${
                 mobileFilterOpen
                   ? "flex min-h-full flex-col gap-8 overflow-y-auto border-r border-white/10 bg-zinc-950 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
-                  : "lg:sticky lg:top-[120px] pb-10 flex flex-col gap-8 bg-zinc-950 border border-white/5 p-6 rounded-none shadow-none"
+                  : "lg:sticky lg:top-[120px] lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto pb-10 flex flex-col gap-8 bg-zinc-950 border border-white/5 p-6 rounded-none shadow-none"
               }`}
             >
               <button
@@ -412,7 +415,7 @@ export default function IpeVehicleFilter({
                 <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/[0.06] pb-2 font-medium">
                   {isUa ? "Оберіть марку" : "Select Brand"}
                 </h3>
-                <ul className="flex flex-col">
+                <ul className={FILTER_LIST_SCROLL_CLASS}>
                   <li>
                     <button
                       onClick={() => setActiveBrand("all")}
@@ -449,7 +452,7 @@ export default function IpeVehicleFilter({
                     <SlidersHorizontal size={12} />
                     {isUa ? "Продукція" : "Product Line"}
                   </h3>
-                  <ul className="flex flex-col">
+                  <ul className={FILTER_LIST_SCROLL_CLASS}>
                     <li>
                       <button
                         onClick={() => setActiveLine("all")}
@@ -482,7 +485,7 @@ export default function IpeVehicleFilter({
                   <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/[0.06] pb-2 font-medium">
                     {isUa ? "Модель" : "Vehicle Model"}
                   </h3>
-                  <ul className="flex flex-col max-h-[220px] overflow-y-auto pr-1">
+                  <ul className={FILTER_LIST_SCROLL_CLASS}>
                     <li>
                       <button
                         onClick={() => setActiveModel("all")}
@@ -515,7 +518,7 @@ export default function IpeVehicleFilter({
                   <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/[0.06] pb-2 font-medium">
                     {isUa ? "Матеріал" : "Material"}
                   </h3>
-                  <ul className="flex flex-col">
+                  <ul className={FILTER_LIST_SCROLL_CLASS}>
                     <li>
                       <button
                         onClick={() => setActiveMaterial("all")}
@@ -548,7 +551,7 @@ export default function IpeVehicleFilter({
                   <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/[0.06] pb-2 font-medium">
                     {isUa ? "Конфігурація" : "Configuration"}
                   </h3>
-                  <ul className="flex flex-col">
+                  <ul className={FILTER_LIST_SCROLL_CLASS}>
                     <li>
                       <button
                         onClick={() => setActiveSpec("all")}
