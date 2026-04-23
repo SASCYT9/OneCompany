@@ -29,6 +29,10 @@ import { prisma } from '@/lib/prisma';
 import { sanitizeRichTextHtml } from '@/lib/sanitizeRichTextHtml';
 import { resolveUrbanThemeAssetUrl } from '@/lib/urbanThemeAssets';
 import { resolveEnglishCategory } from '@/lib/shopCategoryTranslation';
+import {
+  buildUrbanGpSafeFallbackDescription,
+  isUnsafeUrbanGpDescription,
+} from '@/lib/urbanGpDescriptionFallback';
 
 const BRABUS_LOCAL_ASSETS_DEPLOYED = process.env.BRABUS_LOCAL_ASSETS_DEPLOYED === '1';
 const shouldUseDeployedBrabusFallback =
@@ -155,6 +159,31 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
     : resolvedPrimaryImage
       ? [resolvedPrimaryImage]
       : [];
+  const unsafeGpDescription = [
+    row.shortDescUa,
+    row.shortDescEn,
+    row.longDescUa,
+    row.longDescEn,
+    row.bodyHtmlUa,
+    row.bodyHtmlEn,
+    row.seoDescriptionUa,
+    row.seoDescriptionEn,
+  ].some(isUnsafeUrbanGpDescription);
+  const safeGpDescription = unsafeGpDescription
+    ? buildUrbanGpSafeFallbackDescription({
+        slug: row.slug,
+        sku: row.sku ?? primaryVariant?.sku ?? '',
+        titleUa: row.titleUa,
+        titleEn: row.titleEn,
+        categoryUa: row.categoryUa ?? row.category?.titleUa ?? '',
+        categoryEn: resolveEnglishCategory(row.categoryEn, row.categoryUa) || row.category?.titleEn || '',
+        collectionUa: row.collectionUa ?? '',
+        collectionEn: row.collectionEn ?? '',
+        brand: row.brand,
+        vendor: row.vendor,
+        productType: row.productType,
+      })
+    : null;
   const productB2BPrice = moneySet({
     eur: num(row.priceEurB2b ?? primaryVariant?.priceEurB2b),
     usd: num(row.priceUsdB2b ?? primaryVariant?.priceUsdB2b),
@@ -238,10 +267,13 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
       ua: row.categoryUa ?? row.category?.titleUa ?? '',
       en: resolveEnglishCategory(row.categoryEn, row.categoryUa) || row.category?.titleEn || '',
     },
-    shortDescription: { ua: row.shortDescUa ?? '', en: row.shortDescEn ?? '' },
+    shortDescription: {
+      ua: safeGpDescription?.shortDescription.ua ?? row.shortDescUa ?? '',
+      en: safeGpDescription?.shortDescription.en ?? row.shortDescEn ?? '',
+    },
     longDescription: {
-      ua: sanitizeRichTextHtml(row.bodyHtmlUa ?? row.longDescUa ?? ''),
-      en: sanitizeRichTextHtml(row.bodyHtmlEn ?? row.longDescEn ?? ''),
+      ua: sanitizeRichTextHtml(safeGpDescription?.bodyHtml.ua ?? row.bodyHtmlUa ?? row.longDescUa ?? ''),
+      en: sanitizeRichTextHtml(safeGpDescription?.bodyHtml.en ?? row.bodyHtmlEn ?? row.longDescEn ?? ''),
     },
     leadTime: { ua: row.leadTimeUa ?? '', en: row.leadTimeEn ?? '' },
     stock: (bundleInventory?.stock ?? (row.stock === 'preOrder' ? 'preOrder' : 'inStock')) as ShopStock,

@@ -136,8 +136,8 @@ function buildStructuredGpHtml(slug, gp, html) {
   const title = String(gp?.title || ld?.name || firstVariant?.name || slug).trim();
   const category = String(gp?.type || product.type || ld?.category || '').trim() || 'Component';
   const sku = String(firstVariant?.sku || ld?.sku || '').trim() || null;
-  const price = firstVariant?.price != null ? Number(firstVariant.price) / 100 : ld?.offers?.price || null;
-  const brand = String(gp?.vendor || product.vendor || ld?.brand?.name || 'Urban').trim();
+  const brand = String(gp?.vendor || product.vendor || ld?.brand?.name || 'Urban Automotive').trim();
+  const displayBrand = /^urban$/i.test(brand) ? 'Urban Automotive' : brand;
 
   if (/^wheels?$|wheel spacers?|wheel nuts?/i.test(category)) {
     const spec = parseWheelSpec(title);
@@ -148,27 +148,28 @@ function buildStructuredGpHtml(slug, gp, html) {
       spec.et ? `Offset: ${spec.et}` : null,
       spec.finish ? `Finish: ${spec.finish}` : null,
       spec.axle ? `Axle position: ${spec.axle}` : null,
-      spec.fitment ? `Fitment in GP listing: ${spec.fitment}` : null,
+      spec.fitment ? `Fitment: ${spec.fitment}` : null,
       sku ? `SKU: ${sku}` : null,
-      price ? `Price on GP Portal: €${price}` : null,
     ].filter(Boolean);
 
     return [
-      `<p>GP Portal lists this ${escapeHtml(brand)} wheel specification as <strong>${escapeHtml(title)}</strong>.</p>`,
+      `<p>${escapeHtml(displayBrand)} wheel specification for ${escapeHtml(spec.fitment || 'the selected vehicle configuration')}.</p>`,
       `<ul>${points.map((point) => `<li>${escapeHtml(point)}</li>`).join('')}</ul>`,
+      `<p>Confirm final fitment, finish and package scope before ordering.</p>`,
     ].join('');
   }
 
   const points = [
-    `Category on GP Portal: ${category}`,
+    `Item: ${title}`,
+    `Category: ${category}`,
     sku ? `SKU: ${sku}` : null,
-    price ? `Price on GP Portal: €${price}` : null,
-    firstVariant?.name && firstVariant.name !== title ? `Variant title on GP Portal: ${firstVariant.name}` : null,
+    firstVariant?.name && firstVariant.name !== title ? `Variant: ${firstVariant.name}` : null,
   ].filter(Boolean);
 
   return [
-    `<p>GP Portal lists this ${escapeHtml(brand)} product as <strong>${escapeHtml(title)}</strong>.</p>`,
+    `<p>${escapeHtml(displayBrand)} product listing for <strong>${escapeHtml(title)}</strong>.</p>`,
     `<ul>${points.map((point) => `<li>${escapeHtml(point)}</li>`).join('')}</ul>`,
+    `<p>Confirm exact fitment, finish and package contents before ordering.</p>`,
   ].join('');
 }
 
