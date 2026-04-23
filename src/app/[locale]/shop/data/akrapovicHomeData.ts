@@ -11,33 +11,56 @@ export const AKRAPOVIC_HERO = {
     'Титанові та карбонові вихлопні системи ручної роботи, що переосмислюють звукову інженерію автомобілів.',
 };
 
-export const AKRAPOVIC_STATS = [
-  { val: '1990', en: 'Founded', ua: 'Засновано' },
-  { val: '−40%', en: 'Weight Reduction', ua: 'Зменшення ваги' },
-  { val: '+12', en: 'HP Gain (avg)', ua: 'К.С. приріст (сер.)' },
-  { val: '600°', en: 'Operating Temp', ua: 'Робоча темп.' },
-];
-
-export const AKRAPOVIC_MATERIALS = {
-  titanium: {
-    title: 'Titanium',
-    titleUk: 'Титан',
-    description:
-      'Grade 1 titanium alloy — the same material used in aerospace and Formula 1. 40% lighter than stainless steel with superior heat resistance up to 600°C. Each weld is hand-finished by Akrapovič craftsmen in Ivančna Gorica, Slovenia.',
-    descriptionUk:
-      'Титановий сплав Grade 1 — той самий матеріал, що використовується в аерокосмічній галузі та Формулі 1. На 40% легший за нержавіючу сталь із вищою термостійкістю до 600°C. Кожен зварний шов виконується вручну майстрами Akrapovič в Іванчна Горіці, Словенія.',
-    image: '/images/shop/akrapovic/titanium-closeup.jpg',
+export const AKRAPOVIC_GALLERY = [
+  {
+    id: 'porsche-road-live',
+    title: 'Porsche 911 GT3',
+    titleUk: 'Porsche 911 GT3',
+    eyebrow: 'Official Akrapovič road film still',
+    eyebrowUk: 'Офіційний кадр Akrapovič з дороги',
+    image: '/images/shop/akrapovic/gallery/live/akrapovic-porsche-road-hero-live.webp',
   },
-  carbon: {
-    title: 'Carbon Fibre',
-    titleUk: 'Карбонове волокно',
-    description:
-      'Dry carbon fibre end caps and heat shields — produced in-house with autoclave curing for maximum structural rigidity. UV-stable clear coat protects the distinctive weave pattern for years of use without yellowing.',
-    descriptionUk:
-      'Торцеві насадки та теплові екрани з сухого карбону — виготовлені на власному виробництві з автоклавним затвердінням для максимальної структурної жорсткості. UV-стійке прозоре покриття захищає фактуру плетіння роками без пожовтіння.',
-    image: '/images/shop/akrapovic/carbon-closeup.jpg',
+  {
+    id: 'bmw-rear-live',
+    title: 'BMW rear exhaust detail',
+    titleUk: 'Задній ракурс BMW з вихлопом',
+    eyebrow: 'Official Akrapovič social media image',
+    eyebrowUk: 'Офіційне фото Akrapovič із соцмереж',
+    image: '/images/shop/akrapovic/gallery/live/akrapovic-bmw-rear-live.webp',
   },
-};
+  {
+    id: 'carbon-tailpipe-live',
+    title: 'Carbon tailpipe detail',
+    titleUk: 'Карбонова насадка Akrapovič',
+    eyebrow: 'Official Akrapovič product media',
+    eyebrowUk: 'Офіційне product-медіа Akrapovič',
+    image: '/images/shop/akrapovic/gallery/live/akrapovic-carbon-tailpipe-live.webp',
+  },
+  {
+    id: 'glowing-tailpipe-live',
+    title: 'Akrapovič glowing tailpipe detail',
+    titleUk: 'Живий кадр насадки Akrapovič',
+    eyebrow: 'Official Akrapovič multimedia image',
+    eyebrowUk: 'Офіційне multimedia-медіа Akrapovič',
+    image: '/images/shop/akrapovic/gallery/live/akrapovic-glowing-tailpipe-live.webp',
+  },
+  {
+    id: 'rs6-tailpipe-live',
+    title: 'Audi RS 6 tailpipe detail',
+    titleUk: 'Насадка Audi RS 6',
+    eyebrow: 'Official Akrapovič product media',
+    eyebrowUk: 'Офіційне product-медіа Akrapovič',
+    image: '/images/shop/akrapovic/gallery/live/akrapovic-rs6-tailpipe-live.webp',
+  },
+  {
+    id: 'm8-tailpipe-wide-live',
+    title: 'BMW M8 tailpipe detail',
+    titleUk: 'Насадки BMW M8',
+    eyebrow: 'Official Akrapovič product media',
+    eyebrowUk: 'Офіційне product-медіа Akrapovič',
+    image: '/images/shop/akrapovic/gallery/live/akrapovic-m8-tailpipe-wide-live.webp',
+  },
+] as const;
 
 export type ProductLine = {
   id: string;

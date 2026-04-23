@@ -11,10 +11,6 @@ export type SoundEntry = {
   exhaustTypeUk: string;
   /** Local sound clip path — keep under 200 KB / 5 sec */
   soundUrl: string;
-  /** Power delta from Akrapovic */
-  hpGain: string;
-  /** Weight saving */
-  weightSaving: string;
 };
 
 export const AKRAPOVIC_SOUNDS: SoundEntry[] = [
@@ -26,8 +22,6 @@ export const AKRAPOVIC_SOUNDS: SoundEntry[] = [
     exhaustType: 'Evolution Line (Titanium)',
     exhaustTypeUk: 'Evolution Line (Титан)',
     soundUrl: '/sounds/akrapovic/bmw-m3-evo.mp3',
-    hpGain: '+12 HP',
-    weightSaving: '-9.8 kg',
   },
   {
     id: 'porsche-911-gt3',
@@ -37,8 +31,6 @@ export const AKRAPOVIC_SOUNDS: SoundEntry[] = [
     exhaustType: 'Slip-On Race Line',
     exhaustTypeUk: 'Slip-On Race Line',
     soundUrl: '/sounds/akrapovic/porsche-911.mp3',
-    hpGain: '+8 HP',
-    weightSaving: '-7.2 kg',
   },
   {
     id: 'mercedes-amg-g63',
@@ -48,8 +40,6 @@ export const AKRAPOVIC_SOUNDS: SoundEntry[] = [
     exhaustType: 'Evolution Line (Titanium)',
     exhaustTypeUk: 'Evolution Line (Титан)',
     soundUrl: '/sounds/akrapovic/mercedes-amg.mp3',
-    hpGain: '+15 HP',
-    weightSaving: '-12.4 kg',
   },
   {
     id: 'audi-rs6',
@@ -59,8 +49,6 @@ export const AKRAPOVIC_SOUNDS: SoundEntry[] = [
     exhaustType: 'Slip-On Line (Titanium)',
     exhaustTypeUk: 'Slip-On Line (Титан)',
     soundUrl: '/sounds/akrapovic/audi-rs6.mp3',
-    hpGain: '+10 HP',
-    weightSaving: '-8.5 kg',
   },
   {
     id: 'lamborghini-aventador',
@@ -70,8 +58,6 @@ export const AKRAPOVIC_SOUNDS: SoundEntry[] = [
     exhaustType: 'Slip-On Line (Titanium)',
     exhaustTypeUk: 'Slip-On Line (Титан)',
     soundUrl: '/sounds/akrapovic/lamborghini.mp3',
-    hpGain: '+11 HP',
-    weightSaving: '-11.3 kg',
   },
   {
     id: 'ferrari-296',
@@ -81,7 +67,5 @@ export const AKRAPOVIC_SOUNDS: SoundEntry[] = [
     exhaustType: 'Slip-On Line (Titanium)',
     exhaustTypeUk: 'Slip-On Line (Титан)',
     soundUrl: '/sounds/akrapovic/ferrari-296.mp3',
-    hpGain: '+9 HP',
-    weightSaving: '-10.1 kg',
   },
 ];

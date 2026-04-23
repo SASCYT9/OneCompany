@@ -5,8 +5,7 @@ import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
 import {
   AKRAPOVIC_HERO,
-  AKRAPOVIC_STATS,
-  AKRAPOVIC_MATERIALS,
+  AKRAPOVIC_GALLERY,
   AKRAPOVIC_PRODUCT_LINES,
   AKRAPOVIC_HERITAGE,
 } from '../data/akrapovicHomeData';
@@ -132,134 +131,25 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
           )}
         </button>
 
-        {/* Stats bar */}
-        <div className="ak-hero__stats" data-ak-reveal>
-          {AKRAPOVIC_STATS.map((s, i) => (
-            <div key={i} className="ak-hero__stat">
-              <span className="ak-hero__stat-num">
-                {s.val}
-              </span>
-              <span className="ak-hero__stat-label">
-                {L(isUa, s.en, s.ua)}
-              </span>
-            </div>
-          ))}
-        </div>
-
         {/* Scroll indicator */}
         <div className="ak-hero__scroll" aria-hidden>
           <div className="ak-hero__scroll-line" />
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════
-          SECTION 2 — MATERIAL SHOWCASE (Titanium & Carbon)
-      ════════════════════════════════════════════════════════════════ */}
-      <section className="ak-materials">
-        <div className="ak-materials__header">
-          <span className="ak-label">
-            {L(isUa, 'What we work with', 'З чим ми працюємо')}
-          </span>
-        </div>
-
-        {/* Titanium */}
-        <div className="ak-material" data-ak-reveal>
-          <div className="ak-material__image">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={AKRAPOVIC_MATERIALS.titanium.image}
-              alt="Titanium alloy closeup"
-              loading="lazy"
-            />
-          </div>
-          <div className="ak-material__text">
-            <span className="ak-label">
-              {L(isUa, 'Material', 'Матеріал')}
-            </span>
-            <h2 className="ak-material__title">
-              {L(isUa, AKRAPOVIC_MATERIALS.titanium.title, AKRAPOVIC_MATERIALS.titanium.titleUk)}
-            </h2>
-            <div className="ak-material__shimmer" />
-            <p className="ak-material__desc">
-              {L(isUa, AKRAPOVIC_MATERIALS.titanium.description, AKRAPOVIC_MATERIALS.titanium.descriptionUk)}
-            </p>
-            <div className="ak-material__specs">
-              <div className="ak-material__spec">
-                <span className="ak-material__spec-val">600°C</span>
-                <span className="ak-material__spec-label">
-                  {L(isUa, 'Max Temperature', 'Макс. температура')}
-                </span>
+      <section className="ak-gallery" data-ak-reveal>
+        <div className="ak-gallery__grid">
+          {AKRAPOVIC_GALLERY.map((item, index) => (
+            <article
+              key={item.id}
+              className={`ak-gallery__card${index === 0 ? ' ak-gallery__card--featured' : ''}`}
+            >
+              <div className="ak-gallery__media">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={item.image} alt="" loading="lazy" aria-hidden="true" />
               </div>
-              <div className="ak-material__spec">
-                <span className="ak-material__spec-val">−40%</span>
-                <span className="ak-material__spec-label">
-                  {L(isUa, 'vs Stainless Steel', 'проти нерж. сталі')}
-                </span>
-              </div>
-              <div className="ak-material__spec">
-                <span className="ak-material__spec-val">Grade 1</span>
-                <span className="ak-material__spec-label">
-                  {L(isUa, 'Aerospace Alloy', 'Авіаційний сплав')}
-                </span>
-              </div>
-              <div className="ak-material__spec">
-                <span className="ak-material__spec-val">🇸🇮</span>
-                <span className="ak-material__spec-label">
-                  {L(isUa, 'Made in Slovenia', 'Виготовлено у Словенії')}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Carbon */}
-        <div className="ak-material ak-material--reverse" data-ak-reveal>
-          <div className="ak-material__image">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={AKRAPOVIC_MATERIALS.carbon.image}
-              alt="Carbon fibre closeup"
-              loading="lazy"
-            />
-          </div>
-          <div className="ak-material__text">
-            <span className="ak-label">
-              {L(isUa, 'Material', 'Матеріал')}
-            </span>
-            <h2 className="ak-material__title">
-              {L(isUa, AKRAPOVIC_MATERIALS.carbon.title, AKRAPOVIC_MATERIALS.carbon.titleUk)}
-            </h2>
-            <div className="ak-material__shimmer" />
-            <p className="ak-material__desc">
-              {L(isUa, AKRAPOVIC_MATERIALS.carbon.description, AKRAPOVIC_MATERIALS.carbon.descriptionUk)}
-            </p>
-            <div className="ak-material__specs">
-              <div className="ak-material__spec">
-                <span className="ak-material__spec-val">3K</span>
-                <span className="ak-material__spec-label">
-                  {L(isUa, 'Twill Weave', 'Плетіння')}
-                </span>
-              </div>
-              <div className="ak-material__spec">
-                <span className="ak-material__spec-val">−70%</span>
-                <span className="ak-material__spec-label">
-                  {L(isUa, 'vs Aluminum', 'проти алюмінію')}
-                </span>
-              </div>
-              <div className="ak-material__spec">
-                <span className="ak-material__spec-val">120°C</span>
-                <span className="ak-material__spec-label">
-                  {L(isUa, 'Autoclave Cured', 'Автоклавне затвердіння')}
-                </span>
-              </div>
-              <div className="ak-material__spec">
-                <span className="ak-material__spec-val">UV+</span>
-                <span className="ak-material__spec-label">
-                  {L(isUa, 'Stable Clear Coat', 'UV-стійке покриття')}
-                </span>
-              </div>
-            </div>
-          </div>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -345,14 +235,14 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
       ════════════════════════════════════════════════════════════════ */}
       <div className="ak-wave" aria-hidden>
         {Array.from({ length: 40 }).map((_, i) => {
-          const h = 6 + Math.cos(i * 0.4) * 14 + Math.random() * 10;
+          const h = 8 + ((i * 13) % 24);
           return (
             <div
               key={i}
               className="ak-wave__bar"
               style={{
                 '--h': `${h}px`,
-                animationDelay: `${i * 0.06}s`,
+                animationDelay: `${Number((i * 0.06).toFixed(2))}s`,
               } as React.CSSProperties}
             />
           );

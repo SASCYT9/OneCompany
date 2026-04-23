@@ -195,16 +195,6 @@ export default function AkrapovicSoundPlayer({ entry, isUa }: Props) {
         <p className="ak-sound-card__type text-xs font-light text-zinc-400 mb-5">
           {isUa ? entry.exhaustTypeUk : entry.exhaustType}
         </p>
-        <div className="ak-sound-card__specs flex items-center justify-between border-t border-white/5 pt-4 mt-auto">
-          <span className="ak-sound-card__spec flex flex-col">
-            <span className="text-[8px] uppercase tracking-[0.2em] font-light text-zinc-600 mb-1">Power</span>
-            <strong className="text-white text-xs font-light">+{entry.hpGain}</strong>
-          </span>
-          <span className="ak-sound-card__spec flex flex-col text-right">
-             <span className="text-[8px] uppercase tracking-[0.2em] font-light text-zinc-600 mb-1">Weight</span>
-            <strong className="text-emerald-400/80 text-xs font-light">{entry.weightSaving}</strong>
-          </span>
-        </div>
       </div>
     </div>
   );
