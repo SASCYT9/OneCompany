@@ -75,8 +75,27 @@ function resolveBrandFallbackImage(brand: string | null | undefined, vendor?: st
   );
 }
 
+function normalizeCatalogAssetInput(input: string | null | undefined) {
+  const raw = String(input ?? '').trim();
+  if (!raw) {
+    return '';
+  }
+
+  if (!raw.startsWith('http://') && !raw.startsWith('https://')) {
+    return raw;
+  }
+
+  try {
+    const parsed = new URL(raw);
+    parsed.pathname = parsed.pathname.replace(/\/{2,}/g, '/');
+    return parsed.toString();
+  } catch {
+    return raw;
+  }
+}
+
 function resolveCatalogAssetUrl(input: string | null | undefined, fallbackSrc?: string) {
-  const resolved = resolveUrbanThemeAssetUrl(String(input ?? ''));
+  const resolved = resolveUrbanThemeAssetUrl(normalizeCatalogAssetInput(input));
   if (!resolved && fallbackSrc) {
     return fallbackSrc;
   }

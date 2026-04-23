@@ -16,7 +16,7 @@ import AutoBreadcrumbs from '@/components/seo/AutoBreadcrumbs';
 import { ScrollToTop } from '@/components/ScrollToTop';
 import { ShopCurrencyProvider } from '@/components/shop/CurrencyContext';
 import { prisma } from '@/lib/prisma';
-import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
+import { getOrCreateShopSettings, getShopSettingsRuntime, type ShopSettingsRuntime } from '@/lib/shopAdminSettings';
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ua' }];
@@ -40,6 +40,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   // Get messages for this locale
   const messages = await getMessages();
   const videoConfig = await readVideoConfig();
+  let shopSettingsRuntime: ShopSettingsRuntime | null = null;
   
   // Fetch Shop Settings for company requisites
   // Use a hardcoded fallback during build to avoid DB pool exhaustion on static generation
@@ -50,6 +51,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error('DB timeout')), 5000))
     ]);
     const shopSettings = getShopSettingsRuntime(shopSettingsRecord);
+    shopSettingsRuntime = shopSettings;
     
     if (shopSettings.fopCompanyName) {
       companyRequisites = `${shopSettings.fopCompanyName}${shopSettings.fopEdrpou ? `, ЄДРПОУ: ${shopSettings.fopEdrpou}` : ''}`;
@@ -68,7 +70,10 @@ export default async function LocaleLayout({ children, params }: Props) {
           <link rel="preload" href={`/images/${videoConfig.heroPoster}`} as="image" />
         )}
         <LoadingScreen />
-        <ShopCurrencyProvider>
+        <ShopCurrencyProvider
+          defaultCurrency={shopSettingsRuntime?.defaultCurrency ?? 'UAH'}
+          initialRates={shopSettingsRuntime?.currencyRates ?? null}
+        >
           <div
             data-server-hero-enabled={videoConfig.heroEnabled ? 'true' : 'false'}
             className={cn('flex flex-col min-h-screen', locale === 'ua' && 'locale-ua')}

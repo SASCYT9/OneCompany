@@ -2,8 +2,9 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
+import { DEFAULT_CURRENCY_RATES, type ShopCurrencyCode } from "@/lib/shopAdminSettings";
 
-type CurrencyCode = "UAH" | "EUR" | "USD";
+type CurrencyCode = ShopCurrencyCode;
 type RegionCode = "UA" | "EU" | "US";
 
 type Rates = {
@@ -33,17 +34,57 @@ const STORAGE_KEY = "onecompany.shop.currency.v1";
 
 const ShopCurrencyContext = createContext<ShopCurrencyContextValue>(DEFAULT_VALUE);
 
-export function ShopCurrencyProvider({ children }: { children: ReactNode }) {
-  const [region, setRegionState] = useState<RegionCode>("UA");
-  const [currency, setCurrencyState] = useState<CurrencyCode>("UAH");
-  const [rates, setRates] = useState<Rates | null>(null);
+function currencyToRegion(currency: CurrencyCode): RegionCode {
+  if (currency === "USD") return "US";
+  if (currency === "EUR") return "EU";
+  return "UA";
+}
+
+function normalizeCurrency(value: unknown, fallback: CurrencyCode): CurrencyCode {
+  const normalized = String(value ?? "").trim().toUpperCase();
+  if (normalized === "USD" || normalized === "EUR" || normalized === "UAH") {
+    return normalized;
+  }
+  return fallback;
+}
+
+function normalizeRates(value: Partial<Rates> | null | undefined): Rates {
+  const eur = Number(value?.EUR ?? DEFAULT_CURRENCY_RATES.EUR);
+  const usd = Number(value?.USD ?? DEFAULT_CURRENCY_RATES.USD);
+  const uah = Number(value?.UAH ?? DEFAULT_CURRENCY_RATES.UAH);
+
+  return {
+    base: "EUR",
+    EUR: eur > 0 ? eur : DEFAULT_CURRENCY_RATES.EUR,
+    USD: usd > 0 ? usd : DEFAULT_CURRENCY_RATES.USD,
+    UAH: uah > 0 ? uah : DEFAULT_CURRENCY_RATES.UAH,
+  };
+}
+
+type ShopCurrencyProviderProps = {
+  children: ReactNode;
+  defaultCurrency?: CurrencyCode;
+  initialRates?: Partial<Rates> | null;
+};
+
+export function ShopCurrencyProvider({
+  children,
+  defaultCurrency = "UAH",
+  initialRates,
+}: ShopCurrencyProviderProps) {
+  const normalizedDefaultCurrency = normalizeCurrency(defaultCurrency, "UAH");
+  const [region, setRegionState] = useState<RegionCode>(currencyToRegion(normalizedDefaultCurrency));
+  const [currency, setCurrencyState] = useState<CurrencyCode>(normalizedDefaultCurrency);
+  const [rates, setRates] = useState<Rates | null>(normalizeRates(initialRates));
   const { data: session, status } = useSession();
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.currencyPref) {
-      setCurrencyState(session.user.currencyPref as CurrencyCode);
+      const nextCurrency = normalizeCurrency(session.user.currencyPref, normalizedDefaultCurrency);
+      setCurrencyState(nextCurrency);
+      setRegionState(currencyToRegion(nextCurrency));
     }
-  }, [session, status]);
+  }, [normalizedDefaultCurrency, session, status]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -51,12 +92,14 @@ export function ShopCurrencyProvider({ children }: { children: ReactNode }) {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw) as { region?: RegionCode; currency?: CurrencyCode };
-      if (parsed.region) setRegionState(parsed.region);
-      if (parsed.currency) setCurrencyState(parsed.currency);
+      const nextCurrency = normalizeCurrency(parsed.currency, normalizedDefaultCurrency);
+      const nextRegion = parsed.region ?? currencyToRegion(nextCurrency);
+      setRegionState(nextRegion);
+      setCurrencyState(nextCurrency);
     } catch {
       // ignore
     }
-  }, []);
+  }, [normalizedDefaultCurrency]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
