@@ -44,6 +44,7 @@ import {
   resolveUrbanProductGallery,
   resolveUrbanProductImage,
 } from '@/lib/urbanImageUtils';
+import { isBlobStorageUrl } from '@/lib/runtimeAssetPaths';
 import { ShopProductGallery } from './ShopProductGallery';
 import { getUrbanCollectionPageConfig } from '../data/urbanCollectionPages.server';
 import { findRelatedProducts } from '@/lib/shopRelatedProducts';
@@ -74,6 +75,29 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: 'EUR' | 
   }
 
   return `${currency} ${formattedAmount}`;
+}
+
+function resolveBlobBackedGalleryReference(
+  reference: string,
+  primaryImage: string | null | undefined
+) {
+  const normalizedReference = reference.replace(/^["']|["']$/g, '').trim();
+  if (!normalizedReference.startsWith('/media/')) {
+    return normalizedReference.startsWith('//') ? `https:${normalizedReference}` : normalizedReference;
+  }
+
+  const normalizedPrimaryImage = String(primaryImage ?? '').trim();
+  if (!isBlobStorageUrl(normalizedPrimaryImage)) {
+    return normalizedReference;
+  }
+
+  try {
+    const primaryUrl = new URL(normalizedPrimaryImage);
+    const blobPath = normalizedReference.replace(/^\/media\//, 'media/library/');
+    return `${primaryUrl.origin}/${blobPath}`;
+  } catch {
+    return normalizedReference;
+  }
 }
 
 function DetailListPanel({
@@ -299,8 +323,7 @@ export default async function ShopProductDetailPage({
 
   const gallery = (product.gallery?.length ? product.gallery : [product.image]).map(g => {
     if (!g) return '';
-    const raw = g.replace(/^["']|["']$/g, '').trim();
-    return raw.startsWith('//') ? `https:${raw}` : raw;
+    return resolveBlobBackedGalleryReference(g, product.image);
   });
 
   const resolvedGallery = isUrbanMode && urbanModelHandles.length > 0

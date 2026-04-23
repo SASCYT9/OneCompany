@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
+import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
+import { isAbsoluteHttpUrl, isBlobStorageUrl } from "@/lib/runtimeAssetPaths";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { localizeShopProductTitle } from "@/lib/shopText";
@@ -102,6 +103,10 @@ function computePricesFromUsd(
   }
 
   return { uah: baseUah, eur: baseEur, usd: baseUsd };
+}
+
+function shouldBypassImageOptimization(reference: string | null | undefined) {
+  return isBlobStorageUrl(reference) || isAbsoluteHttpUrl(reference);
 }
 
 export default function IpeVehicleFilter({
@@ -631,6 +636,7 @@ export default function IpeVehicleFilter({
                   );
 
                   const productTitle = localizeShopProductTitle(locale, product);
+                  const productImage = product.image || "/images/placeholders/product-fallback.jpg";
 
                   return (
                     <article key={product.slug} className="group relative bg-[#060606] overflow-hidden flex flex-col hover:bg-[#0a0a0a] transition-all duration-500 border border-white/5 hover:border-white/10">
@@ -639,11 +645,13 @@ export default function IpeVehicleFilter({
                         className="flex flex-col flex-grow z-10"
                       >
                         <div className="relative aspect-[4/3] bg-black overflow-hidden flex items-center justify-center p-8 border-b border-white/[0.02]">
-                          <Image
-                            src={product.image || "/images/placeholders/product-fallback.jpg"}
+                          <ShopProductImage
+                            src={productImage}
                             alt={productTitle}
                             fill
                             sizes="(max-width: 768px) 100vw, 33vw"
+                            fallbackSrc="/images/placeholders/product-fallback.jpg"
+                            unoptimized={shouldBypassImageOptimization(productImage)}
                             className="object-contain p-6 md:p-8 opacity-80 group-hover:opacity-100 transition-all duration-700 ease-out group-hover:scale-105"
                           />
                         </div>
