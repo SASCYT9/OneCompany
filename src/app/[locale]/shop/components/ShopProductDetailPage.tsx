@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ShoppingBag } from 'lucide-react';
 import { PrismaClient } from '@prisma/client';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
+import { ShopProductImage } from '@/components/shop/ShopProductImage';
 import { ShopInlinePriceText } from '@/components/shop/ShopInlinePriceText';
 import { ShopPrimaryPriceBox } from '@/components/shop/ShopPrimaryPriceBox';
 import { ShopProductViewTracker } from '@/components/shop/ShopProductViewTracker';
@@ -734,7 +734,7 @@ export default async function ShopProductDetailPage({
                     : item.image && item.image.replace(/^[\"']|[\"']$/g, '').trim().length > 0
                       ? item.image.replace(/^[\"']|[\"']$/g, '').trim()
                       : null) ? (
-                    <Image
+                    <ShopProductImage
                       src={
                         isUrbanMode && urbanCollectionHandle
                           ? resolveUrbanCollectionCardImage(
@@ -750,6 +750,7 @@ export default async function ShopProductDetailPage({
                       alt={localizeShopProductTitle(resolvedLocale, item)}
                       fill
                       sizes="(max-width: 1280px) 100vw, 30vw"
+                      fallbackSrc="/images/placeholders/product-fallback.svg"
                       className="object-cover transition duration-500 group-hover:scale-105"
                     />
                   ) : (

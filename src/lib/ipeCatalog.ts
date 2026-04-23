@@ -65,21 +65,14 @@ const IPE_VEHICLE_PATTERNS: Array<{ key: string; patterns: RegExp[] }> = [
 
 const IPE_LINE_PATTERNS: Array<{ key: string; patterns: RegExp[] }> = [
   {
-    key: 'Valvetronic Exhaust',
-    patterns: [
-      /\bvalvetronic\b/i,
-      /\bexhaust system\b/i,
-      /\bexhaust\b/i,
-      /\bcat back\b/i,
-      /\bcatback\b/i,
-      /\bfull-system\b/i,
-      /\bfull system\b/i,
-      /\brear valvetronic\b/i,
-    ],
-  },
-  {
     key: 'Downpipe / Cats',
-    patterns: [/\bdownpipe\b/i, /\bcat pipe\b/i, /\bcatted downpipe\b/i, /\bcatless downpipe\b/i],
+    patterns: [
+      /\bdownpipes?\b/i,
+      /\bdownpipes?\s*&\s*headers?\b/i,
+      /\bcat pipes?\b/i,
+      /\bcatted downpipes?\b/i,
+      /\bcatless downpipes?\b/i,
+    ],
   },
   {
     key: 'Headers',
@@ -87,11 +80,30 @@ const IPE_LINE_PATTERNS: Array<{ key: string; patterns: RegExp[] }> = [
   },
   {
     key: 'Tailpipes',
-    patterns: [/\btailpipes?\b/i, /\btips?\b/i, /\bchrome black tips\b/i, /\btitanium blue tips\b/i, /\bcarbon fiber tips\b/i],
+    patterns: [/\btailpipes?\b/i, /\bexhaust tips?\b/i, /\bchrome black tips\b/i, /\btitanium blue tips\b/i, /\bcarbon fiber tips\b/i],
   },
   {
     key: 'Controls / Electronics',
-    patterns: [/\bremote control\b/i, /\bobdii\b/i, /\blighting sensor\b/i, /\bhand gesture\b/i, /\bcontrol system\b/i],
+    patterns: [
+      /\bremote control (upgrade|kit|module|system)\b/i,
+      /\bobdii control\b/i,
+      /\blighting sensor\b/i,
+      /\bhand gesture\b/i,
+      /\bcontrol system\b/i,
+    ],
+  },
+  {
+    key: 'Valvetronic Exhaust',
+    patterns: [
+      /\bvalvetronic\b/i,
+      /\bcat back\b/i,
+      /\bcatback\b/i,
+      /\bfull-system\b/i,
+      /\bfull system\b/i,
+      /\brear valvetronic\b/i,
+      /\bexhaust system\b/i,
+      /\bexhaust\b/i,
+    ],
   },
 ];
 
@@ -100,7 +112,11 @@ const IPE_GENERIC_TAGS = new Set([
   'ipe exhaust',
   'innotech performance exhaust',
   'exhaust',
+  'exhaust system',
+  'exhaust systems',
   'accessories',
+  'option',
+  'upgrade',
   'stainless steel',
   'titanium',
   'carbon fiber',
@@ -129,6 +145,29 @@ const IPE_GENERIC_TAGS = new Set([
   'h-pipe',
   'remote control',
   'obdii',
+  'titanium blue tips',
+  'chrome black tips',
+  'carbon fiber tips',
+]);
+
+const IPE_VEHICLE_MAKE_TAGS = new Set([
+  'porsche',
+  'ferrari',
+  'lamborghini',
+  'mclaren',
+  'bmw',
+  'mercedes-benz',
+  'mercedes benz',
+  'mercedes-amg',
+  'mercedes amg',
+  'audi',
+  'volkswagen',
+  'toyota',
+  'maserati',
+  'aston martin',
+  'nissan',
+  'ford',
+  'subaru',
 ]);
 
 function buildSearchText(product: Pick<ShopProduct, 'tags' | 'title' | 'collection'>) {
@@ -154,7 +193,26 @@ function isYearTag(value: string) {
 
 function isVehicleMakeTag(value: string) {
   const normalized = normalizeToken(value);
-  return IPE_VEHICLE_PATTERNS.some((entry) => entry.patterns.some((pattern) => pattern.test(normalized)));
+  return IPE_VEHICLE_MAKE_TAGS.has(normalized);
+}
+
+function cleanIpeModelLabel(value: string, brand: string | null) {
+  let normalized = value.replace(/\s+/g, ' ').trim();
+  if (brand && normalized.toLowerCase().startsWith(`${brand.toLowerCase()} `)) {
+    normalized = normalized.slice(brand.length).trim();
+  }
+  return normalized
+    .replace(/\s+\((Titanium|Stainless Steel|Carbon Fiber)\)$/i, '')
+    .replace(/\s+\b(Catback System|Full Exhaust System|Exhaust System|Full)\b$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isGenericModelLabel(value: string | null | undefined) {
+  const normalized = normalizeToken(value);
+  if (!normalized) return true;
+  if (IPE_GENERIC_TAGS.has(normalized)) return true;
+  return /\b(chrome black|titanium blue|carbon fiber|polished silver|satin silver)\s+tips?\b/i.test(normalized);
 }
 
 export function resolveIpeVehicleBrand(product: Pick<ShopProduct, 'tags' | 'title' | 'collection'>) {
@@ -201,15 +259,12 @@ export function resolveIpeVehicleModel(product: Pick<ShopProduct, 'tags' | 'titl
   });
 
   if (preferredTag) {
-    const normalized = preferredTag.replace(/\s+/g, ' ').trim();
-    if (resolvedBrand && normalized.toLowerCase().startsWith(`${resolvedBrand.toLowerCase()} `)) {
-      return normalized.slice(resolvedBrand.length).trim();
-    }
-    return normalized;
+    const normalized = cleanIpeModelLabel(preferredTag, resolvedBrand);
+    return isGenericModelLabel(normalized) ? null : normalized;
   }
 
   const fallback = product.title?.en || product.title?.ua || '';
-  return fallback
+  const normalizedFallback = fallback
     .replace(/\bExhaust System\b/gi, '')
     .replace(/\bValvetronic\b/gi, '')
     .replace(/\bInnotech Performance Exhaust\b/gi, '')
@@ -217,6 +272,8 @@ export function resolveIpeVehicleModel(product: Pick<ShopProduct, 'tags' | 'titl
     .replace(/^\s*(Porsche|Ferrari|Lamborghini|McLaren|BMW|Mercedes-Benz|Mercedes-AMG|Audi|Volkswagen|Toyota|Maserati|Aston Martin|Nissan|Ford|Subaru)\s+/i, '')
     .replace(/\s+/g, ' ')
     .trim();
+  const cleanedFallback = cleanIpeModelLabel(normalizedFallback, resolvedBrand);
+  return isGenericModelLabel(cleanedFallback) ? null : cleanedFallback;
 }
 
 export function resolveIpeProductMaterials(product: Pick<ShopProduct, 'tags' | 'title'>) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
@@ -64,7 +64,62 @@ const SPEC_LABELS: Record<string, Record<string, string>> = {
 };
 
 const FILTER_LIST_SCROLL_CLASS =
-  "flex flex-col max-h-[220px] overflow-y-auto overscroll-contain pr-1";
+  "flex max-h-56 flex-col overflow-y-auto overscroll-contain pr-1 [scrollbar-color:rgba(194,157,89,0.55)_transparent] [scrollbar-width:thin]";
+
+type FilterSectionKey = "brand" | "line" | "model" | "material" | "spec";
+
+type FilterSectionProps = {
+  title: string;
+  count?: number;
+  isOpen: boolean;
+  children: ReactNode;
+  onToggle: () => void;
+};
+
+function FilterSection({ title, count, isOpen, children, onToggle }: FilterSectionProps) {
+  return (
+    <div className="border-t border-white/[0.07] pt-4">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="flex w-full items-center justify-between gap-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-white/65 transition-colors hover:text-white"
+      >
+        <span>{title}</span>
+        <span className="ml-auto flex items-center gap-3">
+          {typeof count === "number" && (
+            <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[10px] tracking-normal text-white/38">
+              {count}
+            </span>
+          )}
+          <ChevronDown
+            size={13}
+            className={`text-[#c29d59] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          />
+        </span>
+      </button>
+      {isOpen && <div className="mt-3">{children}</div>}
+    </div>
+  );
+}
+
+type ActiveFilterChipProps = {
+  label: string;
+  onClear: () => void;
+};
+
+function ActiveFilterChip({ label, onClear }: ActiveFilterChipProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClear}
+      className="inline-flex items-center gap-2 rounded-full border border-[#c29d59]/30 bg-[#c29d59]/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] text-[#f1d8a5] transition-colors hover:border-[#c29d59]/60 hover:bg-[#c29d59]/16"
+    >
+      <span className="max-w-[180px] truncate">{label}</span>
+      <X size={11} />
+    </button>
+  );
+}
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | "USD" | "UAH") {
   const formatter = new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "en-US", {
@@ -140,8 +195,34 @@ export default function IpeVehicleFilter({
   const [activeMaterial, setActiveMaterial] = useState<string>(initialMaterial);
   const [activeSpec, setActiveSpec] = useState<string>(initialSpec);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [modelQuery, setModelQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
+  const [openSections, setOpenSections] = useState<Record<FilterSectionKey, boolean>>({
+    brand: true,
+    line: initialLine !== "all",
+    model: initialModel !== "all",
+    material: initialMaterial !== "all",
+    spec: initialSpec !== "all",
+  });
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
+
+  const toggleSection = useCallback((section: FilterSectionKey) => {
+    setOpenSections((current) => ({
+      ...current,
+      [section]: !current[section],
+    }));
+  }, []);
+
+  const resetFilters = useCallback(() => {
+    setActiveBrand("all");
+    setActiveLine("all");
+    setActiveModel("all");
+    setActiveMaterial("all");
+    setActiveSpec("all");
+    setSearchQuery("");
+    setModelQuery("");
+    setSortOrder("default");
+  }, []);
 
   const syncToUrl = useCallback((brand: string, line: string, model: string, material: string, spec: string, sort: string, query: string) => {
     const params = new URLSearchParams();
@@ -206,6 +287,12 @@ export default function IpeVehicleFilter({
       .map(([key, count]) => ({ key, label: key, count }));
   }, [activeBrand, enrichedProducts]);
 
+  const visibleModels = useMemo(() => {
+    const query = modelQuery.trim().toLowerCase();
+    if (!query) return availableModels;
+    return availableModels.filter((model) => model.label.toLowerCase().includes(query));
+  }, [availableModels, modelQuery]);
+
   // Extract iPE specific product lines (Valvetronic, Downpipe, Headers)
   const availableLines = useMemo(() => {
     if (activeBrand === "all" && products.length > 50) return [];
@@ -266,12 +353,33 @@ export default function IpeVehicleFilter({
     setActiveModel("all");
     setActiveMaterial("all");
     setActiveSpec("all");
+    setModelQuery("");
   }, [activeBrand]);
 
   useEffect(() => {
     setActiveMaterial("all");
     setActiveSpec("all");
   }, [activeModel]);
+
+  useEffect(() => {
+    setOpenSections((current) => {
+      if (activeBrand === "all") {
+        return {
+          ...current,
+          line: false,
+          model: false,
+          material: false,
+          spec: false,
+        };
+      }
+
+      return {
+        ...current,
+        line: availableLines.length > 0,
+        model: activeModel !== "all",
+      };
+    });
+  }, [activeBrand, activeModel, availableLines.length]);
 
   const filteredProducts = useMemo(() => {
     let result = enrichedProducts;
@@ -332,6 +440,17 @@ export default function IpeVehicleFilter({
   }, [activeBrand, activeLine, activeMaterial, activeModel, activeSpec, enrichedProducts, searchQuery, sortOrder, locale]);
 
   const totalCount = products.length;
+  const activeBrandLabel = activeBrand !== "all" ? (BRAND_LABELS[activeBrand]?.[locale] || activeBrand) : null;
+  const activeMaterialLabel = activeMaterial !== "all" ? (MATERIAL_LABELS[activeMaterial]?.[locale] || activeMaterial) : null;
+  const activeSpecLabel = activeSpec !== "all" ? (SPEC_LABELS[activeSpec]?.[locale] || activeSpec) : null;
+  const hasActiveFilters =
+    activeBrand !== "all" ||
+    activeLine !== "all" ||
+    activeModel !== "all" ||
+    activeMaterial !== "all" ||
+    activeSpec !== "all" ||
+    searchQuery.trim().length > 0 ||
+    sortOrder !== "default";
 
   if (!mounted) return null;
 
@@ -349,7 +468,7 @@ export default function IpeVehicleFilter({
           >
             <SlidersHorizontal size={13} />
             {isUa ? "Фільтри" : "Filters"}
-            {activeBrand !== "all" && (
+            {hasActiveFilters && (
               <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59] ml-1" />
             )}
           </button>
@@ -371,7 +490,7 @@ export default function IpeVehicleFilter({
               className={`${
                 mobileFilterOpen
                   ? "flex min-h-full flex-col gap-8 overflow-y-auto border-r border-white/10 bg-zinc-950 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
-                  : "lg:sticky lg:top-[120px] lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto pb-10 flex flex-col gap-8 bg-zinc-950 border border-white/5 p-6 rounded-none shadow-none"
+                  : "lg:sticky lg:top-[104px] lg:max-h-[calc(100vh-124px)] lg:overflow-y-auto flex flex-col gap-5 bg-zinc-950/95 border border-white/[0.08] p-5 rounded-[2px] shadow-[0_18px_55px_rgba(0,0,0,0.38)] [scrollbar-color:rgba(194,157,89,0.35)_transparent] [scrollbar-width:thin]"
               }`}
             >
               <button
@@ -382,15 +501,36 @@ export default function IpeVehicleFilter({
               >
                 <X size={16} />
               </button>
-              
-              <div>
-                <h2 className="text-2xl font-light tracking-widest uppercase mb-1">
-                  {isUa ? "Каталог" : "Catalog"}
-                </h2>
-                <p className="text-zinc-500 text-xs tracking-widest uppercase font-medium">
-                  {filteredProducts.length} {isUa ? "з" : "of"} {totalCount} {isUa ? "компонентів" : "components"}
-                </p>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-light tracking-widest uppercase text-white">
+                    {isUa ? "Каталог" : "Catalog"}
+                  </h2>
+                  <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+                    {filteredProducts.length} {isUa ? "з" : "of"} {totalCount} {isUa ? "компонентів" : "components"}
+                  </p>
+                </div>
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    onClick={resetFilters}
+                    className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#c29d59]/80 transition-colors hover:text-[#f1d8a5]"
+                  >
+                    {isUa ? "Скинути" : "Reset"}
+                  </button>
+                )}
               </div>
+
+              {hasActiveFilters && (
+                <div className="flex flex-wrap gap-2">
+                  {activeBrandLabel && <ActiveFilterChip label={activeBrandLabel} onClear={() => setActiveBrand("all")} />}
+                  {activeLine !== "all" && <ActiveFilterChip label={activeLine} onClear={() => setActiveLine("all")} />}
+                  {activeModel !== "all" && <ActiveFilterChip label={activeModel} onClear={() => setActiveModel("all")} />}
+                  {activeMaterialLabel && <ActiveFilterChip label={activeMaterialLabel} onClear={() => setActiveMaterial("all")} />}
+                  {activeSpecLabel && <ActiveFilterChip label={activeSpecLabel} onClear={() => setActiveSpec("all")} />}
+                  {searchQuery.trim() && <ActiveFilterChip label={searchQuery.trim()} onClear={() => setSearchQuery("")} />}
+                </div>
+              )}
 
               <div className="relative">
                 <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
@@ -399,10 +539,11 @@ export default function IpeVehicleFilter({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={isUa ? "Пошук систем..." : "Search exhausts..."}
-                  className="w-full bg-black border border-white/10 pl-11 pr-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#c29d59]/50 transition-colors rounded-none"
+                  className="w-full rounded-[2px] border border-white/10 bg-black/80 py-3 pl-11 pr-4 text-sm text-white placeholder-white/30 transition-colors focus:border-[#c29d59]/50 focus:outline-none"
                 />
                 {searchQuery && (
                   <button
+                    type="button"
                     onClick={() => setSearchQuery("")}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
                   >
@@ -411,16 +552,19 @@ export default function IpeVehicleFilter({
                 )}
               </div>
 
-              <div className="flex flex-col gap-3 mt-2">
-                <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/[0.06] pb-2 font-medium">
-                  {isUa ? "Оберіть марку" : "Select Brand"}
-                </h3>
+              <FilterSection
+                title={isUa ? "Марка" : "Brand"}
+                count={availableBrands.length}
+                isOpen={openSections.brand}
+                onToggle={() => toggleSection("brand")}
+              >
                 <ul className={FILTER_LIST_SCROLL_CLASS}>
                   <li>
                     <button
+                      type="button"
                       onClick={() => setActiveBrand("all")}
-                      className={`w-full text-left py-2.5 text-xs uppercase tracking-[0.15em] font-semibold transition-colors flex justify-between items-center ${
-                        activeBrand === "all" ? "text-white" : "text-white/50 hover:text-[#c29d59]"
+                      className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                        activeBrand === "all" ? "bg-white/[0.06] text-white" : "text-white/50 hover:bg-white/[0.03] hover:text-[#c29d59]"
                       }`}
                     >
                       <span>{isUa ? "Всі марки" : "All Brands"}</span>
@@ -430,34 +574,37 @@ export default function IpeVehicleFilter({
                   {availableBrands.map((brand) => (
                     <li key={brand.key}>
                       <button
-                         onClick={() => setActiveBrand(brand.key)}
-                         className={`w-full text-left py-2.5 text-xs uppercase tracking-[0.15em] font-semibold transition-colors flex justify-between items-center ${
-                           activeBrand === brand.key ? "text-white" : "text-white/50 hover:text-[#c29d59]"
-                         }`}
+                        type="button"
+                        onClick={() => setActiveBrand(brand.key)}
+                        className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                          activeBrand === brand.key ? "bg-[#c29d59]/10 text-white" : "text-white/50 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                          }`}
                       >
                         <span>{brand.label}</span>
                         <div className="flex items-center gap-3">
-                          <span className="text-[10px] text-zinc-600 font-bold">{brand.count}</span>
+                          <span className="text-[10px] font-bold text-zinc-600">{brand.count}</span>
                           {activeBrand === brand.key && <span className="w-1.5 h-1.5 rounded-full bg-[#c29d59]"></span>}
                         </div>
                       </button>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </FilterSection>
 
-              {availableLines.length > 0 && (
-                <div className="flex flex-col gap-3 mt-2 animate-in fade-in slide-in-from-top-4 duration-500">
-                  <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/[0.06] pb-2 flex items-center gap-2 font-medium">
-                    <SlidersHorizontal size={12} />
-                    {isUa ? "Продукція" : "Product Line"}
-                  </h3>
+              {activeBrand !== "all" && availableLines.length > 0 && (
+                <FilterSection
+                  title={isUa ? "Продукція" : "Product Line"}
+                  count={availableLines.length}
+                  isOpen={openSections.line}
+                  onToggle={() => toggleSection("line")}
+                >
                   <ul className={FILTER_LIST_SCROLL_CLASS}>
                     <li>
                       <button
+                        type="button"
                         onClick={() => setActiveLine("all")}
-                        className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.12em] font-semibold transition-colors flex justify-between items-center ${
-                          activeLine === "all" ? "text-[#c29d59]" : "text-white/40 hover:text-[#c29d59]"
+                        className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                          activeLine === "all" ? "bg-white/[0.06] text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
                         }`}
                       >
                         {isUa ? "Всі" : "All Lines"}
@@ -466,9 +613,10 @@ export default function IpeVehicleFilter({
                     {availableLines.map((line) => (
                       <li key={line.key}>
                         <button
+                          type="button"
                           onClick={() => setActiveLine(line.key)}
-                          className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.12em] font-semibold transition-colors flex justify-between items-center ${
-                            activeLine === line.key ? "text-[#c29d59]" : "text-white/40 hover:text-[#c29d59]"
+                          className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                            activeLine === line.key ? "bg-[#c29d59]/10 text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
                           }`}
                         >
                           <span>{line.label}</span>
@@ -477,31 +625,47 @@ export default function IpeVehicleFilter({
                       </li>
                     ))}
                   </ul>
-                </div>
+                </FilterSection>
               )}
 
-              {availableModels.length > 0 && (
-                <div className="flex flex-col gap-3 mt-2 animate-in fade-in slide-in-from-top-4 duration-500">
-                  <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/[0.06] pb-2 font-medium">
-                    {isUa ? "Модель" : "Vehicle Model"}
-                  </h3>
+              {activeBrand !== "all" && availableModels.length > 0 && (
+                <FilterSection
+                  title={isUa ? "Модель" : "Vehicle Model"}
+                  count={availableModels.length}
+                  isOpen={openSections.model}
+                  onToggle={() => toggleSection("model")}
+                >
+                  {availableModels.length > 8 && (
+                    <div className="relative mb-2">
+                      <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25" />
+                      <input
+                        type="text"
+                        value={modelQuery}
+                        onChange={(event) => setModelQuery(event.target.value)}
+                        placeholder={isUa ? "Пошук моделі" : "Find model"}
+                        className="w-full rounded-[2px] border border-white/8 bg-black/55 py-2 pl-9 pr-3 text-xs text-white placeholder-white/25 transition-colors focus:border-[#c29d59]/45 focus:outline-none"
+                      />
+                    </div>
+                  )}
                   <ul className={FILTER_LIST_SCROLL_CLASS}>
                     <li>
                       <button
+                        type="button"
                         onClick={() => setActiveModel("all")}
-                        className={`w-full text-left py-2 text-[11px] tracking-[0.08em] uppercase font-semibold transition-colors flex justify-between items-center ${
-                          activeModel === "all" ? "text-[#c29d59]" : "text-white/40 hover:text-[#c29d59]"
+                        className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors ${
+                          activeModel === "all" ? "bg-white/[0.06] text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
                         }`}
                       >
                         <span>{isUa ? "Всі моделі" : "All Models"}</span>
                       </button>
                     </li>
-                    {availableModels.map((model) => (
+                    {visibleModels.map((model) => (
                       <li key={model.key}>
                         <button
+                          type="button"
                           onClick={() => setActiveModel(model.key)}
-                          className={`w-full text-left py-2 text-[11px] tracking-[0.03em] font-medium transition-colors flex justify-between items-center ${
-                            activeModel === model.key ? "text-[#c29d59]" : "text-white/40 hover:text-[#c29d59]"
+                          className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-medium tracking-[0.02em] transition-colors ${
+                            activeModel === model.key ? "bg-[#c29d59]/10 text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
                           }`}
                         >
                           <span className="pr-3">{model.label}</span>
@@ -510,20 +674,23 @@ export default function IpeVehicleFilter({
                       </li>
                     ))}
                   </ul>
-                </div>
+                </FilterSection>
               )}
 
-              {availableMaterials.length > 0 && (
-                <div className="flex flex-col gap-3 mt-2 animate-in fade-in slide-in-from-top-4 duration-500">
-                  <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/[0.06] pb-2 font-medium">
-                    {isUa ? "Матеріал" : "Material"}
-                  </h3>
+              {activeBrand !== "all" && availableMaterials.length > 0 && (
+                <FilterSection
+                  title={isUa ? "Матеріал" : "Material"}
+                  count={availableMaterials.length}
+                  isOpen={openSections.material}
+                  onToggle={() => toggleSection("material")}
+                >
                   <ul className={FILTER_LIST_SCROLL_CLASS}>
                     <li>
                       <button
+                        type="button"
                         onClick={() => setActiveMaterial("all")}
-                        className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.12em] font-semibold transition-colors flex justify-between items-center ${
-                          activeMaterial === "all" ? "text-[#c29d59]" : "text-white/40 hover:text-[#c29d59]"
+                        className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                          activeMaterial === "all" ? "bg-white/[0.06] text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
                         }`}
                       >
                         <span>{isUa ? "Усі" : "All"}</span>
@@ -532,9 +699,10 @@ export default function IpeVehicleFilter({
                     {availableMaterials.map((material) => (
                       <li key={material.key}>
                         <button
+                          type="button"
                           onClick={() => setActiveMaterial(material.key)}
-                          className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.12em] font-semibold transition-colors flex justify-between items-center ${
-                            activeMaterial === material.key ? "text-[#c29d59]" : "text-white/40 hover:text-[#c29d59]"
+                          className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                            activeMaterial === material.key ? "bg-[#c29d59]/10 text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
                           }`}
                         >
                           <span>{material.label}</span>
@@ -543,20 +711,23 @@ export default function IpeVehicleFilter({
                       </li>
                     ))}
                   </ul>
-                </div>
+                </FilterSection>
               )}
 
-              {availableSpecs.length > 0 && (
-                <div className="flex flex-col gap-3 mt-2 animate-in fade-in slide-in-from-top-4 duration-500">
-                  <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/[0.06] pb-2 font-medium">
-                    {isUa ? "Конфігурація" : "Configuration"}
-                  </h3>
+              {activeBrand !== "all" && availableSpecs.length > 0 && (
+                <FilterSection
+                  title={isUa ? "Конфігурація" : "Configuration"}
+                  count={availableSpecs.length}
+                  isOpen={openSections.spec}
+                  onToggle={() => toggleSection("spec")}
+                >
                   <ul className={FILTER_LIST_SCROLL_CLASS}>
                     <li>
                       <button
+                        type="button"
                         onClick={() => setActiveSpec("all")}
-                        className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.12em] font-semibold transition-colors flex justify-between items-center ${
-                          activeSpec === "all" ? "text-[#c29d59]" : "text-white/40 hover:text-[#c29d59]"
+                        className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                          activeSpec === "all" ? "bg-white/[0.06] text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
                         }`}
                       >
                         <span>{isUa ? "Усі" : "All"}</span>
@@ -565,9 +736,10 @@ export default function IpeVehicleFilter({
                     {availableSpecs.map((spec) => (
                       <li key={spec.key}>
                         <button
+                          type="button"
                           onClick={() => setActiveSpec(spec.key)}
-                          className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.12em] font-semibold transition-colors flex justify-between items-center ${
-                            activeSpec === spec.key ? "text-[#c29d59]" : "text-white/40 hover:text-[#c29d59]"
+                          className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                            activeSpec === spec.key ? "bg-[#c29d59]/10 text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
                           }`}
                         >
                           <span>{spec.label}</span>
@@ -576,7 +748,7 @@ export default function IpeVehicleFilter({
                       </li>
                     ))}
                   </ul>
-                </div>
+                </FilterSection>
               )}
             </div>
           </aside>
@@ -620,7 +792,8 @@ export default function IpeVehicleFilter({
                     : (isUa ? "Каталог iPE наразі оновлюється." : "The iPE catalog is currently being updated.")}
                 </p>
                 <button
-                  onClick={() => { setActiveBrand("all"); setActiveLine("all"); setActiveModel("all"); setActiveMaterial("all"); setActiveSpec("all"); setSearchQuery(""); setSortOrder("default"); }}
+                  type="button"
+                  onClick={resetFilters}
                   className="px-8 py-3 bg-[#c29d59] text-black text-[10px] uppercase tracking-widest hover:bg-white transition-all duration-300 font-bold"
                 >
                   {isUa ? "Скинути фільтри" : "Reset Filters"}

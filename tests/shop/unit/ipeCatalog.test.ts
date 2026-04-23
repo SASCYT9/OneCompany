@@ -81,6 +81,24 @@ test('resolveIpeProductLine classifies exhaust and control products consistently
 
   assert.equal(
     resolveIpeProductLine({
+      tags: ['Downpipes & Headers', 'iPE', 'Exhaust'],
+      title: { en: 'Maserati GranTurismo 4.2 Exhaust System', ua: 'Maserati GranTurismo 4.2 Exhaust System' },
+      collection: { en: 'Downpipes & Headers', ua: 'Downpipes & Headers' },
+    }),
+    'Downpipe / Cats'
+  );
+
+  assert.equal(
+    resolveIpeProductLine({
+      tags: ['full-system', 'remote-control'],
+      title: { en: 'BMW M2 Full System Exhaust', ua: 'BMW M2 Full System Exhaust' },
+      collection: { en: 'BMW', ua: 'BMW' },
+    }),
+    'Valvetronic Exhaust'
+  );
+
+  assert.equal(
+    resolveIpeProductLine({
       tags: ['Audi', 'downpipe'],
       title: { en: 'Audi RS3 Catted Downpipe', ua: 'Audi RS3 Catted Downpipe' },
       collection: { en: 'Audi', ua: 'Audi' },
@@ -106,6 +124,26 @@ test('resolveIpeVehicleModel prefers specific fitment tags over generic brand ta
       collection: { en: 'BMW', ua: 'BMW' },
     }),
     'M2 (G87)'
+  );
+});
+
+test('resolveIpeVehicleModel ignores option and upgrade service tags', () => {
+  assert.equal(
+    resolveIpeVehicleModel({
+      tags: ['upgrade', 'Accessories', 'iPE', 'McLaren', '2011', 'MP4-12C', 'Titanium'],
+      title: { en: 'McLaren MP4-12C (Titanium) Exhaust System', ua: 'McLaren MP4-12C (Titanium) Exhaust System' },
+      collection: { en: 'McLaren', ua: 'McLaren' },
+    }),
+    'MP4-12C'
+  );
+
+  assert.equal(
+    resolveIpeVehicleModel({
+      tags: ['tips', 'Accessories', 'iPE', 'Option', 'Porsche', 'Titanium Blue Tips', 'titanium-blue'],
+      title: { en: 'Titanium Blue Tips', ua: 'Titanium Blue Tips' },
+      collection: { en: 'Porsche', ua: 'Porsche' },
+    }),
+    null
   );
 });
 
