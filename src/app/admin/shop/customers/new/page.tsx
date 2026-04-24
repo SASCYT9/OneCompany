@@ -106,7 +106,7 @@ export default function AdminNewCustomerPage() {
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-[11px] uppercase tracking-wider font-medium text-white/50">Ім'я *</span>
+                <span className="mb-2 block text-[11px] uppercase tracking-wider font-medium text-white/50">Ім&apos;я *</span>
                 <input
                   type="text"
                   name="firstName"

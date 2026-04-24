@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, RotateCcw, X } from "lucide-react";
+import { ChevronDown, RotateCcw, Search, X } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
@@ -19,8 +19,7 @@ import {
   type UrbanCatalogFamily,
   URBAN_FAMILY_ORDER,
 } from "@/lib/urbanCatalogFacets";
-import { URBAN_COLLECTION_CARDS } from "@/app/[locale]/shop/data/urbanCollectionsList";
-import { isUrbanPlaceholderImage, resolveUrbanProductImage } from "@/lib/urbanImageUtils";
+import { resolveUrbanProductImage } from "@/lib/urbanImageUtils";
 
 type UrbanVehicleFilterProps = {
   locale: SupportedLocale;
@@ -40,6 +39,16 @@ type FacetItem = {
   label: string;
   count: number;
 };
+
+const PAGE_SIZE = 24;
+
+function normalizeSearchValue(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[ʼ'’]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 type PremiumComboboxOption = {
   value: string;
@@ -195,10 +204,10 @@ function PremiumCombobox({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listboxId}
-        className={`flex min-h-[60px] w-full items-center justify-between gap-4 rounded-[16px] px-5 py-3 text-left transition duration-300 ${
+        className={`flex min-h-[58px] w-full items-center justify-between gap-4 rounded-[10px] px-4 py-3 text-left transition duration-300 ${
           open
-            ? "bg-[#c29d59]/10 shadow-[inset_0_0_0_1px_rgba(194,157,89,0.4)] backdrop-blur-md"
-            : "bg-transparent hover:bg-white/[0.05]"
+            ? "bg-white/[0.07] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)] backdrop-blur-md"
+            : "bg-transparent hover:bg-white/[0.04]"
         }`}
       >
         <span className="min-w-0">
@@ -211,7 +220,7 @@ function PremiumCombobox({
       </button>
 
       {open ? (
-        <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-[70] overflow-hidden rounded-[20px] border border-white/10 bg-[#0a0a0a]/90 backdrop-blur-2xl shadow-[0_28px_80px_rgba(0,0,0,0.55)]">
+        <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-[70] overflow-hidden rounded-[14px] border border-white/12 bg-[#0a0a0a]/95 backdrop-blur-2xl shadow-[0_28px_80px_rgba(0,0,0,0.55)]">
           <div id={listboxId} role="listbox" className="max-h-[420px] overflow-y-auto p-2">
             <button
               type="button"
@@ -221,7 +230,7 @@ function PremiumCombobox({
               }}
               className={`flex w-full items-center rounded-[14px] px-4 py-3 text-left text-sm transition ${
                 value === "all"
-                  ? "bg-[#c29d59]/12 text-white"
+                  ? "bg-white/[0.08] text-white"
                   : "text-white/72 hover:bg-white/[0.04] hover:text-white"
               }`}
             >
@@ -245,7 +254,7 @@ function PremiumCombobox({
                         }}
                         className={`flex w-full items-center rounded-[14px] px-4 py-3 text-left text-sm transition ${
                           value === option.value
-                            ? "bg-[#c29d59]/12 text-white"
+                            ? "bg-white/[0.08] text-white"
                             : "text-white/72 hover:bg-white/[0.04] hover:text-white"
                         }`}
                       >
@@ -313,11 +322,11 @@ function ProductCard({
 
   return (
     <article
-      className={`group flex h-full flex-col overflow-hidden rounded-[28px] border backdrop-blur-md ${
-        featured ? "border-[#c29d59]/40 bg-gradient-to-br from-[#121212]/80 to-[#080808]/90" : "border-white/10 bg-white/[0.02]"
-      } shadow-[0_20px_70px_rgba(0,0,0,0.28)] transition duration-500 hover:-translate-y-2 hover:border-white/25 hover:shadow-[0_30px_90px_rgba(0,0,0,0.7)]`}
+      className={`group flex h-full flex-col overflow-hidden rounded-[14px] border backdrop-blur-md ${
+        featured ? "border-white/18 bg-[#0b0b0b]" : "border-white/10 bg-white/[0.018]"
+      } shadow-[0_18px_56px_rgba(0,0,0,0.24)] transition duration-500 hover:-translate-y-1 hover:border-white/28 hover:bg-white/[0.035] hover:shadow-[0_26px_72px_rgba(0,0,0,0.62)]`}
     >
-      <div className="relative aspect-[4/3] overflow-hidden border-b border-white/10 bg-[#050505]">
+      <div className="relative aspect-[16/11] overflow-hidden border-b border-white/10 bg-[#050505]">
         <Image
           src={productImage}
           alt={entry.title}
@@ -328,34 +337,39 @@ function ProductCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           {featured ? (
-            <span className="rounded-full border border-[#c29d59]/60 bg-[#c29d59]/15 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.24em] text-[#ead29d]">
-              {isUa ? "Пріоритет Urban" : "Urban priority"}
+            <span className="border border-white/20 bg-black/45 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.22em] text-white/82 backdrop-blur-md">
+              {isUa ? "Urban programme" : "Urban programme"}
             </span>
           ) : null}
           {entry.isBodykit ? (
-            <span className="rounded-full border border-white/20 bg-black/55 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-white/80">
+            <span className="border border-white/14 bg-black/35 px-2.5 py-1 text-[9px] uppercase tracking-[0.2em] text-white/62 backdrop-blur-md">
               {isUa ? "Повний комплект" : "Complete kit"}
             </span>
           ) : null}
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-5 sm:p-6">
-        <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-white/45">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <div className="flex flex-wrap items-center gap-2 text-[9px] uppercase tracking-[0.2em] text-white/42">
           <span>{entry.brand}</span>
           <span className="text-white/20">•</span>
           <span>{entry.modelSummaryLabel}</span>
         </div>
 
         <Link href={productUrl} className="mt-3 block">
-          <h3 className="text-[20px] font-semibold leading-tight text-white transition duration-200 group-hover:text-[#ead29d]">
+          <h3 className="line-clamp-2 min-h-[2.8rem] text-[18px] font-medium leading-tight text-white transition duration-200 group-hover:text-white">
             {entry.title}
           </h3>
         </Link>
 
-        <p className="mt-2 text-sm leading-6 text-white/65">{entry.categoryLabel}</p>
-
-
+        <div className="mt-2 space-y-1.5">
+          <p className="line-clamp-1 text-sm leading-6 text-white/58">{entry.categoryLabel}</p>
+          {entry.product.sku ? (
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/32">
+              SKU {entry.product.sku}
+            </p>
+          ) : null}
+        </div>
 
         <div className="mt-auto pt-5">
           <div className="flex items-end justify-between gap-4">
@@ -365,7 +379,7 @@ function ProductCard({
                   {formatDisplayPrice(locale, currency, computedCompare!)}
                 </p>
               ) : null}
-              <p className="mt-1 text-[22px] font-semibold tracking-tight text-white">
+              <p className="mt-1 text-[20px] font-medium tracking-tight text-white">
                 {hasPrice
                   ? formatDisplayPrice(locale, currency, computedPrice)
                   : isUa
@@ -374,10 +388,10 @@ function ProductCard({
               </p>
             </div>
             <span
-              className={`rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.22em] ${
+              className={`px-0 py-1 text-[10px] uppercase tracking-[0.18em] ${
                 entry.product.stock === "inStock"
-                  ? "border border-emerald-500/40 bg-emerald-500/12 text-emerald-300"
-                  : "border border-white/14 bg-white/6 text-white/55"
+                  ? "text-white/58"
+                  : "text-white/45"
               }`}
             >
               {availability}
@@ -387,7 +401,7 @@ function ProductCard({
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
               href={productUrl}
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/14 px-5 text-xs font-medium uppercase tracking-[0.2em] text-white/78 transition hover:border-white/28 hover:text-white"
+              className="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-white/14 px-4 text-[11px] font-medium uppercase tracking-[0.18em] text-white/72 transition hover:border-white/32 hover:text-white"
             >
               {isUa ? "Деталі" : "Details"}
             </Link>
@@ -398,14 +412,14 @@ function ProductCard({
                 redirect
                 variant="inline"
                 productName={entry.title}
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#f3f0e8] px-5 text-xs font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-white"
+                className="inline-flex min-h-10 items-center justify-center rounded-[8px] bg-[#f3f0e8] px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-black transition hover:bg-white"
                 label={isUa ? "Замовити" : "Order"}
                 labelAdded={isUa ? "У кошику" : "In cart"}
               />
             ) : (
               <Link
                 href={`/${locale}/contact`}
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#c29d59]/35 bg-[#c29d59]/12 px-5 text-xs font-medium uppercase tracking-[0.2em] text-[#ead29d] transition hover:border-[#c29d59]/55 hover:bg-[#c29d59]/18"
+                className="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-white/18 bg-white/[0.04] px-4 text-[11px] font-medium uppercase tracking-[0.18em] text-white/78 transition hover:border-white/32 hover:bg-white/[0.07]"
               >
                 {isUa ? "Запитати комплект" : "Request"}
               </Link>
@@ -429,6 +443,9 @@ export default function UrbanVehicleFilter({
   const [activeModel, setActiveModel] = useState<string>("all");
   const [activeFamily, setActiveFamily] = useState<FamilyFilter>("all");
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   useEffect(() => {
     setMounted(true);
@@ -615,7 +632,36 @@ export default function UrbanVehicleFilter({
         ? [...familyScopedProducts]
         : familyScopedProducts.filter((entry) => entry.categoryLabel === activeCategory);
 
-    next.sort((left, right) => {
+    const normalizedQuery = normalizeSearchValue(deferredSearchQuery);
+    const searched = normalizedQuery
+      ? next.filter((entry) => {
+          const haystack = normalizeSearchValue(
+            [
+              entry.title,
+              entry.product.sku,
+              entry.product.brand,
+              entry.product.vendor,
+              entry.product.productType,
+              entry.brand,
+              entry.modelSummaryLabel,
+              entry.primaryModelLabel,
+              entry.categoryLabel,
+              entry.product.tags?.join(" "),
+              entry.modelFacets.map((facet) => facet.label).join(" "),
+            ]
+              .filter(Boolean)
+              .join(" ")
+          );
+
+          return haystack.includes(normalizedQuery);
+        })
+      : next;
+
+    searched.sort((left, right) => {
+      if (left.family !== right.family) {
+        if (left.family === "bodykits") return -1;
+        if (right.family === "bodykits") return 1;
+      }
       if (left.bodykitRank !== right.bodykitRank) {
         return left.bodykitRank - right.bodykitRank;
       }
@@ -632,17 +678,26 @@ export default function UrbanVehicleFilter({
       return left.title.localeCompare(right.title, locale === "ua" ? "uk" : "en");
     });
 
-    return next;
-  }, [activeCategory, familyScopedProducts, locale]);
+    return searched;
+  }, [activeCategory, deferredSearchQuery, familyScopedProducts, locale]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeBrand, activeModel, activeFamily, activeCategory, deferredSearchQuery]);
+
+  const visibleProducts = useMemo(
+    () => filteredProducts.slice(0, visibleCount),
+    [filteredProducts, visibleCount]
+  );
 
   const featuredBodykits = useMemo(
-    () => filteredProducts.filter((entry) => entry.family === "bodykits"),
-    [filteredProducts]
+    () => visibleProducts.filter((entry) => entry.family === "bodykits"),
+    [visibleProducts]
   );
 
   const componentProducts = useMemo(
-    () => filteredProducts.filter((entry) => entry.family !== "bodykits"),
-    [filteredProducts]
+    () => visibleProducts.filter((entry) => entry.family !== "bodykits"),
+    [visibleProducts]
   );
 
   const modelLabelByHandle = useMemo(() => {
@@ -664,7 +719,10 @@ export default function UrbanVehicleFilter({
     activeBrand !== "all" ||
     activeModel !== "all" ||
     activeFamily !== "all" ||
-    activeCategory !== "all";
+    activeCategory !== "all" ||
+    searchQuery.trim().length > 0;
+
+  const remainingCount = Math.max(filteredProducts.length - visibleProducts.length, 0);
 
   const brandComboboxGroups = useMemo<PremiumComboboxGroup[]>(
     () => [
@@ -725,29 +783,46 @@ export default function UrbanVehicleFilter({
     setActiveModel("all");
     setActiveFamily("all");
     setActiveCategory("all");
+    setSearchQuery("");
+    setVisibleCount(PAGE_SIZE);
   }
 
   return (
     <section className="pb-16 md:pb-24">
       <div className="mx-auto w-full max-w-[1720px] px-6 md:px-12 lg:px-16">
-        <div className="mb-8 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+        <div className="mb-8 flex flex-col items-start justify-between gap-6 border-b border-white/10 pb-8 md:flex-row md:items-end">
           <div>
-            <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[#c29d59]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#c29d59] shadow-[0_0_8px_rgba(194,157,89,0.8)]" />
+            <p className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.3em] text-white/45">
+              <span className="h-px w-8 bg-white/35" />
               Urban Automotive
             </p>
-            <h1 className="mt-4 text-balance text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl">
+            <h1 className="mt-4 text-balance text-4xl font-light tracking-tight text-white drop-shadow-md sm:text-5xl">
               {isUa ? "Каталог Urban" : "Urban Catalog"}
             </h1>
           </div>
-          {hasActiveFilters ? (
-            <div className="inline-flex items-center justify-center rounded-full border border-[#c29d59]/20 bg-[#c29d59]/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-[#c29d59]">
-              {filteredProducts.length} {isUa ? "Товарів знайдено" : "Products found"}
-            </div>
-          ) : null}
+          <div className="inline-flex items-center justify-center border border-white/12 bg-white/[0.035] px-4 py-2 text-xs font-medium uppercase tracking-[0.15em] text-white/62">
+            {filteredProducts.length} {isUa ? "Товарів знайдено" : "Products found"}
+          </div>
         </div>
 
-        <div className="relative z-50 mb-12 rounded-[24px] border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-3 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
+        <div className="relative z-50 mb-12 rounded-[16px] border border-white/10 bg-[#070707]/78 p-3 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.34)]">
+          <div className="mb-3">
+            <label className="relative block">
+              <span className="sr-only">{isUa ? "Пошук по каталогу Urban" : "Search Urban catalog"}</span>
+              <Search className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={
+                  isUa
+                    ? "Пошук за моделлю, деталлю або SKU"
+                    : "Search by model, part, or SKU"
+                }
+                className="min-h-[58px] w-full rounded-[10px] border border-white/10 bg-black/30 px-12 pr-5 text-sm text-white outline-none transition placeholder:text-white/32 focus:border-white/25 focus:bg-black/45"
+              />
+            </label>
+          </div>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,0.9fr)_minmax(0,0.95fr)_auto]">
             <PremiumCombobox
               label={isUa ? "Марка" : "Brand"}
@@ -766,20 +841,20 @@ export default function UrbanVehicleFilter({
               allLabel={isUa ? "Усі моделі" : "All models"}
             />
             <PremiumCombobox
-              label={isUa ? "Сімейство" : "Family"}
+              label={isUa ? "Розділ" : "Family"}
               value={activeFamily}
               onChange={(value) => setActiveFamily(value as FamilyFilter)}
-              placeholder={isUa ? "Усі сімейства" : "All families"}
+              placeholder={isUa ? "Усі розділи" : "All families"}
               groups={familyComboboxGroups}
-              allLabel={isUa ? "Усі сімейства" : "All families"}
+              allLabel={isUa ? "Усі розділи" : "All families"}
             />
             <PremiumCombobox
-              label={isUa ? "Тип" : "Type"}
-              placeholder={isUa ? "Усі типи" : "All types"}
+              label={isUa ? "Категорія" : "Type"}
+              placeholder={isUa ? "Усі категорії" : "All types"}
               value={activeCategory}
               onChange={(value) => setActiveCategory(value as CategoryFilter)}
               groups={categoryComboboxGroups}
-              allLabel={isUa ? "Усі типи" : "All types"}
+              allLabel={isUa ? "Усі категорії" : "All types"}
             />
             {hasActiveFilters ? (
               <button
@@ -795,6 +870,16 @@ export default function UrbanVehicleFilter({
 
           {hasActiveFilters ? (
             <div className="mx-3 mt-3 flex flex-wrap items-center gap-2 border-t border-white/5 pt-4">
+              {searchQuery.trim() ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="inline-flex items-center gap-2 rounded-[999px] border border-white/14 bg-white/[0.04] px-3 py-1.5 text-xs text-white/72 transition hover:border-white/25 hover:text-white"
+                >
+                  <span>{searchQuery.trim()}</span>
+                  <X className="h-3 w-3" />
+                </button>
+              ) : null}
               {currentBrandLabel ? (
                 <button
                   type="button"
@@ -855,10 +940,13 @@ export default function UrbanVehicleFilter({
         ) : activeFamily === "all" && activeCategory === "all" && featuredBodykits.length > 0 ? (
           <div className="mt-8 space-y-10">
             <section>
-              <div className="mb-4">
-                <h3 className="text-lg font-medium text-white">
+              <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-[11px] font-medium uppercase tracking-[0.28em] text-white/72">
                   {isUa ? "Програми" : "Programmes"}
                 </h3>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-white/35">
+                  {featuredBodykits.length} / {filteredProducts.filter((entry) => entry.family === "bodykits").length}
+                </span>
               </div>
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {featuredBodykits.map((entry) => (
@@ -877,10 +965,13 @@ export default function UrbanVehicleFilter({
 
             {componentProducts.length > 0 ? (
               <section>
-                <div className="mb-4">
-                  <h3 className="text-lg font-medium text-white">
+                <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-3">
+                  <h3 className="text-[11px] font-medium uppercase tracking-[0.28em] text-white/72">
                     {isUa ? "Компоненти" : "Components"}
                   </h3>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-white/35">
+                    {componentProducts.length} / {filteredProducts.filter((entry) => entry.family !== "bodykits").length}
+                  </span>
                 </div>
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                   {componentProducts.map((entry) => (
@@ -899,7 +990,7 @@ export default function UrbanVehicleFilter({
           </div>
         ) : (
           <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {filteredProducts.map((entry) => (
+            {visibleProducts.map((entry) => (
               <ProductCard
                 key={entry.product.slug}
                 entry={entry}
@@ -912,6 +1003,21 @@ export default function UrbanVehicleFilter({
             ))}
           </div>
         )}
+
+        {remainingCount > 0 ? (
+          <div className="mt-12 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#c29d59]/35 bg-[#c29d59]/10 px-7 text-xs font-semibold uppercase tracking-[0.18em] text-[#ead29d] transition hover:border-[#c29d59]/60 hover:bg-[#c29d59]/18"
+            >
+              {isUa ? "Показати ще" : "Load more"}
+              <span className="ml-3 rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/70">
+                {Math.min(PAGE_SIZE, remainingCount)} / {remainingCount}
+              </span>
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );

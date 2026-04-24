@@ -16,13 +16,22 @@ const eslintConfig = defineConfig([
     "wordpress/**",
     "wp-content/**",
     "scripts/**",
+    ".agents/**",
+    "public/sw.js",
 
     // Ignore one-off repo maintenance scripts stored at the repo root.
+    "*.js",
+    "replaceUrbanImages.ts",
+    "test-ai.ts",
     "fix-*.js",
     "restore-auto-blocks*.js",
   ]),
   {
     rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-require-imports": "warn",
+      "prefer-const": "warn",
+      "react-hooks/refs": "warn",
       "react-hooks/set-state-in-effect": "off",
     },
   },

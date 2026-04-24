@@ -13,6 +13,11 @@ const W465_PROGRAM_FALLBACK =
 const SOFTKIT_PROGRAM_FALLBACK = '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-1-1920.jpg';
 const DEFENDER_IMAGE =
   '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp';
+const DISCOVERY_IMAGE = '/images/shop/urban/hero/models/discovery2021Plus/hero-1-1920.jpg';
+const URUS_IMAGE = '/images/shop/urban/carousel/models/urus/carousel-1-1920.jpg';
+const RANGE_ROVER_SVR_IMAGE = '/images/shop/urban/carousel/models/rangeRoverSVR/carousel-1-1920.jpg';
+const POLLUTED_URUS_SE_DEFENDER_IMAGE =
+  '/images/shop/urban/products/urus-se/050-0042_20Defender_202020_20-_2090-110-130_20-_20_20DRL_20intakes_20-_20Including_20Nolden_20Square_20Drl_27s-1.png';
 const W465_PRODUCT_IMAGE =
   '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-5-2560.webp';
 
@@ -226,4 +231,62 @@ test('prefers the first compatible gallery image when the primary image is a cro
 
   assert.equal(resolved, W465_PRODUCT_IMAGE);
   assert.equal(resolveUrbanProductImage(DEFENDER_IMAGE, ['mercedes-g-wagon-softkit'], 'urb-bun-25358198-v1'), SOFTKIT_PROGRAM_FALLBACK);
+});
+
+test('rejects cross-model gallery images for Discovery 5 products', () => {
+  const resolved = resolveUrbanCollectionCardImage(
+    DISCOVERY_IMAGE,
+    ['land-rover-discovery-5'],
+    [DISCOVERY_IMAGE],
+    'urb-exh-25353140-v1',
+    [DISCOVERY_IMAGE, URUS_IMAGE],
+    {
+      slug: 'urb-exh-25353140-v1',
+      title: {
+        en: 'Exhaust System for Land Rover Discovery 5',
+        ua: 'Вихлопна система для Land Rover Discovery 5',
+      },
+      category: { en: 'Exhaust', ua: 'Вихлоп' },
+      productType: 'Exhaust System',
+      tags: [],
+      bundle: null,
+    }
+  );
+
+  assert.equal(resolved, DISCOVERY_IMAGE);
+});
+
+test('rejects polluted local product folder images by filename, not folder name', () => {
+  const resolved = resolveUrbanCollectionCardImage(
+    POLLUTED_URUS_SE_DEFENDER_IMAGE,
+    ['lamborghini-urus-se'],
+    [URUS_IMAGE],
+    'urb-wid-26084234-v1',
+    [POLLUTED_URUS_SE_DEFENDER_IMAGE, URUS_IMAGE],
+    {
+      slug: 'urb-wid-26084234-v1',
+      title: {
+        en: 'Lamborghini Urus SE Urban Widetrack Kit',
+        ua: 'Обвіси для Lamborghini Urus SE',
+      },
+      category: { en: 'Bodykits', ua: 'Обвіси' },
+      productType: 'Bodykits',
+      tags: [],
+      bundle: null,
+    }
+  );
+
+  assert.equal(resolved, URUS_IMAGE);
+});
+
+test('accepts valid Range Rover SVR images for Range Rover Sport L494 products', () => {
+  assert.equal(
+    resolveUrbanProductImage(RANGE_ROVER_SVR_IMAGE, ['range-rover-sport-l494'], 'urb-roo-25353086-v1'),
+    RANGE_ROVER_SVR_IMAGE
+  );
+
+  assert.equal(
+    resolveUrbanProductImage(DEFENDER_IMAGE, ['range-rover-sport-l494'], 'urb-roo-25353086-v1'),
+    RANGE_ROVER_SVR_IMAGE
+  );
 });

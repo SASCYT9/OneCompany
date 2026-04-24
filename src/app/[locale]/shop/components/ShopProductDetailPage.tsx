@@ -270,16 +270,6 @@ export default async function ShopProductDetailPage({
   const detailFeatureItems = descriptionSections.features.length
     ? descriptionSections.features
     : product.highlights.map((item) => localizeShopText(resolvedLocale, item));
-  const detailIncludedItems = descriptionSections.included.length
-    ? descriptionSections.included
-    : [productTitle];
-  const detailExcludedItems = descriptionSections.excluded.length
-    ? descriptionSections.excluded
-    : [
-        isUa
-          ? 'Не зазначено в описі. Уточнюйте точний склад у менеджера.'
-          : 'Not specified in the description. Confirm the exact package scope with our team.',
-      ];
   const leadTime = localizeShopText(resolvedLocale, product.leadTime);
   const collection = localizeShopText(resolvedLocale, product.collection);
   pushFallbackSpec(isUa ? 'Артикул' : 'SKU', product.sku);
@@ -368,10 +358,20 @@ export default async function ShopProductDetailPage({
     item,
     price: computeCrossPrices(resolveShopProductPricing(item, viewerContext).effectivePrice),
   }));
-  const urbanRelatedCollectionImages =
-    isUrbanMode && urbanCollectionHandle
-      ? buildUrbanCollectionImagePool(urbanCollectionConfig, [urbanCollectionHandle])
-      : [];
+  const urbanRelatedImagePools = new Map<string, string[]>();
+  if (isUrbanMode) {
+    const relatedUrbanHandles = new Set(
+      [urbanCollectionHandle, ...relatedProducts.map((item) => getUrbanCollectionHandleForProduct(item))]
+        .filter((handle): handle is string => Boolean(handle))
+    );
+
+    relatedUrbanHandles.forEach((handle) => {
+      urbanRelatedImagePools.set(
+        handle,
+        buildUrbanCollectionImagePool(getUrbanCollectionPageConfig(handle), [handle])
+      );
+    });
+  }
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -715,64 +715,60 @@ export default async function ShopProductDetailPage({
         <section className="space-y-4">
           <h2 className="text-2xl font-light">{isUa ? 'Схожі товари' : 'Related products'}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {relatedProductsWithPricing.map(({ item, price }) => (
-              <Link
-                key={item.slug}
-                href={buildShopStorefrontProductPathForProduct(resolvedLocale, item)}
-                className="group overflow-hidden rounded-2xl border border-white/15 bg-white/[0.03] transition hover:border-white/35"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  {(isUrbanMode && urbanCollectionHandle
-                    ? resolveUrbanCollectionCardImage(
-                        item.image,
-                        [urbanCollectionHandle],
-                        urbanRelatedCollectionImages,
-                        item.slug,
-                        item.gallery,
-                        item
-                      )
-                    : item.image && item.image.replace(/^[\"']|[\"']$/g, '').trim().length > 0
-                      ? item.image.replace(/^[\"']|[\"']$/g, '').trim()
-                      : null) ? (
-                    <ShopProductImage
-                      src={
-                        isUrbanMode && urbanCollectionHandle
-                          ? resolveUrbanCollectionCardImage(
-                              item.image,
-                              [urbanCollectionHandle],
-                              urbanRelatedCollectionImages,
-                              item.slug,
-                              item.gallery,
-                              item
-                            )
-                          : item.image!.replace(/^[\"']|[\"']$/g, '').trim()
-                      }
-                      alt={localizeShopProductTitle(resolvedLocale, item)}
-                      fill
-                      sizes="(max-width: 1280px) 100vw, 30vw"
-                      fallbackSrc="/images/placeholders/product-fallback.svg"
-                      className="object-cover transition duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-black/40 text-white/10">
-                      <ShoppingBag className="h-12 w-12 opacity-30" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/70" />
-                </div>
-                <div className="space-y-2 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-white/55">{item.brand}</p>
-                  <h3 className="text-lg font-light leading-snug">{localizeShopProductTitle(resolvedLocale, item)}</h3>
-                  <p className="text-sm text-white/65">
-                    <ShopInlinePriceText
-                      locale={resolvedLocale}
-                      price={price}
-                      requestLabel={isUa ? 'Ціна за запитом' : 'Price on request'}
-                    />
-                  </p>
-                </div>
-              </Link>
-            ))}
+            {relatedProductsWithPricing.map(({ item, price }) => {
+              const relatedUrbanHandle = isUrbanMode
+                ? getUrbanCollectionHandleForProduct(item) ?? urbanCollectionHandle
+                : null;
+              const relatedImage = relatedUrbanHandle
+                ? resolveUrbanCollectionCardImage(
+                    item.image,
+                    [relatedUrbanHandle],
+                    urbanRelatedImagePools.get(relatedUrbanHandle) ?? [],
+                    item.slug,
+                    item.gallery,
+                    item
+                  )
+                : item.image && item.image.replace(/^[\"']|[\"']$/g, '').trim().length > 0
+                  ? item.image.replace(/^[\"']|[\"']$/g, '').trim()
+                  : null;
+
+              return (
+                <Link
+                  key={item.slug}
+                  href={buildShopStorefrontProductPathForProduct(resolvedLocale, item)}
+                  className="group overflow-hidden rounded-2xl border border-white/15 bg-white/[0.03] transition hover:border-white/35"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    {relatedImage ? (
+                      <ShopProductImage
+                        src={relatedImage}
+                        alt={localizeShopProductTitle(resolvedLocale, item)}
+                        fill
+                        sizes="(max-width: 1280px) 100vw, 30vw"
+                        fallbackSrc="/images/placeholders/product-fallback.svg"
+                        className="object-cover transition duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-black/40 text-white/10">
+                        <ShoppingBag className="h-12 w-12 opacity-30" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/70" />
+                  </div>
+                  <div className="space-y-2 p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-white/55">{item.brand}</p>
+                    <h3 className="text-lg font-light leading-snug">{localizeShopProductTitle(resolvedLocale, item)}</h3>
+                    <p className="text-sm text-white/65">
+                      <ShopInlinePriceText
+                        locale={resolvedLocale}
+                        price={price}
+                        requestLabel={isUa ? 'Ціна за запитом' : 'Price on request'}
+                      />
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
       </div>)}

@@ -152,6 +152,120 @@ function translateShopTitleFromUa(value: string | null | undefined) {
   return sentenceCaseWords(next);
 }
 
+function normalizeTitleForLookup(value: string | null | undefined) {
+  return normalizeWhitespace(value).toLowerCase();
+}
+
+function titleHasAny(value: string, needles: string[]) {
+  const normalized = normalizeTitleForLookup(value);
+  return needles.some((needle) => normalized.includes(needle.toLowerCase()));
+}
+
+function appendTitleQualifier(baseTitle: string, qualifier: string) {
+  const title = normalizeWhitespace(baseTitle);
+  const suffix = normalizeWhitespace(qualifier);
+  if (!title || !suffix || titleHasAny(title, [suffix])) return title;
+
+  return `${title} - ${suffix}`;
+}
+
+function titleAlreadyImpliesUrbanQualifier(locale: SupportedLocale, title: string, qualifier: string) {
+  if (locale !== 'ua') return false;
+
+  const normalizedTitle = normalizeTitleForLookup(title);
+  const normalizedQualifier = normalizeTitleForLookup(qualifier);
+  if (normalizedQualifier === 'передній') return /передн/.test(normalizedTitle);
+  if (normalizedQualifier === 'задній') return /задн/.test(normalizedTitle);
+  if (normalizedQualifier === 'верхній') return /верхн/.test(normalizedTitle);
+  if (normalizedQualifier === 'нижній') return /нижн/.test(normalizedTitle);
+  if (normalizedQualifier === 'бічні вентиляційні елементи') {
+    return /(боков|бічн).{0,32}вентиляц/.test(normalizedTitle);
+  }
+
+  return false;
+}
+
+function buildUrbanTitleQualifiers(locale: SupportedLocale, titleEn: string) {
+  const en = normalizeTitleForLookup(titleEn);
+  const qualifiers: string[] = [];
+  const push = (ua: string, enValue: string, existingTokens: string[] = [enValue]) => {
+    const value = locale === 'ua' ? ua : enValue;
+    if (!qualifiers.includes(value) && !titleHasAny(qualifiers.join(' '), existingTokens)) {
+      qualifiers.push(value);
+    }
+  };
+
+  const looksLikeWheelFitment = /\b(wheel|wheels|rim|rims)\b/.test(en) || /\bet\s*[0-9]+/.test(en);
+  if (/\bfront\b/.test(en)) push(looksLikeWheelFitment ? 'передня вісь' : 'передній', 'Front', ['front']);
+  if (/\brear\b/.test(en)) push(looksLikeWheelFitment ? 'задня вісь' : 'задній', 'Rear', ['rear']);
+  if (/\bupper\b/.test(en)) push('верхній', 'Upper', ['upper']);
+  if (/\blower\b/.test(en)) push('нижній', 'Lower', ['lower']);
+  if (/\blwb\b/.test(en)) push('LWB', 'LWB');
+  if (/\bswb\b/.test(en)) push('SWB', 'SWB');
+  if (/\bl1\b/.test(en)) push('L1', 'L1');
+  if (/\bl2\b/.test(en)) push('L2', 'L2');
+  if (/\bhex\b/.test(en)) push('Hex', 'Hex');
+  if (/\bchequer\b/.test(en)) push('Chequer', 'Chequer');
+  if (/\bpre[-\s]?facelift\b/.test(en)) push('Pre-Facelift', 'Pre-Facelift', ['pre-facelift', 'pre facelift']);
+  if (/\bfacelift\b/.test(en) && !/\bpre[-\s]?facelift\b/.test(en)) push('Facelift', 'Facelift', ['facelift']);
+  if (/\b2020\+/.test(en)) push('2020+', '2020+');
+  if (/\b2017\s*-\s*2020\b/.test(en)) push('2017-2020', '2017-2020');
+  if (/\b2013\s*-\s*2017\b/.test(en)) push('2013-2017', '2013-2017');
+  if (/\b2018\s*-\s*2022\b/.test(en)) push('2018-2022', '2018-2022');
+  if (/\b2018\s+onwards\b/.test(en)) push('2018+', '2018+');
+  if (/\bpre\s*2017\b/.test(en)) push('до 2017', 'Pre 2017');
+  if (/\bxrs\b/.test(en)) push('XRS', 'XRS');
+  if (/\bsvr style\b/.test(en)) push('SVR Style', 'SVR Style');
+  if (/-\s*svr\s*-|\(svr\b|\bsvr\s*\(/.test(en)) push('версія SVR', 'SVR version');
+  if (/-\s*sport\s*-|\(sport\b|\bsport\s*\(/.test(en)) push('версія Sport', 'Sport version');
+  if (/\bnon visual carbon\b/.test(en)) push('Non Visual Carbon', 'Non Visual Carbon');
+  if (/\bpolished face\b/.test(en)) push('Polished Face', 'Polished Face');
+  if (/\bside vents?\b/.test(en)) push('бічні вентиляційні елементи', 'Side Vents');
+  if (/\btop vents?\b/.test(en)) push('верхні вентиляційні елементи', 'Top Vents');
+  if (/\bb9\.5\b/.test(en)) push('покоління B9.5', 'B9.5 generation');
+  if (/\bb9\b/.test(en) && !/\bb9\.5\b/.test(en)) push('покоління B9', 'B9 generation');
+  if (/\btuning fork\b/.test(en)) push('tuning fork', 'Tuning Fork');
+  if (/\beyebrow\b/.test(en)) push('eyebrow', 'Eyebrow');
+  if (/\bdiscovery\s+5\.5\b/.test(en)) push('Discovery 5.5', 'Discovery 5.5');
+  if (/\bsaloon\b/.test(en)) push('Saloon', 'Saloon');
+  if (/\bhatchback\b/.test(en)) push('Hatchback', 'Hatchback');
+  if (/\bseries\s+1\b/.test(en)) push('Series 1', 'Series 1');
+  if (/\bseries\s+2\b/.test(en)) push('Series 2', 'Series 2');
+  if (/\bplain\b/.test(en) && /\burban shield\b/.test(en)) push('Plain або Urban Shield', 'Plain or Urban Shield');
+  if (/\boem splitter\b/.test(en)) {
+    push(/\bwithout\b/.test(en) ? 'без OEM splitter' : 'з OEM splitter', /\bwithout\b/.test(en) ? 'without OEM splitter' : 'with OEM splitter');
+  }
+
+  const etMatches = [...en.matchAll(/\bet\s*([0-9]+)/g)].map((match) => `ET${match[1]}`);
+  for (const et of etMatches) push(et, et);
+
+  const spacerMatch = en.match(/\b([0-9]{2})\s*mm\b/);
+  if (spacerMatch) push(`${spacerMatch[1]} мм`, `${spacerMatch[1]}mm`, [`${spacerMatch[1]}mm`, `${spacerMatch[1]} мм`]);
+
+  if (/\bd-pillar trim\b/.test(en)) push('D-Pillar', 'D-Pillar');
+  if (/\bbumper intake trims?\b/.test(en)) push('впуски бампера', 'Bumper Intake Trims');
+  if (/\bupper turning signal trim\b/.test(en)) push('верхні повторювачі повороту', 'Upper Turning Signal Trim');
+  if (/\bwing mirrors?\b/.test(en)) push('корпуси дзеркал', 'Wing Mirrors');
+  if (/\bbumper overrider set\b/.test(en)) push('over-rider, 4 шт.', 'Bumper Overrider Set');
+  if (/\bskid pan cover\b/.test(en)) push('skid pan', 'Skid Pan Cover');
+
+  return qualifiers;
+}
+
+function disambiguateUrbanTitle(locale: SupportedLocale, product: Pick<ShopProduct, 'slug' | 'title'>, baseTitle: string) {
+  if (!product.slug.startsWith('urb-')) return baseTitle;
+
+  let title = normalizeWhitespace(baseTitle);
+  const titleEn = normalizeWhitespace(product.title.en);
+  for (const qualifier of buildUrbanTitleQualifiers(locale, titleEn)) {
+    if (!titleHasAny(title, [qualifier]) && !titleAlreadyImpliesUrbanQualifier(locale, title, qualifier)) {
+      title = appendTitleQualifier(title, qualifier);
+    }
+  }
+
+  return title;
+}
+
 function humanizeSlug(slug: string) {
   const raw = normalizeWhitespace(slug)
     .replace(/[_-]+/g, ' ')
@@ -224,16 +338,16 @@ export function localizeShopProductTitle(locale: SupportedLocale, product: Pick<
   if (locale === 'en') {
     const translatedFromDb = normalizeWhitespace(product.title.en);
     if (translatedFromDb && !containsCyrillic(translatedFromDb)) {
-      return translatedFromDb;
+      return disambiguateUrbanTitle(locale, product, translatedFromDb);
     }
 
     const translatedFromUa = translateShopTitleFromUa(product.title.ua);
     if (translatedFromUa && !containsCyrillic(translatedFromUa)) {
-      return translatedFromUa;
+      return disambiguateUrbanTitle(locale, product, translatedFromUa);
     }
   }
 
-  return localizeShopText(locale, product.title, { slugFallback: product.slug });
+  return disambiguateUrbanTitle(locale, product, localizeShopText(locale, product.title, { slugFallback: product.slug }));
 }
 
 export function localizeShopDescription(

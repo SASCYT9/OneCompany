@@ -222,7 +222,7 @@ export default function PriceSimulatorPage() {
                     <div className="p-4 rounded-none bg-amber-500/5 border border-amber-500/10 flex gap-3 items-start">
                       <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                       <p className="text-[10px] text-amber-500/80 leading-relaxed uppercase font-medium">
-                        Увага: Об'ємна вага ({shipping.volWeightKg.toFixed(1)}kg) перевищує фактичну ({shipping.actualWeightKg.toFixed(1)}kg). Вартість доставки збільшена.
+                        Увага: Об&apos;ємна вага ({shipping.volWeightKg.toFixed(1)}kg) перевищує фактичну ({shipping.actualWeightKg.toFixed(1)}kg). Вартість доставки збільшена.
                       </p>
                     </div>
                   )}

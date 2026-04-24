@@ -12,6 +12,22 @@ const URBAN_PRODUCT_TITLE_OVERRIDES: Record<string, { ua: string; en: string }> 
     ua: 'Пакет Urban Widetrack для Mercedes-Benz G-Wagon W465',
     en: 'Urban Widetrack Package for Mercedes-Benz G-Wagon W465',
   },
+  'urb-bod-25353141-v1': {
+    ua: 'Повний пакет Urban Facelift 2020+ для Land Rover Discovery 5',
+    en: 'Urban Facelift 2020+ Full Package for Land Rover Discovery 5',
+  },
+  'urb-bod-25353142-v1': {
+    ua: 'Bodykit Urban Facelift 2020+ для Land Rover Discovery 5',
+    en: 'Urban Facelift 2020+ Bodykit for Land Rover Discovery 5',
+  },
+  'urb-bod-25353138-v1': {
+    ua: 'Повний пакет Urban Pre-Facelift 2017-2020 для Land Rover Discovery 5',
+    en: 'Urban Pre-Facelift 2017-2020 Full Package for Land Rover Discovery 5',
+  },
+  'urb-bod-25353139-v1': {
+    ua: 'Bodykit Urban Pre-Facelift 2017-2020 для Land Rover Discovery 5',
+    en: 'Urban Pre-Facelift 2017-2020 Bodykit for Land Rover Discovery 5',
+  },
 };
 
 const URBAN_PROGRAM_FALLBACK_IMAGES: Record<string, string> = {

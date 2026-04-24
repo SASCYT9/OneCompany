@@ -31,8 +31,11 @@ import { resolveUrbanThemeAssetUrl } from '@/lib/urbanThemeAssets';
 import { resolveEnglishCategory } from '@/lib/shopCategoryTranslation';
 import {
   buildUrbanGpSafeFallbackDescription,
+  getUrbanCuratedDescriptionOverride,
+  hasPoorUrbanUaMachineCopy,
   isUnsafeUrbanGpDescription,
 } from '@/lib/urbanGpDescriptionFallback';
+import { buildUrbanEditorialCopy } from '@/lib/urbanEditorialCopy';
 
 const BRABUS_LOCAL_ASSETS_DEPLOYED = process.env.BRABUS_LOCAL_ASSETS_DEPLOYED === '1';
 const shouldUseDeployedBrabusFallback =
@@ -252,6 +255,12 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
     row.seoDescriptionUa,
     row.seoDescriptionEn,
   ].some(isUnsafeUrbanGpDescription);
+  const curatedUrbanDescription = getUrbanCuratedDescriptionOverride({
+    slug: row.slug,
+  });
+  const poorUrbanUaDescription =
+    !curatedUrbanDescription &&
+    [row.titleUa, row.shortDescUa, row.longDescUa, row.bodyHtmlUa, row.seoDescriptionUa].some(hasPoorUrbanUaMachineCopy);
   const safeGpDescription = unsafeGpDescription
     ? buildUrbanGpSafeFallbackDescription({
         slug: row.slug,
@@ -265,6 +274,26 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
         brand: row.brand,
         vendor: row.vendor,
         productType: row.productType,
+      })
+    : null;
+  const generatedUrbanUaDescription = poorUrbanUaDescription || unsafeGpDescription
+    ? buildUrbanEditorialCopy({
+        slug: row.slug,
+        titleEn: row.titleEn,
+        titleUa: row.titleUa,
+        shortDescEn: row.shortDescEn,
+        shortDescUa: row.shortDescUa,
+        longDescEn: row.longDescEn,
+        longDescUa: row.longDescUa,
+        bodyHtmlEn: row.bodyHtmlEn,
+        bodyHtmlUa: row.bodyHtmlUa,
+        brand: row.brand,
+        categoryEn: resolveEnglishCategory(row.categoryEn, row.categoryUa) || row.category?.titleEn || '',
+        categoryUa: row.categoryUa ?? row.category?.titleUa ?? '',
+        productType: row.productType,
+        collectionEn: row.collectionEn ?? '',
+        collectionUa: row.collectionUa ?? '',
+        tags: row.tags ?? [],
       })
     : null;
   const productB2BPrice = moneySet({
@@ -345,18 +374,18 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
       isUrban: entry.collection.isUrban,
       sortOrder: entry.sortOrder,
     })),
-    title: { ua: row.titleUa, en: row.titleEn },
+    title: { ua: generatedUrbanUaDescription?.titleUa ?? row.titleUa, en: row.titleEn },
     category: {
       ua: row.categoryUa ?? row.category?.titleUa ?? '',
       en: resolveEnglishCategory(row.categoryEn, row.categoryUa) || row.category?.titleEn || '',
     },
     shortDescription: {
-      ua: safeGpDescription?.shortDescription.ua ?? row.shortDescUa ?? '',
-      en: safeGpDescription?.shortDescription.en ?? row.shortDescEn ?? '',
+      ua: curatedUrbanDescription?.shortDescription.ua ?? generatedUrbanUaDescription?.shortDescUa ?? safeGpDescription?.shortDescription.ua ?? row.shortDescUa ?? '',
+      en: curatedUrbanDescription?.shortDescription.en ?? safeGpDescription?.shortDescription.en ?? row.shortDescEn ?? '',
     },
     longDescription: {
-      ua: sanitizeRichTextHtml(safeGpDescription?.bodyHtml.ua ?? row.bodyHtmlUa ?? row.longDescUa ?? ''),
-      en: sanitizeRichTextHtml(safeGpDescription?.bodyHtml.en ?? row.bodyHtmlEn ?? row.longDescEn ?? ''),
+      ua: sanitizeRichTextHtml(curatedUrbanDescription?.bodyHtml.ua ?? generatedUrbanUaDescription?.bodyHtmlUa ?? safeGpDescription?.bodyHtml.ua ?? row.bodyHtmlUa ?? row.longDescUa ?? ''),
+      en: sanitizeRichTextHtml(curatedUrbanDescription?.bodyHtml.en ?? safeGpDescription?.bodyHtml.en ?? row.bodyHtmlEn ?? row.longDescEn ?? ''),
     },
     leadTime: { ua: row.leadTimeUa ?? '', en: row.leadTimeEn ?? '' },
     stock: (bundleInventory?.stock ?? (row.stock === 'preOrder' ? 'preOrder' : 'inStock')) as ShopStock,
@@ -534,6 +563,7 @@ function normalizeCatalogProducts(products: ShopProduct[]) {
 let globalProductsCache: ShopProduct[] | null = null;
 let lastCacheTime = 0;
 let globalProductsPromise: Promise<ShopProduct[]> | null = null;
+const SHOP_PRODUCTS_DEV_CACHE_VERSION = 4;
 
 /** All products: from DB (published) then static catalog (by slug, DB wins). */
 export async function getShopProductsServer(): Promise<ShopProduct[]> {
@@ -556,9 +586,20 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
       // Use file cache if it's less than 3 hours old
       if (now - stat.mtimeMs < 1000 * 60 * 60 * 3) {
         const fileContent = fs.readFileSync(cachePath, 'utf8');
-        globalProductsCache = normalizeCatalogProducts(JSON.parse(fileContent));
-        lastCacheTime = stat.mtimeMs;
-        return globalProductsCache as ShopProduct[];
+        const parsedCache = JSON.parse(fileContent);
+        const cachedProducts =
+          parsedCache &&
+          typeof parsedCache === 'object' &&
+          parsedCache.version === SHOP_PRODUCTS_DEV_CACHE_VERSION &&
+          Array.isArray(parsedCache.products)
+            ? parsedCache.products
+            : null;
+
+        if (cachedProducts) {
+          globalProductsCache = normalizeCatalogProducts(cachedProducts);
+          lastCacheTime = stat.mtimeMs;
+          return globalProductsCache as ShopProduct[];
+        }
       }
     } catch {
       // ignore parse errors and fetch fresh
@@ -602,7 +643,14 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
 
     if (isDev && cachePath) {
       try {
-        fs.writeFileSync(cachePath, JSON.stringify(globalProductsCache), 'utf8');
+        fs.writeFileSync(
+          cachePath,
+          JSON.stringify({
+            version: SHOP_PRODUCTS_DEV_CACHE_VERSION,
+            products: globalProductsCache,
+          }),
+          'utf8'
+        );
       } catch {}
     }
 

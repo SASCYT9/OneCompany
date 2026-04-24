@@ -97,6 +97,61 @@ test('buildUrbanEditorialCopy translates fitment notes for premium grille copy',
   assert.match(copy.bodyHtmlUa, /OEM-решітка/i);
 });
 
+test('buildUrbanEditorialCopy creates specific UA titles for Urus SE bodykit components', () => {
+  const front = buildUrbanEditorialCopy(
+    makeProduct({
+      slug: 'urb-fro-26054204-v1',
+      titleEn: 'Urus SE - Lower Front Bumper Apron - Visual Carbon Fibre',
+      titleUa: 'Обвіси Visual Carbon Fibre для Lamborghini Urus SE',
+      categoryEn: 'Bodykits',
+      categoryUa: 'Обвіси',
+      productType: 'Bodykits',
+      brand: 'Lamborghini',
+      collectionEn: 'Urus SE',
+      collectionUa: 'Urus SE',
+      tags: ['urban-family:bodykits'],
+    })
+  );
+  const sills = buildUrbanEditorialCopy(
+    makeProduct({
+      slug: 'urb-sid-26054205-v1',
+      titleEn: 'Urus SE - Lower Side Sills - Visual Carbon Fibre',
+      titleUa: 'Обвіси Visual Carbon Fibre для Lamborghini Urus SE',
+      categoryEn: 'Bodykits',
+      categoryUa: 'Обвіси',
+      productType: 'Bodykits',
+      brand: 'Lamborghini',
+      collectionEn: 'Urus SE',
+      collectionUa: 'Urus SE',
+      tags: ['urban-family:bodykits'],
+    })
+  );
+
+  assert.equal(front.titleUa, 'Нижня накладка переднього бампера Visual Carbon Fibre для Lamborghini Urus SE');
+  assert.equal(sills.titleUa, 'Розширення порогів Visual Carbon Fibre для Lamborghini Urus SE');
+});
+
+test('buildUrbanEditorialCopy treats wheel arches as bodykit copy, not wheel specification copy', () => {
+  const copy = buildUrbanEditorialCopy(
+    makeProduct({
+      slug: 'urb-whe-25358166-v1',
+      titleEn: 'Lamborghini Urus Extended Wheel Archs - Visual Carbon Fibre',
+      titleUa: 'Арки Visual Carbon Fibre для Lamborghini Urus',
+      categoryEn: 'Arches',
+      categoryUa: 'Арки',
+      productType: 'Arches',
+      brand: 'Lamborghini',
+      collectionEn: 'Urus',
+      collectionUa: 'Urus',
+      tags: ['urban-family:bodykits'],
+    })
+  );
+
+  assert.equal(copy.titleUa, 'Розширені колісні арки Visual Carbon Fibre для Lamborghini Urus');
+  assert.doesNotMatch(copy.shortDescUa, /Специфікація побудована/);
+  assert.match(copy.shortDescUa, /OEM Plus/);
+});
+
 test('computeUrbanUaEditorialUpdate preserves strong curated UA body copy while fixing untranslated titles', () => {
   const update = computeUrbanUaEditorialUpdate(
     makeProduct({

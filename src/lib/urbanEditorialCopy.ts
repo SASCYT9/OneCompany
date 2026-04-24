@@ -276,12 +276,6 @@ function sentenceCase(value: string) {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-function toLowerSentence(value: string) {
-  const normalized = normalizeWhitespace(value);
-  if (!normalized) return normalized;
-  return normalized.charAt(0).toLowerCase() + normalized.slice(1);
-}
-
 function categoryUaFromValue(categoryEn: string | null | undefined, categoryUa: string | null | undefined) {
   if (normalizeWhitespace(categoryUa)) return normalizeWhitespace(categoryUa);
   const key = normalizeWhitespace(categoryEn).toLowerCase();
@@ -289,6 +283,14 @@ function categoryUaFromValue(categoryEn: string | null | undefined, categoryUa: 
 }
 
 function resolveFamily(product: UrbanEditorialProductInput): UrbanCatalogFamily {
+  const explicitTypeHaystack = normalizeWhitespace(
+    [product.categoryEn, product.categoryUa, product.productType, product.titleEn].join(' ')
+  ).toLowerCase();
+
+  if (/(^|\b)(arch|archs|arches|wheel arch|wheel archs|wheel arches|арки)(\b|$)/i.test(explicitTypeHaystack)) {
+    return 'bodykits';
+  }
+
   const tag = (product.tags ?? []).find((value) => value.startsWith('urban-family:'));
   const tagged = tag?.slice('urban-family:'.length) as UrbanCatalogFamily | undefined;
   if (tagged && ['bodykits', 'exterior', 'wheels', 'exhaust', 'interior', 'accessories'].includes(tagged)) {
@@ -305,7 +307,7 @@ function resolveFamily(product: UrbanEditorialProductInput): UrbanCatalogFamily 
     ].join(' ')
   ).toLowerCase();
 
-  if (/(body\s?kit|bodykit|widetrack|aero kit|replacement bumper package)/i.test(haystack)) {
+  if (/(body\s?kit|bodykit|widetrack|wide\s?track|aero kit|replacement bumper package|arch|archs|arches|wheel arch|wheel archs|wheel arches)/i.test(haystack)) {
     return 'bodykits';
   }
   if (/(wheel|pcd|et\d+|rim|spacer)/i.test(haystack)) {
@@ -479,10 +481,12 @@ function buildComponentTitle(coreTitle: string, categoryEn: string | null | unde
   if (/carbon fibre v2 kit/i.test(source)) return 'Комплект Carbon Fibre V2';
   if (/\bv2 kit\b/i.test(source)) return 'Комплект V2';
   if (/soft kit/i.test(source)) return 'Пакет Soft Kit';
+  if (/extended wheel archs?|extended wheel arches/i.test(source)) return 'Розширені колісні арки';
+  if (/extended arches/i.test(source)) return 'Розширені арки';
   if (/widetrack arch kit/i.test(source)) return 'Комплект арок Widetrack';
   if (/wide track arch kit/i.test(source)) return 'Комплект арок Wide Track';
-  if (/arch extension kit/i.test(source)) return 'Комплект розширення колісних арок';
-  if (/arch kit|arch set/i.test(source)) {
+  if (/arch extension kit|wheel arch extension kit/i.test(source)) return 'Комплект розширення колісних арок';
+  if (/arch kit|arch set|archs|arches/i.test(source)) {
     if (/widetrack/i.test(source)) return 'Комплект арок Widetrack';
     if (/\bPUR\b/i.test(source)) return 'Комплект PUR-арок';
     if (/svr style/i.test(source)) return 'Комплект розширення арок у стилі SVR';
@@ -503,8 +507,10 @@ function buildComponentTitle(coreTitle: string, categoryEn: string | null | unde
   if (/tow/i.test(source)) return 'Знімний фаркоп';
   if (/roof rail kit/i.test(source)) return 'Комплект рейлінгів на дах';
   if (/light bar|roof light/i.test(source)) return 'Даховий світловий модуль';
+  if (/lower front bumper apron/i.test(source)) return 'Нижня накладка переднього бампера';
   if (/front canards?/i.test(source)) return 'Передні канарди';
   if (/canard packs?/i.test(source)) return 'Комплект канардів';
+  if (/lower side sills?/i.test(source)) return 'Розширення порогів';
   if (/lower door mouldings inserts?/i.test(source)) return 'Нижні дверні вставки';
   if (/door inserts?/i.test(source)) return 'Вставки дверей';
   if (/top vent bonnet overlay/i.test(source)) return 'Накладка капота з верхніми вентиляційними елементами';
@@ -524,7 +530,6 @@ function buildComponentTitle(coreTitle: string, categoryEn: string | null | unde
   if (/branding pack/i.test(source)) return 'Комплект брендингу Urban';
   if (/mudguards?/i.test(source)) return 'Бризковики';
   if (/number plate kits?/i.test(source)) return 'Комплект номерної рамки';
-  if (/extended arches/i.test(source)) return 'Розширені арки';
   if (/side accent trim/i.test(source)) return 'Бокова акцентна накладка';
   if (/wheel arches?/i.test(source)) return 'Колісні арки';
   if (/wheel spacers?/i.test(source)) return 'Колісні проставки';

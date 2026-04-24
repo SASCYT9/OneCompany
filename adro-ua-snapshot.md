@@ -1,0 +1,23 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "Urban home" [ref=e6] [cursor=pointer]:
+          - /url: /ua/shop
+        - navigation [ref=e10]
+        - generic [ref=e18]
+    - main [ref=e30]:
+      - generic [ref=e31]:
+        - generic
+        - generic [ref=e32]
+    - button "Scroll to top":
+      - img
+    - contentinfo [ref=e35]:
+      - generic [ref=e36]:
+        - generic [ref=e37]
+        - generic [ref=e75]
+  - button "Open Next.js Dev Tools" [ref=e93] [cursor=pointer]:
+    - img [ref=e94]
+  - alert [ref=e587]

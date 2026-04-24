@@ -1,5 +1,7 @@
 const GP_PORTAL_FALLBACK_PATTERN =
   /\bGP Portal\b|портал[і]? GP|Price on GP Portal|Ціна на (?:порталі )?GP|Ціна на GP|Портал загальної практики/i;
+const POOR_URBAN_UA_COPY_PATTERN =
+  /передня\s+передня|задн(ій|я)\s+час\b|плаваюч[а-яіїєґ]*\s+вушк|з\s+чотирма\s+заготовками|OEM-якісн|змінити\s+зовнішній\s+вигляд|перетворити\s+зовнішн[а-яіїєґ]*\s+вигляд|естетичн[а-яіїєґ]*\s+приваблив|візуальн[а-яіїєґ]*\s+(видимість|ефект|приваблив)|продуктивного позашляховика|попередньо оновлен|широкофюзеляжн|міськ[а-яіїєґ]*\s+емблем|программн|вутк|деталі позиції|позиція Urban Automotive для|обвіси Visual Carbon Fibre|специфікація побудована|розроблен[а-яіїєґ]*,?\s+щоб|створен[а-яіїєґ]*,?\s+щоб|покращеною зовнішністю|зміни положення|змінити естетику|набір арки|вибагливого|вуглецевого волокна[^.]{0,120}вуглецевого волокна/i;
 
 type LocalizedValue = {
   ua?: string | null;
@@ -186,9 +188,158 @@ export function isUnsafeUrbanGpDescription(value: string | null | undefined) {
   return GP_PORTAL_FALLBACK_PATTERN.test(String(value ?? ''));
 }
 
+export function hasPoorUrbanUaMachineCopy(value: string | null | undefined) {
+  return POOR_URBAN_UA_COPY_PATTERN.test(stripHtml(value));
+}
+
 export function buildUrbanGpSafeFallbackDescription(input: UrbanGpFallbackProductInput): UrbanGpFallbackDescription {
   const bodyHtmlEn = buildHtml(input, 'en');
   const bodyHtmlUa = buildHtml(input, 'ua');
+
+  return {
+    bodyHtml: {
+      en: bodyHtmlEn,
+      ua: bodyHtmlUa,
+    },
+    longDescription: {
+      en: stripHtml(bodyHtmlEn),
+      ua: stripHtml(bodyHtmlUa),
+    },
+    shortDescription: {
+      en: excerpt(bodyHtmlEn, 220),
+      ua: excerpt(bodyHtmlUa, 220),
+    },
+    seoDescription: {
+      en: excerpt(bodyHtmlEn, 155),
+      ua: excerpt(bodyHtmlUa, 155),
+    },
+  };
+}
+
+export function getUrbanCuratedDescriptionOverride(
+  input: Pick<UrbanGpFallbackProductInput, 'slug'>
+): UrbanGpFallbackDescription | null {
+  if (input.slug === 'urb-log-25353014-v1') {
+    const bodyHtmlEn = [
+      '<p>Urban Automotive branding package for Range Rover Sport L461, designed to add the signature Urban exterior identity with clean OEM-plus fitment.</p>',
+      '<h3>Package contents</h3>',
+      buildList([
+        'Urban icon badge.',
+        'Front ABS Urban lettering.',
+        'Rear ABS Urban lettering.',
+      ]),
+      '<h3>Details</h3>',
+      buildList([
+        'ABS components designed for exterior use.',
+        'Direct-fit application for the matching Range Rover Sport L461 configuration.',
+        'Adhesive mounting system for professional installation.',
+      ]),
+      '<p>Confirm final compatibility and installation scope before ordering.</p>',
+    ].join('');
+    const bodyHtmlUa = [
+      '<p>Комплект брендингу Urban Automotive для Range Rover Sport L461 додає фірмову зовнішню ідентичність Urban у стриманому OEM Plus-стилі.</p>',
+      '<h3>Склад комплекту</h3>',
+      buildList([
+        'Емблема Urban Icon.',
+        'Передній напис Urban з ABS.',
+        'Задній напис Urban з ABS.',
+      ]),
+      '<h3>Деталі</h3>',
+      buildList([
+        'ABS-компоненти для зовнішнього використання.',
+        'Пряма сумісність із відповідною конфігурацією Range Rover Sport L461.',
+        'Клейова система кріплення для професійного монтажу.',
+      ]),
+      '<p>Перед замовленням підтвердьте фінальну сумісність і склад встановлення.</p>',
+    ].join('');
+
+    return {
+      bodyHtml: { en: bodyHtmlEn, ua: bodyHtmlUa },
+      longDescription: { en: stripHtml(bodyHtmlEn), ua: stripHtml(bodyHtmlUa) },
+      shortDescription: { en: excerpt(bodyHtmlEn, 220), ua: excerpt(bodyHtmlUa, 220) },
+      seoDescription: { en: excerpt(bodyHtmlEn, 155), ua: excerpt(bodyHtmlUa, 155) },
+    };
+  }
+
+  if (input.slug === 'urb-dif-26054207-v1') {
+    const bodyHtmlEn = [
+      '<p>Visual Carbon Fibre rear diffuser assembly for Lamborghini Urus SE, developed as part of the Urban Automotive rear styling programme.</p>',
+      '<h3>Key details</h3>',
+      buildList([
+        'Replacement carbon-fibre rear bumper with integrated double-vented diffuser.',
+        'Floating carbon-fibre canards for a more technical rear profile.',
+        'Quad billet anodised aluminium exhaust finishers with outer accent detailing.',
+      ]),
+      '<p>Confirm package scope, finish, and installation requirements before ordering.</p>',
+    ].join('');
+    const bodyHtmlUa = [
+      '<p>Задній дифузор Visual Carbon Fibre для Lamborghini Urus SE, розроблений як частина задньої програми стилізації Urban Automotive.</p>',
+      '<h3>Ключові деталі</h3>',
+      buildList([
+        'Карбоновий задній бампер із інтегрованим двоканальним дифузором.',
+        'Карбонові канарди для більш технічного й виразного заднього профілю.',
+        'Чотири анодовані billet-насадки вихлопу з акцентними зовнішніми деталями.',
+      ]),
+      '<p>Перед замовленням підтвердьте склад комплекту, оздоблення та вимоги до встановлення.</p>',
+    ].join('');
+
+    return {
+      bodyHtml: { en: bodyHtmlEn, ua: bodyHtmlUa },
+      longDescription: { en: stripHtml(bodyHtmlEn), ua: stripHtml(bodyHtmlUa) },
+      shortDescription: { en: excerpt(bodyHtmlEn, 220), ua: excerpt(bodyHtmlUa, 220) },
+      seoDescription: { en: excerpt(bodyHtmlEn, 155), ua: excerpt(bodyHtmlUa, 155) },
+    };
+  }
+
+  if (input.slug !== 'urb-wid-26084234-v1') {
+    return null;
+  }
+
+  const bodyHtmlEn = [
+    '<p>Urban Automotive Widetrack styling programme for the Lamborghini Urus SE, built around a more aggressive carbon-fibre exterior package while preserving the OEM-plus character of the car.</p>',
+    '<h3>Front</h3>',
+    buildList([
+      'Replacement six-piece carbon-fibre bonnet with functional leading and trailing vents inspired by the Aventador SVJ.',
+      'Visual Carbon Fibre dragonscale bonnet vents.',
+      'Three-piece carbon-fibre front splitter with canards.',
+    ]),
+    '<h3>Side profile</h3>',
+    buildList([
+      'Six-piece carbon-fibre widetrack arch extensions with visible carbon detailing.',
+      'Replacement carbon-fibre side vents with Lamborghini hex inlays and Urban icon branding.',
+      'Visual Carbon Fibre sill extensions, Miura-inspired sill aero scoop, and carbon-fibre mirror caps.',
+    ]),
+    '<h3>Rear</h3>',
+    buildList([
+      'Double-stacked roof spoiler in Visual Carbon Fibre with Urban icon endplates.',
+      'Replacement carbon-fibre rear bumper with integrated double-vented diffuser and floating carbon-fibre canards.',
+      'Quad billet anodised aluminium exhaust finishers with outer accent detailing.',
+    ]),
+    '<p>Final package scope, finish, and compatibility should be confirmed before ordering.</p>',
+  ].join('');
+
+  const bodyHtmlUa = [
+    '<p>Widetrack-програма Urban Automotive для Lamborghini Urus SE: виразний карбоновий пакет кузова, який підсилює ширину, посадку й характер автомобіля без втрати заводської логіки OEM Plus.</p>',
+    '<h3>Передня частина</h3>',
+    buildList([
+      'Заміна штатного капота на шестисекційний карбоновий капот із функціональними передніми та задніми вентиляційними каналами у стилі Aventador SVJ.',
+      'Вентиляційні вставки капота Dragonscale у виконанні Visual Carbon Fibre.',
+      'Трисекційний карбоновий передній спліттер із канардами.',
+    ]),
+    '<h3>Боковий профіль</h3>',
+    buildList([
+      'Шестисекційні карбонові розширення арок Widetrack з видимою карбоновою фактурою.',
+      'Карбонові бокові вентиляційні елементи з шестикутними вставками Lamborghini та фірмовим знаком Urban.',
+      'Пороги Visual Carbon Fibre, аеродинамічний елемент у стилі Miura та карбонові накладки дзеркал.',
+    ]),
+    '<h3>Задня частина</h3>',
+    buildList([
+      'Дворівневий даховий спойлер Visual Carbon Fibre з торцевими пластинами Urban.',
+      'Карбоновий задній бампер з інтегрованим двоканальним дифузором і карбоновими канардами.',
+      'Чотири анодовані billet-насадки вихлопу з акцентними зовнішніми деталями.',
+    ]),
+    '<p>Точний склад комплекту, оздоблення та сумісність потрібно підтвердити перед замовленням.</p>',
+  ].join('');
 
   return {
     bodyHtml: {

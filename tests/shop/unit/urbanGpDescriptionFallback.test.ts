@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 
 import {
   buildUrbanGpSafeFallbackDescription,
+  getUrbanCuratedDescriptionOverride,
+  hasPoorUrbanUaMachineCopy,
   isUnsafeUrbanGpDescription,
 } from '../../../src/lib/urbanGpDescriptionFallback';
 
@@ -68,4 +70,63 @@ test('buildUrbanGpSafeFallbackDescription preserves wheel specification facts', 
   assert.match(fallback.bodyHtml.en ?? '', /PCD: 5X112/);
   assert.match(fallback.bodyHtml.en ?? '', /Offset: ET45/);
   assert.equal(/GP Portal|Price on GP Portal/.test(fallback.bodyHtml.en ?? ''), false);
+});
+
+test('getUrbanCuratedDescriptionOverride replaces poor Urus SE machine copy', () => {
+  const override = getUrbanCuratedDescriptionOverride({ slug: 'urb-wid-26084234-v1' });
+
+  assert.ok(override);
+  assert.match(override.bodyHtml.ua ?? '', /Передня частина/);
+  assert.match(override.bodyHtml.ua ?? '', /Боковий профіль/);
+  assert.match(override.bodyHtml.ua ?? '', /Задня частина/);
+  assert.doesNotMatch(override.bodyHtml.ua ?? '', /ПЕРЕДНЯ ПЕРЕДНЯ|ЗАДНІЙ ЧАС|плаваючими вушками/i);
+});
+
+test('getUrbanCuratedDescriptionOverride covers remaining obvious UA machine artifacts', () => {
+  const branding = getUrbanCuratedDescriptionOverride({ slug: 'urb-log-25353014-v1' });
+  const diffuser = getUrbanCuratedDescriptionOverride({ slug: 'urb-dif-26054207-v1' });
+
+  assert.ok(branding);
+  assert.ok(diffuser);
+  assert.match(branding.bodyHtml.ua ?? '', /Range Rover Sport L461/);
+  assert.match(diffuser.bodyHtml.ua ?? '', /Карбонові канарди/);
+  assert.doesNotMatch(
+    `${branding.bodyHtml.ua} ${diffuser.bodyHtml.ua}`,
+    /задній час|плаваючими вушками|чотирма заготовками/i
+  );
+});
+
+test('hasPoorUrbanUaMachineCopy detects recurring weak Urban machine phrasing', () => {
+  assert.equal(
+    hasPoorUrbanUaMachineCopy(
+      'Накладка розроблена, щоб змінити зовнішній вигляд вашого автомобіля та покращити естетичну привабливість.'
+    ),
+    true
+  );
+  assert.equal(
+    hasPoorUrbanUaMachineCopy(
+      'Розширені колісні арки створені для посилення агресивної позиції та візуального ефекту.'
+    ),
+    true
+  );
+  assert.equal(
+    hasPoorUrbanUaMachineCopy(
+      'Спліттер з вуглецевого волокна з вутками та міською емблемою.'
+    ),
+    true
+  );
+  assert.equal(hasPoorUrbanUaMachineCopy('Обвіси Visual Carbon Fibre для Lamborghini Urus SE'), true);
+  assert.equal(
+    hasPoorUrbanUaMachineCopy('Позиція Urban Automotive для Urus SE. Деталі позиції: артикул і категорія.'),
+    true
+  );
+  assert.equal(hasPoorUrbanUaMachineCopy('Специфікація побудована навколо правильного fitment.'), true);
+  assert.equal(hasPoorUrbanUaMachineCopy('Набір арки Range Rover розроблений, щоб забезпечити агресивну естетику.'), true);
+  assert.equal(
+    hasPoorUrbanUaMachineCopy(
+      'Компонент Urban Automotive у виконанні Visual Carbon Fibre для Range Rover L460.'
+    ),
+    false
+  );
+  assert.equal(hasPoorUrbanUaMachineCopy('Задня частина комплекту виконана з карбону.'), false);
 });

@@ -1545,7 +1545,7 @@ export default function AdminShopSettingsPage() {
               <div>
                 <h3 className="text-lg font-medium text-white">Правила доставки брендів</h3>
                 <p className="mt-1 text-sm text-white/45">
-                  Спеціальні умови для окремих брендів. Працюють тільки якщо Модель розрахунку обрана як 'Volumetric' у зоні.
+                  Спеціальні умови для окремих брендів. Працюють тільки якщо Модель розрахунку обрана як &apos;Volumetric&apos; у зоні.
                 </p>
               </div>
               <button

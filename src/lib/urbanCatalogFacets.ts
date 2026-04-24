@@ -70,6 +70,10 @@ const EXHAUST_REGEX = /(exhaust|tailpipe|tailpipes|вихлоп|насадк)/i;
 const INTERIOR_REGEX = /(interior|floor mat|floor mats|interior kit|салон|килим|килимк)/i;
 const ACCESSORY_REGEX =
   /(accessor|additional options|electrics|number plate|decal|lettering|logo|logos|cover|covers|mudguard|mudguards|trim|trims|option|options|аксесуар|електрик|наклейк|логотип)/i;
+const EXPLICIT_BODYKIT_CATEGORY_REGEX =
+  /(body\s?kit|bodykits|bodykit|widebody|wide\s?track|widetrack|bundle|bundles|arch|arches|wheel arches|обвіс|обвіси|widebody комплекти|комплект|комплекти|арки)/i;
+const EXPLICIT_EXTERIOR_COMPONENT_REGEX =
+  /(hood|hoods|bonnet|spoiler|spoilers|splitter|splitters|grille|grilles|mirror cap|mirror caps|mirror cover|mirror covers|vent|vents|roof light|roof lights|canard|canards|canard packs|diffuser|diffusers|side skirt|side skirts|side step|side steps|front lip|front lips|bumper add-ons|капот|капоти|спойлер|спойлери|спліттер|спліттери|решіт|дзеркал|вентиляц|дахове світло|канард|дифузор|пороги|підніжк)/i;
 
 const EXACT_CATEGORY_UA_MAP: Record<string, string> = {
   accessories: 'Аксесуари',
@@ -152,15 +156,37 @@ export function getStructuredUrbanFamily(tags: string[] | undefined) {
 export function inferUrbanFamilyFromValues(values: string[]) {
   const haystack = normalizeUrbanCatalogValue(values.join(' '));
 
-  if (BODYKIT_REGEX.test(haystack)) return 'bodykits';
   if (WHEEL_REGEX.test(haystack)) return 'wheels';
   if (EXHAUST_REGEX.test(haystack)) return 'exhaust';
   if (INTERIOR_REGEX.test(haystack)) return 'interior';
   if (ACCESSORY_REGEX.test(haystack)) return 'accessories';
+  if (BODYKIT_REGEX.test(haystack)) return 'bodykits';
   return 'exterior';
 }
 
+function inferUrbanFamilyFromExplicitTypeValues(values: string[]) {
+  const haystack = normalizeUrbanCatalogValue(values.join(' '));
+
+  if (WHEEL_REGEX.test(haystack)) return 'wheels';
+  if (EXHAUST_REGEX.test(haystack)) return 'exhaust';
+  if (INTERIOR_REGEX.test(haystack)) return 'interior';
+  if (ACCESSORY_REGEX.test(haystack)) return 'accessories';
+  if (EXPLICIT_EXTERIOR_COMPONENT_REGEX.test(haystack)) return 'exterior';
+  if (EXPLICIT_BODYKIT_CATEGORY_REGEX.test(haystack)) return 'bodykits';
+  return null;
+}
+
 export function getUrbanProductFamily(product: Pick<ShopProduct, 'tags' | 'productType' | 'category' | 'title' | 'collection'>) {
+  const explicitTypeFamily = inferUrbanFamilyFromExplicitTypeValues([
+    product.productType || '',
+    product.category.en,
+    product.category.ua,
+  ]);
+
+  if (explicitTypeFamily) {
+    return explicitTypeFamily;
+  }
+
   return (
     getStructuredUrbanFamily(product.tags) ??
     inferUrbanFamilyFromValues([

@@ -1,11 +1,6 @@
 import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
-import {
-  ADRO_HERO,
-  ADRO_PRODUCT_LINES,
-  ADRO_MATERIALS,
-  ADRO_HERITAGE,
-} from '../data/adroHomeData';
+import { ADRO_PRODUCT_LINES } from '../data/adroHomeData';
 
 import ScrollRevealClient from './ScrollRevealClient';
 import AdroVideoEmbed from './AdroVideoEmbed';
@@ -52,7 +47,7 @@ export default function AdroHomeSignature({ locale }: Props) {
             )}
           </p>
           <Link href={`/${locale}/shop/adro/collections`} className="adro__cta">
-            {L(isUa, 'Explore Collection', 'Переглянути колекцію')}
+            {L(isUa, 'Open Catalog', 'Відкрити каталог')}
             <span className="adro__cta-arrow">→</span>
           </Link>
         </div>
@@ -142,7 +137,7 @@ export default function AdroHomeSignature({ locale }: Props) {
             {L(isUa, 'Catalog', 'Каталог')}
           </p>
           <h2 className="adro__catalog-h">
-            {L(isUa, 'Choose Your Platform', 'Оберіть вашу платформу')}
+            {L(isUa, 'Shop ADRO Catalog', 'Каталог ADRO')}
           </h2>
         </div>
 
@@ -164,7 +159,7 @@ export default function AdroHomeSignature({ locale }: Props) {
                 <h3 className="adro__card-name">{L(isUa, line.name, line.nameUk)}</h3>
                 <p className="adro__card-desc">{L(isUa, line.description, line.descriptionUk)}</p>
                 <span className="adro__card-link">
-                  {L(isUa, 'Explore', 'Дослідити')} →
+                  {L(isUa, 'Filter catalog', 'Фільтрувати каталог')} →
                 </span>
               </div>
             </Link>

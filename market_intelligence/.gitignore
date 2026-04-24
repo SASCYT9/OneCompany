@@ -4,3 +4,4 @@ exports/
 __pycache__/
 app/__pycache__/
 tests/__pycache__/
+logs/openclaw_notifier_state.json

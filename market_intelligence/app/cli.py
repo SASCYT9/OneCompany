@@ -10,6 +10,7 @@ from app.dedupe import find_duplicates, remove_duplicates
 from app.export import export_entries
 from app.formatter import format_analysis_preview
 from app.models import SourceCandidate, TargetFile
+from app.notifier import OpenClawNotifier, OpenClawNotifierError
 from app.review import build_review_summary, build_weekly_digest, render_review_summary, render_weekly_digest
 from app.sources import fetch_url_metadata, load_candidates_from_file
 from app.storage import MarketStorage
@@ -190,6 +191,55 @@ def export_json(output: Path | None = typer.Option(None, "--output", help="Optio
         typer.echo(payload)
 
 
+@app.command("openclaw-notify")
+def openclaw_notify(
+    limit: int | None = typer.Option(None, "--limit", min=1, help="Optional max number of pending notifications."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Render what would be sent without calling OpenClaw."),
+) -> None:
+    storage, _classifier = _bootstrap()
+    notifier = OpenClawNotifier(storage.config)
+    try:
+        sent_entries = notifier.notify_pending_entries(storage, limit=limit, dry_run=dry_run)
+    except OpenClawNotifierError as exc:
+        typer.echo(f"OpenClaw notify failed: {exc}")
+        raise typer.Exit(code=1)
+
+    if not sent_entries:
+        typer.echo("No pending signals to notify.")
+        return
+
+    typer.echo(f"Notified {len(sent_entries)} signal(s).")
+    for entry in sent_entries:
+        typer.echo(f"- {entry.resource_name} -> {entry.target_file.markdown_filename}")
+
+
+@app.command("openclaw-watch")
+def openclaw_watch(
+    interval_seconds: int | None = typer.Option(None, "--interval", min=5, help="Polling interval in seconds."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Render notifications without sending them."),
+    once: bool = typer.Option(False, "--once", help="Run a single watch cycle and exit."),
+    backfill: bool = typer.Option(
+        False,
+        "--backfill",
+        help="If state is empty, send existing entries instead of marking them as already seen.",
+    ),
+) -> None:
+    storage, _classifier = _bootstrap()
+    notifier = OpenClawNotifier(storage.config)
+    poll_interval = interval_seconds or storage.config.openclaw.poll_interval_seconds
+    try:
+        if not backfill:
+            seeded = notifier.seed_existing_entries(storage)
+            if seeded:
+                typer.echo(f"Seeded notifier state with {seeded} existing entries.")
+        typer.echo(f"Watching for new signals every {poll_interval}s via OpenClaw.")
+        notifier.watch(storage, interval_seconds=poll_interval, once=once, dry_run=dry_run)
+    except KeyboardInterrupt:
+        typer.echo("Stopped OpenClaw watch.")
+    except OpenClawNotifierError as exc:
+        typer.echo(f"OpenClaw watch failed: {exc}")
+        raise typer.Exit(code=1)
+
+
 if __name__ == "__main__":
     app()
-

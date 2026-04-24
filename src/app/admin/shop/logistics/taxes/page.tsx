@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft, Save, RefreshCw, Plus, Trash2, X, Receipt,
@@ -48,9 +48,7 @@ export default function TaxRegionPage() {
     isInclusive: false, isActive: true, notes: null, sortOrder: 0,
   });
 
-  useEffect(() => { fetchRules(); }, []);
-
-  async function fetchRules() {
+  const fetchRules = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/shop/logistics/taxes');
@@ -58,7 +56,9 @@ export default function TaxRegionPage() {
       setRules(data.rules || []);
     } catch (e) { console.error(e); }
     setLoading(false);
-  }
+  }, []);
+
+  useEffect(() => { fetchRules(); }, [fetchRules]);
 
   async function saveRule(rule: TaxRule) {
     setSavingKey(rule.regionCode);
@@ -270,8 +270,8 @@ export default function TaxRegionPage() {
           <div>
             <p className="font-semibold mb-1 text-rose-200/90">Як працюють податки?</p>
             <p className="text-rose-200/50 text-xs leading-relaxed">
-              <strong>Inclusive</strong> — податок вже включений у ціну (стиль EU: "ціна вже з ПДВ").<br />
-              <strong>Exclusive</strong> — податок додається зверху при checkout (стиль US: "+ Sales Tax").<br />
+              <strong>Inclusive</strong> — податок вже включений у ціну (стиль EU: &quot;ціна вже з ПДВ&quot;).<br />
+              <strong>Exclusive</strong> — податок додається зверху при checkout (стиль US: &quot;+ Sales Tax&quot;).<br />
               <strong>Мито</strong> — окремий імпортний збір, завжди додається зверху.<br />
               При B2B з валідним VAT ID податок може бути exempted (нотатки для менеджера).
             </p>

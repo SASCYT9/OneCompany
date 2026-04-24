@@ -86,6 +86,8 @@ function buildPreparedItem(overrides: Partial<PreparedUrbanGpPortalProduct> = {}
     slug: 'urb-spo-25353093-v1',
     sku: 'URB-SPO-25353093-V1',
     title: 'Defender L663 90/110/130/OCTA URBAN Rear Spoiler',
+    titleUa: 'Defender L663 90/110/130/OCTA URBAN Rear Spoiler',
+    titleEn: 'Defender L663 90/110/130/OCTA URBAN Rear Spoiler',
     descriptionHtml: '<p>Rear spoiler.</p>',
     descriptionText: 'Rear spoiler.',
     vehicleBrand: 'Land Rover',

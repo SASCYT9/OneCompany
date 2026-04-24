@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Truck, Save, RefreshCw, AlertCircle, Search, Earth, MapPin, Plus,
@@ -76,27 +76,15 @@ export default function LogisticsPage() {
   // Shared
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetchWarehouses(); }, []);
-
-  useEffect(() => {
-    if (warehouses.length > 0 && !selectedWarehouse) {
-      setSelectedWarehouse(warehouses[0].id);
-    }
-  }, [warehouses]);
-
-  useEffect(() => {
-    if (selectedWarehouse) fetchTabData();
-  }, [activeTab, selectedWarehouse]);
-
-  async function fetchWarehouses() {
+  const fetchWarehouses = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/shop/logistics/warehouses');
       const data = await res.json();
       setWarehouses(data.warehouses || []);
     } catch (e) { console.error(e); }
-  }
+  }, []);
 
-  async function fetchTabData() {
+  const fetchTabData = useCallback(async () => {
     setLoading(true);
     try {
       if (activeTab === 'inbound') {
@@ -156,7 +144,19 @@ export default function LogisticsPage() {
       }
     } catch (e) { console.error(e); }
     setLoading(false);
-  }
+  }, [activeTab, selectedWarehouse]);
+
+  useEffect(() => { fetchWarehouses(); }, [fetchWarehouses]);
+
+  useEffect(() => {
+    if (warehouses.length > 0 && !selectedWarehouse) {
+      setSelectedWarehouse(warehouses[0].id);
+    }
+  }, [warehouses, selectedWarehouse]);
+
+  useEffect(() => {
+    if (selectedWarehouse) fetchTabData();
+  }, [fetchTabData, selectedWarehouse]);
 
   async function saveWarehouse() {
     if (!newWarehouse.code || !newWarehouse.name) return;
@@ -485,7 +485,7 @@ export default function LogisticsPage() {
                       <tr className="border-b border-white/[0.06] bg-white/[0.02] text-[10px] uppercase tracking-[0.15em] text-white/40">
                         <th className="font-medium px-5 py-4 w-1/4">Країна / Регіон</th>
                         <th className="font-medium px-5 py-4" title="Базовий тариф за 1 фізичний кг">Факт. вага ($/кг)</th>
-                        <th className="font-medium px-5 py-4" title="Штраф за об'ємну перевагу">Штраф об'єм ($/кг)</th>
+                        <th className="font-medium px-5 py-4" title={"Штраф за об'ємну перевагу"}>Штраф об&apos;єм ($/кг)</th>
                         <th className="font-medium px-5 py-4" title="Фіксована комісія за оформлення">Базова комісія ($)</th>
                         <th className="font-medium px-5 py-4" title="Орієнтовний час доставки">ETA (днів)</th>
                         <th className="font-medium px-5 py-4 text-right">Дії</th>

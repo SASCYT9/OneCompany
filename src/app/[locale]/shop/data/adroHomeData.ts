@@ -72,7 +72,7 @@ export const ADRO_PRODUCT_LINES: AdroProductLine[] = [
     badge: 'Flagship',
     badgeUk: 'Флагман',
     image: '/images/shop/adro/adro-m4-side.png',
-    link: '/shop/adro/collections/bmw-m4',
+    link: '/shop/adro/collections?make=BMW',
   },
   {
     id: 'porsche-gt3',
@@ -83,7 +83,7 @@ export const ADRO_PRODUCT_LINES: AdroProductLine[] = [
     badge: 'Track',
     badgeUk: 'Трек',
     image: '/images/shop/adro/adro-gt3-kit.png',
-    link: '/shop/adro/collections/porsche-gt3',
+    link: '/shop/adro/collections?make=Porsche&q=GT3',
   },
   {
     id: 'toyota-supra',
@@ -94,7 +94,7 @@ export const ADRO_PRODUCT_LINES: AdroProductLine[] = [
     badge: 'JDM',
     badgeUk: 'JDM',
     image: '/images/shop/adro/adro-supra-kit.png',
-    link: '/shop/adro/collections/toyota-supra',
+    link: '/shop/adro/collections?make=Toyota&q=Supra',
   },
   {
     id: 'tesla-model3',
@@ -105,7 +105,7 @@ export const ADRO_PRODUCT_LINES: AdroProductLine[] = [
     badge: 'EV',
     badgeUk: 'EV',
     image: '/images/shop/adro/adro-tesla3-kit.png',
-    link: '/shop/adro/collections/tesla-model3',
+    link: '/shop/adro/collections?make=Tesla&model=Model%203',
   },
 ];
 

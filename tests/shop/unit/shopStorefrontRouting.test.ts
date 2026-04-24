@@ -4,14 +4,13 @@ import assert from 'node:assert/strict';
 import { buildShopStorefrontProductPath, resolveShopStorefrontSegment } from '../../../src/lib/shopStorefrontRouting';
 
 test('resolveShopStorefrontSegment prioritizes explicit Urban and Brabus store tags', () => {
-  assert.equal(resolveShopStorefrontSegment({ slug: 'urb-part', tags: ['store:urban'] }), 'urban');
-  assert.equal(resolveShopStorefrontSegment({ slug: 'brabus-part', tags: ['store:brabus'] }), 'brabus');
+  assert.equal(resolveShopStorefrontSegment({ tags: ['store:urban'] }), 'urban');
+  assert.equal(resolveShopStorefrontSegment({ tags: ['store:brabus'] }), 'brabus');
 });
 
 test('resolveShopStorefrontSegment keeps store:main products out of Urban and Brabus storefronts', () => {
   assert.equal(
     resolveShopStorefrontSegment({
-      slug: 'urb-part',
       brand: 'Urban Automotive',
       vendor: 'Urban Automotive',
       tags: ['store:main'],
@@ -50,7 +49,6 @@ test('buildShopStorefrontProductPath resolves iPE aliases to the ipe storefront'
 
   assert.equal(
     resolveShopStorefrontSegment({
-      slug: 'ipe-system',
       vendor: 'Innotech Performance Exhaust',
     }),
     'ipe'

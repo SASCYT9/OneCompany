@@ -5,8 +5,17 @@ import { createSessionToken, verifySessionToken } from '../../../src/lib/adminAu
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
 const ORIGINAL_ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET;
 
+function setNodeEnv(value: string | undefined) {
+  if (value === undefined) {
+    Reflect.deleteProperty(process.env, 'NODE_ENV');
+    return;
+  }
+
+  Reflect.set(process.env, 'NODE_ENV', value);
+}
+
 test.after(() => {
-  process.env.NODE_ENV = ORIGINAL_NODE_ENV;
+  setNodeEnv(ORIGINAL_NODE_ENV);
   if (ORIGINAL_ADMIN_SESSION_SECRET === undefined) {
     delete process.env.ADMIN_SESSION_SECRET;
   } else {
@@ -15,7 +24,7 @@ test.after(() => {
 });
 
 test('round-trips admin session tokens with the configured secret', () => {
-  process.env.NODE_ENV = 'test';
+  setNodeEnv('test');
   process.env.ADMIN_SESSION_SECRET = 'unit-admin-secret';
 
   const token = createSessionToken({
@@ -33,7 +42,7 @@ test('round-trips admin session tokens with the configured secret', () => {
 });
 
 test('requires an explicit admin session secret in production', () => {
-  process.env.NODE_ENV = 'production';
+  setNodeEnv('production');
   delete process.env.ADMIN_SESSION_SECRET;
 
   assert.throws(

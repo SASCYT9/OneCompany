@@ -56,6 +56,44 @@ $env:ONECO_MI_OLLAMA_ENDPOINT="http://localhost:11434/api/generate"
 $env:ONECO_MI_OLLAMA_TEMPERATURE="0.2"
 ```
 
+### OpenClaw / Telegram Setup
+
+For proactive Telegram notifications, install and configure OpenClaw locally:
+
+```powershell
+ollama launch openclaw --model gemma4 --yes
+openclaw configure --section channels
+```
+
+Recommended Telegram shape for this project:
+
+- `channels.telegram.enabled=true`
+- `channels.telegram.botToken=<your bot token>`
+- `channels.telegram.dmPolicy="allowlist"`
+- `channels.telegram.allowFrom=["tg:<your-user-id>"]`
+- `channels.telegram.streaming="partial"`
+
+If you want the notifier to infer a primary destination automatically, add:
+
+```json
+{
+  "channels": {
+    "telegram": {
+      "defaultTo": "tg:123456789"
+    }
+  }
+}
+```
+
+Optional environment overrides:
+
+```powershell
+$env:ONECO_MI_OPENCLAW_BIN="openclaw"
+$env:ONECO_MI_OPENCLAW_TARGETS="478891619"
+$env:ONECO_MI_OPENCLAW_INTERVAL="60"
+$env:ONECO_MI_OPENCLAW_MIN_SCORE="60"
+```
+
 ## Python Setup
 
 This project expects Python 3.11+.
@@ -82,6 +120,7 @@ market_intelligence/
     formatter.py
     storage.py
     parser.py
+    notifier.py
     review.py
     dedupe.py
     export.py
@@ -102,6 +141,7 @@ market_intelligence/
     test_dedupe.py
     test_classifier.py
     test_scoring.py
+    test_notifier.py
   requirements.txt
   README.md
 ```
@@ -203,6 +243,40 @@ py -3 -m app.cli export-json
 py -3 -m app.cli export-json --output .\exports\market_intelligence.json
 ```
 
+### `openclaw-notify`
+
+Send all pending high-signal entries to Telegram through a local OpenClaw installation.
+
+```powershell
+py -3 -m app.cli openclaw-notify
+py -3 -m app.cli openclaw-notify --limit 3 --dry-run
+```
+
+Target resolution order:
+
+- `ONECO_MI_OPENCLAW_TARGETS`
+- `channels.telegram.defaultTo` in `~/.openclaw/openclaw.json`
+- `channels.telegram.allowFrom` in `~/.openclaw/openclaw.json`
+
+The notifier keeps local delivery state in `logs/openclaw_notifier_state.json` so the same entry is not pushed repeatedly.
+
+### `openclaw-watch`
+
+Run a lightweight polling loop that watches the 5 markdown source-of-truth files and sends new qualifying entries as soon as they appear.
+
+```powershell
+py -3 -m app.cli openclaw-watch
+py -3 -m app.cli openclaw-watch --interval 30
+py -3 -m app.cli openclaw-watch --once --backfill
+```
+
+Default behavior on the first run:
+
+- existing entries are marked as already seen
+- only future entries trigger Telegram notifications
+
+Use `--backfill` if you want the first run to push the current backlog as well.
+
 ## Scoring Model
 
 The system scores each source from 0 to 100 using these weighted dimensions:
@@ -294,4 +368,3 @@ Likely next steps:
 - weekly scheduled automation
 - richer platform-specific metadata extractors
 - multi-source clustering around the same brand / platform / fitment opportunity
-

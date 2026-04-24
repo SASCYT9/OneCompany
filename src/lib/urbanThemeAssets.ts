@@ -1,7 +1,11 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 const ABSOLUTE_URL_RE = /^[a-z][a-z0-9+.-]*:\/\//i;
 const SMGASSETS_IMG_BASE = 'https://smgassets.blob.core.windows.net/customers/urban/dist/img';
 const KNOWN_THEME_ASSET_MAP: Record<string, string> = {
 };
+const localAssetExistsCache = new Map<string, boolean>();
 
 const COLLECTION_THEME_ASSET_MAP: Record<string, Record<string, string>> = {
   'mercedes-g-wagon-w465-widetrack': {
@@ -42,6 +46,26 @@ type ResolveUrbanThemeAssetOptions = {
   collectionHandle?: string;
 };
 
+function publicAssetExists(urlPath: string) {
+  if (!urlPath.startsWith('/')) {
+    return false;
+  }
+
+  const cached = localAssetExistsCache.get(urlPath);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const relativePath = urlPath
+    .slice(1)
+    .split('/')
+    .filter(Boolean);
+  const filePath = path.join(process.cwd(), 'public', ...relativePath);
+  const exists = fs.existsSync(filePath);
+  localAssetExistsCache.set(urlPath, exists);
+  return exists;
+}
+
 export function resolveUrbanThemeAssetUrl(
   value: string,
   options?: ResolveUrbanThemeAssetOptions
@@ -54,7 +78,8 @@ export function resolveUrbanThemeAssetUrl(
   // Urban images migrated to local: serve from our base
   if (trimmed.startsWith(SMGASSETS_IMG_BASE + '/')) {
     const rest = trimmed.slice(SMGASSETS_IMG_BASE.length + 1).split('?')[0];
-    return '/images/shop/urban/' + rest;
+    const localUrl = '/images/shop/urban/' + rest;
+    return publicAssetExists(localUrl) ? localUrl : trimmed;
   }
 
   if (

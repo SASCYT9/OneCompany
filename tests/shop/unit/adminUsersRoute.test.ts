@@ -1,13 +1,30 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { NextRequest } from 'next/server';
+import { RequestCookies } from 'next/dist/server/web/spec-extension/cookies';
+import { RequestCookiesAdapter } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 import { createPatchAdminUserRoute } from '../../../src/app/api/admin/users/[id]/route';
 
+type PatchDependencies = NonNullable<Parameters<typeof createPatchAdminUserRoute>[0]>;
+type PatchTx = Parameters<Parameters<PatchDependencies['prisma']['$transaction']>[0]>[0];
+type AdminUserFixture = NonNullable<
+  Awaited<ReturnType<PatchDependencies['prisma']['adminUser']['findUnique']>>
+>;
+type AdminRoleFixture = AdminUserFixture['roles'][number]['role'];
+type AuditLogFixture = Awaited<ReturnType<PatchDependencies['writeAdminAuditLog']>>;
+
+const FIXTURE_DATE = new Date('2026-04-20T08:00:00.000Z');
+
 function createRequest(body: unknown) {
-  return new Request('http://localhost/api/admin/users/user_1', {
+  return new NextRequest('http://localhost/api/admin/users/user_1', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
+}
+
+function createCookieStore() {
+  return RequestCookiesAdapter.seal(new RequestCookies(new Headers()));
 }
 
 function createContext() {
@@ -16,7 +33,29 @@ function createContext() {
   };
 }
 
-function buildCurrentUser(isActive: boolean) {
+function buildRole(role: { id: string; key: string; name: string }): AdminRoleFixture {
+  return {
+    id: role.id,
+    key: role.key,
+    name: role.name,
+    permissions: [],
+    createdAt: FIXTURE_DATE,
+    updatedAt: FIXTURE_DATE,
+  };
+}
+
+function buildRoleAssignment(role: { id: string; key: string; name: string }): AdminUserFixture['roles'][number] {
+  const fullRole = buildRole(role);
+
+  return {
+    userId: 'user_1',
+    roleId: fullRole.id,
+    assignedAt: FIXTURE_DATE,
+    role: fullRole,
+  };
+}
+
+function buildCurrentUser(isActive: boolean): AdminUserFixture {
   return {
     id: 'user_1',
     email: 'manager@onecompany.com',
@@ -25,6 +64,7 @@ function buildCurrentUser(isActive: boolean) {
     createdAt: new Date('2026-04-20T07:00:00.000Z'),
     updatedAt: new Date('2026-04-20T08:00:00.000Z'),
     lastLoginAt: null,
+    passwordHash: null,
     roles: [],
   };
 }
@@ -33,16 +73,17 @@ function buildUpdatedUser(options: {
   name: string;
   isActive: boolean;
   roles: Array<{ id: string; key: string; name: string }>;
-}) {
+}): AdminUserFixture {
   return {
     id: 'user_1',
     email: 'manager@onecompany.com',
     name: options.name,
     isActive: options.isActive,
     lastLoginAt: null,
+    passwordHash: null,
     createdAt: new Date('2026-04-20T08:00:00.000Z'),
     updatedAt: new Date('2026-04-20T09:00:00.000Z'),
-    roles: options.roles.map((role) => ({ role })),
+    roles: options.roles.map((role) => buildRoleAssignment(role)),
   };
 }
 
@@ -73,7 +114,7 @@ test('PATCH /api/admin/users/[id] handles update, activation, and auth error flo
     deleteMany: [] as unknown[],
     createMany: [] as unknown[],
     update: [] as unknown[],
-    audit: [] as unknown[],
+    audit: [] as Parameters<PatchDependencies['writeAdminAuditLog']>[],
   };
 
   function resetCalls() {
@@ -83,7 +124,7 @@ test('PATCH /api/admin/users/[id] handles update, activation, and auth error flo
     calls.audit.length = 0;
   }
 
-  const tx = {
+  const tx: PatchTx = {
     adminUser: {
       update: async (input: unknown) => {
         calls.update.push(input);
@@ -104,7 +145,7 @@ test('PATCH /api/admin/users/[id] handles update, activation, and auth error flo
   };
 
   const patchRoute = createPatchAdminUserRoute({
-    cookies: async () => ({ get: () => undefined }),
+    cookies: async () => createCookieStore(),
     assertAdminRequest: () => {
       if (state.auth === 'unauthorized') {
         throw new Error('UNAUTHORIZED');
@@ -121,10 +162,24 @@ test('PATCH /api/admin/users/[id] handles update, activation, and auth error flo
       adminRole: {
         findMany: async () => state.validRoles,
       },
-      $transaction: async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx),
+      $transaction: async <T>(callback: (client: PatchTx) => Promise<T>) => callback(tx),
     },
-    writeAdminAuditLog: async (...args: unknown[]) => {
+    writeAdminAuditLog: async (...args) => {
       calls.audit.push(args);
+      const [, sessionArg, entry] = args;
+
+      return {
+        id: 'audit_1',
+        actorId: null,
+        actorEmail: sessionArg.email,
+        actorName: sessionArg.name,
+        scope: entry.scope,
+        action: entry.action,
+        entityType: entry.entityType,
+        entityId: entry.entityId ?? null,
+        metadata: null,
+        createdAt: FIXTURE_DATE,
+      } satisfies AuditLogFixture;
     },
     requiredPermission: 'shop.settings.write',
   });
@@ -169,7 +224,10 @@ test('PATCH /api/admin/users/[id] handles update, activation, and auth error flo
       },
     ]);
 
-    const auditEntry = calls.audit[0]?.[2] as { action: string; metadata: { updatedFields: string[] } };
+    const auditEntry = calls.audit[0]?.[2] as unknown as {
+      action: string;
+      metadata: { updatedFields: string[] };
+    };
     assert.equal(auditEntry.action, 'admin.user.deactivate');
     assert.deepEqual(auditEntry.metadata.updatedFields, ['name', 'isActive', 'roleIds']);
   });

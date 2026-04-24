@@ -67,7 +67,7 @@ export const OUR_STORES: OurStore[] = [
     description: "World-famous plug & play performance tuning since 2007. JB4 tuners, flex fuel kits, and precision parts.",
     descriptionUk: "Всесвітньо відомий plug & play performance тюнінг з 2007 року. JB4 тюнери та високоточні деталі.",
     href: "/shop/burger",
-    imageUrl: "/images/shop/burger/hero-engine.jpg",
+    imageUrl: "/images/shop/burger/hero-engine-bay-moody.jpg",
     gridSpan: 'standard',
   },
   {
@@ -177,7 +177,7 @@ export const OUR_STORES: OurStore[] = [
     descriptionUk:
       "Преміальні аерокіти з препрег-карбону з CFD-інженерією рівня F1. Не для всіх.",
     href: "/shop/adro",
-    imageUrl: "/images/shop/adro/adro-hero-m4.jpg",
+    imageUrl: "/images/shop/adro/adro-m4-profile.webp",
     gridSpan: 'wide',
   },
 ];

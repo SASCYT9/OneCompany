@@ -36,6 +36,39 @@ const NON_G_WAGON_IMAGE_MARKERS = [
   'golf',
   'transporter',
 ];
+const URBAN_MODEL_IMAGE_MARKERS_BY_HANDLE: Record<string, string[]> = {
+  'land-rover-defender-110': ['defender', 'defender2020plus', 'defender-110', 'defender110'],
+  'land-rover-defender-90': ['defender', 'defender2020plus', 'defender-90', 'defender90'],
+  'land-rover-defender-130': ['defender', 'defender2020plus', 'defender-130', 'defender130'],
+  'land-rover-defender-110-octa': ['defender', 'defender2020plus', 'octa'],
+  'land-rover-discovery-5': ['discovery', 'discovery2021plus'],
+  'range-rover-l460': ['range-rover', 'rangerover', 'rangerover2022plus', 'l460'],
+  'range-rover-sport-l461': ['range-rover', 'rangerover', 'range-rover-sport', 'rangeroversport', 'sport-l461', 'l461'],
+  'range-rover-sport-l494': ['range-rover', 'rangerover', 'range-rover-sport', 'rangeroversport', 'sport-l494', 'l494', 'svr'],
+  'lamborghini-urus': ['urus'],
+  'lamborghini-urus-se': ['urus', 'urus-se', 'urusse'],
+  'lamborghini-urus-s': ['urus', 'urus-s', 'uruss'],
+  'lamborghini-urus-performante': ['urus', 'urusperformante', 'urus-performante'],
+  'lamborghini-aventador-s': ['aventador', 'aventador-s'],
+  'rolls-royce-cullinan': ['cullinan'],
+  'rolls-royce-cullinan-series-ii': ['cullinan', 'series-ii', 'seriesii'],
+  'rolls-royce-ghost-series-ii': ['ghost', 'series-ii', 'seriesii'],
+  'mercedes-g-wagon-softkit': ['gwagon', 'g-wagon', 'g63', 'w463', 'w463a', 'softkit', 'soft-kit'],
+  'mercedes-g-wagon-w465-widetrack': ['gwagon', 'g-wagon', 'g63', 'w465', 'widetrack'],
+  'mercedes-g-wagon-w465-aerokit': ['gwagon', 'g-wagon', 'g63', 'w465', 'aerokit', 'aero-kit'],
+  'mercedes-eqc': ['eqc'],
+  'audi-rsq8-facelift': ['rsq8'],
+  'audi-rsq8': ['rsq8'],
+  'audi-rs6-rs7': ['rs6', 'rs7'],
+  'audi-rs4': ['rs4'],
+  'audi-rs3': ['rs3'],
+  'bentley-continental-gt': ['continentalgt', 'continental-gt'],
+  'volkswagen-golf-r': ['golf'],
+  'volkswagen-transporter-t6-1': ['transporter', 't6-1', 't61'],
+};
+const ALL_URBAN_MODEL_IMAGE_MARKERS = Array.from(
+  new Set(Object.values(URBAN_MODEL_IMAGE_MARKERS_BY_HANDLE).flat())
+);
 
 type UrbanMediaSelectionProduct = Pick<
   ShopProduct,
@@ -120,6 +153,21 @@ function resolveCanonicalModelHandles(modelHandles: string[], slug?: string | nu
 function isUrbanImageCompatibleWithHandle(url: string, handle: string) {
   const normalized = stripQueryAndHash(normalizeUrbanImageUrl(url)).toLowerCase();
   if (!normalized || isUrbanPlaceholderImage(normalized)) {
+    return false;
+  }
+
+  const markerHaystack = normalized.includes('/products/')
+    ? normalized.split('/').pop() ?? normalized
+    : normalized;
+  const matchedModelMarkers = ALL_URBAN_MODEL_IMAGE_MARKERS.filter((marker) =>
+    markerHaystack.includes(marker)
+  );
+  const allowedModelMarkers = URBAN_MODEL_IMAGE_MARKERS_BY_HANDLE[handle] ?? [];
+  if (
+    matchedModelMarkers.length > 0 &&
+    allowedModelMarkers.length > 0 &&
+    !matchedModelMarkers.some((marker) => allowedModelMarkers.includes(marker))
+  ) {
     return false;
   }
 

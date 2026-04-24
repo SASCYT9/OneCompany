@@ -91,3 +91,10 @@ test('every urban collection handle has a valid collection template file', () =>
 test('every Urban blueprint view with a relative asset resolves to a local Urban image', () => {
   assert.deepEqual(collectRelativeUrlResolutions(), []);
 });
+
+test('smgassets URLs stay remote when the migrated local file is missing', () => {
+  const source =
+    'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/urusSE/webp/urban-automotive-urus-se-widetrack-1-2560.webp';
+
+  assert.equal(resolveUrbanThemeAssetUrl(source, { collectionHandle: 'lamborghini-urus-se' }), source);
+});

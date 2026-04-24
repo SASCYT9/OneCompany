@@ -4,10 +4,9 @@
  * Urban — власний магазин на нашому сайті (Next.js + наш бекенд), без Shopify.
  */
 
-const BASE = '/images/shop/urban';
+import { URBAN_COLLECTIONS_INDEX_PATH } from './urbanRoutes';
 
-/** Helper to build a direct link to a specific Urban collection page */
-const col = (handle: string) => `/shop/urban/collections/${handle}` as const;
+const BASE = '/images/shop/urban';
 
 export type UrbanShowcase = {
   num: string;
@@ -40,8 +39,8 @@ export const URBAN_SHOWCASES: UrbanShowcase[] = [
       "The world's most desirable Defender. Wide-body styling, premium carbon fibre, Urban's signature aesthetic.",
     subtitleUk:
       'Найбажаніший Defender у світі. Широкий кузов, преміальний карбон та фірмова естетика Urban.',
-    exploreLink: col('land-rover-defender-110'),
-    shopLink: col('land-rover-defender-110'),
+    exploreLink: URBAN_COLLECTIONS_INDEX_PATH,
+    shopLink: URBAN_COLLECTIONS_INDEX_PATH,
     avail: 'Available',
     availUk: 'Доступно',
   },
@@ -58,8 +57,8 @@ export const URBAN_SHOWCASES: UrbanShowcase[] = [
       "Urban's latest statement. The new G63 Widetrack — aggressive stance and unmatched road presence.",
     subtitleUk:
       'Останній стейтмент Urban. Новий G63 Widetrack — агресивна стійка та неперевершена присутність.',
-    exploreLink: col('mercedes-g-wagon-w465-widetrack'),
-    shopLink: col('mercedes-g-wagon-w465-widetrack'),
+    exploreLink: URBAN_COLLECTIONS_INDEX_PATH,
+    shopLink: URBAN_COLLECTIONS_INDEX_PATH,
     avail: 'New Model',
     availUk: 'Нова модель',
   },
@@ -76,8 +75,8 @@ export const URBAN_SHOWCASES: UrbanShowcase[] = [
       'British luxury performance at its finest. Sport aerodynamics, carbon accents and commanding presence.',
     subtitleUk:
       'Британський люкс-перформанс у його кращому вигляді. Спортивна аеродинаміка, карбонові акценти та виразна присутність.',
-    exploreLink: col('range-rover-l460'),
-    shopLink: col('range-rover-l460'),
+    exploreLink: URBAN_COLLECTIONS_INDEX_PATH,
+    shopLink: URBAN_COLLECTIONS_INDEX_PATH,
     avail: 'Available',
     availUk: 'Доступно',
   },
@@ -94,8 +93,8 @@ export const URBAN_SHOWCASES: UrbanShowcase[] = [
       "The world's fastest estate, perfected by Urban. Aerodynamic carbon, forged wheels and commanding stance.",
     subtitleUk:
       'Найшвидший універсал у світі, доведений до досконалості Urban. Аеродинамічний карбон, ковані диски та виразна стійка.',
-    exploreLink: col('audi-rs6-rs7'),
-    shopLink: col('audi-rs6-rs7'),
+    exploreLink: URBAN_COLLECTIONS_INDEX_PATH,
+    shopLink: URBAN_COLLECTIONS_INDEX_PATH,
     avail: 'Available',
     availUk: 'Доступно',
   },
@@ -112,8 +111,8 @@ export const URBAN_SHOWCASES: UrbanShowcase[] = [
       "The pinnacle of luxury, redefined. Urban's bespoke Widetrack programme for the new Cullinan — over 250 hours of handcraft per build.",
     subtitleUk:
       'Вершина розкоші, переосмислена. Ексклюзивна програма Urban Widetrack для нового Cullinan — понад 250 годин ручної праці.',
-    exploreLink: col('rolls-royce-cullinan-series-ii'),
-    shopLink: col('rolls-royce-cullinan-series-ii'),
+    exploreLink: URBAN_COLLECTIONS_INDEX_PATH,
+    shopLink: URBAN_COLLECTIONS_INDEX_PATH,
     avail: 'Available to Order',
     availUk: 'Доступно',
   },
@@ -130,8 +129,8 @@ export const URBAN_SHOWCASES: UrbanShowcase[] = [
       'Raw Italian performance meets British craftsmanship. Carbon widebody, forged wheels, bespoke interior.',
     subtitleUk:
       "Італійський перформанс зустрічає британську майстерність. Карбоновий widebody, ковані диски, ексклюзивний інтер'єр.",
-    exploreLink: col('lamborghini-urus'),
-    shopLink: col('lamborghini-urus'),
+    exploreLink: URBAN_COLLECTIONS_INDEX_PATH,
+    shopLink: URBAN_COLLECTIONS_INDEX_PATH,
     avail: 'Available',
     availUk: 'Доступно',
   },
@@ -148,8 +147,8 @@ export const URBAN_SHOWCASES: UrbanShowcase[] = [
       'The grand tourer in its finest form. Urban carbon elements and unparalleled refinement for the most discerning.',
     subtitleUk:
       'Гранд-турер у найвищому прояві. Urban карбонові елементи та неперевершена витонченість для найвибагливіших.',
-    exploreLink: col('bentley-continental-gt'),
-    shopLink: col('bentley-continental-gt'),
+    exploreLink: URBAN_COLLECTIONS_INDEX_PATH,
+    shopLink: URBAN_COLLECTIONS_INDEX_PATH,
     avail: 'Available',
     availUk: 'Доступно',
   },
@@ -166,8 +165,8 @@ export const URBAN_SHOWCASES: UrbanShowcase[] = [
       "Audi's most powerful SUV with Urban's aero package. Exclusive carbon fibre and aggressive presence.",
     subtitleUk:
       'Найпотужніший кросовер Audi з аеродинамічним пакетом Urban. Ексклюзивний карбон та агресивна присутність.',
-    exploreLink: col('audi-rsq8-facelift'),
-    shopLink: col('audi-rsq8-facelift'),
+    exploreLink: URBAN_COLLECTIONS_INDEX_PATH,
+    shopLink: URBAN_COLLECTIONS_INDEX_PATH,
     avail: 'Available',
     availUk: 'Доступно',
   },
