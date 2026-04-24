@@ -9,7 +9,7 @@ export const BRAND_PATTERNS: { key: string; patterns: RegExp[] }[] = [
   { key: "Lamborghini", patterns: [/\bLAMBORGHINI\b/i] },
   { key: "Ferrari", patterns: [/\bFERRARI\b/i] },
   { key: "McLaren", patterns: [/\bMCLAREN\b/i] },
-  { key: "Toyota", patterns: [/\bTOYOTA\b/i] },
+  { key: "Toyota", patterns: [/\bTOYOTA\b/i, /\bGR\s*SUPRA\b/i, /\bSUPRA\b/i] },
   { key: "Nissan", patterns: [/\bNISSAN\b/i] },
   { key: "Volkswagen", patterns: [/\bVOLKSWAGEN\b/i, /\bVW\b/i] },
   { key: "Chevrolet", patterns: [/\bCHEVROLET\b/i] },
@@ -55,6 +55,17 @@ export function extractVehicleBrand(title: string): string | null {
   return null;
 }
 
+export function extractVehicleBrands(title: string): string[] {
+  const afterFor = title.match(/\bfor\s+(.+)$/i)?.[1] ?? title;
+  const matches: string[] = [];
+  for (const { key, patterns } of BRAND_PATTERNS) {
+    if (patterns.some((rx) => rx.test(afterFor))) {
+      matches.push(key);
+    }
+  }
+  return matches;
+}
+
 export function extractProductLine(title: string): string | null {
   for (const { key, patterns } of LINE_PATTERNS) {
     for (const rx of patterns) {
@@ -62,6 +73,76 @@ export function extractProductLine(title: string): string | null {
     }
   }
   return null;
+}
+
+function extractChassisFromParentheses(inner: string): string | null {
+  const normalized = inner.trim();
+  if (/^\d{4}[-–]\d{4}$/.test(normalized)) return null;
+  if (/^\d{4}$/.test(normalized)) return null;
+  if (/^(Titanium|Stainless Steel|Carbon|Gloss|Matte|ECE|OPF|GPF|without)/i.test(normalized)) return null;
+
+  const chassisMatch = normalized.match(/^([A-Z]?\d{1,3}[A-Z]?)(?:\.\d+)?/i);
+  return chassisMatch ? chassisMatch[1].toUpperCase() : null;
+}
+
+function inferBrandsFromVehicleSegment(segment: string): string[] {
+  const matches = new Set<string>();
+  for (const { key, patterns } of BRAND_PATTERNS) {
+    if (patterns.some((rx) => rx.test(segment))) {
+      matches.add(key);
+    }
+  }
+
+  if (/\bZ4\b|\bM[2-8]\b|\bX[3-7]\s*M?\b/i.test(segment)) {
+    matches.add("BMW");
+  }
+  if (/\bGR\s*SUPRA\b|\bSUPRA\b|\bA90\b/i.test(segment)) {
+    matches.add("Toyota");
+  }
+
+  return [...matches];
+}
+
+export function extractVehicleModelsForBrand(title: string, brand: string): string[] {
+  const afterFor = title.match(/\bfor\s+(.+)$/i)?.[1] ?? title;
+  const titleBrands = extractVehicleBrands(title);
+  const models = new Set<string>();
+  const parenMatches = [...afterFor.matchAll(/\(([^)]+)\)/g)];
+
+  for (const match of parenMatches) {
+    const model = extractChassisFromParentheses(match[1] ?? "");
+    if (!model || match.index == null) continue;
+
+    const before = afterFor.slice(0, match.index);
+    const segmentStart = Math.max(
+      before.lastIndexOf("/"),
+      before.lastIndexOf(","),
+      before.lastIndexOf(";"),
+      before.lastIndexOf("|")
+    );
+    const segment = before.slice(segmentStart + 1);
+    const segmentBrands = inferBrandsFromVehicleSegment(segment);
+
+    if (segmentBrands.includes(brand)) {
+      models.add(model);
+      continue;
+    }
+
+    if (segmentBrands.length === 0 && titleBrands.length <= 1 && titleBrands.includes(brand)) {
+      models.add(model);
+    }
+  }
+
+  if (models.size > 0) {
+    return [...models];
+  }
+
+  if (titleBrands.length > 1) {
+    return [];
+  }
+
+  const fallback = extractVehicleModel(title);
+  return fallback && fallback !== "Other" ? [fallback] : [];
 }
 
 /**
@@ -87,10 +168,8 @@ export function extractVehicleModel(title: string): string {
       if (/^(Titanium|Stainless Steel|Carbon|Gloss|Matte|ECE|OPF|GPF|without)/i.test(inner)) continue;
 
       // Extract first chassis code — F30, G80, E3, W177, C118, 991, 992, 718, 536, A90
-      const chassisMatch = inner.match(/^([A-Z]?\d{1,3}[A-Z]?)(?:\.\d+)?/i);
-      if (chassisMatch) {
-        return chassisMatch[1].toUpperCase();
-      }
+      const chassis = extractChassisFromParentheses(inner);
+      if (chassis) return chassis;
     }
   }
 

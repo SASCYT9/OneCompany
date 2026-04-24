@@ -15,7 +15,7 @@ import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import AkrapovicSpotlightGrid from "./AkrapovicSpotlightGrid";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
-import { BRAND_PATTERNS, LINE_PATTERNS, extractVehicleBrand, extractProductLine, extractVehicleModel } from "@/lib/akrapovicFilterUtils";
+import { BRAND_PATTERNS, LINE_PATTERNS, extractVehicleBrands, extractProductLine, extractVehicleModel, extractVehicleModelsForBrand } from "@/lib/akrapovicFilterUtils";
 
 type AkrapovicVehicleFilterProps = {
   locale: SupportedLocale;
@@ -68,19 +68,21 @@ export default function AkrapovicVehicleFilter({
   const didInitializeBrand = useRef(false);
 
   const productBrandMap = useMemo(() => {
-    const map = new Map<string, string>();
+    const map = new Map<string, string[]>();
     for (const p of products) {
       const title = p.title?.en || localizeShopProductTitle('en', p);
-      const brand = extractVehicleBrand(title);
-      if (brand) map.set(p.slug, brand);
+      const brands = extractVehicleBrands(title);
+      if (brands.length > 0) map.set(p.slug, brands);
     }
     return map;
   }, [products]);
 
   const availableBrands = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const brand of productBrandMap.values()) {
-      counts.set(brand, (counts.get(brand) || 0) + 1);
+    for (const brands of productBrandMap.values()) {
+      for (const brand of brands) {
+        counts.set(brand, (counts.get(brand) || 0) + 1);
+      }
     }
     const brandOrder = BRAND_PATTERNS.map(b => b.key);
     return [...counts.entries()]
@@ -91,7 +93,7 @@ export default function AkrapovicVehicleFilter({
   const availableLines = useMemo(() => {
     const lines = new Map<string, number>();
     for (const p of products) {
-      if (activeBrand !== "all" && productBrandMap.get(p.slug) !== activeBrand) continue;
+      if (activeBrand !== "all" && !productBrandMap.get(p.slug)?.includes(activeBrand)) continue;
       const title = p.title?.en || localizeShopProductTitle('en', p);
       const line = extractProductLine(title);
       if (line) lines.set(line, (lines.get(line) || 0) + 1);
@@ -106,10 +108,11 @@ export default function AkrapovicVehicleFilter({
     if (activeBrand === "all") return [];
     const models = new Map<string, number>();
     for (const p of products) {
-      if (productBrandMap.get(p.slug) !== activeBrand) continue;
+      if (!productBrandMap.get(p.slug)?.includes(activeBrand)) continue;
       const title = p.title?.en || localizeShopProductTitle('en', p);
-      const model = extractVehicleModel(title);
-      if (model && model !== 'Other') models.set(model, (models.get(model) || 0) + 1);
+      for (const model of extractVehicleModelsForBrand(title, activeBrand)) {
+        if (model && model !== 'Other') models.set(model, (models.get(model) || 0) + 1);
+      }
     }
     return [...models.entries()].sort((a, b) => b[1] - a[1]).map(([key, count]) => ({ key, label: key, count }));
   }, [activeBrand, products, productBrandMap]);
@@ -125,10 +128,12 @@ export default function AkrapovicVehicleFilter({
 
   const filteredProducts = useMemo(() => {
     let result = products;
-    if (activeBrand !== "all") result = result.filter(p => productBrandMap.get(p.slug) === activeBrand);
+    if (activeBrand !== "all") result = result.filter(p => productBrandMap.get(p.slug)?.includes(activeBrand));
     if (activeModel !== "all") result = result.filter(p => {
       const t = p.title?.en || localizeShopProductTitle('en', p);
-      return extractVehicleModel(t) === activeModel;
+      return activeBrand === "all"
+        ? extractVehicleModel(t) === activeModel
+        : extractVehicleModelsForBrand(t, activeBrand).includes(activeModel);
     });
     if (activeLine !== "all") result = result.filter(p => {
       const t = p.title?.en || localizeShopProductTitle('en', p);

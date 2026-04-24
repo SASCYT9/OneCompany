@@ -4,7 +4,9 @@ import assert from 'node:assert/strict';
 import {
   extractProductLine,
   extractVehicleBrand,
+  extractVehicleBrands,
   extractVehicleModel,
+  extractVehicleModelsForBrand,
 } from '../../../src/lib/akrapovicFilterUtils';
 
 test('extractVehicleBrand recognizes Mercedes-AMG titles without an explicit Mercedes-Benz token', () => {
@@ -57,4 +59,12 @@ test('extractVehicleModel falls back to known model names when no chassis code i
     ),
     'M440I'
   );
+});
+
+test('extractVehicleModelsForBrand keeps shared BMW and Toyota titles brand-specific', () => {
+  const title = 'AKRAPOVIC Slip-On Line for BMW Z4 (G29) / Toyota GR Supra (A90)';
+
+  assert.deepEqual(extractVehicleBrands(title), ['BMW', 'Toyota']);
+  assert.deepEqual(extractVehicleModelsForBrand(title, 'BMW'), ['G29']);
+  assert.deepEqual(extractVehicleModelsForBrand(title, 'Toyota'), ['A90']);
 });
