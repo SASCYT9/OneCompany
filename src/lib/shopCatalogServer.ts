@@ -59,6 +59,67 @@ function uniqueStrings(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean)));
 }
 
+const SHOP_PRODUCT_FALLBACK_IMAGE = '/images/placeholders/product-fallback.svg';
+
+const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: string[] }> = {
+  'CCRK-C4': {
+    image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/products/1845/1094/CCRK-C4__53202.1638317631.jpg?c=1',
+  },
+  'CCRK-C6': {
+    image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/products/1848/1097/CCRK-C6__46576.1638317631.jpg?c=1',
+  },
+  'CCRK1-133': {
+    image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/products/1848/1097/CCRK-C6__46576.1638317631.jpg?c=1',
+  },
+  'CCRK2-133': {
+    image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/products/1845/1094/CCRK-C4__53202.1638317631.jpg?c=1',
+  },
+  'A1-276': {
+    image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/products/3565/2545/408mm72v__87802.1677861756.jpg?c=1',
+  },
+};
+
+function isGirodiscCatalogProduct(product: Pick<ShopProduct, 'brand' | 'vendor'>) {
+  return normalizeBrandImageKey(product.brand) === 'GIRODISC' || normalizeBrandImageKey(product.vendor) === 'GIRODISC';
+}
+
+function isImageComingSoonAsset(value: string | null | undefined) {
+  return /(?:^|[/_-])image-coming-soon(?:[/_.-]|$)/i.test(String(value ?? ''));
+}
+
+function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {
+  const override = SHOP_PRODUCT_IMAGE_OVERRIDES[String(product.sku ?? '').trim().toUpperCase()];
+  const hasGirodiscPlaceholder =
+    isGirodiscCatalogProduct(product) &&
+    (isImageComingSoonAsset(product.image) || Boolean(product.gallery?.some(isImageComingSoonAsset)));
+
+  if (!override && !hasGirodiscPlaceholder) {
+    return product;
+  }
+
+  const image = override?.image ?? SHOP_PRODUCT_FALLBACK_IMAGE;
+  const gallery = uniqueStrings(
+    override?.gallery ??
+      (hasGirodiscPlaceholder
+        ? [image]
+        : (product.gallery?.map((src) => (isImageComingSoonAsset(src) ? image : src)) ?? [image]))
+  );
+
+  if (
+    product.image === image &&
+    product.gallery?.length === gallery.length &&
+    product.gallery.every((src, index) => src === gallery[index])
+  ) {
+    return product;
+  }
+
+  return {
+    ...product,
+    image,
+    gallery,
+  };
+}
+
 function normalizeBrandImageKey(value: string | null | undefined) {
   return String(value ?? '').trim().toUpperCase();
 }
@@ -502,7 +563,7 @@ function normalizeCatalogProducts(products: ShopProduct[]) {
   const brabusBySku = new Map<string, ShopProduct>();
 
   for (const rawProduct of products) {
-    const product = normalizeFeedManagedProductImages(rawProduct);
+    const product = applyShopProductImageOverrides(normalizeFeedManagedProductImages(rawProduct));
 
     if (isFeedManagedCatalogProduct(product) && !hasCatalogPrice(product)) {
       continue;
@@ -671,9 +732,10 @@ export async function getShopProductBySlugServer(slug: string): Promise<ShopProd
       where: { slug, isPublished: true },
       include: adminProductInclude,
     });
-    if (row) return mapDbToCatalog(row);
+    if (row) return applyShopProductImageOverrides(mapDbToCatalog(row));
   } catch {
     // ignore
   }
-  return getStaticBySlug(slug);
+  const staticProduct = getStaticBySlug(slug);
+  return staticProduct ? applyShopProductImageOverrides(staticProduct) : undefined;
 }

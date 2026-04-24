@@ -12,6 +12,7 @@ import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { useRouter } from "next/navigation";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
+import { MobileProductDisclosure } from "./MobileProductDisclosure";
 
 type Props = {
   locale: SupportedLocale;
@@ -176,14 +177,19 @@ export default function RacechipShopProductDetailLayout({
 
             {/* PERFORMANCE SPECS (Extracted dynamically from longDescription HTML if present) */}
             {longDesc && (
-              <div 
-                 className="prose prose-invert prose-orange max-w-none text-sm text-zinc-300 mb-10
-                 [&_.racechip-specs_h3]:text-[#ff4a00] [&_.racechip-specs_h3]:uppercase [&_.racechip-specs_h3]:tracking-widest [&_.racechip-specs_h3]:text-[13px] [&_.racechip-specs_h3]:mb-4
-                 [&_.racechip-specs_ul]:list-none [&_.racechip-specs_ul]:pl-0 [&_.racechip-specs_ul]:space-y-3
-                 [&_.racechip-specs_li]:border-b [&_.racechip-specs_li]:border-white/[0.04] [&_.racechip-specs_li]:pb-3
-                 [&_strong]:text-white [&_strong]:font-bold"
-                 dangerouslySetInnerHTML={{ __html: longDesc }}
-              />
+              <MobileProductDisclosure
+                title={isUa ? "Опис і характеристики" : "Description & specs"}
+                className="mb-10"
+              >
+                <div
+                  className="prose prose-invert prose-orange max-w-none text-sm text-zinc-300
+                  [&_.racechip-specs_h3]:text-[#ff4a00] [&_.racechip-specs_h3]:uppercase [&_.racechip-specs_h3]:tracking-widest [&_.racechip-specs_h3]:text-[13px] [&_.racechip-specs_h3]:mb-4
+                  [&_.racechip-specs_ul]:list-none [&_.racechip-specs_ul]:pl-0 [&_.racechip-specs_ul]:space-y-3
+                  [&_.racechip-specs_li]:border-b [&_.racechip-specs_li]:border-white/[0.04] [&_.racechip-specs_li]:pb-3
+                  [&_strong]:text-white [&_strong]:font-bold"
+                  dangerouslySetInnerHTML={{ __html: longDesc }}
+                />
+              </MobileProductDisclosure>
             )}
 
             {/* ACTION CENTER */}

@@ -44,6 +44,8 @@ const TYPE_LABELS: Record<string, Record<string, string>> = {
   "billet-accessories": { en: "Billet Parts", ua: "Billet деталі" },
 };
 
+const PAGE_SIZE = 30;
+
 function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | "USD" | "UAH") {
   const formatter = new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "en-US", {
     maximumFractionDigits: 0,
@@ -71,6 +73,7 @@ export default function BurgerVehicleFilter({
   const [activeType, setActiveType] = useState<string>(initialType);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
   // ─── Extract brands from tags ───
@@ -115,6 +118,10 @@ export default function BurgerVehicleFilter({
   useEffect(() => {
     setActiveType("all");
   }, [activeBrand]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeBrand, activeType, searchQuery, sortOrder]);
 
   // ─── Filter & Sort ───
   const filtered = useMemo(() => {
@@ -176,6 +183,10 @@ export default function BurgerVehicleFilter({
     activeType !== "all" ||
     searchQuery.trim().length > 0 ||
     sortOrder !== "default";
+  const displayedProducts = useMemo(
+    () => filtered.slice(0, visibleCount),
+    [filtered, visibleCount]
+  );
 
   if (!mounted) return null;
 
@@ -384,54 +395,55 @@ export default function BurgerVehicleFilter({
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-                {filtered.map((product) => {
+              <>
+              <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
+                {displayedProducts.map((product) => {
                   const productTitle = localizeShopProductTitle(locale, product);
                   const priceStr = getDisplayPrice(product);
                   const typeTag = product.tags?.find(t => t.startsWith("type:"))?.slice(5);
 
                   return (
-                    <article key={product.slug} className="group relative bg-[#0a0a0a] rounded-2xl overflow-hidden flex flex-col hover:-translate-y-1 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.5)] border border-white/[0.04] hover:border-[var(--burger-yellow)]/50 hover:shadow-[0_8px_30px_rgba(255,215,0,0.1)]">
+                    <article key={product.slug} className="group relative bg-[#0a0a0a] rounded-xl sm:rounded-2xl overflow-hidden flex flex-col hover:-translate-y-1 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.5)] border border-white/[0.04] hover:border-[var(--burger-yellow)]/50 hover:shadow-[0_8px_30px_rgba(255,215,0,0.1)]">
                       <Link
                         href={`/${locale}/shop/burger/products/${product.slug}`}
                         className="flex flex-col flex-grow z-10"
                       >
                         {/* Image Canvas (White to perfectly blend Burger JPGs) */}
-                        <div className="relative aspect-[4/3] overflow-hidden flex items-center justify-center p-8 bg-white">
+                        <div className="relative aspect-square sm:aspect-[4/3] overflow-hidden flex items-center justify-center p-2 sm:p-8 bg-white">
                           <Image
                             src={product.image || product.gallery?.[0] || "/images/placeholders/product-fallback.jpg"}
                             alt={productTitle}
                             fill
                             sizes="(max-width: 768px) 100vw, 33vw"
-                            className="object-contain p-6 md:p-8 mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
+                            className="object-contain p-2 sm:p-6 md:p-8 mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
                           />
                         </div>
 
                         {/* Card Body */}
-                        <div className="px-6 pb-6 pt-5 flex flex-col flex-grow">
+                        <div className="px-3 pb-3 pt-3 sm:px-6 sm:pb-6 sm:pt-5 flex flex-col flex-grow">
                           {typeTag && (
-                             <p className="text-[10px] uppercase tracking-widest font-bold text-[var(--burger-yellow)] mb-2.5">
+                             <p className="text-[8px] sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-widest font-bold text-[var(--burger-yellow)] mb-2">
                                {TYPE_LABELS[typeTag]?.[locale] || typeTag}
                              </p>
                           )}
-                          <h3 className="text-sm font-semibold leading-relaxed text-zinc-100 line-clamp-2 mb-4 group-hover:text-white transition-colors">
+                          <h3 className="text-[11px] sm:text-sm font-semibold leading-snug sm:leading-relaxed text-zinc-100 line-clamp-3 sm:line-clamp-2 mb-3 sm:mb-4 group-hover:text-white transition-colors">
                             {productTitle}
                           </h3>
                           
                           {/* Bottom Row: Price & Cart */}
-                          <div className="mt-auto flex items-end justify-between border-t border-white/[0.04] pt-4">
+                          <div className="mt-auto flex items-end justify-between gap-2 border-t border-white/[0.04] pt-3 sm:pt-4">
                             <div>
-                              <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-medium mb-1">
+                              <p className="text-[8px] sm:text-[10px] text-zinc-500 uppercase tracking-widest font-medium mb-1">
                                 {isUa ? "Ціна" : "Price"}
                               </p>
-                              <span className="text-lg tracking-wide font-black text-white">
+                              <span className="text-[11px] sm:text-lg tracking-wide font-black text-white">
                                 {priceStr || (isUa ? "За запитом" : "On Request")}
                               </span>
                             </div>
                             
                             {/* Re-added Cart Icon / Action */}
-                            <div className="w-10 h-10 rounded-full bg-[#111] flex items-center justify-center text-zinc-400 group-hover:bg-[var(--burger-yellow)] group-hover:text-black transition-colors">
-                               <ShoppingCart size={16} strokeWidth={2.5} />
+                            <div className="h-8 w-8 sm:w-10 sm:h-10 shrink-0 rounded-full bg-[#111] flex items-center justify-center text-zinc-400 group-hover:bg-[var(--burger-yellow)] group-hover:text-black transition-colors">
+                               <ShoppingCart size={14} strokeWidth={2.5} />
                             </div>
                           </div>
                         </div>
@@ -442,6 +454,18 @@ export default function BurgerVehicleFilter({
                   );
                 })}
               </div>
+              {visibleCount < filtered.length ? (
+                <div className="mt-8 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
+                    className="rounded-full border border-[var(--burger-yellow)]/35 bg-[var(--burger-yellow)]/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--burger-yellow)] transition hover:border-[var(--burger-yellow)]/70 hover:bg-[var(--burger-yellow)]/18"
+                  >
+                    {isUa ? "Показати ще" : "Show more"} ({filtered.length - visibleCount})
+                  </button>
+                </div>
+              ) : null}
+              </>
             )}
           </main>
         </div>

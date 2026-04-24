@@ -46,6 +46,7 @@ import {
 } from '@/lib/urbanImageUtils';
 import { isBlobStorageUrl } from '@/lib/runtimeAssetPaths';
 import { ShopProductGallery } from './ShopProductGallery';
+import { MobileProductDisclosure } from './MobileProductDisclosure';
 import { getUrbanCollectionPageConfig } from '../data/urbanCollectionPages.server';
 import { findRelatedProducts } from '@/lib/shopRelatedProducts';
 
@@ -511,27 +512,31 @@ export default async function ShopProductDetailPage({
             </div>
 
             <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">{productTitle}</h1>
-            {descriptionSections.introHtml ? (
-              <div
-                className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-white/70 sm:text-[15px] [&_h2]:hidden [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-xs [&_h3]:font-medium [&_h3]:uppercase [&_h3]:tracking-[0.2em] [&_h3]:text-[#c29d59]/90 [&_p]:text-pretty [&_strong]:font-medium [&_strong]:text-white/90 [&_ul]:mt-3 [&_ul]:space-y-2 [&_ul]:pl-0 [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:list-none [&_li]:before:mt-[9px] [&_li]:before:block [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-[#c29d59]/70"
-                dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
-              />
+            {(descriptionSections.introHtml || detailFeatureItems.length > 0 || detailSpecs.length > 0) ? (
+              <MobileProductDisclosure
+                title={isUa ? 'Опис і характеристики' : 'Description & specs'}
+                contentClassName="space-y-4"
+              >
+                {descriptionSections.introHtml ? (
+                  <div
+                    className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-white/70 sm:text-[15px] [&_h2]:hidden [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-xs [&_h3]:font-medium [&_h3]:uppercase [&_h3]:tracking-[0.2em] [&_h3]:text-[#c29d59]/90 [&_p]:text-pretty [&_strong]:font-medium [&_strong]:text-white/90 [&_ul]:mt-3 [&_ul]:space-y-2 [&_ul]:pl-0 [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:list-none [&_li]:before:mt-[9px] [&_li]:before:block [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-[#c29d59]/70"
+                    dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
+                  />
+                ) : null}
+                {detailFeatureItems.length > 0 ? (
+                  <DetailListPanel
+                    title={isUa ? 'Ключові характеристики' : 'Key features'}
+                    items={detailFeatureItems}
+                  />
+                ) : null}
+                {detailSpecs.length > 0 ? (
+                  <DetailSpecPanel
+                    title={isUa ? 'Технічна довідка' : 'Reference details'}
+                    specs={detailSpecs}
+                  />
+                ) : null}
+              </MobileProductDisclosure>
             ) : null}
-
-            <div className="space-y-4">
-              {detailFeatureItems.length > 0 ? (
-                <DetailListPanel
-                  title={isUa ? 'Ключові характеристики' : 'Key features'}
-                  items={detailFeatureItems}
-                />
-              ) : null}
-              {detailSpecs.length > 0 ? (
-                <DetailSpecPanel
-                  title={isUa ? 'Технічна довідка' : 'Reference details'}
-                  specs={detailSpecs}
-                />
-              ) : null}
-            </div>
 
             <div className="rounded-2xl border border-white/15 bg-black/40 p-5 space-y-4">
               <div className="flex flex-col">

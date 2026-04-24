@@ -71,7 +71,7 @@ export const IPE_PRODUCT_LINES: IpeProductLine[] = [
     descriptionUk: '911, Cayenne, Panamera, Macan — повністю титанові Valvetronic-системи з квад-насадками.',
     badge: 'Flagship',
     badgeUk: 'Флагман',
-    image: '/images/shop/ipe/ipe-porsche-system.jpg',
+    image: '/images/shop/ipe/lineup/ipe-lineup-porsche.jpg',
     link: '/shop/ipe/collections/porsche',
   },
   {
@@ -82,7 +82,7 @@ export const IPE_PRODUCT_LINES: IpeProductLine[] = [
     descriptionUk: '488, F8, Roma, SF90 — гоночний тюнінг для підсилення крику плоского V8.',
     badge: 'Supercar',
     badgeUk: 'Суперкар',
-    image: '/images/shop/ipe/ipe-ferrari-real.jpg',
+    image: '/images/shop/ipe/lineup/ipe-lineup-ferrari.jpg',
     link: '/shop/ipe/collections/ferrari',
   },
   {
@@ -93,7 +93,7 @@ export const IPE_PRODUCT_LINES: IpeProductLine[] = [
     descriptionUk: 'Huracán, Aventador, Urus — розкрийте повну V10/V12 симфонію з тюнінгом iPE.',
     badge: 'V10 / V12',
     badgeUk: 'V10 / V12',
-    image: '/images/shop/ipe/ipe-lamborghini-svj.jpg',
+    image: '/images/shop/ipe/lineup/ipe-lineup-lamborghini.jpg',
     link: '/shop/ipe/collections/lamborghini',
   },
   {
@@ -104,7 +104,7 @@ export const IPE_PRODUCT_LINES: IpeProductLine[] = [
     descriptionUk: '720S, 765LT, Artura — точна інженерія для двотурбінних V8 двигунів.',
     badge: 'Track',
     badgeUk: 'Трек',
-    image: '/images/shop/ipe/ipe-mclaren-real.jpg',
+    image: '/images/shop/ipe/lineup/ipe-lineup-mclaren.jpg',
     link: '/shop/ipe/collections/mclaren',
   },
   {
@@ -115,7 +115,7 @@ export const IPE_PRODUCT_LINES: IpeProductLine[] = [
     descriptionUk: 'R8, RS6, RS7, RSQ8 — агресія Valvetronic для Quattro-машин.',
     badge: 'Quattro',
     badgeUk: 'Quattro',
-    image: '/images/shop/ipe/ipe-aventador-system.jpg',
+    image: '/images/shop/ipe/lineup/ipe-lineup-audi.jpg',
     link: '/shop/ipe/collections/audi',
   },
   {
@@ -126,7 +126,7 @@ export const IPE_PRODUCT_LINES: IpeProductLine[] = [
     descriptionUk: 'M3, M4, M5, X5M — титанові системи для машин абсолютного драйву.',
     badge: 'M Power',
     badgeUk: 'M Power',
-    image: '/images/shop/ipe/ipe-installation.jpg',
+    image: '/images/shop/ipe/lineup/ipe-lineup-bmw.jpg',
     link: '/shop/ipe/collections/bmw',
   },
 ];

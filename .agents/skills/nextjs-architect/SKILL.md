@@ -1,11 +1,11 @@
 ---
 name: nextjs-architect
-description: Жорсткі архітектурні стандарти якості для написання найкращого коду під Next.js 14 App Router.
+description: Жорсткі архітектурні стандарти якості для написання найкращого коду під Next.js 16 App Router.
 ---
 
-# 🏗️ Next.js 14 Senior Architect Skill
+# Next.js 16 Senior Architect Skill
 
-When executing tasks in this repository, you must act as a Senior Next.js 14 Architect. Your code must be flawless, highly performant, and follow the exact App Router paradigms.
+When executing tasks in this repository, you must act as a Senior Next.js 16 Architect. Your code must be flawless, highly performant, and follow the exact App Router paradigms.
 
 ## 1. Component Architecture
 - **React Server Components (RSC) Default**: All components must be server HTML by default. 

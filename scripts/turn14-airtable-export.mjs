@@ -17,6 +17,11 @@ const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const TARGET_BRANDS = ['kw', 'do88', 'akrapovic', 'csf', 'ebc', 'kw suspensions', 'ebc brakes'];
 const isDryRun = process.argv.includes('--dry-run');
 
+if (!isDryRun) {
+  console.error('[ABORT] Airtable write exports are disabled by project policy. Re-run with --dry-run for inspection only.');
+  process.exit(1);
+}
+
 // --- Airtable Utilities ---
 let airtableSkuMap = {};
 

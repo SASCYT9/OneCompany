@@ -65,6 +65,7 @@ const SPEC_LABELS: Record<string, Record<string, string>> = {
 
 const FILTER_LIST_SCROLL_CLASS =
   "flex max-h-56 flex-col overflow-y-auto overscroll-contain pr-1 [scrollbar-color:rgba(194,157,89,0.55)_transparent] [scrollbar-width:thin]";
+const PAGE_SIZE = 30;
 
 type FilterSectionKey = "brand" | "line" | "model" | "material" | "spec";
 
@@ -197,6 +198,7 @@ export default function IpeVehicleFilter({
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [modelQuery, setModelQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [openSections, setOpenSections] = useState<Record<FilterSectionKey, boolean>>({
     brand: true,
     line: initialLine !== "all",
@@ -310,7 +312,7 @@ export default function IpeVehicleFilter({
       count
     }));
     return resolved.length > 1 ? resolved : [];
-  }, [activeBrand, enrichedProducts, locale, products.length]);
+  }, [activeBrand, enrichedProducts, products.length]);
 
   const availableMaterials = useMemo(() => {
     const materials = new Map<string, number>();
@@ -438,6 +440,15 @@ export default function IpeVehicleFilter({
 
     return sorted.map((entry) => entry.product);
   }, [activeBrand, activeLine, activeMaterial, activeModel, activeSpec, enrichedProducts, searchQuery, sortOrder, locale]);
+
+  const displayedProducts = useMemo(
+    () => filteredProducts.slice(0, visibleCount),
+    [filteredProducts, visibleCount]
+  );
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeBrand, activeLine, activeModel, activeMaterial, activeSpec, searchQuery, sortOrder]);
 
   const totalCount = products.length;
   const activeBrandLabel = activeBrand !== "all" ? (BRAND_LABELS[activeBrand]?.[locale] || activeBrand) : null;
@@ -800,8 +811,9 @@ export default function IpeVehicleFilter({
                 </button>
               </div>
             ) : (
+              <>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1">
-                {filteredProducts.map((product) => {
+                {displayedProducts.map((product) => {
                   const pricing = viewerContext
                     ? resolveShopProductPricing(product, viewerContext)
                     : { effectivePrice: product.price, effectiveCompareAt: product.compareAt, audience: "b2c", b2bVisible: false };
@@ -879,6 +891,18 @@ export default function IpeVehicleFilter({
                   );
                 })}
               </div>
+              {visibleCount < filteredProducts.length ? (
+                <div className="mt-8 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
+                    className="rounded-full border border-[#c29d59]/35 bg-[#c29d59]/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f1d8a5] transition hover:border-[#c29d59]/70 hover:bg-[#c29d59]/18"
+                  >
+                    {isUa ? "Показати ще" : "Show more"} ({filteredProducts.length - visibleCount})
+                  </button>
+                </div>
+              ) : null}
+              </>
             )}
           </main>
         </div>

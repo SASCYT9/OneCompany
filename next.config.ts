@@ -8,6 +8,7 @@ const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true';
 
 const STATIC_REMOTE_IMAGE_HOSTS = [
   'cdn.shopify.com',
+  'cdn11.bigcommerce.com',
   'www.racechip.eu',
   'www.brabus.com',
   'burgertuning.com',

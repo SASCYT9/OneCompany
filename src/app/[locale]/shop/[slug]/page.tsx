@@ -16,6 +16,7 @@ import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { ShopInlinePriceText } from '@/components/shop/ShopInlinePriceText';
 import { ShopPrimaryPriceBox } from '@/components/shop/ShopPrimaryPriceBox';
 import { ShopProductGallery } from '../components/ShopProductGallery';
+import { MobileProductDisclosure } from '../components/MobileProductDisclosure';
 import { ShopProductImage } from '@/components/shop/ShopProductImage';
 import { ShopProductViewTracker } from '@/components/shop/ShopProductViewTracker';
 
@@ -122,13 +123,17 @@ export default async function ShopProductPage({ params }: Props) {
             <p className="text-xs uppercase tracking-[0.18em] text-white/60">{product.brand}</p>
             <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">{productTitle}</h1>
 
-            {descriptionSections.introHtml ? (
-              <div
-                className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-white/70 sm:text-[15px]"
-                dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
-              />
-            ) : shortDescription ? (
-              <p className="text-sm leading-[1.85] tracking-wide text-white/70 sm:text-[15px]">{shortDescription}</p>
+            {(descriptionSections.introHtml || shortDescription) ? (
+              <MobileProductDisclosure title={isUa ? 'Опис товару' : 'Product description'}>
+                {descriptionSections.introHtml ? (
+                  <div
+                    className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-white/70 sm:text-[15px]"
+                    dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
+                  />
+                ) : shortDescription ? (
+                  <p className="text-sm leading-[1.85] tracking-wide text-white/70 sm:text-[15px]">{shortDescription}</p>
+                ) : null}
+              </MobileProductDisclosure>
             ) : null}
 
             <div className="rounded-2xl border border-white/15 bg-black/40 p-5">

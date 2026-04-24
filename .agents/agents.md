@@ -3,8 +3,8 @@
 Use this file as a compact routing map, not as a second system prompt.
 
 ## Default Read Order
-1. `AGENTS.md`
-2. `.agents/PROJECT_CONTEXT.md`
+1. `.agents/PROJECT_CONTEXT.md`
+2. `AGENTS.md`
 3. Relevant files in `src/`, `prisma/`, or `scripts/`
 4. Curated skills from `.agents/skills/` only when needed
 

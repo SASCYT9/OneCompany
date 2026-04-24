@@ -12,6 +12,7 @@ import type { ShopProduct, ShopProductVariantSummary } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { htmlToPlainText } from "@/lib/sanitizeRichTextHtml";
+import { MobileProductDisclosure } from "./MobileProductDisclosure";
 
 type Props = {
   locale: string;
@@ -314,7 +315,10 @@ export function BurgerShopProductDetailLayout({
 
             {/* Description HTML */}
             {descriptionRaw && (
-              <div style={{ marginTop: 16 }}>
+              <MobileProductDisclosure
+                title={isUa ? "Опис" : "Description"}
+                className="mt-4"
+              >
                 <h3 style={{ fontSize: 12, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--burger-yellow)", marginBottom: 24 }}>
                   {isUa ? "Опис" : "Description"}
                 </h3>
@@ -323,7 +327,7 @@ export function BurgerShopProductDetailLayout({
                   style={{ color: "var(--burger-muted)", fontSize: 15, lineHeight: 1.8 }}
                   dangerouslySetInnerHTML={{ __html: formatDescriptionDisplay(descriptionRaw) }} 
                 />
-              </div>
+              </MobileProductDisclosure>
             )}
 
             {/* Metadata Tags */}

@@ -8,6 +8,9 @@ const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 const TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || 'Products';
 
+console.error('[ABORT] Airtable write exports are disabled by project policy.');
+process.exit(1);
+
 if (!AIRTABLE_PAT || !AIRTABLE_BASE_ID) {
   console.error("Missing AIRTABLE_PAT or AIRTABLE_BASE_ID.");
   process.exit(1);

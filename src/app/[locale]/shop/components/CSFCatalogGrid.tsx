@@ -625,7 +625,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6 lg:gap-8 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8 xl:grid-cols-3">
                 {displayedProducts.map((entry) => {
                   const { product, categoryLabel, make, models, chassisCodes, yearLabel, stockState } = entry;
                   const productTitle = localizeShopProductTitle(locale, product);
@@ -668,33 +668,33 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                             alt={productTitle}
                             fill
                             sizes="(max-width: 768px) 100vw, 33vw"
-                            className="relative z-10 object-contain p-10 transition-transform duration-700 group-hover:scale-[1.06] md:p-12"
+                            className="relative z-10 object-contain p-4 transition-transform duration-700 group-hover:scale-[1.06] sm:p-10 md:p-12"
                           />
-                          <div className="absolute left-4 top-4 z-20 flex flex-wrap gap-2">
-                            <span className="border border-white/[0.06] bg-black/60 px-2.5 py-1 text-[8px] uppercase text-white/50 backdrop-blur-sm">
+                          <div className="absolute left-2 top-2 z-20 flex flex-wrap gap-1 sm:left-4 sm:top-4 sm:gap-2">
+                            <span className="border border-white/[0.06] bg-black/60 px-2 py-0.5 text-[7px] uppercase text-white/50 backdrop-blur-sm sm:px-2.5 sm:py-1 sm:text-[8px]">
                               {categoryLabel}
                             </span>
-                            <span className="border border-[#c8102e]/20 bg-[#c8102e]/10 px-2.5 py-1 text-[8px] uppercase text-[#ff6b81] backdrop-blur-sm">
+                            <span className="border border-[#c8102e]/20 bg-[#c8102e]/10 px-2 py-0.5 text-[7px] uppercase text-[#ff6b81] backdrop-blur-sm sm:px-2.5 sm:py-1 sm:text-[8px]">
                               {getStockLabel(locale, stockState)}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex flex-grow flex-col px-5 pb-5 pt-4">
+                        <div className="flex flex-grow flex-col px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
                           <p className="tabular-nums text-[8px] uppercase text-white/25">{product.sku}</p>
-                          <h3 className="mt-2 line-clamp-2 text-pretty text-[13px] leading-snug text-white/90 transition-colors group-hover:text-white">
+                          <h3 className="mt-2 line-clamp-3 text-pretty text-[11px] leading-snug text-white/90 transition-colors group-hover:text-white sm:line-clamp-2 sm:text-[13px]">
                             {productTitle}
                           </h3>
-                          <p className="mt-3 line-clamp-2 min-h-10 text-[10px] uppercase text-white/45">
+                          <p className="mt-2 line-clamp-2 min-h-8 text-[8px] uppercase text-white/45 sm:mt-3 sm:min-h-10 sm:text-[10px]">
                             {fitmentBadge || (isUa ? "CSF fitment catalog" : "CSF fitment catalog")}
                           </p>
-                          <div className="mt-auto border-t border-white/[0.04] pt-3">
+                          <div className="mt-auto border-t border-white/[0.04] pt-2 sm:pt-3">
                             {hasPrice ? (
-                              <span className="tabular-nums text-sm font-medium tracking-wide text-white">
+                              <span className="tabular-nums text-[11px] font-medium tracking-wide text-white sm:text-sm">
                                 {primaryPrice}
                               </span>
                             ) : (
-                              <span className="text-[10px] uppercase text-[#c8102e]/60">
+                              <span className="text-[9px] uppercase text-[#c8102e]/60 sm:text-[10px]">
                                 {isUa ? "Ціна за запитом" : "Price on request"}
                               </span>
                             )}
@@ -703,13 +703,13 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                         <div className="absolute left-0 top-0 h-[2px] w-full origin-left scale-x-0 bg-gradient-to-r from-transparent via-[#c8102e] to-transparent transition-transform duration-500 group-hover:scale-x-100" />
                       </Link>
 
-                      <div className="relative z-20 flex gap-3 px-6 pb-6 pt-0">
+                      <div className="relative z-20 flex gap-2 px-3 pb-3 pt-0 sm:gap-3 sm:px-6 sm:pb-6">
                         <Link
                           href={`/${locale}/shop/csf/products/${product.slug}`}
-                          className="flex flex-1 items-center justify-center gap-2 rounded-[2px] border border-[#c8102e]/30 py-3 text-[10px] uppercase text-[#c8102e] transition-all duration-300 hover:border-[#c8102e] hover:bg-[#c8102e] hover:text-white"
+                          className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[2px] border border-[#c8102e]/30 py-2 text-[9px] uppercase text-[#c8102e] transition-all duration-300 hover:border-[#c8102e] hover:bg-[#c8102e] hover:text-white sm:py-3 sm:text-[10px]"
                         >
-                          {isUa ? "ПЕРЕЙТИ" : "VIEW"}
-                          <ArrowRight size={12} strokeWidth={2} />
+                          {isUa ? "Деталі" : "View"}
+                          <ArrowRight size={11} strokeWidth={2} className="hidden min-[390px]:block" />
                         </Link>
                         <AddToCartButton
                           slug={product.slug}
@@ -719,7 +719,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                           productName={productTitle}
                           label={isUa ? "КОШИК" : "CART"}
                           labelAdded="✓"
-                          className="flex-1 rounded-[2px] border border-white/10 py-3 text-[10px] uppercase text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black"
+                          className="min-w-0 flex-1 rounded-[2px] border border-white/10 py-2 text-[9px] uppercase text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black sm:py-3 sm:text-[10px]"
                           variant="inline"
                         />
                       </div>

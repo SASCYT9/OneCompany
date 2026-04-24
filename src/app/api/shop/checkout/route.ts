@@ -239,12 +239,6 @@ export async function POST(req: NextRequest) {
   }
   await dispatchCrmWebhook('order.created', order).catch(() => {});
 
-  // Native Airtable Direct Export (Disabled by default / Dry Run)
-  if (process.env.ENABLE_AIRTABLE_EXPORT === 'true') {
-      const { exportShopOrderToAirtable } = require('@/lib/airtableExport');
-      exportShopOrderToAirtable(order.id).catch((e: any) => console.error('[Airtable Export Failed]', e));
-  }
-
   await createInitialOrderEvent(prisma, order.id);
   if (session?.customerId) {
     await upsertCustomerDefaultShippingAddress(prisma, session.customerId, shippingAddress);

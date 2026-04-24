@@ -7,6 +7,7 @@ import { ArrowLeft, Box } from 'lucide-react';
 import Turn14AddToCartButton from './Turn14AddToCartButton';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getEffectiveMarkup } from '@/lib/turn14Pricing';
+import { MobileProductDisclosure } from '../../../components/MobileProductDisclosure';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -151,16 +152,18 @@ export default async function Turn14ProductPage({
               />
             </div>
 
-            <div className="prose prose-invert prose-sm max-w-none text-white/70">
-              <h3 className="text-white text-lg font-medium mb-4">{isUa ? 'Деталі' : 'Details'}</h3>
-              <p className="whitespace-pre-wrap">{attr.marketing_description || (isUa ? 'Опис відсутній в каталозі дистриб\'ютора.' : 'No description available in distributor catalog.')}</p>
-              
-              {attr.prop65_warning && (
-                <p className="mt-4 text-xs text-amber-500/80 p-3 rounded-lg border border-amber-500/20 bg-amber-500/5">
-                  <strong>Prop 65 Warning:</strong> {attr.prop65_warning}
-                </p>
-              )}
-            </div>
+            <MobileProductDisclosure title={isUa ? 'Деталі' : 'Details'}>
+              <div className="prose prose-invert prose-sm max-w-none text-white/70">
+                <h3 className="text-white text-lg font-medium mb-4">{isUa ? 'Деталі' : 'Details'}</h3>
+                <p className="whitespace-pre-wrap">{attr.marketing_description || (isUa ? 'Опис відсутній в каталозі дистриб\'ютора.' : 'No description available in distributor catalog.')}</p>
+
+                {attr.prop65_warning && (
+                  <p className="mt-4 text-xs text-amber-500/80 p-3 rounded-lg border border-amber-500/20 bg-amber-500/5">
+                    <strong>Prop 65 Warning:</strong> {attr.prop65_warning}
+                  </p>
+                )}
+              </div>
+            </MobileProductDisclosure>
           </div>
         </div>
       </div>

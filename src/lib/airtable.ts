@@ -421,30 +421,12 @@ export async function fetchAirtableProductsWithStocks(): Promise<AirtableProduct
   });
 }
 
-// ═══════════════════════════════════════
-// Create / Update Records
-// ═══════════════════════════════════════
-
-export async function createAirtableRecord(
-  tableId: string,
-  fields: Record<string, any>
-): Promise<any> {
-  return airtableFetch(tableId, {
-    method: 'POST',
-    body: { fields },
-  });
+export async function createAirtableRecord(): Promise<never> {
+  throw new Error('Airtable writes are disabled by project policy.');
 }
 
-export async function updateAirtableRecord(
-  tableId: string,
-  recordId: string,
-  fields: Record<string, any>
-): Promise<any> {
-  return airtableFetch(tableId, {
-    method: 'PATCH',
-    recordId,
-    body: { fields },
-  });
+export async function updateAirtableRecord(): Promise<never> {
+  throw new Error('Airtable writes are disabled by project policy.');
 }
 
 // ═══════════════════════════════════════

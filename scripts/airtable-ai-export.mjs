@@ -16,6 +16,11 @@ const CONCURRENCY = 4;
 const BATCH_SIZE = 10;
 const isDryRun = process.argv.includes('--dry-run');
 
+if (!isDryRun) {
+  console.error('[ABORT] Airtable write exports are disabled by project policy. Re-run with --dry-run for inspection only.');
+  process.exit(1);
+}
+
 if (!isDryRun && (!AIRTABLE_PAT || !AIRTABLE_BASE_ID)) {
   console.error("Missing AIRTABLE_PAT or AIRTABLE_BASE_ID.");
   process.exit(1);

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
@@ -33,6 +33,182 @@ const DISPLAY_LABELS: Record<string, Record<string, string>> = {
   rebuild: { en: "Rebuild Kits", ua: "Ремкомплекти" },
 };
 
+const GIRODISC_MAKE_LABELS: Record<string, string> = {
+  audi: "Audi",
+  bmw: "BMW",
+  chevrolet: "Chevrolet",
+  corvette: "Chevrolet",
+  dodge: "Dodge",
+  ferrari: "Ferrari",
+  ford: "Ford",
+  lamborghini: "Lamborghini",
+  lotus: "Lotus",
+  mclaren: "McLaren",
+  mercedes: "Mercedes-Benz",
+  nissan: "Nissan",
+  porsche: "Porsche",
+  subaru: "Subaru",
+  toyota: "Toyota",
+};
+
+const GIRODISC_MODEL_MAKE_TERMS: Record<string, string[]> = {
+  audi: ["audi"],
+  bmw: ["bmw"],
+  chevrolet: ["chevrolet", "corvette"],
+  corvette: ["chevrolet", "corvette"],
+  dodge: ["dodge"],
+  ferrari: ["ferrari"],
+  ford: ["ford"],
+  lamborghini: ["lamborghini"],
+  lotus: ["lotus"],
+  mclaren: ["mclaren"],
+  mercedes: ["mercedes-benz", "mercedes benz", "mercedes", "amg"],
+  nissan: ["nissan"],
+  porsche: ["porsche"],
+  subaru: ["subaru"],
+  toyota: ["toyota"],
+};
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalizeGirodiscToken(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function formatGirodiscLabel(value: string) {
+  return value
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .map((word) => {
+      if (/^(bmw|amg|gt|gts|gt2|gt3|gt4|gt4rs|gt500|rs|rs3|rs4|rs5|rs6|rs7|rsq8|r8|tt|sti|wrx|z06|z51)$/i.test(word)) {
+        return word.toUpperCase();
+      }
+      if (/^[a-z]\d/i.test(word) || /^[a-z]{1,3}\d+[a-z]?$/i.test(word)) {
+        return word.toUpperCase();
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
+}
+
+function getGirodiscMakeKey(product: ShopProduct) {
+  const makeTag = product.tags?.find((tag) => tag.startsWith("car_make:"));
+  if (!makeTag) return null;
+  const make = makeTag.split(":")[1];
+  return make === "corvette" ? "chevrolet" : make;
+}
+
+function productMatchesMake(product: ShopProduct, activeMake: string) {
+  if (activeMake === "all") return true;
+  if (activeMake === "car_make:chevrolet") {
+    return product.tags?.includes("car_make:chevrolet") || product.tags?.includes("car_make:corvette");
+  }
+  return product.tags?.includes(activeMake);
+}
+
+function buildGirodiscSearchText(locale: SupportedLocale, product: ShopProduct) {
+  return [
+    localizeShopProductTitle(locale, product),
+    product.title.en,
+    product.title.ua,
+    product.sku,
+    product.slug,
+    product.brand,
+    product.vendor,
+    product.productType,
+    product.collection.en,
+    product.collection.ua,
+    product.category.en,
+    product.category.ua,
+    ...(product.tags ?? []),
+  ]
+    .map((value) => String(value ?? "").toLowerCase())
+    .join(" ");
+}
+
+function productMatchesSearch(locale: SupportedLocale, product: ShopProduct, query: string) {
+  const q = query.toLowerCase().trim();
+  if (!q) return true;
+  return buildGirodiscSearchText(locale, product).includes(q);
+}
+
+function cleanGirodiscModelLabel(value: string) {
+  return value
+    .replace(/\b(for|для|dlia)\b/gi, " ")
+    .replace(/\b(front|rear|left|right|kit|set|brake|pads?|rotors?|rings?|replacement|racing|endurance|magic|performance)\b/gi, " ")
+    .replace(/\d{3,4}\s*[xх]\s*\d{2,3}[-\s]*(?:mm|мм|mм|мm)/giu, " ")
+    .replace(/\d{3,4}[-\s]*(?:mm|мм|mм|мm)/giu, " ")
+    .replace(/\b(19|20)\d{2}\s*(?:-\s*(?:\d{2,4})?)?/g, " ")
+    .replace(/[()[\]]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractGirodiscModels(product: ShopProduct, makeKey: string | null) {
+  const taggedModels = (product.tags ?? [])
+    .filter((tag) => tag.startsWith("car_model:"))
+    .map((tag) => tag.slice("car_model:".length))
+    .map((value) => ({
+      key: normalizeGirodiscToken(value),
+      label: formatGirodiscLabel(value),
+    }));
+
+  if (taggedModels.length > 0) {
+    return taggedModels;
+  }
+
+  if (!makeKey) return [];
+
+  const terms = GIRODISC_MODEL_MAKE_TERMS[makeKey] ?? [makeKey];
+  const sourceText = `${product.title.en} ${product.title.ua} ${product.slug.replace(/-/g, " ")}`;
+  const lowerSource = sourceText.toLowerCase();
+  const segments: string[] = [];
+
+  for (const term of terms) {
+    const match = new RegExp(`\\b${escapeRegExp(term)}\\b`, "i").exec(sourceText);
+    if (!match) continue;
+
+    let segment = sourceText.slice(match.index + match[0].length);
+    const nextMakeIndex = Object.values(GIRODISC_MODEL_MAKE_TERMS)
+      .flat()
+      .filter((otherTerm) => !terms.includes(otherTerm))
+      .map((otherTerm) => lowerSource.indexOf(otherTerm, match.index + match[0].length))
+      .filter((index) => index > -1)
+      .sort((a, b) => a - b)[0];
+
+    if (typeof nextMakeIndex === "number") {
+      segment = sourceText.slice(match.index + match[0].length, nextMakeIndex);
+    }
+
+    segments.push(segment);
+  }
+
+  const candidates = segments
+    .flatMap((segment) => segment.split(/\s+\/\s+|[,;]|(?:\s+\+\s+)/g))
+    .map(cleanGirodiscModelLabel)
+    .map((value) => value.replace(new RegExp(`^(${terms.map(escapeRegExp).join("|")})\\s+`, "i"), ""))
+    .map((value) => value.trim())
+    .filter((value) => value.length >= 2 && value.length <= 42)
+    .filter((value) => !/^(and|or|with|without|mm|cm)$|^\d+$/i.test(value));
+
+  const unique = new Map<string, { key: string; label: string }>();
+  for (const candidate of candidates) {
+    const key = normalizeGirodiscToken(candidate);
+    if (!key || unique.has(key)) continue;
+    unique.set(key, { key, label: formatGirodiscLabel(candidate) });
+  }
+
+  return [...unique.values()];
+}
+
 function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | "USD" | "UAH") {
   const formatter = new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "en-US", {
     maximumFractionDigits: 0,
@@ -40,6 +216,51 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | 
   const formatted = formatter.format(amount);
   if (locale === "ua" && currency === "UAH") return `${formatted} грн`;
   return locale === "ua" ? `${formatted} ${currency}` : `${currency} ${formatted}`;
+}
+
+function formatComponentCount(locale: SupportedLocale, count: number) {
+  if (locale !== "ua") {
+    return `${count} component${count === 1 ? "" : "s"}`;
+  }
+
+  const lastDigit = count % 10;
+  const lastTwoDigits = count % 100;
+  const word =
+    lastDigit === 1 && lastTwoDigits !== 11
+      ? "компонент"
+      : lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)
+        ? "компоненти"
+        : "компонентів";
+
+  return `${count} ${word}`;
+}
+
+const PAGE_SIZE = 30;
+
+function GirodiscProductImage({
+  src,
+  alt,
+}: {
+  src: string | null | undefined;
+  alt: string;
+}) {
+  const fallbackSrc = "/images/placeholders/product-fallback.svg";
+  const [imageSrc, setImageSrc] = useState(src || fallbackSrc);
+
+  return (
+    <Image
+      src={imageSrc}
+      alt={alt}
+      fill
+      sizes="(max-width: 768px) 100vw, 33vw"
+      className="object-contain p-6 md:p-8 drop-shadow-2xl transition-transform duration-1000 group-hover:scale-110 relative z-10"
+      onError={() => {
+        if (imageSrc !== fallbackSrc) {
+          setImageSrc(fallbackSrc);
+        }
+      }}
+    />
+  );
 }
 
 function computePricesFromEur(
@@ -84,41 +305,70 @@ export default function GirodiscVehicleFilter({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const initialMake = searchParams?.get("make") || "all";
+  const initialModel = searchParams?.get("model") || "all";
   const initialCategory = searchParams?.get("category") || "all";
+  const initialSort = (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
+  const initialSearch = searchParams?.get("q") || "";
 
   // ─── State ───
   const [activeMake, setActiveMake] = useState<string>(initialMake);
+  const [activeModel, setActiveModel] = useState<string>(initialModel);
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
+
+  const syncToUrl = useCallback((make: string, model: string, category: string, sort: string, q: string) => {
+    const params = new URLSearchParams();
+    if (make !== "all") params.set("make", make);
+    if (model !== "all") params.set("model", model);
+    if (category !== "all") params.set("category", category);
+    if (sort !== "default") params.set("sort", sort);
+    if (q.trim()) params.set("q", q.trim());
+    const queryString = params.toString();
+    const nextPath = queryString ? `${pathname}?${queryString}` : (pathname || "");
+    if (typeof window !== "undefined") {
+      window.history.replaceState(window.history.state, "", nextPath);
+    }
+    router.replace(nextPath, { scroll: false });
+  }, [pathname, router]);
 
   // ─── Extract Car Makes (from "car_make:xyz") ───
   const availableMakes = useMemo(() => {
     const makes = new Map<string, number>();
     for (const p of products) {
-      const makeTag = p.tags?.find(t => t.startsWith("car_make:"));
-      if (makeTag) {
-        let make = makeTag.split(":")[1];
-        if (make === "corvette") make = "chevrolet";
-        makes.set(make, (makes.get(make) || 0) + 1);
-      }
+      if (!productMatchesSearch(locale, p, searchQuery)) continue;
+      if (activeCategory !== "all" && !p.tags?.includes(activeCategory)) continue;
+      const make = getGirodiscMakeKey(p);
+      if (!make) continue;
+      makes.set(make, (makes.get(make) || 0) + 1);
     }
     return Array.from(makes.entries())
       .map(([make, count]) => ({
         key: `car_make:${make}`, // Stored as tag format for filtering
-        label: make.replace(/_/g, " ").replace(/-/g, " "),
+        label: GIRODISC_MAKE_LABELS[make] ?? formatGirodiscLabel(make),
         count,
       }))
       .sort((a, b) => a.label.localeCompare(b.label)); // Alphabetical
-  }, [products]);
+  }, [products, locale, searchQuery, activeCategory]);
+
+  const activeMakeKey = activeMake.startsWith("car_make:") ? activeMake.slice("car_make:".length) : null;
 
   // ─── Extract Categories (from "category:xyz") ───
   const availableCategories = useMemo(() => {
     const categories = new Map<string, number>();
     for (const p of products) {
+      if (!productMatchesSearch(locale, p, searchQuery)) continue;
+      if (!productMatchesMake(p, activeMake)) continue;
+      if (activeModel !== "all") {
+        const models = extractGirodiscModels(p, activeMakeKey);
+        if (!models.some((model) => model.key === activeModel)) continue;
+      }
       const catTag = p.tags?.find(t => t.startsWith("category:"));
       if (catTag) {
         const cat = catTag.split(":")[1];
@@ -133,7 +383,37 @@ export default function GirodiscVehicleFilter({
         count,
       }))
       .sort((a, b) => b.count - a.count); // Most popular first
-  }, [products, locale]);
+  }, [products, locale, searchQuery, activeMake, activeMakeKey, activeModel]);
+
+  const availableModels = useMemo(() => {
+    if (!activeMakeKey) return [];
+    const models = new Map<string, { label: string; count: number }>();
+
+    for (const p of products) {
+      if (!productMatchesMake(p, activeMake)) continue;
+      if (activeCategory !== "all" && !p.tags?.includes(activeCategory)) continue;
+      if (!productMatchesSearch(locale, p, searchQuery)) continue;
+
+      for (const model of extractGirodiscModels(p, activeMakeKey)) {
+        const current = models.get(model.key);
+        models.set(model.key, {
+          label: current?.label ?? model.label,
+          count: (current?.count ?? 0) + 1,
+        });
+      }
+    }
+
+    return [...models.entries()]
+      .map(([key, value]) => ({ key, label: value.label, count: value.count }))
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+  }, [products, activeMake, activeMakeKey, activeCategory, locale, searchQuery]);
+
+  useEffect(() => {
+    if (activeModel === "all") return;
+    if (!availableModels.some((model) => model.key === activeModel)) {
+      setActiveModel("all");
+    }
+  }, [activeModel, availableModels]);
 
   // ─── Filter products ───
   const filteredProducts = useMemo(() => {
@@ -141,11 +421,11 @@ export default function GirodiscVehicleFilter({
 
     // Filter by Make
     if (activeMake !== "all") {
-      if (activeMake === "car_make:chevrolet") {
-        result = result.filter(p => p.tags?.includes("car_make:chevrolet") || p.tags?.includes("car_make:corvette"));
-      } else {
-        result = result.filter(p => p.tags?.includes(activeMake));
-      }
+      result = result.filter((p) => productMatchesMake(p, activeMake));
+    }
+
+    if (activeModel !== "all") {
+      result = result.filter((p) => extractGirodiscModels(p, activeMakeKey).some((model) => model.key === activeModel));
     }
 
     // Filter by Category
@@ -155,13 +435,7 @@ export default function GirodiscVehicleFilter({
 
     // Search query
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(p => {
-        const title = localizeShopProductTitle(locale, p).toLowerCase();
-        const sku = (p.sku || "").toLowerCase();
-        const tags = (p.tags || []).join(" ").toLowerCase();
-        return title.includes(q) || sku.includes(q) || tags.includes(q);
-      });
+      result = result.filter((p) => productMatchesSearch(locale, p, searchQuery));
     }
 
     // Sort order
@@ -177,9 +451,60 @@ export default function GirodiscVehicleFilter({
     });
 
     return result;
-  }, [activeMake, activeCategory, searchQuery, sortOrder, products, locale]);
+  }, [activeMake, activeModel, activeMakeKey, activeCategory, searchQuery, sortOrder, products, locale]);
+
+  const displayedProducts = useMemo(
+    () => filteredProducts.slice(0, visibleCount),
+    [filteredProducts, visibleCount]
+  );
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeMake, activeModel, activeCategory, searchQuery, sortOrder]);
 
   if (!mounted) return null;
+
+  const hasActiveFilters =
+    activeMake !== "all" ||
+    activeModel !== "all" ||
+    activeCategory !== "all" ||
+    searchQuery.trim().length > 0 ||
+    sortOrder !== "default";
+
+  function resetFilters() {
+    setActiveMake("all");
+    setActiveModel("all");
+    setActiveCategory("all");
+    setSearchQuery("");
+    setSortOrder("default");
+    syncToUrl("all", "all", "all", "default", "");
+  }
+
+  function updateMake(nextMake: string) {
+    setActiveMake(nextMake);
+    setActiveModel("all");
+    syncToUrl(nextMake, "all", activeCategory, sortOrder, searchQuery);
+  }
+
+  function updateModel(nextModel: string) {
+    setActiveModel(nextModel);
+    syncToUrl(activeMake, nextModel, activeCategory, sortOrder, searchQuery);
+  }
+
+  function updateCategory(nextCategory: string) {
+    setActiveCategory(nextCategory);
+    syncToUrl(activeMake, activeModel, nextCategory, sortOrder, searchQuery);
+  }
+
+  function updateSort(nextSort: "default" | "price_desc" | "price_asc") {
+    setSortOrder(nextSort);
+    syncToUrl(activeMake, activeModel, activeCategory, nextSort, searchQuery);
+  }
+
+  function updateSearch(nextQuery: string) {
+    setSearchQuery(nextQuery);
+    syncToUrl(activeMake, activeModel, activeCategory, sortOrder, nextQuery);
+  }
 
   return (
     <section id="catalog" className="bg-transparent text-white py-8 min-h-screen relative z-30">
@@ -196,12 +521,12 @@ export default function GirodiscVehicleFilter({
           >
             <SlidersHorizontal size={13} />
             {isUa ? "Фільтри" : "Filters"}
-            {(activeMake !== "all" || activeCategory !== "all") && (
+            {hasActiveFilters && (
               <span className="w-1.5 h-1.5 rounded-full bg-red-600 ml-1" />
             )}
           </button>
           <p className="text-white/40 text-xs tracking-wide">
-            {filteredProducts.length} {isUa ? "компонентів" : "components"}
+            {formatComponentCount(locale, filteredProducts.length)}
           </p>
         </div>
 
@@ -238,7 +563,7 @@ export default function GirodiscVehicleFilter({
                   {isUa ? "Каталог" : "Catalog"}
                 </h2>
                 <p className="text-white/60 text-xs tracking-widest uppercase font-semibold pl-3.5">
-                  {filteredProducts.length} {isUa ? "компонентів" : "components"}
+                  {formatComponentCount(locale, filteredProducts.length)}
                 </p>
               </div>
 
@@ -248,13 +573,13 @@ export default function GirodiscVehicleFilter({
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => updateSearch(e.target.value)}
                   placeholder={isUa ? "Пошук за назвою або SKU..." : "Search part or SKU..."}
                   className="w-full bg-black/40 border border-white/10 rounded-sm pl-11 pr-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-red-600/50 transition-colors backdrop-blur-md"
                 />
                 {searchQuery && (
                   <button
-                    onClick={() => setSearchQuery("")}
+                    onClick={() => updateSearch("")}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
                   >
                     <X size={14} />
@@ -270,7 +595,7 @@ export default function GirodiscVehicleFilter({
                 <ul className="flex flex-col">
                   <li>
                     <button
-                      onClick={() => setActiveCategory("all")}
+                      onClick={() => updateCategory("all")}
                       className={`w-full text-left py-2.5 text-xs uppercase tracking-[0.14em] font-semibold transition-colors flex justify-between items-center ${
                         activeCategory === "all" ? "text-white" : "text-white/50 hover:text-white"
                       }`}
@@ -282,7 +607,7 @@ export default function GirodiscVehicleFilter({
                   {availableCategories.map((cat) => (
                     <li key={cat.key}>
                       <button
-                        onClick={() => setActiveCategory(cat.key)}
+                        onClick={() => updateCategory(cat.key)}
                         className={`w-full text-left py-2.5 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors flex justify-between items-center ${
                           activeCategory === cat.key ? "text-white" : "text-white/50 hover:text-white"
                         }`}
@@ -306,7 +631,7 @@ export default function GirodiscVehicleFilter({
                 <ul className="flex flex-col max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
                   <li>
                     <button
-                      onClick={() => setActiveMake("all")}
+                      onClick={() => updateMake("all")}
                       className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors flex justify-between items-center ${
                         activeMake === "all" ? "text-white" : "text-white/40 hover:text-white"
                       }`}
@@ -318,7 +643,7 @@ export default function GirodiscVehicleFilter({
                   {availableMakes.map((make) => (
                     <li key={make.key}>
                       <button
-                        onClick={() => setActiveMake(make.key)}
+                        onClick={() => updateMake(make.key)}
                         className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.12em] font-semibold transition-colors flex justify-between items-center ${
                           activeMake === make.key ? "text-white" : "text-white/40 hover:text-white"
                         }`}
@@ -332,6 +657,48 @@ export default function GirodiscVehicleFilter({
                     </li>
                   ))}
                 </ul>
+              </div>
+
+              {/* MODELS FILTER */}
+              <div className="flex flex-col gap-3 mt-2">
+                <h3 className="text-xs text-white/60 uppercase tracking-widest border-b border-white/[0.06] pb-2 font-medium">
+                  {isUa ? "Модель" : "Vehicle Model"}
+                </h3>
+                {activeMake === "all" ? (
+                  <p className="text-[11px] leading-relaxed text-white/35">
+                    {isUa ? "Спочатку оберіть марку авто." : "Select a vehicle make first."}
+                  </p>
+                ) : (
+                  <ul className="flex flex-col max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                    <li>
+                      <button
+                        onClick={() => updateModel("all")}
+                        className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors flex justify-between items-center ${
+                          activeModel === "all" ? "text-white" : "text-white/40 hover:text-white"
+                        }`}
+                      >
+                        <span>{isUa ? "Усі моделі" : "All Models"}</span>
+                        {activeModel === "all" && <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>}
+                      </button>
+                    </li>
+                    {availableModels.map((model) => (
+                      <li key={model.key}>
+                        <button
+                          onClick={() => updateModel(model.key)}
+                          className={`w-full text-left py-2 text-[11px] uppercase tracking-[0.12em] font-semibold transition-colors flex justify-between items-center ${
+                            activeModel === model.key ? "text-white" : "text-white/40 hover:text-white"
+                          }`}
+                        >
+                          <span>{model.label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] opacity-50">{model.count}</span>
+                            {activeModel === model.key && <span className="w-1 h-1 rounded-full bg-red-600"></span>}
+                          </div>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
             </div>
@@ -352,7 +719,7 @@ export default function GirodiscVehicleFilter({
               <div className="relative inline-block">
                 <select
                   value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
+                  onChange={(e) => updateSort(e.target.value as "default" | "price_desc" | "price_asc")}
                   className="appearance-none bg-[#050505]/80 backdrop-blur-md border border-white/10 text-white text-[10px] uppercase tracking-[0.2em] font-semibold px-5 py-3 pr-10 rounded-lg outline-none focus:border-red-600/50 transition-colors shadow-xl cursor-pointer"
                 >
                   <option value="default">{isUa ? "За замовчуванням" : "Default"}</option>
@@ -379,15 +746,16 @@ export default function GirodiscVehicleFilter({
                     : (isUa ? "Діапазон деталей відсутній." : "Components for this category/make are currently unavailable.")}
                 </p>
                 <button
-                  onClick={() => { setActiveMake("all"); setActiveCategory("all"); setSearchQuery(""); setSortOrder("default"); }}
+                  onClick={resetFilters}
                   className="px-8 py-3 bg-red-600/10 backdrop-blur-xl border border-red-600/30 text-white text-[10px] uppercase tracking-widest hover:bg-red-600/20 hover:border-red-600/60 transition-all duration-500 shadow-lg rounded-md font-medium"
                 >
                   {isUa ? "Скинути фільтри" : "Reset Filters"}
                 </button>
               </div>
             ) : (
-              <GirodiscSpotlightGrid className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-                {filteredProducts.map((product) => {
+              <>
+              <GirodiscSpotlightGrid className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
+                {displayedProducts.map((product) => {
                   const pricing = viewerContext
                     ? resolveShopProductPricing(product, viewerContext)
                     : { effectivePrice: product.price, effectiveCompareAt: product.compareAt, audience: "b2c", b2bVisible: false };
@@ -398,6 +766,13 @@ export default function GirodiscVehicleFilter({
                   );
 
                   const productTitle = localizeShopProductTitle(locale, product);
+                  const productMakeKey = getGirodiscMakeKey(product);
+                  const productMakeLabel = productMakeKey ? (GIRODISC_MAKE_LABELS[productMakeKey] ?? formatGirodiscLabel(productMakeKey)) : null;
+                  const productModels = extractGirodiscModels(product, productMakeKey);
+                  const productModelLabel =
+                    (activeModel !== "all"
+                      ? productModels.find((model) => model.key === activeModel)?.label
+                      : null) ?? productModels[0]?.label ?? null;
                   
                   // Category Badge helper
                   const catTag = product.tags?.find(t => t.startsWith("category:"));
@@ -412,37 +787,36 @@ export default function GirodiscVehicleFilter({
                         className="flex flex-col flex-grow z-10"
                       >
                         {/* Image Container */}
-                        <div className="relative aspect-[4/3] bg-[#050505] overflow-hidden flex items-center justify-center p-8 border-b border-white/[0.03] group-hover:border-red-600/30 transition-colors duration-700">
+                        <div className="relative aspect-square sm:aspect-[4/3] bg-[#050505] overflow-hidden flex items-center justify-center p-3 sm:p-8 border-b border-white/[0.03] group-hover:border-red-600/30 transition-colors duration-700">
                           {/* Premium Background Effects */}
-                          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay"></div>
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04)_0,transparent_1px)] bg-[size:4px_4px] opacity-20 pointer-events-none mix-blend-overlay"></div>
                           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
                           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.15)_0%,transparent_60%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                           
-                          <Image
-                            src={product.image || "/images/placeholders/product-fallback.jpg"}
-                            alt={productTitle}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 33vw"
-                            className="object-contain p-6 md:p-8 drop-shadow-2xl transition-transform duration-1000 group-hover:scale-110 relative z-10"
-                          />
-                          <div className="absolute top-4 left-4 z-20">
-                            <span className="px-2.5 py-1.5 bg-[#0a0a0a]/90 backdrop-blur-xl text-white/80 border border-white/5 text-[9px] uppercase tracking-[0.2em] font-bold rounded-sm shadow-xl">
+                          <GirodiscProductImage src={product.image} alt={productTitle} />
+                          <div className="absolute left-2 top-2 z-20 sm:left-4 sm:top-4">
+                            <span className="px-2 py-1 bg-[#0a0a0a]/90 backdrop-blur-xl text-white/80 border border-white/5 text-[7px] sm:text-[9px] uppercase tracking-[0.14em] sm:tracking-[0.2em] font-bold rounded-sm shadow-xl">
                               {catNameDisplay}
                             </span>
                           </div>
                         </div>
 
                         {/* Card Body */}
-                        <div className="px-6 pb-6 pt-5 flex flex-col flex-grow relative">
-                          <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-red-600 mb-3">{product.sku}</p>
-                          <h3 className="text-[13px] font-normal leading-relaxed text-white/80 group-hover:text-white line-clamp-3 mb-6 transition-colors duration-300">
+                        <div className="px-3 pb-3 pt-3 sm:px-6 sm:pb-6 sm:pt-5 flex flex-col flex-grow relative">
+                          <p className="text-[8px] sm:text-[10px] uppercase tracking-[0.16em] sm:tracking-[0.25em] font-bold text-red-600 mb-2 sm:mb-3">{product.sku}</p>
+                          {(productMakeLabel || productModelLabel) && (
+                            <p className="mb-2 text-[8px] sm:text-[9px] uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white/35 line-clamp-1">
+                              {[productMakeLabel, productModelLabel].filter(Boolean).join(" · ")}
+                            </p>
+                          )}
+                          <h3 className="text-[11px] sm:text-[13px] font-normal leading-snug sm:leading-relaxed text-white/80 group-hover:text-white line-clamp-3 mb-3 sm:mb-6 transition-colors duration-300">
                             {productTitle}
                           </h3>
                           
                           {/* Price */}
                           <div className="mt-auto">
                             {computed.usd === 0 ? (
-                              <span className="text-[12px] tracking-[0.15em] uppercase font-medium text-white/40">
+                              <span className="text-[9px] sm:text-[12px] tracking-[0.12em] sm:tracking-[0.15em] uppercase font-medium text-white/40">
                                 {isUa ? "Ціна за запитом" : "Price on Request"}
                               </span>
                             ) : (
@@ -454,7 +828,7 @@ export default function GirodiscVehicleFilter({
                                     {currency === "UAH" && formatPrice(locale, pricing.effectiveCompareAt.usd * (rates?.USD || 1), "UAH")}
                                   </span>
                                 )}
-                                <span className="text-[18px] tracking-widest font-light text-white group-hover:text-red-500 transition-colors duration-300">
+                                <span className="text-[11px] sm:text-[18px] tracking-wider sm:tracking-widest font-light text-white group-hover:text-red-500 transition-colors duration-300">
                                   {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
                                   {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
                                   {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
@@ -470,13 +844,13 @@ export default function GirodiscVehicleFilter({
                       </Link>
 
                       {/* Bottom Actions: View + Add To Cart */}
-                      <div className="px-6 pb-6 pt-0 z-20 relative flex gap-3">
+                      <div className="px-3 pb-3 pt-0 sm:px-6 sm:pb-6 z-20 relative flex gap-2 sm:gap-3">
                         <Link
                           href={buildShopProductPathGirodisc(locale, product)}
-                          className="flex-1 flex items-center justify-center gap-2 py-3 border border-red-600/30 text-[10px] tracking-[0.3em] uppercase font-light text-red-500 hover:text-white hover:bg-red-600 hover:border-red-600 transition-all duration-300 rounded-[2px]"
+                          className="flex-1 min-w-0 flex items-center justify-center gap-1.5 py-2 sm:py-3 border border-red-600/30 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-red-500 hover:text-white hover:bg-red-600 hover:border-red-600 transition-all duration-300 rounded-[2px]"
                         >
-                          {isUa ? "ПЕРЕЙТИ" : "VIEW"}
-                          <ArrowRight size={12} strokeWidth={2} />
+                          {isUa ? "Деталі" : "View"}
+                          <ArrowRight size={11} strokeWidth={2} className="hidden min-[390px]:block" />
                         </Link>
                         <AddToCartButton
                           slug={product.slug}
@@ -486,7 +860,7 @@ export default function GirodiscVehicleFilter({
                           productName={productTitle}
                           label={isUa ? "КОШИК" : "CART"}
                           labelAdded={isUa ? "✓" : "✓"}
-                          className="flex-1 flex items-center justify-center py-3 border border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
+                          className="flex-1 min-w-0 flex items-center justify-center py-2 sm:py-3 border border-white/10 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
                           variant="inline"
                         />
                       </div>
@@ -494,6 +868,18 @@ export default function GirodiscVehicleFilter({
                   );
                 })}
               </GirodiscSpotlightGrid>
+              {visibleCount < filteredProducts.length ? (
+                <div className="mt-8 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
+                    className="rounded-full border border-red-600/35 bg-red-600/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-red-100 transition hover:border-red-600/70 hover:bg-red-600/20"
+                  >
+                    {isUa ? "Показати ще" : "Show more"} ({filteredProducts.length - visibleCount})
+                  </button>
+                </div>
+              ) : null}
+              </>
             )}
           </main>
         </div>

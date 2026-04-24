@@ -17,6 +17,7 @@ import type { ShopProduct } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import type { SupportedLocale } from "@/lib/seo";
 import BrabusVideoBackground from "./BrabusVideoBackground";
+import { MobileProductDisclosure } from "./MobileProductDisclosure";
 
 type Props = {
   locale: string;
@@ -530,7 +531,10 @@ export function BrabusShopProductDetailLayout({
               </div>
 
               {/* Accordions */}
-              <div className="b-accordion">
+              <MobileProductDisclosure
+                title={isUa ? "Опис і характеристики" : "Description & specs"}
+                className="b-accordion"
+              >
                 {(longDescription || shortDescription) && (
                   <div className={`b-acc-item ${openAccordion === "desc" ? "is-open" : ""}`}>
                     <button className="b-acc-btn" onClick={() => toggleAccordion("desc")}>
@@ -589,7 +593,7 @@ export function BrabusShopProductDetailLayout({
                     </div>
                   </div>
                 </div>
-              </div>
+              </MobileProductDisclosure>
 
             </div>
           </div>

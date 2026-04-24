@@ -27,6 +27,7 @@ type AkrapovicVehicleFilterProps = {
 };
 
 type SortOrder = "default" | "price_desc" | "price_asc";
+const PAGE_SIZE = 30;
 
 /* Brand/line constants imported from @/lib/akrapovicFilterUtils */
 
@@ -64,6 +65,7 @@ export default function AkrapovicVehicleFilter({
   const [activeLine, setActiveLine] = useState<string>(() => searchParams.get("line") || "all");
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q") || "");
   const [sortOrder, setSortOrder] = useState<SortOrder>("default");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
   const didInitializeBrand = useRef(false);
 
@@ -126,6 +128,10 @@ export default function AkrapovicVehicleFilter({
     setActiveModel("all");
   }, [activeBrand]);
 
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeBrand, activeModel, activeLine, searchQuery, sortOrder]);
+
   const filteredProducts = useMemo(() => {
     let result = products;
     if (activeBrand !== "all") result = result.filter(p => productBrandMap.get(p.slug)?.includes(activeBrand));
@@ -180,6 +186,10 @@ export default function AkrapovicVehicleFilter({
   }, [activeBrand, activeModel, activeLine, searchQuery, sortOrder, products, productBrandMap, locale, viewerContext, currency, rates]);
 
   const totalCount = products.length;
+  const displayedProducts = useMemo(
+    () => filteredProducts.slice(0, visibleCount),
+    [filteredProducts, visibleCount]
+  );
 
   const hasActiveFilters = activeBrand !== "all" || activeLine !== "all" || activeModel !== "all" || searchQuery.trim() !== "";
   const catalogHref = useMemo(() => {
@@ -372,7 +382,7 @@ export default function AkrapovicVehicleFilter({
         </div>
 
         {/* ═══ MOBILE: Burger button + sort ═══ */}
-        <div className="lg:hidden flex items-center justify-between gap-3 mb-5">
+        <div className="lg:hidden sticky top-[72px] z-30 -mx-3 mb-5 flex items-center justify-between gap-3 border-y border-white/[0.06] bg-black/75 px-3 py-3 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <button type="button" onClick={toggleMobileFilter}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#050505]/80 backdrop-blur-md border border-white/[0.08] rounded-lg text-white text-[10px] uppercase tracking-[0.15em] font-semibold hover:border-[#e50000]/40 transition-colors shadow-xl">
@@ -447,8 +457,9 @@ export default function AkrapovicVehicleFilter({
             </button>
           </div>
         ) : (
-          <AkrapovicSpotlightGrid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
-            {filteredProducts.map((product) => {
+          <>
+          <AkrapovicSpotlightGrid className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
+            {displayedProducts.map((product) => {
               const pricing = viewerContext
                 ? resolveShopProductPricing(product, viewerContext)
                 : { effectivePrice: product.price, effectiveCompareAt: product.compareAt, audience: "b2c", b2bVisible: false };
@@ -473,13 +484,13 @@ export default function AkrapovicVehicleFilter({
               return (
                 <article key={product.slug} className="group relative bg-[#050505]/60 backdrop-blur-xl overflow-hidden flex flex-col hover:bg-[rgba(10,10,10,0.85)] transition-all duration-500 border border-white/[0.04] shadow-2xl">
                   <Link href={`${productPathPrefix}/${product.slug}`} className="flex flex-col flex-grow z-10">
-                    <div className="relative aspect-[4/3] bg-transparent overflow-hidden flex items-center justify-center p-6 border-b border-white/[0.02]">
+                    <div className="relative aspect-[1/1] sm:aspect-[4/3] bg-transparent overflow-hidden flex items-center justify-center p-2.5 sm:p-6 border-b border-white/[0.02]">
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(229,0,0,0.1)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                       {(product.image && product.image.length > 5) ? (
                         <Image
                           src={product.image}
                           alt={productTitle} fill sizes="(max-width: 768px) 100vw, 25vw"
-                          className="object-contain p-5 md:p-6 drop-shadow-2xl transition-transform duration-700 group-hover:scale-110 relative z-10"
+                          className="object-contain p-2 sm:p-5 md:p-6 drop-shadow-2xl transition-transform duration-700 group-hover:scale-110 relative z-10"
                           onError={(e) => {
                             const img = e.target as HTMLImageElement;
                             img.style.display = 'none';
@@ -492,17 +503,17 @@ export default function AkrapovicVehicleFilter({
                       <img
                         src="/images/shop/akrapovic/factory-fallback.jpg"
                         alt=""
-                        className={`absolute inset-0 w-full h-full object-contain p-8 opacity-30 fallback-img ${(product.image && product.image.length > 5) ? 'hidden' : 'block'}`}
+                        className={`absolute inset-0 w-full h-full object-contain p-4 sm:p-8 opacity-30 fallback-img ${(product.image && product.image.length > 5) ? 'hidden' : 'block'}`}
                       />
                     </div>
-                    <div className="px-5 pb-5 pt-4 flex flex-col flex-grow">
-                      <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#e50000] mb-1.5">{product.brand}</p>
-                      <h3 className="text-[13px] font-light leading-snug text-white line-clamp-2 mb-3">{productTitle}</h3>
+                    <div className="px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4 flex flex-col flex-grow">
+                      <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.16em] sm:tracking-[0.2em] font-bold text-[#e50000] mb-1.5">{product.brand}</p>
+                      <h3 className="text-[11px] sm:text-[13px] font-light leading-snug text-white line-clamp-3 sm:line-clamp-2 mb-2 sm:mb-3">{productTitle}</h3>
                       <div className="mt-auto">
                         {!hasPrice || !primaryPrice ? (
-                          <span className="text-[11px] tracking-wider uppercase font-medium text-white/50">{isUa ? "Ціна за запитом" : "Price on Request"}</span>
+                          <span className="text-[9px] sm:text-[11px] tracking-wider uppercase font-medium text-white/50">{isUa ? "Ціна за запитом" : "Price on Request"}</span>
                         ) : (
-                          <span className="text-sm tracking-widest font-light text-white">
+                          <span className="text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-light text-white">
                             {primaryPrice}
                           </span>
                         )}
@@ -510,20 +521,32 @@ export default function AkrapovicVehicleFilter({
                     </div>
                     <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#e50000] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
                   </Link>
-                  <div className="px-5 pb-5 pt-0 z-20 relative flex gap-2.5">
+                  <div className="px-3 pb-3 pt-0 sm:px-5 sm:pb-5 z-20 relative flex gap-2">
                     <Link href={`${productPathPrefix}/${product.slug}`}
-                      className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-[#e50000]/30 text-[10px] tracking-[0.3em] uppercase font-light text-[#e50000] hover:text-white hover:bg-[#e50000] hover:border-[#e50000] transition-all duration-300">
-                      {isUa ? "ПЕРЕЙТИ" : "VIEW"} <ArrowRight size={12} strokeWidth={2} />
+                      className="flex-1 flex min-w-0 items-center justify-center gap-1.5 py-2 sm:py-2.5 border border-[#e50000]/30 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-[#e50000] hover:text-white hover:bg-[#e50000] hover:border-[#e50000] transition-all duration-300">
+                      {isUa ? "Деталі" : "View"} <ArrowRight size={11} strokeWidth={2} className="hidden min-[390px]:block" />
                     </Link>
                     <AddToCartButton slug={product.slug} variantId={null} locale={locale} redirect={true} productName={productTitle}
                       label={isUa ? "КОШИК" : "CART"} labelAdded={isUa ? "✓" : "✓"}
-                      className="flex-1 flex items-center justify-center py-2.5 border border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300"
+                      className="flex-1 flex min-w-0 items-center justify-center py-2 sm:py-2.5 border border-white/10 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300"
                       variant="inline" />
                   </div>
                 </article>
               );
             })}
           </AkrapovicSpotlightGrid>
+          {visibleCount < filteredProducts.length ? (
+            <div className="mt-8 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
+                className="rounded-full border border-[#e50000]/35 bg-[#e50000]/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white transition hover:border-[#e50000]/70 hover:bg-[#e50000]/20"
+              >
+                {isUa ? "Показати ще" : "Show more"} ({filteredProducts.length - visibleCount})
+              </button>
+            </div>
+          ) : null}
+          </>
         )}
           </>
         )}

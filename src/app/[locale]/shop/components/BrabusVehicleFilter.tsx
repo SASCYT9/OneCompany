@@ -66,6 +66,8 @@ const MODEL_LABELS: Record<string, Record<string, string>> = {
   "smart #3": { en: "#3", ua: "#3" },
 };
 
+const PAGE_SIZE = 30;
+
 function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | "USD" | "UAH") {
   const formatter = new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "en-US", {
     maximumFractionDigits: 0,
@@ -125,6 +127,7 @@ export default function BrabusVehicleFilter({
   const [activeModel, setActiveModel] = useState<string>(initialModel);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
 
   /* ─── Data derivation ─── */
@@ -164,6 +167,10 @@ export default function BrabusVehicleFilter({
     setActiveModel("all");
   }, [activeBrand]);
 
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeBrand, activeModel, searchQuery, sortOrder]);
+
   /* ─── Filtering & Sorting ─── */
   const filteredProducts = useMemo(() => {
     let result = products;
@@ -197,17 +204,12 @@ export default function BrabusVehicleFilter({
 
   const totalCount = products.length;
   const hasActiveFilters = activeBrand !== "all" || searchQuery.trim().length > 0;
+  const displayedProducts = useMemo(
+    () => filteredProducts.slice(0, visibleCount),
+    [filteredProducts, visibleCount]
+  );
 
   if (!mounted) return null;
-
-  const brandOptions = [
-    { key: "all", label: isUa ? "Всі марки" : "All Brands", count: totalCount },
-    ...availableBrands,
-  ];
-  const modelOptions = [
-    { key: "all", label: isUa ? "Всі моделі" : "All Models" },
-    ...availableModels,
-  ];
 
   return (
     <section id="catalog" className="bg-transparent text-white min-h-screen relative z-30">
@@ -371,8 +373,9 @@ export default function BrabusVehicleFilter({
               </button>
             </div>
           ) : (
-            <BrabusSpotlightGrid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {filteredProducts.map((product) => {
+            <>
+            <BrabusSpotlightGrid className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
+              {displayedProducts.map((product) => {
                 const pricing = viewerContext
                   ? resolveShopProductPricing(product, viewerContext)
                   : {
@@ -398,7 +401,7 @@ export default function BrabusVehicleFilter({
                       className="flex flex-col flex-grow z-10"
                     >
                       {/* Image */}
-                      <div className="relative aspect-[4/3] bg-transparent overflow-hidden flex items-center justify-center p-6 border-b border-white/[0.02]">
+                      <div className="relative aspect-square sm:aspect-[4/3] bg-transparent overflow-hidden flex items-center justify-center p-2.5 sm:p-6 border-b border-white/[0.02]">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(194,157,89,0.15)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                         <ShopProductImage
                           src={product.image || "/images/placeholders/product-fallback.svg"}
@@ -406,25 +409,25 @@ export default function BrabusVehicleFilter({
                           alt={productTitle}
                           fill
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-contain p-4 md:p-6 drop-shadow-2xl transition-transform duration-700 group-hover:scale-110 relative z-10"
+                          className="object-contain p-2 sm:p-4 md:p-6 drop-shadow-2xl transition-transform duration-700 group-hover:scale-110 relative z-10"
                         />
                       </div>
 
                       {/* Card Body */}
-                      <div className="px-5 pb-5 pt-4 flex flex-col flex-grow">
-                        <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#c29d59] mb-1.5">
+                      <div className="px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4 flex flex-col flex-grow">
+                        <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.16em] sm:tracking-[0.2em] font-bold text-[#c29d59] mb-1.5">
                           {product.brand}
                         </p>
-                        <h3 className="text-[13px] font-light leading-snug text-white line-clamp-2 mb-3">
+                        <h3 className="text-[11px] sm:text-[13px] font-light leading-snug text-white line-clamp-3 sm:line-clamp-2 mb-2 sm:mb-3">
                           {productTitle}
                         </h3>
                         <div className="mt-auto">
                           {computed.eur === 0 ? (
-                            <span className="text-[11px] tracking-wider uppercase font-medium text-white/50">
+                            <span className="text-[9px] sm:text-[11px] tracking-wider uppercase font-medium text-white/50">
                               {isUa ? "Ціна за запитом" : "Price on Request"}
                             </span>
                           ) : (
-                            <span className="text-sm tracking-widest font-light text-white">
+                            <span className="text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-light text-white">
                               {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
                               {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
                               {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
@@ -438,13 +441,13 @@ export default function BrabusVehicleFilter({
                     </Link>
 
                     {/* Actions */}
-                    <div className="px-5 pb-5 pt-0 z-20 relative flex gap-2.5">
+                    <div className="px-3 pb-3 pt-0 sm:px-5 sm:pb-5 z-20 relative flex gap-2">
                       <Link
                         href={buildShopProductPathBrabus(locale, product)}
-                        className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-[#c29d59]/30 text-[10px] tracking-[0.3em] uppercase font-light text-[#c29d59] hover:text-black hover:bg-[#c29d59] hover:border-[#c29d59] transition-all duration-300 rounded-none"
+                        className="flex-1 flex min-w-0 items-center justify-center gap-1.5 py-2 sm:py-2.5 border border-[#c29d59]/30 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-[#c29d59] hover:text-black hover:bg-[#c29d59] hover:border-[#c29d59] transition-all duration-300 rounded-none"
                       >
-                        {isUa ? "ПЕРЕЙТИ" : "VIEW"}
-                        <ArrowRight size={12} strokeWidth={2} />
+                        {isUa ? "Деталі" : "View"}
+                        <ArrowRight size={11} strokeWidth={2} className="hidden min-[390px]:block" />
                       </Link>
                       <AddToCartButton
                         slug={product.slug}
@@ -454,7 +457,7 @@ export default function BrabusVehicleFilter({
                         productName={productTitle}
                         label={isUa ? "КОШИК" : "CART"}
                         labelAdded={isUa ? "✓" : "✓"}
-                        className="flex-1 flex items-center justify-center py-2.5 border border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-none"
+                        className="flex-1 flex min-w-0 items-center justify-center py-2 sm:py-2.5 border border-white/10 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-none"
                         variant="inline"
                       />
                     </div>
@@ -462,6 +465,18 @@ export default function BrabusVehicleFilter({
                 );
               })}
             </BrabusSpotlightGrid>
+            {visibleCount < filteredProducts.length ? (
+              <div className="mt-8 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
+                  className="rounded-full border border-[#c29d59]/35 bg-[#c29d59]/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f1d8a5] transition hover:border-[#c29d59]/70 hover:bg-[#c29d59]/18"
+                >
+                  {isUa ? "Показати ще" : "Show more"} ({filteredProducts.length - visibleCount})
+                </button>
+              </div>
+            ) : null}
+            </>
           )}
         </div>
       </div>
