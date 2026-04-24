@@ -10,7 +10,7 @@ import {
   Save,
   CheckCircle2,
   AlertCircle,
-  Database,
+  Edit3,
 } from 'lucide-react';
 import { calcItemPrice, lbsToKg, SHIPPING_ZONES, type ShippingZone } from '@/lib/shippingCalc';
 import {
@@ -37,6 +37,8 @@ interface CustomerOption {
 
 interface OrderItem {
   key: string;
+  entryMode: 'search' | 'manual';
+  sourceType: 'empty' | 'local' | 'turn14' | 'manual';
   title: string;
   partNumber: string;
   brand: string;
@@ -61,10 +63,16 @@ interface OrderItem {
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 function fmtUsd(v: number) { return v.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }); }
+function compactText(value: unknown, fallback = '—') {
+  const text = String(value ?? '').trim();
+  return text || fallback;
+}
 
 function newItem(): OrderItem {
   return {
     key: crypto.randomUUID(),
+    entryMode: 'search',
+    sourceType: 'empty',
     title: '',
     partNumber: '',
     brand: '',
@@ -106,10 +114,6 @@ export default function AdminCreateOrderPage() {
   const [turn14Results, setTurn14Results] = useState<any[]>([]);
   const [turn14Loading, setTurn14Loading] = useState(false);
   const [addingToItemIdx, setAddingToItemIdx] = useState<number | null>(null);
-  
-  // Airtable Sync
-  const [syncingItemKey, setSyncingItemKey] = useState<string | null>(null);
-
   // Shipping
   const [zone, setZone] = useState<ShippingZone>('KZ');
   const [ratePerKg, setRatePerKg] = useState(14);
@@ -253,13 +257,37 @@ export default function AdminCreateOrderPage() {
     setItems(prev => [...prev, item]);
   }
 
+  function setItemMode(index: number, entryMode: OrderItem['entryMode']) {
+    updateItem(index, {
+      entryMode,
+      sourceType: entryMode === 'manual' ? 'manual' : 'empty',
+      turn14Id: entryMode === 'manual' ? '' : items[index]?.turn14Id || '',
+    });
+    if (entryMode === 'manual') {
+      setAddingToItemIdx(null);
+      setTurn14Results([]);
+    }
+  }
+
+  function createManualItemFromQuery(index: number) {
+    const title = turn14Query.trim() || items[index]?.title || '';
+    updateItem(index, {
+      entryMode: 'manual',
+      sourceType: 'manual',
+      title,
+      turn14Id: '',
+    });
+    setAddingToItemIdx(null);
+    setTurn14Results([]);
+  }
+
   // ─── Turn14 search ─────────────────────────────────────────
 
-  async function searchTurn14() {
-    if (!turn14Query.trim()) return;
+  async function searchTurn14(nextQuery = turn14Query) {
+    if (!nextQuery.trim()) return;
     setTurn14Loading(true);
     try {
-      const res = await fetch(`/api/admin/shop/orders/search-items?q=${encodeURIComponent(turn14Query.trim())}`);
+      const res = await fetch(`/api/admin/shop/orders/search-items?q=${encodeURIComponent(nextQuery.trim())}`);
       const data = await res.json();
       setTurn14Results(data.items || data.data || []);
     } catch { setTurn14Results([]); }
@@ -307,6 +335,8 @@ export default function AdminCreateOrderPage() {
     const isLocal = t14Item.source === 'local';
     const patch: Partial<OrderItem> = {
       title: t14Item.product_name || a.product_name || a.item_name || '',
+      entryMode: 'search',
+      sourceType: isLocal ? 'local' : 'turn14',
       partNumber: t14Item.internal_part_number || a.internal_part_number || t14Item.part_number || a.part_number || '',
       brand: t14Item.brand || a.brand_short_description || a.brand || '',
       baseCostUsd: t14Item.dealer_price || t14Item.jobber_price || a.dealer_price || 0,
@@ -332,31 +362,6 @@ export default function AdminCreateOrderPage() {
     const hasDimensions = a.length && a.width && a.height;
     if (!hasDimensions && patch.title) {
        triggerAIEstimation(targetIdx, patch.title, patch.brand || '', patch.partNumber || '');
-    }
-  }
-
-  // ─── Airtable Sync ─────────────────────────────────────────
-
-  async function syncToAirtable(item: OrderItem) {
-    if (!item.title) return;
-    setSyncingItemKey(item.key);
-    try {
-      const res = await fetch('/api/admin/shop/airtable/sync-item', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sku: item.partNumber,
-          title: item.title,
-          price: item.baseCostUsd,
-          brand: item.brand,
-          source: item.turn14Id ? 'Turn14' : 'Local'
-        })
-      });
-      if (!res.ok) console.error('Airtable sync failed');
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSyncingItemKey(null);
     }
   }
 
@@ -456,6 +461,8 @@ export default function AdminCreateOrderPage() {
             overridden: shippingOverride !== '',
           },
           items: items.filter(i => i.title).map(item => ({
+            entryMode: item.entryMode,
+            sourceType: item.sourceType,
             title: item.title,
             partNumber: item.partNumber,
             brand: item.brand,
@@ -510,6 +517,12 @@ export default function AdminCreateOrderPage() {
       sections={sections}
       summary={
         <div className="space-y-4">
+          {items.some((item) => item.sourceType === 'manual' && item.title) ? (
+            <AdminInlineAlert tone="warning">
+              Manual items are not linked to catalog products. Keep SKU, brand, price and dimensions filled before submit.
+            </AdminInlineAlert>
+          ) : null}
+
           <AdminInspectorCard
             title="Замовлення"
             description="Операційний зріз поточного draft. Менеджер бачить клієнта, обсяг позицій і фінальний total до відправки."
@@ -521,6 +534,7 @@ export default function AdminCreateOrderPage() {
                   value: selectedCustomer ? `${selectedCustomer.fullName} · ${selectedCustomer.group}` : 'Не обрано',
                 },
                 { label: 'Позицій', value: String(items.filter((item) => item.title).length || items.length) },
+                { label: 'Manual', value: String(items.filter((item) => item.sourceType === 'manual' && item.title).length) },
                 { label: 'Subtotal', value: fmtUsd(subtotal) },
                 { label: 'Shipping', value: fmtUsd(finalShipping) },
                 { label: 'Grand total', value: fmtUsd(grandTotal) },
@@ -628,102 +642,115 @@ export default function AdminCreateOrderPage() {
         description="Додавайте локальні або Turn14 позиції, розраховуйте markup/discount і формуйте логістичні параметри прямо в draft."
       >
               {items.map((item, idx) => (
-                <div key={item.key} className="rounded-none border border-white/10 bg-black/20 p-4 mb-4">
+                <div key={item.key} className="mb-4 rounded-[28px] border border-white/10 bg-black/20 p-4">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <span className="text-xs text-white/30 uppercase tracking-wider">#{idx + 1}</span>
                     <div className="flex items-center gap-3">
-                      {item.title && (
-                        <button 
-                          type="button" 
-                          onClick={() => syncToAirtable(item)}
-                          disabled={syncingItemKey === item.key}
-                          className="text-emerald-400/50 hover:text-emerald-400 transition-colors disabled:opacity-50 flex items-center gap-1 text-[10px] uppercase font-mono"
-                          title="Зберегти позицію в Airtable"
-                        >
-                          {syncingItemKey === item.key ? <RefreshCw className="h-3.5 w-3.5 animate-spin"/> : <Database className="h-3.5 w-3.5"/>}
-                          <span className="hidden sm:inline">В AIRTABLE</span>
-                        </button>
-                      )}
                       {items.length > 1 && (
                         <button type="button" onClick={() => removeItem(idx)} className="text-white/20 hover:text-red-400 transition-colors"><Trash2 className="h-4 w-4" /></button>
                       )}
                     </div>
                   </div>
 
-                  {/* Inline Turn14 search / autocomplete */}
-                  <div className="mb-3 relative">
-                    <label className="block">
-                      <span className="mb-1 flex items-center gap-1 text-[10px] text-emerald-400/70 uppercase tracking-wider">
-                        <Search className="h-3 w-3" /> Глобальний пошук (Local + Turn14)
-                      </span>
-                      <input
-                        value={addingToItemIdx === idx ? turn14Query : item.title}
-                        onChange={e => {
-                          const v = e.target.value;
-                          if (addingToItemIdx !== idx) setAddingToItemIdx(idx);
-                          setTurn14Query(v);
-                          updateItem(idx, { title: v });
-                          // Debounced search
-                          clearTimeout((window as any).__t14Timer);
-                          (window as any).__t14Timer = setTimeout(() => {
-                            if (v.trim().length >= 2) searchTurn14();
-                          }, 500);
-                        }}
-                        onFocus={() => {
-                          if (addingToItemIdx !== idx) {
-                            setAddingToItemIdx(idx);
-                            setTurn14Query(item.title);
-                            setTurn14Results([]);
-                          }
-                        }}
-                        placeholder="Введіть SKU, артикул або назву деталі..."
-                        className="w-full rounded-none border border-blue-500/20 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-blue-500/40 focus:outline-none"
-                      />
-                    </label>
-                    {/* Results dropdown */}
-                    {addingToItemIdx === idx && turn14Results.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-none border border-blue-500/20 bg-zinc-900 shadow-2xl">
-                        {turn14Loading && (
-                          <div className="p-2 text-xs text-zinc-400/70 text-center">Пошук...</div>
-                        )}
-                        {turn14Results.slice(0, 12).map((t14, i) => {
-                          const a = t14.attributes || {};
-                          const name = t14.product_name || a.product_name || a.item_name || 'Невідомо';
-                          const pn = t14.internal_part_number || a.internal_part_number || t14.part_number || a.part_number || '';
-                          const brand = t14.brand || a.brand_short_description || a.brand || '';
-                          const price = t14.dealer_price || t14.jobber_price || a.dealer_price || 0;
-                          const weight = t14.weight || a.weight;
-                          return (
-                          <button key={i} type="button" onClick={() => addTurn14Item(t14, idx)}
-                            className="w-full border-b border-white/5 p-3 text-left transition hover:bg-white/5 last:border-b-0">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0 flex-1">
-                                <div className="text-sm text-white truncate flex items-center gap-2">
-                                  {t14.source === 'local' ? (
-                                    <span className="rounded-none bg-emerald-500/20 text-emerald-300 font-mono text-[9px] px-1.5 py-0.5 border border-emerald-500/30">LOCAL</span>
-                                  ) : (
-                                    <span className="rounded-none bg-zinc-100 text-black/20 text-zinc-500 font-mono text-[9px] px-1.5 py-0.5 border border-blue-500/30">TURN14</span>
-                                  )}
-                                  {name}
-                                </div>
-                                <div className="mt-0.5 flex flex-wrap gap-2 text-[10px] text-white/40">
-                                  {pn && <span className="rounded-none bg-white/10 px-1 py-0.5 font-mono">{pn}</span>}
-                                  {brand && <span>{brand}</span>}
-                                  {weight ? <span>{weight} {t14.source === 'local' ? 'кг' : 'lbs'}</span> : null}
-                                </div>
-                              </div>
-                              <div className="text-right shrink-0">
-                                <div className="text-sm font-mono text-emerald-400">{fmtUsd(price)}</div>
-                              </div>
-                            </div>
-                          </button>
-                          );
-                        })}
+                  <div className="mb-4 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="inline-flex overflow-hidden rounded-full border border-white/10 bg-white/[0.03]">
+                        <button
+                          type="button"
+                          onClick={() => setItemMode(idx, 'search')}
+                          className={`inline-flex items-center gap-2 px-3 py-2 text-xs font-medium transition ${item.entryMode === 'search' ? 'bg-stone-100 text-black' : 'text-stone-300 hover:bg-white/[0.06]'}`}
+                        >
+                          <Search className="h-3.5 w-3.5" />
+                          Search catalog
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setItemMode(idx, 'manual')}
+                          className={`inline-flex items-center gap-2 px-3 py-2 text-xs font-medium transition ${item.entryMode === 'manual' ? 'bg-stone-100 text-black' : 'text-stone-300 hover:bg-white/[0.06]'}`}
+                        >
+                          <Edit3 className="h-3.5 w-3.5" />
+                          Manual item
+                        </button>
                       </div>
-                    )}
-                    {addingToItemIdx === idx && turn14Loading && turn14Results.length === 0 && (
-                      <div className="absolute top-full left-0 right-0 z-20 mt-1 rounded-none border border-blue-500/20 bg-zinc-900 p-3 text-xs text-center text-zinc-400/70">
-                        Пошук у каталогах...
+
+                      <SourceBadge source={item.sourceType} />
+                    </div>
+
+                    {item.entryMode === 'search' ? (
+                      <div className="relative" ref={addingToItemIdx === idx ? dropdownRef : undefined}>
+                        <label className="block">
+                          <span className="mb-1 flex items-center gap-1 text-[10px] text-emerald-400/70 uppercase tracking-wider">
+                            <Search className="h-3 w-3" /> Local + Turn14 search
+                          </span>
+                          <input
+                            value={addingToItemIdx === idx ? turn14Query : item.title}
+                            onChange={e => {
+                              const v = e.target.value;
+                              if (addingToItemIdx !== idx) setAddingToItemIdx(idx);
+                              setTurn14Query(v);
+                              updateItem(idx, { title: v, sourceType: 'empty' });
+                              clearTimeout((window as any).__t14Timer);
+                              (window as any).__t14Timer = setTimeout(() => {
+                                if (v.trim().length >= 2) searchTurn14(v);
+                                else setTurn14Results([]);
+                              }, 350);
+                            }}
+                            onFocus={() => {
+                              if (addingToItemIdx !== idx) {
+                                setAddingToItemIdx(idx);
+                                setTurn14Query(item.title);
+                                setTurn14Results([]);
+                              }
+                            }}
+                            placeholder="SKU, part number, brand, product name..."
+                            className="h-11 w-full rounded-2xl border border-blue-500/20 bg-zinc-950 px-3 text-sm text-white placeholder:text-white/25 focus:border-blue-500/40 focus:outline-none"
+                          />
+                        </label>
+
+                        {addingToItemIdx === idx && (turn14Results.length > 0 || turn14Loading || turn14Query.trim().length >= 2) ? (
+                          <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-[420px] overflow-y-auto rounded-[22px] border border-blue-500/20 bg-zinc-950 p-2 shadow-2xl shadow-black/60">
+                            {turn14Loading ? (
+                              <div className="px-3 py-2 text-center text-xs text-zinc-400/70">Searching catalogs...</div>
+                            ) : null}
+
+                            {turn14Results.slice(0, 12).map((t14, i) => (
+                              <SearchItemResult key={`${t14.source || 'item'}-${t14.id || i}`} item={t14} onSelect={() => addTurn14Item(t14, idx)} />
+                            ))}
+
+                            {!turn14Loading && turn14Results.length === 0 ? (
+                              <div className="rounded-2xl border border-dashed border-white/10 bg-black/30 p-3">
+                                <div className="text-sm font-medium text-stone-100">No catalog match</div>
+                                <div className="mt-1 text-xs leading-5 text-stone-500">
+                                  Keep this text and create a manual line item. You can still fill SKU, brand, price and dimensions.
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => createManualItemFromQuery(idx)}
+                                  className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-3 py-2 text-xs font-medium uppercase tracking-[0.14em] text-amber-100 transition hover:bg-amber-100/[0.1]"
+                                >
+                                  <Edit3 className="h-3.5 w-3.5" />
+                                  Create manual item
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-amber-100/15 bg-amber-100/[0.04] p-3">
+                        <div className="mb-3 flex items-start justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-medium text-stone-100">Manual line item</div>
+                            <div className="mt-1 text-xs text-stone-500">Use this when the product is not in local catalog or Turn14 mirror.</div>
+                          </div>
+                          <AdminStatusBadge tone="warning">not linked</AdminStatusBadge>
+                        </div>
+                        <Field
+                          label="Назва товару"
+                          value={item.title}
+                          onChange={v => updateItem(idx, { title: v, sourceType: 'manual' })}
+                          placeholder="Наприклад: Custom carbon front lip for BMW M3 G80"
+                        />
                       </div>
                     )}
                   </div>
@@ -899,12 +926,73 @@ export default function AdminCreateOrderPage() {
 
 // ─── Sub-components ──────────────────────────────────────────
 
+function SourceBadge({ source }: { source: OrderItem['sourceType'] }) {
+  if (source === 'local') return <AdminStatusBadge tone="success">LOCAL</AdminStatusBadge>;
+  if (source === 'turn14') return <AdminStatusBadge tone="default">TURN14</AdminStatusBadge>;
+  if (source === 'manual') return <AdminStatusBadge tone="warning">MANUAL</AdminStatusBadge>;
+  return <AdminStatusBadge tone="default">UNSELECTED</AdminStatusBadge>;
+}
+
+function SearchItemResult({ item, onSelect }: { item: any; onSelect: () => void }) {
+  const attrs = item.attributes || {};
+  const source = item.source === 'local' ? 'local' : 'turn14';
+  const name = compactText(item.product_name || attrs.product_name || attrs.item_name, 'Unnamed item');
+  const partNumber = compactText(item.internal_part_number || attrs.internal_part_number || item.part_number || attrs.part_number);
+  const brand = compactText(item.brand || attrs.brand_short_description || attrs.brand);
+  const price = item.dealer_price || item.jobber_price || attrs.dealer_price || 0;
+  const weight = item.weight || attrs.weight;
+  const image = item.primary_image || attrs.primary_image || attrs.thumbnail || '';
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className="mb-1 grid w-full grid-cols-[52px_minmax(0,1fr)_112px] items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] p-2.5 text-left transition last:mb-0 hover:border-amber-100/15 hover:bg-white/[0.06]"
+    >
+      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/40">
+        {image ? (
+          <img src={image} alt="" className="h-full w-full object-contain" />
+        ) : (
+          <PackageIconFallback label={source === 'local' ? 'L' : 'T'} />
+        )}
+      </div>
+
+      <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className={`shrink-0 rounded-full border px-2 py-0.5 font-mono text-[9px] ${source === 'local' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-blue-400/20 bg-blue-400/10 text-blue-200'}`}>
+            {source === 'local' ? 'LOCAL' : 'TURN14'}
+          </span>
+          <span className="truncate text-sm font-medium text-stone-100">{name}</span>
+        </div>
+        <div className="mt-1 grid min-w-0 grid-cols-[minmax(92px,140px)_minmax(80px,1fr)_minmax(60px,90px)] gap-2 text-[11px] text-stone-500">
+          <span className="truncate font-mono text-stone-400">{partNumber}</span>
+          <span className="truncate">{brand}</span>
+          <span className="truncate text-right">{weight ? `${weight} ${source === 'local' ? 'kg' : 'lb'}` : 'no weight'}</span>
+        </div>
+      </div>
+
+      <div className="text-right">
+        <div className="font-mono text-sm font-medium text-emerald-300">{fmtUsd(price)}</div>
+        <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-stone-600">select</div>
+      </div>
+    </button>
+  );
+}
+
+function PackageIconFallback({ label }: { label: string }) {
+  return (
+    <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-stone-600">
+      {label}
+    </div>
+  );
+}
+
 function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <label className="block">
       <span className="mb-1 block text-[10px] text-white/40 uppercase tracking-wider">{label}</span>
       <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-1.5 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none" />
+        className="h-10 w-full min-w-0 rounded-2xl border border-white/10 bg-zinc-950 px-3 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none" />
     </label>
   );
 }
@@ -915,7 +1003,7 @@ function NumField({ label, value, onChange, step, placeholder }: { label: string
       <span className="mb-1 block text-[10px] text-white/40 uppercase tracking-wider">{label}</span>
       <input type="number" step={step ?? 0.01} value={value || ''} onChange={e => onChange(Number(e.target.value) || 0)}
         placeholder={placeholder}
-        className="w-full rounded-none border border-white/10 bg-zinc-950 px-3 py-1.5 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none" />
+        className="h-10 w-full min-w-0 rounded-2xl border border-white/10 bg-zinc-950 px-3 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none" />
     </label>
   );
 }

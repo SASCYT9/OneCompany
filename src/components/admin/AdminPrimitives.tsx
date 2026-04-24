@@ -167,6 +167,215 @@ export function AdminInsightPanel({
   );
 }
 
+function clampChartValue(value: number) {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.max(0, value);
+}
+
+function formatCompactNumber(value: number) {
+  return new Intl.NumberFormat('en-US', {
+    notation: Math.abs(value) >= 10000 ? 'compact' : 'standard',
+    maximumFractionDigits: Math.abs(value) >= 1000 ? 1 : 0,
+  }).format(value);
+}
+
+export function AdminTrendChart({
+  data,
+  valueLabel = 'Revenue',
+  secondaryLabel,
+  className,
+}: {
+  data: Array<{ label: string; value: number; secondaryValue?: number }>;
+  valueLabel?: string;
+  secondaryLabel?: string;
+  className?: string;
+}) {
+  const chartData = data.map((entry) => ({
+    ...entry,
+    value: clampChartValue(entry.value),
+    secondaryValue: entry.secondaryValue == null ? undefined : clampChartValue(entry.secondaryValue),
+  }));
+  const width = 640;
+  const height = 220;
+  const paddingX = 34;
+  const paddingTop = 24;
+  const paddingBottom = 42;
+  const plotHeight = height - paddingTop - paddingBottom;
+  const maxValue = Math.max(1, ...chartData.flatMap((entry) => [entry.value, entry.secondaryValue ?? 0]));
+
+  const pointFor = (value: number, index: number) => {
+    const x =
+      chartData.length <= 1
+        ? width / 2
+        : paddingX + (index / (chartData.length - 1)) * (width - paddingX * 2);
+    const y = paddingTop + plotHeight - (value / maxValue) * plotHeight;
+    return { x, y };
+  };
+
+  const linePath = (selector: (entry: (typeof chartData)[number]) => number | undefined) =>
+    chartData
+      .map((entry, index) => {
+        const value = selector(entry);
+        if (value == null) {
+          return '';
+        }
+        const point = pointFor(value, index);
+        return `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+      })
+      .filter(Boolean)
+      .join(' ');
+
+  const primaryPath = linePath((entry) => entry.value);
+  const areaPath = primaryPath
+    ? `${primaryPath} L ${pointFor(chartData[chartData.length - 1]?.value ?? 0, chartData.length - 1).x.toFixed(1)} ${height - paddingBottom} L ${pointFor(chartData[0]?.value ?? 0, 0).x.toFixed(1)} ${height - paddingBottom} Z`
+    : '';
+  const secondaryPath = linePath((entry) => entry.secondaryValue);
+
+  if (!chartData.length) {
+    return (
+      <div className={cn('rounded-[24px] border border-dashed border-white/10 bg-black/20 px-4 py-12 text-sm text-stone-500', className)}>
+        No chart data available.
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn('rounded-[24px] border border-white/10 bg-black/20 p-4', className)}>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-stone-500">
+          <span className="inline-flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-amber-200" />
+            {valueLabel}
+          </span>
+          {secondaryPath && secondaryLabel ? (
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-stone-400" />
+              {secondaryLabel}
+            </span>
+          ) : null}
+        </div>
+        <div className="text-xs text-stone-500">Peak {formatCompactNumber(maxValue)}</div>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${valueLabel} trend`} className="h-[220px] w-full">
+        <defs>
+          <linearGradient id="admin-trend-fill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="rgb(253 230 138)" stopOpacity="0.24" />
+            <stop offset="100%" stopColor="rgb(253 230 138)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {[0, 0.25, 0.5, 0.75, 1].map((tick) => {
+          const y = paddingTop + plotHeight * tick;
+          return (
+            <line
+              key={tick}
+              x1={paddingX}
+              x2={width - paddingX}
+              y1={y}
+              y2={y}
+              stroke="rgba(255,255,255,0.08)"
+              strokeWidth="1"
+            />
+          );
+        })}
+        {areaPath ? <path d={areaPath} fill="url(#admin-trend-fill)" /> : null}
+        {primaryPath ? <path d={primaryPath} fill="none" stroke="rgb(253 230 138)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" /> : null}
+        {secondaryPath ? (
+          <path d={secondaryPath} fill="none" stroke="rgb(168 162 158)" strokeDasharray="7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+        ) : null}
+        {chartData.map((entry, index) => {
+          const point = pointFor(entry.value, index);
+          const showLabel = index === 0 || index === chartData.length - 1 || chartData.length <= 6 || index % Math.ceil(chartData.length / 4) === 0;
+          return (
+            <g key={`${entry.label}-${index}`}>
+              <circle cx={point.x} cy={point.y} r="3.5" fill="rgb(253 230 138)" />
+              {showLabel ? (
+                <text x={point.x} y={height - 16} textAnchor="middle" fill="rgb(120 113 108)" fontSize="12">
+                  {entry.label}
+                </text>
+              ) : null}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+export function AdminBarList({
+  data,
+  valueFormatter = formatCompactNumber,
+  className,
+}: {
+  data: Array<{ label: ReactNode; value: number; meta?: ReactNode; tone?: 'default' | 'accent' | 'success' | 'warning' | 'danger' }>;
+  valueFormatter?: (value: number) => ReactNode;
+  className?: string;
+}) {
+  const normalized = data.map((entry) => ({ ...entry, value: clampChartValue(entry.value) }));
+  const maxValue = Math.max(1, ...normalized.map((entry) => entry.value));
+  const toneClass = (tone?: 'default' | 'accent' | 'success' | 'warning' | 'danger') => {
+    switch (tone) {
+      case 'accent':
+        return 'bg-amber-200';
+      case 'success':
+        return 'bg-emerald-300';
+      case 'warning':
+        return 'bg-amber-300';
+      case 'danger':
+        return 'bg-red-300';
+      default:
+        return 'bg-stone-400';
+    }
+  };
+
+  if (!normalized.length) {
+    return <div className={cn('rounded-[24px] border border-dashed border-white/10 px-4 py-10 text-sm text-stone-500', className)}>No data available.</div>;
+  }
+
+  return (
+    <div className={cn('space-y-3', className)}>
+      {normalized.map((entry, index) => {
+        const width = `${Math.max(4, (entry.value / maxValue) * 100)}%`;
+        return (
+          <div key={`${String(entry.label)}-${index}`} className="space-y-2">
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <div className="min-w-0">
+                <div className="truncate font-medium text-stone-200">{entry.label}</div>
+                {entry.meta ? <div className="mt-0.5 truncate text-xs text-stone-500">{entry.meta}</div> : null}
+              </div>
+              <div className="shrink-0 text-sm font-medium text-stone-100">{valueFormatter(entry.value)}</div>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+              <div className={cn('h-full rounded-full', toneClass(entry.tone))} style={{ width }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export function AdminFunnelChart({
+  data,
+  className,
+}: {
+  data: Array<{ label: string; value: number; tone?: 'default' | 'success' | 'warning' | 'danger' }>;
+  className?: string;
+}) {
+  return (
+    <AdminBarList
+      className={className}
+      data={data.map((entry) => ({
+        label: entry.label,
+        value: entry.value,
+        meta: 'orders',
+        tone: entry.tone ?? 'default',
+      }))}
+    />
+  );
+}
+
 export function AdminQuickActionGrid({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cn('grid gap-3 md:grid-cols-2 xl:grid-cols-3', className)}>{children}</div>;
 }

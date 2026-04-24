@@ -27,8 +27,24 @@ test('catalog section keeps the phase-1 commerce modules together', () => {
       '/admin/shop/collections',
       '/admin/shop/bundles',
       '/admin/shop/media',
+      '/admin/shop/quality',
       '/admin/shop/pricing',
       '/admin/shop/seo',
+    ]
+  );
+});
+
+test('imports section exposes feed exports beside import tooling', () => {
+  const importsSection = ADMIN_NAV_SECTIONS.find((section) => section.key === 'imports');
+  assert.ok(importsSection);
+  assert.deepEqual(
+    importsSection.items.map((item) => item.href),
+    [
+      '/admin/shop/import',
+      '/admin/shop/stock',
+      '/admin/shop/feed',
+      '/admin/shop/turn14',
+      '/admin/shop/audit',
     ]
   );
 });
@@ -53,6 +69,10 @@ test('active matching keeps exact routes strict and nested routes grouped correc
 test('active item and section lookup resolves nested catalog and logistics routes', () => {
   assert.equal(getActiveAdminNavItem('/admin/shop/collections/123')?.label, 'Collections');
   assert.equal(getActiveAdminNavSection('/admin/shop/collections/123')?.label, 'Catalog');
+  assert.equal(getActiveAdminNavItem('/admin/shop/quality')?.label, 'Quality center');
+  assert.equal(getActiveAdminNavSection('/admin/shop/quality')?.label, 'Catalog');
+  assert.equal(getActiveAdminNavItem('/admin/shop/feed')?.label, 'Feed exports');
+  assert.equal(getActiveAdminNavSection('/admin/shop/feed')?.label, 'Imports & Integrations');
   assert.equal(getActiveAdminNavItem('/admin/shop/logistics/taxes')?.label, 'Regional taxes');
   assert.equal(getActiveAdminNavSection('/admin/shop/logistics/taxes')?.label, 'Logistics');
 });

@@ -139,6 +139,12 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         icon: 'media',
       },
       {
+        href: '/admin/shop/quality',
+        label: 'Quality center',
+        description: 'Catalog gaps, SEO issues, and bulk-fix triage.',
+        icon: 'seo',
+      },
+      {
         href: '/admin/shop/pricing',
         label: 'Pricing',
         description: 'B2C and B2B pricing control.',
@@ -167,6 +173,12 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         href: '/admin/shop/stock',
         label: 'CSV import',
         description: 'Legacy stock import and column mapping.',
+        icon: 'csv',
+      },
+      {
+        href: '/admin/shop/feed',
+        label: 'Feed exports',
+        description: 'Distributor product and stock export URLs.',
         icon: 'csv',
       },
       {

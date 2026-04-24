@@ -1,23 +1,19 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 
 import {
-  Activity,
-  AlertTriangle,
-  Database,
   Loader2,
   RefreshCw,
-  ShieldAlert,
-  ShoppingCart,
-  Users,
-  Wrench,
 } from 'lucide-react';
 
 import {
   AdminActionBar,
+  AdminBarList,
   AdminDashboardSection,
   AdminEmptyState,
+  AdminFunnelChart,
   AdminInlineAlert,
   AdminInsightPanel,
   AdminMetricCard,
@@ -28,6 +24,7 @@ import {
   AdminQuickActionGrid,
   AdminStatusBadge,
   AdminTimelineList,
+  AdminTrendChart,
 } from '@/components/admin/AdminPrimitives';
 import { useAdminCurrency } from '@/lib/admin/currencyContext';
 
@@ -56,6 +53,21 @@ type DashboardResponse = {
       revenue: number;
       quantity: number;
       orderCount: number;
+    }>;
+    conversionFunnel: Array<{
+      status: string;
+      count: number;
+    }>;
+    monthlyRevenue: Array<{
+      month: string;
+      revenue: number;
+      paid: number;
+      orders: number;
+    }>;
+    paymentMethods: Array<{
+      method: string;
+      count: number;
+      revenue: number;
     }>;
     lowStockItems: Array<{
       id: string;
@@ -89,6 +101,22 @@ type DashboardResponse = {
       balance: number;
       orderCount: number;
     }>;
+    statusDistribution: Array<{
+      status: string;
+      count: number;
+    }>;
+    monthlyRevenue: Array<{
+      month: string;
+      revenue: number;
+      profit: number;
+      orders: number;
+    }>;
+    brandBreakdown: Array<{
+      brand: string;
+      revenue: number;
+      profit: number;
+      count: number;
+    }>;
     debtors: Array<{
       id: string;
       name: string;
@@ -112,6 +140,28 @@ type DashboardResponse = {
       totalCrmOrders: number;
       score: number;
     };
+    catalogQuality: {
+      score: number;
+      totalProducts: number;
+      issueProducts: number;
+      issueCounts: {
+        NO_IMAGE: number;
+        NO_UA_TITLE: number;
+        NO_EN_TITLE: number;
+        NO_PRICE: number;
+        INACTIVE_IN_COLLECTION: number;
+        ACTIVE_WITHOUT_STOCK: number;
+        BAD_SEO: number;
+      };
+    };
+    operationalRisks: Array<{
+      id: string;
+      label: string;
+      count: number;
+      severity: 'success' | 'warning' | 'danger';
+      href: string;
+      description: string;
+    }>;
   };
   period: RevenuePeriod;
 };
@@ -121,6 +171,17 @@ const PERIOD_OPTIONS: Array<{ value: RevenuePeriod; label: string }> = [
   { value: 'weekly', label: 'Weekly' },
   { value: 'daily', label: 'Daily' },
 ];
+
+const SHOP_STATUS_LABELS: Record<string, string> = {
+  PENDING_PAYMENT: 'Pending payment',
+  PENDING_REVIEW: 'Pending review',
+  CONFIRMED: 'Confirmed',
+  PROCESSING: 'Processing',
+  SHIPPED: 'Shipped',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
+  REFUNDED: 'Refunded',
+};
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -143,6 +204,23 @@ function getDataQualityTone(score: number) {
     return 'warning' as const;
   }
   return 'danger' as const;
+}
+
+function getOrderStatusTone(status: string) {
+  if (status === 'DELIVERED' || status === 'Выполнен') {
+    return 'success' as const;
+  }
+  if (status === 'CANCELLED' || status === 'REFUNDED' || status === 'Отменен') {
+    return 'danger' as const;
+  }
+  if (status === 'PENDING_PAYMENT' || status === 'PENDING_REVIEW' || status === 'PROCESSING' || status === 'SHIPPED') {
+    return 'warning' as const;
+  }
+  return 'default' as const;
+}
+
+function statusLabel(status: string) {
+  return SHOP_STATUS_LABELS[status] ?? (status || 'Unknown');
 }
 
 export default function AdminDashboardPage() {
@@ -260,6 +338,16 @@ export default function AdminDashboardPage() {
       });
     }
 
+    if (data.system.catalogQuality.issueProducts > 0) {
+      items.push({
+        id: 'catalog-quality',
+        title: `Catalog quality ${data.system.catalogQuality.score}%`,
+        meta: `${data.system.catalogQuality.issueProducts} products need review`,
+        body: 'Open the quality center to fix images, prices, translations, stock state, and SEO.',
+        tone: data.system.catalogQuality.score < 75 ? ('danger' as const) : ('warning' as const),
+      });
+    }
+
     if (data.system.turn14Stats.syncing > 0) {
       items.push({
         id: 'turn14-sync',
@@ -272,6 +360,46 @@ export default function AdminDashboardPage() {
 
     return items;
   }, [data, formatMoney]);
+
+  const shopRevenueTrend = useMemo(
+    () =>
+      data?.shop.monthlyRevenue.map((entry) => ({
+        label: entry.month,
+        value: entry.revenue,
+        secondaryValue: entry.paid,
+      })) ?? [],
+    [data]
+  );
+
+  const crmRevenueTrend = useMemo(
+    () =>
+      data?.crm.monthlyRevenue.map((entry) => ({
+        label: entry.month,
+        value: entry.revenue,
+        secondaryValue: entry.profit,
+      })) ?? [],
+    [data]
+  );
+
+  const shopFunnel = useMemo(
+    () =>
+      data?.shop.conversionFunnel.map((entry) => ({
+        label: statusLabel(entry.status),
+        value: entry.count,
+        tone: getOrderStatusTone(entry.status),
+      })) ?? [],
+    [data]
+  );
+
+  const crmStatuses = useMemo(
+    () =>
+      data?.crm.statusDistribution.map((entry) => ({
+        label: entry.status || 'Unknown',
+        value: entry.count,
+        tone: getOrderStatusTone(entry.status),
+      })) ?? [],
+    [data]
+  );
 
   if (loading && !data) {
     return (
@@ -367,6 +495,92 @@ export default function AdminDashboardPage() {
         <AdminMetricCard label="Turn14 brands" value={data.system.turn14Stats.total.toString()} meta={`${data.system.turn14Stats.syncing} syncing now`} />
         <AdminMetricCard label="System quality" value={`${data.system.dataQuality.score}%`} meta={`Last CRM sync ${formatDate(data.system.lastCrmSyncAt)}`} />
       </AdminMetricGrid>
+
+      <AdminDashboardSection
+        title="Revenue and order shape"
+        description="Trend and distribution views from the selected period, using shop and CRM telemetry already collected by the dashboard API."
+      >
+        <div className="grid gap-4 xl:grid-cols-2">
+          <AdminInsightPanel title="Shop revenue trend" description="Invoiced revenue against actual paid amount in the selected period.">
+            <AdminTrendChart
+              data={shopRevenueTrend}
+              valueLabel="Invoiced"
+              secondaryLabel="Paid"
+            />
+          </AdminInsightPanel>
+
+          <AdminInsightPanel title="CRM revenue trend" description="Client revenue against CRM profit in the selected period.">
+            <AdminTrendChart
+              data={crmRevenueTrend}
+              valueLabel="Revenue"
+              secondaryLabel="Profit"
+            />
+          </AdminInsightPanel>
+        </div>
+      </AdminDashboardSection>
+
+      <AdminDashboardSection
+        title="Operational distribution"
+        description="Readable status and source mix for daily triage."
+      >
+        <div className="grid gap-4 xl:grid-cols-4">
+          <AdminInsightPanel title="Shop funnel" description="Storefront order states." className="xl:col-span-1">
+            <AdminFunnelChart data={shopFunnel} />
+          </AdminInsightPanel>
+
+          <AdminInsightPanel title="Payment mix" description="Shop payment methods by captured revenue." className="xl:col-span-1">
+            <AdminBarList
+              data={data.shop.paymentMethods.map((entry) => ({
+                label: entry.method || 'Unknown',
+                value: entry.revenue,
+                meta: `${entry.count} orders`,
+                tone: 'accent' as const,
+              }))}
+              valueFormatter={(value) => formatMoney(value, 'UAH')}
+            />
+          </AdminInsightPanel>
+
+          <AdminInsightPanel title="CRM statuses" description="Airtable CRM order status split." className="xl:col-span-1">
+            <AdminFunnelChart data={crmStatuses} />
+          </AdminInsightPanel>
+
+          <AdminInsightPanel title="CRM brands" description="Top revenue contributors extracted from CRM items." className="xl:col-span-1">
+            <AdminBarList
+              data={data.crm.brandBreakdown.slice(0, 6).map((entry) => ({
+                label: entry.brand,
+                value: entry.revenue,
+                meta: `${entry.count} items · Profit ${formatMoney(entry.profit, 'USD')}`,
+                tone: entry.profit >= 0 ? ('success' as const) : ('warning' as const),
+              }))}
+              valueFormatter={(value) => formatMoney(value, 'USD')}
+            />
+          </AdminInsightPanel>
+        </div>
+      </AdminDashboardSection>
+
+      <AdminDashboardSection
+        title="Top operational risks"
+        description="Actionable admin queue for payment, catalog, imports, and B2B approvals."
+      >
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          {data.system.operationalRisks.map((risk) => (
+            <Link
+              key={risk.id}
+              href={risk.href}
+              className="rounded-[24px] border border-white/10 bg-[#101010] px-4 py-4 transition hover:border-amber-100/20 hover:bg-amber-100/[0.04]"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-stone-100">{risk.label}</div>
+                  <div className="mt-2 text-3xl font-semibold tracking-tight text-stone-50">{risk.count}</div>
+                </div>
+                <AdminStatusBadge tone={risk.severity}>{risk.severity}</AdminStatusBadge>
+              </div>
+              <div className="mt-3 text-xs leading-5 text-stone-500">{risk.description}</div>
+            </Link>
+          ))}
+        </div>
+      </AdminDashboardSection>
 
       <AdminDashboardSection
         title="Exceptions"

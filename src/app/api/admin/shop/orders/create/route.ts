@@ -86,6 +86,8 @@ export async function POST(request: NextRequest) {
           customerDiscount: customer.b2bDiscountPercent ? Number(customer.b2bDiscountPercent) : 0,
           notes,
           itemDetails: items.map((item: any) => ({
+            entryMode: item.entryMode,
+            sourceType: item.sourceType,
             title: item.title,
             partNumber: item.partNumber,
             brand: item.brand,

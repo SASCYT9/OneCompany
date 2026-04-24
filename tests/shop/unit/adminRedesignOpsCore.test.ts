@@ -25,7 +25,7 @@ test('orders and customers workbench pages use shared ops primitives', () => {
   const pageExpectations = [
     {
       path: 'src/app/admin/shop/orders/page.tsx',
-      markers: ['AdminPageHeader', 'AdminMetricGrid', 'AdminFilterBar', 'AdminActionBar', 'AdminTableShell'],
+      markers: ['AdminPageHeader', 'AdminMetricGrid', 'AdminFilterBar', 'AdminActionBar', 'AdminTableShell', 'OrderInlineWorkbench'],
     },
     {
       path: 'src/app/admin/shop/orders/[id]/page.tsx',
@@ -71,6 +71,14 @@ test('import operations screens use shared admin primitives including job detail
     {
       path: 'src/app/admin/shop/turn14/markups/page.tsx',
       markers: ['AdminPageHeader', 'AdminMetricGrid', 'AdminActionBar', 'AdminFilterBar', 'AdminTableShell'],
+    },
+    {
+      path: 'src/app/admin/shop/quality/page.tsx',
+      markers: ['Catalog Quality Center', 'AdminMetricGrid', 'AdminFilterBar', 'AdminInspectorCard', 'AdminTableShell'],
+    },
+    {
+      path: 'src/app/admin/shop/feed/page.tsx',
+      markers: ['AdminPageHeader', 'AdminMetricGrid', 'AdminFilterBar', 'AdminInspectorCard', 'AdminTableShell'],
     },
     {
       path: 'src/app/admin/shop/audit/page.tsx',

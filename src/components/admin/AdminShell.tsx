@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -81,6 +81,84 @@ const CURRENCY_OPTIONS: { value: AdminCurrency; label: string; symbol: string }[
   { value: 'UAH', label: 'UAH', symbol: '₴' },
 ];
 
+type GlobalSearchResponse = {
+  total: number;
+  results: {
+    orders: Array<{
+      id: string;
+      orderNumber: string;
+      customerName: string;
+      email: string;
+      status: string;
+      paymentStatus: string;
+      total: number;
+      outstandingAmount: number;
+      currency: string;
+    }>;
+    products: Array<{
+      id: string;
+      slug: string;
+      sku: string | null;
+      brand: string | null;
+      titleUa: string;
+      titleEn: string;
+      status: string;
+      stock: string;
+    }>;
+    customers: Array<{
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      companyName: string | null;
+      group: string;
+      isActive: boolean;
+    }>;
+    turn14: Array<{
+      id: string;
+      partNumber: string;
+      mfrPartNumber: string | null;
+      productName: string;
+      brand: string;
+      dealerPrice: number | null;
+      retailPrice: number | null;
+      weight: number | null;
+    }>;
+  };
+};
+
+const EMPTY_SEARCH: GlobalSearchResponse = {
+  total: 0,
+  results: { orders: [], products: [], customers: [], turn14: [] },
+};
+
+const COMMAND_ACTIONS = [
+  {
+    href: '/admin/shop/orders/create',
+    label: 'Create B2B order',
+    description: 'Manual order from local or Turn14 stock',
+    icon: PackagePlus,
+  },
+  {
+    href: '/admin/shop/feed',
+    label: 'Open Feed',
+    description: 'Distributor export links and previews',
+    icon: Archive,
+  },
+  {
+    href: '/admin/shop/turn14',
+    label: 'Turn14 stock check',
+    description: 'Supplier catalog and stock workflow',
+    icon: Truck,
+  },
+  {
+    href: '/admin/shop/import',
+    label: 'Import CSV',
+    description: 'Catalog import and validation tools',
+    icon: FileInput,
+  },
+];
+
 export default function AdminShell({
   children,
   onLogout,
@@ -92,7 +170,8 @@ export default function AdminShell({
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [query, setQuery] = useState('');
-  const listId = useId();
+  const [globalSearch, setGlobalSearch] = useState<GlobalSearchResponse>(EMPTY_SEARCH);
+  const [globalSearchLoading, setGlobalSearchLoading] = useState(false);
 
   useEffect(() => {
     const saved = window.localStorage.getItem('adminSidebarCollapsed');
@@ -115,6 +194,46 @@ export default function AdminShell({
     );
   }, [quickLinks, query]);
 
+  useEffect(() => {
+    const needle = query.trim();
+    if (needle.length < 2) {
+      setGlobalSearch(EMPTY_SEARCH);
+      setGlobalSearchLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      setGlobalSearchLoading(true);
+      fetch(`/api/admin/search?q=${encodeURIComponent(needle)}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            return EMPTY_SEARCH;
+          }
+          return (await response.json()) as GlobalSearchResponse;
+        })
+        .then((data) => {
+          setGlobalSearch(data);
+        })
+        .catch((error) => {
+          if ((error as Error).name !== 'AbortError') {
+            setGlobalSearch(EMPTY_SEARCH);
+          }
+        })
+        .finally(() => {
+          setGlobalSearchLoading(false);
+        });
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [query]);
+
   function toggleCollapsed() {
     setCollapsed((current) => {
       const next = !current;
@@ -124,12 +243,14 @@ export default function AdminShell({
   }
 
   function submitQuickLink() {
-    const match = filteredQuickLinks[0];
-    if (!match) {
+    const entityHref = getFirstSearchHref(globalSearch);
+    const match = filteredQuickLinks[0]?.href;
+    const href = entityHref ?? match;
+    if (!href) {
       return;
     }
     setQuery('');
-    router.push(match.href);
+    router.push(href);
   }
 
   return (
@@ -215,54 +336,41 @@ export default function AdminShell({
               </div>
             </div>
 
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                submitQuickLink();
-              }}
-              className="flex min-w-[320px] max-w-[520px] flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-[#111111] px-3 py-2.5"
-            >
-              <Search className="h-4 w-4 text-stone-500" />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                list={listId}
-                placeholder="Jump to a page…"
-                className="w-full bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[11px] uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-50"
+            <div className="relative min-w-[320px] max-w-[640px] flex-1">
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  submitQuickLink();
+                }}
+                className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[#111111] px-3 py-2.5"
               >
-                Open
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-              <datalist id={listId}>
-                {quickLinks.map((item) => (
-                  <option key={item.href} value={item.label}>
-                    {item.sectionLabel} · {item.href}
-                  </option>
-                ))}
-              </datalist>
-            </form>
-          </div>
-          {query.trim() ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {filteredQuickLinks.slice(0, 6).map((item) => (
+                <Search className="h-4 w-4 text-stone-500" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search orders, products, customers, SKU, email..."
+                  className="w-full bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
+                />
                 <button
-                  key={item.href}
-                  type="button"
-                  onClick={() => {
-                    setQuery('');
-                    router.push(item.href);
-                  }}
-                  className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-stone-300 transition hover:bg-white/[0.06] hover:text-stone-100"
+                  type="submit"
+                  className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[11px] uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-50"
                 >
-                  {item.sectionLabel} · {item.label}
+                  Open
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </button>
-              ))}
+              </form>
+              <CommandCenterResults
+                query={query}
+                loading={globalSearchLoading}
+                search={globalSearch}
+                quickLinks={filteredQuickLinks}
+                onNavigate={(href) => {
+                  setQuery('');
+                  router.push(href);
+                }}
+              />
             </div>
-          ) : null}
+          </div>
         </header>
 
         <main className="min-h-0 flex-1 overflow-auto bg-[radial-gradient(circle_at_top,_rgba(245,240,232,0.04),_transparent_28%),linear-gradient(180deg,#0b0b0b_0%,#060606_100%)]">
@@ -270,6 +378,193 @@ export default function AdminShell({
         </main>
       </div>
     </div>
+  );
+}
+
+function getFirstSearchHref(search: GlobalSearchResponse) {
+  const order = search.results.orders[0];
+  if (order) return `/admin/shop/orders/${order.id}`;
+
+  const product = search.results.products[0];
+  if (product) return `/admin/shop/${product.id}`;
+
+  const customer = search.results.customers[0];
+  if (customer) return `/admin/shop/customers/${customer.id}`;
+
+  if (search.results.turn14[0]) return '/admin/shop/turn14';
+
+  return null;
+}
+
+function commandMoney(value: number, currency: string) {
+  return new Intl.NumberFormat('uk-UA', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function CommandCenterResults({
+  query,
+  loading,
+  search,
+  quickLinks,
+  onNavigate,
+}: {
+  query: string;
+  loading: boolean;
+  search: GlobalSearchResponse;
+  quickLinks: AdminNavItemDefinition[];
+  onNavigate: (href: string) => void;
+}) {
+  const trimmed = query.trim();
+  if (!trimmed) return null;
+
+  return (
+    <div className="absolute right-0 z-30 mt-2 w-full overflow-hidden rounded-[24px] border border-white/10 bg-[#0b0b0b] shadow-2xl shadow-black/50">
+      <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="border-b border-white/10 p-3 lg:border-b-0 lg:border-r">
+          <div className="mb-2 flex items-center justify-between px-1 text-[11px] uppercase tracking-[0.18em] text-stone-500">
+            <span>Command Center</span>
+            <span>{loading ? 'Searching...' : `${search.total} results`}</span>
+          </div>
+
+          <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
+            <SearchGroup title="Orders">
+              {search.results.orders.map((order) => (
+                <SearchResultButton
+                  key={order.id}
+                  title={`${order.orderNumber} · ${order.customerName}`}
+                  meta={`${order.paymentStatus} · Outstanding ${commandMoney(order.outstandingAmount, order.currency)}`}
+                  badge={order.status.replace(/_/g, ' ')}
+                  onClick={() => onNavigate(`/admin/shop/orders/${order.id}`)}
+                />
+              ))}
+            </SearchGroup>
+
+            <SearchGroup title="Products">
+              {search.results.products.map((product) => (
+                <SearchResultButton
+                  key={product.id}
+                  title={product.titleEn || product.titleUa}
+                  meta={[product.brand, product.sku || product.slug, product.stock].filter(Boolean).join(' · ')}
+                  badge={product.status}
+                  onClick={() => onNavigate(`/admin/shop/${product.id}`)}
+                />
+              ))}
+            </SearchGroup>
+
+            <SearchGroup title="Customers">
+              {search.results.customers.map((customer) => (
+                <SearchResultButton
+                  key={customer.id}
+                  title={`${customer.firstName} ${customer.lastName}`.trim() || customer.email}
+                  meta={[customer.companyName, customer.email].filter(Boolean).join(' · ')}
+                  badge={customer.group.replace(/_/g, ' ')}
+                  onClick={() => onNavigate(`/admin/shop/customers/${customer.id}`)}
+                />
+              ))}
+            </SearchGroup>
+
+            <SearchGroup title="Turn14">
+              {search.results.turn14.map((item) => (
+                <SearchResultButton
+                  key={item.id}
+                  title={item.productName}
+                  meta={[item.brand, item.partNumber, item.mfrPartNumber].filter(Boolean).join(' · ')}
+                  badge={item.weight != null ? `${item.weight} lb` : 'catalog'}
+                  onClick={() => onNavigate('/admin/shop/turn14')}
+                />
+              ))}
+            </SearchGroup>
+
+            {!loading && search.total === 0 ? (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-4 text-sm text-stone-500">
+                No entity matches. Use quick actions or page shortcuts.
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="space-y-3 p-3">
+          <div>
+            <div className="mb-2 px-1 text-[11px] uppercase tracking-[0.18em] text-stone-500">Quick actions</div>
+            <div className="grid gap-2">
+              {COMMAND_ACTIONS.map((action) => {
+                const Icon = action.icon;
+                return (
+                  <button
+                    key={action.href}
+                    type="button"
+                    onClick={() => onNavigate(action.href)}
+                    className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-left transition hover:bg-white/[0.06]"
+                  >
+                    <Icon className="h-4 w-4 text-amber-100/75" />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm text-stone-100">{action.label}</span>
+                      <span className="block truncate text-xs text-stone-500">{action.description}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-2 px-1 text-[11px] uppercase tracking-[0.18em] text-stone-500">Page shortcuts</div>
+            <div className="flex flex-wrap gap-2">
+              {quickLinks.slice(0, 8).map((item) => (
+                <button
+                  key={item.href}
+                  type="button"
+                  onClick={() => onNavigate(item.href)}
+                  className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-stone-300 transition hover:bg-white/[0.06] hover:text-stone-100"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SearchGroup({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="space-y-1.5">
+      <div className="px-1 text-[11px] uppercase tracking-[0.18em] text-stone-600">{title}</div>
+      <div className="space-y-1.5">{children}</div>
+    </section>
+  );
+}
+
+function SearchResultButton({
+  title,
+  meta,
+  badge,
+  onClick,
+}: {
+  title: string;
+  meta: string;
+  badge: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-left transition hover:bg-amber-100/[0.06]"
+    >
+      <span className="min-w-0">
+        <span className="block truncate text-sm font-medium text-stone-100">{title}</span>
+        <span className="mt-0.5 block truncate text-xs text-stone-500">{meta}</span>
+      </span>
+      <span className="shrink-0 rounded-full border border-white/10 bg-black/30 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-stone-400">
+        {badge}
+      </span>
+    </button>
   );
 }
 

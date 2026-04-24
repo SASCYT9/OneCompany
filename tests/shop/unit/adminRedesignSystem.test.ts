@@ -13,6 +13,9 @@ test('shared admin primitives expose dashboard and settings building blocks', ()
   for (const marker of [
     'AdminDashboardSection',
     'AdminInsightPanel',
+    'AdminTrendChart',
+    'AdminBarList',
+    'AdminFunnelChart',
     'AdminQuickActionCard',
     'AdminSettingsShell',
     'AdminStickyActionBar',
@@ -26,7 +29,7 @@ test('overview and system pages use the shared Phase 3 admin primitives', () => 
   const pageExpectations = [
     {
       path: 'src/app/admin/page.tsx',
-      markers: ['AdminPageHeader', 'AdminMetricGrid', 'AdminDashboardSection', 'AdminInsightPanel', 'AdminQuickActionCard'],
+      markers: ['AdminPageHeader', 'AdminMetricGrid', 'AdminDashboardSection', 'AdminInsightPanel', 'AdminTrendChart', 'AdminBarList', 'AdminFunnelChart', 'AdminQuickActionCard', 'Top operational risks'],
     },
     {
       path: 'src/app/admin/settings/page.tsx',

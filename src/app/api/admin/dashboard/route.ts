@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { assertAdminRequest } from '@/lib/adminAuth';
+import { getCatalogQualityReport } from '@/lib/admin/catalogQuality';
 import { getDashboardDataQuality } from '@/lib/dashboard/dataQuality';
 import { OrderStatus } from '@prisma/client';
 
@@ -342,7 +343,7 @@ async function getCrmMetrics(period: RevenuePeriod) {
 // ═══════════════════════════════
 
 async function getSystemMetrics() {
-  const [turn14Brands, lastSync, dataQuality] = await Promise.all([
+  const [turn14Brands, lastSync, dataQuality, catalogQuality, failedImports, pendingB2B, highValueUnpaid] = await Promise.all([
     prisma.turn14BrandMarkup.findMany({
       select: { syncStatus: true, updatedAt: true, brandName: true },
     }),
@@ -351,7 +352,64 @@ async function getSystemMetrics() {
       select: { syncedAt: true },
     }),
     getDashboardDataQuality(),
+    getCatalogQualityReport(prisma),
+    prisma.shopImportJob.count({
+      where: { status: 'FAILED' },
+    }),
+    prisma.shopCustomer.count({
+      where: { group: 'B2B_PENDING', isActive: true },
+    }),
+    prisma.shopOrder.count({
+      where: {
+        status: { notIn: [OrderStatus.CANCELLED, OrderStatus.REFUNDED] },
+        paymentStatus: { not: 'PAID' },
+        total: { gte: 1000 },
+      },
+    }),
   ]);
+
+  const operationalRisks = [
+    {
+      id: 'unpaid-high-value',
+      label: 'Unpaid high-value orders',
+      count: highValueUnpaid,
+      severity: highValueUnpaid > 0 ? 'danger' : 'success',
+      href: '/admin/shop/orders',
+      description: 'Orders above 1,000 with outstanding payment.',
+    },
+    {
+      id: 'catalog-no-image',
+      label: 'Products without image',
+      count: catalogQuality.issueCounts.NO_IMAGE,
+      severity: catalogQuality.issueCounts.NO_IMAGE > 0 ? 'warning' : 'success',
+      href: '/admin/shop/quality',
+      description: 'Catalog entries that weaken storefront trust and distributor feeds.',
+    },
+    {
+      id: 'catalog-bad-seo',
+      label: 'Bad SEO fields',
+      count: catalogQuality.issueCounts.BAD_SEO,
+      severity: catalogQuality.issueCounts.BAD_SEO > 0 ? 'warning' : 'success',
+      href: '/admin/shop/quality',
+      description: 'UA/EN SEO titles or descriptions need cleanup.',
+    },
+    {
+      id: 'failed-imports',
+      label: 'Failed imports',
+      count: failedImports,
+      severity: failedImports > 0 ? 'danger' : 'success',
+      href: '/admin/shop/import',
+      description: 'Import jobs that require review before the next catalog update.',
+    },
+    {
+      id: 'b2b-pending',
+      label: 'B2B approvals pending',
+      count: pendingB2B,
+      severity: pendingB2B > 0 ? 'warning' : 'success',
+      href: '/admin/shop/customers',
+      description: 'B2B accounts waiting for approval or rejection.',
+    },
+  ];
 
   return {
     turn14Stats: {
@@ -364,6 +422,13 @@ async function getSystemMetrics() {
     },
     lastCrmSyncAt: lastSync?.syncedAt?.toISOString() || null,
     dataQuality,
+    catalogQuality: {
+      score: catalogQuality.score,
+      totalProducts: catalogQuality.totalProducts,
+      issueProducts: catalogQuality.issueProducts,
+      issueCounts: catalogQuality.issueCounts,
+    },
+    operationalRisks,
   };
 }
 
