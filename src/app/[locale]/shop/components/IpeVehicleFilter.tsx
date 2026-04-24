@@ -812,7 +812,7 @@ export default function IpeVehicleFilter({
               </div>
             ) : (
               <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1">
+              <div className="grid grid-cols-2 xl:grid-cols-3 gap-1">
                 {displayedProducts.map((product) => {
                   const pricing = viewerContext
                     ? resolveShopProductPricing(product, viewerContext)
@@ -832,7 +832,7 @@ export default function IpeVehicleFilter({
                         href={`${productPathPrefix}/${product.slug}`}
                         className="flex flex-col flex-grow z-10"
                       >
-                        <div className="relative aspect-[4/3] bg-black overflow-hidden flex items-center justify-center p-8 border-b border-white/[0.02]">
+                        <div className="relative aspect-square sm:aspect-[4/3] bg-black overflow-hidden flex items-center justify-center p-3 sm:p-8 border-b border-white/[0.02]">
                           <ShopProductImage
                             src={productImage}
                             alt={productTitle}
@@ -840,23 +840,23 @@ export default function IpeVehicleFilter({
                             sizes="(max-width: 768px) 100vw, 33vw"
                             fallbackSrc="/images/placeholders/product-fallback.jpg"
                             unoptimized={shouldBypassImageOptimization(productImage)}
-                            className="object-contain p-6 md:p-8 opacity-80 group-hover:opacity-100 transition-all duration-700 ease-out group-hover:scale-105"
+                            className="object-contain p-2 sm:p-6 md:p-8 opacity-80 group-hover:opacity-100 transition-all duration-700 ease-out group-hover:scale-105"
                           />
                         </div>
 
-                        <div className="px-6 pb-6 pt-5 flex flex-col flex-grow">
-                          <p className="text-[9px] uppercase tracking-[0.2em] font-medium text-[#c29d59] mb-2">{product.brand}</p>
-                          <h3 className="text-sm font-light leading-snug text-zinc-300 group-hover:text-white transition-colors line-clamp-2 mb-4">
+                        <div className="px-3 pb-3 pt-3 sm:px-6 sm:pb-6 sm:pt-5 flex flex-col flex-grow">
+                          <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.14em] sm:tracking-[0.2em] font-medium text-[#c29d59] mb-2">{product.brand}</p>
+                          <h3 className="text-[11px] sm:text-sm font-light leading-snug text-zinc-300 group-hover:text-white transition-colors line-clamp-3 sm:line-clamp-2 mb-3 sm:mb-4">
                             {productTitle}
                           </h3>
                           
                           <div className="mt-auto">
                             {computed.usd === 0 && computed.eur === 0 ? (
-                              <span className="text-[11px] tracking-wider uppercase font-medium text-zinc-600">
+                              <span className="text-[9px] sm:text-[11px] tracking-wider uppercase font-medium text-zinc-600">
                                 {isUa ? "Ціна за запитом" : "Price on Request"}
                               </span>
                             ) : (
-                              <span className="text-sm tracking-widest font-medium text-white">
+                              <span className="text-[11px] sm:text-sm tracking-wider sm:tracking-widest font-medium text-white">
                                 {currency === "USD" && formatPrice(locale, computed.usd, "USD")}
                                 {currency === "EUR" && formatPrice(locale, computed.eur, "EUR")}
                                 {currency === "UAH" && formatPrice(locale, computed.uah, "UAH")}
@@ -867,13 +867,13 @@ export default function IpeVehicleFilter({
                       </Link>
 
                       {/* Bottom Actions: View + Add To Cart */}
-                      <div className="px-6 pb-6 pt-0 z-20 relative flex gap-3">
+                      <div className="px-3 pb-3 pt-0 sm:px-6 sm:pb-6 z-20 relative flex gap-2 sm:gap-3">
                         <Link
                           href={`${productPathPrefix}/${product.slug}`}
-                          className="flex-1 flex items-center justify-center gap-2 py-3 border border-[#c29d59]/30 text-[10px] tracking-[0.3em] uppercase font-light text-[#c29d59] hover:text-black hover:bg-[#c29d59] hover:border-[#c29d59] transition-all duration-300 rounded-[2px]"
+                          className="flex-1 min-w-0 flex items-center justify-center gap-1.5 py-2 sm:py-3 border border-[#c29d59]/30 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-[#c29d59] hover:text-black hover:bg-[#c29d59] hover:border-[#c29d59] transition-all duration-300 rounded-[2px]"
                         >
-                          {isUa ? "ПЕРЕЙТИ" : "VIEW"}
-                          <ArrowRight size={12} strokeWidth={2} />
+                          {isUa ? "Деталі" : "View"}
+                          <ArrowRight size={11} strokeWidth={2} className="hidden min-[390px]:block" />
                         </Link>
                         <AddToCartButton
                           slug={product.slug}
@@ -883,7 +883,7 @@ export default function IpeVehicleFilter({
                           productName={productTitle}
                           label={isUa ? "КОШИК" : "CART"}
                           labelAdded={isUa ? "✓" : "✓"}
-                          className="flex-1 flex items-center justify-center py-3 border border-white/10 text-[10px] tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
+                          className="flex-1 min-w-0 flex items-center justify-center py-2 sm:py-3 border border-white/10 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.3em] uppercase font-light text-white hover:text-black hover:bg-white hover:border-white transition-all duration-300 rounded-[2px]"
                           variant="inline"
                         />
                       </div>

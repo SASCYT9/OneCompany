@@ -253,7 +253,7 @@ function GirodiscProductImage({
       alt={alt}
       fill
       sizes="(max-width: 768px) 100vw, 33vw"
-      className="object-contain p-6 md:p-8 drop-shadow-2xl transition-transform duration-1000 group-hover:scale-110 relative z-10"
+      className="object-contain p-2 sm:p-6 md:p-8 drop-shadow-2xl transition-transform duration-1000 group-hover:scale-110 relative z-10"
       onError={() => {
         if (imageSrc !== fallbackSrc) {
           setImageSrc(fallbackSrc);
