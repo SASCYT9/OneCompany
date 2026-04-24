@@ -47,7 +47,8 @@ type ResolveUrbanThemeAssetOptions = {
 };
 
 function publicAssetExists(urlPath: string) {
-  if (!urlPath.startsWith('/')) {
+  const urbanPrefix = '/images/shop/urban/';
+  if (!urlPath.startsWith(urbanPrefix)) {
     return false;
   }
 
@@ -57,10 +58,21 @@ function publicAssetExists(urlPath: string) {
   }
 
   const relativePath = urlPath
-    .slice(1)
+    .slice(urbanPrefix.length)
     .split('/')
     .filter(Boolean);
-  const filePath = path.join(process.cwd(), 'public', ...relativePath);
+  if (relativePath.some((segment) => segment === '..')) {
+    localAssetExistsCache.set(urlPath, false);
+    return false;
+  }
+
+  const urbanPublicRoot = path.join(process.cwd(), 'public', 'images', 'shop', 'urban');
+  const filePath = path.join(urbanPublicRoot, ...relativePath);
+  if (!filePath.startsWith(urbanPublicRoot)) {
+    localAssetExistsCache.set(urlPath, false);
+    return false;
+  }
+
   const exists = fs.existsSync(filePath);
   localAssetExistsCache.set(urlPath, exists);
   return exists;

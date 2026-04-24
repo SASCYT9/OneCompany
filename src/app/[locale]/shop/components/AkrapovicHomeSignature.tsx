@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
+import type { ShopProduct } from '@/lib/shopCatalog';
+import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import {
   AKRAPOVIC_HERO,
   AKRAPOVIC_GALLERY,
@@ -12,8 +14,13 @@ import {
 import { AKRAPOVIC_SOUNDS } from '../data/akrapovicSoundData';
 import AkrapovicVideoBackground from './AkrapovicVideoBackground';
 import AkrapovicSoundPlayer from './AkrapovicSoundPlayer';
+import AkrapovicVehicleFilter from './AkrapovicVehicleFilter';
 
-type Props = { locale: SupportedLocale };
+type Props = {
+  locale: SupportedLocale;
+  products: ShopProduct[];
+  viewerContext?: ShopViewerPricingContext;
+};
 
 function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
@@ -21,10 +28,8 @@ function L(isUa: boolean, en: string, ua: string) {
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-export default function AkrapovicHomeSignature({ locale }: Props) {
+export default function AkrapovicHomeSignature({ locale, products, viewerContext }: Props) {
   const isUa = locale === 'ua';
-  const [isMuted, setIsMuted] = useState(true);
-  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
 
   /* ── Scroll reveal observer ── */
   useEffect(() => {
@@ -45,21 +50,6 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
     return () => io.disconnect();
   }, []);
 
-
-
-  /* ── Sound toggle for hero video ── */
-  const toggleMute = useCallback(() => {
-    setIsMuted((prev) => {
-      const next = !prev;
-      // Find the hero video element and toggle mute
-      const video = document.querySelector('#ak-hero-section video') as HTMLVideoElement | null;
-      if (video) {
-        video.muted = next;
-      }
-      return next;
-    });
-  }, []);
-
   return (
     <div className="ak-home" id="AkrapovicHome">
       {/* ── Back to Stores ── */}
@@ -78,7 +68,7 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
           fallbackImage={AKRAPOVIC_HERO.heroImageFallback}
           overlayStyle="hero"
           withAudio
-          isMuted={isMuted}
+          isMuted
         />
 
         <div className="ak-hero__content" data-ak-reveal>
@@ -102,34 +92,16 @@ export default function AkrapovicHomeSignature({ locale }: Props) {
           <p className="ak-hero__subtitle">
             {L(isUa, AKRAPOVIC_HERO.subtitle, AKRAPOVIC_HERO.subtitleUk)}
           </p>
-        </div>
 
-        {/* 🔊 Sound Toggle */}
-        <button
-          className="ak-hero__sound-toggle"
-          onClick={toggleMute}
-          aria-label={isMuted ? 'Unmute video' : 'Mute video'}
-        >
-          {isMuted ? (
-            <>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                <line x1="23" y1="9" x2="17" y2="15" />
-                <line x1="17" y1="9" x2="23" y2="15" />
-              </svg>
-              {L(isUa, 'Turn on sound', 'Увімкнути звук')}
-            </>
-          ) : (
-            <>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-              </svg>
-              {L(isUa, 'Sound on', 'Звук увімкнено')}
-            </>
-          )}
-        </button>
+          <AkrapovicVehicleFilter
+            locale={locale}
+            products={products}
+            viewerContext={viewerContext}
+            productPathPrefix={`/${locale}/shop/akrapovic/products`}
+            filterOnly
+            heroCompact
+          />
+        </div>
 
         {/* Scroll indicator */}
         <div className="ak-hero__scroll" aria-hidden>

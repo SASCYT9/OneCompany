@@ -106,7 +106,7 @@ export const AKRAPOVIC_PRODUCT_LINES: ProductLine[] = [
     descriptionUk: 'Зєднувальні труби для завершення системи. Видалення заводських каталізаторів для використання на трасі.',
     badge: 'Track',
     badgeUk: 'Трек',
-    image: '/images/shop/akrapovic/line-link-pipe.jpg',
+    image: '/images/shop/akrapovic/line-link-pipe-official.png',
     link: '/shop/akrapovic/collections',
   },
   {
@@ -117,7 +117,7 @@ export const AKRAPOVIC_PRODUCT_LINES: ProductLine[] = [
     descriptionUk: 'Даунпайпи підвищеної пропускності зі спортивними каталізаторами. Розкриваємо потенціал турбіни зі збереженням відповідності нормам.',
     badge: 'Power',
     badgeUk: 'Потужність',
-    image: '/images/shop/akrapovic/line-downpipe.jpg',
+    image: '/images/shop/akrapovic/line-downpipe-official.png',
     link: '/shop/akrapovic/collections',
   },
   {
@@ -128,7 +128,7 @@ export const AKRAPOVIC_PRODUCT_LINES: ProductLine[] = [
     descriptionUk: 'Карбонові насадки, саунд-кіти та монтажне обладнання. Персоналізуйте вашу систему.',
     badge: 'Accessories',
     badgeUk: 'Аксесуари',
-    image: '/images/shop/akrapovic/line-optional.jpg',
+    image: '/images/shop/akrapovic/line-sound-kit-official.png',
     link: '/shop/akrapovic/collections',
   },
 ];

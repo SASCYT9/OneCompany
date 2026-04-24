@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
@@ -21,7 +22,11 @@ type AkrapovicVehicleFilterProps = {
   products: ShopProduct[];
   viewerContext?: ShopViewerPricingContext;
   productPathPrefix: string;
+  filterOnly?: boolean;
+  heroCompact?: boolean;
 };
+
+type SortOrder = "default" | "price_desc" | "price_asc";
 
 /* Brand/line constants imported from @/lib/akrapovicFilterUtils */
 
@@ -45,18 +50,22 @@ export default function AkrapovicVehicleFilter({
   locale,
   products,
   viewerContext,
-  productPathPrefix
+  productPathPrefix,
+  filterOnly = false,
+  heroCompact = false
 }: AkrapovicVehicleFilterProps) {
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
+  const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const [activeBrand, setActiveBrand] = useState<string>("all");
-  const [activeLine, setActiveLine] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
+  const [activeBrand, setActiveBrand] = useState<string>(() => searchParams.get("brand") || "all");
+  const [activeLine, setActiveLine] = useState<string>(() => searchParams.get("line") || "all");
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q") || "");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("default");
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
+  const didInitializeBrand = useRef(false);
 
   const productBrandMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -92,7 +101,7 @@ export default function AkrapovicVehicleFilter({
       .map(([key, count]) => ({ key, label: LINE_PATTERNS.find(l => l.key === key)?.label ?? key, count }));
   }, [activeBrand, products, productBrandMap]);
 
-  const [activeModel, setActiveModel] = useState<string>("all");
+  const [activeModel, setActiveModel] = useState<string>(() => searchParams.get("model") || "all");
   const availableModels = useMemo(() => {
     if (activeBrand === "all") return [];
     const models = new Map<string, number>();
@@ -106,6 +115,10 @@ export default function AkrapovicVehicleFilter({
   }, [activeBrand, products, productBrandMap]);
 
   useEffect(() => {
+    if (!didInitializeBrand.current) {
+      didInitializeBrand.current = true;
+      return;
+    }
     setActiveLine("all");
     setActiveModel("all");
   }, [activeBrand]);
@@ -163,15 +176,78 @@ export default function AkrapovicVehicleFilter({
 
   const totalCount = products.length;
 
+  const hasActiveFilters = activeBrand !== "all" || activeLine !== "all" || activeModel !== "all" || searchQuery.trim() !== "";
+  const catalogHref = useMemo(() => {
+    const params = new URLSearchParams();
+    if (activeBrand !== "all") params.set("brand", activeBrand);
+    if (activeModel !== "all") params.set("model", activeModel);
+    if (activeLine !== "all") params.set("line", activeLine);
+    if (searchQuery.trim()) params.set("q", searchQuery.trim());
+    const query = params.toString();
+    return `/${locale}/shop/akrapovic/collections${query ? `?${query}` : ""}`;
+  }, [activeBrand, activeModel, activeLine, searchQuery, locale]);
+
   if (!mounted) return null;
 
-  const hasActiveFilters = activeBrand !== "all" || activeLine !== "all" || activeModel !== "all" || searchQuery.trim() !== "";
+  if (filterOnly && heroCompact) {
+    return (
+      <div className="ak-hero-filter" role="search" aria-label={isUa ? "Підбір Akrapovič" : "Akrapovič finder"}>
+        <div className="ak-hero-filter__select-wrap">
+          <select
+            value={activeBrand}
+            onChange={(e) => setActiveBrand(e.target.value)}
+            className="ak-hero-filter__field"
+            aria-label={isUa ? "Оберіть марку" : "Choose brand"}
+          >
+            <option value="all">{isUa ? "Оберіть марку" : "Choose brand"}</option>
+            {availableBrands.map((brand) => (
+              <option key={brand.key} value={brand.key}>
+                {brand.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={14} className="ak-hero-filter__chevron" />
+        </div>
+
+        <div className="ak-hero-filter__select-wrap">
+          <select
+            value={activeModel}
+            onChange={(e) => setActiveModel(e.target.value)}
+            className="ak-hero-filter__field"
+            aria-label={isUa ? "Оберіть модель" : "Choose model"}
+            disabled={activeBrand === "all" || availableModels.length === 0}
+          >
+            <option value="all">{isUa ? "Оберіть модель" : "Choose model"}</option>
+            {availableModels.map((model) => (
+              <option key={model.key} value={model.key}>
+                {model.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={14} className="ak-hero-filter__chevron" />
+        </div>
+
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="ak-hero-filter__field ak-hero-filter__search"
+          placeholder={isUa ? "Пошук" : "Search"}
+          aria-label={isUa ? "Пошук" : "Search"}
+        />
+
+        <Link href={catalogHref} className="ak-hero-filter__cta">
+          {isUa ? "Пошук" : "Search"}
+        </Link>
+      </div>
+    );
+  }
 
   /* ── Shared select-style CSS for dark dropdowns ── */
   const selectCls = "appearance-none bg-[#0a0a0a] border border-white/10 text-white text-xs px-4 py-2.5 pr-9 rounded-lg outline-none focus:border-[#e50000]/50 cursor-pointer w-full";
 
   /* ── Filter dropdowns (reused in desktop bar & mobile drawer) ── */
-  const filterDropdowns = (isMobile: boolean) => (
+  const filterDropdowns = () => (
     <>
       {/* Brand select */}
       <div>
@@ -228,15 +304,15 @@ export default function AkrapovicVehicleFilter({
   );
 
   return (
-    <section id="catalog" className="bg-transparent text-white min-h-screen relative z-30">
-      <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20 pt-4">
+    <section id="catalog" className={`bg-transparent text-white relative z-30 ${filterOnly ? "" : "min-h-screen"}`}>
+      <div className={`max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 ${filterOnly ? "pb-8 pt-4" : "pb-20 pt-4"}`}>
 
         {/* ═══ DESKTOP: Horizontal top filter bar ═══ */}
         <div className="hidden lg:flex flex-col gap-4 mb-8 bg-[#050505]/70 backdrop-blur-md border border-white/[0.04] rounded-2xl p-5 shadow-2xl">
           <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <h2 className="text-lg font-light tracking-widest uppercase whitespace-nowrap">
-                {isUa ? "Каталог" : "Catalog"}
+                {filterOnly ? (isUa ? "Підбір системи" : "System Finder") : (isUa ? "Каталог" : "Catalog")}
               </h2>
               <span className="text-white/40 text-xs tracking-wide whitespace-nowrap">
                 {filteredProducts.length} {isUa ? "з" : "of"} {totalCount}
@@ -263,21 +339,30 @@ export default function AkrapovicVehicleFilter({
             </div>
           </div>
           {/* Dropdown row */}
-          <div className="grid grid-cols-4 gap-4">
-            {filterDropdowns(false)}
-            <div>
-              <label className="text-[10px] text-white/50 uppercase tracking-widest mb-1.5 font-medium block">
-                {isUa ? "Сортування" : "Sort"}
-              </label>
-              <div className="relative">
-                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as any)} className={selectCls}>
-                  <option value="default">{isUa ? "За замовчуванням" : "Default"}</option>
-                  <option value="price_desc">{isUa ? "Ціна ↓" : "Price ↓"}</option>
-                  <option value="price_asc">{isUa ? "Ціна ↑" : "Price ↑"}</option>
-                </select>
-                <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/40" />
+          <div className={`grid gap-4 ${filterOnly ? "grid-cols-4" : "grid-cols-4"}`}>
+            {filterDropdowns()}
+            {filterOnly ? (
+              <div className="flex items-end">
+                <Link href={catalogHref} className="w-full flex items-center justify-center gap-2 bg-[#e50000] text-white text-[10px] uppercase tracking-[0.28em] font-semibold px-5 py-3 rounded-lg hover:bg-white hover:text-black transition-colors">
+                  {isUa ? "Показати" : "Show"} {filteredProducts.length}
+                  <ArrowRight size={13} />
+                </Link>
               </div>
-            </div>
+            ) : (
+              <div>
+                <label className="text-[10px] text-white/50 uppercase tracking-widest mb-1.5 font-medium block">
+                  {isUa ? "Сортування" : "Sort"}
+                </label>
+                <div className="relative">
+                  <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as SortOrder)} className={selectCls}>
+                    <option value="default">{isUa ? "За замовчуванням" : "Default"}</option>
+                    <option value="price_desc">{isUa ? "Ціна ↓" : "Price ↓"}</option>
+                    <option value="price_asc">{isUa ? "Ціна ↑" : "Price ↑"}</option>
+                  </select>
+                  <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/40" />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -292,15 +377,21 @@ export default function AkrapovicVehicleFilter({
             </button>
             <span className="text-white/40 text-xs">{filteredProducts.length} / {totalCount}</span>
           </div>
-          <div className="relative">
-            <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as any)}
-              className="appearance-none bg-[#050505]/80 border border-white/10 text-white text-[10px] uppercase tracking-[0.15em] font-semibold px-4 py-2.5 pr-8 rounded-lg outline-none cursor-pointer">
-              <option value="default">{isUa ? "Сортування" : "Sort"}</option>
-              <option value="price_desc">{isUa ? "Ціна ↓" : "Price ↓"}</option>
-              <option value="price_asc">{isUa ? "Ціна ↑" : "Price ↑"}</option>
-            </select>
-            <ChevronDown size={12} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-white/50" />
-          </div>
+          {filterOnly ? (
+            <Link href={catalogHref} className="px-4 py-2.5 bg-[#e50000] text-white text-[10px] uppercase tracking-[0.15em] font-semibold rounded-lg">
+              {isUa ? "Показати" : "Show"}
+            </Link>
+          ) : (
+            <div className="relative">
+              <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+                className="appearance-none bg-[#050505]/80 border border-white/10 text-white text-[10px] uppercase tracking-[0.15em] font-semibold px-4 py-2.5 pr-8 rounded-lg outline-none cursor-pointer">
+                <option value="default">{isUa ? "Сортування" : "Sort"}</option>
+                <option value="price_desc">{isUa ? "Ціна ↓" : "Price ↓"}</option>
+                <option value="price_asc">{isUa ? "Ціна ↑" : "Price ↑"}</option>
+              </select>
+              <ChevronDown size={12} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-white/50" />
+            </div>
+          )}
         </div>
 
         {/* ═══ MOBILE: Drawer overlay ═══ */}
@@ -327,12 +418,14 @@ export default function AkrapovicVehicleFilter({
                 <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white"><X size={12} /></button>
               )}
             </div>
-            {filterDropdowns(true)}
+            {filterDropdowns()}
           </div>
         </div>
 
         {/* ═══ DESKTOP: Sort row (hidden, sort is in top bar) ═══ */}
 
+        {filterOnly ? null : (
+          <>
         {/* ═══ Product Grid ═══ */}
         {filteredProducts.length === 0 ? (
           <div className="py-32 text-center bg-black/40 backdrop-blur-sm border border-white/5 rounded-2xl flex flex-col items-center">
@@ -426,6 +519,8 @@ export default function AkrapovicVehicleFilter({
               );
             })}
           </AkrapovicSpotlightGrid>
+        )}
+          </>
         )}
       </div>
     </section>
