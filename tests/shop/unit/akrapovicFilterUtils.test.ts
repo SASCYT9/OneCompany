@@ -68,3 +68,25 @@ test('extractVehicleModelsForBrand keeps shared BMW and Toyota titles brand-spec
   assert.deepEqual(extractVehicleModelsForBrand(title, 'BMW'), ['G29']);
   assert.deepEqual(extractVehicleModelsForBrand(title, 'Toyota'), ['A90']);
 });
+
+test('extractVehicleModelsForBrand handles shared platform titles with uneven chassis notation', () => {
+  const title = 'AKRAPOVIC Evolution Link Pipe Kit (SS) for TOYOTA Supra (A90)/BMW Z4 M40i OPF/GPF';
+
+  assert.deepEqual(extractVehicleBrands(title), ['BMW', 'Toyota']);
+  assert.deepEqual(extractVehicleModelsForBrand(title, 'BMW'), ['G29']);
+  assert.deepEqual(extractVehicleModelsForBrand(title, 'Toyota'), ['A90']);
+});
+
+test('extractVehicleModelsForBrand does not split model names like ZO6/ZR1 as vehicle separators', () => {
+  const title = 'AKRAPOVIC TP-NIR35C Exhaust Tailpipes (Carbon, 125mm Diameter) for NISSAN GT-R (R35) / CHEVROLET Corvette ZO6/ZR1 (C6)';
+
+  assert.deepEqual(extractVehicleBrands(title), ['Nissan', 'Chevrolet']);
+  assert.deepEqual(extractVehicleModelsForBrand(title, 'Nissan'), ['R35']);
+  assert.deepEqual(extractVehicleModelsForBrand(title, 'Chevrolet'), ['C6']);
+});
+
+test('extractVehicleModelsForBrand includes every chassis code from shared model groups', () => {
+  const title = 'AKRAPOVIC DI-BM/CA/9/G Rear Diffuser (Carbon Fiber / Gloss) for BMW M3 (G80 / G81) / M4 (G82 / G83)';
+
+  assert.deepEqual(extractVehicleModelsForBrand(title, 'BMW'), ['G80', 'G81', 'G82', 'G83']);
+});

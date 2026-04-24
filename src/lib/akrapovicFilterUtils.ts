@@ -76,13 +76,19 @@ export function extractProductLine(title: string): string | null {
 }
 
 function extractChassisFromParentheses(inner: string): string | null {
-  const normalized = inner.trim();
-  if (/^\d{4}[-–]\d{4}$/.test(normalized)) return null;
-  if (/^\d{4}$/.test(normalized)) return null;
-  if (/^(Titanium|Stainless Steel|Carbon|Gloss|Matte|ECE|OPF|GPF|without)/i.test(normalized)) return null;
+  return extractChassisCodesFromParentheses(inner)[0] ?? null;
+}
 
-  const chassisMatch = normalized.match(/^([A-Z]?\d{1,3}[A-Z]?)(?:\.\d+)?/i);
-  return chassisMatch ? chassisMatch[1].toUpperCase() : null;
+function extractChassisCodesFromParentheses(inner: string): string[] {
+  const normalized = inner.trim();
+  if (/^\d{4}[-–]\d{4}$/.test(normalized)) return [];
+  if (/^\d{4}$/.test(normalized)) return [];
+  if (/^(Titanium|Stainless Steel|Carbon|Gloss|Matte|ECE|OPF|GPF|without)/i.test(normalized)) return [];
+
+  const matches = normalized.match(/[A-Z]?\d{1,3}[A-Z]?(?:\.\d+)?/gi) ?? [];
+  return Array.from(
+    new Set(matches.map((match) => match.replace(/\.\d+$/, "").toUpperCase()))
+  );
 }
 
 function inferBrandsFromVehicleSegment(segment: string): string[] {
@@ -103,6 +109,25 @@ function inferBrandsFromVehicleSegment(segment: string): string[] {
   return [...matches];
 }
 
+function findVehicleSegmentBeforeParen(afterFor: string, parenIndex: number): string {
+  const before = afterFor.slice(0, parenIndex);
+  const separators = [...before.matchAll(/[\/,;|]/g)].map((match) => match.index ?? -1).filter((index) => index >= 0);
+
+  for (let i = separators.length - 1; i >= 0; i -= 1) {
+    const candidate = before.slice(separators[i] + 1);
+    if (inferBrandsFromVehicleSegment(candidate).length > 0) {
+      return candidate;
+    }
+  }
+
+  const lastSeparator = separators.at(-1);
+  return lastSeparator == null ? before : before.slice(lastSeparator + 1);
+}
+
+const BRAND_MODEL_FALLBACKS: { brand: string; match: RegExp; model: string }[] = [
+  { brand: "BMW", match: /\bBMW\s+Z4(?:\s+M40i)?\b/i, model: "G29" },
+];
+
 export function extractVehicleModelsForBrand(title: string, brand: string): string[] {
   const afterFor = title.match(/\bfor\s+(.+)$/i)?.[1] ?? title;
   const titleBrands = extractVehicleBrands(title);
@@ -110,26 +135,25 @@ export function extractVehicleModelsForBrand(title: string, brand: string): stri
   const parenMatches = [...afterFor.matchAll(/\(([^)]+)\)/g)];
 
   for (const match of parenMatches) {
-    const model = extractChassisFromParentheses(match[1] ?? "");
-    if (!model || match.index == null) continue;
+    const matchedModels = extractChassisCodesFromParentheses(match[1] ?? "");
+    if (matchedModels.length === 0 || match.index == null) continue;
 
-    const before = afterFor.slice(0, match.index);
-    const segmentStart = Math.max(
-      before.lastIndexOf("/"),
-      before.lastIndexOf(","),
-      before.lastIndexOf(";"),
-      before.lastIndexOf("|")
-    );
-    const segment = before.slice(segmentStart + 1);
+    const segment = findVehicleSegmentBeforeParen(afterFor, match.index);
     const segmentBrands = inferBrandsFromVehicleSegment(segment);
 
     if (segmentBrands.includes(brand)) {
-      models.add(model);
+      matchedModels.forEach((model) => models.add(model));
       continue;
     }
 
     if (segmentBrands.length === 0 && titleBrands.length <= 1 && titleBrands.includes(brand)) {
-      models.add(model);
+      matchedModels.forEach((model) => models.add(model));
+    }
+  }
+
+  for (const fallback of BRAND_MODEL_FALLBACKS) {
+    if (fallback.brand === brand && fallback.match.test(afterFor)) {
+      models.add(fallback.model);
     }
   }
 
