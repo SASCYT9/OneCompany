@@ -30,7 +30,7 @@ type ThemeTemplate = {
 };
 
 const TEMPLATE_DIR = path.resolve(
-  process.cwd(),
+  /*turbopackIgnore: true*/ process.cwd(),
   'reference',
   'urban-shopify-theme',
   'templates'
@@ -40,14 +40,17 @@ const templateCache = new Map<string, UrbanCollectionPageConfig | null>();
 
 function hasTemplateDirectory() {
   try {
-    return fs.existsSync(TEMPLATE_DIR) && fs.statSync(TEMPLATE_DIR).isDirectory();
+    return (
+      fs.existsSync(/*turbopackIgnore: true*/ TEMPLATE_DIR) &&
+      fs.statSync(/*turbopackIgnore: true*/ TEMPLATE_DIR).isDirectory()
+    );
   } catch {
     return false;
   }
 }
 
 function parseJsoncTemplate(filePath: string): ThemeTemplate {
-  let text = fs.readFileSync(filePath, 'utf8');
+  let text = fs.readFileSync(/*turbopackIgnore: true*/ filePath, 'utf8');
   text = text.replace(/^\uFEFF/, '');
   text = text.replace(/\/\*[\s\S]*?\*\//g, '');
   return JSON.parse(text) as ThemeTemplate;

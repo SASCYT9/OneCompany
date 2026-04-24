@@ -127,6 +127,11 @@ const VIDEO_UPLOAD_TRACE_EXCLUDES = [
   'wiki/**/*',
 ];
 
+const SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES = [
+  'public/images/shop/urban/**/*',
+  'reference/urban-shopify-theme/**/*',
+];
+
 const fileBackedMediaTracingIncludes: Record<string, string[]> | undefined = isVercel
   ? undefined
   : {
@@ -137,15 +142,21 @@ const fileBackedMediaTracingIncludes: Record<string, string[]> | undefined = isV
       'api/admin/upload-video': VIDEO_UPLOAD_TRACE_INCLUDES,
     };
 
-const fileBackedMediaTracingExcludes: Record<string, string[]> | undefined = isVercel
-  ? undefined
-  : {
-      'api/media': MEDIA_ROUTE_TRACE_EXCLUDES,
-      'api/media/[id]': MEDIA_ROUTE_TRACE_EXCLUDES,
-      'api/admin/shop/media': MEDIA_ROUTE_TRACE_EXCLUDES,
-      'api/admin/shop/media/[id]': MEDIA_ROUTE_TRACE_EXCLUDES,
-      'api/admin/upload-video': VIDEO_UPLOAD_TRACE_EXCLUDES,
-    };
+const fileBackedMediaTracingExcludes: Record<string, string[]> = {
+  ...(isVercel
+    ? {}
+    : {
+        'api/media': MEDIA_ROUTE_TRACE_EXCLUDES,
+        'api/media/[id]': MEDIA_ROUTE_TRACE_EXCLUDES,
+        'api/admin/shop/media': MEDIA_ROUTE_TRACE_EXCLUDES,
+        'api/admin/shop/media/[id]': MEDIA_ROUTE_TRACE_EXCLUDES,
+        'api/admin/upload-video': VIDEO_UPLOAD_TRACE_EXCLUDES,
+  }),
+  '[locale]/shop/[slug]': SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES,
+  '[locale]/shop/urban/products/[slug]': SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES,
+  '/[locale]/shop/[slug]': SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES,
+  '/[locale]/shop/urban/products/[slug]': SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES,
+};
 
 const nextConfig: NextConfig = {
   // Для Docker standalone output

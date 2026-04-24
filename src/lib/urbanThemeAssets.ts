@@ -1,11 +1,7 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
 const ABSOLUTE_URL_RE = /^[a-z][a-z0-9+.-]*:\/\//i;
 const SMGASSETS_IMG_BASE = 'https://smgassets.blob.core.windows.net/customers/urban/dist/img';
 const KNOWN_THEME_ASSET_MAP: Record<string, string> = {
 };
-const localAssetExistsCache = new Map<string, boolean>();
 
 const COLLECTION_THEME_ASSET_MAP: Record<string, Record<string, string>> = {
   'mercedes-g-wagon-w465-widetrack': {
@@ -46,15 +42,14 @@ type ResolveUrbanThemeAssetOptions = {
   collectionHandle?: string;
 };
 
-function publicAssetExists(urlPath: string) {
+function localUrbanAssetExistsOutsideProduction(urlPath: string) {
+  if (process.env.NODE_ENV === 'production') {
+    return true;
+  }
+
   const urbanPrefix = '/images/shop/urban/';
   if (!urlPath.startsWith(urbanPrefix)) {
     return false;
-  }
-
-  const cached = localAssetExistsCache.get(urlPath);
-  if (cached !== undefined) {
-    return cached;
   }
 
   const relativePath = urlPath
@@ -62,20 +57,15 @@ function publicAssetExists(urlPath: string) {
     .split('/')
     .filter(Boolean);
   if (relativePath.some((segment) => segment === '..')) {
-    localAssetExistsCache.set(urlPath, false);
     return false;
   }
 
+  const requireFromRuntime = eval('require') as NodeRequire;
+  const fs = requireFromRuntime('node:fs') as typeof import('node:fs');
+  const path = requireFromRuntime('node:path') as typeof import('node:path');
   const urbanPublicRoot = path.join(process.cwd(), 'public', 'images', 'shop', 'urban');
   const filePath = path.join(urbanPublicRoot, ...relativePath);
-  if (!filePath.startsWith(urbanPublicRoot)) {
-    localAssetExistsCache.set(urlPath, false);
-    return false;
-  }
-
-  const exists = fs.existsSync(filePath);
-  localAssetExistsCache.set(urlPath, exists);
-  return exists;
+  return filePath.startsWith(urbanPublicRoot) && fs.existsSync(filePath);
 }
 
 export function resolveUrbanThemeAssetUrl(
@@ -91,7 +81,7 @@ export function resolveUrbanThemeAssetUrl(
   if (trimmed.startsWith(SMGASSETS_IMG_BASE + '/')) {
     const rest = trimmed.slice(SMGASSETS_IMG_BASE.length + 1).split('?')[0];
     const localUrl = '/images/shop/urban/' + rest;
-    return publicAssetExists(localUrl) ? localUrl : trimmed;
+    return localUrbanAssetExistsOutsideProduction(localUrl) ? localUrl : trimmed;
   }
 
   if (
