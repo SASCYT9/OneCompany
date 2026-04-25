@@ -438,23 +438,50 @@ function emitEntry(e) {
   return `'${e.sku}': {\n  headline: {\n    ua: ${tsString(e.headline.ua)},\n    en: ${tsString(e.headline.en)},\n  },\n${fitmentBlock}${sectionsBlock}${oeBlock}},`;
 }
 
+const MIN_PRICE_EUR = 200;
+
+function getMaxEurPrice(product) {
+  let max = 0;
+  for (const v of product.variants || []) {
+    const eur = v.pricing?.effectivePrice?.eur ?? 0;
+    if (eur > max) max = eur;
+  }
+  if (max > 0) return max;
+  return product.price?.eur ?? 0;
+}
+
 async function main() {
   const scrapedRaw = await fs.readFile(SCRAPED_FILE, 'utf-8');
   const scraped = JSON.parse(scrapedRaw);
 
-  // Fetch our DB SKUs
+  // Fetch our DB SKUs and price-filter to >= €200 (catalog policy: skip
+  // cheap accessory parts).
   const productsRes = await fetch('http://localhost:3000/api/shop/products');
   const products = await productsRes.json();
   const do88 = products.filter((p) => (p.brand || '').toLowerCase() === 'do88');
-  const dbSkus = new Set(do88.map((p) => (p.sku || '').toUpperCase()).filter(Boolean));
+  const eligibleSkus = new Set(
+    do88
+      .filter((p) => {
+        const eur = getMaxEurPrice(p);
+        return eur === 0 || eur >= MIN_PRICE_EUR;
+      })
+      .map((p) => (p.sku || '').toUpperCase())
+      .filter(Boolean),
+  );
 
-  console.log(`[input] scraped ${Object.keys(scraped.bySku).length} pages; DB has ${dbSkus.size} DO88 SKUs`);
+  console.log(`[input] scraped ${Object.keys(scraped.bySku).length} pages; DB has ${do88.length} DO88 SKUs (${eligibleSkus.size} eligible at >= €${MIN_PRICE_EUR})`);
 
   const entries = [];
   let kindCounts = {};
   let skipped = 0;
+  let skippedCheap = 0;
   for (const [sku, page] of Object.entries(scraped.bySku)) {
-    if (!dbSkus.has(sku)) continue;
+    if (!eligibleSkus.has(sku)) {
+      // Track separately whether we skipped because of price vs no-DB-match
+      const inDb = do88.some((p) => (p.sku || '').toUpperCase() === sku);
+      if (inDb) skippedCheap++;
+      continue;
+    }
     const entry = buildSpecEntry(sku, page);
     if (!entry) {
       skipped++;
@@ -463,6 +490,9 @@ async function main() {
     entries.push(entry);
     const kind = detectKind(page.title, page.url);
     kindCounts[kind] = (kindCounts[kind] || 0) + 1;
+  }
+  if (skippedCheap > 0) {
+    console.log(`[filter] skipped ${skippedCheap} SKUs priced under €${MIN_PRICE_EUR}`);
   }
 
   entries.sort((a, b) => a.sku.localeCompare(b.sku));

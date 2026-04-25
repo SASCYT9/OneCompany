@@ -158,6 +158,38 @@ function isExcludedVehicleProduct(product: Pick<ShopProduct, 'title' | 'collecti
   return EXCLUDED_VEHICLE_PATTERNS.some((pattern) => pattern.test(haystack));
 }
 
+/**
+ * Cheap raw components (silicone elbows, individual hose clamps, fuel
+ * lines, small fittings) make the catalog feel like a parts bin instead
+ * of a performance store. Per One Company curation policy, only products
+ * priced at €200+ surface in DO88 listings — performance kits, complete
+ * systems, intercoolers, Big Packs, etc.
+ */
+const DO88_MIN_PRICE_EUR = 200;
+
+function getProductMaxEurPrice(product: Pick<ShopProduct, 'price' | 'variants'>): number {
+  // Prefer variant pricing (where the actual `effectivePrice` lives), fall
+  // back to the top-level `price` field for older catalog snapshots.
+  const variants = product.variants ?? [];
+  let max = 0;
+  for (const variant of variants) {
+    const eur =
+      ((variant as { pricing?: { effectivePrice?: { eur?: number } } }).pricing
+        ?.effectivePrice?.eur) ?? 0;
+    if (eur > max) max = eur;
+  }
+  if (max > 0) return max;
+  return product.price?.eur ?? 0;
+}
+
+function isBelowDo88Threshold(product: Pick<ShopProduct, 'price' | 'variants'>) {
+  const eur = getProductMaxEurPrice(product);
+  // 0 means "no price published" — we keep those visible because the page
+  // shows "Запит по товару" rather than mis-filtering them out.
+  if (eur === 0) return false;
+  return eur < DO88_MIN_PRICE_EUR;
+}
+
 export function getProductsForDo88Collection(
   products: ShopProduct[],
   handle: string,
@@ -166,6 +198,7 @@ export function getProductsForDo88Collection(
   const do88Products = products.filter((p) => {
     if (p.brand.toLowerCase() !== 'do88') return false;
     if (isExcludedVehicleProduct(p)) return false;
+    if (isBelowDo88Threshold(p)) return false;
     return true;
   });
 
@@ -208,5 +241,6 @@ export function getDo88CollectionHandleForProduct(product: Do88MatcherProduct) {
 export function isDo88CatalogProduct(product: ShopProduct) {
   if (product.brand.toLowerCase() !== 'do88') return false;
   if (isExcludedVehicleProduct(product)) return false;
+  if (isBelowDo88Threshold(product)) return false;
   return true;
 }
