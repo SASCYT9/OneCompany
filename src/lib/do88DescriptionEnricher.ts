@@ -450,7 +450,9 @@ export function buildDo88EnrichedDescription(
   const curated = getDo88ProductSpec(product.sku);
   if (curated) {
     const headline = locale === 'ua' ? curated.headline.ua : curated.headline.en;
-    const fitmentLabel = locale === 'ua' ? curated.fitment.ua : curated.fitment.en;
+    const fitmentLabel = curated.fitment
+      ? (locale === 'ua' ? curated.fitment.ua : curated.fitment.en)
+      : null;
 
     const flatBullets: string[] = [];
     const sectionHtmlParts: string[] = [];

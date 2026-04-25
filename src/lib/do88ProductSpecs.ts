@@ -7,13 +7,21 @@
  *
  * Format: keyed by SKU exactly as it appears in product.sku from the
  * supplier feed (e.g. "ICM-400", "BIG-310-T"). Lookup is case-insensitive.
+ *
+ * Two layers, manual entries take priority:
+ *   1) DO88_PRODUCT_SPECS — hand-tuned showcase entries
+ *   2) DO88_GENERATED_SPECS — auto-built by `node scripts/do88/generate-specs.mjs`
+ *      from a do88.se sitemap scrape
  */
+
+import { DO88_GENERATED_SPECS } from './do88GeneratedSpecs';
 
 export type Do88ProductSpec = {
   /** Short headline used as shortDescription. ~150-200 chars max. */
   headline: { ua: string; en: string };
-  /** Compatibility line printed under the headline. */
-  fitment: { ua: string; en: string };
+  /** Compatibility line printed under the headline. Optional — generic
+   *  components don't have a single fitment. */
+  fitment?: { ua: string; en: string };
   /** Sections of bullet content. Each section has an optional kicker label. */
   sections: Array<{
     kicker?: { ua: string; en: string };
@@ -105,5 +113,5 @@ export const DO88_PRODUCT_SPECS: Record<string, Do88ProductSpec> = {
 export function getDo88ProductSpec(sku: string | null | undefined): Do88ProductSpec | null {
   if (!sku) return null;
   const normalized = sku.trim().toUpperCase();
-  return DO88_PRODUCT_SPECS[normalized] ?? null;
+  return DO88_PRODUCT_SPECS[normalized] ?? DO88_GENERATED_SPECS[normalized] ?? null;
 }
