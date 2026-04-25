@@ -352,7 +352,14 @@ export default async function ShopProductDetailPage({
   const descriptionSections = extractShopProductDescriptionSections(supplierLongDescription || shortDescription);
   if (do88Enriched) {
     descriptionSections.introHtml = do88Enriched.longDescriptionHtml;
-    if (descriptionSections.features.length === 0) {
+    // If the enriched HTML already contains structured bullet sections (with
+    // <h3> kickers + <ul>), the bullets are inline and we suppress the
+    // separate features panel to avoid duplication. For the kind-based
+    // fallback (headline + fitment only), keep the bullets on the panel.
+    const hasInlineSections = /<h3\b/i.test(do88Enriched.longDescriptionHtml);
+    if (hasInlineSections) {
+      descriptionSections.features = [];
+    } else if (descriptionSections.features.length === 0) {
       descriptionSections.features = [...do88Enriched.bullets];
     }
   }

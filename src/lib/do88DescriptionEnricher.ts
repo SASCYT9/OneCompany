@@ -12,6 +12,7 @@
  */
 
 import type { ShopProduct } from '@/lib/shopCatalog';
+import { getDo88ProductSpec } from '@/lib/do88ProductSpecs';
 
 type Locale = 'ua' | 'en';
 
@@ -440,11 +441,55 @@ function escapeHtml(value: string): string {
 }
 
 export function buildDo88EnrichedDescription(
-  product: Pick<ShopProduct, 'title' | 'brand'>,
+  product: Pick<ShopProduct, 'title' | 'brand' | 'sku'>,
   locale: Locale,
 ): { shortDescription: string; longDescriptionHtml: string; bullets: string[] } | null {
   if (product.brand.toLowerCase() !== 'do88') return null;
 
+  // 1) Per-SKU curated content (do88.se official scraped data) wins.
+  const curated = getDo88ProductSpec(product.sku);
+  if (curated) {
+    const headline = locale === 'ua' ? curated.headline.ua : curated.headline.en;
+    const fitmentLabel = locale === 'ua' ? curated.fitment.ua : curated.fitment.en;
+
+    const flatBullets: string[] = [];
+    const sectionHtmlParts: string[] = [];
+    curated.sections.forEach((section) => {
+      const sectionBullets = locale === 'ua' ? section.bullets.ua : section.bullets.en;
+      flatBullets.push(...sectionBullets);
+      const kicker = section.kicker ? (locale === 'ua' ? section.kicker.ua : section.kicker.en) : null;
+      const items = sectionBullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('');
+      sectionHtmlParts.push(
+        kicker
+          ? `<h3>${escapeHtml(kicker)}</h3><ul>${items}</ul>`
+          : `<ul>${items}</ul>`,
+      );
+    });
+
+    const headParts: string[] = [`<p>${escapeHtml(headline)}</p>`];
+    if (fitmentLabel) {
+      headParts.push(
+        `<p><strong>${locale === 'ua' ? 'Сумісність' : 'Fitment'}:</strong> ${escapeHtml(fitmentLabel)}</p>`,
+      );
+    }
+    if (curated.replacesOe && curated.replacesOe.length > 0) {
+      const oeLabel = locale === 'ua' ? 'Замінює OE-номери' : 'Replaces OE numbers';
+      const oeList = curated.replacesOe.map((n) => `<code>${escapeHtml(n)}</code>`).join(' · ');
+      sectionHtmlParts.push(`<h3>${escapeHtml(oeLabel)}</h3><p class="do88-oe-list">${oeList}</p>`);
+    }
+
+    const shortDescription = fitmentLabel
+      ? `${headline} ${locale === 'ua' ? 'Сумісність' : 'Fitment'}: ${fitmentLabel}.`
+      : headline;
+
+    return {
+      shortDescription,
+      longDescriptionHtml: `${headParts.join('')}${sectionHtmlParts.join('')}`,
+      bullets: flatBullets,
+    };
+  }
+
+  // 2) Fallback: kind-based generic enriched copy.
   const titleSource = `${product.title.ua} ${product.title.en}`;
   const kind = detectKind(titleSource);
   const fitment = detectFitment(titleSource);
@@ -454,13 +499,10 @@ export function buildDo88EnrichedDescription(
   const bullets = locale === 'ua' ? copy.bullets.ua : copy.bullets.en;
   const fitmentLabel = fitment ? (locale === 'ua' ? fitment.ua : fitment.en) : null;
 
-  // Compose short description
   const shortDescription = fitmentLabel
     ? (locale === 'ua' ? `${headline} Сумісність: ${fitmentLabel}.` : `${headline} Fitment: ${fitmentLabel}.`)
     : headline;
 
-  // Intro HTML = headline + fitment only. Bullets are rendered separately as
-  // the "features" section so we don't double them up.
   const escapedHeadline = escapeHtml(headline);
   const fitmentLine = fitmentLabel
     ? `<p><strong>${locale === 'ua' ? 'Сумісність' : 'Fitment'}:</strong> ${escapeHtml(fitmentLabel)}</p>`
