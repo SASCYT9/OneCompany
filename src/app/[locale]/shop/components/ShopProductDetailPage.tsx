@@ -14,11 +14,6 @@ import {
   type SupportedLocale,
 } from '@/lib/seo';
 import { getBrandLogo } from '@/lib/brandLogos';
-import {
-  getBrandMetadata,
-  getLocalizedCountry,
-  getLocalizedSubcategory,
-} from '@/lib/brands';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
@@ -154,6 +149,69 @@ function DetailSpecPanel({
   );
 }
 
+function isWheelProduct(product: Pick<ShopProduct, 'category' | 'productType' | 'tags'>) {
+  const values = [
+    product.category.en,
+    product.category.ua,
+    product.productType ?? '',
+    ...(product.tags ?? []),
+  ].map((value) => value.toLowerCase());
+
+  return values.some((value) => /\b(wheel|wheels|tyre|tyres|tire|tires|диск|диски|шини)\b/i.test(value));
+}
+
+function isKitProduct(product: Pick<ShopProduct, 'category' | 'productType' | 'tags' | 'bundle' | 'title'>) {
+  if (isWheelProduct(product)) {
+    return false;
+  }
+
+  const titleValue = `${product.title.en} ${product.title.ua}`.toLowerCase();
+
+  return (
+    Boolean(product.bundle) ||
+    /\b(body\s?kit|bodykit|full kit|complete kit|kit package|комплект обвісу|повний комплект|пакет urban)\b/i.test(titleValue)
+  );
+}
+
+function isStandaloneUrbanComponent(product: Pick<ShopProduct, 'title'>) {
+  const titleValue = `${product.title.en} ${product.title.ua}`.toLowerCase();
+
+  return /(d-pillar|spoiler|roof|light bar|exhaust|tailpipe|bonnet|hood|mirror|trim|intake|насадк|спойлер|дахов|світлов|капот|оздоблен|повітрозабірник)/i.test(titleValue);
+}
+
+function isSameVehicleFamily(product: Pick<ShopProduct, 'brand' | 'vendor' | 'title' | 'collection' | 'tags'>, current: Pick<ShopProduct, 'brand' | 'vendor' | 'title' | 'collection' | 'tags'>) {
+  const currentHaystack = [
+    current.brand,
+    current.vendor,
+    current.title.en,
+    current.title.ua,
+    current.collection.en,
+    current.collection.ua,
+    ...(current.tags ?? []),
+  ].join(' ').toLowerCase();
+  const productHaystack = [
+    product.brand,
+    product.vendor,
+    product.title.en,
+    product.title.ua,
+    product.collection.en,
+    product.collection.ua,
+    ...(product.tags ?? []),
+  ].join(' ').toLowerCase();
+
+  if (/(mercedes|g-wagon|g wagon|g-class|g class|g63|w465)/i.test(currentHaystack)) {
+    return /(mercedes|g-wagon|g wagon|g-class|g class|g63|w465)/i.test(productHaystack);
+  }
+
+  return product.brand.toLowerCase() === current.brand.toLowerCase();
+}
+
+function getFirstExternalProductImage(product: Pick<ShopProduct, 'image' | 'gallery'>) {
+  return [product.image, ...(product.gallery ?? [])]
+    .map((value) => String(value ?? '').replace(/^["']|["']$/g, '').trim())
+    .find((value) => /^https?:\/\//i.test(value)) ?? null;
+}
+
 export async function getShopProductPageMetadata({
   locale,
   slug,
@@ -272,11 +330,6 @@ export default async function ShopProductDetailPage({
     ? descriptionSections.features
     : product.highlights.map((item) => localizeShopText(resolvedLocale, item));
   const leadTime = localizeShopText(resolvedLocale, product.leadTime);
-  const collection = localizeShopText(resolvedLocale, product.collection);
-  pushFallbackSpec(isUa ? 'Артикул' : 'SKU', product.sku);
-  pushFallbackSpec(isUa ? 'Колекція' : 'Collection', collection);
-  pushFallbackSpec(isUa ? 'Категорія' : 'Category', productCategory);
-  pushFallbackSpec(isUa ? 'Бренд' : 'Brand', product.brand);
   pushFallbackSpec(isUa ? 'Термін постачання' : 'Lead time', leadTime);
   if (product.length != null || product.width != null || product.height != null) {
     const dimensionsValue = [
@@ -304,10 +357,6 @@ export default async function ShopProductDetailPage({
     detailSpecs.push(spec);
   });
   const isInStock = product.stock === 'inStock';
-
-  const brandMeta = getBrandMetadata(product.brand);
-  const country = brandMeta ? getLocalizedCountry(brandMeta.country, resolvedLocale) : null;
-  const subcategory = brandMeta ? getLocalizedSubcategory(brandMeta.subcategory, resolvedLocale) : null;
 
   // Determine model handles for image resolution
   const urbanModelHandles = urbanCollectionHandle ? [urbanCollectionHandle] : [];
@@ -342,6 +391,14 @@ export default async function ShopProductDetailPage({
       urbanCollectionCard.title,
       urbanCollectionCard.brand
     );
+
+    if (product.slug === 'urb-bun-25358207-v1' || isKitProduct(product)) {
+      categoryRelatedProducts = categoryRelatedProducts.filter(
+        (item) => isSameVehicleFamily(item, product) && isKitProduct(item) && !isStandaloneUrbanComponent(item)
+      );
+    } else if (!isWheelProduct(product)) {
+      categoryRelatedProducts = categoryRelatedProducts.filter((item) => !isWheelProduct(item));
+    }
   } else if (isDo88Mode && do88CollectionHandle && do88CollectionCard) {
     categoryRelatedProducts = getProductsForDo88Collection(
       allProducts.filter((item) => item.slug !== product.slug),
@@ -350,11 +407,26 @@ export default async function ShopProductDetailPage({
     );
   }
 
-  const relatedProducts = (
-    categoryRelatedProducts.length
+  const urbanKitRelatedFallback = isUrbanMode && (product.slug === 'urb-bun-25358207-v1' || isKitProduct(product))
+    ? findRelatedProducts(
+        product,
+        allProducts.filter(
+          (item) =>
+            item.slug !== product.slug &&
+            isSameVehicleFamily(item, product) &&
+            isKitProduct(item) &&
+            !isStandaloneUrbanComponent(item)
+        ),
+        3
+      )
+    : [];
+  const relatedProducts = isUrbanMode
+    ? categoryRelatedProducts.length
       ? categoryRelatedProducts.slice(0, 3)
-      : findRelatedProducts(product, allProducts, 3)
-  );
+      : urbanKitRelatedFallback
+    : categoryRelatedProducts.length
+      ? categoryRelatedProducts.slice(0, 3)
+      : findRelatedProducts(product, allProducts, 3);
   const relatedProductsWithPricing = relatedProducts.map((item) => ({
     item,
     price: computeCrossPrices(resolveShopProductPricing(item, viewerContext).effectivePrice),
@@ -531,7 +603,7 @@ export default async function ShopProductDetailPage({
                 ) : null}
                 {detailSpecs.length > 0 ? (
                   <DetailSpecPanel
-                    title={isUa ? 'Технічна довідка' : 'Reference details'}
+                    title={isUa ? 'Характеристики' : 'Specifications'}
                     specs={detailSpecs}
                   />
                 ) : null}
@@ -614,38 +686,6 @@ export default async function ShopProductDetailPage({
               ) : null}
             </div>
 
-            {/* Divider */}
-            <div className="mx-auto h-[1px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent my-6" />
-
-            <div className="flex flex-wrap gap-3">
-              <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/[0.04]">
-                <span className="text-white/30">SKU</span> {product.sku}
-              </span>
-              {leadTime ? (
-                <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/[0.04]">
-                  <span className="text-white/30">{isUa ? 'Поставка' : 'Lead time'}</span> {leadTime}
-                </span>
-              ) : null}
-              <span className="flex items-center gap-2 rounded-full border border-[#c29d59]/20 bg-[#c29d59]/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-[#c29d59]/80 transition-colors hover:bg-[#c29d59]/10">
-                {collection}
-              </span>
-              {product.productType ? (
-                <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/[0.04]">
-                  {product.productType}
-                </span>
-              ) : null}
-              {country ? (
-                <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/[0.04]">
-                  {country}
-                </span>
-              ) : null}
-              {subcategory ? (
-                <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-white/50 transition-colors hover:bg-white/[0.04]">
-                  {subcategory}
-                </span>
-              ) : null}
-            </div>
-
             {/* Додатковий блок опису прибрано, щоб текст не дублювався */}
 
             {product.bundle ? (
@@ -682,16 +722,6 @@ export default async function ShopProductDetailPage({
               </div>
             ) : null}
 
-            {product.tags?.length ? (
-              <div className="flex flex-wrap gap-2">
-                {product.tags.slice(0, 8).map((tag) => (
-                  <span key={tag} className="rounded-full border border-white/15 bg-white/[0.03] px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-white/60">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4">
               <AddToCartButton 
                 slug={product.slug} 
@@ -717,15 +747,28 @@ export default async function ShopProductDetailPage({
           </div>
         </section>
 
-        <section className="space-y-4">
-          <h2 className="text-2xl font-light">{isUa ? 'Схожі товари' : 'Related products'}</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {relatedProductsWithPricing.map(({ item, price }) => {
+        {relatedProductsWithPricing.length > 0 ? (
+          <section className="space-y-4">
+            <h2 className="text-2xl font-light">{isUa ? 'Схожі товари' : 'Related products'}</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {relatedProductsWithPricing.map(({ item, price }) => {
               const relatedUrbanHandle = isUrbanMode
                 ? getUrbanCollectionHandleForProduct(item) ?? urbanCollectionHandle
                 : null;
-              const relatedImage = relatedUrbanHandle
-                ? resolveUrbanCollectionCardImage(
+              const relatedImage = isUrbanMode
+                ? getFirstExternalProductImage(item) ??
+                  (relatedUrbanHandle
+                    ? resolveUrbanCollectionCardImage(
+                        item.image,
+                        [relatedUrbanHandle],
+                        urbanRelatedImagePools.get(relatedUrbanHandle) ?? [],
+                        item.slug,
+                        item.gallery,
+                        item
+                      )
+                    : null)
+                : relatedUrbanHandle
+                  ? resolveUrbanCollectionCardImage(
                     item.image,
                     [relatedUrbanHandle],
                     urbanRelatedImagePools.get(relatedUrbanHandle) ?? [],
@@ -733,9 +776,9 @@ export default async function ShopProductDetailPage({
                     item.gallery,
                     item
                   )
-                : item.image && item.image.replace(/^[\"']|[\"']$/g, '').trim().length > 0
-                  ? item.image.replace(/^[\"']|[\"']$/g, '').trim()
-                  : null;
+                  : item.image && item.image.replace(/^[\"']|[\"']$/g, '').trim().length > 0
+                    ? item.image.replace(/^[\"']|[\"']$/g, '').trim()
+                    : null;
 
               return (
                 <Link
@@ -773,9 +816,10 @@ export default async function ShopProductDetailPage({
                   </div>
                 </Link>
               );
-            })}
-          </div>
-        </section>
+              })}
+            </div>
+          </section>
+        ) : null}
       </div>)}
 </main>
   );

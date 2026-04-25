@@ -9,8 +9,8 @@ const URBAN_PRODUCT_TITLE_OVERRIDES: Record<string, { ua: string; en: string }> 
     en: 'Urban Soft Kit Package for Mercedes-Benz G-Wagon W463A',
   },
   'urb-bun-25358207-v1': {
-    ua: 'Пакет Urban Widetrack для Mercedes-Benz G-Wagon W465',
-    en: 'Urban Widetrack Package for Mercedes-Benz G-Wagon W465',
+    ua: 'Комплект обвісу Urban Widetrack для Mercedes-Benz G-Wagon W465',
+    en: 'Urban Widetrack Body Kit for Mercedes-Benz G-Wagon W465',
   },
   'urb-bod-25353141-v1': {
     ua: 'Повний пакет Urban Facelift 2020+ для Land Rover Discovery 5',

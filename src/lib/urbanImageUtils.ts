@@ -495,12 +495,12 @@ export function resolveUrbanProductGallery(
   const intent = resolveUrbanVisualIntent(product);
   const mediaSet = buildUrbanCollectionMediaSet(config, resolvedModelHandles[0]);
 
-  if (intent === 'package' && mediaSet.photoGallery.length > 0) {
-    return mediaSet.photoGallery;
-  }
-
   if (ownImages.length > 0) {
     return ownImages;
+  }
+
+  if (intent === 'package' && mediaSet.photoGallery.length > 0) {
+    return mediaSet.photoGallery;
   }
 
   const realCandidate = getMatchingRealPhotoForIntent(mediaSet, intent);

@@ -291,6 +291,91 @@ export function getUrbanCuratedDescriptionOverride(
     };
   }
 
+  if (input.slug === 'urb-bun-25358207-v1') {
+    const bodyHtmlEn = [
+      '<p>This Urban Widetrack body kit makes your Mercedes-Benz G-Class W465 unmistakably yours. It takes the familiar G-Wagon silhouette and gives it a wider stance, sharper Visual Carbon Fibre elements, and the kind of road presence that cannot be confused with a standard car.</p>',
+      '<p>For owners who want more than a factory G-Class, Urban Automotive gives the W465 a stronger visual identity: broader arches, sculpted bumpers, integrated intake details, and a confident widebody profile that looks purposeful from every angle.</p>',
+      '<p>The exterior package brings together the key Urban Widetrack elements: bumpers, arches, sills, splitter, diffuser, intake details, mesh inserts, tow covers, and exhaust finishers.</p>',
+      '<h3>Front section</h3>',
+      buildList([
+        'Carbon-fibre front bumper.',
+        'Carbon-fibre upper intake and front centre intake.',
+        'Honeycomb front centre mesh insert.',
+        'Left and right carbon-fibre front intakes with honeycomb mesh inserts.',
+        'Left and right carbon-fibre front grille inserts.',
+        'Left and right carbon-fibre front overriders.',
+        'Carbon-fibre upper centre, left, right, and lower centre front splitter sections.',
+        'Carbon-fibre front tow cover.',
+      ]),
+      '<h3>Side and widebody section</h3>',
+      buildList([
+        'Left and right carbon-fibre front wheel arches.',
+        'Left and right carbon-fibre rear wheel arches.',
+        'Left and right carbon-fibre side skirts.',
+      ]),
+      '<h3>Rear section</h3>',
+      buildList([
+        'Carbon-fibre rear bumper.',
+        'Carbon-fibre rear diffuser.',
+        'Carbon-fibre rear tow cover.',
+        'Left and right carbon-fibre rear intakes with honeycomb mesh inserts.',
+        'Satin black billet exhaust finishers for W465 G-Wagon.',
+      ]),
+      '<p>Bonnet, roof light bar, rear spoiler, rear wheel carrier, wheels, interior trim, and performance exhaust are not included in this body kit.</p>',
+    ].join('');
+
+    const bodyHtmlUa = [
+      '<p>Цей обвіс Urban Widetrack робить ваш Mercedes-Benz G-Class W465 по-справжньому унікальним. Він залишає впізнавану харизму G-Wagon, але додає ширший силует, агресивніші лінії, елементи з Visual Carbon Fibre та присутність, яку неможливо сплутати зі стандартним автомобілем.</p>',
+      '<p>Для власника, якому замало заводського G-Class, Urban Automotive створює інший рівень зовнішності: масивніші арки, скульптурні бампери, інтегровані повітрозабірники та впевнений widebody-профіль, який виглядає цілісно з кожного ракурсу.</p>',
+      '<p>Зовнішній пакет об’єднує ключові елементи Urban Widetrack: бампери, арки, пороги, спліттер, дифузор, повітрозабірники, сітки, кришки буксирувальних отворів і насадки вихлопу.</p>',
+      '<h3>Передня частина</h3>',
+      buildList([
+        'Карбоновий передній бампер.',
+        'Карбоновий верхній повітрозабірник і центральний передній повітрозабірник.',
+        'Центральна передня вставка із honeycomb-сіткою.',
+        'Лівий і правий передні карбонові повітрозабірники з honeycomb-вставками.',
+        'Ліва та права карбонові передні вставки решітки.',
+        'Лівий і правий карбонові передні overrider-елементи.',
+        'Карбонові секції переднього спліттера: верхня центральна, ліва, права та нижня центральна.',
+        'Карбонова передня кришка буксирувального отвору.',
+      ]),
+      '<h3>Бокова частина та widebody</h3>',
+      buildList([
+        'Ліва та права карбонові передні арки.',
+        'Ліва та права карбонові задні арки.',
+        'Лівий і правий карбонові бокові пороги.',
+      ]),
+      '<h3>Задня частина</h3>',
+      buildList([
+        'Карбоновий задній бампер.',
+        'Карбоновий задній дифузор.',
+        'Карбонова задня кришка буксирувального отвору.',
+        'Лівий і правий задні карбонові повітрозабірники з honeycomb-вставками.',
+        'Комплект billet-насадок вихлопу Satin Black для W465 G-Wagon.',
+      ]),
+      '<p>Капот, дахова LED-панель, задній спойлер, тримач запасного колеса, диски, оздоблення салону та спортивна вихлопна система не входять у цей комплект обвісу.</p>',
+    ].join('');
+
+    return {
+      bodyHtml: {
+        en: bodyHtmlEn,
+        ua: bodyHtmlUa,
+      },
+      longDescription: {
+        en: stripHtml(bodyHtmlEn),
+        ua: stripHtml(bodyHtmlUa),
+      },
+      shortDescription: {
+        en: excerpt(bodyHtmlEn, 220),
+        ua: excerpt(bodyHtmlUa, 220),
+      },
+      seoDescription: {
+        en: excerpt(bodyHtmlEn, 155),
+        ua: excerpt(bodyHtmlUa, 155),
+      },
+    };
+  }
+
   if (input.slug !== 'urb-wid-26084234-v1') {
     return null;
   }

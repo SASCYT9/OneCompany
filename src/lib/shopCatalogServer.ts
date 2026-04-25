@@ -62,6 +62,64 @@ function uniqueStrings(values: Array<string | null | undefined>) {
 const SHOP_PRODUCT_FALLBACK_IMAGE = '/images/placeholders/product-fallback.svg';
 
 const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: string[] }> = {
+  'URB-BUN-25358207-V1': {
+    image: '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-1-2560.webp',
+    gallery: [
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-1-2560.webp',
+      '/images/shop/urban/products/urus-se/G-Wagon_Widetrack_2024.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-2-2560.webp',
+      '/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_G63_W465_Widetrack_2.webp',
+      '/images/shop/urban/products/urus-se/G-Wagon_Widetrack_1.jpg',
+      '/images/shop/urban/products/urus-se/G-Wagon_Widetrack_2.jpg',
+      '/images/shop/urban/products/urus-se/G-Wagon_Widetrack_3.jpg',
+      '/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_G63_W465_Widetrack_1.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-5-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-3-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-4-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-6-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-7-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-8-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-9-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-10-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-11-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-12-2560.webp',
+    ],
+  },
+  'URB-HOO-25358201-V1': {
+    image: 'https://houseofurban.co.uk/cdn/shop/products/0J0A8668_1800x1800.jpg?v=1573136127',
+    gallery: [
+      'https://houseofurban.co.uk/cdn/shop/products/0J0A8668_1800x1800.jpg?v=1573136127',
+      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/1746797497736-F8HY9C67YW8KW6I13KVB/G-Wagon%2BRedefined%2Bby%2BUrban%2BAutomotive%2B-%2BWidetrack-8%2BLarge.jpeg',
+    ],
+  },
+  'URB-ROO-25358202-V1': {
+    image: 'https://houseofurban.co.uk/cdn/shop/products/0J0A2830_1800x1800.jpg?v=1603891789',
+    gallery: [
+      'https://houseofurban.co.uk/cdn/shop/products/0J0A2830_1800x1800.jpg?v=1603891789',
+      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/1746797552035-SCWOE15XLLRQVE2J11Y6/8_G63%2BWidetrack-Rear-Spoiler-Detail%2BLarge.jpeg',
+    ],
+  },
+  'URB-SPO-25358203-V1': {
+    image: 'https://houseofurban.co.uk/cdn/shop/products/0J0A2818_1800x1800.jpg?v=1591879580',
+    gallery: [
+      'https://houseofurban.co.uk/cdn/shop/products/0J0A2818_1800x1800.jpg?v=1591879580',
+      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/1746797552035-SCWOE15XLLRQVE2J11Y6/8_G63%2BWidetrack-Rear-Spoiler-Detail%2BLarge.jpeg',
+    ],
+  },
+  'URB-COV-25358204-V1': {
+    image:
+      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/f9a0c4d6-1523-4d89-8280-90eb5c1fd466/9_G63%2BWidetrack-Rear-Three-Detail-Wheel-Turn%2BLarge.jpg',
+    gallery: [
+      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/f9a0c4d6-1523-4d89-8280-90eb5c1fd466/9_G63%2BWidetrack-Rear-Three-Detail-Wheel-Turn%2BLarge.jpg',
+    ],
+  },
+  'URB-DEC-25358200-V1': {
+    image:
+      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/1746797406281-H5AISC7VYX6JLV9Q9XMK/G-Wagon%2BRedefined%2Bby%2BUrban%2BAutomotive%2B-%2BWidetrack%2BLocation-1%2BLarge.jpeg',
+    gallery: [
+      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/1746797406281-H5AISC7VYX6JLV9Q9XMK/G-Wagon%2BRedefined%2Bby%2BUrban%2BAutomotive%2B-%2BWidetrack%2BLocation-1%2BLarge.jpeg',
+    ],
+  },
   'CCRK-C4': {
     image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/products/1845/1094/CCRK-C4__53202.1638317631.jpg?c=1',
   },
