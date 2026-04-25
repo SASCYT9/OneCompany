@@ -103,15 +103,17 @@ function DetailListPanel({
   accentClassName,
   className,
 }: {
-  title: string;
+  title?: string;
   items: string[];
   accentClassName?: string;
   className?: string;
 }) {
   return (
     <div className={`rounded-2xl border bg-black/30 p-5 ${accentClassName ?? 'border-white/12'} ${className ?? ''}`}>
-      <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">{title}</p>
-      <ul className="mt-4 space-y-3 text-sm leading-relaxed text-white/82 sm:text-[15px]">
+      {title ? (
+        <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">{title}</p>
+      ) : null}
+      <ul className={`${title ? 'mt-4' : ''} space-y-3 text-sm leading-relaxed text-white/82 sm:text-[15px]`}>
         {items.map((item) => (
           <li key={item} className="flex gap-3">
             <span className="mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#c29d59]/80" />
@@ -128,14 +130,16 @@ function DetailSpecPanel({
   specs,
   className,
 }: {
-  title: string;
+  title?: string;
   specs: Array<{ label: string; value: string }>;
   className?: string;
 }) {
   return (
     <div className={`rounded-2xl border border-white/12 bg-black/30 p-5 ${className ?? ''}`}>
-      <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">{title}</p>
-      <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+      {title ? (
+        <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">{title}</p>
+      ) : null}
+      <dl className={`${title ? 'mt-4' : ''} grid gap-3 text-sm sm:grid-cols-2`}>
         {specs.map((spec) => (
           <div
             key={`${spec.label}:${spec.value}`}
@@ -645,13 +649,13 @@ export default async function ShopProductDetailPage({
                 ) : null}
                 {detailFeatureItems.length > 0 ? (
                   <DetailListPanel
-                    title={isUa ? 'Переваги' : 'Benefits'}
+                    title={isDo88Mode ? undefined : (isUa ? 'Переваги' : 'Benefits')}
                     items={detailFeatureItems}
                   />
                 ) : null}
                 {detailSpecs.length > 0 ? (
                   <DetailSpecPanel
-                    title={isUa ? 'Характеристики' : 'Specifications'}
+                    title={isDo88Mode ? undefined : (isUa ? 'Характеристики' : 'Specifications')}
                     specs={detailSpecs}
                   />
                 ) : null}

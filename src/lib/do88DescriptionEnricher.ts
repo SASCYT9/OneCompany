@@ -197,15 +197,15 @@ const COPY: Record<ProductKind, EnrichedDescription> = {
     },
     bullets: {
       ua: [
-        'Інтеркулер + патрубки + впускні елементи',
-        'Все підібрано під одне шасі та узгоджено по продуктивності',
-        'Знижка vs покупки кожного компонента окремо',
+        'Інтеркулер, патрубки та впускні елементи в одному комплекті',
+        'Усі компоненти підібрано та протестовано під одне шасі',
+        'Готове рішення — не треба підбирати артикули окремо',
         'Drop-in монтаж без перероблення штатних кріплень',
       ],
       en: [
-        'Intercooler + hoses + intake bundled',
-        'Components matched to a single chassis & calibrated together',
-        'Discounted vs buying components separately',
+        'Intercooler, hoses and intake elements bundled together',
+        'Components selected and tested for a single chassis',
+        'Ready bundle — no need to source individual part numbers',
         'Drop-in installation, no chassis modifications',
       ],
     },
