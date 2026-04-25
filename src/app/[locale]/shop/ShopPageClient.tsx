@@ -11,6 +11,7 @@ import { localizeShopDescription, localizeShopProductTitle, localizeShopText } f
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
 import { buildShopStorefrontProductPathForProduct } from '@/lib/shopStorefrontRouting';
+import { SHOW_STOCK_BADGE } from '@/lib/shopStockUi';
 
 type CatalogScope = 'all' | ShopScope;
 type SortMode = 'featured' | 'priceLow' | 'priceHigh';
@@ -529,15 +530,17 @@ export default function ShopPageClient({ locale, variant = 'default' }: ShopPage
                         <div className="rounded-full border border-white/45 bg-black/20 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white">
                           {category}
                         </div>
-                        <div
-                          className={`rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.2em] ${
-                            isInStock
-                              ? 'border-emerald-300/45 bg-emerald-400/20 text-emerald-100'
-                              : 'border-amber-300/45 bg-amber-400/20 text-amber-100'
-                          }`}
-                        >
-                          {isInStock ? (isUa ? 'В наявності' : 'In stock') : (isUa ? 'Під замовлення' : 'Pre-order')}
-                        </div>
+                        {SHOW_STOCK_BADGE ? (
+                          <div
+                            className={`rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.2em] ${
+                              isInStock
+                                ? 'border-emerald-300/45 bg-emerald-400/20 text-emerald-100'
+                                : 'border-amber-300/45 bg-amber-400/20 text-amber-100'
+                            }`}
+                          >
+                            {isInStock ? (isUa ? 'В наявності' : 'In stock') : (isUa ? 'Під замовлення' : 'Pre-order')}
+                          </div>
+                        ) : null}
                       </div>
 
                       <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/30 bg-white/90 p-3 backdrop-blur">

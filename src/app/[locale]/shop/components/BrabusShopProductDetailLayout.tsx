@@ -13,6 +13,7 @@ import {
 } from "@/lib/shopText";
 import { resolveBrabusFallbackImage } from "@/lib/brabusImageFallbacks";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
+import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import type { SupportedLocale } from "@/lib/seo";
@@ -485,12 +486,14 @@ export function BrabusShopProductDetailLayout({
                     <span className="b-ms-val">{product.sku}</span>
                   </div>
                 )}
-                <div className="b-ms-item">
-                  <span className="b-ms-label">{isUa ? "Статус" : "Status"}</span>
-                  <span className={`b-ms-val ${isInStock ? "b-ms-val--ok" : "b-ms-val--wait"}`}>
-                    {isInStock ? (isUa ? "В наявності" : "In Stock") : (isUa ? "Під замовлення" : "Pre-order")}
-                  </span>
-                </div>
+                {SHOW_STOCK_BADGE ? (
+                  <div className="b-ms-item">
+                    <span className="b-ms-label">{isUa ? "Статус" : "Status"}</span>
+                    <span className={`b-ms-val ${isInStock ? "b-ms-val--ok" : "b-ms-val--wait"}`}>
+                      {isInStock ? (isUa ? "В наявності" : "In Stock") : (isUa ? "Під замовлення" : "Pre-order")}
+                    </span>
+                  </div>
+                ) : null}
                 {collection && (
                   <div className="b-ms-item">
                     <span className="b-ms-label">{isUa ? "Серія" : "Collection"}</span>

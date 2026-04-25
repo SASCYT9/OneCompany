@@ -147,7 +147,7 @@ export default function CSFHomeSignature({ locale }: Props) {
           {CSF_PRODUCT_LINES.map((line, idx) => (
             <Link
               key={line.id}
-              href={`/${locale}${line.link}`}
+              href={`/${locale}${line.link}${line.categoryFilter ? `?category=${line.categoryFilter}` : ''}`}
               className={`csf__product-card${line.featured ? ' csf__product-card--featured' : ''}`}
               data-r
               data-r-delay={`${Math.min(idx + 1, 4)}`}

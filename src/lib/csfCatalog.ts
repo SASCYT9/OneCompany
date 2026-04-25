@@ -1,4 +1,5 @@
 import type { ShopProduct } from '@/lib/shopCatalog';
+import { CSF_FITMENT_OVERRIDES, normalizeModelLabel } from '@/lib/csfFitmentOverrides';
 
 type CsfCatalogProduct = Pick<ShopProduct, 'title' | 'slug' | 'category' | 'sku' | 'stock'>;
 
@@ -70,6 +71,23 @@ const MODEL_NOISE_PATTERNS = [
   /\bright\b/gi,
   /\bcenter\b/gi,
   /\bkit\b/gi,
+  // Ukrainian noise — products names that creep into fitment section when
+  // the EN title is broken and we fall back to the full UA title.
+  /^\s*CSF[\s#]*\d+[A-Za-z]?/gi,
+  /(?:^|\s)для(?=\s|$)/gi,
+  /високопродуктивн\S*/gi,
+  /інтеркулер\S*/gi,
+  /впускн\S*\s+колектор\S*/gi,
+  /колектор\S*/gi,
+  /охолоджувач\S*/gi,
+  /радіатор\S*/gi,
+  /\bтвін(?=\s|$)/gi,
+  /\bкомплект\S*/gi,
+  /чорн\S*/gi,
+  /термічн\S*/gi,
+  /оздоблення/gi,
+  /індивідуальн\S*/gi,
+  /\brace\s*x\b/gi,
 ];
 
 function normalizeWhitespace(value: string) {
@@ -78,11 +96,6 @@ function normalizeWhitespace(value: string) {
 
 function uniqueValues(values: string[]) {
   return Array.from(new Set(values.filter(Boolean)));
-}
-
-function extractFitmentSection(title: string) {
-  const match = title.match(/\bfor\s+(.+)$/i);
-  return normalizeWhitespace(match?.[1] ?? '');
 }
 
 function detectVehicleMake(section: string) {
@@ -192,20 +205,59 @@ function extractVehicleModels(section: string, make: string | null) {
   return uniqueValues(segments);
 }
 
-export function extractCsfCatalogFitment(product: CsfCatalogProduct): CsfCatalogFitment {
-  const title = product.title.en || product.title.ua || product.slug;
-  const fitmentSection = extractFitmentSection(title);
-  const make = detectVehicleMake(fitmentSection);
-  const years = extractYearRange(fitmentSection);
+function looksLikeBrokenCsfTitle(value: string | null | undefined) {
+  if (!value) return true;
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  return /pressure tests|not designed to operate|psi for \d+-\d+ minutes/i.test(trimmed);
+}
 
-  return {
-    make,
-    models: extractVehicleModels(fitmentSection, make),
-    chassisCodes: extractChassisCodes(fitmentSection),
-    yearStart: years.yearStart,
-    yearEnd: years.yearEnd,
-    yearLabel: years.yearLabel,
-  };
+function extractFitmentSectionFromAny(title: string | null | undefined) {
+  if (!title) return '';
+  // \b doesn't recognise Cyrillic letters in JS regex without Unicode-aware mode,
+  // so match either an ASCII word boundary before `for` or a whitespace/start anchor before `для`.
+  const match = title.match(/(?:\bfor|(?:^|\s)для)\s+(.+)$/i);
+  return normalizeWhitespace(match?.[1] ?? '');
+}
+
+export function extractCsfCatalogFitment(product: CsfCatalogProduct): CsfCatalogFitment {
+  const candidates = [product.title.en, product.title.ua, product.slug].filter(
+    (value): value is string => Boolean(value) && !looksLikeBrokenCsfTitle(value)
+  );
+
+  let fitmentSection = '';
+  for (const candidate of candidates) {
+    const section = extractFitmentSectionFromAny(candidate);
+    if (section) {
+      fitmentSection = section;
+      break;
+    }
+  }
+
+  if (!fitmentSection) {
+    const fallback = candidates[0] ?? product.title.ua ?? product.title.en ?? product.slug;
+    fitmentSection = extractFitmentSectionFromAny(fallback) || normalizeWhitespace(fallback ?? '');
+  }
+
+  const detectedMake = detectVehicleMake(fitmentSection);
+  const years = extractYearRange(fitmentSection);
+  const rawModels = extractVehicleModels(fitmentSection, detectedMake);
+
+  const override = product.sku ? CSF_FITMENT_OVERRIDES[product.sku] : undefined;
+  const make = override?.make ?? detectedMake;
+
+  // Per-make canonical normalization (e.g. "320i" → "3 Series"; "B58" → drop).
+  const normalizedFromAuto = rawModels
+    .map((label) => normalizeModelLabel(make, label))
+    .filter((label): label is string => Boolean(label));
+
+  const models = override?.models ?? Array.from(new Set(normalizedFromAuto));
+  const chassisCodes = override?.chassisCodes ?? extractChassisCodes(fitmentSection);
+  const yearStart = override?.yearStart ?? years.yearStart;
+  const yearEnd = override?.yearEnd ?? years.yearEnd;
+  const yearLabel = override?.yearLabel ?? years.yearLabel;
+
+  return { make, models, chassisCodes, yearStart, yearEnd, yearLabel };
 }
 
 export function detectCsfStockState(stock: string | null | undefined) {
@@ -219,5 +271,9 @@ export function detectCsfStockState(stock: string | null | undefined) {
     return 'pre-order';
   }
 
-  return 'out-of-stock';
+  if (normalized === 'outOfStock' || normalized === 'discontinued') {
+    return 'out-of-stock';
+  }
+
+  return 'in-stock';
 }

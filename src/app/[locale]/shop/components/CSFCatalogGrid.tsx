@@ -12,6 +12,7 @@ import type { ShopProduct } from "@/lib/shopCatalog";
 import { computeShopDisplayPrices, hasAnyShopPrice, pickShopSortableAmount } from "@/lib/shopDisplayPrices";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { extractCsfCatalogFitment, detectCsfStockState } from "@/lib/csfCatalog";
+import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type Props = {
@@ -81,16 +82,38 @@ function normalizeCategory(locale: SupportedLocale, product: ShopProduct) {
   };
 }
 
-function buildFacetOptions(items: string[]) {
+function buildFacetOptions(items: string[], predicate?: (label: string) => boolean) {
   const counts = new Map<string, number>();
   for (const item of items) {
     if (!item) continue;
+    if (predicate && !predicate(item)) continue;
     counts.set(item, (counts.get(item) || 0) + 1);
   }
 
   return [...counts.entries()]
     .map(([key, count]) => ({ key, label: key, count }))
     .sort((left, right) => left.label.localeCompare(right.label));
+}
+
+const KNOWN_MAKES_RE = /\b(BMW|TOYOTA|PORSCHE|NISSAN|FORD|SUBARU|CHEVROLET|AUDI|HONDA|MERCEDES(?:-BENZ)?|MITSUBISHI|MAZDA|FERRARI|JEEP|DODGE|HYUNDAI|MCLAREN|VAG|LEXUS|LAMBORGHINI|ALFA|CADILLAC|MINI|VOLKSWAGEN|VW|LOTUS|ACURA)\b/i;
+
+function isCleanModelLabel(label: string) {
+  const trimmed = label.trim();
+  if (trimmed.length < 2 || trimmed.length > 22) return false;
+  if (KNOWN_MAKES_RE.test(trimmed)) return false;
+  if (/\d{2,4}\s*[-+]\s*\d{2,4}/.test(trimmed)) return false;
+  if (/\b(19|20)\d{2}\b/.test(trimmed)) return false;
+  if (/[\/,]/.test(trimmed)) return false;
+  if ((trimmed.match(/\s/g) || []).length > 2) return false;
+  return true;
+}
+
+function isCleanChassisLabel(label: string) {
+  return /^[A-Z]{1,3}\d{2,4}[A-Z]?$/.test(label.trim());
+}
+
+function isCleanYearLabel(label: string) {
+  return /^\d{4}(?:[-–]\d{4}|\+)?$/.test(label.trim());
 }
 
 function inPriceBand(value: number, band: PriceBand) {
@@ -101,11 +124,35 @@ function inPriceBand(value: number, band: PriceBand) {
   return value >= 100000;
 }
 
-function getPriceBandLabel(locale: SupportedLocale, band: PriceBand) {
-  if (band === "under_25000") return locale === "ua" ? "До 25 000" : "Under 25,000";
-  if (band === "25000_50000") return locale === "ua" ? "25 000 - 50 000" : "25,000 - 50,000";
-  if (band === "50000_100000") return locale === "ua" ? "50 000 - 100 000" : "50,000 - 100,000";
-  return locale === "ua" ? "100 000+" : "100,000+";
+function getPriceBandLabel(locale: SupportedLocale, band: PriceBand, currency: "EUR" | "USD" | "UAH") {
+  const currencyLabel = locale === "ua" && currency === "UAH" ? "грн" : currency;
+  const join = (range: string) => (locale === "ua" ? `${range} ${currencyLabel}` : `${currencyLabel} ${range}`);
+  if (band === "under_25000") return join(locale === "ua" ? "до 25 000" : "under 25,000");
+  if (band === "25000_50000") return join(locale === "ua" ? "25 000 - 50 000" : "25,000 - 50,000");
+  if (band === "50000_100000") return join(locale === "ua" ? "50 000 - 100 000" : "50,000 - 100,000");
+  return join("100 000+");
+}
+
+function stripCsfSkuPrefix(title: string, sku: string | null | undefined) {
+  if (!title) return title;
+  let cleaned = title.replace(/^\s*CSF[\s#]*\d+[A-Za-z]?\s*[-—:|]?\s*/i, "");
+  if (sku) {
+    const skuRe = new RegExp(`^\\s*${sku.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\s*[-—:|]?\\s*`, "i");
+    cleaned = cleaned.replace(skuRe, "");
+  }
+  return cleaned.trim() || title;
+}
+
+function stripChassisChips(title: string) {
+  if (!title) return title;
+  // "(G80/G81) / M4 (G82/G83)" → "M4" — strip parenthetical chassis codes / years
+  // for compact card display. The full title remains on the PDP.
+  const cleaned = title
+    .replace(/\s*\([^)]*\)/g, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([/,])/g, "$1")
+    .trim();
+  return cleaned || title;
 }
 
 function getStockLabel(locale: SupportedLocale, stock: StockFilter) {
@@ -114,6 +161,12 @@ function getStockLabel(locale: SupportedLocale, stock: StockFilter) {
   if (stock === "out-of-stock") return locale === "ua" ? "Немає в наявності" : "Out of stock";
   return locale === "ua" ? "Усі статуси" : "All stock";
 }
+
+const STOCK_BADGE_CLASS: Record<Exclude<StockFilter, "all">, string> = {
+  "in-stock": "border-emerald-400/25 bg-emerald-400/10 text-emerald-300",
+  "pre-order": "border-amber-400/25 bg-amber-400/10 text-amber-200",
+  "out-of-stock": "border-white/10 bg-white/[0.04] text-white/45",
+};
 
 export default function CSFCatalogGrid({ locale, products }: Props) {
   const isUa = locale === "ua";
@@ -204,7 +257,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
     setActiveModel("all");
     setActiveChassis("all");
     setActiveYear("all");
-  }, [activeMake]);
+  }, [activeCategory, activeMake]);
 
   useEffect(() => {
     setActiveChassis("all");
@@ -261,6 +314,10 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
   const categoryOptions = useMemo<FacetOption[]>(() => {
     const counts = new Map<string, { label: string; count: number }>();
     for (const item of queryFilteredProducts) {
+      if (activeMake !== "all" && item.make !== activeMake) continue;
+      if (activeModel !== "all" && !item.models.includes(activeModel)) continue;
+      if (activeChassis !== "all" && !item.chassisCodes.includes(activeChassis)) continue;
+      if (activeYear !== "all" && item.yearLabel !== activeYear) continue;
       const existing = counts.get(item.categoryGroup);
       if (existing) {
         existing.count += 1;
@@ -272,7 +329,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
     return [...counts.entries()]
       .map(([key, value]) => ({ key, label: value.label, count: value.count }))
       .sort((left, right) => right.count - left.count);
-  }, [queryFilteredProducts]);
+  }, [queryFilteredProducts, activeMake, activeModel, activeChassis, activeYear]);
 
   const makeOptions = useMemo<FacetOption[]>(() => {
     const scoped = activeCategory === "all"
@@ -289,7 +346,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
       return true;
     });
 
-    return buildFacetOptions(scoped.flatMap((item) => item.models));
+    return buildFacetOptions(scoped.flatMap((item) => item.models), isCleanModelLabel);
   }, [queryFilteredProducts, activeCategory, activeMake]);
 
   const chassisOptions = useMemo<FacetOption[]>(() => {
@@ -300,7 +357,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
       return true;
     });
 
-    return buildFacetOptions(scoped.flatMap((item) => item.chassisCodes));
+    return buildFacetOptions(scoped.flatMap((item) => item.chassisCodes), isCleanChassisLabel);
   }, [queryFilteredProducts, activeCategory, activeMake, activeModel]);
 
   const yearOptions = useMemo<FacetOption[]>(() => {
@@ -312,8 +369,34 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
       return true;
     });
 
-    return buildFacetOptions(scoped.map((item) => item.yearLabel ?? ""));
+    return buildFacetOptions(scoped.map((item) => item.yearLabel ?? ""), isCleanYearLabel);
   }, [queryFilteredProducts, activeCategory, activeMake, activeModel, activeChassis]);
+
+  useEffect(() => {
+    if (activeMake === "all") return;
+    const exact = makeOptions.find((option) => option.key === activeMake);
+    if (exact) return;
+    const ci = makeOptions.find((option) => option.key.toLowerCase() === activeMake.toLowerCase());
+    setActiveMake(ci ? ci.key : "all");
+  }, [makeOptions, activeMake]);
+
+  useEffect(() => {
+    if (activeModel !== "all" && !modelOptions.some((option) => option.key === activeModel)) {
+      setActiveModel("all");
+    }
+  }, [modelOptions, activeModel]);
+
+  useEffect(() => {
+    if (activeChassis !== "all" && !chassisOptions.some((option) => option.key === activeChassis)) {
+      setActiveChassis("all");
+    }
+  }, [chassisOptions, activeChassis]);
+
+  useEffect(() => {
+    if (activeYear !== "all" && !yearOptions.some((option) => option.key === activeYear)) {
+      setActiveYear("all");
+    }
+  }, [yearOptions, activeYear]);
 
   const filteredProducts = useMemo(() => {
     let result = queryFilteredProducts.filter((item) => {
@@ -327,12 +410,16 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
       return true;
     });
 
+    const stockRank: Record<StockFilter, number> = { "in-stock": 0, "pre-order": 1, "out-of-stock": 2, all: 3 };
+
     result = [...result].sort((left, right) => {
       if (sortOrder === "price_desc") return right.priceSortValue - left.priceSortValue;
       if (sortOrder === "price_asc") return left.priceSortValue - right.priceSortValue;
       if (sortOrder === "title_asc") {
         return localizeShopProductTitle(locale, left.product).localeCompare(localizeShopProductTitle(locale, right.product));
       }
+      const stockDiff = stockRank[left.stockState] - stockRank[right.stockState];
+      if (stockDiff !== 0) return stockDiff;
       return right.priceSortValue - left.priceSortValue;
     });
 
@@ -375,7 +462,51 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
     setSortOrder("default");
   };
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return (
+      <section className="relative z-30 min-h-screen bg-transparent py-8 text-white" aria-busy="true">
+        <div className="mx-auto max-w-[1700px] px-6 pb-20 md:px-12 lg:px-16">
+          <div className="flex flex-col gap-12 lg:flex-row lg:gap-16">
+            <aside className="hidden w-[280px] flex-shrink-0 lg:block">
+              <div className="flex flex-col gap-6 rounded-2xl border border-white/[0.04] bg-[#050505]/80 p-6 shadow-2xl backdrop-blur-md lg:sticky lg:top-[120px]">
+                <div className="h-8 w-24 animate-pulse rounded-sm bg-white/5" />
+                <div className="h-6 w-40 animate-pulse rounded-sm bg-white/5" />
+                <div className="h-12 w-full animate-pulse rounded-sm bg-white/5" />
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <div className="h-3 w-20 animate-pulse rounded-sm bg-white/5" />
+                    <div className="h-10 w-full animate-pulse rounded-sm bg-white/5" />
+                  </div>
+                ))}
+              </div>
+            </aside>
+            <main className="min-w-0 flex-1">
+              <div className="mb-6 flex items-center justify-between">
+                <div className="h-8 w-72 animate-pulse rounded-sm bg-white/5" />
+                <div className="h-10 w-48 animate-pulse rounded-sm bg-white/5" />
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8 xl:grid-cols-3">
+                {Array.from({ length: Math.min(products.length || 6, 9) }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-col overflow-hidden border border-white/[0.06] bg-gradient-to-b from-[#0c0c10] to-[#080809] shadow-2xl"
+                  >
+                    <div className="aspect-square animate-pulse bg-white/[0.03]" />
+                    <div className="space-y-3 px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
+                      <div className="h-3 w-16 animate-pulse rounded-sm bg-white/5" />
+                      <div className="h-4 w-full animate-pulse rounded-sm bg-white/5" />
+                      <div className="h-4 w-3/4 animate-pulse rounded-sm bg-white/5" />
+                      <div className="h-5 w-24 animate-pulse rounded-sm bg-white/5" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </main>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="relative z-30 min-h-screen bg-transparent py-8 text-white">
@@ -520,51 +651,22 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                   </select>
                 </div>
 
-                <div>
-                  <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Роки" : "Year range"}</label>
-                  <select
-                    value={activeYear}
-                    onChange={(event) => setActiveYear(event.target.value)}
-                    disabled={yearOptions.length === 0}
-                    className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <option value="all">{isUa ? "Усі роки" : "All years"}</option>
-                    {yearOptions.map((option) => (
-                      <option key={option.key} value={option.key}>
-                        {option.label} ({option.count})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {SHOW_STOCK_BADGE ? (
+                  <div>
+                    <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Наявність" : "Stock"}</label>
+                    <select
+                      value={activeStock}
+                      onChange={(event) => setActiveStock(event.target.value as StockFilter)}
+                      className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50"
+                    >
+                      <option value="all">{getStockLabel(locale, "all")}</option>
+                      <option value="in-stock">{getStockLabel(locale, "in-stock")}</option>
+                      <option value="pre-order">{getStockLabel(locale, "pre-order")}</option>
+                      <option value="out-of-stock">{getStockLabel(locale, "out-of-stock")}</option>
+                    </select>
+                  </div>
+                ) : null}
 
-                <div>
-                  <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Наявність" : "Stock"}</label>
-                  <select
-                    value={activeStock}
-                    onChange={(event) => setActiveStock(event.target.value as StockFilter)}
-                    className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50"
-                  >
-                    <option value="all">{getStockLabel(locale, "all")}</option>
-                    <option value="in-stock">{getStockLabel(locale, "in-stock")}</option>
-                    <option value="pre-order">{getStockLabel(locale, "pre-order")}</option>
-                    <option value="out-of-stock">{getStockLabel(locale, "out-of-stock")}</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-[10px] uppercase text-white/50">{isUa ? "Ціновий діапазон" : "Price band"}</label>
-                  <select
-                    value={activePriceBand}
-                    onChange={(event) => setActivePriceBand(event.target.value as PriceBand)}
-                    className="w-full appearance-none rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#c8102e]/50"
-                  >
-                    <option value="all">{isUa ? "Усі ціни" : "All prices"}</option>
-                    <option value="under_25000">{getPriceBandLabel(locale, "under_25000")}</option>
-                    <option value="25000_50000">{getPriceBandLabel(locale, "25000_50000")}</option>
-                    <option value="50000_100000">{getPriceBandLabel(locale, "50000_100000")}</option>
-                    <option value="over_100000">{getPriceBandLabel(locale, "over_100000")}</option>
-                  </select>
-                </div>
               </div>
 
               <button
@@ -594,7 +696,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                   onChange={(event) => setSortOrder(event.target.value as SortOrder)}
                   className="appearance-none rounded-lg border border-white/10 bg-[#050505]/80 px-5 py-3 pr-10 text-[10px] font-semibold uppercase tracking-[0.2em] text-white shadow-xl outline-none transition-colors focus:border-[#c8102e]/50"
                 >
-                  <option value="default">{isUa ? "Спочатку дорожчі" : "Price: high to low"}</option>
+                  <option value="default">{isUa ? "Рекомендовані" : "Recommended"}</option>
                   <option value="price_desc">{isUa ? "Спочатку дорожчі" : "Price: high to low"}</option>
                   <option value="price_asc">{isUa ? "Спочатку дешевші" : "Price: low to high"}</option>
                   <option value="title_asc">{isUa ? "Назва A-Z" : "Title A-Z"}</option>
@@ -628,7 +730,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
               <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8 xl:grid-cols-3">
                 {displayedProducts.map((entry) => {
                   const { product, categoryLabel, make, models, chassisCodes, yearLabel, stockState } = entry;
-                  const productTitle = localizeShopProductTitle(locale, product);
+                  const productTitle = stripChassisChips(stripCsfSkuPrefix(localizeShopProductTitle(locale, product), product.sku));
                   const defaultVariant = product.variants?.find((variant) => variant.isDefault) ?? product.variants?.[0] ?? null;
                   const computedPrice = computeShopDisplayPrices(
                     product.price,
@@ -652,7 +754,8 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                               : computedPrice.eur > 0
                                 ? formatPrice(locale, computedPrice.eur, "EUR")
                                 : null;
-                  const fitmentBadge = [make, models[0], chassisCodes[0], yearLabel].filter(Boolean).join(" · ");
+                  const cleanModel = models[0] && models[0].length <= 24 ? models[0] : null;
+                  const fitmentBadge = [make, cleanModel, chassisCodes[0], yearLabel].filter(Boolean).join(" · ");
 
                   return (
                     <article
@@ -660,33 +763,39 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
                       className="group relative flex flex-col overflow-hidden border border-white/[0.06] bg-gradient-to-b from-[#0c0c10] to-[#080809] shadow-2xl transition-all duration-500 hover:border-white/[0.14] hover:from-[#0f0f14] hover:to-[#0a0a0e]"
                     >
                       <Link href={`/${locale}/shop/csf/products/${product.slug}`} className="z-10 flex flex-grow flex-col">
-                        <div className="relative aspect-square overflow-hidden border-b border-white/[0.04]">
-                          <div className="absolute inset-0 bg-[#141416]" />
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(200,16,46,0.05)_0%,transparent_50%)] opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
-                          <ShopProductImage
-                            src={product.image || "/images/shop/csf/factory-fallback.jpg"}
-                            alt={productTitle}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 33vw"
-                            className="relative z-10 object-contain p-4 transition-transform duration-700 group-hover:scale-[1.06] sm:p-10 md:p-12"
-                          />
-                          <div className="absolute left-2 top-2 z-20 flex flex-wrap gap-1 sm:left-4 sm:top-4 sm:gap-2">
-                            <span className="border border-white/[0.06] bg-black/60 px-2 py-0.5 text-[7px] uppercase text-white/50 backdrop-blur-sm sm:px-2.5 sm:py-1 sm:text-[8px]">
+                        <div className="relative aspect-square overflow-hidden border-b border-white/[0.04] bg-[#0a0a0c] p-3 sm:p-4">
+                          <div className="relative h-full w-full overflow-hidden rounded-none bg-white">
+                            <div className="absolute inset-[10%]">
+                              <ShopProductImage
+                                src={product.image || "/images/shop/csf/factory-fallback.jpg"}
+                                alt={productTitle}
+                                fill
+                                sizes="(max-width: 768px) 40vw, 25vw"
+                                className="object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-[1.06]"
+                              />
+                            </div>
+                          </div>
+                          <div className="absolute left-4 top-4 z-20 flex flex-wrap gap-1 sm:left-5 sm:top-5 sm:gap-2">
+                            <span className="border border-black/10 bg-white/85 px-2 py-0.5 text-[7px] uppercase text-black/70 backdrop-blur-sm sm:px-2.5 sm:py-1 sm:text-[8px]">
                               {categoryLabel}
                             </span>
-                            <span className="border border-[#c8102e]/20 bg-[#c8102e]/10 px-2 py-0.5 text-[7px] uppercase text-[#ff6b81] backdrop-blur-sm sm:px-2.5 sm:py-1 sm:text-[8px]">
-                              {getStockLabel(locale, stockState)}
-                            </span>
+                            {SHOW_STOCK_BADGE && stockState !== "all" ? (
+                              <span
+                                className={`border px-2 py-0.5 text-[7px] uppercase backdrop-blur-sm sm:px-2.5 sm:py-1 sm:text-[8px] ${STOCK_BADGE_CLASS[stockState]}`}
+                              >
+                                {getStockLabel(locale, stockState)}
+                              </span>
+                            ) : null}
                           </div>
                         </div>
 
                         <div className="flex flex-grow flex-col px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
                           <p className="tabular-nums text-[8px] uppercase text-white/25">{product.sku}</p>
-                          <h3 className="mt-2 line-clamp-3 text-pretty text-[11px] leading-snug text-white/90 transition-colors group-hover:text-white sm:line-clamp-2 sm:text-[13px]">
+                          <h3 className="mt-2 line-clamp-3 h-[3.6rem] overflow-hidden text-pretty text-[11px] leading-tight text-white/90 transition-colors group-hover:text-white sm:h-[4.2rem] sm:text-[13px]">
                             {productTitle}
                           </h3>
-                          <p className="mt-2 line-clamp-2 min-h-8 text-[8px] uppercase text-white/45 sm:mt-3 sm:min-h-10 sm:text-[10px]">
-                            {fitmentBadge || (isUa ? "CSF fitment catalog" : "CSF fitment catalog")}
+                          <p className="mt-3 line-clamp-1 h-4 text-[8px] uppercase text-white/40 sm:mt-4 sm:h-5 sm:text-[10px]">
+                            {fitmentBadge}
                           </p>
                           <div className="mt-auto border-t border-white/[0.04] pt-2 sm:pt-3">
                             {hasPrice ? (

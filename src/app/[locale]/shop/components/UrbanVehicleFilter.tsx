@@ -20,6 +20,7 @@ import {
   URBAN_FAMILY_ORDER,
 } from "@/lib/urbanCatalogFacets";
 import { resolveUrbanProductImage } from "@/lib/urbanImageUtils";
+import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 
 type UrbanVehicleFilterProps = {
   locale: SupportedLocale;
@@ -387,15 +388,17 @@ function ProductCard({
                     : "Price on request"}
               </p>
             </div>
-            <span
-              className={`px-0 py-1 text-[10px] uppercase tracking-[0.18em] ${
-                entry.product.stock === "inStock"
-                  ? "text-white/58"
-                  : "text-white/45"
-              }`}
-            >
-              {availability}
-            </span>
+            {SHOW_STOCK_BADGE ? (
+              <span
+                className={`px-0 py-1 text-[10px] uppercase tracking-[0.18em] ${
+                  entry.product.stock === "inStock"
+                    ? "text-white/58"
+                    : "text-white/45"
+                }`}
+              >
+                {availability}
+              </span>
+            ) : null}
           </div>
 
           <div className="mt-5 flex flex-wrap gap-3">

@@ -69,6 +69,7 @@ export type CSFProductLine = {
   badgeUk: string;
   image: string;
   link: string;
+  categoryFilter?: string;
   featured?: boolean;
 };
 
@@ -85,6 +86,7 @@ export const CSF_PRODUCT_LINES: CSFProductLine[] = [
     badgeUk: 'Основа',
     image: '/images/shop/csf/line-radiators.jpg',
     link: '/shop/csf/collections',
+    categoryFilter: 'radiators',
     featured: true,
   },
   {
@@ -99,6 +101,7 @@ export const CSF_PRODUCT_LINES: CSFProductLine[] = [
     badgeUk: 'Буст',
     image: '/images/shop/csf/line-intercoolers.jpg',
     link: '/shop/csf/collections',
+    categoryFilter: 'intercoolers',
   },
   {
     id: 'oil-coolers',
@@ -112,6 +115,7 @@ export const CSF_PRODUCT_LINES: CSFProductLine[] = [
     badgeUk: 'Захист',
     image: '/images/shop/csf/line-oil-coolers.jpg',
     link: '/shop/csf/collections',
+    categoryFilter: 'oil-coolers',
   },
   {
     id: 'heat-exchangers',
@@ -125,6 +129,7 @@ export const CSF_PRODUCT_LINES: CSFProductLine[] = [
     badgeUk: 'Просунутий',
     image: '/images/shop/csf/line-heat-exchangers.jpg',
     link: '/shop/csf/collections',
+    categoryFilter: 'trans-cooling',
   },
   {
     id: 'competition',

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag } from 'lucide-react';
 import { ShopProductImage } from '@/components/shop/ShopProductImage';
+import { SHOW_STOCK_BADGE } from '@/lib/shopStockUi';
 
 type Props = {
   images: string[];
@@ -52,14 +53,14 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
         <div className="pointer-events-none absolute inset-0 rounded-3xl border border-white/5 mix-blend-overlay" />
         
         {/* Badges */}
-        {(category || isInStock !== undefined) && (
+        {(category || (SHOW_STOCK_BADGE && isInStock !== undefined)) && (
           <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-3 z-10 pointer-events-none">
             {category ? (
               <span className="rounded-full border border-white/20 bg-black/60 px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] text-white/80 backdrop-blur-md">
                 {category}
               </span>
             ) : <div />}
-            {isInStock !== undefined && (
+            {SHOW_STOCK_BADGE && isInStock !== undefined && (
               <span
                 className={`rounded-full border px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] backdrop-blur-md shadow-lg ${
                   isInStock

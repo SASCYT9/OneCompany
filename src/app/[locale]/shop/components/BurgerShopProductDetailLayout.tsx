@@ -13,6 +13,7 @@ import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { htmlToPlainText } from "@/lib/sanitizeRichTextHtml";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
+import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 
 type Props = {
   locale: string;
@@ -265,25 +266,27 @@ export function BurgerShopProductDetailLayout({
                       </div>
                     )}
                   </div>
-                  <div style={{ 
-                    display: "inline-flex", 
-                    alignItems: "center", 
-                    gap: 8, 
-                    marginTop: 16,
-                    padding: "6px 12px",
-                    background: isInStock ? "rgba(0, 200, 83, 0.1)" : "rgba(255, 152, 0, 0.1)",
-                    border: `1px solid ${isInStock ? "rgba(0, 200, 83, 0.3)" : "rgba(255, 152, 0, 0.3)"}`,
-                    color: isInStock ? "#00e676" : "#ff9800",
-                    fontSize: 11,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em"
-                  }}>
-                    <span style={{ 
-                      width: 6, height: 6, borderRadius: "50%", 
-                      background: isInStock ? "#00e676" : "#ff9800" 
-                    }} />
-                    {isInStock ? (isUa ? "В наявності" : "In stock") : (isUa ? "Під замовлення" : "Pre order")}
-                  </div>
+                  {SHOW_STOCK_BADGE ? (
+                    <div style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      marginTop: 16,
+                      padding: "6px 12px",
+                      background: isInStock ? "rgba(0, 200, 83, 0.1)" : "rgba(255, 152, 0, 0.1)",
+                      border: `1px solid ${isInStock ? "rgba(0, 200, 83, 0.3)" : "rgba(255, 152, 0, 0.3)"}`,
+                      color: isInStock ? "#00e676" : "#ff9800",
+                      fontSize: 11,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em"
+                    }}>
+                      <span style={{
+                        width: 6, height: 6, borderRadius: "50%",
+                        background: isInStock ? "#00e676" : "#ff9800"
+                      }} />
+                      {isInStock ? (isUa ? "В наявності" : "In stock") : (isUa ? "Під замовлення" : "Pre order")}
+                    </div>
+                  ) : null}
                 </div>
 
                 {/* CTA Action logic */}
