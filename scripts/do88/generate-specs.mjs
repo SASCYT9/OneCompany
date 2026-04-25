@@ -150,6 +150,17 @@ function extractBackgroundFacts(allText) {
 
 function detectKind(title, url) {
   const text = `${title || ''} ${url || ''}`.toLowerCase();
+  // Manufacturer-branded universal/accessory products go to dedicated
+  // templates so we don't mis-call a Setrab cooler "do88 [kind]" or a
+  // Garrett raw core "drop-in".
+  if (/^\s*setrab\b|setrab\s+(?:slim|pro)/i.test(title || '')) return 'setrab-oil-cooler';
+  if (/^\s*garrett\b.*(?:cellpaket|core|сердечник)/i.test(title || '')) return 'garrett-core';
+  if (/\bbmc\b.*(?:cda|carbon\s*dynamic\s*airbox|airbox)/i.test(title || '')) return 'bmc-airbox';
+  if (/\bgfb\b|\bvta\b/i.test(title || '')) return 'boost-valve';
+  if (/^\s*(чорн|син|червон|black|blue|red).*силіконов.*\d+\s*м$/i.test(title || '')) return 'bulk-silicone';
+  // Universal intercoolers: e.g. "Інтеркулер 600x300x100"
+  if (/^інтеркулер\s+\d+x\d+x\d+/i.test(title || '')) return 'universal-intercooler';
+
   if (/big[-\s]?pack|bigpack/.test(text)) return 'big-pack';
   // Carbon engine/intake covers are tagged before "intake" because the
   // intake-cover variant contains "insug" (intake) too — prioritise the
@@ -298,7 +309,7 @@ function buildSpecEntry(sku, page) {
     conBulletsUa.push('Литі алюмінієві бачки CAD-розробки для оптимальних потоків');
     conBulletsEn.push('CAD-designed cast aluminium tanks for optimised flow');
   }
-  if (facts.carbon) {
+  if (facts.carbon && kind !== 'bmc-airbox') {
     conBulletsUa.push('Карбонові повітроводи з prepreg-карбону');
     conBulletsEn.push('Pre-preg carbon-fibre airflow guides');
   }
@@ -306,9 +317,37 @@ function buildSpecEntry(sku, page) {
     conBulletsUa.push('Порти для методанолового впорскування');
     conBulletsEn.push('Methanol injection ports');
   }
-  if (kind === 'hose-kit') {
+  if (kind === 'hose-kit' || kind === 'bulk-silicone') {
     conBulletsUa.push('Армований 4-шаровий силікон, витримує підвищений тиск і температуру');
     conBulletsEn.push('4-ply reinforced silicone, withstands elevated pressure and temperature');
+  }
+  if (kind === 'setrab-oil-cooler') {
+    conBulletsUa.push('Армована конструкція core, фланцеві кронштейни — стандарт автоспорту');
+    conBulletsUa.push('Сумісність з стандартними AN-фітингами та шлангами');
+    conBulletsEn.push('Reinforced core construction with motorsport-grade flange brackets');
+    conBulletsEn.push('Compatible with standard AN fittings and lines');
+  }
+  if (kind === 'garrett-core') {
+    conBulletsUa.push('Bar & Plate cell-pack Garrett Motorsport — топ-класс теплообмін');
+    conBulletsUa.push('Розміри відповідають індустріальному стандарту під end-tank-и');
+    conBulletsEn.push('Garrett Motorsport Bar & Plate cell pack — top-tier heat transfer');
+    conBulletsEn.push('Industry-standard core dimensions ready for custom end tanks');
+  }
+  if (kind === 'bmc-airbox') {
+    conBulletsUa.push('Корпус з prepreg-карбону, оптимізована аеродинаміка');
+    conBulletsUa.push('Сумісний зі стандартними посадковими діаметрами');
+    conBulletsEn.push('Pre-preg carbon-fibre body with optimised aerodynamics');
+    conBulletsEn.push('Compatible with standard intake duct diameters');
+  }
+  if (kind === 'boost-valve') {
+    conBulletsUa.push('Прецизійний клапан з регульованим відкриттям');
+    conBulletsUa.push('Drop-in заміна штатного DV / BOV');
+    conBulletsEn.push('Precision valve with adjustable cracking pressure');
+    conBulletsEn.push('Drop-in replacement for OE DV / BOV');
+  }
+  if (kind === 'universal-intercooler') {
+    conBulletsUa.push('Готові end-tank-и для швидкого монтажу');
+    conBulletsEn.push('Pre-built end tanks for quick installation');
   }
   if (conBulletsUa.length > 0) {
     sections.push({
@@ -394,6 +433,30 @@ function buildSpecEntry(sku, page) {
     case 'carbon-cover':
       headlineUa = fitment ? `Карбонові кришки моторного відсіку do88 для ${fitment}.` : 'Карбонові кришки моторного відсіку do88.';
       headlineEn = fitment ? `do88 carbon engine bay covers for ${fitment}.` : 'do88 carbon engine bay covers.';
+      break;
+    case 'setrab-oil-cooler':
+      headlineUa = 'Універсальний масляний радіатор Setrab Pro Line / SlimLine. Високоефективна сітка для трекового та street-use охолодження мастила.';
+      headlineEn = 'Universal Setrab Pro Line / SlimLine oil cooler. High-efficiency core for track and street oil cooling.';
+      break;
+    case 'garrett-core':
+      headlineUa = 'Універсальний сердечник інтеркулера Garrett Bar & Plate. Для кастомних збірок з власними end-tank-ами та повітроводами.';
+      headlineEn = 'Universal Garrett Bar & Plate intercooler core. For custom builds with bespoke end tanks and ducting.';
+      break;
+    case 'bmc-airbox':
+      headlineUa = 'Карбоновий повітряний короб BMC CDA. Для кастомного впуску з ламінарним потоком повітря.';
+      headlineEn = 'BMC CDA carbon airbox. For custom intake builds with laminar airflow.';
+      break;
+    case 'boost-valve':
+      headlineUa = 'Клапан керування бустом GFB. Апгрейд або заміна штатного DV / BOV для кращого контролю наддуву.';
+      headlineEn = 'GFB boost-control valve. Upgrade or OE replacement for tighter boost control.';
+      break;
+    case 'bulk-silicone':
+      headlineUa = 'Армований 4-шаровий силіконовий рукав 4 м. Для кастомного прокладання патрубків охолодження або наддуву.';
+      headlineEn = '4-ply reinforced silicone hose, 4 m roll. For custom coolant or boost plumbing builds.';
+      break;
+    case 'universal-intercooler':
+      headlineUa = 'Універсальний інтеркулер do88 для кастомних збірок. Готові end-tank-и та посадка під монтаж у штатний контур.';
+      headlineEn = 'Universal do88 intercooler for custom builds. Cast end tanks and ready-to-mount geometry.';
       break;
     default:
       return null;

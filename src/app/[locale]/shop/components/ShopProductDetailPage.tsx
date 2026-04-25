@@ -404,6 +404,16 @@ export default async function ShopProductDetailPage({
       value: fixDo88UaDescriptionFragments(s.value),
     }));
   }
+  // Drop malformed key-spec values that came through corrupted from the
+  // supplier feed (e.g. a leading number stripped to `0"`).
+  if (productBrandLc === 'do88') {
+    descriptionSections.specs = descriptionSections.specs.filter((s) => {
+      const value = s.value.trim();
+      if (/^[0]"\s*\d/.test(value)) return false;
+      if (value.length < 2) return false;
+      return true;
+    });
+  }
   const detailSpecs = [...descriptionSections.specs].filter((spec) => {
     if (/^категорія$|^category$/i.test(spec.label) && /[>›→]/.test(spec.value)) {
       return false;

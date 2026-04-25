@@ -145,6 +145,27 @@ const EXCLUDED_VEHICLE_PATTERNS: RegExp[] = [
 
   // Old Porsche
   /\b911\s*\(?930\)?\b/i,
+
+  // Brands not in the One Company target list (Porsche / BMW / Audi /
+  // Volkswagen / Toyota only).
+  /\bsuzuki\b/i,
+  /\bopel\b/i,
+  /\bbuick\b/i,
+  /\bcupra\b/i,
+  /\bseat(?:\b|\s)/i,
+  /\bskoda\b/i,
+  /\bford\b/i,
+  /\bmazda\b/i,
+  /\brenault\b/i,
+  /\balpine\s*(?:a110|a90)/i,
+  /\bvectra\b/i,
+  /\binsignia\b/i,
+  /\bformentor\b/i,
+  /\bswift\b/i,
+
+  // Old / unsupported Audi platforms not covered by the chassis exclusions
+  /\baudi\s+quattro\s+\d+v\b/i,
+  /\b20v\s+(?:turbo|quattro)\b/i,
 ];
 
 function isExcludedVehicleProduct(product: Pick<ShopProduct, 'title' | 'collection' | 'tags'>) {

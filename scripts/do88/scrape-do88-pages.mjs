@@ -70,13 +70,24 @@ function extractH1(html) {
 }
 
 function extractArticleNumber(html) {
-  // SKU is most reliably encoded in product image URLs:
-  // /bilder/artiklar/<SKU>.jpg or /bilder/artiklar/zoom/<SKU>_1.jpg
-  const m = html.match(/\/bilder\/artiklar\/([A-Za-z][A-Za-z0-9_\-]{1,40})\.jpg/i)
-    || html.match(/\/bilder\/artiklar\/zoom\/([A-Za-z][A-Za-z0-9_\-]{1,40})_\d+\.jpg/i)
-    || html.match(/\/bilder\/artiklar\/liten\/([A-Za-z][A-Za-z0-9_\-]{1,40})_S\.jpg/i)
-    || html.match(/data-artnr=["']([A-Za-z0-9_\-]+)["']/i);
-  return m ? m[1] : null;
+  // SKU is most reliably encoded in the MAIN product image URL.
+  // Look for og:image (canonical) first — that always points to the
+  // main product image. Then fall back to the first image without liten/_S
+  // suffix, then to zoomed/thumbnail patterns. Many do88 pages list
+  // related-product thumbnails BEFORE the main image, so the first
+  // /liten/<sku>_S.jpg can mismatch (e.g. show A3L60-89 for an Garrett
+  // core that's actually 703520-6005).
+  const ogMatch = html.match(/og:image[^"]*"\s+content="[^"]*\/bilder\/artiklar\/(?:zoom\/|liten\/)?([A-Za-z][A-Za-z0-9_\-]{1,40})(?:_[SML12])?\.jpg/i);
+  if (ogMatch) return ogMatch[1];
+  // Allow leading digits too (Garrett SKUs like 703520-6005 start with digits).
+  const fullMatch = html.match(/\/bilder\/artiklar\/([A-Za-z0-9][A-Za-z0-9_\-]{2,40})\.jpg/i);
+  if (fullMatch) return fullMatch[1];
+  const zoomMatch = html.match(/\/bilder\/artiklar\/zoom\/([A-Za-z0-9][A-Za-z0-9_\-]{2,40})_\d+\.jpg/i);
+  if (zoomMatch) return zoomMatch[1];
+  const litenMatch = html.match(/\/bilder\/artiklar\/liten\/([A-Za-z0-9][A-Za-z0-9_\-]{2,40})_S\.jpg/i);
+  if (litenMatch) return litenMatch[1];
+  const dataAttr = html.match(/data-artnr=["']([A-Za-z0-9_\-]+)["']/i);
+  return dataAttr ? dataAttr[1] : null;
 }
 
 function extractParagraphsFromBlock(block) {
@@ -236,7 +247,7 @@ async function fetchSitemap() {
   const all = [...merged];
   if (wantsAll) return all;
   const richPattern =
-    /(intercooler|big-?pack|bigpack|intag|insug|carbon|kolfiber|oil-?cooler|oljekylare|y-?(?:r[oö]r|pipe)|charge|laddluftk|laddluft|plenum|porsche|bmw|audi|volkswagen|volvo|saab|toyota|supra|yaris|mercedes|amg|renault|alpine|seat|skoda|tryckslangar|inloppsslangar|insugssystem|intercoolerror|tryckror)/i;
+    /(intercooler|big-?pack|bigpack|intag|insug|carbon|kolfiber|oil-?cooler|oljekylare|y-?(?:r[oö]r|pipe)|charge|laddluftk|laddluft|plenum|porsche|bmw|audi|volkswagen|volvo|saab|toyota|supra|yaris|mercedes|amg|renault|alpine|seat|skoda|tryckslangar|inloppsslangar|insugssystem|intercoolerror|tryckror|silikonslang.*-4m|silikonslang-flexibel|silikonslang-armerad|setrab|garrett|gfb|vta|bmc-cda|cda-carbon)/i;
   const filtered = all.filter((u) => richPattern.test(u));
   return filtered;
 }

@@ -1,0 +1,13 @@
+{
+  "visibleCount": 185,
+  "issues": {
+    "swedishLeftover": [],
+    "englishLeftover": [],
+    "duplicateBullets": [],
+    "suspiciousOe": [],
+    "fitmentMismatch": [],
+    "headlineRepeatsTitle": [],
+    "emptyEnrichment": [],
+    "weirdHeadline": []
+  }
+}
