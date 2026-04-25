@@ -62,6 +62,39 @@ function uniqueStrings(values: Array<string | null | undefined>) {
 const SHOP_PRODUCT_FALLBACK_IMAGE = '/images/placeholders/product-fallback.svg';
 
 const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: string[] }> = {
+  'URB-BOD-25353001-V1': {
+    image: '/images/shop/urban/products/urus-se/Range_Rover_2022_3.jpg',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Range_Rover_2022_3.jpg',
+      '/images/shop/urban/products/urus-se/Urban_Range_Rover_Carbon_Front_Bumper.jpg',
+      '/images/shop/urban/products/urus-se/Urban_Range_Rover_Rear_Bumper.jpg',
+      '/images/shop/urban/products/urus-se/Urban_Range_Rover_Billet_Exhaust.jpg',
+      '/images/shop/urban/products/urus-se/Range_Rover_2022_1.jpg',
+      '/images/shop/urban/products/urus-se/Range_Rover_2022_2.jpg',
+      '/images/shop/urban/products/urus-se/Range_Rover_2022.jpg',
+      '/images/shop/urban/products/urus-se/Range_Rover_2022_4.jpg',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-1-1920.webp',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-2-1920.webp',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-3-1920.webp',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-4-1920.webp',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-5-1920.webp',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-6-1920.webp',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-7-1920.webp',
+    ],
+  },
+  'URB-BOD-25353030-V1': {
+    image: '/images/shop/urban/products/urus-se/Urban_Automotive_Range_Rover_Sport_L461_2.jpg',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Urban_Automotive_Range_Rover_Sport_L461_2.jpg',
+      '/images/shop/urban/products/urus-se/Urban_Automotive_Range_Rover_Sport_L461.jpg',
+      '/images/shop/urban/products/urus-se/Urban_Automotive_Range_Rover_Sport_L461_Kit_Front.jpg',
+      '/images/shop/urban/products/urus-se/Urban_Automotive_Range_Rover_Sport_L461_Kit_Back.jpg',
+      '/images/shop/urban/cols/models/rangeRoverSportL461/col-image-1-lg.jpg',
+      '/images/shop/urban/cols/models/rangeRoverSportL461/col-image-2-lg.jpg',
+      '/images/shop/urban/cols/models/rangeRoverSportL461/col-image-3-lg.jpg',
+      '/images/shop/urban/banners/models/rangeRoverSportL461/banner-1-1920.jpg',
+    ],
+  },
   'URB-BUN-25358207-V1': {
     image: '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-1-2560.webp',
     gallery: [

@@ -4,6 +4,14 @@ const URBAN_CANONICAL_COLLECTION_HANDLE_OVERRIDES: Record<string, string> = {
 };
 
 const URBAN_PRODUCT_TITLE_OVERRIDES: Record<string, { ua: string; en: string }> = {
+  'urb-bod-25353001-v1': {
+    ua: 'Пакет заміни бамперів Urban для Range Rover L460',
+    en: 'Urban Replacement Bumper Package for Range Rover L460',
+  },
+  'urb-bod-25353030-v1': {
+    ua: 'Комплект обвісу Urban для Range Rover Sport L461',
+    en: 'Urban Body Kit for Range Rover Sport L461',
+  },
   'urb-bun-25358198-v1': {
     ua: 'Пакет Urban Soft Kit для Mercedes-Benz G-Wagon W463A',
     en: 'Urban Soft Kit Package for Mercedes-Benz G-Wagon W463A',

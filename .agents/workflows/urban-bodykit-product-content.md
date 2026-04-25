@@ -13,6 +13,7 @@ Use this workflow when curating Urban Automotive BodyKit product pages.
 - Follow with an information-rich breakdown grouped by vehicle area: front, side/widebody, rear.
 - List only items confirmed for the specific kit.
 - End with clear exclusions for parts not included in the kit.
+- Do not write customer-facing configuration caveats like "unless selected as part of a wider configuration". The storefront sells the specific body kit only: state what is included and what is not included.
 - Avoid vague claims, unsupported materials, or install/configuration notes unless explicitly verified.
 
 ## G-Wagon W465 Widetrack Pattern
@@ -25,3 +26,8 @@ Use this workflow when curating Urban Automotive BodyKit product pages.
 - Related products for a BodyKit must stay in the same vehicle family.
 - For G-Wagon/W465, allow only Mercedes / G-Wagon / G-Class / G63 / W465 items.
 - Do not show standalone component cards such as D-Pillar trim, roof light, spoiler, exhaust tips, intakes, bonnet, wheels, or unrelated Land Rover/Defender/Range Rover products as related BodyKit items.
+
+## Internal Photo Roles
+- When adding official photos, mentally tag each image by role so later component pages can reuse the correct visual without guessing.
+- Use role names like `hero-front`, `rear`, `side`, `front-bumper-detail`, `rear-bumper-detail`, `diffuser-detail`, `exhaust-detail`, `grille-detail`, `arch-detail`, `sill-detail`, `spoiler-detail`, and `branding-detail`.
+- Do not expose these roles as customer-facing gallery labels unless explicitly requested.

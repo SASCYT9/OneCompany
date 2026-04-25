@@ -291,6 +291,142 @@ export function getUrbanCuratedDescriptionOverride(
     };
   }
 
+  if (input.slug === 'urb-bod-25353001-v1') {
+    const bodyHtmlEn = [
+      '<p>This Urban Replacement Bumper Package gives the Range Rover L460 a sharper, more individual presence without losing the calm luxury that defines the car. It keeps the OEM-plus character, but adds deeper carbon bumpers, Visual Carbon Fibre detail, a stronger rear diffuser treatment, and Urban branding that makes the L460 feel clearly different from a standard Range Rover.</p>',
+      '<h3>Front section</h3>',
+      buildList([
+        'Replacement carbon fibre front bumper.',
+        'Gloss black front bumper mouthpiece.',
+        'Mouthpiece trim overlay in Visual Carbon Fibre.',
+        'Integrated daytime running lights with OEM fog lamp carry-over.',
+        'Three-piece front bumper splitter in Visual Carbon Fibre.',
+      ]),
+      '<h3>Rear section</h3>',
+      buildList([
+        'Replacement carbon fibre rear bumper.',
+        'Rear diffuser with removable skid pan in Visual Carbon Fibre.',
+        'Milled billet aluminium exhaust finishers with engraved Urban logo.',
+      ]),
+      '<h3>Urban identity</h3>',
+      buildList([
+        'Urban UA icon rear tailgate badge.',
+      ]),
+      '<p>PU-RIM Widetrack fender arches, vented Powerdome hood, Visual Carbon Fibre matrix front grille, upper rear spoiler, lower side sills, mirror covers, 23-inch or 24-inch Urban wheels, and installation work are not included in this body kit.</p>',
+    ].join('');
+
+    const bodyHtmlUa = [
+      '<p>Цей пакет заміни бамперів Urban робить Range Rover L460 виразнішим і більш індивідуальним, але не забирає головне - спокійну преміальність Range Rover. Автомобіль зберігає OEM Plus-характер, проте отримує глибші карбонові бампери, акценти Visual Carbon Fibre, сильнішу задню графіку дифузора та фірмовий Urban branding, який одразу відрізняє L460 від стандартної версії.</p>',
+      '<h3>Передня частина</h3>',
+      buildList([
+        'Карбоновий передній бампер замість штатного.',
+        'Центральна вставка переднього бампера у глянцевому чорному виконанні.',
+        'Декоративна накладка центральної вставки у виконанні Visual Carbon Fibre.',
+        'Інтегровані денні ходові вогні зі збереженням штатних протитуманних фар.',
+        'Трисекційний передній спліттер у виконанні Visual Carbon Fibre.',
+      ]),
+      '<h3>Задня частина</h3>',
+      buildList([
+        'Карбоновий задній бампер замість штатного.',
+        'Задній дифузор зі знімною нижньою захисною накладкою у виконанні Visual Carbon Fibre.',
+        'Фрезеровані алюмінієві насадки вихлопу з гравіюванням Urban.',
+      ]),
+      '<h3>Фірмова ідентичність Urban</h3>',
+      buildList([
+        'Задня емблема Urban UA icon на кришці багажника.',
+      ]),
+      '<p>Розширювачі арок PU-RIM Widetrack, вентильований капот Powerdome, передня решітка Matrix у виконанні Visual Carbon Fibre, верхній задній спойлер, нижні бокові пороги, накладки дзеркал, диски Urban 23 або 24 дюйми та роботи з монтажу не входять у цей комплект обвісу.</p>',
+    ].join('');
+
+    return {
+      bodyHtml: {
+        en: bodyHtmlEn,
+        ua: bodyHtmlUa,
+      },
+      longDescription: {
+        en: stripHtml(bodyHtmlEn),
+        ua: stripHtml(bodyHtmlUa),
+      },
+      shortDescription: {
+        en: excerpt(bodyHtmlEn, 220),
+        ua: excerpt(bodyHtmlUa, 220),
+      },
+      seoDescription: {
+        en: excerpt(bodyHtmlEn, 155),
+        ua: excerpt(bodyHtmlUa, 155),
+      },
+    };
+  }
+
+  if (input.slug === 'urb-bod-25353030-v1') {
+    const bodyHtmlEn = [
+      '<p>This Urban body kit gives the Range Rover Sport L461 a sharper, wider and more individual presence. It keeps the clean luxury character of the Sport, but adds the Urban visual language: stronger bumper architecture, Visual Carbon Fibre aero details, integrated light graphics and a more assertive rear profile.</p>',
+      '<h3>Front section</h3>',
+      buildList([
+        'Replacement carbon fibre front bumper.',
+        'Front bumper mouthpiece set in Visual Carbon Fibre.',
+        'Three-piece front splitter in Visual Carbon Fibre.',
+        'Integrated daytime running lights.',
+      ]),
+      '<h3>Rear section</h3>',
+      buildList([
+        'Replacement carbon fibre rear bumper.',
+        'Rear diffuser in Visual Carbon Fibre.',
+        'Rear skid pan in Visual Carbon Fibre.',
+        'Milled billet aluminium exhaust finishers.',
+      ]),
+      '<h3>Urban identity</h3>',
+      buildList([
+        'Urban exterior branding package.',
+        'Urban icon badge for the rear tailgate.',
+      ]),
+      '<p>PU-RIM Widetrack fender arches, Powerdome hood, matrix front grille, lower side sills, side vent kit, upper rear spoiler, mirror covers, 23-inch or 24-inch Urban wheels, performance exhaust and installation work are not included in this body kit.</p>',
+    ].join('');
+
+    const bodyHtmlUa = [
+      '<p>Цей комплект обвісу Urban робить Range Rover Sport L461 більш виразним, ширшим візуально і значно індивідуальнішим. Він зберігає чисту преміальність Range Rover Sport, але додає фірмову мову Urban: сильнішу архітектуру бамперів, аеродинамічні елементи Visual Carbon Fibre, інтегровану світлову графіку та впевненіший задній профіль.</p>',
+      '<h3>Передня частина</h3>',
+      buildList([
+        'Карбоновий передній бампер замість штатного.',
+        'Комплект центральних вставок переднього бампера у виконанні Visual Carbon Fibre.',
+        'Трисекційний передній спліттер Visual Carbon Fibre.',
+        'Інтегровані денні ходові вогні.',
+      ]),
+      '<h3>Задня частина</h3>',
+      buildList([
+        'Карбоновий задній бампер замість штатного.',
+        'Задній дифузор у виконанні Visual Carbon Fibre.',
+        'Задня нижня захисна накладка у виконанні Visual Carbon Fibre.',
+        'Фрезеровані алюмінієві насадки вихлопу.',
+      ]),
+      '<h3>Фірмова ідентичність Urban</h3>',
+      buildList([
+        'Пакет зовнішнього брендингу Urban.',
+        'Задня емблема Urban icon на кришці багажника.',
+      ]),
+      '<p>Розширювачі арок PU-RIM Widetrack, капот Powerdome, передня решітка Matrix, нижні бокові пороги, комплект бокових вентиляційних вставок, верхній задній спойлер, накладки дзеркал, диски Urban 23 або 24 дюйми, спортивна вихлопна система та роботи з монтажу не входять у цей комплект обвісу.</p>',
+    ].join('');
+
+    return {
+      bodyHtml: {
+        en: bodyHtmlEn,
+        ua: bodyHtmlUa,
+      },
+      longDescription: {
+        en: stripHtml(bodyHtmlEn),
+        ua: stripHtml(bodyHtmlUa),
+      },
+      shortDescription: {
+        en: excerpt(bodyHtmlEn, 220),
+        ua: excerpt(bodyHtmlUa, 220),
+      },
+      seoDescription: {
+        en: excerpt(bodyHtmlEn, 155),
+        ua: excerpt(bodyHtmlUa, 155),
+      },
+    };
+  }
+
   if (input.slug === 'urb-bun-25358207-v1') {
     const bodyHtmlEn = [
       '<p>This Urban Widetrack body kit makes your Mercedes-Benz G-Class W465 unmistakably yours. It takes the familiar G-Wagon silhouette and gives it a wider stance, sharper Visual Carbon Fibre elements, and the kind of road presence that cannot be confused with a standard car.</p>',
