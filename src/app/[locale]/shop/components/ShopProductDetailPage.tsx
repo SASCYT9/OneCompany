@@ -645,7 +645,7 @@ export default async function ShopProductDetailPage({
                 ) : null}
                 {detailFeatureItems.length > 0 ? (
                   <DetailListPanel
-                    title={isUa ? 'Ключові характеристики' : 'Key features'}
+                    title={isUa ? 'Переваги' : 'Benefits'}
                     items={detailFeatureItems}
                   />
                 ) : null}
