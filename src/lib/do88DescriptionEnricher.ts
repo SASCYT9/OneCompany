@@ -199,13 +199,11 @@ const COPY: Record<ProductKind, EnrichedDescription> = {
       ua: [
         'Інтеркулер, патрубки та впускні елементи в одному комплекті',
         'Усі компоненти підібрано та протестовано під одне шасі',
-        'Готове рішення — не треба підбирати артикули окремо',
         'Drop-in монтаж без перероблення штатних кріплень',
       ],
       en: [
         'Intercooler, hoses and intake elements bundled together',
         'Components selected and tested for a single chassis',
-        'Ready bundle — no need to source individual part numbers',
         'Drop-in installation, no chassis modifications',
       ],
     },
