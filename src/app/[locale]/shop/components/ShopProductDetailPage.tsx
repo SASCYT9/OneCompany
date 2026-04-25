@@ -17,7 +17,7 @@ import { getBrandLogo } from '@/lib/brandLogos';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
-import { localizeShopDescription, localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
+import { localizeShopDescription, localizeShopProductTitle, localizeShopText, fixDo88UaDescriptionFragments } from '@/lib/shopText';
 import { buildShopViewerPricingContext, resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import { extractShopProductDescriptionSections } from '@/lib/shopProductDescription';
 import { buildDo88EnrichedDescription } from '@/lib/do88DescriptionEnricher';
@@ -170,11 +170,18 @@ function isKitProduct(product: Pick<ShopProduct, 'category' | 'productType' | 't
     return false;
   }
 
-  const titleValue = `${product.title.en} ${product.title.ua}`.toLowerCase();
+  const kitHaystack = [
+    product.title.en,
+    product.title.ua,
+    product.category.en,
+    product.category.ua,
+    product.productType ?? '',
+    ...(product.tags ?? []),
+  ].join(' ').toLowerCase();
 
   return (
     Boolean(product.bundle) ||
-    /\b(body\s?kit|bodykit|full kit|complete kit|kit package|replacement bumper package|комплект обвісу|повний комплект|пакет urban|пакет заміни бамперів)\b/i.test(titleValue)
+    /\b(body\s?kit|bodykits|bodykit|full kit|complete kit|carbon fibre v2 kit|kit package|replacement bumper package|комплект обвісу|обвіси|повний комплект|пакет urban|пакет заміни бамперів)\b/i.test(kitHaystack)
   );
 }
 
@@ -363,7 +370,6 @@ export default async function ShopProductDetailPage({
       descriptionSections.features = [...do88Enriched.bullets];
     }
   }
-  const longDescription = do88Enriched ? do88Enriched.longDescriptionHtml : supplierLongDescription;
   const fallbackSpecs: Array<{ label: string; value: string }> = [];
   const pushFallbackSpec = (label: string, value?: string | null) => {
     const normalizedValue = value?.trim();
@@ -391,6 +397,13 @@ export default async function ShopProductDetailPage({
     pushFallbackSpec(isUa ? 'Вага' : 'Weight', `${product.weightKg} kg`);
   }
   const productBrandLc = (product.brand || '').toLowerCase();
+  // Patch UA spec values that retained English fragments from supplier copy
+  if (resolvedLocale === 'ua' && productBrandLc === 'do88') {
+    descriptionSections.specs = descriptionSections.specs.map((s) => ({
+      label: s.label,
+      value: fixDo88UaDescriptionFragments(s.value),
+    }));
+  }
   const detailSpecs = [...descriptionSections.specs].filter((spec) => {
     if (/^категорія$|^category$/i.test(spec.label) && /[>›→]/.test(spec.value)) {
       return false;
@@ -442,6 +455,7 @@ export default async function ShopProductDetailPage({
       )
     : gallery.filter(img => img.length > 0);
   let categoryRelatedProducts: ShopProduct[] = [];
+  const isUrbanBodyKitPage = isUrbanMode && (product.slug === 'urb-bun-25358207-v1' || isKitProduct(product));
   
   if (isUrbanMode && urbanCollectionHandle && urbanCollectionCard) {
     categoryRelatedProducts = getProductsForUrbanCollection(
@@ -451,10 +465,8 @@ export default async function ShopProductDetailPage({
       urbanCollectionCard.brand
     );
 
-    if (product.slug === 'urb-bun-25358207-v1' || isKitProduct(product)) {
-      categoryRelatedProducts = categoryRelatedProducts.filter(
-        (item) => isSameVehicleFamily(item, product) && isKitProduct(item) && !isStandaloneUrbanComponent(item)
-      );
+    if (isUrbanBodyKitPage) {
+      categoryRelatedProducts = [];
     } else if (!isWheelProduct(product)) {
       categoryRelatedProducts = categoryRelatedProducts.filter((item) => !isWheelProduct(item));
     }
@@ -466,7 +478,7 @@ export default async function ShopProductDetailPage({
     );
   }
 
-  const urbanKitRelatedFallback = isUrbanMode && (product.slug === 'urb-bun-25358207-v1' || isKitProduct(product))
+  const urbanKitRelatedFallback = isUrbanBodyKitPage
     ? findRelatedProducts(
         product,
         allProducts.filter(
@@ -479,13 +491,15 @@ export default async function ShopProductDetailPage({
         3
       )
     : [];
-  const relatedProducts = isUrbanMode
-    ? categoryRelatedProducts.length
+  const relatedProducts = isUrbanBodyKitPage
+    ? []
+    : isUrbanMode
+      ? categoryRelatedProducts.length
       ? categoryRelatedProducts.slice(0, 3)
       : urbanKitRelatedFallback
-    : categoryRelatedProducts.length
-      ? categoryRelatedProducts.slice(0, 3)
-      : findRelatedProducts(product, allProducts, 3);
+      : categoryRelatedProducts.length
+        ? categoryRelatedProducts.slice(0, 3)
+        : findRelatedProducts(product, allProducts, 3);
   const relatedProductsWithPricing = relatedProducts.map((item) => ({
     item,
     price: computeCrossPrices(resolveShopProductPricing(item, viewerContext).effectivePrice),

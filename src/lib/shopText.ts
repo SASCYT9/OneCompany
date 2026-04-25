@@ -329,32 +329,68 @@ export function localizeShopText(
   return en || ua;
 }
 
+// DO88 title fixes for known supplier-data typos. Cheaper than a per-SKU
+// override table — just one regex covers the recurring pattern.
+function fixDo88TitleTypos(title: string): string {
+  if (!title) return title;
+  // "Audi RS6 RS7 8C" → "Audi RS6 RS7 C8" (chassis code is C8, not 8C)
+  return title.replace(/\bRS([67](?:\s+RS[67])?)\s+8C\b/gi, 'RS$1 C8');
+}
+
+/**
+ * Patches Ukrainian descriptions where the supplier left English fragments
+ * mid-sentence (mostly GFB / VTA boost-control valve listings).
+ */
+export function fixDo88UaDescriptionFragments(value: string): string {
+  if (!value) return value;
+  let out = value;
+  // English connector "and" between two tokens → "та"
+  // Accept any letter/digit on either side (model codes are upper/lower/digits).
+  out = out.replace(/([\p{L}\p{N}])\s+and\s+([\p{L}\p{N}])/gu, '$1 та $2');
+  // Common phrase fragments left in English
+  out = out
+    .replace(/\bLate-Model\b/gi, 'останнього покоління')
+    .replace(/\bModels\b\.?/g, 'моделі')
+    .replace(/\bSuits\b/g, 'Підходить для');
+  return out;
+}
+
+function applyDo88LocaleFixes(locale: SupportedLocale, value: string): string {
+  if (!value) return value;
+  let out = fixDo88TitleTypos(value);
+  if (locale === 'ua') {
+    out = fixDo88UaDescriptionFragments(out);
+  }
+  return out;
+}
+
 export function localizeShopProductTitle(locale: SupportedLocale, product: Pick<ShopProduct, 'slug' | 'title'>) {
   const overrideTitle = getUrbanProductTitleOverrideForLocale(product.slug, locale);
   if (overrideTitle) {
-    return overrideTitle;
+    return applyDo88LocaleFixes(locale, overrideTitle);
   }
 
   if (locale === 'en') {
     const translatedFromDb = normalizeWhitespace(product.title.en);
     if (translatedFromDb && !containsCyrillic(translatedFromDb)) {
-      return disambiguateUrbanTitle(locale, product, translatedFromDb);
+      return applyDo88LocaleFixes(locale, disambiguateUrbanTitle(locale, product, translatedFromDb));
     }
 
     const translatedFromUa = translateShopTitleFromUa(product.title.ua);
     if (translatedFromUa && !containsCyrillic(translatedFromUa)) {
-      return disambiguateUrbanTitle(locale, product, translatedFromUa);
+      return applyDo88LocaleFixes(locale, disambiguateUrbanTitle(locale, product, translatedFromUa));
     }
   }
 
-  return disambiguateUrbanTitle(locale, product, localizeShopText(locale, product.title, { slugFallback: product.slug }));
+  return applyDo88LocaleFixes(locale, disambiguateUrbanTitle(locale, product, localizeShopText(locale, product.title, { slugFallback: product.slug })));
 }
 
 export function localizeShopDescription(
   locale: SupportedLocale,
   value: LocalizedValue
 ) {
-  return localizeShopText(locale, value, {
+  const text = localizeShopText(locale, value, {
     emptyIfCyrillicInEn: locale === 'en',
   });
+  return locale === 'ua' ? fixDo88UaDescriptionFragments(text) : text;
 }

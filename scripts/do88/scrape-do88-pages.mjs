@@ -28,13 +28,21 @@ function decodeHtmlEntities(s) {
   return String(s ?? '')
     .replace(/&#229;/g, 'å').replace(/&#228;/g, 'ä').replace(/&#246;/g, 'ö')
     .replace(/&#197;/g, 'Å').replace(/&#196;/g, 'Ä').replace(/&#214;/g, 'Ö')
+    .replace(/&#176;/g, '°').replace(/&#160;/g, ' ')
+    .replace(/&#8211;/g, '–').replace(/&#8212;/g, '—').replace(/&#8217;/g, '’')
+    .replace(/&#8220;/g, '“').replace(/&#8221;/g, '”')
     .replace(/&aring;/g, 'å').replace(/&auml;/g, 'ä').replace(/&ouml;/g, 'ö')
     .replace(/&Aring;/g, 'Å').replace(/&Auml;/g, 'Ä').replace(/&Ouml;/g, 'Ö')
     .replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
     .replace(/&apos;/g, "'").replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&[a-z]+;/gi, ' ')
-    .replace(/&#\d+;/g, '');
+    // Numeric entities — fall through to unicode codepoint
+    .replace(/&#(\d+);/g, (_, code) => {
+      const n = parseInt(code, 10);
+      return n > 0 && n < 0x10000 ? String.fromCharCode(n) : '';
+    })
+    // Drop unknown named entities we haven't mapped
+    .replace(/&[a-zA-Z]+;/g, ' ');
 }
 
 function stripTags(s) {
@@ -79,6 +87,17 @@ function extractParagraphsFromBlock(block) {
   return lines;
 }
 
+function softStripTags(s) {
+  // Like stripTags but preserve newlines (do not collapse to single line).
+  return decodeHtmlEntities(
+    String(s ?? '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n[ \t]+/g, '\n')
+      .replace(/\n{3,}/g, '\n\n'),
+  ).trim();
+}
+
 function extractKeyFeatures(html) {
   // Look for "Nyckelegenskaper:" — content follows as <br />-separated lines
   // each starting with "-".
@@ -94,8 +113,8 @@ function extractKeyFeatures(html) {
     if (i > 0 && i < endIdx) endIdx = i;
   }
   const block = tail.slice(0, endIdx);
-  // Replace <br/> with newlines, strip tags
-  const text = stripTags(block.replace(/<br\s*\/?>/gi, '\n'));
+  // Replace <br/> with newlines, strip tags but preserve newlines
+  const text = softStripTags(block.replace(/<br\s*\/?>/gi, '\n'));
   // Lines starting with "-" are bullets
   const lines = text.split(/\n+/).map((l) => l.trim());
   return lines
@@ -144,6 +163,53 @@ function extractOeRefs(html) {
     .slice(0, 12);
 }
 
+// Chassis category indexes that the do88 sitemap is missing entries for.
+// Crawling these surfaces vehicle-specific products (e.g. ICM-400 lives on
+// 992-turbo but isn't in /sitemap.xml).
+const CHASSIS_INDEX_URLS = [
+  // Porsche
+  'https://www.do88.se/sv/artiklar/slangkit/porsche/992-turbo/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/porsche/9921/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/porsche/9922-carrera-911/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/porsche/9912/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/porsche/9912-carrera-t-911/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/porsche/991/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/porsche/9971/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/porsche/9972/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/porsche/996/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/porsche/993/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/porsche/964/index.html',
+  // BMW
+  'https://www.do88.se/sv/artiklar/slangkit/bmw/g80-g87-s58-m2-m3-m4/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/bmw/g20-g29-g42/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/bmw/f8x-m2c-m3-m4/index.html',
+  // Audi
+  'https://www.do88.se/sv/artiklar/slangkit/audi/rs6-rs7-40-v8-tfsi-c8/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/audi/rs3/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/audi/a3-s3-8v-12-tt-8s-15-/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/audi/a3-s3-8y-21-/index.html',
+  // VW
+  'https://www.do88.se/sv/artiklar/slangkit/vw/golf-mk-7-mk-75-mqb-13-19/index.html',
+  'https://www.do88.se/sv/artiklar/slangkit/vw/golf-mk-8/index.html',
+];
+
+async function fetchChassisIndexUrls() {
+  const collected = new Set();
+  for (const indexUrl of CHASSIS_INDEX_URLS) {
+    try {
+      const res = await fetch(indexUrl);
+      if (!res.ok) continue;
+      const html = await res.text();
+      for (const m of html.matchAll(/href="(\/sv\/artiklar\/[a-z0-9-]+\.html)"/g)) {
+        collected.add(`https://www.do88.se${m[1]}`);
+      }
+    } catch (err) {
+      // ignore — page might be down or moved
+    }
+  }
+  return [...collected];
+}
+
 async function fetchSitemap() {
   console.log(`[fetch] ${SITEMAP_URL}`);
   const res = await fetch(SITEMAP_URL);
@@ -156,14 +222,22 @@ async function fetchSitemap() {
   const productUrls = urls.filter(
     (u) => u.includes('/sv/artiklar/') && !u.endsWith('/index.html'),
   );
+
+  // Augment with URLs found via chassis category indexes (sitemap is
+  // incomplete — e.g. ICM-400 isn't listed there).
+  const chassisUrls = await fetchChassisIndexUrls();
+  console.log(`[chassis-index] discovered ${chassisUrls.length} additional product URLs`);
+  const merged = new Set([...productUrls, ...chassisUrls]);
+
   // Prioritise URLs likely to have rich descriptions (kits / vehicle-specific
   // products). Pure component pages (silicone elbows, hose clamps) carry no
   // copy worth importing — skip them unless --all is passed.
   const wantsAll = process.argv.includes('--all');
-  if (wantsAll) return productUrls;
+  const all = [...merged];
+  if (wantsAll) return all;
   const richPattern =
-    /(intercooler|big-?pack|intag|insug|carbon|kolfiber|oil-?cooler|oljekylare|y-?(?:r[oö]r|pipe)|charge|laddluftk|laddluft|plenum|porsche|bmw|audi|volkswagen|volvo|saab|toyota|supra|yaris|mercedes|amg|renault|alpine|seat|skoda)/i;
-  const filtered = productUrls.filter((u) => richPattern.test(u));
+    /(intercooler|big-?pack|bigpack|intag|insug|carbon|kolfiber|oil-?cooler|oljekylare|y-?(?:r[oö]r|pipe)|charge|laddluftk|laddluft|plenum|porsche|bmw|audi|volkswagen|volvo|saab|toyota|supra|yaris|mercedes|amg|renault|alpine|seat|skoda|tryckslangar|inloppsslangar|insugssystem|intercoolerror|tryckror)/i;
+  const filtered = all.filter((u) => richPattern.test(u));
   return filtered;
 }
 

@@ -82,6 +82,53 @@ function extractGarrettBarPlate(text) {
   return /Bar\s*&?\s*Plate/i.test(text) || /Garrett\s*Motorsport/i.test(text);
 }
 
+/**
+ * Pull universal claims out of Swedish marketing prose. Translates common
+ * value-prop phrases to Ukrainian/English without needing full LLM
+ * translation — just maps known idioms.
+ */
+function extractClaimsFromSwedishText(text) {
+  const ua = [];
+  const en = [];
+  const t = text;
+
+  if (/(prestandauppgradering|sann\s+prestanda|prestanda\s+f[oö]r|riktig\s+prestanda)/i.test(t)) {
+    ua.push('Реальний приріст продуктивності, перевірений вимірюваннями');
+    en.push('Real performance gain, verified by measurement');
+  }
+  if (/passar\s+(perfekt|som\s+oem|som\s+original)|originalpassform|originalplats|drop[\s-]?in/i.test(t)) {
+    ua.push('Drop-in посадка на штатне місце');
+    en.push('Drop-in fitment in factory location');
+  }
+  if (/tunn(?:are)?\s+gjut(?:en|na)|gjuten\s+aluminium|gjutna\s+tankar/i.test(t)) {
+    ua.push('Литі алюмінієві бачки для оптимального потоку');
+    en.push('Cast aluminium tanks for optimised flow');
+  }
+  if (/silikon(?:slangar|hose|er)|medf[oö]ljande\s+slang/i.test(t)) {
+    ua.push('Силіконові патрубки do88 у комплекті');
+    en.push('do88 silicone hoses included');
+  }
+  if (/originalkrav|original\s+sensor|sensor\s+plats|standardanslutningar|samma\s+anslutning/i.test(t)) {
+    ua.push('Сумісність зі штатними датчиками та зʼєднаннями');
+    en.push('Compatible with OE sensors and connections');
+  }
+  if (/v[äa]rme[öo]verf[öo]ring|effektiv\s+kylning|stabil\s+temperatur/i.test(t)) {
+    ua.push('Підвищена ефективність теплообміну');
+    en.push('Improved heat-transfer efficiency');
+  }
+  if (/test(at|er)?[\s\S]{0,80}?(p[åa]\s+bana|race|aim|datalog|flygf[äa]lt|p[åa]\s+v[äa]g)/i.test(t)) {
+    ua.push('Перевірено в реальних трекових/дорожніх тестах');
+    en.push('Validated in real track and road testing');
+  }
+  if (/h[öo]gre\s+laddtryck|h[öo]gre\s+effekt|maxim?al\s+effekt|h[öo]ga\s+effekter/i.test(t)) {
+    ua.push('Витримує підвищений рівень буста та потужності');
+    en.push('Handles elevated boost and power levels');
+  }
+
+  // Always cap at 4 to keep the bullet list compact
+  return { ua: ua.slice(0, 4), en: en.slice(0, 4) };
+}
+
 function extractBackgroundFacts(allText) {
   const facts = {};
   for (const line of allText) {
@@ -264,6 +311,18 @@ function buildSpecEntry(sku, page) {
     });
   }
 
+  // For products with no specific facts but with a description, pull a short
+  // summary line from the Swedish description if it contains a useful claim.
+  if (sections.length === 0 && (page.description?.length ?? 0) > 0) {
+    const claims = extractClaimsFromSwedishText(page.description.join(' '));
+    if (claims.ua.length > 0) {
+      sections.push({
+        kicker: { ua: 'Особливості', en: 'Highlights' },
+        bullets: { ua: claims.ua, en: claims.en },
+      });
+    }
+  }
+
   if (sections.length === 0 && (!page.oeRefs || page.oeRefs.length === 0)) {
     // Nothing useful extracted — skip this entry, fallback enricher will handle it
     return null;
@@ -288,8 +347,9 @@ function buildSpecEntry(sku, page) {
         claims.push(`+${facts.cfm.gainPct}% повітряного потоку проти OE`);
         claimsEn.push(`+${facts.cfm.gainPct}% airflow vs OE`);
       }
-      const claimUa = claims.length > 0 ? `. ${claims.join(', ')}.` : '.';
-      const claimEn = claimsEn.length > 0 ? `. ${claimsEn.join(', ')}.` : '.';
+      const cap = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+      const claimUa = claims.length > 0 ? `. ${cap(claims.join(', '))}.` : '.';
+      const claimEn = claimsEn.length > 0 ? `. ${cap(claimsEn.join(', '))}.` : '.';
       const productLabel = kind === 'big-pack' ? 'Big Pack — комплектний апгрейд do88' : 'Інтеркулерний комплект do88';
       const productLabelEn = kind === 'big-pack' ? 'Big Pack — complete do88 upgrade' : 'do88 intercooler kit';
       headlineUa = fitment ? `${productLabel} для ${fitment}${claimUa}` : `${productLabel}${claimUa}`;
