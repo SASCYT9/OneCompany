@@ -32,11 +32,12 @@ export async function GET(request: NextRequest) {
 }
 
 // ═══════════════════════════════
-// SHOP METRICS (EUR)
+// SHOP METRICS (UAH)
 // ═══════════════════════════════
 
 async function getShopMetrics(period: RevenuePeriod) {
   const nonCancelledFilter = { status: { notIn: [OrderStatus.CANCELLED] } };
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
   const [
     revenueAgg,
@@ -44,62 +45,51 @@ async function getShopMetrics(period: RevenuePeriod) {
     activeOrders,
     totalCustomers,
     statusCounts,
-    paymentMethodCounts,
+    statusValueSums,
+    statusOldest,
     recentOrders,
-    topProducts,
     lowStockItems,
+    unpaidOrders,
+    stuckPendingPayment,
+    topShopBrands,
+    topShopProducts,
+    ordersForRegions,
+    customerGroupCounts,
   ] = await Promise.all([
-    // Total revenue (amountPaid = actual cash received)
     prisma.shopOrder.aggregate({
       _sum: { amountPaid: true, total: true },
       _count: true,
       where: nonCancelledFilter,
     }),
-
-    // Total order count (non-cancelled)
     prisma.shopOrder.count({ where: nonCancelledFilter }),
-
-    // Active orders
     prisma.shopOrder.count({
       where: { status: { notIn: [OrderStatus.CANCELLED, OrderStatus.DELIVERED, OrderStatus.REFUNDED] } },
     }),
-
-    // Total customers
     prisma.shopCustomer.count(),
 
-    // Conversion funnel — orders by status
-    prisma.shopOrder.groupBy({
-      by: ['status'],
-      _count: true,
-    }),
+    // Pipeline stage counts
+    prisma.shopOrder.groupBy({ by: ['status'], _count: true }),
 
-    // Payment method distribution
-    prisma.shopOrder.groupBy({
-      by: ['paymentMethod'],
-      _count: true,
-      _sum: { amountPaid: true },
-      where: nonCancelledFilter,
-    }),
+    // Pipeline stage value sums (uses total since amountPaid not relevant for unpaid stages)
+    prisma.shopOrder.groupBy({ by: ['status'], _sum: { total: true } }),
 
-    // Recent orders (with customer attribution fix)
+    // Oldest order per status — for stuck-detection
+    prisma.shopOrder.groupBy({ by: ['status'], _min: { createdAt: true } }),
+
     prisma.shopOrder.findMany({
       take: 8,
       orderBy: { createdAt: 'desc' },
       include: {
         customer: { select: { firstName: true, lastName: true, email: true } },
+        items: {
+          take: 1,
+          include: {
+            product: { select: { brand: true } },
+          },
+        },
       },
     }),
 
-    // Top products by revenue
-    prisma.shopOrderItem.groupBy({
-      by: ['title'],
-      _sum: { total: true, quantity: true },
-      _count: true,
-      orderBy: { _sum: { total: 'desc' } },
-      take: 10,
-    }),
-
-    // Low stock items
     prisma.shopProductVariant.findMany({
       where: {
         inventoryTracker: { not: null },
@@ -108,6 +98,64 @@ async function getShopMetrics(period: RevenuePeriod) {
       take: 10,
       orderBy: { inventoryQty: 'asc' },
       include: { product: { select: { titleUa: true, titleEn: true, brand: true } } },
+    }),
+
+    // Unpaid orders — total value and oldest
+    prisma.shopOrder.findMany({
+      where: {
+        status: { notIn: [OrderStatus.CANCELLED, OrderStatus.REFUNDED] },
+        paymentStatus: { not: 'PAID' },
+      },
+      select: { id: true, total: true, amountPaid: true, createdAt: true, orderNumber: true },
+      orderBy: { createdAt: 'asc' },
+    }),
+
+    // Stuck PENDING_PAYMENT >7 days
+    prisma.shopOrder.count({
+      where: {
+        status: OrderStatus.PENDING_PAYMENT,
+        createdAt: { lt: sevenDaysAgo },
+      },
+    }),
+
+    // Top brands by product count (real catalog data)
+    prisma.shopProduct.groupBy({
+      by: ['brand'],
+      where: { brand: { not: null }, isPublished: true },
+      _count: true,
+      orderBy: { _count: { id: 'desc' } },
+      take: 8,
+    }),
+
+    // Top published products with images (real catalog)
+    prisma.shopProduct.findMany({
+      where: { isPublished: true, image: { not: null } },
+      select: {
+        id: true,
+        slug: true,
+        titleEn: true,
+        titleUa: true,
+        brand: true,
+        image: true,
+        priceEur: true,
+        priceUsd: true,
+        priceUah: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 6,
+    }),
+
+    // Orders with shipping addresses for regional aggregation
+    prisma.shopOrder.findMany({
+      where: nonCancelledFilter,
+      select: { shippingAddress: true, amountPaid: true, total: true },
+    }),
+
+    // B2C / B2B split (lifetime — cheap aggregation)
+    prisma.shopOrder.groupBy({
+      by: ['customerGroupSnapshot'],
+      _count: true,
+      where: nonCancelledFilter,
     }),
   ]);
 
@@ -140,6 +188,108 @@ async function getShopMetrics(period: RevenuePeriod) {
   const orderCount = typeof revenueAgg._count === 'number' ? revenueAgg._count : 0;
   const aov = orderCount > 0 ? Math.round((totalInvoiced / orderCount) * 100) / 100 : 0;
 
+  // Build pipeline stages — merge count/sum/oldest by status
+  const countByStatus = new Map(statusCounts.map((s) => [s.status, s._count]));
+  const sumByStatus = new Map(statusValueSums.map((s) => [s.status, Number(s._sum.total || 0)]));
+  const oldestByStatus = new Map(statusOldest.map((s) => [s.status, s._min.createdAt]));
+  const now = Date.now();
+  const ageDays = (d: Date | null | undefined) =>
+    d ? Math.floor((now - new Date(d).getTime()) / (24 * 60 * 60 * 1000)) : null;
+
+  const PIPELINE_STAGES: OrderStatus[] = [
+    OrderStatus.PENDING_PAYMENT,
+    OrderStatus.PENDING_REVIEW,
+    OrderStatus.CONFIRMED,
+    OrderStatus.PROCESSING,
+    OrderStatus.SHIPPED,
+    OrderStatus.DELIVERED,
+    OrderStatus.CANCELLED,
+    OrderStatus.REFUNDED,
+  ];
+
+  const pendingByStage = PIPELINE_STAGES.map((status) => ({
+    status,
+    count: countByStatus.get(status) || 0,
+    valueSum: sumByStatus.get(status) || 0,
+    oldestAgeDays: ageDays(oldestByStatus.get(status)),
+  }));
+
+  // Unpaid totals
+  const unpaidTotal = unpaidOrders.reduce(
+    (sum, o) => sum + (Number(o.total) - o.amountPaid),
+    0
+  );
+  const unpaidCount = unpaidOrders.length;
+  const oldestUnpaid = unpaidOrders[0]
+    ? {
+        id: unpaidOrders[0].id,
+        orderNumber: unpaidOrders[0].orderNumber,
+        ageDays: ageDays(unpaidOrders[0].createdAt) ?? 0,
+      }
+    : null;
+
+  // Period-aware totals: last vs prev bucket
+  const sortedBuckets = Object.entries(monthlyRevenue)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, data]) => ({ month, ...data }));
+
+  const lastBucket = sortedBuckets[sortedBuckets.length - 1];
+  const prevBucket = sortedBuckets[sortedBuckets.length - 2];
+  const totalRevenuePeriod = lastBucket?.paid || 0;
+  const totalRevenuePrevPeriod = prevBucket?.paid || 0;
+  const ordersCountPeriod = lastBucket?.orders || 0;
+  const ordersCountPrevPeriod = prevBucket?.orders || 0;
+
+  // Cancellation rate within period window (from periodOrders + cancelled orders in same window)
+  const cancelledInPeriod = await prisma.shopOrder.count({
+    where: {
+      createdAt: { gte: periodStart },
+      status: { in: [OrderStatus.CANCELLED, OrderStatus.REFUNDED] },
+    },
+  });
+  const totalInPeriod = periodOrders.length + cancelledInPeriod;
+  const cancellationRate = totalInPeriod > 0 ? Math.round((cancelledInPeriod / totalInPeriod) * 1000) / 10 : 0;
+
+  // Real Sales by Region — aggregate from shippingAddress.country
+  const regionTotals: Record<string, { revenue: number; count: number }> = {
+    Europe: { revenue: 0, count: 0 },
+    'North America': { revenue: 0, count: 0 },
+    'Middle East': { revenue: 0, count: 0 },
+    'Asia Pacific': { revenue: 0, count: 0 },
+    'South America': { revenue: 0, count: 0 },
+    Other: { revenue: 0, count: 0 },
+  };
+  let unknownCountryCount = 0;
+  for (const o of ordersForRegions) {
+    const addr = (o.shippingAddress ?? {}) as { country?: string };
+    const country = (addr.country ?? '').trim();
+    const region = countryToRegion(country);
+    if (region === null) {
+      unknownCountryCount++;
+      continue;
+    }
+    regionTotals[region].revenue += Number(o.total);
+    regionTotals[region].count++;
+  }
+  const totalRegionRevenue = Object.values(regionTotals).reduce((s, r) => s + r.revenue, 0);
+  const salesByRegion = Object.entries(regionTotals)
+    .filter(([, r]) => r.revenue > 0 || r.count > 0)
+    .map(([name, r]) => ({
+      name,
+      revenue: r.revenue,
+      count: r.count,
+      pct: totalRegionRevenue > 0 ? Math.round((r.revenue / totalRegionRevenue) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+
+  // B2C / B2B split
+  const groupCounts = new Map(customerGroupCounts.map((g) => [g.customerGroupSnapshot, g._count]));
+  const b2cOrdersCount = (groupCounts.get('B2C') || 0) + (groupCounts.get('B2C_PROMO' as any) || 0);
+  const b2bOrdersCount =
+    (groupCounts.get('B2B' as any) || 0) +
+    (groupCounts.get('B2B_PRO' as any) || 0) +
+    (groupCounts.get('B2B_PENDING' as any) || 0);
+
   return {
     totalRevenue,
     totalInvoiced,
@@ -148,48 +298,75 @@ async function getShopMetrics(period: RevenuePeriod) {
     aov,
     totalOrders,
 
-    conversionFunnel: statusCounts.map(s => ({
+    // Period-aware aggregates
+    totalRevenuePeriod,
+    totalRevenuePrevPeriod,
+    ordersCountPeriod,
+    ordersCountPrevPeriod,
+
+    // Pipeline + operational
+    pendingByStage,
+    unpaidTotal,
+    unpaidCount,
+    oldestUnpaid,
+    stuckPendingPayment,
+    cancellationRate,
+    b2cOrdersCount,
+    b2bOrdersCount,
+
+    conversionFunnel: statusCounts.map((s) => ({
       status: s.status,
       count: s._count,
     })),
 
-    monthlyRevenue: Object.entries(monthlyRevenue)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, data]) => ({ month, ...data })),
+    monthlyRevenue: sortedBuckets,
 
-    paymentMethods: paymentMethodCounts.map(p => ({
-      method: p.paymentMethod,
-      count: p._count,
-      revenue: p._sum?.amountPaid || 0,
+    recentOrders: recentOrders.map((o) => {
+      const itemBrand = o.items?.[0]?.product?.brand ?? null;
+      return {
+        id: o.id,
+        displayId: o.orderNumber,
+        total: Number(o.total),
+        currency: o.currency,
+        status: o.status,
+        paymentStatus: o.paymentStatus,
+        paymentMethod: o.paymentMethod,
+        createdAt: o.createdAt,
+        amountPaid: o.amountPaid,
+        customerGroup: o.customerGroupSnapshot,
+        itemCount: o.items?.length ?? 1,
+        brand: itemBrand,
+        brandLogo: itemBrand ? brandLogoPath(itemBrand) : null,
+        customerName: resolveCustomerName(
+          o.customer?.firstName,
+          o.customer?.lastName,
+          o.customerName,
+          o.email
+        ),
+      };
+    }),
+
+    topProducts: topShopProducts.map((p) => ({
+      id: p.id,
+      slug: p.slug,
+      title: p.titleEn || p.titleUa || 'Untitled',
+      brand: p.brand,
+      image: p.image,
+      priceEur: p.priceEur ? Number(p.priceEur) : null,
+      priceUsd: p.priceUsd ? Number(p.priceUsd) : null,
+      priceUah: p.priceUah ? Number(p.priceUah) : null,
     })),
 
-    recentOrders: recentOrders.map(o => ({
-      id: o.id,
-      displayId: o.orderNumber,
-      total: Number(o.total),
-      currency: o.currency,
-      status: o.status,
-      paymentStatus: o.paymentStatus,
-      paymentMethod: o.paymentMethod,
-      createdAt: o.createdAt,
-      amountPaid: o.amountPaid,
-      // Customer attribution: always show a name, fallback to email
-      customerName: resolveCustomerName(
-        o.customer?.firstName,
-        o.customer?.lastName,
-        o.customerName,
-        o.email
-      ),
+    topBrands: topShopBrands.map((b) => ({
+      brand: b.brand!,
+      productCount: b._count,
+      logo: brandLogoPath(b.brand!),
     })),
 
-    topProducts: topProducts.map(p => ({
-      title: p.title,
-      revenue: Number(p._sum.total || 0),
-      quantity: Number(p._sum.quantity || 0),
-      orderCount: p._count,
-    })),
+    salesByRegion,
+    unknownCountryCount,
 
-    lowStockItems: lowStockItems.map(item => ({
+    lowStockItems: lowStockItems.map((item) => ({
       id: item.id,
       sku: item.sku || '',
       title: item.product?.titleUa || item.title || '',
@@ -210,12 +387,10 @@ async function getCrmMetrics(period: RevenuePeriod) {
     totalOrders,
     activeOrders,
     recentOrders,
-    topCustomers,
     debtors,
     brandBreakdown,
     statusCounts,
   ] = await Promise.all([
-    // Aggregated KPIs
     prisma.crmOrder.aggregate({
       _sum: { clientTotal: true, profit: true, purchaseCost: true },
     }),
@@ -223,43 +398,30 @@ async function getCrmMetrics(period: RevenuePeriod) {
     prisma.crmCustomer.count(),
     prisma.crmOrder.count(),
 
-    // Active (not completed/cancelled)
     prisma.crmOrder.count({
       where: { orderStatus: { notIn: ['Выполнен', 'Отменен'] } },
     }),
 
-    // Recent orders with customer
     prisma.crmOrder.findMany({
       orderBy: { orderDate: 'desc' },
       take: 8,
       include: { customer: { select: { name: true, email: true } } },
     }),
 
-    // Top customers by sales
-    prisma.crmCustomer.findMany({
-      orderBy: { totalSales: 'desc' },
-      take: 8,
-      include: { orders: { select: { id: true } } },
-    }),
-
-    // Debtors
     prisma.crmCustomer.findMany({
       where: { balance: { lt: 0 } },
       orderBy: { balance: 'asc' },
       take: 10,
     }),
 
-    // Brand breakdown — fetch raw items (brand field has Airtable IDs, so we extract from productName)
     prisma.crmOrderItem.findMany({
       where: { clientTotal: { gt: 0 } },
       select: { productName: true, brand: true, clientTotal: true, profitPerItem: true },
     }),
 
-    // Status distribution
     prisma.crmOrder.groupBy({ by: ['orderStatus'], _count: true }),
   ]);
 
-  // CRM Revenue trend (period-based)
   const crmPeriodStart = new Date();
   if (period === 'daily') crmPeriodStart.setDate(crmPeriodStart.getDate() - 30);
   else if (period === 'weekly') crmPeriodStart.setDate(crmPeriodStart.getDate() - 90);
@@ -271,20 +433,45 @@ async function getCrmMetrics(period: RevenuePeriod) {
     orderBy: { orderDate: 'asc' },
   });
 
-  const monthlyRevenue: Record<string, { revenue: number; profit: number; orders: number }> = {};
+  const monthlyMap: Record<string, { revenue: number; profit: number; orders: number }> = {};
   for (const o of crmPeriodOrders) {
     if (!o.orderDate) continue;
     const key = getDateKey(o.orderDate, period);
-    if (!monthlyRevenue[key]) monthlyRevenue[key] = { revenue: 0, profit: 0, orders: 0 };
-    monthlyRevenue[key].revenue += o.clientTotal;
-    monthlyRevenue[key].profit += o.profit;
-    monthlyRevenue[key].orders++;
+    if (!monthlyMap[key]) monthlyMap[key] = { revenue: 0, profit: 0, orders: 0 };
+    monthlyMap[key].revenue += o.clientTotal;
+    monthlyMap[key].profit += o.profit;
+    monthlyMap[key].orders++;
   }
+
+  const monthlyRevenue = Object.entries(monthlyMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, data]) => ({ month, ...data }));
+
+  // Margin per period
+  const marginByPeriod = monthlyRevenue.map((b) => ({
+    month: b.month,
+    marginPct: b.revenue > 0 ? Math.round((b.profit / b.revenue) * 1000) / 10 : 0,
+  }));
+
+  // Period-aware totals: last vs prev bucket
+  const lastBucket = monthlyRevenue[monthlyRevenue.length - 1];
+  const prevBucket = monthlyRevenue[monthlyRevenue.length - 2];
+  const totalProfitPeriod = lastBucket?.profit || 0;
+  const totalProfitPrevPeriod = prevBucket?.profit || 0;
+  const totalRevenuePeriod = lastBucket?.revenue || 0;
+  const totalRevenuePrevPeriod = prevBucket?.revenue || 0;
 
   const sums = orderAgg._sum;
   const totalRevenue = sums?.clientTotal || 0;
   const totalProfit = sums?.profit || 0;
   const totalDebt = debtors.reduce((s, d) => s + Math.abs(d.balance), 0);
+  const oldestDebtor = debtors[0]
+    ? {
+        id: debtors[0].id,
+        name: debtors[0].name,
+        balance: debtors[0].balance,
+      }
+    : null;
 
   return {
     totalRevenue,
@@ -295,19 +482,25 @@ async function getCrmMetrics(period: RevenuePeriod) {
     totalOrders,
     activeOrders,
     totalDebt,
+    oldestDebtor,
 
-    statusDistribution: statusCounts.map(s => ({
+    // Period-aware
+    totalProfitPeriod,
+    totalProfitPrevPeriod,
+    totalRevenuePeriod,
+    totalRevenuePrevPeriod,
+
+    statusDistribution: statusCounts.map((s) => ({
       status: s.orderStatus,
       count: s._count,
     })),
 
-    monthlyRevenue: Object.entries(monthlyRevenue)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, data]) => ({ month, ...data })),
+    monthlyRevenue,
+    marginByPeriod,
 
     brandBreakdown: aggregateBrandBreakdown(brandBreakdown as any[]),
 
-    recentOrders: recentOrders.map(o => ({
+    recentOrders: recentOrders.map((o) => ({
       id: o.id,
       number: o.number,
       name: o.name,
@@ -319,17 +512,7 @@ async function getCrmMetrics(period: RevenuePeriod) {
       customerName: o.customer?.name || o.name || '—',
     })),
 
-    topCustomers: topCustomers.map(c => ({
-      id: c.id,
-      name: c.name,
-      totalSales: c.totalSales,
-      totalProfit: c.totalProfit,
-      balance: c.balance,
-      orderCount: c.orders.length,
-      tags: c.tags,
-    })),
-
-    debtors: debtors.map(d => ({
+    debtors: debtors.map((d) => ({
       id: d.id,
       name: d.name,
       balance: d.balance,
@@ -343,9 +526,9 @@ async function getCrmMetrics(period: RevenuePeriod) {
 // ═══════════════════════════════
 
 async function getSystemMetrics() {
-  const [turn14Brands, lastSync, dataQuality, catalogQuality, failedImports, pendingB2B, highValueUnpaid] = await Promise.all([
+  const [turn14Brands, lastSync, dataQuality, catalogQuality, failedImports, pendingB2B, highValueUnpaid, lastImportJob] = await Promise.all([
     prisma.turn14BrandMarkup.findMany({
-      select: { syncStatus: true, updatedAt: true, brandName: true },
+      select: { syncStatus: true, syncMessage: true, updatedAt: true, brandName: true },
     }),
     prisma.crmOrder.findFirst({
       orderBy: { syncedAt: 'desc' },
@@ -366,7 +549,17 @@ async function getSystemMetrics() {
         total: { gte: 1000 },
       },
     }),
+    prisma.shopImportJob.findFirst({
+      where: { status: 'COMPLETED' },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    }),
   ]);
+
+  const turn14Errors = turn14Brands.filter(
+    (b) => b.syncStatus === 'error' || b.syncStatus === 'failed'
+  ).length;
+  const turn14Syncing = turn14Brands.filter((b) => b.syncStatus === 'syncing').length;
 
   const operationalRisks = [
     {
@@ -411,16 +604,36 @@ async function getSystemMetrics() {
     },
   ];
 
+  // Operations health lights — green/amber/red
+  const pipelineHealth: 'green' | 'amber' | 'red' =
+    highValueUnpaid > 5 ? 'red' : highValueUnpaid > 0 ? 'amber' : 'green';
+  const syncHealth: 'green' | 'amber' | 'red' =
+    turn14Errors > 0 ? 'red' : turn14Syncing > 0 ? 'amber' : 'green';
+  const stockHealth: 'green' | 'amber' | 'red' =
+    catalogQuality.issueCounts.ACTIVE_WITHOUT_STOCK > 10
+      ? 'red'
+      : catalogQuality.issueCounts.ACTIVE_WITHOUT_STOCK > 0
+        ? 'amber'
+        : 'green';
+  const catalogHealth: 'green' | 'amber' | 'red' =
+    catalogQuality.score < 75 ? 'red' : catalogQuality.score < 90 ? 'amber' : 'green';
+  const dataHealthLight: 'green' | 'amber' | 'red' =
+    dataQuality.score < 75 ? 'red' : dataQuality.score < 90 ? 'amber' : 'green';
+  const importsHealth: 'green' | 'amber' | 'red' =
+    failedImports > 0 ? 'red' : 'green';
+
   return {
     turn14Stats: {
       total: turn14Brands.length,
-      syncing: turn14Brands.filter(b => b.syncStatus === 'syncing').length,
-      idle: turn14Brands.filter(b => b.syncStatus === 'idle').length,
+      syncing: turn14Syncing,
+      idle: turn14Brands.filter((b) => b.syncStatus === 'idle').length,
+      errors: turn14Errors,
       latestSync: turn14Brands.length > 0
-        ? new Date(Math.max(...turn14Brands.map(b => b.updatedAt.getTime()))).toISOString()
+        ? new Date(Math.max(...turn14Brands.map((b) => b.updatedAt.getTime()))).toISOString()
         : null,
     },
     lastCrmSyncAt: lastSync?.syncedAt?.toISOString() || null,
+    lastImportAt: lastImportJob?.createdAt?.toISOString() || null,
     dataQuality,
     catalogQuality: {
       score: catalogQuality.score,
@@ -429,6 +642,14 @@ async function getSystemMetrics() {
       issueCounts: catalogQuality.issueCounts,
     },
     operationalRisks,
+    operations: {
+      pipelineHealth,
+      syncHealth,
+      stockHealth,
+      catalogHealth,
+      dataHealth: dataHealthLight,
+      importsHealth,
+    },
   };
 }
 
@@ -436,7 +657,6 @@ async function getSystemMetrics() {
 // HELPERS
 // ═══════════════════════════════
 
-/** Known brand keywords for extraction from product names */
 const KNOWN_BRANDS = [
   'Akrapovic', 'Brabus', 'Mansory', 'Startech', 'Urban Automotive',
   'Vorsteiner', 'Novitec', 'Lumma', 'Hamann', 'Keyvany', 'Renntech',
@@ -453,15 +673,12 @@ const KNOWN_BRANDS = [
   'Valvetronic', 'Frequency Intelligence',
 ];
 
-/** Extract brand name from productName using known brands list */
 function extractBrandFromProduct(productName: string): string {
   const pLower = productName.toLowerCase();
-  // Try to match known brands (longest first for multi-word brands)
   const sorted = [...KNOWN_BRANDS].sort((a, b) => b.length - a.length);
   for (const brand of sorted) {
     if (pLower.includes(brand.toLowerCase())) return brand;
   }
-  // Fallback: first word of product name (often is the brand)
   const firstWord = productName.split(/[\s\-–—_/|,\(]/)[0].trim();
   if (firstWord && firstWord.length > 2 && !/^rec[a-zA-Z0-9]{10,}/.test(firstWord)) {
     return firstWord;
@@ -469,10 +686,11 @@ function extractBrandFromProduct(productName: string): string {
   return 'Інше';
 }
 
-/** Aggregate CrmOrderItems into brand breakdown by extracting brand from productName */
-function aggregateBrandBreakdown(items: { productName: string; brand: string; clientTotal: number; profitPerItem: number }[]): { brand: string; revenue: number; profit: number; count: number }[] {
+function aggregateBrandBreakdown(
+  items: { productName: string; brand: string; clientTotal: number; profitPerItem: number }[]
+): { brand: string; revenue: number; profit: number; marginPct: number; count: number }[] {
   const map = new Map<string, { revenue: number; profit: number; count: number }>();
-  
+
   for (const item of items) {
     const brandName = extractBrandFromProduct(item.productName);
     const existing = map.get(brandName) || { revenue: 0, profit: 0, count: 0 };
@@ -481,26 +699,27 @@ function aggregateBrandBreakdown(items: { productName: string; brand: string; cl
     existing.count++;
     map.set(brandName, existing);
   }
-  
+
   return Array.from(map.entries())
-    .map(([brand, data]) => ({ brand, ...data }))
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 15);
+    .map(([brand, data]) => ({
+      brand,
+      ...data,
+      marginPct: data.revenue > 0 ? Math.round((data.profit / data.revenue) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => b.profit - a.profit)
+    .slice(0, 10);
 }
 
-/** Get date key for period-based aggregation */
 function getDateKey(date: Date, period: RevenuePeriod): string {
   if (period === 'daily') {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
   if (period === 'weekly') {
-    // ISO week: Monday-based
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // Move to Monday
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
-  // monthly
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
@@ -520,4 +739,97 @@ function resolveCustomerName(
     return email.split('@')[0];
   }
   return 'Гість';
+}
+
+/**
+ * Country → region mapping. Uses both English and Cyrillic names to handle
+ * mixed-locale data in the DB.
+ */
+function countryToRegion(country: string): string | null {
+  if (!country) return null;
+  const c = country.toLowerCase().trim();
+
+  // Europe (most shop traffic)
+  const europe = [
+    'ukraine', 'україна', 'украина', 'uk', 'united kingdom', 'england', 'великобритания', 'великобританія',
+    'germany', 'германия', 'німеччина', 'france', 'франція', 'франция', 'italy', 'италия', 'італія',
+    'spain', 'испания', 'іспанія', 'poland', 'польща', 'польша', 'czechia', 'czech republic', 'чехія', 'чехия',
+    'austria', 'австрія', 'австрия', 'switzerland', 'швейцарія', 'швейцария', 'netherlands', 'нідерланди', 'нидерланды',
+    'belgium', 'бельгія', 'бельгия', 'sweden', 'швеція', 'швеция', 'norway', 'норвегія', 'норвегия',
+    'denmark', 'данія', 'дания', 'finland', 'фінляндія', 'финляндия', 'portugal', 'португалія', 'португалия',
+    'greece', 'греція', 'греция', 'ireland', 'ірландія', 'ирландия', 'romania', 'румунія', 'румыния',
+    'hungary', 'угорщина', 'венгрия', 'slovakia', 'словаччина', 'словакия', 'bulgaria', 'болгарія', 'болгария',
+    'serbia', 'сербія', 'сербия', 'croatia', 'хорватія', 'хорватия', 'lithuania', 'литва', 'latvia', 'латвія', 'латвия',
+    'estonia', 'естонія', 'эстония', 'cyprus', 'кіпр', 'кипр',
+  ];
+  if (europe.some((x) => c.includes(x))) return 'Europe';
+
+  const northAmerica = [
+    'usa', 'united states', 'us', 'сша', 'америка', 'canada', 'канада', 'mexico', 'мексика',
+  ];
+  if (northAmerica.some((x) => c === x || c.includes(x))) return 'North America';
+
+  const middleEast = [
+    'uae', 'united arab emirates', 'оае', 'еміраті', 'эмираты', 'дубай', 'dubai',
+    'saudi arabia', 'саудівська', 'саудовская', 'lebanon', 'ліван', 'ливан',
+    'israel', 'ізраїль', 'израиль', 'qatar', 'катар', 'kuwait', 'кувейт', 'jordan', 'йорданія', 'иордания',
+    'oman', 'оман', 'bahrain', 'бахрейн',
+  ];
+  if (middleEast.some((x) => c.includes(x))) return 'Middle East';
+
+  const asiaPacific = [
+    'japan', 'японія', 'япония', 'china', 'китай', 'singapore', 'сінгапур', 'сингапур',
+    'australia', 'австралія', 'австралия', 'new zealand', 'нова зеландія', 'новая зеландия',
+    'south korea', 'korea', 'південна корея', 'южная корея', 'thailand', 'таїланд', 'тайланд',
+    'vietnam', 'вʼєтнам', 'вьетнам', 'malaysia', 'малайзія', 'малайзия', 'indonesia', 'індонезія', 'индонезия',
+    'philippines', 'філіппіни', 'филиппины', 'india', 'індія', 'индия', 'hong kong', 'гонконг',
+  ];
+  if (asiaPacific.some((x) => c.includes(x))) return 'Asia Pacific';
+
+  const southAmerica = [
+    'brazil', 'бразилія', 'бразилия', 'argentina', 'аргентина', 'chile', 'чилі', 'чили',
+    'colombia', 'колумбія', 'колумбия', 'peru', 'перу', 'venezuela', 'венесуела', 'венесуэла',
+  ];
+  if (southAmerica.some((x) => c.includes(x))) return 'South America';
+
+  return 'Other';
+}
+
+/**
+ * Resolve a brand name to a public logo path.
+ * Manually curated map for brands we have logos for in /public/logos/.
+ * Returns null if no logo — caller can render text-mark fallback.
+ */
+function brandLogoPath(brand: string): string | null {
+  const key = brand.toLowerCase().trim().replace(/\s+/g, '-');
+  const map: Record<string, string> = {
+    'racechip': '/logos/racechip.png',
+    'brabus': '/logos/brabus.svg',
+    'do88': '/logos/do88.png',
+    'girodisc': '/logos/girodisc.webp',
+    'burger-motorsports': '/logos/burger-motorsport.svg',
+    'burger-motorsport': '/logos/burger-motorsport.svg',
+    'ohlins': '/logos/ohlins.svg',
+    'akrapovic': '/logos/akrapovic.svg',
+    'csf': '/logos/csf.png',
+    'adro': '/logos/adro.svg',
+    'eventuri': '/brands/eventuri-logo.svg',
+    'fi-exhaust': '/logos/fi-exhaust.svg',
+    'ipe-exhaust': '/logos/fi-exhaust.svg',
+    'kw': '/logos/kw.svg',
+    'kw-suspensions': '/logos/kw-suspensions.svg',
+    'kw-suspension': '/logos/kw-suspension.svg',
+    'novitec': '/logos/novitec.svg',
+    'borla': '/logos/borla.svg',
+    'brembo': '/logos/brembo.png',
+    'hre-wheels': '/logos/hre-wheels.png',
+    'hre': '/logos/hre-wheels.png',
+    'apr': '/logos/apr.png',
+    'abt': '/logos/abt.png',
+    'ac-schnitzer': '/logos/ac-schnitzer.png',
+    '3d-design': '/logos/3d-design.png',
+    'land-rover': '/logos/landrover.svg',
+    'landrover': '/logos/landrover.svg',
+  };
+  return map[key] ?? null;
 }

@@ -11,6 +11,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import type { BlogMedia, BlogPost, SiteContent } from "@/types/site-content";
+import { useConfirm } from "@/components/admin/AdminConfirmDialog";
+import { useToast } from "@/components/admin/AdminToast";
 
 const createEmptyPost = (): BlogPost => {
   const id = typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -44,6 +46,8 @@ const formatDateInput = (value?: string) => {
 };
 
 export default function AdminBlogPage() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const [content, setContent] = useState<SiteContent | null>(null);
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -189,7 +193,13 @@ export default function AdminBlogPage() {
   };
 
   const handleDeletePost = async (postId: string) => {
-    if (!confirm("Delete this post? This action cannot be undone.")) return;
+    const ok = await confirm({
+      tone: 'danger',
+      title: 'Delete this post?',
+      description: 'The post will be removed from the blog. This action cannot be undone.',
+      confirmLabel: 'Delete post',
+    });
+    if (!ok) return;
     const updated = posts.filter((post) => post.id !== postId);
     setPosts(updated);
     if (selectedId === postId) {
@@ -199,6 +209,7 @@ export default function AdminBlogPage() {
       setTagsInput(next?.tags?.join(", ") ?? "");
     }
     await saveContent(updated);
+    toast.success('Post deleted');
   };
 
   const handleUploadMedia = async (files: FileList | null) => {
@@ -285,14 +296,14 @@ export default function AdminBlogPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={loadContent}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-none-full transition-colors text-xs font-medium border border-white/10"
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-xs font-medium border border-white/10"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Refresh
             </button>
             <button
               onClick={addNewPost}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white text-black rounded-none-full transition-colors text-xs font-medium"
+              className="flex items-center gap-2 px-3 py-1.5 bg-white text-black rounded-full transition-colors text-xs font-medium"
             >
               <Plus className="w-3.5 h-3.5" />
               New post
@@ -302,7 +313,7 @@ export default function AdminBlogPage() {
       </div>
 
       {error ? (
-        <div className="flex-none border-b border-white/10 bg-black px-4 py-2 text-xs text-red-300">
+        <div className="flex-none border-b border-white/10 bg-black px-4 py-2 text-xs text-blue-300">
           {error}
         </div>
       ) : null}
@@ -365,7 +376,7 @@ export default function AdminBlogPage() {
                     </p>
                   </div>
                   <span
-                    className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-none-full border ${
+                    className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${
                       post.status === "published"
                         ? "border-emerald-400/40 text-emerald-300"
                         : "border-white/20 text-white/40"
@@ -397,7 +408,7 @@ export default function AdminBlogPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handlePublishToggle}
-                    className={`px-3 py-1.5 rounded-none-full text-xs font-medium border ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
                       draft.status === "published"
                         ? "border-emerald-400/40 text-emerald-300"
                         : "border-white/20 text-white/50"
@@ -408,14 +419,14 @@ export default function AdminBlogPage() {
                   <button
                     onClick={handleSavePost}
                     disabled={loading}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-white text-black rounded-none-full text-xs font-medium"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-white text-black rounded-full text-xs font-medium"
                   >
                     <Save className="w-3.5 h-3.5" />
                     Save post
                   </button>
                   <button
                     onClick={() => handleDeletePost(draft.id)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-white/10 text-white rounded-none-full text-xs font-medium border border-white/10"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-white/10 text-white rounded-full text-xs font-medium border border-white/10"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Delete
@@ -536,7 +547,7 @@ export default function AdminBlogPage() {
                     <p className="text-xs uppercase tracking-widest text-white/40">Media</p>
                     <p className="text-xs text-white/40 mt-1">Upload images/videos or paste a URL.</p>
                   </div>
-                  <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-none-full border border-white/10 text-xs text-white/70 cursor-pointer">
+                  <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 text-xs text-white/70 cursor-pointer">
                     <Upload className="w-3.5 h-3.5" />
                     {uploading ? "Uploading..." : "Upload files"}
                     <input
@@ -602,14 +613,14 @@ export default function AdminBlogPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleSavePost()}
-                    className="inline-flex items-center gap-2 rounded-none-full border border-white/10 px-3 py-1.5 text-xs text-white/70"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/70"
                   >
                     <Save className="w-3.5 h-3.5" />
                     Save post
                   </button>
                   <button
                     onClick={() => window.open(`/ua/blog/${draft.slug}`, "_blank")}
-                    className="inline-flex items-center gap-2 rounded-none-full border border-white/10 px-3 py-1.5 text-xs text-white/70"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/70"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     Preview

@@ -76,14 +76,14 @@ export default function AdminNewOrderPage() {
         </p>
 
         {error && (
-          <div className="mb-6 flex items-start gap-3 rounded-none bg-red-950/30 border border-red-900/50 text-red-500/10 p-4 text-sm text-red-500 border border-red-500/20">
+          <div className="mb-6 flex items-start gap-3 rounded-none bg-blue-950/30 border border-red-900/50 text-blue-500/10 p-4 text-sm text-blue-500 border border-blue-500/20">
             <AlertCircle className="h-5 w-5 shrink-0" />
             <p>{error}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-8 transition-all hover:border-indigo-500/20 group">
+          <div className="rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-8 transition-all hover:border-blue-500/20 group">
             <h2 className="text-lg font-medium tracking-wide text-white mb-6">Деталі клієнта та замовлення</h2>
             <div className="grid gap-6 md:grid-cols-2">
               <label className="block">
@@ -93,7 +93,7 @@ export default function AdminNewOrderPage() {
                   required
                   value={formData.customerEmail}
                   onChange={e => setFormData(p => ({ ...p, customerEmail: e.target.value }))}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                   placeholder="Обов'язково має бути зареєстрований"
                 />
               </label>
@@ -103,7 +103,7 @@ export default function AdminNewOrderPage() {
                 <select
                   value={formData.currency}
                   onChange={e => setFormData(p => ({ ...p, currency: e.target.value }))}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                 >
                   <option value="EUR">EUR (€)</option>
                   <option value="USD">USD ($)</option>
@@ -116,7 +116,7 @@ export default function AdminNewOrderPage() {
                 <select
                   value={formData.deliveryMethod}
                   onChange={e => setFormData(p => ({ ...p, deliveryMethod: e.target.value }))}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                 >
                   <option value="SPECIAL_DELIVERY">Спецдоставка (Special)</option>
                   <option value="NOVA_POSHTA">Нова Пошта</option>
@@ -132,19 +132,19 @@ export default function AdminNewOrderPage() {
                   min="0"
                   value={formData.shippingCost}
                   onChange={e => setFormData(p => ({ ...p, shippingCost: e.target.value }))}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                 />
               </label>
             </div>
           </div>
 
-          <div className="rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-8 hover:border-indigo-500/20 transition-all">
+          <div className="rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-8 hover:border-blue-500/20 transition-all">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-medium tracking-wide text-white">Товари (Draft Items)</h2>
               <button
                 type="button"
                 onClick={() => setItems(p => [...p, { id: Date.now(), title: '', price: '', quantity: 1 }])}
-                className="flex items-center gap-1.5 text-[13px] tracking-wide font-medium text-zinc-400 hover:text-zinc-500 drop-shadow-[0_0_8px_rgba(99,102,241,0.4)] transition-all duration-300"
+                className="flex items-center gap-1.5 text-[13px] tracking-wide font-medium text-zinc-400 hover:text-zinc-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.4)] transition-all duration-300"
               >
                 <Plus className="w-4 h-4" /> Додати рядок
               </button>
@@ -164,7 +164,7 @@ export default function AdminNewOrderPage() {
                         newItems[index].title = e.target.value;
                         setItems(newItems);
                       }}
-                      className="w-full rounded-none border border-white/[0.06] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                      className="w-full rounded-none border border-white/[0.06] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                     />
                   </div>
                   <div className="w-32">
@@ -180,7 +180,7 @@ export default function AdminNewOrderPage() {
                         newItems[index].price = e.target.value;
                         setItems(newItems);
                       }}
-                      className="w-full rounded-none border border-white/[0.06] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                      className="w-full rounded-none border border-white/[0.06] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                     />
                   </div>
                   <div className="w-24">
@@ -195,14 +195,14 @@ export default function AdminNewOrderPage() {
                         newItems[index].quantity = parseInt(e.target.value) || 1;
                         setItems(newItems);
                       }}
-                      className="w-full rounded-none border border-white/[0.06] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner text-center"
+                      className="w-full rounded-none border border-white/[0.06] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner text-center"
                     />
                   </div>
                   {items.length > 1 && (
                     <button
                       type="button"
                       onClick={() => setItems(p => p.filter((_, i) => i !== index))}
-                      className="mt-3 text-red-500/50 hover:text-red-400 hover:drop-shadow-[0_0_8px_rgba(239,68,68,0.5)] transition-all p-1"
+                      className="mt-3 text-blue-500/50 hover:text-blue-400 hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.5)] transition-all p-1"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -221,7 +221,7 @@ export default function AdminNewOrderPage() {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-2 rounded-none bg-white px-8 py-3.5 text-sm font-semibold uppercase tracking-widest text-black hover:bg-zinc-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-[4px] bg-gradient-to-b from-blue-500 to-blue-700 px-8 py-3.5 text-sm font-bold uppercase tracking-widest text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_4px_18px_rgba(59,130,246,0.5)] hover:from-blue-400 hover:to-blue-600 transition-all duration-300 disabled:opacity-50"
             >
               {loading ? (
                 'Обробка...'

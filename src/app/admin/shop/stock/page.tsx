@@ -244,7 +244,7 @@ export default function AdminStockPage() {
             <div key={d.name} className="rounded-none border border-white/[0.08] bg-black/40 p-5 backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] tracking-[0.15em] uppercase text-white/40 font-medium">{d.name}</p>
-                <button onClick={() => handleDelete(d.name)} className="text-white/20 hover:text-red-400 transition-colors">
+                <button onClick={() => handleDelete(d.name)} className="text-white/20 hover:text-blue-400 transition-colors">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -302,10 +302,10 @@ export default function AdminStockPage() {
               <button
                 onClick={handleImport}
                 disabled={!csvFile || importing}
-                className="inline-flex items-center gap-2 rounded-none bg-white px-5 py-2.5 text-sm font-semibold text-black hover:bg-zinc-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 rounded-none bg-white px-5 py-2.5 text-sm font-semibold text-black hover:bg-zinc-700/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {importing ? (
-                  <><RefreshCcw className="h-4 w-4 animate-spin" /> Імпорт...</>
+                  <><RefreshCcw className="h-4 w-4 motion-safe:animate-spin" /> Імпорт...</>
                 ) : (
                   <><Upload className="h-4 w-4" /> Імпортувати</>
                 )}
@@ -314,7 +314,7 @@ export default function AdminStockPage() {
           </div>
 
           {/* Shopify CSV format hint */}
-          <div className="mt-4 rounded-none bg-zinc-100 text-black/5 border border-blue-500/10 p-3">
+          <div className="mt-4 rounded-none bg-blue-500/15 text-zinc-100/5 border border-blue-500/10 p-3">
             <p className="text-[10px] uppercase tracking-widest text-zinc-500/70 mb-1.5 font-medium">Shopify CSV формат</p>
             <p className="text-xs text-white/40 leading-relaxed">
               Стандартний експорт із Shopify Admin → Products → Export.
@@ -354,9 +354,9 @@ export default function AdminStockPage() {
 
         {/* Results */}
         {error && (
-          <div className="mt-4 rounded-none bg-red-900/20 border border-red-500/20 p-4 flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-red-400 shrink-0" />
-            <p className="text-sm text-red-300">{error}</p>
+          <div className="mt-4 rounded-none bg-red-900/20 border border-blue-500/20 p-4 flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-blue-400 shrink-0" />
+            <p className="text-sm text-blue-300">{error}</p>
           </div>
         )}
         
@@ -366,7 +366,7 @@ export default function AdminStockPage() {
             <div className="text-sm text-emerald-300">
               <span className="font-medium">{importResult.distributor}</span>: 
               {' '}{importResult.imported} нових, {importResult.updated} оновлено
-              {importResult.errors > 0 && <span className="text-red-300">, {importResult.errors} помилок</span>}
+              {importResult.errors > 0 && <span className="text-blue-300">, {importResult.errors} помилок</span>}
             </div>
           </div>
         )}

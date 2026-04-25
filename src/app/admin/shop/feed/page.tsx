@@ -228,7 +228,7 @@ export default function AdminFeedExportsPage() {
               href={productFeedUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
             >
               <ExternalLink className="h-4 w-4" />
               Open XML
@@ -241,21 +241,21 @@ export default function AdminFeedExportsPage() {
             <div className="grid gap-3 sm:grid-cols-3">
               <FeedSelect label="Format" value={stockFormat} onChange={(value) => setStockFormat(value as StockFeedFormat)} options={STOCK_FEED_FORMATS} />
               <label className="block sm:col-span-1">
-                <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-stone-500">Brand</span>
+                <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-zinc-500">Brand</span>
                 <input
                   value={brand}
                   onChange={(event) => setBrand(event.target.value)}
                   placeholder="Eventuri"
-                  className="w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-stone-100 placeholder:text-stone-500 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-white/20 focus:outline-none"
                 />
               </label>
               <label className="block sm:col-span-1">
-                <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-stone-500">SKU prefix</span>
+                <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-zinc-500">SKU prefix</span>
                 <input
                   value={skuPrefix}
                   onChange={(event) => setSkuPrefix(event.target.value)}
                   placeholder="kw_"
-                  className="w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-stone-100 placeholder:text-stone-500 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-white/20 focus:outline-none"
                 />
               </label>
             </div>
@@ -270,7 +270,7 @@ export default function AdminFeedExportsPage() {
               href={stockFeedUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
             >
               <ExternalLink className="h-4 w-4" />
               Open feed
@@ -280,8 +280,8 @@ export default function AdminFeedExportsPage() {
       </div>
 
       <AdminFilterBar>
-        <div className="flex items-center gap-2 text-sm text-stone-300">
-          <Search className="h-4 w-4 text-stone-500" />
+        <div className="flex items-center gap-2 text-sm text-zinc-300">
+          <Search className="h-4 w-4 text-zinc-500" />
           Preview follows the stock filters above.
         </div>
         <button
@@ -290,9 +290,9 @@ export default function AdminFeedExportsPage() {
             setBrand((current) => current.trim());
             setSkuPrefix((current) => current.trim());
           }}
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10"
+          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
         >
-          <RefreshCcw className={`h-4 w-4 ${loadingPreview ? 'animate-spin' : ''}`} />
+          <RefreshCcw className={`h-4 w-4 ${loadingPreview ? 'motion-safe:animate-spin' : ''}`} />
           Refresh preview
         </button>
       </AdminFilterBar>
@@ -300,14 +300,14 @@ export default function AdminFeedExportsPage() {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
         <AdminTableShell>
           <div className="border-b border-white/10 px-5 py-4">
-            <h2 className="text-sm font-medium text-stone-100">Stock feed preview</h2>
-            <p className="mt-1 text-xs text-stone-500">First rows from the JSON feed used for distributor availability checks.</p>
+            <h2 className="text-sm font-medium text-zinc-100">Stock feed preview</h2>
+            <p className="mt-1 text-xs text-zinc-500">First rows from the JSON feed used for distributor availability checks.</p>
           </div>
           {preview?.items.length ? (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[880px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                  <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                     <th className="px-4 py-4 font-medium">Product</th>
                     <th className="px-4 py-4 font-medium">Brand</th>
                     <th className="px-4 py-4 font-medium">SKU</th>
@@ -319,20 +319,20 @@ export default function AdminFeedExportsPage() {
                   {preview.items.slice(0, 12).map((item) => (
                     <tr key={item.airtableId} className="align-top transition hover:bg-white/[0.03]">
                       <td className="px-4 py-4">
-                        <div className="font-medium text-stone-100">{item.title || '-'}</div>
-                        <div className="mt-1 font-mono text-xs text-stone-500">{item.airtableId}</div>
+                        <div className="font-medium text-zinc-100">{item.title || '-'}</div>
+                        <div className="mt-1 font-mono text-xs text-zinc-500">{item.airtableId}</div>
                       </td>
-                      <td className="px-4 py-4 text-stone-300">{item.brand || '-'}</td>
+                      <td className="px-4 py-4 text-zinc-300">{item.brand || '-'}</td>
                       <td className="px-4 py-4">
-                        <div className="font-mono text-xs text-stone-300">{item.ourSku || '-'}</div>
-                        <div className="mt-1 font-mono text-xs text-stone-500">{item.sku || '-'}</div>
+                        <div className="font-mono text-xs text-zinc-300">{item.ourSku || '-'}</div>
+                        <div className="mt-1 font-mono text-xs text-zinc-500">{item.sku || '-'}</div>
                       </td>
                       <td className="px-4 py-4">
                         <AdminStatusBadge tone={item.stockStatus === 'in_stock' ? 'success' : 'warning'}>
                           {item.stockQuantity} · {item.stockStatus.replace(/_/g, ' ')}
                         </AdminStatusBadge>
                       </td>
-                      <td className="px-4 py-4 text-stone-300">{formatMoney(item.price, item.priceCurrencyHint)}</td>
+                      <td className="px-4 py-4 text-zinc-300">{formatMoney(item.price, item.priceCurrencyHint)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -368,11 +368,11 @@ function FeedSelect({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-stone-500">{label}</span>
+      <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-zinc-500">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-stone-100 focus:border-white/20 focus:outline-none"
+        className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
       >
         {options.map((option) => (
           <option key={`${label}-${option.value}`} value={option.value}>
@@ -398,22 +398,22 @@ function FeedUrlCard({
   onCopy: () => void;
 }) {
   return (
-    <div className="rounded-[24px] border border-white/10 bg-black/25 p-4">
+    <div className="rounded-[6px] border border-white/10 bg-black/25 p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-stone-100">
-          <span className="text-amber-100/70">{icon}</span>
+        <div className="flex items-center gap-2 text-sm font-medium text-zinc-100">
+          <span className="text-blue-300">{icon}</span>
           {title}
         </div>
         <button
           type="button"
           onClick={onCopy}
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-stone-200 transition hover:bg-white/10"
+          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/10"
         >
           {copied ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <code className="block break-all rounded-2xl border border-white/10 bg-[#080808] px-3 py-3 text-xs leading-5 text-stone-400">
+      <code className="block break-all rounded-[6px] border border-white/10 bg-[#080808] px-3 py-3 text-xs leading-5 text-zinc-400">
         {url}
       </code>
     </div>

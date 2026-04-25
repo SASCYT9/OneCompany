@@ -164,7 +164,7 @@ export default function MessagesPanel() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+        <div className="rounded-[6px] border border-white/10 bg-white/5 p-4 backdrop-blur">
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
             <input
@@ -203,7 +203,7 @@ export default function MessagesPanel() {
                   }
                 }}
                 whileHover={{ x: 6 }}
-                className={`w-full rounded-2xl border p-4 text-left transition-colors ${
+                className={`w-full rounded-[6px] border p-4 text-left transition-colors ${
                   selectedMessage?.id === msg.id
                     ? 'border-white/60 bg-white/10'
                     : 'border-white/5 bg-white/5 hover:border-white/40'
@@ -223,7 +223,7 @@ export default function MessagesPanel() {
         </div>
 
         <div className={`fixed inset-0 z-50 bg-black lg:static lg:bg-transparent ${selectedMessage ? 'block' : 'hidden lg:block'}`}>
-          <div className="h-full rounded-none border-0 bg-black p-6 lg:rounded-3xl lg:border lg:border-white/10 lg:bg-black/30 lg:backdrop-blur">
+          <div className="h-full rounded-none border-0 bg-black p-6 lg:rounded-[8px] lg:border lg:border-white/10 lg:bg-black/30 lg:backdrop-blur">
           <AnimatePresence mode="wait">
             {selectedMessage ? (
               <motion.div
@@ -264,7 +264,7 @@ export default function MessagesPanel() {
                     />
                     <button
                       onClick={() => deleteMessage(selectedMessage.id)}
-                      className="rounded-full border border-red-500/40 p-2 text-red-400 hover:bg-red-500/10"
+                      className="rounded-full border border-blue-500/40 p-2 text-blue-400 hover:bg-blue-500/10"
                       title="Видалити"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -286,7 +286,7 @@ export default function MessagesPanel() {
                     <div className="space-y-3">
                       <p className="text-xs uppercase tracking-[0.4em] text-white/40">Історія відповідей</p>
                       {selectedMessage.replies.map((reply, index) => (
-                        <div key={`${reply.repliedAt}-${index}`} className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                        <div key={`${reply.repliedAt}-${index}`} className="rounded-[6px] border border-white/10 bg-white/5 p-3">
                           <p className="text-sm text-white/80">{reply.replyText}</p>
                           <p className="mt-2 text-[11px] text-white/40">{new Date(reply.repliedAt).toLocaleString()}</p>
                         </div>
@@ -295,7 +295,7 @@ export default function MessagesPanel() {
                   )}
                 </div>
 
-                <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="mt-6 rounded-[6px] border border-white/10 bg-white/5 p-4">
                   <textarea
                     value={replyText}
                     onChange={(event) => setReplyText(event.target.value)}
@@ -320,7 +320,7 @@ export default function MessagesPanel() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="flex h-full flex-col items-center justify-center rounded-3xl border border-dashed border-white/15 bg-white/5 p-12 text-center text-white/50"
+                className="flex h-full flex-col items-center justify-center rounded-[8px] border border-dashed border-white/15 bg-white/5 p-12 text-center text-white/50"
               >
                 <Inbox className="mb-4 h-10 w-10" />
                 <p className="text-lg font-light">Оберіть повідомлення ліворуч</p>
@@ -347,7 +347,7 @@ function StatCard({
   accent?: string;
 }) {
   return (
-    <div className={`rounded-2xl border ${accent ?? 'border-white/10'} bg-white/5 p-4 text-white backdrop-blur`}>
+    <div className={`rounded-[6px] border ${accent ?? 'border-white/10'} bg-white/5 p-4 text-white backdrop-blur`}>
       <div className="flex items-center gap-3 text-sm uppercase tracking-[0.3em] text-white/60">
         {icon}
         <span>{label}</span>

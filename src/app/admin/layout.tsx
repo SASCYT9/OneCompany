@@ -2,10 +2,13 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 
+import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Lock } from 'lucide-react';
+import { ArrowRight, Lock, Mail, ShieldCheck } from 'lucide-react';
 
 import AdminShell from '@/components/admin/AdminShell';
+import { AdminConfirmProvider } from '@/components/admin/AdminConfirmDialog';
+import { AdminToastProvider } from '@/components/admin/AdminToast';
 import { AdminCurrencyProvider } from '@/lib/admin/currencyContext';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -23,24 +26,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       try {
         const response = await fetch('/api/admin/auth', { cache: 'no-store' });
         const data = await response.json().catch(() => ({ authenticated: false }));
-        if (!isMounted) {
-          return;
-        }
+        if (!isMounted) return;
         setIsAuthenticated(Boolean(data.authenticated));
       } catch {
-        if (!isMounted) {
-          return;
-        }
+        if (!isMounted) return;
         setIsAuthenticated(false);
       } finally {
-        if (isMounted) {
-          setAuthReady(true);
-        }
+        if (isMounted) setAuthReady(true);
       }
     }
 
     void loadAuthState();
-
     return () => {
       isMounted = false;
     };
@@ -76,80 +72,161 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     try {
       await fetch('/api/admin/auth', { method: 'DELETE' });
     } catch {
-      // Keep local logout resilient to transient network failures.
+      // resilient logout
     }
-
     setIsAuthenticated(false);
     setPassword('');
   }
 
   if (!authReady) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-sm uppercase tracking-[0.2em] text-stone-500">
-        Authenticating...
+      <div className="flex min-h-screen items-center justify-center bg-[#0A0A0A]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative flex h-12 w-12 items-center justify-center">
+            <div className="absolute inset-0 motion-safe:animate-ping rounded-full border border-blue-500/40" />
+            <div className="relative h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_14px_rgba(59,130,246,0.9)]" />
+          </div>
+          <div className="text-xs font-medium uppercase tracking-wider text-zinc-500">Authenticating</div>
+        </div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(245,240,232,0.08),_transparent_26%),linear-gradient(180deg,#050505_0%,#000000_100%)] px-6">
-        <div className="flex min-h-screen items-center justify-center">
+      <div className="relative min-h-screen overflow-hidden bg-[#0A0A0A]">
+        {/* Subtle blue ambient glow */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-32 top-1/4 h-[500px] w-[500px] rounded-full bg-blue-600/[0.10] blur-[140px]" />
+          <div className="absolute -right-32 bottom-1/4 h-[450px] w-[450px] rounded-full bg-blue-500/[0.06] blur-[120px]" />
+        </div>
+
+        {/* Hairline grid */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.018]"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+          }}
+        />
+
+        <div className="relative flex min-h-screen items-center justify-center px-6 py-12">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            className="w-full max-w-md rounded-[32px] border border-white/10 bg-[#0b0b0b]/95 p-8 shadow-[0_35px_120px_rgba(0,0,0,0.45)]"
+            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-[440px]"
           >
-            <div className="mb-10 text-center">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[22px] border border-white/10 bg-white/[0.03]">
-                <Lock className="h-8 w-8 text-stone-100" />
-              </div>
-              <div className="text-[11px] font-medium uppercase tracking-[0.28em] text-amber-100/55">OneCompany</div>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-stone-50">Admin Access</h1>
-              <p className="mt-3 text-sm leading-6 text-stone-400">
-                Luxury operations shell for catalog, orders, pricing, and internal tools.
-              </p>
+            {/* Brand logo above card */}
+            <div className="mb-8 flex justify-center">
+              <Image
+                src="/branding/logo-light.svg"
+                alt="OneCompany"
+                width={200}
+                height={48}
+                className="h-12 w-auto"
+                priority
+              />
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-5">
-              <label className="block">
-                <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400">Email</span>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="admin@onecompany.local"
-                  className="w-full rounded-2xl border border-white/10 bg-[#111111] px-4 py-3 text-sm text-stone-100 placeholder:text-stone-500 focus:border-amber-100/20 focus:outline-none"
-                  required
-                />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400">Password</span>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Enter admin password"
-                  className="w-full rounded-2xl border border-white/10 bg-[#111111] px-4 py-3 text-sm text-stone-100 placeholder:text-stone-500 focus:border-amber-100/20 focus:outline-none"
-                  required
-                />
-              </label>
+            <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#121212] shadow-[0_50px_120px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.04)]">
+              {/* Top blue accent line */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
 
-              {error ? (
-                <div className="rounded-2xl border border-red-500/25 bg-red-950/20 px-4 py-3 text-sm text-red-200">
-                  {error}
+              <div className="p-9">
+                <div className="mb-8 text-center">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1, duration: 0.4 }}
+                    className="relative mx-auto mb-7 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600/15 shadow-[inset_0_1px_0_rgba(96,165,250,0.2),0_8px_24px_rgba(59,130,246,0.2)]"
+                  >
+                    <Lock className="h-6 w-6 text-blue-400" strokeWidth={2} aria-hidden="true" />
+                  </motion.div>
+
+                  <h1 className="text-[26px] font-semibold leading-tight tracking-tight text-zinc-50">
+                    Welcome back
+                  </h1>
+                  <p className="mt-2 text-sm leading-6 text-zinc-400">
+                    Sign in to access your operations console.
+                  </p>
                 </div>
-              ) : null}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-2xl bg-stone-100 px-4 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-black transition hover:bg-white disabled:opacity-50"
-              >
-                {loading ? 'Authenticating...' : 'Enter admin'}
-              </button>
-            </form>
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <label className="mb-1.5 flex items-center gap-2 text-xs font-medium text-zinc-400">
+                      <Mail className="h-3 w-3 text-blue-400" aria-hidden="true" />
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="admin@onecompany.local"
+                      autoComplete="email"
+                      className="w-full rounded-lg border border-white/[0.08] bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 transition-all duration-150 focus:border-blue-500/50 focus:bg-[#171717] focus:outline-none focus:ring-2 focus:ring-blue-500/15"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 flex items-center gap-2 text-xs font-medium text-zinc-400">
+                      <Lock className="h-3 w-3 text-blue-400" aria-hidden="true" />
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      placeholder="••••••••••••"
+                      autoComplete="current-password"
+                      className="w-full rounded-lg border border-white/[0.08] bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 transition-all duration-150 focus:border-blue-500/50 focus:bg-[#171717] focus:outline-none focus:ring-2 focus:ring-blue-500/15"
+                      required
+                    />
+                  </div>
+
+                  {error ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      role="alert"
+                      aria-live="assertive"
+                      className="rounded-lg border border-blue-500/30 bg-blue-950/30 px-4 py-3 text-sm text-red-100"
+                    >
+                      {error}
+                    </motion.div>
+                  ) : null}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="group relative mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_4px_18px_rgba(59,130,246,0.4)] transition-all duration-150 hover:bg-blue-500 disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <>
+                        <span className="h-4 w-4 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
+                        <span>Authenticating</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Sign in</span>
+                        <ArrowRight className="h-4 w-4 motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" aria-hidden="true" />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                <div className="mt-7 flex items-center justify-center gap-2 text-[11px] text-zinc-500">
+                  <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+                  <span>Encrypted · Rate-limited · Audit logged</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 text-center text-[11px] text-zinc-600">
+              OneCompany · Premium Automotive Distribution
+            </div>
           </motion.div>
         </div>
       </div>
@@ -157,8 +234,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AdminCurrencyProvider>
-      <AdminShell onLogout={handleLogout}>{children}</AdminShell>
-    </AdminCurrencyProvider>
+    <AdminToastProvider>
+      <AdminConfirmProvider>
+        <AdminCurrencyProvider>
+          <AdminShell onLogout={handleLogout}>{children}</AdminShell>
+        </AdminCurrencyProvider>
+      </AdminConfirmProvider>
+    </AdminToastProvider>
   );
 }

@@ -357,7 +357,7 @@ export default function AdminShopImportPage() {
           <>
             <Link
               href="/admin/shop/audit"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
             >
               <FileClock className="h-4 w-4" />
               Audit trail
@@ -365,9 +365,9 @@ export default function AdminShopImportPage() {
             <button
               type="button"
               onClick={() => void refreshCenter()}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
             >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'motion-safe:animate-spin' : ''}`} />
               Refresh
             </button>
           </>
@@ -387,8 +387,8 @@ export default function AdminShopImportPage() {
 
       <AdminActionBar>
         <div className="space-y-1">
-          <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-stone-500">Ops flow</div>
-          <div className="text-sm text-stone-300">
+          <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">Ops flow</div>
+          <div className="text-sm text-zinc-300">
             1. Завантажити CSV. 2. Вибрати шаблон і conflict policy. 3. Зробити dry-run. 4. Відкрити job review. 5. Commit після перевірки.
           </div>
         </div>
@@ -417,12 +417,12 @@ export default function AdminShopImportPage() {
           <div className="space-y-5">
             <Field label="Source file">
               <div className="flex flex-wrap items-center gap-3">
-                <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/10 px-4 py-2.5 text-sm text-stone-200 transition hover:border-white/25">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/10 px-4 py-2.5 text-sm text-zinc-200 transition hover:border-white/25">
                   <Upload className="h-4 w-4" />
                   Upload CSV
                   <input type="file" accept=".csv,text/csv" onChange={handleFile} className="hidden" />
                 </label>
-                <span className="text-sm text-stone-400">{sourceFilename || 'Файл ще не вибраний'}</span>
+                <span className="text-sm text-zinc-400">{sourceFilename || 'Файл ще не вибраний'}</span>
               </div>
             </Field>
 
@@ -431,7 +431,7 @@ export default function AdminShopImportPage() {
                 <select
                   value={selectedTemplateId}
                   onChange={(event) => setSelectedTemplateId(event.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
                 >
                   <option value="">Без шаблону</option>
                   {templates.map((template) => (
@@ -446,7 +446,7 @@ export default function AdminShopImportPage() {
                 <select
                   value={conflictMode}
                   onChange={(event) => setConflictMode(event.target.value as ImportConflictMode)}
-                  className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
                 >
                   {Object.entries(CONFLICT_MODE_COPY).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -462,7 +462,7 @@ export default function AdminShopImportPage() {
                 <input
                   value={supplierName}
                   onChange={(event) => setSupplierName(event.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 placeholder:text-stone-600 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                   placeholder="Urban, GP Portal, supplier alias..."
                 />
               </Field>
@@ -471,7 +471,7 @@ export default function AdminShopImportPage() {
                 <input
                   value={sourceFilename}
                   onChange={(event) => setSourceFilename(event.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 placeholder:text-stone-600 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                   placeholder="catalog.csv"
                 />
               </Field>
@@ -482,7 +482,7 @@ export default function AdminShopImportPage() {
                 value={csvText}
                 onChange={(event) => setCsvText(event.target.value)}
                 rows={16}
-                className="w-full rounded-[24px] border border-white/10 bg-[#0b0b0b] px-4 py-4 text-sm text-stone-100 placeholder:text-stone-600 focus:border-white/20 focus:outline-none"
+                className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-4 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                 placeholder="Вставте CSV тут або завантажте файл вище."
               />
             </Field>
@@ -492,7 +492,7 @@ export default function AdminShopImportPage() {
                 type="button"
                 onClick={() => void runImport('dry-run')}
                 disabled={loading || !csvText.trim()}
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm font-medium text-stone-100 transition hover:border-white/25 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm font-medium text-zinc-100 transition hover:border-white/25 disabled:opacity-50"
               >
                 <FileCheck className="h-4 w-4" />
                 {loading ? 'Запуск...' : 'Dry run'}
@@ -501,7 +501,7 @@ export default function AdminShopImportPage() {
                 type="button"
                 onClick={() => void runImport('commit')}
                 disabled={loading || !csvText.trim()}
-                className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-3 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 {loading ? 'Запуск...' : 'Commit import'}
@@ -521,7 +521,7 @@ export default function AdminShopImportPage() {
                 <input
                   value={templateDraft.name}
                   onChange={(event) => setTemplateDraftField('name', event.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 placeholder:text-stone-600 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                   placeholder="Urban supplier feed"
                 />
               </Field>
@@ -531,7 +531,7 @@ export default function AdminShopImportPage() {
                   onChange={(event) =>
                     setTemplateDraftField('defaultConflictMode', event.target.value as ImportConflictMode)
                   }
-                  className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
                 >
                   {Object.entries(CONFLICT_MODE_COPY).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -547,7 +547,7 @@ export default function AdminShopImportPage() {
                 <input
                   value={templateDraft.supplierName}
                   onChange={(event) => setTemplateDraftField('supplierName', event.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 placeholder:text-stone-600 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                   placeholder="Optional supplier alias"
                 />
               </Field>
@@ -555,7 +555,7 @@ export default function AdminShopImportPage() {
                 <input
                   value={templateDraft.notes}
                   onChange={(event) => setTemplateDraftField('notes', event.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 placeholder:text-stone-600 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                   placeholder="Коли застосовувати цей mapping"
                 />
               </Field>
@@ -563,11 +563,11 @@ export default function AdminShopImportPage() {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-medium text-stone-100">Field mapping</div>
+                <div className="text-sm font-medium text-zinc-100">Field mapping</div>
                 <button
                   type="button"
                   onClick={addMappingRow}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs text-stone-300 transition hover:border-white/25"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:border-white/25"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add mapping
@@ -576,23 +576,23 @@ export default function AdminShopImportPage() {
 
               <div className="space-y-3">
                 {templateDraft.mappingRows.map((row) => (
-                  <div key={row.id} className="grid gap-3 rounded-[24px] border border-white/10 bg-black/20 p-4 md:grid-cols-[1fr_1fr_auto]">
+                  <div key={row.id} className="grid gap-3 rounded-[6px] border border-white/10 bg-black/20 p-4 md:grid-cols-[1fr_1fr_auto]">
                     <input
                       value={row.source}
                       onChange={(event) => updateMappingRow(row.id, { source: event.target.value })}
-                      className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 placeholder:text-stone-600 focus:border-white/20 focus:outline-none"
+                      className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                       placeholder="supplier_column"
                     />
                     <input
                       value={row.target}
                       onChange={(event) => updateMappingRow(row.id, { target: event.target.value })}
-                      className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 placeholder:text-stone-600 focus:border-white/20 focus:outline-none"
+                      className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                       placeholder="shop_field"
                     />
                     <button
                       type="button"
                       onClick={() => removeMappingRow(row.id)}
-                      className="inline-flex items-center justify-center rounded-full border border-white/10 px-3 py-3 text-stone-400 transition hover:border-red-500/30 hover:text-red-200"
+                      className="inline-flex items-center justify-center rounded-full border border-white/10 px-3 py-3 text-zinc-400 transition hover:border-blue-500/30 hover:text-red-200"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -606,7 +606,7 @@ export default function AdminShopImportPage() {
                 type="button"
                 onClick={() => void saveTemplate()}
                 disabled={savingTemplate || !templateDraft.name.trim()}
-                className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-3 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
               >
                 <Save className="h-4 w-4" />
                 {savingTemplate ? 'Збереження...' : templateDraft.id ? 'Оновити шаблон' : 'Створити шаблон'}
@@ -614,7 +614,7 @@ export default function AdminShopImportPage() {
               <button
                 type="button"
                 onClick={resetTemplateDraft}
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm text-stone-300 transition hover:border-white/25"
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm text-zinc-300 transition hover:border-white/25"
               >
                 Reset draft
               </button>
@@ -622,8 +622,8 @@ export default function AdminShopImportPage() {
 
             {templates.length ? (
               <AdminTableShell>
-                <table className="min-w-full text-left text-sm text-stone-200">
-                  <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                <table className="min-w-full text-left text-sm text-zinc-200">
+                  <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                     <tr>
                       <th className="px-4 py-3 font-medium">Template</th>
                       <th className="px-4 py-3 font-medium">Supplier</th>
@@ -635,17 +635,17 @@ export default function AdminShopImportPage() {
                     {templates.map((template) => (
                       <tr key={template.id} className="border-t border-white/8">
                         <td className="px-4 py-4">
-                          <div className="font-medium text-stone-100">{template.name}</div>
-                          <div className="mt-1 text-xs text-stone-500">{CONFLICT_MODE_COPY[template.defaultConflictMode]}</div>
+                          <div className="font-medium text-zinc-100">{template.name}</div>
+                          <div className="mt-1 text-xs text-zinc-500">{CONFLICT_MODE_COPY[template.defaultConflictMode]}</div>
                         </td>
-                        <td className="px-4 py-4 text-stone-400">{template.supplierName || '—'}</td>
-                        <td className="px-4 py-4 text-stone-300">{template.jobsCount}</td>
+                        <td className="px-4 py-4 text-zinc-400">{template.supplierName || '—'}</td>
+                        <td className="px-4 py-4 text-zinc-300">{template.jobsCount}</td>
                         <td className="px-4 py-4">
                           <div className="flex justify-end gap-2">
                             <button
                               type="button"
                               onClick={() => editTemplate(template)}
-                              className="rounded-full border border-white/10 px-3 py-2 text-xs text-stone-300 transition hover:border-white/25"
+                              className="rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:border-white/25"
                             >
                               Edit
                             </button>
@@ -653,7 +653,7 @@ export default function AdminShopImportPage() {
                               type="button"
                               onClick={() => void deleteTemplate(template.id)}
                               disabled={deletingTemplateId === template.id}
-                              className="rounded-full border border-white/10 px-3 py-2 text-xs text-stone-300 transition hover:border-red-500/30 hover:text-red-200 disabled:opacity-50"
+                              className="rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:border-blue-500/30 hover:text-red-200 disabled:opacity-50"
                             >
                               Delete
                             </button>
@@ -681,8 +681,8 @@ export default function AdminShopImportPage() {
       >
         {jobs.length ? (
           <AdminTableShell>
-            <table className="min-w-full text-left text-sm text-stone-200">
-              <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+            <table className="min-w-full text-left text-sm text-zinc-200">
+              <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                 <tr>
                   <th className="px-4 py-3 font-medium">Run</th>
                   <th className="px-4 py-3 font-medium">Template</th>
@@ -701,27 +701,27 @@ export default function AdminShopImportPage() {
                         </AdminStatusBadge>
                         <AdminStatusBadge tone={job.status === 'FAILED' ? 'danger' : 'success'}>{job.status}</AdminStatusBadge>
                       </div>
-                      <div className="mt-2 font-medium text-stone-100">{job.sourceFilename || 'Імпорт без назви'}</div>
-                      <div className="mt-1 text-xs text-stone-500">{new Date(job.createdAt).toLocaleString()}</div>
+                      <div className="mt-2 font-medium text-zinc-100">{job.sourceFilename || 'Імпорт без назви'}</div>
+                      <div className="mt-1 text-xs text-zinc-500">{new Date(job.createdAt).toLocaleString()}</div>
                     </td>
-                    <td className="px-4 py-4 text-stone-300">
+                    <td className="px-4 py-4 text-zinc-300">
                       <div>{job.template?.name ?? 'Без шаблону'}</div>
-                      <div className="mt-1 text-xs text-stone-500">{job.supplierName ?? 'Supplier not set'}</div>
+                      <div className="mt-1 text-xs text-zinc-500">{job.supplierName ?? 'Supplier not set'}</div>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="text-stone-100">
+                      <div className="text-zinc-100">
                         {job.createdCount} created · {job.updatedCount} updated
                       </div>
-                      <div className="mt-1 text-xs text-stone-500">
+                      <div className="mt-1 text-xs text-zinc-500">
                         {job.validProducts} valid · {job.skippedCount} skipped · {job.errorCount} errors
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-stone-400">{job.actorName || job.actorEmail}</td>
+                    <td className="px-4 py-4 text-zinc-400">{job.actorName || job.actorEmail}</td>
                     <td className="px-4 py-4">
                       <div className="flex justify-end">
                         <Link
                           href={`/admin/shop/import/jobs/${job.id}`}
-                          className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+                          className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
                         >
                           Review
                           <ExternalLink className="h-3.5 w-3.5" />
@@ -747,7 +747,7 @@ export default function AdminShopImportPage() {
 function Field(props: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-2">
-      <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">{props.label}</span>
+      <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">{props.label}</span>
       {props.children}
     </label>
   );

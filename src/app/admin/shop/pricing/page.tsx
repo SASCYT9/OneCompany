@@ -128,8 +128,8 @@ export default function CustomerPricingPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+          <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
           Завантаження customer pricing…
         </div>
       </AdminPage>
@@ -146,14 +146,14 @@ export default function CustomerPricingPage() {
           <>
             <Link
               href="/admin/shop/pricing/simulator"
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
             >
               <Calculator className="h-4 w-4" />
               Price simulator
             </Link>
             <Link
               href="/admin/shop/turn14/markups"
-              className="inline-flex items-center gap-2 rounded-2xl border border-amber-300/20 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-100 transition hover:bg-amber-500/15"
+              className="inline-flex items-center gap-2 rounded-[6px] border border-amber-300/20 bg-amber-500/10 px-4 py-2.5 text-sm text-blue-300 transition hover:bg-amber-500/15"
             >
               <Percent className="h-4 w-4" />
               Brand markups
@@ -161,7 +161,7 @@ export default function CustomerPricingPage() {
             <button
               type="button"
               onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
               Add customer
@@ -186,15 +186,15 @@ export default function CustomerPricingPage() {
         </AdminInlineAlert>
       ) : null}
 
-      <AdminActionBar className="bg-[#101010]">
+      <AdminActionBar className="bg-[#171717]">
         <div className="space-y-1">
-          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Change set</div>
-          <div className="text-sm text-stone-300">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Change set</div>
+          <div className="text-sm text-zinc-300">
             {hasChanges ? `${Object.keys(editedMarkups).length} pending customer pricing changes` : 'All pricing rules are in sync'}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-stone-400">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-400">
             <DollarSign className="h-3.5 w-3.5" />
             Pricing overrides
           </div>
@@ -202,25 +202,25 @@ export default function CustomerPricingPage() {
             type="button"
             onClick={handleSaveAll}
             disabled={saving || !hasChanges}
-            className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {saving ? <Loader2 className="h-4 w-4 motion-safe:animate-spin" /> : <Save className="h-4 w-4" />}
             {saving ? 'Saving…' : 'Save all'}
           </button>
         </div>
       </AdminActionBar>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-stone-100">
-          <Search className="h-4 w-4 text-stone-500" />
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+          <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Пошук клієнта..."
-            className="flex-1 bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
+            className="flex-1 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
           />
         </label>
-        <div className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-stone-400">
+        <div className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-400">
           {filtered.length} / {markups.length} visible
         </div>
       </AdminFilterBar>
@@ -238,7 +238,7 @@ export default function CustomerPricingPage() {
               <button
                 type="button"
                 onClick={() => setShowAddModal(true)}
-                className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
+                className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
               >
                 <Plus className="h-4 w-4" />
                 Add customer
@@ -251,11 +251,11 @@ export default function CustomerPricingPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                <th className="px-5 py-4 font-medium text-[11px] uppercase tracking-[0.18em] text-stone-500">Клієнт</th>
-                <th className="px-5 py-4 font-medium text-[11px] uppercase tracking-[0.18em] text-stone-500 w-40">Націнка %</th>
-                <th className="px-5 py-4 font-medium text-[11px] uppercase tracking-[0.18em] text-stone-500">Множник</th>
-                <th className="px-5 py-4 font-medium text-[11px] uppercase tracking-[0.18em] text-stone-500">Нотатки</th>
-                <th className="px-5 py-4 font-medium text-[11px] uppercase tracking-[0.18em] text-stone-500 w-24">Дії</th>
+                <th className="px-5 py-4 font-medium text-[11px] uppercase tracking-[0.18em] text-zinc-500">Клієнт</th>
+                <th className="px-5 py-4 font-medium text-[11px] uppercase tracking-[0.18em] text-zinc-500 w-40">Націнка %</th>
+                <th className="px-5 py-4 font-medium text-[11px] uppercase tracking-[0.18em] text-zinc-500">Множник</th>
+                <th className="px-5 py-4 font-medium text-[11px] uppercase tracking-[0.18em] text-zinc-500">Нотатки</th>
+                <th className="px-5 py-4 font-medium text-[11px] uppercase tracking-[0.18em] text-zinc-500 w-24">Дії</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
@@ -268,8 +268,8 @@ export default function CustomerPricingPage() {
                 return (
                   <tr key={m.id} className={`transition-colors hover:bg-white/[0.02] ${isEdited ? 'bg-emerald-500/[0.03]' : ''}`}>
                     <td className="px-5 py-4">
-                      <div className="font-medium text-stone-100 text-sm">{m.customerName}</div>
-                      <div className="mt-0.5 font-mono text-[10px] text-stone-500">{m.customerId}</div>
+                      <div className="font-medium text-zinc-100 text-sm">{m.customerName}</div>
+                      <div className="mt-0.5 font-mono text-[10px] text-zinc-500">{m.customerId}</div>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
@@ -288,9 +288,9 @@ export default function CustomerPricingPage() {
                           max="200"
                           value={pct}
                           onChange={e => handleEdit(m.customerId, 'markupPct', e.target.value)}
-                          className="w-16 rounded-2xl border border-white/10 bg-white/[0.03] px-2 py-1.5 text-center text-sm text-stone-100 focus:border-amber-200/30 focus:outline-none"
+                          className="w-16 rounded-[6px] border border-white/10 bg-white/[0.03] px-2 py-1.5 text-center text-sm text-zinc-100 focus:border-amber-200/30 focus:outline-none"
                         />
-                        <span className="text-xs text-stone-500">%</span>
+                        <span className="text-xs text-zinc-500">%</span>
                       </div>
                     </td>
                     <td className="px-5 py-4 font-mono text-sm text-emerald-300">
@@ -301,14 +301,14 @@ export default function CustomerPricingPage() {
                         value={notes}
                         onChange={e => handleEdit(m.customerId, 'notes', e.target.value)}
                         placeholder="VIP, оптовик..."
-                        className="w-full border-b border-white/5 bg-transparent px-0 py-1 text-sm text-stone-300 placeholder:text-stone-600 focus:border-white/20 focus:outline-none"
+                        className="w-full border-b border-white/5 bg-transparent px-0 py-1 text-sm text-zinc-300 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                       />
                     </td>
                     <td className="px-5 py-4">
                       <button
                         type="button"
                         onClick={() => handleDelete(m.customerId)}
-                        className="rounded-2xl border border-red-500/20 p-2 text-stone-400 transition hover:bg-red-950/30 hover:text-red-300"
+                        className="rounded-[6px] border border-blue-500/20 p-2 text-zinc-400 transition hover:bg-blue-950/30 hover:text-blue-300"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -324,18 +324,18 @@ export default function CustomerPricingPage() {
       {/* Add modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" onClick={() => setShowAddModal(false)}>
-          <div className="w-full max-w-md rounded-[28px] border border-white/10 bg-[#111] p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="mb-5 text-sm font-medium text-stone-100">Додати персональну націнку</h3>
+          <div className="w-full max-w-md rounded-[6px] border border-white/10 bg-[#111] p-6" onClick={e => e.stopPropagation()}>
+            <h3 className="mb-5 text-sm font-medium text-zinc-100">Додати персональну націнку</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400">CRM Клієнт *</label>
+                <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">CRM Клієнт *</label>
                 <select value={newCustomer.customerId}
                   onChange={e => {
                     const cust = availableCustomers.find(c => c.id === e.target.value);
                     setNewCustomer(prev => ({ ...prev, customerId: e.target.value, customerName: cust?.name || '' }));
                   }}
-                  className="w-full rounded-2xl border border-white/10 bg-[#101010] px-3.5 py-2.5 text-sm text-stone-100 focus:border-amber-200/30 focus:outline-none">
+                  className="w-full rounded-[6px] border border-white/10 bg-[#171717] px-3.5 py-2.5 text-sm text-zinc-100 focus:border-amber-200/30 focus:outline-none">
                   <option value="">Оберіть клієнта</option>
                   {availableCustomers.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -343,26 +343,26 @@ export default function CustomerPricingPage() {
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400">Націнка %</label>
+                <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">Націнка %</label>
                 <input type="number" min="0" max="200" value={newCustomer.markupPct}
                   onChange={e => setNewCustomer(prev => ({ ...prev, markupPct: Number(e.target.value) }))}
-                  className="w-full rounded-2xl border border-white/10 bg-[#101010] px-3.5 py-2.5 text-sm text-stone-100 focus:border-amber-200/30 focus:outline-none" />
+                  className="w-full rounded-[6px] border border-white/10 bg-[#171717] px-3.5 py-2.5 text-sm text-zinc-100 focus:border-amber-200/30 focus:outline-none" />
               </div>
               <div>
-                <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400">Нотатки</label>
+                <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">Нотатки</label>
                 <input value={newCustomer.notes} onChange={e => setNewCustomer(prev => ({ ...prev, notes: e.target.value }))}
                   placeholder="VIP, оптовик..."
-                  className="w-full rounded-2xl border border-white/10 bg-[#101010] px-3.5 py-2.5 text-sm text-stone-100 focus:border-amber-200/30 focus:outline-none" />
+                  className="w-full rounded-[6px] border border-white/10 bg-[#171717] px-3.5 py-2.5 text-sm text-zinc-100 focus:border-amber-200/30 focus:outline-none" />
               </div>
             </div>
 
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowAddModal(false)}
-                className="flex-1 rounded-2xl border border-white/10 py-2.5 text-center text-xs uppercase tracking-[0.18em] text-stone-400 transition hover:bg-white/5">
+                className="flex-1 rounded-[6px] border border-white/10 py-2.5 text-center text-xs uppercase tracking-[0.18em] text-zinc-400 transition hover:bg-white/5">
                 Скасувати
               </button>
               <button onClick={handleAddNew} disabled={!newCustomer.customerId || saving}
-                className="flex-1 rounded-2xl bg-stone-100 py-2.5 text-center text-xs font-bold uppercase tracking-[0.18em] text-black transition hover:bg-white disabled:opacity-50">
+                className="flex-1 rounded-[6px] bg-zinc-100 py-2.5 text-center text-xs font-bold uppercase tracking-[0.18em] text-black transition hover:bg-white disabled:opacity-50">
                 {saving ? 'Зберігаю...' : 'Додати'}
               </button>
             </div>

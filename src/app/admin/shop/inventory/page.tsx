@@ -226,7 +226,7 @@ function AdminInventoryPageContent() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <Warehouse className="h-4 w-4 animate-pulse" />
           Loading inventory…
         </div>
@@ -244,14 +244,14 @@ function AdminInventoryPageContent() {
           <>
             <Link
               href="/admin/shop/pricing"
-              className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+              className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
             >
               Pricing
             </Link>
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
             >
               <RefreshCcw className="h-4 w-4" />
               Refresh
@@ -297,13 +297,13 @@ function AdminInventoryPageContent() {
             ]}
             className="min-w-[220px]"
           />
-          <label className="flex min-w-[320px] flex-1 items-center gap-2 self-end rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-stone-100">
-            <Search className="h-4 w-4 text-stone-500" />
+          <label className="flex min-w-[320px] flex-1 items-center gap-2 self-end rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+            <Search className="h-4 w-4 text-zinc-500" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by product, variant, SKU, or collection"
-              className="w-full bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
+              className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
             />
           </label>
         </div>
@@ -314,8 +314,8 @@ function AdminInventoryPageContent() {
 
       <AdminActionBar>
         <div className="space-y-1">
-          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Selection</div>
-          <div className="text-sm text-stone-200">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Selection</div>
+          <div className="text-sm text-zinc-200">
             {selectedIds.length} selected, {selectedVisibleCount} visible in the current filter set
           </div>
         </div>
@@ -323,24 +323,24 @@ function AdminInventoryPageContent() {
           <button
             type="button"
             onClick={selectVisible}
-            className="rounded-2xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+            className="rounded-[6px] border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
           >
             Select visible
           </button>
           <button
             type="button"
             onClick={clearSelection}
-            className="rounded-2xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+            className="rounded-[6px] border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
           >
             Clear
           </button>
         </div>
       </AdminActionBar>
 
-      <div className="rounded-[28px] border border-white/10 bg-[#101010] p-5">
+      <div className="rounded-[6px] border border-white/10 bg-[#171717] p-5">
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-stone-50">Bulk update</h3>
-            <p className="mt-1 text-sm text-stone-400">
+            <h3 className="text-lg font-medium text-zinc-50">Bulk update</h3>
+            <p className="mt-1 text-sm text-zinc-400">
               Set inventory quantities or apply a delta across selected variants. Product stock state syncs automatically after update.
             </p>
           </div>
@@ -365,7 +365,7 @@ function AdminInventoryPageContent() {
               type="button"
               onClick={applyBulk}
               disabled={applying}
-              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
             >
               <Boxes className="h-4 w-4" />
               {applying ? 'Applying…' : 'Apply to selected'}
@@ -384,14 +384,14 @@ function AdminInventoryPageContent() {
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/[0.03]">
-                  <th className="px-4 py-3 font-medium text-stone-400">Select</th>
-                  <th className="px-4 py-3 font-medium text-stone-400">Product</th>
-                  <th className="px-4 py-3 font-medium text-stone-400">Variant</th>
-                  <th className="px-4 py-3 font-medium text-stone-400">Collections</th>
-                  <th className="px-4 py-3 font-medium text-stone-400">Qty</th>
-                  <th className="px-4 py-3 font-medium text-stone-400">Policy</th>
-                  <th className="px-4 py-3 font-medium text-stone-400">Tracker</th>
-                  <th className="px-4 py-3 font-medium text-stone-400">Actions</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Select</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Product</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Variant</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Collections</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Qty</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Policy</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Tracker</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -422,7 +422,7 @@ function AdminInventoryPageContent() {
                       <div className="flex max-w-[280px] flex-wrap gap-1.5">
                         {variant.product.collectionHandles.length ? (
                           variant.product.collectionHandles.map((handle) => (
-                            <span key={handle} className="rounded-none-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60">
+                            <span key={handle} className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60">
                               {handle}
                             </span>
                           ))

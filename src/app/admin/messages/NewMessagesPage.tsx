@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Search, Send, Trash2, X, RefreshCw, Mail, MessageCircle } from 'lucide-react';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
 
 interface Message {
   id: string;
@@ -28,6 +30,8 @@ interface Stats {
 }
 
 export default function NewMessagesPage() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, new: 0, read: 0, replied: 0 });
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
@@ -136,16 +140,26 @@ export default function NewMessagesPage() {
   };
 
   const deleteMessage = async (messageId: string) => {
-    if (!confirm('Delete this message? This action cannot be undone.')) return;
+    const ok = await confirm({
+      tone: 'danger',
+      title: 'Delete this message?',
+      description: 'The contact form submission will be removed permanently.',
+      confirmLabel: 'Delete message',
+    });
+    if (!ok) return;
     try {
       const response = await fetch(`/api/messages?id=${messageId}`, { method: 'DELETE' });
       if (response.ok) {
         setSelectedMessage(null);
         loadMessages();
         loadStats();
+        toast.success('Message deleted');
+      } else {
+        toast.error('Could not delete message');
       }
     } catch (error) {
       console.error('Failed to delete message:', error);
+      toast.error('Could not delete message');
     }
   };
 
@@ -178,7 +192,7 @@ export default function NewMessagesPage() {
           <h1 className="text-lg font-medium tracking-tight">Messages</h1>
           <button
             onClick={() => { loadMessages(); loadStats(); }}
-            className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-none-full transition-colors text-xs font-medium border border-white/10"
+            className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-xs font-medium border border-white/10"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Refresh</span>
@@ -209,7 +223,7 @@ export default function NewMessagesPage() {
       </div>
 
       {apiError ? (
-        <div className="flex-none border-b border-white/10 bg-black px-4 py-2 text-xs text-red-300">
+        <div className="flex-none border-b border-white/10 bg-black px-4 py-2 text-xs text-blue-300">
           {apiError}
         </div>
       ) : null}
@@ -236,7 +250,7 @@ export default function NewMessagesPage() {
                 <button
                   key={status}
                   onClick={() => setFilter(status)}
-                  className={`px-4 py-1.5 rounded-none-full text-[11px] font-medium transition whitespace-nowrap border ${
+                  className={`px-4 py-1.5 rounded-full text-[11px] font-medium transition whitespace-nowrap border ${
                     filter === status
                       ? 'bg-white text-black border-white'
                       : 'bg-transparent text-zinc-400 border-white/10 hover:border-white/30'
@@ -282,8 +296,8 @@ export default function NewMessagesPage() {
                     </p>
                     <div className="flex items-center gap-2">
                       <span className={`px-2.5 py-1 rounded-none text-xs font-medium uppercase tracking-wider ${
-                        msg.status === 'NEW' ? 'bg-zinc-100 text-black/10 text-zinc-400' :
-                        msg.status === 'READ' ? 'bg-zinc-100 text-black/10 text-zinc-400' :
+                        msg.status === 'NEW' ? 'bg-zinc-800/40 text-zinc-400' :
+                        msg.status === 'READ' ? 'bg-zinc-800/40 text-zinc-400' :
                         msg.status === 'REPLIED' ? 'bg-emerald-950/30 border border-emerald-900/50 text-emerald-500/10 text-green-400' :
                         'bg-zinc-800 text-zinc-400'
                       }`}>
@@ -316,7 +330,7 @@ export default function NewMessagesPage() {
                   <div className="flex items-center gap-4">
                     <button 
                       onClick={() => setSelectedMessage(null)}
-                      className="lg:hidden p-2 -ml-2 text-zinc-400 hover:text-white active:bg-zinc-900 rounded-none-full transition-colors"
+                      className="lg:hidden p-2 -ml-2 text-zinc-400 hover:text-white active:bg-zinc-900 rounded-full transition-colors"
                     >
                       <X className="w-6 h-6" />
                     </button>
@@ -328,7 +342,7 @@ export default function NewMessagesPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => deleteMessage(selectedMessage.id)}
-                      className="p-2.5 text-red-400 hover:bg-red-950/30 border border-red-900/50 text-red-500/10 rounded-none transition-colors"
+                      className="p-2.5 text-blue-400 hover:bg-blue-950/40/10 rounded-none transition-colors"
                       title="Delete"
                     >
                       <Trash2 className="w-5 h-5" />
@@ -408,7 +422,7 @@ export default function NewMessagesPage() {
                     </div>
                     {selectedMessage.replies.map((reply, index) => (
                       <div key={index} className="ml-6 pl-6 border-l border-zinc-800 relative">
-                        <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-none-full bg-zinc-800 border-2 border-black"></div>
+                        <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-zinc-800 border-2 border-black"></div>
                         <p className="text-base text-zinc-400 whitespace-pre-wrap leading-relaxed">{reply.replyText}</p>
                         <p className="text-xs text-zinc-600 mt-2 font-mono">{new Date(reply.createdAt).toLocaleString()}</p>
                       </div>
@@ -429,16 +443,16 @@ export default function NewMessagesPage() {
                   <button
                     onClick={sendReply}
                     disabled={loading || !replyText.trim()}
-                    className="absolute bottom-4 right-4 p-3 bg-white text-black rounded-none hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/5 active:scale-95"
+                    className="absolute bottom-4 right-4 p-3 bg-white text-black rounded-none hover:bg-zinc-700/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/5 active:scale-95"
                   >
-                    {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                    {loading ? <RefreshCw className="w-5 h-5 motion-safe:animate-spin" /> : <Send className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 p-8 text-center">
-              <div className="w-20 h-20 bg-zinc-900/50 rounded-none-full flex items-center justify-center mb-6 border border-white/5">
+              <div className="w-20 h-20 bg-zinc-900/50 rounded-full flex items-center justify-center mb-6 border border-white/5">
                 <Mail className="w-8 h-8 opacity-30" />
               </div>
               <p className="text-xl font-medium text-zinc-500 tracking-tight">No message selected</p>

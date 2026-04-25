@@ -142,7 +142,7 @@ export default function BrandMarkupsPage() {
         actions={
           <Link
             href="/admin/shop/turn14"
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
           >
             Back to Turn14
           </Link>
@@ -158,8 +158,8 @@ export default function BrandMarkupsPage() {
 
       <AdminActionBar>
         <div className="space-y-1">
-          <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-stone-500">Pricing policy</div>
-          <div className="text-sm text-stone-300">Змінюйте default markup або брендові винятки, потім фіксуйте все одним збереженням.</div>
+          <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">Pricing policy</div>
+          <div className="text-sm text-zinc-300">Змінюйте default markup або брендові винятки, потім фіксуйте все одним збереженням.</div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <AdminStatusBadge tone={hasChanges ? 'warning' : 'success'}>
@@ -169,9 +169,9 @@ export default function BrandMarkupsPage() {
             type="button"
             onClick={handleSaveAll}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-3 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
           >
-            {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {saving ? <RefreshCw className="h-4 w-4 motion-safe:animate-spin" /> : <Save className="h-4 w-4" />}
             {saving ? 'Збереження...' : 'Зберегти зміни'}
           </button>
         </div>
@@ -182,22 +182,22 @@ export default function BrandMarkupsPage() {
 
       <AdminFilterBar>
         <label className="min-w-[260px] flex-1">
-          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Brand search</span>
+          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Brand search</span>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Швидкий пошук бренду..."
-            className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 placeholder:text-stone-600 focus:border-white/20 focus:outline-none"
+            className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
           />
         </label>
 
         <label className="w-full md:w-[220px]">
-          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Sort</span>
+          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Sort</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as 'name' | 'markup')}
-            className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 focus:border-white/20 focus:outline-none"
+            className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
           >
             <option value="name">A → Z</option>
             <option value="markup">% descending</option>
@@ -209,8 +209,8 @@ export default function BrandMarkupsPage() {
           onClick={() => setShowOnlyCustom(!showOnlyCustom)}
           className={`inline-flex items-center gap-2 rounded-full border px-4 py-3 text-sm transition ${
             showOnlyCustom
-              ? 'border-amber-300/20 bg-amber-500/10 text-amber-100'
-              : 'border-white/10 text-stone-300 hover:border-white/25 hover:text-stone-100'
+              ? 'border-amber-300/20 bg-amber-500/10 text-blue-300'
+              : 'border-white/10 text-zinc-300 hover:border-white/25 hover:text-zinc-100'
           }`}
         >
           <Filter className="h-4 w-4" />
@@ -227,8 +227,8 @@ export default function BrandMarkupsPage() {
         />
       ) : (
         <AdminTableShell>
-          <table className="min-w-full text-left text-sm text-stone-200">
-            <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+          <table className="min-w-full text-left text-sm text-zinc-200">
+            <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
               <tr>
                 <th className="px-4 py-3 font-medium">Brand</th>
                 <th className="px-4 py-3 font-medium">Markup %</th>
@@ -246,8 +246,8 @@ export default function BrandMarkupsPage() {
                 return (
                   <tr key={brand.id} className="border-t border-white/8">
                     <td className="px-4 py-4">
-                      <div className="font-medium text-stone-100">{brand.name}</div>
-                      <div className="mt-1 text-xs text-stone-500">ID: {brand.id}</div>
+                      <div className="font-medium text-zinc-100">{brand.name}</div>
+                      <div className="mt-1 text-xs text-zinc-500">ID: {brand.id}</div>
                     </td>
                     <td className="px-4 py-4">
                       <input
@@ -257,10 +257,10 @@ export default function BrandMarkupsPage() {
                         step={1}
                         value={markup}
                         onChange={(e) => handleMarkupChange(brand.id, Number(e.target.value))}
-                        className="w-28 rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 focus:border-white/20 focus:outline-none"
+                        className="w-28 rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
                       />
                     </td>
-                    <td className="px-4 py-4 font-mono text-stone-200">×{multiplier.toFixed(2)}</td>
+                    <td className="px-4 py-4 font-mono text-zinc-200">×{multiplier.toFixed(2)}</td>
                     <td className="px-4 py-4">
                       <div className="flex justify-end gap-2">
                         {isEdited ? <AdminStatusBadge tone="warning">Edited</AdminStatusBadge> : null}

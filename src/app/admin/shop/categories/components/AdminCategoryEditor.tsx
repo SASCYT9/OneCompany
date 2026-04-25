@@ -271,7 +271,7 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
   if (loading) {
     return (
       <AdminPage>
-        <div className="text-sm text-stone-400">Завантаження категорії…</div>
+        <div className="text-sm text-zinc-400">Завантаження категорії…</div>
       </AdminPage>
     );
   }
@@ -284,8 +284,8 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
       description="Catalog category editor for taxonomy structure, publish visibility, and future storefront category pages."
       sections={CATEGORY_EDITOR_SECTIONS}
       summary={
-        <div className="rounded-[28px] border border-white/10 bg-[#101010] p-5">
-          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Category state</div>
+        <div className="rounded-[6px] border border-white/10 bg-[#171717] p-5">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Category state</div>
           <div className="mt-4 flex flex-wrap gap-2">
             <AdminStatusBadge tone={form.isPublished ? 'success' : 'warning'}>
               {form.isPublished ? 'Published' : 'Hidden'}
@@ -358,16 +358,16 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
                   <Link
                     key={child.id}
                     href={`/admin/shop/categories/${child.id}`}
-                    className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-stone-200 transition hover:bg-white/[0.04]"
+                    className="rounded-[6px] border border-white/10 bg-black/30 p-4 text-sm text-zinc-200 transition hover:bg-white/[0.04]"
                   >
-                    <div className="font-medium text-stone-50">{child.titleEn || child.titleUa}</div>
-                    <div className="mt-1 font-mono text-xs text-stone-500">{child.slug}</div>
-                    <div className="mt-2 text-xs text-stone-500">Sort {child.sortOrder}</div>
+                    <div className="font-medium text-zinc-50">{child.titleEn || child.titleUa}</div>
+                    <div className="mt-1 font-mono text-xs text-zinc-500">{child.slug}</div>
+                    <div className="mt-2 text-xs text-zinc-500">Sort {child.sortOrder}</div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 px-4 py-8 text-sm text-stone-500">
+              <div className="rounded-[6px] border border-dashed border-white/10 bg-black/20 px-4 py-8 text-sm text-zinc-500">
                 No child categories yet.
               </div>
             )}
@@ -386,16 +386,16 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
                   <Link
                     key={product.id}
                     href={`/admin/shop/${product.id}`}
-                    className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-stone-200 transition hover:bg-white/[0.04]"
+                    className="rounded-[6px] border border-white/10 bg-black/30 p-4 text-sm text-zinc-200 transition hover:bg-white/[0.04]"
                   >
-                    <div className="font-medium text-stone-50">{product.titleEn || product.titleUa}</div>
-                    <div className="mt-1 font-mono text-xs text-stone-500">{product.slug}</div>
-                    <div className="mt-2 text-xs text-stone-500">{product.brand || '—'}</div>
+                    <div className="font-medium text-zinc-50">{product.titleEn || product.titleUa}</div>
+                    <div className="mt-1 font-mono text-xs text-zinc-500">{product.slug}</div>
+                    <div className="mt-2 text-xs text-zinc-500">{product.brand || '—'}</div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 px-4 py-8 text-sm text-stone-500">
+              <div className="rounded-[6px] border border-dashed border-white/10 bg-black/20 px-4 py-8 text-sm text-zinc-500">
                 No products assigned yet.
               </div>
             )}
@@ -406,14 +406,14 @@ export default function AdminCategoryEditor({ categoryId }: Props) {
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-5 py-2.5 text-sm font-medium text-black transition hover:bg-white disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
             {saving ? 'Saving…' : isEditing ? 'Save category' : 'Create category'}
           </button>
           <Link
             href="/admin/shop/categories"
-            className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+            className="rounded-[6px] border border-white/10 bg-white/[0.03] px-5 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
           >
             Cancel
           </Link>

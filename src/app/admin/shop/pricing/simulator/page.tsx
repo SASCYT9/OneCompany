@@ -47,7 +47,7 @@ export default function PriceSimulatorPage() {
   return (
     <div className="relative h-full w-full overflow-auto bg-black text-white p-6 md:p-10">
       {/* Background Glow */}
-      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[600px] w-[1000px] -translate-x-1/2 -translate-y-1/2 rounded-none-full bg-zinc-100 text-black/10 blur-[150px]" />
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[600px] w-[1000px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-zinc-800/40 blur-[150px]" />
 
       <div className="max-w-6xl mx-auto">
         <Link href="/admin/shop/pricing" className="group mb-10 inline-flex items-center gap-2 text-[13px] font-medium tracking-wide text-white/40 hover:text-white transition-all">
@@ -78,13 +78,13 @@ export default function PriceSimulatorPage() {
                       type="number" 
                       value={basePrice} 
                       onChange={e => setBasePrice(Number(e.target.value))}
-                      className="w-full pl-10 pr-4 py-3 bg-black/40 border border-white/10 rounded-none text-xl font-light focus:outline-none focus:border-indigo-500/50 transition-all"
+                      className="w-full pl-10 pr-4 py-3 bg-black/40 border border-white/10 rounded-none text-xl font-light focus:outline-none focus:border-blue-500/50 transition-all"
                     />
                   </div>
                   <select 
                     value={currency} 
                     onChange={e => setCurrency(e.target.value as any)}
-                    className="px-4 py-3 bg-black/40 border border-white/10 rounded-none text-sm font-bold focus:outline-none focus:border-indigo-500/50"
+                    className="px-4 py-3 bg-black/40 border border-white/10 rounded-none text-sm font-bold focus:outline-none focus:border-blue-500/50"
                   >
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
@@ -98,7 +98,7 @@ export default function PriceSimulatorPage() {
                 <select 
                   value={zone} 
                   onChange={e => setZone(e.target.value as ShippingZone)}
-                  className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-none text-sm font-bold focus:outline-none focus:border-indigo-500/50"
+                  className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-none text-sm font-bold focus:outline-none focus:border-blue-500/50"
                 >
                   {Object.entries(SHIPPING_ZONES).map(([k, v]) => (
                     <option key={k} value={k}>{v.labelUa} ({k})</option>
@@ -118,7 +118,7 @@ export default function PriceSimulatorPage() {
                     type="number" 
                     value={weightLbs} 
                     onChange={e => setWeightLbs(Number(e.target.value))}
-                    className="w-full pl-4 pr-12 py-3 bg-black/40 border border-white/10 rounded-none text-xl font-light focus:outline-none focus:border-indigo-500/50"
+                    className="w-full pl-4 pr-12 py-3 bg-black/40 border border-white/10 rounded-none text-xl font-light focus:outline-none focus:border-blue-500/50"
                   />
                 </div>
               </div>
@@ -147,7 +147,7 @@ export default function PriceSimulatorPage() {
             </div>
 
             {/* Markup Slider */}
-            <div className="p-8 rounded-none-[40px] bg-gradient-to-br from-indigo-500/10 to-transparent border border-indigo-500/20">
+            <div className="p-8 rounded-none-[40px] bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20">
               <div className="flex justify-between items-end mb-6">
                 <div>
                   <label className="block text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-bold mb-2">Цільова Націнка</label>
@@ -163,7 +163,7 @@ export default function PriceSimulatorPage() {
                 min="0" max="200" step="1" 
                 value={markup} 
                 onChange={e => setMarkup(Number(e.target.value))}
-                className="w-full h-1.5 appearance-none bg-white/10 rounded-none-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:rounded-none-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_0_15px_rgba(255,255,255,0.5)] [&::-webkit-slider-thumb]:cursor-pointer"
+                className="w-full h-1.5 appearance-none bg-white/10 rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_0_15px_rgba(255,255,255,0.5)] [&::-webkit-slider-thumb]:cursor-pointer"
               />
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function PriceSimulatorPage() {
                   {/* Landed Cost Item */}
                   <div className="flex justify-between items-center group">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-none-full bg-zinc-800 flex items-center justify-center text-zinc-500 group-hover:text-white transition-colors">
+                      <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 group-hover:text-white transition-colors">
                         <Package className="w-4 h-4" />
                       </div>
                       <span className="text-sm text-zinc-400">Собівартість</span>
@@ -198,7 +198,7 @@ export default function PriceSimulatorPage() {
                   {/* Shipping Item */}
                   <div className="flex justify-between items-center group">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-none-full bg-zinc-100 text-black/10 flex items-center justify-center text-zinc-400">
+                      <div className="w-8 h-8 rounded-full bg-zinc-800/40 flex items-center justify-center text-zinc-400">
                         <Truck className="w-4 h-4" />
                       </div>
                       <span className="text-sm text-zinc-400">Доставка ({zone})</span>
@@ -229,7 +229,7 @@ export default function PriceSimulatorPage() {
                 </div>
                 
                 <div className="p-8 pt-0">
-                   <button className="w-full py-4 rounded-none bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all flex items-center justify-center gap-2">
+                   <button className="w-full py-4 rounded-none bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-zinc-700/50 transition-all flex items-center justify-center gap-2">
                       <Plus className="w-4 h-4" /> Додати як товар
                    </button>
                 </div>

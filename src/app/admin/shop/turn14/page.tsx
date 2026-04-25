@@ -213,13 +213,13 @@ export default function Turn14AdminPage() {
           <>
             <Link
               href="/admin/shop/turn14/markups"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
             >
               Brand markups
             </Link>
             <Link
               href="/admin/shop/audit"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
             >
               Audit
             </Link>
@@ -236,8 +236,8 @@ export default function Turn14AdminPage() {
 
       <AdminActionBar>
         <div className="space-y-1">
-          <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-stone-500">Ops flow</div>
-          <div className="text-sm text-stone-300">
+          <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">Ops flow</div>
+          <div className="text-sm text-zinc-300">
             Search supplier inventory, звірити з One Company stock, імпортувати товар або створити швидке замовлення для клієнта.
           </div>
         </div>
@@ -247,9 +247,9 @@ export default function Turn14AdminPage() {
             type="button"
             onClick={handleSync}
             disabled={syncing}
-            className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-3 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
           >
-            <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${syncing ? 'motion-safe:animate-spin' : ''}`} />
             {syncing ? 'Синхронізація...' : 'Синхронізувати Urban'}
           </button>
         </div>
@@ -258,24 +258,24 @@ export default function Turn14AdminPage() {
       <form onSubmit={handleSearch}>
         <AdminFilterBar>
           <label className="min-w-[260px] flex-1">
-            <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Search supplier catalog</span>
-            <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3">
-              <Search className="h-4 w-4 text-stone-500" />
+            <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Search supplier catalog</span>
+            <div className="flex items-center gap-2 rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3">
+              <Search className="h-4 w-4 text-zinc-500" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Urban Automotive, Eventuri, SKU, part number..."
-                className="w-full bg-transparent text-sm text-stone-100 placeholder:text-stone-600 focus:outline-none"
+                className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
               />
             </div>
           </label>
 
           <label className="w-full md:w-[220px]">
-            <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Availability filter</span>
+            <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Availability filter</span>
             <select
               value={stockFilter}
               onChange={(e) => setStockFilter(e.target.value as 'all' | 'inStock' | 'notInStock')}
-              className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 focus:border-white/20 focus:outline-none"
+              className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
             >
               <option value="all">All results</option>
               <option value="inStock">Already in One Company</option>
@@ -286,7 +286,7 @@ export default function Turn14AdminPage() {
           <button
             type="submit"
             disabled={loading || !query.trim()}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm text-stone-100 transition hover:border-white/25 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm text-zinc-100 transition hover:border-white/25 disabled:opacity-50"
           >
             <Globe className="h-4 w-4" />
             {loading ? 'Пошук...' : 'Знайти в Turn14'}
@@ -312,8 +312,8 @@ export default function Turn14AdminPage() {
         />
       ) : (
         <AdminTableShell>
-          <table className="min-w-full text-left text-sm text-stone-200">
-            <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+          <table className="min-w-full text-left text-sm text-zinc-200">
+            <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
               <tr>
                 <th className="px-4 py-3 font-medium">Item</th>
                 <th className="px-4 py-3 font-medium">Part number</th>
@@ -336,26 +336,26 @@ export default function Turn14AdminPage() {
                 return (
                   <tr key={itemId} className="border-t border-white/8 align-top">
                     <td className="px-4 py-4">
-                      <div className="font-medium text-stone-100">{itemName}</div>
-                      <div className="mt-1 text-xs text-stone-500">{brand}</div>
+                      <div className="font-medium text-zinc-100">{itemName}</div>
+                      <div className="mt-1 text-xs text-zinc-500">{brand}</div>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="font-mono text-stone-200">{partNumber}</div>
-                      <div className="mt-1 text-xs text-stone-500">{weight ? `${weight} lbs` : 'Weight unknown'}</div>
+                      <div className="font-mono text-zinc-200">{partNumber}</div>
+                      <div className="mt-1 text-xs text-zinc-500">{weight ? `${weight} lbs` : 'Weight unknown'}</div>
                     </td>
                     <td className="px-4 py-4">
                       {stockInfo ? (
                         <div className="space-y-2">
                           <AdminStatusBadge tone="success">In One Company</AdminStatusBadge>
-                          <div className="text-xs text-stone-500">{stockInfo.title}</div>
+                          <div className="text-xs text-zinc-500">{stockInfo.title}</div>
                         </div>
                       ) : (
                         <AdminStatusBadge tone="warning">Missing in One Company</AdminStatusBadge>
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <div className="text-stone-100">${Number(price).toFixed(2)}</div>
-                      <div className="mt-1 text-xs text-stone-500">{stockInfo ? stockInfo.sku : 'No local SKU'}</div>
+                      <div className="text-zinc-100">${Number(price).toFixed(2)}</div>
+                      <div className="mt-1 text-xs text-zinc-500">{stockInfo ? stockInfo.sku : 'No local SKU'}</div>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex justify-end gap-2">
@@ -365,14 +365,14 @@ export default function Turn14AdminPage() {
                             setSelectedItem(item);
                             setOrderModalOpen(true);
                           }}
-                          className="rounded-full border border-white/10 px-3 py-2 text-xs text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+                          className="rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
                         >
                           Quick order
                         </button>
                         {stockInfo ? (
                           <Link
                             href={`/admin/shop/${stockInfo.productId}`}
-                            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+                            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
                           >
                             Open
                             <ExternalLink className="h-3.5 w-3.5" />
@@ -398,7 +398,7 @@ export default function Turn14AdminPage() {
                               setImportingIds((prev) => ({ ...prev, [itemId]: false }));
                             }
                           }}
-                          className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-3 py-2 text-xs font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+                          className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-2 text-xs font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
                         >
                           {importedStatuses[itemId] ? <CheckCircle2 className="h-3.5 w-3.5" /> : <PackagePlus className="h-3.5 w-3.5" />}
                           {importedStatuses[itemId] ? 'Imported' : importingIds[itemId] ? 'Importing...' : 'Import'}
@@ -415,7 +415,7 @@ export default function Turn14AdminPage() {
 
       {orderModalOpen && selectedItem ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-[28px] border border-white/10 bg-[#09090b] p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+          <div className="w-full max-w-md rounded-[6px] border border-white/10 bg-[#09090b] p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
             <h3 className="text-xl font-medium text-white">Оформити швидке замовлення</h3>
             <p className="mt-2 text-sm leading-relaxed text-white/50">
               Система створить нове `UNPAID` замовлення для {(selectedItem.attributes as any)?.product_name || (selectedItem.attributes as any)?.item_name || 'деталі Turn14'}.
@@ -428,7 +428,7 @@ export default function Turn14AdminPage() {
                   required
                   value={orderForm.email}
                   onChange={(e) => setOrderForm((prev) => ({ ...prev, email: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-[6px] border border-white/10 bg-black/40 px-4 py-3 text-sm text-white focus:border-white/20 focus:outline-none"
                   placeholder="client@mail.com"
                 />
               </label>
@@ -441,7 +441,7 @@ export default function Turn14AdminPage() {
                   required
                   value={orderForm.price}
                   onChange={(e) => setOrderForm((prev) => ({ ...prev, price: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-[6px] border border-white/10 bg-black/40 px-4 py-3 text-sm text-white focus:border-white/20 focus:outline-none"
                   placeholder="1500.00"
                 />
               </label>
@@ -456,7 +456,7 @@ export default function Turn14AdminPage() {
                 <button
                   type="submit"
                   disabled={orderLoading}
-                  className="flex-1 rounded-full bg-stone-100 px-4 py-3 text-xs font-semibold uppercase tracking-widest text-black transition hover:bg-stone-200 disabled:opacity-50"
+                  className="flex-1 rounded-full bg-zinc-100 px-4 py-3 text-xs font-semibold uppercase tracking-widest text-black transition hover:bg-stone-200 disabled:opacity-50"
                 >
                   {orderLoading ? 'Створення...' : 'Підтвердити'}
                 </button>

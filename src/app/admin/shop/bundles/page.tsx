@@ -18,6 +18,8 @@ import {
   AdminInputField,
   AdminSelectField,
 } from '@/components/admin/AdminFormFields';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
 
 type BundleListItem = {
   id: string;
@@ -140,6 +142,8 @@ function priceLabel(product: ProductOption | BundleListItem['product']) {
 }
 
 export default function AdminShopBundlesPage() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const [bundles, setBundles] = useState<BundleListItem[]>([]);
   const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -336,7 +340,14 @@ export default function AdminShopBundlesPage() {
   }
 
   async function handleDelete() {
-    if (!form.id || !confirm('Delete this bundle?')) return;
+    if (!form.id) return;
+    const ok = await confirm({
+      tone: 'danger',
+      title: 'Delete this bundle?',
+      description: 'The bundle definition and product mappings will be removed.',
+      confirmLabel: 'Delete bundle',
+    });
+    if (!ok) return;
     setDeleting(true);
     setError('');
     try {
@@ -345,10 +356,13 @@ export default function AdminShopBundlesPage() {
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(data?.error || 'Failed to delete bundle');
+        const msg = data?.error || 'Failed to delete bundle';
+        setError(msg);
+        toast.error('Could not delete bundle', msg);
         return;
       }
 
+      toast.success('Bundle deleted');
       resetToNew();
       await load(true);
     } finally {
@@ -359,7 +373,7 @@ export default function AdminShopBundlesPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <Boxes className="h-4 w-4 animate-pulse" />
           Loading bundles…
         </div>
@@ -379,15 +393,15 @@ export default function AdminShopBundlesPage() {
               type="button"
               onClick={() => void load(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
             >
-              <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <RefreshCcw className={`h-4 w-4 ${refreshing ? 'motion-safe:animate-spin' : ''}`} />
               Refresh
             </button>
             <button
               type="button"
               onClick={resetToNew}
-              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
               New bundle
@@ -407,7 +421,7 @@ export default function AdminShopBundlesPage() {
 
       <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
         <AdminTableShell className="overflow-hidden">
-          <div className="border-b border-white/10 px-4 py-3 text-sm text-stone-400">{bundles.length} bundles</div>
+          <div className="border-b border-white/10 px-4 py-3 text-sm text-zinc-400">{bundles.length} bundles</div>
           <div className="max-h-[72vh] overflow-auto">
             {bundles.length === 0 ? (
               <AdminEmptyState
@@ -418,7 +432,7 @@ export default function AdminShopBundlesPage() {
                   <button
                     type="button"
                     onClick={resetToNew}
-                    className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
+                    className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
                   >
                     <Plus className="h-4 w-4" />
                     New bundle
@@ -435,9 +449,9 @@ export default function AdminShopBundlesPage() {
                     selectedBundleId === bundle.id ? 'bg-white/[0.06]' : ''
                   }`}
                 >
-                  <div className="font-medium text-stone-100">{bundle.product.titleEn || bundle.product.titleUa}</div>
-                  <div className="mt-1 text-xs text-stone-500">{bundle.product.slug}</div>
-                  <div className="mt-2 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.16em] text-stone-500">
+                  <div className="font-medium text-zinc-100">{bundle.product.titleEn || bundle.product.titleUa}</div>
+                  <div className="mt-1 text-xs text-zinc-500">{bundle.product.slug}</div>
+                  <div className="mt-2 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
                     <span>{bundle.componentsCount} items</span>
                     <span>{bundle.availableQuantity} available</span>
                     <span>{priceLabel(bundle.product)}</span>
@@ -448,21 +462,21 @@ export default function AdminShopBundlesPage() {
           </div>
         </AdminTableShell>
 
-        <div className="rounded-[28px] border border-white/10 bg-[#101010] p-5 md:p-6">
+        <div className="rounded-[6px] border border-white/10 bg-[#171717] p-5 md:p-6">
           <div className="space-y-6">
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold tracking-tight text-stone-50">
+              <h2 className="text-xl font-semibold tracking-tight text-zinc-50">
                 {form.id ? 'Edit bundle' : 'Create bundle'}
               </h2>
-              <p className="max-w-2xl text-sm leading-6 text-stone-400">
+              <p className="max-w-2xl text-sm leading-6 text-zinc-400">
                 Choose the bundle shell product, then attach component products and optional variants that drive bundle availability.
               </p>
             </div>
 
             <AdminActionBar className="bg-black/30">
               <div className="space-y-1">
-                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Selected bundle</div>
-                <div className="text-sm text-stone-200">
+                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Selected bundle</div>
+                <div className="text-sm text-zinc-200">
                   {selectedBundle ? selectedBundle.product.slug : 'New bundle draft'}
                 </div>
               </div>
@@ -470,7 +484,7 @@ export default function AdminShopBundlesPage() {
                 {selectedBundle ? (
                   <Link
                     href={`/admin/shop/${selectedBundle.productId}`}
-                    className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+                    className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
                   >
                     Open product
                   </Link>
@@ -480,7 +494,7 @@ export default function AdminShopBundlesPage() {
                     type="button"
                     onClick={handleDelete}
                     disabled={deleting}
-                    className="inline-flex items-center gap-2 rounded-2xl border border-red-500/25 bg-red-950/30 px-4 py-2.5 text-sm text-red-200 transition hover:bg-red-950/40 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-[6px] border border-blue-500/25 bg-blue-950/30 px-4 py-2.5 text-sm text-red-200 transition hover:bg-blue-950/40 disabled:opacity-50"
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete
@@ -490,7 +504,7 @@ export default function AdminShopBundlesPage() {
                   type="button"
                   onClick={handleSave}
                   disabled={saving || detailLoading}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" />
                   {saving ? 'Saving…' : 'Save bundle'}
@@ -525,13 +539,13 @@ export default function AdminShopBundlesPage() {
             <div className="space-y-3">
               <AdminActionBar className="bg-black/30">
                 <div>
-                  <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Components</div>
-                  <div className="mt-1 text-sm text-stone-300">{form.items.length} component rows in this bundle</div>
+                  <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Components</div>
+                  <div className="mt-1 text-sm text-zinc-300">{form.items.length} component rows in this bundle</div>
                 </div>
                 <button
                   type="button"
                   onClick={addRow}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+                  className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
                 >
                   <Plus className="h-4 w-4" />
                   Add item
@@ -547,7 +561,7 @@ export default function AdminShopBundlesPage() {
                 return (
                   <div
                     key={item.id}
-                    className="grid gap-4 rounded-[24px] border border-white/10 bg-black/20 p-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_140px_56px]"
+                    className="grid gap-4 rounded-[6px] border border-white/10 bg-black/20 p-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_140px_56px]"
                   >
                     <AdminSelectField
                       label={`Component product #${index + 1}`}
@@ -602,15 +616,15 @@ export default function AdminShopBundlesPage() {
                         type="button"
                         onClick={() => removeRow(item.id)}
                         disabled={form.items.length === 1}
-                        className="inline-flex h-[46px] w-full items-center justify-center rounded-2xl border border-red-500/25 bg-red-950/30 text-red-200 transition hover:bg-red-950/40 disabled:opacity-40"
+                        className="inline-flex h-[46px] w-full items-center justify-center rounded-[6px] border border-blue-500/25 bg-blue-950/30 text-red-200 transition hover:bg-blue-950/40 disabled:opacity-40"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
 
                     {componentProduct ? (
-                      <div className="lg:col-span-4 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-xs text-stone-400">
-                        <span className="font-medium text-stone-200">
+                      <div className="lg:col-span-4 rounded-[6px] border border-white/10 bg-white/[0.03] px-3 py-3 text-xs text-zinc-400">
+                        <span className="font-medium text-zinc-200">
                           {componentProduct.titleEn || componentProduct.titleUa}
                         </span>{' '}
                         · {priceLabel(componentProduct)} ·{' '}

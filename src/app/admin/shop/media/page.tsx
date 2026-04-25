@@ -12,6 +12,8 @@ import {
   AdminPage,
   AdminPageHeader,
 } from '@/components/admin/AdminPrimitives';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
 
 type ShopLibraryMediaUsage = {
   productPrimaryImages: number;
@@ -54,6 +56,8 @@ function usageLabel(item: ShopLibraryMediaItem) {
 }
 
 export default function AdminShopMediaPage() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const [items, setItems] = useState<ShopLibraryMediaItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -154,9 +158,13 @@ export default function AdminShopMediaPage() {
       return;
     }
 
-    if (!confirm(`Delete ${item.originalName}?`)) {
-      return;
-    }
+    const ok = await confirm({
+      tone: 'danger',
+      title: 'Delete this media asset?',
+      description: `${item.originalName} will be removed permanently. This cannot be undone.`,
+      confirmLabel: 'Delete asset',
+    });
+    if (!ok) return;
 
     setDeletingId(item.id);
     setError('');
@@ -202,8 +210,8 @@ export default function AdminShopMediaPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
-          <RefreshCcw className="h-4 w-4 animate-spin" />
+        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+          <RefreshCcw className="h-4 w-4 motion-safe:animate-spin" />
           Loading media library…
         </div>
       </AdminPage>
@@ -221,7 +229,7 @@ export default function AdminShopMediaPage() {
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
             >
               <RefreshCcw className="h-4 w-4" />
               Refresh
@@ -237,7 +245,7 @@ export default function AdminShopMediaPage() {
               type="button"
               onClick={() => uploadInputRef.current?.click()}
               disabled={uploading}
-              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-60"
             >
               <Upload className="h-4 w-4" />
               {uploading ? 'Uploading…' : 'Upload asset'}
@@ -257,16 +265,16 @@ export default function AdminShopMediaPage() {
       </AdminMetricGrid>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-stone-100">
-          <Search className="h-4 w-4 text-stone-500" />
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+          <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by original name, filename, URL, or type"
-            className="w-full bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
+            className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
           />
         </label>
-        <div className="text-sm text-stone-400">{filteredItems.length} visible assets</div>
+        <div className="text-sm text-zinc-400">{filteredItems.length} visible assets</div>
       </AdminFilterBar>
 
         {filteredItems.length === 0 ? (
@@ -277,7 +285,7 @@ export default function AdminShopMediaPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredItems.map((item) => (
-              <div key={item.id} className="overflow-hidden rounded-[28px] border border-white/10 bg-[#101010]">
+              <div key={item.id} className="overflow-hidden rounded-[6px] border border-white/10 bg-[#171717]">
                 <div className="border-b border-white/10 bg-black/30">
                   {item.kind === 'image' ? (
                     <img src={item.url} alt={item.originalName} className="h-48 w-full object-cover" />
@@ -293,13 +301,13 @@ export default function AdminShopMediaPage() {
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-medium text-stone-50">{item.originalName}</div>
-                      <div className="mt-1 truncate font-mono text-[11px] text-stone-500">{item.filename}</div>
+                      <div className="truncate text-sm font-medium text-zinc-50">{item.originalName}</div>
+                      <div className="mt-1 truncate font-mono text-[11px] text-zinc-500">{item.filename}</div>
                     </div>
                     <span
                       className={`shrink-0 rounded-full border px-2 py-1 text-[11px] ${
                         item.usageCount > 0
-                          ? 'border-amber-500/25 bg-amber-500/10 text-amber-100'
+                          ? 'border-amber-500/25 bg-amber-500/10 text-blue-300'
                           : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100'
                       }`}
                     >
@@ -307,32 +315,32 @@ export default function AdminShopMediaPage() {
                     </span>
                   </div>
 
-                  <div className="mt-4 grid gap-2 text-xs text-stone-400">
+                  <div className="mt-4 grid gap-2 text-xs text-zinc-400">
                     <div className="flex items-center justify-between gap-3">
                       <span>Type</span>
-                      <span className="inline-flex items-center gap-1 text-stone-200">
+                      <span className="inline-flex items-center gap-1 text-zinc-200">
                         <ImageIcon className="h-3.5 w-3.5" />
                         {item.kind}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span>Size</span>
-                      <span className="text-stone-200">{formatBytes(item.size)}</span>
+                      <span className="text-zinc-200">{formatBytes(item.size)}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span>Uploaded</span>
-                      <span className="text-stone-200">
+                      <span className="text-zinc-200">
                         {new Date(item.uploadedAt).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span>Storage</span>
-                      <span className="text-stone-200">{item.provider}</span>
+                      <span className="text-zinc-200">{item.provider}</span>
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-stone-400">
+                    <div className="rounded-[6px] border border-white/10 bg-black/20 p-3 text-zinc-400">
                       {usageLabel(item)}
                     </div>
-                    <div className="truncate font-mono text-[11px] text-stone-600">{item.url}</div>
+                    <div className="truncate font-mono text-[11px] text-zinc-600">{item.url}</div>
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -340,7 +348,7 @@ export default function AdminShopMediaPage() {
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-2xl border border-white/10 px-3 py-2 text-xs text-stone-200 transition hover:bg-white/[0.06]"
+                      className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
                     >
                       <ArrowUpRight className="h-3.5 w-3.5" />
                       Open
@@ -348,7 +356,7 @@ export default function AdminShopMediaPage() {
                     <button
                       type="button"
                       onClick={() => void handleCopy(item.url)}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-white/10 px-3 py-2 text-xs text-stone-200 transition hover:bg-white/[0.06]"
+                      className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Copy URL
@@ -357,7 +365,7 @@ export default function AdminShopMediaPage() {
                       type="button"
                       onClick={() => void handleDelete(item)}
                       disabled={deletingId === item.id || item.usageCount > 0}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-red-500/20 px-3 py-2 text-xs text-red-300 transition hover:bg-red-950/30 disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-[6px] border border-blue-500/20 px-3 py-2 text-xs text-blue-300 transition hover:bg-blue-950/30 disabled:opacity-50"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       {deletingId === item.id ? 'Deleting…' : item.usageCount > 0 ? 'In use' : 'Delete'}

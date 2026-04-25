@@ -296,7 +296,7 @@ export default function AdminUsersPage() {
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber-100 transition hover:bg-amber-100/[0.1]"
+            className="inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition hover:bg-blue-500/[0.12]"
           >
             <Plus className="h-3.5 w-3.5" />
             Create user
@@ -313,12 +313,12 @@ export default function AdminUsersPage() {
 
       <AdminActionBar>
         <div className="flex min-w-[260px] flex-1 items-center gap-3 rounded-full border border-white/10 bg-black/25 px-4 py-3">
-          <Shield className="h-4 w-4 text-stone-500" />
+          <Shield className="h-4 w-4 text-zinc-500" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by name, email, or role…"
-            className="w-full bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
+            className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
           />
         </div>
 
@@ -334,8 +334,8 @@ export default function AdminUsersPage() {
               onClick={() => setStatusFilter(filter.id)}
               className={`rounded-full border px-3 py-2 text-xs uppercase tracking-[0.18em] transition ${
                 statusFilter === filter.id
-                  ? 'border-amber-100/15 bg-amber-100/[0.06] text-amber-100'
-                  : 'border-white/10 bg-white/[0.03] text-stone-400 hover:text-stone-100'
+                  ? 'border-blue-500/25 bg-blue-500/[0.08] text-blue-300'
+                  : 'border-white/10 bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
               }`}
             >
               {filter.label}
@@ -344,7 +344,7 @@ export default function AdminUsersPage() {
           <button
             type="button"
             onClick={() => void loadData()}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-100"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Reload
@@ -357,8 +357,8 @@ export default function AdminUsersPage() {
       <AdminSplitDetailShell
         main={
           loading ? (
-            <div className="flex min-h-[320px] items-center justify-center rounded-[28px] border border-white/10 bg-[#101010] text-sm text-stone-400">
-              <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+            <div className="flex min-h-[320px] items-center justify-center rounded-[6px] border border-white/10 bg-[#171717] text-sm text-zinc-400">
+              <Loader2 className="mr-3 h-4 w-4 motion-safe:animate-spin" />
               Loading admin users…
             </div>
           ) : filteredUsers.length === 0 ? (
@@ -370,7 +370,7 @@ export default function AdminUsersPage() {
             <AdminTableShell>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                  <thead className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                     <tr>
                       <th className="px-5 py-4 font-medium">User</th>
                       <th className="px-5 py-4 font-medium">Roles</th>
@@ -385,13 +385,13 @@ export default function AdminUsersPage() {
                         <tr
                           key={user.id}
                           className={`cursor-pointer border-b border-white/6 transition hover:bg-white/[0.03] ${
-                            selected ? 'bg-amber-100/[0.04]' : 'bg-transparent'
+                            selected ? 'bg-blue-500/[0.06]' : 'bg-transparent'
                           }`}
                           onClick={() => setSelectedUserId(user.id)}
                         >
                           <td className="px-5 py-4">
-                            <div className="text-sm font-medium text-stone-100">{user.name || 'Unnamed manager'}</div>
-                            <div className="mt-1 text-xs text-stone-500">{user.email}</div>
+                            <div className="text-sm font-medium text-zinc-100">{user.name || 'Unnamed manager'}</div>
+                            <div className="mt-1 text-xs text-zinc-500">{user.email}</div>
                           </td>
                           <td className="px-5 py-4">
                             <div className="flex flex-wrap gap-2">
@@ -400,7 +400,7 @@ export default function AdminUsersPage() {
                                   <AdminStatusBadge key={role.id}>{role.name}</AdminStatusBadge>
                                 ))
                               ) : (
-                                <span className="text-xs text-stone-500">No roles</span>
+                                <span className="text-xs text-zinc-500">No roles</span>
                               )}
                             </div>
                           </td>
@@ -409,7 +409,7 @@ export default function AdminUsersPage() {
                               {user.isActive ? 'Active' : 'Inactive'}
                             </AdminStatusBadge>
                           </td>
-                          <td className="px-5 py-4 text-sm text-stone-400">{formatDate(user.lastLoginAt)}</td>
+                          <td className="px-5 py-4 text-sm text-zinc-400">{formatDate(user.lastLoginAt)}</td>
                         </tr>
                       );
                     })}
@@ -455,16 +455,16 @@ export default function AdminUsersPage() {
                   />
 
                   <div className="space-y-2">
-                    <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400">Roles</div>
+                    <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">Roles</div>
                     <div className="space-y-2">
                       {roles.map((role) => {
                         const checked = editForm.roleIds.includes(role.id);
                         return (
                           <label
                             key={role.id}
-                            className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-3 py-3 transition ${
+                            className={`flex cursor-pointer items-start gap-3 rounded-[6px] border px-3 py-3 transition ${
                               checked
-                                ? 'border-amber-100/15 bg-amber-100/[0.06]'
+                                ? 'border-blue-500/25 bg-blue-500/[0.08]'
                                 : 'border-white/10 bg-black/20 hover:bg-white/[0.03]'
                             }`}
                           >
@@ -472,11 +472,11 @@ export default function AdminUsersPage() {
                               type="checkbox"
                               checked={checked}
                               onChange={() => toggleRole(role.id, 'edit')}
-                              className="mt-1 h-4 w-4 rounded border-white/20 bg-[#101010]"
+                              className="mt-1 h-4 w-4 rounded border-white/20 bg-[#171717]"
                             />
                             <span className="min-w-0">
-                              <span className="block text-sm font-medium text-stone-100">{role.name}</span>
-                              <span className="mt-1 block text-xs leading-5 text-stone-500">
+                              <span className="block text-sm font-medium text-zinc-100">{role.name}</span>
+                              <span className="mt-1 block text-xs leading-5 text-zinc-500">
                                 {role.key} · {role.permissions.length} permissions
                               </span>
                             </span>
@@ -502,7 +502,7 @@ export default function AdminUsersPage() {
                         });
                         setSaveError(null);
                       }}
-                      className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.18em] text-stone-200 transition hover:bg-white/[0.06]"
+                      className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.18em] text-zinc-200 transition hover:bg-white/[0.06]"
                     >
                       Reset
                     </button>
@@ -510,7 +510,7 @@ export default function AdminUsersPage() {
                       type="button"
                       onClick={() => void handleSaveSelected()}
                       disabled={!editDirty || saving}
-                      className="rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber-100 transition disabled:cursor-not-allowed disabled:opacity-40"
+                      className="rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {saving ? 'Saving…' : 'Save access'}
                     </button>
@@ -524,9 +524,9 @@ export default function AdminUsersPage() {
               >
                 <div className="space-y-3">
                   {roles.map((role) => (
-                    <div key={role.id} className="rounded-2xl border border-white/8 bg-black/25 px-3 py-3">
-                      <div className="text-sm font-medium text-stone-100">{role.name}</div>
-                      <div className="mt-1 text-xs leading-5 text-stone-500">
+                    <div key={role.id} className="rounded-[6px] border border-white/8 bg-black/25 px-3 py-3">
+                      <div className="text-sm font-medium text-zinc-100">{role.name}</div>
+                      <div className="mt-1 text-xs leading-5 text-zinc-500">
                         {role.key} · {role.permissions.length} permissions
                       </div>
                     </div>
@@ -542,7 +542,7 @@ export default function AdminUsersPage() {
               <button
                 type="button"
                 onClick={() => setCreateOpen(true)}
-                className="rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber-100 transition hover:bg-amber-100/[0.1]"
+                className="rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition hover:bg-blue-500/[0.12]"
               >
                 Create user
               </button>
@@ -556,9 +556,9 @@ export default function AdminUsersPage() {
           <div className="w-full max-w-2xl rounded-[32px] border border-white/10 bg-[#0d0d0d] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.4)]">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-amber-100/55">System</div>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-stone-50">Create admin user</h2>
-                <p className="mt-2 text-sm leading-6 text-stone-400">
+                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-blue-300">System</div>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-50">Create admin user</h2>
+                <p className="mt-2 text-sm leading-6 text-zinc-400">
                   Define the immutable email, initial password, and starting role set for a new internal operator.
                 </p>
               </div>
@@ -569,7 +569,7 @@ export default function AdminUsersPage() {
                   setCreateError(null);
                   setCreateForm(EMPTY_CREATE_FORM);
                 }}
-                className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-100"
+                className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
               >
                 Close
               </button>
@@ -600,26 +600,26 @@ export default function AdminUsersPage() {
               />
 
               <div className="space-y-2">
-                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400">Initial roles</div>
+                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">Initial roles</div>
                 <div className="grid gap-2 md:grid-cols-2">
                   {roles.map((role) => {
                     const checked = createForm.roleIds.includes(role.id);
                     return (
                       <label
                         key={role.id}
-                        className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-3 py-3 transition ${
-                          checked ? 'border-amber-100/15 bg-amber-100/[0.06]' : 'border-white/10 bg-black/20 hover:bg-white/[0.03]'
+                        className={`flex cursor-pointer items-start gap-3 rounded-[6px] border px-3 py-3 transition ${
+                          checked ? 'border-blue-500/25 bg-blue-500/[0.08]' : 'border-white/10 bg-black/20 hover:bg-white/[0.03]'
                         }`}
                       >
                         <input
                           type="checkbox"
                           checked={checked}
                           onChange={() => toggleRole(role.id, 'create')}
-                          className="mt-1 h-4 w-4 rounded border-white/20 bg-[#101010]"
+                          className="mt-1 h-4 w-4 rounded border-white/20 bg-[#171717]"
                         />
                         <span className="min-w-0">
-                          <span className="block text-sm font-medium text-stone-100">{role.name}</span>
-                          <span className="mt-1 block text-xs leading-5 text-stone-500">
+                          <span className="block text-sm font-medium text-zinc-100">{role.name}</span>
+                          <span className="mt-1 block text-xs leading-5 text-zinc-500">
                             {role.key} · {role.permissions.length} permissions
                           </span>
                         </span>
@@ -639,14 +639,14 @@ export default function AdminUsersPage() {
                     setCreateError(null);
                     setCreateForm(EMPTY_CREATE_FORM);
                   }}
-                  className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-100"
+                  className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber-100 transition disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {creating ? 'Creating…' : 'Create user'}
                 </button>

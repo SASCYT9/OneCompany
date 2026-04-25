@@ -84,8 +84,8 @@ export default function CrmOrderDetailPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+          <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
           Завантаження замовлення…
         </div>
       </AdminPage>
@@ -101,7 +101,7 @@ export default function CrmOrderDetailPage() {
           action={
             <Link
               href="/admin/crm"
-              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               Back to CRM
             </Link>
@@ -116,7 +116,7 @@ export default function CrmOrderDetailPage() {
   return (
     <AdminPage className="space-y-6">
       <div className="space-y-4">
-        <Link href="/admin/crm" className="inline-flex items-center gap-2 text-sm text-stone-400 transition hover:text-stone-100">
+        <Link href="/admin/crm" className="inline-flex items-center gap-2 text-sm text-zinc-400 transition hover:text-zinc-100">
           CRM Dashboard
         </Link>
         <AdminPageHeader
@@ -151,12 +151,12 @@ export default function CrmOrderDetailPage() {
         <div className="flex flex-wrap gap-3">
           <Link
             href={`/admin/crm/customers/${order.customer.airtableId}`}
-            className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+            className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
           >
             Open customer
           </Link>
           {order.completionDate ? (
-            <div className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-stone-400">
+            <div className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-400">
               Completed {new Date(order.completionDate).toLocaleDateString('uk-UA')}
             </div>
           ) : null}
@@ -165,20 +165,20 @@ export default function CrmOrderDetailPage() {
 
       <AdminTableShell>
         <div className="border-b border-white/10 px-5 py-4">
-          <h2 className="text-sm font-medium text-stone-100">Line items</h2>
-          <p className="mt-1 text-xs text-stone-500">Order composition with customer pricing, purchase cost, and profit per item.</p>
+          <h2 className="text-sm font-medium text-zinc-100">Line items</h2>
+          <p className="mt-1 text-xs text-zinc-500">Order composition with customer pricing, purchase cost, and profit per item.</p>
         </div>
         {order.items.length ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                  <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500">Item</th>
-                  <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500">Status</th>
-                  <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Qty</th>
-                  <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Client</th>
-                  <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Purchase</th>
-                  <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Profit</th>
+                  <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Item</th>
+                  <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Status</th>
+                  <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Qty</th>
+                  <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Client</th>
+                  <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Purchase</th>
+                  <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Profit</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.04]">
@@ -190,16 +190,16 @@ export default function CrmOrderDetailPage() {
                           <img
                             src={item.imageUrl}
                             alt={item.productName}
-                            className="h-11 w-11 rounded-2xl border border-white/10 object-cover"
+                            className="h-11 w-11 rounded-[6px] border border-white/10 object-cover"
                           />
                         ) : (
-                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03]">
-                            <Package className="h-4 w-4 text-stone-500" />
+                          <div className="flex h-11 w-11 items-center justify-center rounded-[6px] border border-white/10 bg-white/[0.03]">
+                            <Package className="h-4 w-4 text-zinc-500" />
                           </div>
                         )}
                         <div className="min-w-0">
-                          <div className="truncate font-medium text-stone-100">{item.productName}</div>
-                          <div className="mt-1 text-xs text-stone-500">
+                          <div className="truncate font-medium text-zinc-100">{item.productName}</div>
+                          <div className="mt-1 text-xs text-zinc-500">
                             {item.sku || item.brand || 'No SKU'} · {item.category || 'No category'}
                           </div>
                         </div>
@@ -210,10 +210,10 @@ export default function CrmOrderDetailPage() {
                         {item.status || '—'}
                       </AdminStatusBadge>
                     </td>
-                    <td className="px-5 py-4 text-right text-stone-300">{item.quantity}</td>
-                    <td className="px-5 py-4 text-right font-medium text-stone-200">${item.clientTotal}</td>
+                    <td className="px-5 py-4 text-right text-zinc-300">{item.quantity}</td>
+                    <td className="px-5 py-4 text-right font-medium text-zinc-200">${item.clientTotal}</td>
                     <td className="px-5 py-4 text-right text-amber-200">${item.purchaseTotal}</td>
-                    <td className={`px-5 py-4 text-right font-medium ${item.profitPerItem >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+                    <td className={`px-5 py-4 text-right font-medium ${item.profitPerItem >= 0 ? 'text-emerald-300' : 'text-blue-300'}`}>
                       ${item.profitPerItem.toFixed(2)}
                     </td>
                   </tr>
@@ -221,12 +221,12 @@ export default function CrmOrderDetailPage() {
               </tbody>
               <tfoot>
                 <tr className="border-t border-white/[0.06] bg-white/[0.02]">
-                  <td colSpan={3} className="px-5 py-4 text-right text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">
+                  <td colSpan={3} className="px-5 py-4 text-right text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
                     Totals
                   </td>
-                  <td className="px-5 py-4 text-right font-semibold text-stone-100">${order.clientTotal.toLocaleString()}</td>
+                  <td className="px-5 py-4 text-right font-semibold text-zinc-100">${order.clientTotal.toLocaleString()}</td>
                   <td className="px-5 py-4 text-right font-semibold text-amber-200">${order.purchaseCost.toLocaleString()}</td>
-                  <td className={`px-5 py-4 text-right font-semibold ${profitTone === 'success' ? 'text-emerald-300' : 'text-red-300'}`}>
+                  <td className={`px-5 py-4 text-right font-semibold ${profitTone === 'success' ? 'text-emerald-300' : 'text-blue-300'}`}>
                     ${order.profit.toLocaleString()}
                   </td>
                 </tr>

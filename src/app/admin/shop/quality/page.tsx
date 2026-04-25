@@ -125,7 +125,7 @@ export default function CatalogQualityPage() {
       <AdminPage>
         <div className="grid gap-3 md:grid-cols-4">
           {Array.from({ length: 8 }).map((_, index) => (
-            <div key={index} className="h-28 animate-pulse rounded-[24px] border border-white/10 bg-white/[0.03]" />
+            <div key={index} className="h-28 motion-safe:animate-pulse rounded-[6px] border border-white/10 bg-white/[0.03]" />
           ))}
         </div>
       </AdminPage>
@@ -143,9 +143,9 @@ export default function CatalogQualityPage() {
             type="button"
             onClick={() => void load('refresh')}
             disabled={refreshing}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-stone-200 transition hover:bg-white/[0.06] disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
           >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'motion-safe:animate-spin' : ''}`} />
             Refresh
           </button>
         }
@@ -164,22 +164,22 @@ export default function CatalogQualityPage() {
 
           <AdminActionBar>
             <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-1 h-4 w-4 text-amber-100/75" />
+              <AlertTriangle className="mt-1 h-4 w-4 text-blue-300" />
               <div>
-                <div className="text-sm font-medium text-stone-100">Bulk fix queue</div>
-                <div className="text-sm text-stone-500">
+                <div className="text-sm font-medium text-zinc-100">Bulk fix queue</div>
+                <div className="text-sm text-zinc-500">
                   Use filters to isolate one issue class, then open affected products in edit mode. Destructive bulk mutations stay out of this first version.
                 </div>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link href="/admin/shop/media" className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-stone-300 hover:bg-white/[0.06]">
+              <Link href="/admin/shop/media" className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-300 hover:bg-white/[0.06]">
                 Media library
               </Link>
-              <Link href="/admin/shop/seo" className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-stone-300 hover:bg-white/[0.06]">
+              <Link href="/admin/shop/seo" className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-300 hover:bg-white/[0.06]">
                 SEO AI
               </Link>
-              <Link href="/admin/shop?status=DRAFT" className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-stone-300 hover:bg-white/[0.06]">
+              <Link href="/admin/shop?status=DRAFT" className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-300 hover:bg-white/[0.06]">
                 Draft products
               </Link>
             </div>
@@ -188,13 +188,13 @@ export default function CatalogQualityPage() {
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div className="space-y-4">
               <AdminFilterBar>
-                <label className="flex min-w-[260px] flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-stone-200">
-                  <Search className="h-4 w-4 text-stone-500" />
+                <label className="flex min-w-[260px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+                  <Search className="h-4 w-4 text-zinc-500" />
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder="Search title, slug, SKU, brand"
-                    className="w-full bg-transparent text-stone-100 placeholder:text-stone-500 focus:outline-none"
+                    className="w-full bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
                   />
                 </label>
                 <SelectFilter label="Issue" value={issueFilter} onChange={(value) => setIssueFilter(value as 'ALL' | CatalogQualityIssueKey)} options={ISSUE_OPTIONS} />
@@ -211,7 +211,7 @@ export default function CatalogQualityPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[1080px] text-left text-sm">
                       <thead>
-                        <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                        <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                           <th className="px-4 py-4 font-medium">Product</th>
                           <th className="px-4 py-4 font-medium">Status</th>
                           <th className="px-4 py-4 font-medium">Issues</th>
@@ -224,12 +224,12 @@ export default function CatalogQualityPage() {
                         {visibleProducts.map((product) => (
                           <tr key={product.id} className="align-top transition hover:bg-white/[0.03]">
                             <td className="px-4 py-4">
-                              <div className="font-medium text-stone-100">{product.title}</div>
-                              <div className="mt-1 text-xs text-stone-500">{product.brand} · {product.sku || product.slug}</div>
+                              <div className="font-medium text-zinc-100">{product.title}</div>
+                              <div className="mt-1 text-xs text-zinc-500">{product.brand} · {product.sku || product.slug}</div>
                             </td>
                             <td className="px-4 py-4">
                               <AdminStatusBadge tone={statusTone(product.status)}>{product.status}</AdminStatusBadge>
-                              <div className="mt-2 text-xs text-stone-500">{product.isPublished ? 'Published' : 'Unpublished'} · {product.stock}</div>
+                              <div className="mt-2 text-xs text-zinc-500">{product.isPublished ? 'Published' : 'Unpublished'} · {product.stock}</div>
                             </td>
                             <td className="px-4 py-4">
                               <div className="flex max-w-[420px] flex-wrap gap-1.5">
@@ -241,17 +241,17 @@ export default function CatalogQualityPage() {
                               </div>
                             </td>
                             <td className="px-4 py-4">
-                              <div className="max-w-[220px] text-xs text-stone-500">
+                              <div className="max-w-[220px] text-xs text-zinc-500">
                                 {product.collections.length
                                   ? product.collections.slice(0, 3).map((collection) => collection.title).join(', ')
                                   : 'No collections'}
                               </div>
                             </td>
-                            <td className="px-4 py-4 text-xs text-stone-500">{new Date(product.updatedAt).toLocaleDateString()}</td>
+                            <td className="px-4 py-4 text-xs text-zinc-500">{new Date(product.updatedAt).toLocaleDateString()}</td>
                             <td className="px-4 py-4">
                               <Link
                                 href={`/admin/shop/${product.id}`}
-                                className="inline-flex items-center gap-2 rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-amber-100 transition hover:bg-amber-100/[0.1]"
+                                className="inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-blue-300 transition hover:bg-blue-500/[0.12]"
                               >
                                 <Wrench className="h-3.5 w-3.5" />
                                 Fix
@@ -285,16 +285,16 @@ export default function CatalogQualityPage() {
               <AdminInspectorCard title="Brand quality score" description="Worst brand groups first.">
                 <div className="space-y-3">
                   {report.brandScores.map((brand) => (
-                    <div key={brand.brand} className="rounded-2xl border border-white/10 bg-black/25 px-3 py-3">
+                    <div key={brand.brand} className="rounded-[6px] border border-white/10 bg-black/25 px-3 py-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="truncate text-sm font-medium text-stone-100">{brand.brand}</div>
-                          <div className="mt-1 text-xs text-stone-500">{brand.issueProducts} with issues · {brand.total} total</div>
+                          <div className="truncate text-sm font-medium text-zinc-100">{brand.brand}</div>
+                          <div className="mt-1 text-xs text-zinc-500">{brand.issueProducts} with issues · {brand.total} total</div>
                         </div>
                         <AdminStatusBadge tone={qualityTone(brand.score)}>{brand.score}%</AdminStatusBadge>
                       </div>
                       {brand.topIssues.length ? (
-                        <div className="mt-2 text-xs text-stone-500">
+                        <div className="mt-2 text-xs text-zinc-500">
                           {brand.topIssues.map((issue) => `${CATALOG_QUALITY_ISSUES[issue.key].label}: ${issue.count}`).join(' · ')}
                         </div>
                       ) : null}
@@ -325,11 +325,11 @@ function SelectFilter({
 }) {
   return (
     <label className="block min-w-[180px]">
-      <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-stone-500">{label}</span>
+      <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-zinc-500">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-stone-100 focus:border-white/20 focus:outline-none"
+        className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
       >
         {options.map((option) => (
           <option key={`${label}-${option.value}`} value={option.value}>

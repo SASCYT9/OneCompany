@@ -143,7 +143,7 @@ export default function AdminBackupsPage() {
           <button
             type="button"
             onClick={() => void loadBackups()}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-100"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Reload
@@ -152,9 +152,9 @@ export default function AdminBackupsPage() {
             type="button"
             onClick={() => void createBackup()}
             disabled={creating || managedExternally}
-            className="inline-flex items-center gap-2 rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber-100 transition disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Database className="h-3.5 w-3.5" />}
+            {creating ? <Loader2 className="h-3.5 w-3.5 motion-safe:animate-spin" /> : <Database className="h-3.5 w-3.5" />}
             {managedExternally ? 'Externally managed' : creating ? 'Creating backup' : 'Create backup now'}
           </button>
         </div>
@@ -163,8 +163,8 @@ export default function AdminBackupsPage() {
       <AdminSplitDetailShell
         main={
           loading ? (
-            <div className="flex min-h-[320px] items-center justify-center rounded-[28px] border border-white/10 bg-[#101010] text-sm text-stone-400">
-              <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+            <div className="flex min-h-[320px] items-center justify-center rounded-[6px] border border-white/10 bg-[#171717] text-sm text-zinc-400">
+              <Loader2 className="mr-3 h-4 w-4 motion-safe:animate-spin" />
               Loading backups…
             </div>
           ) : items.length === 0 ? (
@@ -180,7 +180,7 @@ export default function AdminBackupsPage() {
             <AdminTableShell>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                  <thead className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                     <tr>
                       <th className="px-5 py-4 font-medium">Filename</th>
                       <th className="px-5 py-4 font-medium">Size</th>
@@ -190,9 +190,9 @@ export default function AdminBackupsPage() {
                   <tbody>
                     {items.map((item) => (
                       <tr key={item.filename} className="border-b border-white/6 hover:bg-white/[0.03]">
-                        <td className="px-5 py-4 font-mono text-xs text-stone-200">{item.filename}</td>
-                        <td className="px-5 py-4 text-stone-400">{formatBytes(item.sizeBytes)}</td>
-                        <td className="px-5 py-4 text-stone-400">{formatDate(item.createdAt)}</td>
+                        <td className="px-5 py-4 font-mono text-xs text-zinc-200">{item.filename}</td>
+                        <td className="px-5 py-4 text-zinc-400">{formatBytes(item.sizeBytes)}</td>
+                        <td className="px-5 py-4 text-zinc-400">{formatDate(item.createdAt)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -218,7 +218,7 @@ export default function AdminBackupsPage() {
                     { label: 'Workspace retention', value: 'Controlled by runtime policy and local pruning' },
                   ]}
                 />
-                {managedMessage ? <div className="text-xs leading-5 text-stone-500">{managedMessage}</div> : null}
+                {managedMessage ? <div className="text-xs leading-5 text-zinc-500">{managedMessage}</div> : null}
               </div>
             </AdminInspectorCard>
 

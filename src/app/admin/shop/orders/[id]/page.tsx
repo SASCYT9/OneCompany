@@ -23,6 +23,8 @@ import {
   AdminSelectField,
   AdminTextareaField,
 } from '@/components/admin/AdminFormFields';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
 
 type OrderStatus =
   | 'PENDING_PAYMENT'
@@ -206,6 +208,8 @@ function formatMoney(value: number, currency: string) {
 }
 
 export default function AdminOrderDetailPage() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const params = useParams();
   const id = params?.id as string;
   const [order, setOrder] = useState<OrderDetail | null>(null);
@@ -400,7 +404,13 @@ export default function AdminOrderDetailPage() {
   }
 
   async function handleDeleteShipment(shipmentId: string) {
-    if (!confirm('Видалити це відправлення?')) return;
+    const ok = await confirm({
+      tone: 'danger',
+      title: 'Видалити це відправлення?',
+      description: 'Запис відправлення буде видалено разом з трекінгом. Дію не можна скасувати.',
+      confirmLabel: 'Видалити',
+    });
+    if (!ok) return;
     setShipmentDeletingId(shipmentId);
     setError('');
     setSuccess('');
@@ -410,11 +420,14 @@ export default function AdminOrderDetailPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Не вдалося видалити відправлення');
+        const msg = data.error || 'Не вдалося видалити відправлення';
+        setError(msg);
+        toast.error('Не вдалося видалити', msg);
         return;
       }
       await load();
       setSuccess('Відправлення видалено.');
+      toast.success('Відправлення видалено');
     } finally {
       setShipmentDeletingId(null);
     }
@@ -467,7 +480,7 @@ export default function AdminOrderDetailPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+        <div className="rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           Завантаження замовлення…
         </div>
       </AdminPage>
@@ -477,8 +490,8 @@ export default function AdminOrderDetailPage() {
   if (error && !order) {
     return (
       <AdminPage className="space-y-4">
-        <div className="rounded-[24px] border border-red-500/20 bg-red-950/20 px-4 py-3 text-sm text-red-200">{error}</div>
-        <Link href="/admin/shop/orders" className="inline-block text-sm text-stone-300 hover:text-stone-100">
+        <div className="rounded-[6px] border border-blue-500/20 bg-blue-950/20 px-4 py-3 text-sm text-red-200">{error}</div>
+        <Link href="/admin/shop/orders" className="inline-block text-sm text-zinc-300 hover:text-zinc-100">
           Back to orders
         </Link>
       </AdminPage>
@@ -529,7 +542,7 @@ export default function AdminOrderDetailPage() {
             type="button"
             onClick={() => void handleStatusChange()}
             disabled={updating || newStatus === order.status}
-            className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
           >
             <PackageCheck className="h-4 w-4" />
             Apply status
@@ -540,7 +553,7 @@ export default function AdminOrderDetailPage() {
               type="button"
               onClick={() => void handleStatusChange(status)}
               disabled={updating}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-stone-200 transition hover:bg-white/10 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
             >
               {statusLabel(status)}
             </button>
@@ -559,25 +572,25 @@ export default function AdminOrderDetailPage() {
         main={
           <>
             {(error || success) && (
-              <div className={`rounded-[24px] border px-4 py-3 text-sm ${error ? 'border-red-500/20 bg-red-950/20 text-red-200' : 'border-emerald-500/20 bg-emerald-950/20 text-emerald-200'}`}>
+              <div className={`rounded-[6px] border px-4 py-3 text-sm ${error ? 'border-blue-500/20 bg-blue-950/20 text-red-200' : 'border-emerald-500/20 bg-emerald-950/20 text-emerald-200'}`}>
                 {error || success}
               </div>
             )}
 
-            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
-                <h2 className="text-xl font-semibold text-stone-100">Customer and shipping snapshot</h2>
-                <p className="mt-1 text-sm text-stone-500">Контакт, B2B context і адреса доставки для поточного fulfillment.</p>
+                <h2 className="text-xl font-semibold text-zinc-100">Customer and shipping snapshot</h2>
+                <p className="mt-1 text-sm text-zinc-500">Контакт, B2B context і адреса доставки для поточного fulfillment.</p>
               </div>
               <div className="grid gap-4 lg:grid-cols-2">
-                <div className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Customer</div>
-                  <div className="mt-3 space-y-2 text-sm text-stone-300">
-                    <div className="text-lg font-medium text-stone-100">{order.customerName}</div>
+                <div className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Customer</div>
+                  <div className="mt-3 space-y-2 text-sm text-zinc-300">
+                    <div className="text-lg font-medium text-zinc-100">{order.customerName}</div>
                     <div>{order.email}</div>
                     {order.phone ? <div>{order.phone}</div> : null}
                     {order.customerGroupSnapshot ? (
-                      <div className="text-xs text-stone-500">
+                      <div className="text-xs text-zinc-500">
                         {order.customerGroupSnapshot}
                         {order.b2bDiscountPercent ? ` · ${order.b2bDiscountPercent}% discount` : ''}
                         {order.discountNotes ? ` · ${order.discountNotes}` : ''}
@@ -585,9 +598,9 @@ export default function AdminOrderDetailPage() {
                     ) : null}
                   </div>
                 </div>
-                <div className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Shipping address</div>
-                  <div className="mt-3 space-y-1 text-sm text-stone-300">
+                <div className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Shipping address</div>
+                  <div className="mt-3 space-y-1 text-sm text-zinc-300">
                     <div>{address.line1 || '—'}</div>
                     {address.line2 ? <div>{address.line2}</div> : null}
                     <div>{[address.city, address.region, address.postcode].filter(Boolean).join(', ') || '—'}</div>
@@ -597,16 +610,16 @@ export default function AdminOrderDetailPage() {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
-                <h2 className="text-xl font-semibold text-stone-100">Items</h2>
-                <p className="mt-1 text-sm text-stone-500">Current order composition and pricing at line level.</p>
+                <h2 className="text-xl font-semibold text-zinc-100">Items</h2>
+                <p className="mt-1 text-sm text-zinc-500">Current order composition and pricing at line level.</p>
               </div>
               <AdminTableShell>
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[720px] text-left text-sm">
                     <thead>
-                      <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                      <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                         <th className="px-4 py-4 font-medium">Item</th>
                         <th className="px-4 py-4 font-medium">SKU</th>
                         <th className="px-4 py-4 font-medium">Qty</th>
@@ -624,19 +637,19 @@ export default function AdminOrderDetailPage() {
                                 <img src={item.image} alt={item.title} className="h-10 w-10 rounded-xl border border-white/10 object-cover" />
                               ) : (
                                 <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/25">
-                                  <Package className="h-4 w-4 text-stone-600" />
+                                  <Package className="h-4 w-4 text-zinc-600" />
                                 </div>
                               )}
                               <div>
-                                <div className="font-medium text-stone-100">{item.title}</div>
-                                {item.productSlug ? <div className="mt-1 text-xs text-stone-500">{item.productSlug}</div> : null}
+                                <div className="font-medium text-zinc-100">{item.title}</div>
+                                {item.productSlug ? <div className="mt-1 text-xs text-zinc-500">{item.productSlug}</div> : null}
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-4 font-mono text-xs text-stone-400">{item.productSlug || '—'}</td>
-                          <td className="px-4 py-4 text-stone-300">{item.quantity}</td>
-                          <td className="px-4 py-4 text-stone-300">{formatMoney(item.price, order.currency)}</td>
-                          <td className="px-4 py-4 font-medium text-stone-100">{formatMoney(item.total, order.currency)}</td>
+                          <td className="px-4 py-4 font-mono text-xs text-zinc-400">{item.productSlug || '—'}</td>
+                          <td className="px-4 py-4 text-zinc-300">{item.quantity}</td>
+                          <td className="px-4 py-4 text-zinc-300">{formatMoney(item.price, order.currency)}</td>
+                          <td className="px-4 py-4 font-medium text-zinc-100">{formatMoney(item.total, order.currency)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -645,28 +658,28 @@ export default function AdminOrderDetailPage() {
               </AdminTableShell>
             </section>
 
-            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
-                <h2 className="text-xl font-semibold text-stone-100">Shipments</h2>
-                <p className="mt-1 text-sm text-stone-500">Tracking records and shipment state transitions tied to the order.</p>
+                <h2 className="text-xl font-semibold text-zinc-100">Shipments</h2>
+                <p className="mt-1 text-sm text-zinc-500">Tracking records and shipment state transitions tied to the order.</p>
               </div>
               <div className="space-y-4">
                 {order.shipments.map((shipment) => {
                   const draft = shipmentDrafts[shipment.id];
                   if (!draft) return null;
                   return (
-                    <div key={shipment.id} className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4">
+                    <div key={shipment.id} className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4">
                       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                           <AdminStatusBadge tone={shipmentTone(shipment.status)}>{shipment.status.replace(/_/g, ' ')}</AdminStatusBadge>
-                          <span className="font-medium text-stone-100">{shipment.trackingNumber}</span>
+                          <span className="font-medium text-zinc-100">{shipment.trackingNumber}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
                             onClick={() => void handleUpdateShipment(shipment.id)}
                             disabled={shipmentSavingId === shipment.id}
-                            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-stone-200 transition hover:bg-white/10 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
                           >
                             <Save className="h-3.5 w-3.5" />
                             Save
@@ -675,7 +688,7 @@ export default function AdminOrderDetailPage() {
                             type="button"
                             onClick={() => void handleDeleteShipment(shipment.id)}
                             disabled={shipmentDeletingId === shipment.id}
-                            className="rounded-full border border-red-500/20 bg-red-950/20 px-3 py-2 text-xs text-red-200 transition hover:bg-red-950/30 disabled:opacity-50"
+                            className="rounded-full border border-blue-500/20 bg-blue-950/20 px-3 py-2 text-xs text-red-200 transition hover:bg-blue-950/30 disabled:opacity-50"
                           >
                             Delete
                           </button>
@@ -707,9 +720,9 @@ export default function AdminOrderDetailPage() {
                   );
                 })}
 
-                <div className="rounded-[24px] border border-dashed border-white/10 px-4 py-4">
-                  <div className="mb-4 flex items-center gap-2 text-stone-100">
-                    <Truck className="h-4 w-4 text-amber-100/60" />
+                <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-4">
+                  <div className="mb-4 flex items-center gap-2 text-zinc-100">
+                    <Truck className="h-4 w-4 text-blue-300/60" />
                     <span className="font-medium">Create shipment</span>
                   </div>
                   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -727,7 +740,7 @@ export default function AdminOrderDetailPage() {
                         type="button"
                         onClick={() => void handleCreateShipment()}
                         disabled={shipmentSavingId === 'new'}
-                        className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
                       >
                         Create shipment
                       </button>
@@ -737,20 +750,20 @@ export default function AdminOrderDetailPage() {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
-                <h2 className="text-xl font-semibold text-stone-100">Pricing snapshot</h2>
-                <p className="mt-1 text-sm text-stone-500">Stored pricing snapshot for audit and manual review.</p>
+                <h2 className="text-xl font-semibold text-zinc-100">Pricing snapshot</h2>
+                <p className="mt-1 text-sm text-zinc-500">Stored pricing snapshot for audit and manual review.</p>
               </div>
-              <pre className="overflow-x-auto rounded-[24px] border border-white/10 bg-black/25 p-4 text-[11px] text-stone-400">
+              <pre className="overflow-x-auto rounded-[6px] border border-white/10 bg-black/25 p-4 text-[11px] text-zinc-400">
                 {JSON.stringify(order.pricingSnapshot ?? {}, null, 2)}
               </pre>
             </section>
 
-            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
-                <h2 className="text-xl font-semibold text-stone-100">Timeline</h2>
-                <p className="mt-1 text-sm text-stone-500">Status transitions and admin notes captured on the order.</p>
+                <h2 className="text-xl font-semibold text-zinc-100">Timeline</h2>
+                <p className="mt-1 text-sm text-zinc-500">Status transitions and admin notes captured on the order.</p>
               </div>
               <AdminTimelineList
                 items={order.events.map((event) => ({
@@ -821,7 +834,7 @@ export default function AdminOrderDetailPage() {
                   type="button"
                   onClick={() => void handlePaymentAndFulfillmentSave()}
                   disabled={updating}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" />
                   Save payment & fulfillment
@@ -837,7 +850,7 @@ export default function AdminOrderDetailPage() {
                 <button
                   type="button"
                   onClick={() => void copyConfirmationLink()}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
                 >
                   <Copy className="h-4 w-4" />
                   {copyState || 'Copy customer link'}
@@ -846,7 +859,7 @@ export default function AdminOrderDetailPage() {
                   href={confirmationUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
                 >
                   <ExternalLink className="h-4 w-4" />
                   Open customer view
@@ -855,7 +868,7 @@ export default function AdminOrderDetailPage() {
                   type="button"
                   onClick={() => void handleGenerateWhitepayFiatLink()}
                   disabled={updating}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-200 transition hover:bg-indigo-500/15 disabled:opacity-50"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm text-red-200 transition hover:bg-blue-500/15 disabled:opacity-50"
                 >
                   <DollarSign className="h-4 w-4" />
                   Whitepay Fiat
@@ -864,7 +877,7 @@ export default function AdminOrderDetailPage() {
                   type="button"
                   onClick={() => void handleGenerateWhitepayCryptoLink()}
                   disabled={updating}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-200 transition hover:bg-cyan-500/15 disabled:opacity-50"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-[4px] border border-blue-500/25 bg-blue-500/[0.06] px-4 py-2 text-sm font-bold uppercase tracking-wider text-red-200 transition hover:border-blue-500/40 hover:bg-blue-500/[0.1] disabled:opacity-50"
                 >
                   Whitepay Crypto
                 </button>

@@ -110,9 +110,9 @@ export default function AdminShopAuditPage() {
           <button
             type="button"
             onClick={() => setReloadKey((current) => current + 1)}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
           >
-            <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCcw className={`h-4 w-4 ${loading ? 'motion-safe:animate-spin' : ''}`} />
             Refresh
           </button>
         }
@@ -135,21 +135,21 @@ export default function AdminShopAuditPage() {
 
       <AdminFilterBar>
         <label className="min-w-[260px] flex-1">
-          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Search</span>
+          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Search</span>
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="actor, action, entity, metadata"
-            className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 placeholder:text-stone-600 focus:border-white/20 focus:outline-none"
+            className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
           />
         </label>
 
         <label className="w-full md:w-[260px]">
-          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Entity type</span>
+          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Entity type</span>
           <select
             value={entityType}
             onChange={(event) => setEntityType(event.target.value)}
-            className="w-full rounded-2xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm text-stone-100 focus:border-white/20 focus:outline-none"
+            className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
           >
             <option value="">Усі типи</option>
             {entityTypes.map((entry) => (
@@ -179,15 +179,15 @@ export default function AdminShopAuditPage() {
             <section key={group} className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-semibold tracking-tight text-stone-100">{group}</h2>
-                  <p className="text-sm text-stone-500">{groupItems.length} подій у цій групі</p>
+                  <h2 className="text-lg font-semibold tracking-tight text-zinc-100">{group}</h2>
+                  <p className="text-sm text-zinc-500">{groupItems.length} подій у цій групі</p>
                 </div>
                 <AdminStatusBadge>{groupItems.length} records</AdminStatusBadge>
               </div>
 
               <AdminTableShell>
-                <table className="min-w-full text-left text-sm text-stone-200">
-                  <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                <table className="min-w-full text-left text-sm text-zinc-200">
+                  <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                     <tr>
                       <th className="px-4 py-3 font-medium">Action</th>
                       <th className="px-4 py-3 font-medium">Actor</th>
@@ -202,34 +202,34 @@ export default function AdminShopAuditPage() {
                       return (
                         <tr key={log.id} className="border-t border-white/8 align-top">
                           <td className="px-4 py-4">
-                            <div className="font-medium text-stone-100">{log.action}</div>
+                            <div className="font-medium text-zinc-100">{log.action}</div>
                             {log.metadata ? (
-                              <pre className="mt-2 max-h-40 overflow-auto rounded-2xl border border-white/10 bg-black/25 p-3 text-[11px] text-stone-500">
+                              <pre className="mt-2 max-h-40 overflow-auto rounded-[6px] border border-white/10 bg-black/25 p-3 text-[11px] text-zinc-500">
                                 {JSON.stringify(log.metadata, null, 2)}
                               </pre>
                             ) : null}
                           </td>
-                          <td className="px-4 py-4 text-stone-300">
+                          <td className="px-4 py-4 text-zinc-300">
                             <div>{log.actorName ? `${log.actorName}` : log.actorEmail}</div>
-                            <div className="mt-1 text-xs text-stone-500">{log.actorEmail}</div>
+                            <div className="mt-1 text-xs text-zinc-500">{log.actorEmail}</div>
                           </td>
-                          <td className="px-4 py-4 text-stone-300">
+                          <td className="px-4 py-4 text-zinc-300">
                             <div>{log.entityType}</div>
-                            <div className="mt-1 text-xs text-stone-500">{log.entityId || '—'}</div>
+                            <div className="mt-1 text-xs text-zinc-500">{log.entityId || '—'}</div>
                           </td>
-                          <td className="px-4 py-4 text-stone-400">{new Date(log.createdAt).toLocaleString()}</td>
+                          <td className="px-4 py-4 text-zinc-400">{new Date(log.createdAt).toLocaleString()}</td>
                           <td className="px-4 py-4">
                             <div className="flex justify-end">
                               {entityHref ? (
                                 <Link
                                   href={entityHref}
-                                  className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+                                  className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
                                 >
                                   Open entity
                                   <ExternalLink className="h-3.5 w-3.5" />
                                 </Link>
                               ) : (
-                                <span className="text-xs text-stone-600">No entity route</span>
+                                <span className="text-xs text-zinc-600">No entity route</span>
                               )}
                             </div>
                           </td>

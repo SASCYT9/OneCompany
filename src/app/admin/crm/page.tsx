@@ -253,8 +253,8 @@ export default function CrmDashboardPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+          <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
           Loading CRM dashboard…
         </div>
       </AdminPage>
@@ -276,9 +276,9 @@ export default function CrmDashboardPage() {
               type="button"
               onClick={() => void handleFullSync()}
               disabled={syncing}
-              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
             >
-              <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${syncing ? 'motion-safe:animate-spin' : ''}`} />
               {syncing ? 'Синхронізація…' : 'Повна синхронізація'}
             </button>
           </>
@@ -315,7 +315,7 @@ export default function CrmDashboardPage() {
         />
       </AdminMetricGrid>
 
-      <AdminActionBar className="bg-[#101010]">
+      <AdminActionBar className="bg-[#171717]">
         <div className="flex flex-wrap gap-2">
           {([
             ['overview', 'Overview'],
@@ -326,19 +326,19 @@ export default function CrmDashboardPage() {
               key={tabKey}
               type="button"
               onClick={() => setActiveTab(tabKey)}
-              className={`rounded-2xl border px-4 py-2.5 text-sm transition ${
+              className={`rounded-[6px] border px-4 py-2.5 text-sm transition ${
                 activeTab === tabKey
-                  ? 'border-white/15 bg-white/[0.08] text-stone-50'
-                  : 'border-white/10 bg-white/[0.03] text-stone-400 hover:bg-white/[0.06] hover:text-stone-200'
+                  ? 'border-white/15 bg-white/[0.08] text-zinc-50'
+                  : 'border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200'
               }`}
             >
               {label}
             </button>
           ))}
         </div>
-        <div className="text-right text-xs text-stone-500">
+        <div className="text-right text-xs text-zinc-500">
           <div>Last refresh</div>
-          <div className="mt-1 text-sm text-stone-300">
+          <div className="mt-1 text-sm text-zinc-300">
             {lastUpdated ? lastUpdated.toLocaleTimeString('uk-UA') : '—'}
           </div>
         </div>
@@ -346,16 +346,16 @@ export default function CrmDashboardPage() {
 
       {activeTab !== 'overview' ? (
         <AdminFilterBar>
-          <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-stone-100">
-            <Search className="h-4 w-4 text-stone-500" />
+          <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+            <Search className="h-4 w-4 text-zinc-500" />
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={activeTab === 'customers' ? 'Пошук клієнта…' : 'Пошук замовлення…'}
-              className="flex-1 bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
+              className="flex-1 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
             />
           </label>
-          <div className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-stone-400">
+          <div className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-400">
             {activeTab === 'customers' ? filteredCustomers.length : filteredOrders.length} visible
           </div>
         </AdminFilterBar>
@@ -365,19 +365,19 @@ export default function CrmDashboardPage() {
         <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
           <AdminTableShell>
             <div className="border-b border-white/10 px-5 py-4">
-              <h2 className="text-sm font-medium text-stone-100">Recent orders</h2>
-              <p className="mt-1 text-xs text-stone-500">Newest linked CRM orders with client totals and profit.</p>
+              <h2 className="text-sm font-medium text-zinc-100">Recent orders</h2>
+              <p className="mt-1 text-xs text-zinc-500">Newest linked CRM orders with client totals and profit.</p>
             </div>
             {recentOrders.length ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-white/5 bg-white/[0.02]">
-                      <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-stone-500">Order</th>
-                      <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-stone-500">Status</th>
-                      <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-stone-500">Payment</th>
-                      <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Revenue</th>
-                      <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Profit</th>
+                      <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Order</th>
+                      <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Status</th>
+                      <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Payment</th>
+                      <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Revenue</th>
+                      <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Profit</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/[0.04]">
@@ -385,8 +385,8 @@ export default function CrmDashboardPage() {
                       <tr key={order.id} className="hover:bg-white/[0.02]">
                         <td className="px-5 py-4">
                           <Link href={`/admin/crm/orders/${order.id}`} className="block">
-                            <div className="font-medium text-stone-100">#{order.number}</div>
-                            <div className="mt-1 text-xs text-stone-500">{order.name}</div>
+                            <div className="font-medium text-zinc-100">#{order.number}</div>
+                            <div className="mt-1 text-xs text-zinc-500">{order.name}</div>
                           </Link>
                         </td>
                         <td className="px-5 py-4">
@@ -399,10 +399,10 @@ export default function CrmDashboardPage() {
                             {order.paymentStatus || '—'}
                           </AdminStatusBadge>
                         </td>
-                        <td className="px-5 py-4 text-right font-medium text-stone-200">
+                        <td className="px-5 py-4 text-right font-medium text-zinc-200">
                           ${fmtUsd(order.clientTotal)}
                         </td>
-                        <td className={`px-5 py-4 text-right font-medium ${order.profit >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+                        <td className={`px-5 py-4 text-right font-medium ${order.profit >= 0 ? 'text-emerald-300' : 'text-blue-300'}`}>
                           ${fmtUsd(order.profit)}
                         </td>
                       </tr>
@@ -422,8 +422,8 @@ export default function CrmDashboardPage() {
           <div className="space-y-6">
             <AdminTableShell>
               <div className="border-b border-white/10 px-5 py-4">
-                <h2 className="text-sm font-medium text-stone-100">Top customers</h2>
-                <p className="mt-1 text-xs text-stone-500">Customers ranked by total sales in the linked CRM set.</p>
+                <h2 className="text-sm font-medium text-zinc-100">Top customers</h2>
+                <p className="mt-1 text-xs text-zinc-500">Customers ranked by total sales in the linked CRM set.</p>
               </div>
               {topCustomers.length ? (
                 <div className="divide-y divide-white/[0.04]">
@@ -434,14 +434,14 @@ export default function CrmDashboardPage() {
                       className="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-white/[0.02]"
                     >
                       <div className="min-w-0">
-                        <div className="truncate font-medium text-stone-100">{customer.name}</div>
-                        <div className="mt-1 text-xs text-stone-500">
+                        <div className="truncate font-medium text-zinc-100">{customer.name}</div>
+                        <div className="mt-1 text-xs text-zinc-500">
                           {customer.orderCount} orders · {customer.businessName || customer.email || 'No company info'}
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-medium text-stone-200">${fmtUsd(customer.totalSales)}</div>
-                        <div className={`mt-1 text-xs ${customer.balance >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+                        <div className="font-medium text-zinc-200">${fmtUsd(customer.totalSales)}</div>
+                        <div className={`mt-1 text-xs ${customer.balance >= 0 ? 'text-emerald-300' : 'text-blue-300'}`}>
                           balance ${fmtUsd(customer.balance)}
                         </div>
                       </div>
@@ -459,29 +459,29 @@ export default function CrmDashboardPage() {
 
             <AdminTableShell>
               <div className="border-b border-white/10 px-5 py-4">
-                <h2 className="text-sm font-medium text-stone-100">Operational summary</h2>
-                <p className="mt-1 text-xs text-stone-500">Status distribution and payment posture across current CRM orders.</p>
+                <h2 className="text-sm font-medium text-zinc-100">Operational summary</h2>
+                <p className="mt-1 text-xs text-zinc-500">Status distribution and payment posture across current CRM orders.</p>
               </div>
               <div className="space-y-5 px-5 py-5">
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
-                    <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Active</div>
-                    <div className="mt-2 text-2xl font-semibold text-stone-100">{activeOrders}</div>
+                  <div className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-3">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Active</div>
+                    <div className="mt-2 text-2xl font-semibold text-zinc-100">{activeOrders}</div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
-                    <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Paid</div>
+                  <div className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-3">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Paid</div>
                     <div className="mt-2 text-2xl font-semibold text-emerald-300">{paidOrders}</div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
-                    <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Pending payment</div>
+                  <div className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-3">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Pending payment</div>
                     <div className="mt-2 text-2xl font-semibold text-amber-200">{unpaidOrders}</div>
                   </div>
                 </div>
                 <div className="space-y-2">
                   {statusSummary.map((entry) => (
-                    <div key={entry.status} className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                    <div key={entry.status} className="flex items-center justify-between gap-4 rounded-[6px] border border-white/10 bg-black/20 px-4 py-3">
                       <AdminStatusBadge tone={getOrderStatusTone(entry.status)}>{entry.status}</AdminStatusBadge>
-                      <span className="text-sm font-medium text-stone-200">{entry.count}</span>
+                      <span className="text-sm font-medium text-zinc-200">{entry.count}</span>
                     </div>
                   ))}
                 </div>
@@ -498,35 +498,35 @@ export default function CrmDashboardPage() {
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500">Customer</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500">Business</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Sales</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Orders</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Balance</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500">Action</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Customer</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Business</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Sales</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Orders</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Balance</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04]">
                   {filteredCustomers.map((customer) => (
                     <tr key={customer.id} className="hover:bg-white/[0.02]">
                       <td className="px-5 py-4">
-                        <div className="font-medium text-stone-100">{customer.name}</div>
-                        <div className="mt-1 text-xs text-stone-500">{customer.email || 'No email'}</div>
+                        <div className="font-medium text-zinc-100">{customer.name}</div>
+                        <div className="mt-1 text-xs text-zinc-500">{customer.email || 'No email'}</div>
                       </td>
-                      <td className="px-5 py-4 text-stone-300">
+                      <td className="px-5 py-4 text-zinc-300">
                         {customer.businessName || '—'}
                       </td>
-                      <td className="px-5 py-4 text-right font-medium text-stone-200">
+                      <td className="px-5 py-4 text-right font-medium text-zinc-200">
                         ${fmtUsd(customer.totalSales)}
                       </td>
-                      <td className="px-5 py-4 text-right text-stone-300">{customer.orderCount}</td>
-                      <td className={`px-5 py-4 text-right font-medium ${customer.balance >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+                      <td className="px-5 py-4 text-right text-zinc-300">{customer.orderCount}</td>
+                      <td className={`px-5 py-4 text-right font-medium ${customer.balance >= 0 ? 'text-emerald-300' : 'text-blue-300'}`}>
                         ${fmtUsd(customer.balance)}
                       </td>
                       <td className="px-5 py-4">
                         <Link
                           href={`/admin/crm/customers/${customer.id}`}
-                          className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+                          className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
                         >
                           Open
                         </Link>
@@ -552,21 +552,21 @@ export default function CrmDashboardPage() {
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500">Order</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500">Status</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500">Payment</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Items</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Revenue</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Profit</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500">Action</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Order</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Status</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Payment</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Items</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Revenue</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Profit</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04]">
                   {filteredOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-white/[0.02]">
                       <td className="px-5 py-4">
-                        <div className="font-medium text-stone-100">#{order.number}</div>
-                        <div className="mt-1 text-xs text-stone-500">{order.name}</div>
+                        <div className="font-medium text-zinc-100">#{order.number}</div>
+                        <div className="mt-1 text-xs text-zinc-500">{order.name}</div>
                       </td>
                       <td className="px-5 py-4">
                         <AdminStatusBadge tone={getOrderStatusTone(order.orderStatus)}>
@@ -578,17 +578,17 @@ export default function CrmDashboardPage() {
                           {order.paymentStatus || '—'}
                         </AdminStatusBadge>
                       </td>
-                      <td className="px-5 py-4 text-right text-stone-300">{order.itemCount}</td>
-                      <td className="px-5 py-4 text-right font-medium text-stone-200">
+                      <td className="px-5 py-4 text-right text-zinc-300">{order.itemCount}</td>
+                      <td className="px-5 py-4 text-right font-medium text-zinc-200">
                         ${fmtUsd(order.clientTotal)}
                       </td>
-                      <td className={`px-5 py-4 text-right font-medium ${order.profit >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+                      <td className={`px-5 py-4 text-right font-medium ${order.profit >= 0 ? 'text-emerald-300' : 'text-blue-300'}`}>
                         ${fmtUsd(order.profit)}
                       </td>
                       <td className="px-5 py-4">
                         <Link
                           href={`/admin/crm/orders/${order.id}`}
-                          className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+                          className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
                         >
                           Open
                         </Link>

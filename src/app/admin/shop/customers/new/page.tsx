@@ -72,14 +72,14 @@ export default function AdminNewCustomerPage() {
         </p>
 
         {error && (
-          <div className="mb-6 flex items-start gap-3 rounded-none bg-red-950/30 border border-red-900/50 text-red-500/10 p-4 text-sm text-red-500 border border-red-500/20">
+          <div className="mb-6 flex items-start gap-3 rounded-none bg-blue-950/30 border border-red-900/50 text-blue-500/10 p-4 text-sm text-blue-500 border border-blue-500/20">
             <AlertCircle className="h-5 w-5 shrink-0" />
             <p>{error}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-8 transition-all hover:border-indigo-500/20 group">
+          <div className="rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-8 transition-all hover:border-blue-500/20 group">
             <h2 className="text-lg font-medium tracking-wide text-white mb-6">Основні дані</h2>
             <div className="grid gap-6 md:grid-cols-2">
               <label className="block">
@@ -90,7 +90,7 @@ export default function AdminNewCustomerPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                 />
               </label>
               
@@ -101,7 +101,7 @@ export default function AdminNewCustomerPage() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                 />
               </label>
 
@@ -113,7 +113,7 @@ export default function AdminNewCustomerPage() {
                   required
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                 />
               </label>
 
@@ -125,7 +125,7 @@ export default function AdminNewCustomerPage() {
                   required
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                 />
               </label>
               
@@ -136,13 +136,13 @@ export default function AdminNewCustomerPage() {
                   name="companyName"
                   value={formData.companyName}
                   onChange={handleChange}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                 />
               </label>
             </div>
           </div>
 
-          <div className="rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-8 transition-all hover:border-indigo-500/20 group">
+          <div className="rounded-none border border-white/[0.08] bg-black/60 shadow-2xl backdrop-blur-2xl p-8 transition-all hover:border-blue-500/20 group">
             <h2 className="text-lg font-medium tracking-wide text-white mb-6">Налаштування акаунту</h2>
             <div className="grid gap-6 md:grid-cols-2">
               <label className="block">
@@ -151,7 +151,7 @@ export default function AdminNewCustomerPage() {
                   name="group"
                   value={formData.group}
                   onChange={handleChange}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                 >
                   <option value="B2C">B2C (Звичайний)</option>
                   <option value="B2B_PENDING">B2B (На перевірці)</option>
@@ -168,7 +168,7 @@ export default function AdminNewCustomerPage() {
                   max="100"
                   value={formData.b2bDiscountPercent}
                   onChange={handleChange}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                 />
               </label>
               
@@ -178,7 +178,7 @@ export default function AdminNewCustomerPage() {
                   name="preferredCurrency"
                   value={formData.preferredCurrency}
                   onChange={handleChange}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                 >
                   <option value="EUR">EUR (€)</option>
                   <option value="USD">USD ($)</option>
@@ -192,7 +192,7 @@ export default function AdminNewCustomerPage() {
                   name="preferredLocale"
                   value={formData.preferredLocale}
                   onChange={handleChange}
-                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-indigo-500/50 focus:outline-none transition-all shadow-inner"
+                  className="w-full rounded-none border border-white/[0.08] bg-black/40 px-4 py-3 text-sm text-white focus:border-blue-500/50 focus:outline-none transition-all shadow-inner"
                 >
                   <option value="uk">Українська</option>
                   <option value="en">English</option>
@@ -216,7 +216,7 @@ export default function AdminNewCustomerPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex items-center gap-2 rounded-none bg-white px-8 py-3.5 text-sm font-semibold uppercase tracking-widest text-black hover:bg-zinc-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] shadow-[0_0_10px_rgba(255,255,255,0.1)] transition-all duration-300 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-[4px] bg-gradient-to-b from-blue-500 to-blue-700 px-8 py-3.5 text-sm font-bold uppercase tracking-widest text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_4px_18px_rgba(59,130,246,0.5)] hover:from-blue-400 hover:to-blue-600 transition-all duration-300 disabled:opacity-50"
               >
                 {loading ? (
                   'Створення...'

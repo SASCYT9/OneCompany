@@ -149,16 +149,16 @@ export default function AdminImportJobDetailPage() {
           <>
             <Link
               href="/admin/shop/import"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
             >
               Back to import center
             </Link>
             <button
               type="button"
               onClick={() => void loadJob()}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${loading ? 'motion-safe:animate-spin' : ''}`} />
               Refresh
             </button>
           </>
@@ -179,7 +179,7 @@ export default function AdminImportJobDetailPage() {
           action={
             <Link
               href="/admin/shop/import"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
             >
               Open import center
             </Link>
@@ -226,11 +226,11 @@ export default function AdminImportJobDetailPage() {
                   description="Збережені заголовки CSV для швидкої діагностики mapping issues."
                 >
                   {!job.columns?.length ? (
-                    <div className="text-sm text-stone-500">Дані про колонки не збережено.</div>
+                    <div className="text-sm text-zinc-500">Дані про колонки не збережено.</div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {job.columns.map((column) => (
-                        <span key={column} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-stone-300">
+                        <span key={column} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-zinc-300">
                           {column}
                         </span>
                       ))}
@@ -256,8 +256,8 @@ export default function AdminImportJobDetailPage() {
                     <div className="text-sm text-emerald-200">Помилок по рядках для цього імпорту не збережено.</div>
                   ) : (
                     <AdminTableShell>
-                      <table className="min-w-full text-left text-sm text-stone-200">
-                        <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                      <table className="min-w-full text-left text-sm text-zinc-200">
+                        <thead className="bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                           <tr>
                             <th className="px-4 py-3 font-medium">Row</th>
                             <th className="px-4 py-3 font-medium">Handle</th>
@@ -268,16 +268,16 @@ export default function AdminImportJobDetailPage() {
                         <tbody>
                           {job.rowErrors.map((rowError) => (
                             <tr key={rowError.id} className="border-t border-white/8 align-top">
-                              <td className="px-4 py-4 text-stone-300">{rowError.rowNumber}</td>
-                              <td className="px-4 py-4 text-stone-400">{rowError.handle || '—'}</td>
-                              <td className="px-4 py-4 text-stone-200">{rowError.message}</td>
+                              <td className="px-4 py-4 text-zinc-300">{rowError.rowNumber}</td>
+                              <td className="px-4 py-4 text-zinc-400">{rowError.handle || '—'}</td>
+                              <td className="px-4 py-4 text-zinc-200">{rowError.message}</td>
                               <td className="px-4 py-4">
                                 {rowError.payload ? (
-                                  <pre className="max-h-48 overflow-auto rounded-2xl border border-white/10 bg-black/30 p-3 text-[11px] text-stone-400">
+                                  <pre className="max-h-48 overflow-auto rounded-[6px] border border-white/10 bg-black/30 p-3 text-[11px] text-zinc-400">
                                     {JSON.stringify(rowError.payload, null, 2)}
                                   </pre>
                                 ) : (
-                                  <span className="text-stone-500">—</span>
+                                  <span className="text-zinc-500">—</span>
                                 )}
                               </td>
                             </tr>
@@ -311,11 +311,11 @@ export default function AdminImportJobDetailPage() {
                   description="Знімок конфігурації, з якою реально виконувався job."
                 >
                   {job.templateSnapshot ? (
-                    <pre className="max-h-[420px] overflow-auto rounded-2xl border border-white/10 bg-black/30 p-3 text-[11px] text-stone-400">
+                    <pre className="max-h-[420px] overflow-auto rounded-[6px] border border-white/10 bg-black/30 p-3 text-[11px] text-zinc-400">
                       {JSON.stringify(job.templateSnapshot, null, 2)}
                     </pre>
                   ) : (
-                    <div className="text-sm text-stone-500">Template snapshot не збережено.</div>
+                    <div className="text-sm text-zinc-500">Template snapshot не збережено.</div>
                   )}
                 </AdminInspectorCard>
 
@@ -326,13 +326,13 @@ export default function AdminImportJobDetailPage() {
                   <div className="space-y-2">
                     <Link
                       href="/admin/shop/import"
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
                     >
                       Back to import center
                     </Link>
                     <Link
                       href="/admin/shop/audit"
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm text-stone-300 transition hover:border-white/25 hover:text-stone-100"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm text-zinc-300 transition hover:border-white/25 hover:text-zinc-100"
                     >
                       Open audit
                       <ExternalLink className="h-4 w-4" />

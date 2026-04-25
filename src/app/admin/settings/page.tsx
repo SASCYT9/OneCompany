@@ -255,8 +255,8 @@ export default function AdminSettingsPage() {
     return (
       <AdminPage>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="flex items-center gap-3 text-sm text-stone-400">
-            <Loader2 className="h-4 w-4 animate-spin" />
+          <div className="flex items-center gap-3 text-sm text-zinc-400">
+            <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
             Loading global settings…
           </div>
         </div>
@@ -274,7 +274,7 @@ export default function AdminSettingsPage() {
             <button
               type="button"
               onClick={() => void loadSettings()}
-              className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-stone-200 transition hover:bg-white/[0.06]"
+              className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
             >
               Retry
             </button>
@@ -309,7 +309,7 @@ export default function AdminSettingsPage() {
           <button
             type="button"
             onClick={() => void loadSettings()}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-100"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Reload
@@ -318,9 +318,9 @@ export default function AdminSettingsPage() {
             type="button"
             onClick={handleSave}
             disabled={!hasChanges || saving}
-            className="inline-flex items-center gap-2 rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-4 py-2 text-xs uppercase tracking-[0.18em] text-amber-100 transition disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2 text-xs uppercase tracking-[0.18em] text-blue-300 transition disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+            {saving ? <Loader2 className="h-3.5 w-3.5 motion-safe:animate-spin" /> : <Save className="h-3.5 w-3.5" />}
             {saving ? 'Saving' : 'Save changes'}
           </button>
         </div>
@@ -350,11 +350,11 @@ export default function AdminSettingsPage() {
                     onChange={(value) => updateDraft('soundEnabled', value)}
                     helper="Play a sound cue when new requests enter the admin queue."
                   />
-                  <div className="rounded-2xl border border-white/8 bg-black/25 p-4">
+                  <div className="rounded-[6px] border border-white/8 bg-black/25 p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <div className="text-sm font-medium text-stone-100">Push notifications</div>
-                        <div className="mt-1 text-xs leading-5 text-stone-500">
+                        <div className="text-sm font-medium text-zinc-100">Push notifications</div>
+                        <div className="mt-1 text-xs leading-5 text-zinc-500">
                           Browser-level notification permission for this workstation.
                         </div>
                       </div>
@@ -362,7 +362,7 @@ export default function AdminSettingsPage() {
                         type="button"
                         onClick={() => void requestNotificationPermission()}
                         disabled={permissionStatus === 'granted'}
-                        className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-100 disabled:opacity-40"
+                        className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs uppercase tracking-[0.18em] text-zinc-300 transition hover:text-zinc-100 disabled:opacity-40"
                       >
                         {permissionStatus === 'granted' ? 'Enabled' : permissionStatus === 'denied' ? 'Blocked' : 'Request'}
                       </button>
@@ -481,7 +481,7 @@ export default function AdminSettingsPage() {
                       onChange={(value) => updateDraft('logoUrl', value)}
                     />
                   </div>
-                  <div className="rounded-2xl border border-white/8 bg-white p-4">
+                  <div className="rounded-[6px] border border-white/8 bg-white p-4">
                     <div className="text-lg text-[#1a0dab]">{draft.metaTitle || 'OneCompany'}</div>
                     <div className="mt-1 text-sm text-[#006621]">onecompany.com.ua</div>
                     <div className="mt-1 text-sm leading-6 text-[#545454]">{draft.metaDescription || 'Description preview'}</div>
@@ -541,14 +541,14 @@ export default function AdminSettingsPage() {
                     <button
                       type="button"
                       onClick={() => void handleReset()}
-                      className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.18em] text-stone-200 transition hover:bg-white/[0.06]"
+                      className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.18em] text-zinc-200 transition hover:bg-white/[0.06]"
                     >
                       Reset to defaults
                     </button>
                     <button
                       type="button"
                       onClick={() => void handleLogout()}
-                      className="rounded-full border border-red-500/25 bg-red-950/20 px-4 py-2 text-xs uppercase tracking-[0.18em] text-red-100 transition hover:bg-red-950/35"
+                      className="rounded-full border border-blue-500/25 bg-blue-950/20 px-4 py-2 text-xs uppercase tracking-[0.18em] text-red-100 transition hover:bg-red-950/35"
                     >
                       End admin session
                     </button>

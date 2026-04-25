@@ -16,6 +16,8 @@ import {
   AdminStatusBadge,
   AdminTableShell,
 } from '@/components/admin/AdminPrimitives';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
 
 type ShopCollectionListItem = {
   id: string;
@@ -32,6 +34,8 @@ type ShopCollectionListItem = {
 };
 
 export default function AdminShopCollectionsPage() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const [collections, setCollections] = useState<ShopCollectionListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -89,18 +93,25 @@ export default function AdminShopCollectionsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this collection? Products will keep legacy labels but lose the explicit mapping.')) {
-      return;
-    }
+    const ok = await confirm({
+      tone: 'danger',
+      title: 'Delete this collection?',
+      description: 'Products will keep legacy labels but lose the explicit mapping. This cannot be undone.',
+      confirmLabel: 'Delete collection',
+    });
+    if (!ok) return;
 
     setDeletingId(id);
     try {
       const response = await fetch(`/api/admin/shop/collections/${id}`, { method: 'DELETE' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Failed to delete collection');
+        const msg = (data as { error?: string }).error || 'Failed to delete collection';
+        setError(msg);
+        toast.error('Could not delete', msg);
         return;
       }
+      toast.success('Collection deleted');
       await load();
     } finally {
       setDeletingId(null);
@@ -110,7 +121,7 @@ export default function AdminShopCollectionsPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <Layers3 className="h-4 w-4 animate-pulse" />
           Loading collections…
         </div>
@@ -130,14 +141,14 @@ export default function AdminShopCollectionsPage() {
               type="button"
               onClick={handleSyncUrban}
               disabled={syncing}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-stone-200 transition hover:bg-white/[0.06] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
             >
-              <RefreshCcw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+              <RefreshCcw className={`h-4 w-4 ${syncing ? 'motion-safe:animate-spin' : ''}`} />
               {syncing ? 'Syncing…' : 'Sync Urban'}
             </button>
             <Link
               href="/admin/shop/collections/new"
-              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
               New collection
@@ -157,13 +168,13 @@ export default function AdminShopCollectionsPage() {
       </AdminMetricGrid>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-stone-100">
-          <Search className="h-4 w-4 text-stone-500" />
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+          <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by handle, title, or brand"
-            className="w-full bg-transparent text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none"
+            className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
           />
         </label>
       </AdminFilterBar>
@@ -177,7 +188,7 @@ export default function AdminShopCollectionsPage() {
           action={
             <Link
               href="/admin/shop/collections/new"
-              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
               Create collection
@@ -189,23 +200,23 @@ export default function AdminShopCollectionsPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.03]">
-                <th className="px-4 py-3 font-medium text-stone-400">Collection</th>
-                <th className="px-4 py-3 font-medium text-stone-400">Brand</th>
-                <th className="px-4 py-3 font-medium text-stone-400">Flags</th>
-                <th className="px-4 py-3 font-medium text-stone-400">Products</th>
-                <th className="px-4 py-3 font-medium text-stone-400">Updated</th>
-                <th className="px-4 py-3 font-medium text-stone-400">Actions</th>
+                <th className="px-4 py-3 font-medium text-zinc-400">Collection</th>
+                <th className="px-4 py-3 font-medium text-zinc-400">Brand</th>
+                <th className="px-4 py-3 font-medium text-zinc-400">Flags</th>
+                <th className="px-4 py-3 font-medium text-zinc-400">Products</th>
+                <th className="px-4 py-3 font-medium text-zinc-400">Updated</th>
+                <th className="px-4 py-3 font-medium text-zinc-400">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredCollections.map((collection) => (
                 <tr key={collection.id} className="border-b border-white/5 align-top transition hover:bg-white/[0.02]">
                   <td className="px-4 py-4">
-                    <div className="font-medium text-stone-50">{collection.titleEn || collection.titleUa}</div>
-                    <div className="mt-1 font-mono text-xs text-stone-500">{collection.handle}</div>
-                    <div className="mt-1 text-xs text-stone-500">Sort {collection.sortOrder}</div>
+                    <div className="font-medium text-zinc-50">{collection.titleEn || collection.titleUa}</div>
+                    <div className="mt-1 font-mono text-xs text-zinc-500">{collection.handle}</div>
+                    <div className="mt-1 text-xs text-zinc-500">Sort {collection.sortOrder}</div>
                   </td>
-                  <td className="px-4 py-4 text-stone-300">{collection.brand || '—'}</td>
+                  <td className="px-4 py-4 text-zinc-300">{collection.brand || '—'}</td>
                   <td className="px-4 py-4">
                     <div className="flex flex-wrap gap-2">
                       <AdminStatusBadge tone={collection.isPublished ? 'success' : 'warning'}>
@@ -214,13 +225,13 @@ export default function AdminShopCollectionsPage() {
                       {collection.isUrban ? <AdminStatusBadge tone="default">Urban</AdminStatusBadge> : null}
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-stone-300">{collection.productsCount}</td>
-                  <td className="px-4 py-4 text-stone-500">{new Date(collection.updatedAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-4 text-zinc-300">{collection.productsCount}</td>
+                  <td className="px-4 py-4 text-zinc-500">{new Date(collection.updatedAt).toLocaleDateString()}</td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/admin/shop/collections/${collection.id}`}
-                        className="rounded-2xl border border-white/10 p-2 text-stone-300 transition hover:bg-white/[0.06] hover:text-stone-50"
+                        className="rounded-[6px] border border-white/10 p-2 text-zinc-300 transition hover:bg-white/[0.06] hover:text-zinc-50"
                         title="Edit collection"
                       >
                         <Pencil className="h-4 w-4" />
@@ -229,7 +240,7 @@ export default function AdminShopCollectionsPage() {
                         type="button"
                         onClick={() => handleDelete(collection.id)}
                         disabled={deletingId === collection.id}
-                        className="rounded-2xl border border-red-500/20 p-2 text-red-300 transition hover:bg-red-950/30 disabled:opacity-50"
+                        className="rounded-[6px] border border-blue-500/20 p-2 text-blue-300 transition hover:bg-blue-950/30 disabled:opacity-50"
                         title="Delete collection"
                       >
                         <Trash2 className="h-4 w-4" />

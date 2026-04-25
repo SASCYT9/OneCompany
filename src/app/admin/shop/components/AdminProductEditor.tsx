@@ -21,6 +21,7 @@ import {
 import { isLibraryBackedAssetReference } from '@/lib/runtimeAssetPaths';
 import { stripStorefrontTags, type ShopProductStorefront } from '@/lib/shopProductStorefront';
 import { ADMIN_PRODUCT_EDITOR_SECTIONS } from './adminProductEditorSections';
+import { AdminProductVariantCard } from './AdminProductVariantCard';
 
 type ProductStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
 type ProductMediaType = 'IMAGE' | 'VIDEO' | 'EXTERNAL_VIDEO';
@@ -1508,7 +1509,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   if (loading) {
     return (
       <AdminPage>
-        <div className="text-sm text-stone-400">Завантаження товару…</div>
+        <div className="text-sm text-zinc-400">Завантаження товару…</div>
       </AdminPage>
     );
   }
@@ -1521,8 +1522,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       description="Catalog editor for storefront ownership, pricing, media, variants, and Urban-specific merchandising fields."
       sections={ADMIN_PRODUCT_EDITOR_SECTIONS}
       summary={
-        <div className="rounded-[28px] border border-white/10 bg-[#101010] p-5">
-          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">Catalog state</div>
+        <div className="rounded-[6px] border border-white/10 bg-[#171717] p-5">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Catalog state</div>
           <div className="mt-4 flex flex-wrap gap-2">
             <AdminStatusBadge tone={form.status === 'ACTIVE' ? 'success' : form.status === 'ARCHIVED' ? 'danger' : 'warning'}>
               {form.status}
@@ -1774,7 +1775,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 type="button"
                 onClick={handleEstimateDimensionsAI}
                 disabled={saving}
-                className="flex items-center gap-2 rounded-none bg-zinc-100 text-black/20 px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-100 text-black/30 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-2 rounded-none bg-zinc-800/40 px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
               >
                 <Wand2 className="size-4" /> 🪄 Згенерувати габарити через ШІ
               </button>
@@ -1882,7 +1883,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                             type="button"
                             onClick={() => void handleDeleteLibraryMedia(item)}
                             disabled={deletingLibraryMediaId === item.id || item.usageCount > 0}
-                            className="rounded-none border border-red-500/25 px-3 py-1.5 text-xs text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10 disabled:opacity-50"
+                            className="rounded-[4px] border border-blue-500/30 bg-blue-950/20 px-3 py-1.5 text-xs font-semibold text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40 disabled:opacity-50"
                           >
                             {deletingLibraryMediaId === item.id
                               ? 'Видаляємо…'
@@ -1929,7 +1930,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       >
                         Use as main
                       </button>
-                      <button type="button" onClick={() => removeListItem('media', index)} className="rounded-none border border-red-500/30 p-2 text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10">
+                      <button type="button" onClick={() => removeListItem('media', index)} className="rounded-[4px] border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
@@ -2008,7 +2009,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <button
                       type="button"
                       onClick={() => removeListItem('options', index)}
-                      className="rounded-none border border-red-500/30 p-2 text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10"
+                      className="rounded-[4px] border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -2032,38 +2033,38 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             description="Ціни, залишки та опції на рівні SKU. Один варіант завжди має залишатися основним."
           >
             <div className="space-y-4">
-              <div className="rounded-none border border-white/10 bg-black/30 p-4">
+              <div className="rounded-[6px] border border-white/[0.07] bg-gradient-to-b from-[#141B33] to-[#0E1325] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <div className="text-sm font-medium text-white">Інструменти для варіантів</div>
-                    <p className="mt-1 text-xs text-white/45">
-                      Згенеруйте комбінації з опцій і застосуйте спільні ціни чи залишки до всіх варіантів.
+                    <div className="text-sm font-semibold text-zinc-50">Variant tools</div>
+                    <p className="mt-1 text-xs leading-5 text-zinc-500">
+                      Generate combinations from options and apply shared pricing or stock to all variants.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={generateVariantsFromOptions}
-                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5"
+                      className="inline-flex items-center gap-1.5 rounded-[6px] border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-blue-500/30 hover:bg-blue-500/[0.06] hover:text-blue-300"
                     >
-                      <Wand2 className="h-4 w-4" />
-                      Згенерувати з опцій
+                      <Wand2 className="h-3.5 w-3.5" />
+                      Generate from options
                     </button>
                     <button
                       type="button"
                       onClick={applyProductPricingToVariants}
-                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5"
+                      className="inline-flex items-center gap-1.5 rounded-[6px] border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-white/15 hover:bg-white/[0.06]"
                     >
-                      <Copy className="h-4 w-4" />
-                      Скопіювати ціни товару
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy product pricing
                     </button>
                     <button
                       type="button"
                       onClick={copyDefaultVariantSettings}
-                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-3 py-2 text-sm text-white hover:bg-white/5"
+                      className="inline-flex items-center gap-1.5 rounded-[6px] border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-white/15 hover:bg-white/[0.06]"
                     >
-                      <Copy className="h-4 w-4" />
-                      Скопіювати налаштування дефолтного
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy default settings
                     </button>
                   </div>
                 </div>
@@ -2165,140 +2166,53 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     placeholder="https://..."
                   />
                 </div>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="text-xs text-white/40">
-                    {optionDefinitions(form.options).reduce(
-                      (count, definition) => count * Math.max(definition.values.length, 1),
-                      1
-                    )}{' '}
-                    можливих комбінацій з поточних опцій.
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
+                  <div className="text-xs text-zinc-500">
+                    <span className="font-semibold text-zinc-300">
+                      {optionDefinitions(form.options).reduce(
+                        (count, definition) => count * Math.max(definition.values.length, 1),
+                        1
+                      )}
+                    </span>{' '}
+                    possible combinations from current options
                   </div>
                   <button
                     type="button"
                     onClick={applyBulkVariantFields}
-                    className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90"
+                    className="inline-flex items-center gap-2 rounded-[4px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
                   >
-                    <Copy className="h-4 w-4" />
-                    Застосувати bulk‑поля
+                    <Copy className="h-3.5 w-3.5" />
+                    Apply bulk fields
                   </button>
                 </div>
               </div>
-              {form.variants.map((item, index) => (
-                <div key={item.id ?? `variant-${index}`} className="rounded-none border border-white/10 bg-black/40 p-4">
-                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                    <div className="text-sm font-medium text-white">
-                      Варіант #{index + 1} {item.isDefault ? '· Основний' : ''}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {!item.isDefault && (
-                        <button
-                          type="button"
-                          onClick={() => setDefaultVariant(index)}
-                          className="rounded-none border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
-                        >
-                          Зробити основним
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeListItem('variants', index)}
-                        className="rounded-none border border-red-500/30 p-2 text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-4">
-                    <InputField label="Назва" value={item.title} onChange={(value) => updateListItem('variants', index, { title: value })} />
-                    <InputField label="SKU" value={item.sku} onChange={(value) => updateListItem('variants', index, { sku: value })} />
-                    <InputField label="Позиція" type="number" value={item.position} onChange={(value) => updateListItem('variants', index, { position: value })} />
-                    <SelectField
-                      label="Linked product media"
-                      value={form.media.some((mediaItem) => mediaItem.src.trim() && mediaItem.src.trim() === item.image.trim()) ? item.image : '__custom__'}
-                      onChange={(value) =>
-                        updateListItem('variants', index, {
-                          image: value === '__custom__' ? '' : value,
-                        })
-                      }
-                      options={[
-                        { label: 'Custom URL / none', value: '__custom__' },
-                        ...form.media
-                          .filter((mediaItem) => mediaItem.src.trim())
-                          .map((mediaItem, mediaIndex) => ({
-                            label: `Media #${mediaIndex + 1} · ${mediaItem.altText || mediaItem.src}`,
-                            value: mediaItem.src,
-                          })),
-                      ]}
-                    />
-                    <InputField label="URL зображення" value={item.image} onChange={(value) => updateListItem('variants', index, { image: value })} />
-                    <InputField label="Опція 1 значення" value={item.option1Value} onChange={(value) => updateListItem('variants', index, { option1Value: value })} />
-                    <InputField label="Опція 1 зв’язок" value={item.option1LinkedTo} onChange={(value) => updateListItem('variants', index, { option1LinkedTo: value })} />
-                    <InputField label="Опція 2 значення" value={item.option2Value} onChange={(value) => updateListItem('variants', index, { option2Value: value })} />
-                    <InputField label="Опція 2 зв’язок" value={item.option2LinkedTo} onChange={(value) => updateListItem('variants', index, { option2LinkedTo: value })} />
-                    <InputField label="Опція 3 значення" value={item.option3Value} onChange={(value) => updateListItem('variants', index, { option3Value: value })} />
-                    <InputField label="Опція 3 зв’язок" value={item.option3LinkedTo} onChange={(value) => updateListItem('variants', index, { option3LinkedTo: value })} />
-                    <InputField label="Кількість на складі" type="number" value={item.inventoryQty} onChange={(value) => updateListItem('variants', index, { inventoryQty: value })} />
-                    <SelectField
-                      label="Inventory policy"
-                      value={item.inventoryPolicy}
-                      onChange={(value) => updateListItem('variants', index, { inventoryPolicy: value as InventoryPolicy })}
-                      options={[
-                        { label: 'Continue', value: 'CONTINUE' },
-                        { label: 'Deny', value: 'DENY' },
-                      ]}
-                    />
-                    <InputField label="Відстеження складу" value={item.inventoryTracker} onChange={(value) => updateListItem('variants', index, { inventoryTracker: value })} />
-                    <InputField label="Служба виконання" value={item.fulfillmentService} onChange={(value) => updateListItem('variants', index, { fulfillmentService: value })} />
-                    <InputField label="Штрихкод" value={item.barcode} onChange={(value) => updateListItem('variants', index, { barcode: value })} />
-                    <InputField label="Одиниця ваги" value={item.weightUnit} onChange={(value) => updateListItem('variants', index, { weightUnit: value })} />
-                    <InputField label="Вага (кг)" type="number" step="0.01" value={item.weight} onChange={(value) => updateListItem('variants', index, { weight: value })} />
-                    <InputField label="Довжина (см)" type="number" step="0.1" value={item.length} onChange={(value) => updateListItem('variants', index, { length: value })} />
-                    <InputField label="Ширина (см)" type="number" step="0.1" value={item.width} onChange={(value) => updateListItem('variants', index, { width: value })} />
-                    <InputField label="Висота (см)" type="number" step="0.1" value={item.height} onChange={(value) => updateListItem('variants', index, { height: value })} />
-                    <InputField label="Грами" type="number" value={item.grams} onChange={(value) => updateListItem('variants', index, { grams: value })} />
-                    <InputField label="Податковий код" value={item.taxCode} onChange={(value) => updateListItem('variants', index, { taxCode: value })} />
-                    <InputField label="Собівартість" type="number" step="0.01" value={item.costPerItem} onChange={(value) => updateListItem('variants', index, { costPerItem: value })} />
-                    <InputField label="Ціна EUR" type="number" step="0.01" value={item.priceEur} onChange={(value) => updateListItem('variants', index, { priceEur: value })} />
-                    <InputField label="Ціна USD" type="number" step="0.01" value={item.priceUsd} onChange={(value) => updateListItem('variants', index, { priceUsd: value })} />
-                    <InputField label="Ціна UAH" type="number" step="0.01" value={item.priceUah} onChange={(value) => updateListItem('variants', index, { priceUah: value })} />
-                    <InputField label="B2B (опт) EUR" type="number" step="0.01" value={item.priceEurB2b} onChange={(value) => updateListItem('variants', index, { priceEurB2b: value })} />
-                    <InputField label="B2B (опт) USD" type="number" step="0.01" value={item.priceUsdB2b} onChange={(value) => updateListItem('variants', index, { priceUsdB2b: value })} />
-                    <InputField label="B2B (опт) UAH" type="number" step="0.01" value={item.priceUahB2b} onChange={(value) => updateListItem('variants', index, { priceUahB2b: value })} />
-                    <InputField label="Порівн. ціна EUR" type="number" step="0.01" value={item.compareAtEur} onChange={(value) => updateListItem('variants', index, { compareAtEur: value })} />
-                    <InputField label="Порівн. ціна USD" type="number" step="0.01" value={item.compareAtUsd} onChange={(value) => updateListItem('variants', index, { compareAtUsd: value })} />
-                    <InputField label="Порівн. ціна UAH" type="number" step="0.01" value={item.compareAtUah} onChange={(value) => updateListItem('variants', index, { compareAtUah: value })} />
-                    <InputField label="B2B порівн. EUR" type="number" step="0.01" value={item.compareAtEurB2b} onChange={(value) => updateListItem('variants', index, { compareAtEurB2b: value })} />
-                    <InputField label="B2B порівн. USD" type="number" step="0.01" value={item.compareAtUsdB2b} onChange={(value) => updateListItem('variants', index, { compareAtUsdB2b: value })} />
-                    <InputField label="B2B порівн. UAH" type="number" step="0.01" value={item.compareAtUahB2b} onChange={(value) => updateListItem('variants', index, { compareAtUahB2b: value })} />
-                  </div>
-                  <div className="mt-4 rounded-none border border-white/10 bg-zinc-950/70 p-3 text-xs text-white/45">
-                    {item.image.trim()
-                      ? form.media.some((mediaItem) => mediaItem.src.trim() === item.image.trim())
-                        ? 'Зображення варіанта привʼязане до медіа товару і оновиться, якщо змінити джерело.'
-                        : 'Зображення варіанта використовує власний URL поза списком медіа товару.'
-                      : 'Для варіанта ще не задано зображення.'}
-                  </div>
-                  <div className="mt-4 flex flex-wrap gap-6">
-                    <CheckboxField
-                      label="Потребує доставки"
-                      checked={item.requiresShipping}
-                      onChange={(checked) => updateListItem('variants', index, { requiresShipping: checked })}
-                    />
-                    <CheckboxField
-                      label="Оподатковується"
-                      checked={item.taxable}
-                      onChange={(checked) => updateListItem('variants', index, { taxable: checked })}
-                    />
-                  </div>
-                </div>
-              ))}
+              <div className="space-y-3">
+                {form.variants.map((item, index) => (
+                  <AdminProductVariantCard
+                    key={item.id ?? `variant-${index}`}
+                    variant={item}
+                    index={index}
+                    totalVariants={form.variants.length}
+                    defaultOpen={form.variants.length === 1 || item.isDefault}
+                    mediaOptions={form.media
+                      .filter((mediaItem) => mediaItem.src.trim())
+                      .map((mediaItem) => ({
+                        src: mediaItem.src,
+                        label: mediaItem.altText || mediaItem.src,
+                      }))}
+                    onUpdate={(patch) => updateListItem('variants', index, patch)}
+                    onRemove={() => removeListItem('variants', index)}
+                    onSetDefault={() => setDefaultVariant(index)}
+                  />
+                ))}
+              </div>
               <button
                 type="button"
                 onClick={addVariant}
-                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-[6px] border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-blue-500/30 hover:bg-blue-500/[0.06] hover:text-blue-300"
               >
                 <Plus className="h-4 w-4" />
-                Додати варіант
+                Add variant
               </button>
             </div>
           </AdminEditorSection>
@@ -2315,7 +2229,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <button
                       type="button"
                       onClick={() => removeListItem('metafields', index)}
-                      className="rounded-none border border-red-500/30 p-2 text-red-300 hover:bg-red-950/30 border border-red-900/50 text-red-500/10"
+                      className="rounded-[4px] border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -2347,7 +2261,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               title="Небезпечні дії"
               description="Безпечне зняття товару з публікації та переведення в архів. Жорстке видалення більше не є дією за замовчуванням."
             >
-              <div className="rounded-none border border-red-500/40 bg-red-900/10 p-4 space-y-2">
+              <div className="rounded-none border border-blue-500/40 bg-red-900/10 p-4 space-y-2">
                 <p className="text-xs text-red-200">
                   Архівація залишає товар у базі, але прибирає його з публікації. Це зберігає історію варіантів, цін і привʼязок
                   до колекцій та дозволяє повернути товар без відновлення з бекапу.
@@ -2356,7 +2270,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   type="button"
                   onClick={() => void handleHardDelete()}
                   disabled={hardDeleting}
-                  className="inline-flex items-center gap-2 rounded-none border border-red-500/60 bg-red-950/30 border border-red-900/50 text-red-500/80 px-4 py-2 text-sm font-medium text-white hover:bg-red-950/30 border border-red-900/50 text-red-500 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-[4px] border border-blue-500/40 bg-blue-950/40 px-4 py-2 text-sm font-medium text-white hover:bg-blue-950/40 disabled:opacity-50"
                 >
                   <Trash2 className="h-4 w-4" />
                   {hardDeleting ? 'Архівуємо…' : 'Архівувати товар'}
@@ -2366,7 +2280,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           )}
 
           <div className="flex flex-wrap gap-3 pb-6 md:pb-0 hidden md:flex">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-none bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-[4px] bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50">
               <Save className="h-4 w-4" />
               {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти товар' : 'Створити товар'}
             </button>
@@ -2376,7 +2290,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           </div>
           <div className="h-20 md:hidden" aria-hidden />
           <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-3 border-t border-white/10 bg-zinc-900/95 px-4 py-3 backdrop-blur-sm safe-area-pb md:hidden">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-none bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-[4px] bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50">
               <Save className="h-4 w-4" />
               {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти товар' : 'Створити товар'}
             </button>

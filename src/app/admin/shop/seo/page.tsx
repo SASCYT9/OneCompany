@@ -99,7 +99,7 @@ export default function SEOAutoGeneratorPage() {
           </p>
         </div>
 
-        {error && <div className="mb-4 rounded-none bg-red-950/30 border border-red-900/50 text-red-500/20 p-4 text-red-200">{error}</div>}
+        {error && <div className="mb-4 rounded-none bg-blue-950/30 border border-red-900/50 text-blue-500/20 p-4 text-red-200">{error}</div>}
 
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-medium text-white">Товари без SEO ({totalMissing})</h2>
@@ -109,13 +109,13 @@ export default function SEOAutoGeneratorPage() {
              disabled={processing || products.length === 0}
              className="inline-flex items-center gap-2 rounded-none bg-teal-500 hover:bg-teal-400 px-5 py-2.5 text-sm font-semibold text-black transition-all disabled:opacity-50"
           >
-             {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+             {processing ? <Loader2 className="h-4 w-4 motion-safe:animate-spin" /> : <Sparkles className="h-4 w-4" />}
              Згенерувати SEO ({products.length})
           </button>
         </div>
 
         {loading ? (
-          <div className="py-20 text-center text-white/50"><Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" /> Сканування бази...</div>
+          <div className="py-20 text-center text-white/50"><Loader2 className="h-6 w-6 motion-safe:animate-spin mx-auto mb-2" /> Сканування бази...</div>
         ) : products.length === 0 ? (
           <div className="rounded-none border border-white/5 bg-white/5 py-12 text-center text-white/40">
             Усі товари мають SEO мітки! Ви чудові.
@@ -136,9 +136,9 @@ export default function SEOAutoGeneratorPage() {
                     <div className="text-xs text-white/50">{product.brand} • {product.slug}</div>
                   </div>
                   <div>
-                    {tracker?.status === 'loading' && <Loader2 className="h-4 w-4 text-teal-400 animate-spin" />}
+                    {tracker?.status === 'loading' && <Loader2 className="h-4 w-4 text-teal-400 motion-safe:animate-spin" />}
                     {tracker?.status === 'success' && <CheckCircle2 className="h-5 w-5 text-teal-400" />}
-                    {tracker?.status === 'error' && <span title={tracker.error}><AlertCircle className="h-5 w-5 text-red-400" /></span>}
+                    {tracker?.status === 'error' && <span title={tracker.error}><AlertCircle className="h-5 w-5 text-blue-400" /></span>}
                     {!tracker && (
                        <button
                          onClick={() => generateSEO([product.id])}

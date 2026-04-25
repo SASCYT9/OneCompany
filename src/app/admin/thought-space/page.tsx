@@ -59,7 +59,7 @@ export default function ThoughtSpacePage() {
           <div className="space-y-6">
             {thoughts.map((t, i) => (
               <div key={i} className="relative group">
-                <div className="absolute -left-4 top-0 bottom-0 w-0.5 bg-zinc-100 text-black/20 group-hover:bg-zinc-100 text-black/50 transition-colors" />
+                <div className="absolute -left-4 top-0 bottom-0 w-0.5 bg-zinc-800/40 group-hover:bg-blue-500/15 text-zinc-100/50 transition-colors" />
                 <div className="pl-4">
                   <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 block">
                     {t.author}
@@ -100,8 +100,9 @@ export default function ThoughtSpacePage() {
 
       <div className="relative">
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-none-full h-8 w-8 border-b-2 border-indigo-500" />
+          <div role="status" aria-live="polite" aria-busy="true" className="flex items-center justify-center py-20">
+            <div className="motion-safe:animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" aria-hidden="true" />
+            <span className="sr-only">Loading...</span>
           </div>
         ) : (
           <div className="space-y-2">
@@ -114,7 +115,7 @@ export default function ThoughtSpacePage() {
         <span>OneCompany · AI Integration Portal</span>
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5"><ShieldCheck className="w-3 h-3" /> Secure Engine</span>
-          <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-none-full bg-emerald-500 animate-pulse" /> Live Feed</span>
+          <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Feed</span>
         </div>
       </div>
     </div>

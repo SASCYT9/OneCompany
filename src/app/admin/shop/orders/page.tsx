@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Columns3, FileClock, List, Package, RefreshCcw, Save, Search, ShoppingCart, X } from 'lucide-react';
+import { ChevronRight, Columns3, ExternalLink, Eye, FileClock, List, Mail as MailIcon, Package, Phone, RefreshCcw, Save, Search, ShoppingCart, X } from 'lucide-react';
 
 import {
   AdminActionBar,
@@ -19,6 +19,9 @@ import {
   AdminTableShell,
 } from '@/components/admin/AdminPrimitives';
 import { AdminInputField, AdminSelectField } from '@/components/admin/AdminFormFields';
+import { AdminSkeletonKpiGrid, AdminSkeletonTable } from '@/components/admin/AdminSkeleton';
+import { AdminSlideOver } from '@/components/admin/AdminSlideOver';
+import { useToast } from '@/components/admin/AdminToast';
 
 type OrderStatus =
   | 'PENDING_PAYMENT'
@@ -235,6 +238,7 @@ function matchesSmartFilter(order: OrderSummary, filter: SmartFilterKey) {
 }
 
 export default function AdminOrdersPage() {
+  const toast = useToast();
   const [orders, setOrders] = useState<OrderSummary[]>([]);
   const [stats, setStats] = useState<OrdersResponse['stats']>({
     total: 0,
@@ -260,6 +264,7 @@ export default function AdminOrdersPage() {
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
+  const [quickViewId, setQuickViewId] = useState<string | null>(null);
   const [activeOrder, setActiveOrder] = useState<OrderDetail | null>(null);
   const [activeOrderLoading, setActiveOrderLoading] = useState(false);
   const [activeOrderError, setActiveOrderError] = useState('');
@@ -422,12 +427,18 @@ export default function AdminOrdersPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || 'Bulk update failed');
+        const msg = data.error || 'Bulk update failed';
+        setError(msg);
+        toast.error('Bulk update failed', msg);
         return;
       }
 
-      setSuccess(
-        `Оновлено замовлень: ${data.updatedCount ?? 0}. Новий статус: ${statusLabel(String(data.status ?? bulkStatus))}.`
+      const updated = data.updatedCount ?? 0;
+      const newStatus = statusLabel(String(data.status ?? bulkStatus));
+      setSuccess(`Оновлено замовлень: ${updated}. Новий статус: ${newStatus}.`);
+      toast.success(
+        `Updated ${updated} order${updated === 1 ? '' : 's'}`,
+        `Status set to ${newStatus}`
       );
       setBulkNote('');
       setBulkStatus('');
@@ -444,10 +455,19 @@ export default function AdminOrdersPage() {
 
   if (loading) {
     return (
-      <AdminPage>
-        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
-          <Package className="h-4 w-4 animate-pulse" />
-          Завантаження замовлень…
+      <AdminPage className="space-y-6">
+        <div role="status" aria-live="polite" aria-busy="true" className="space-y-6">
+          <span className="sr-only">Loading orders…</span>
+          <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
+            <div className="space-y-3">
+              <div className="h-3 w-16 motion-safe:animate-pulse rounded bg-white/[0.06]" />
+              <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
+              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded bg-white/[0.04]" />
+            </div>
+            <div className="h-9 w-44 motion-safe:animate-pulse rounded-lg bg-white/[0.04]" />
+          </div>
+          <AdminSkeletonKpiGrid count={4} />
+          <AdminSkeletonTable rows={8} cols={7} />
         </div>
       </AdminPage>
     );
@@ -463,13 +483,13 @@ export default function AdminOrdersPage() {
           <>
             <Link
               href="/admin/shop/orders/create"
-              className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               B2B order
             </Link>
             <Link
               href="/admin/shop/orders/new"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
             >
               Manual order
             </Link>
@@ -489,14 +509,14 @@ export default function AdminOrdersPage() {
           <button
             type="button"
             onClick={refreshOrders}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
           >
             <RefreshCcw className="h-4 w-4" />
             Refresh
           </button>
           <Link
             href="/admin/shop/audit"
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
           >
             <FileClock className="h-4 w-4" />
             Audit
@@ -505,7 +525,7 @@ export default function AdminOrdersPage() {
             <button
               type="button"
               onClick={() => setViewMode('table')}
-              className={`inline-flex items-center gap-2 px-3 py-2 text-sm transition ${viewMode === 'table' ? 'bg-stone-100 text-black' : 'text-stone-300 hover:bg-white/10'}`}
+              className={`inline-flex items-center gap-2 px-3 py-2 text-sm transition ${viewMode === 'table' ? 'bg-zinc-100 text-black' : 'text-zinc-300 hover:bg-white/10'}`}
             >
               <List className="h-4 w-4" />
               Table
@@ -513,26 +533,26 @@ export default function AdminOrdersPage() {
             <button
               type="button"
               onClick={() => setViewMode('kanban')}
-              className={`inline-flex items-center gap-2 px-3 py-2 text-sm transition ${viewMode === 'kanban' ? 'bg-stone-100 text-black' : 'text-stone-300 hover:bg-white/10'}`}
+              className={`inline-flex items-center gap-2 px-3 py-2 text-sm transition ${viewMode === 'kanban' ? 'bg-zinc-100 text-black' : 'text-zinc-300 hover:bg-white/10'}`}
             >
               <Columns3 className="h-4 w-4" />
               Kanban
             </button>
           </div>
         </div>
-        <div className="text-sm text-stone-500">
+        <div className="text-sm text-zinc-500">
           Bulk actions are limited to transitions valid for the currently selected orders.
         </div>
       </AdminActionBar>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-stone-200">
-          <Search className="h-4 w-4 text-stone-500" />
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+          <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Пошук за номером, клієнтом або email"
-            className="w-full bg-transparent text-stone-100 placeholder:text-stone-500 focus:outline-none"
+            className="w-full bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
           />
         </label>
         <FilterSelect label="Status" value={status} onChange={setStatus} options={STATUS_OPTIONS.map((option) => ({ value: option.value, label: option.label }))} />
@@ -582,23 +602,23 @@ export default function AdminOrdersPage() {
               key={filter.key}
               type="button"
               onClick={() => setSmartFilter(filter.key)}
-              className={`rounded-2xl border px-3 py-2 text-left transition ${
+              className={`rounded-[6px] border px-3 py-2 text-left transition ${
                 smartFilter === filter.key
-                  ? 'border-amber-100/20 bg-amber-100/[0.08] text-amber-100'
-                  : 'border-white/10 bg-white/[0.03] text-stone-300 hover:bg-white/[0.06]'
+                  ? 'border-blue-500/30 bg-blue-500/[0.08] text-blue-300'
+                  : 'border-white/10 bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06]'
               }`}
             >
               <span className="block text-sm font-medium">{filter.label} · {count}</span>
-              <span className="block text-[11px] text-stone-500">{filter.description}</span>
+              <span className="block text-[11px] text-zinc-500">{filter.description}</span>
             </button>
           );
         })}
       </div>
 
       {selectedOrders.length ? (
-        <AdminActionBar>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-stone-300">
-            <ShoppingCart className="h-4 w-4 text-amber-100/70" />
+        <AdminActionBar className="sticky top-4 z-30 bg-[#171717]/95 backdrop-blur-xl">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-300">
+            <ShoppingCart className="h-4 w-4 text-blue-300" />
             {selectedOrders.length} selected
           </div>
           <div className="grid flex-1 gap-3 lg:grid-cols-[240px_minmax(0,1fr)_auto]">
@@ -615,12 +635,12 @@ export default function AdminOrdersPage() {
               ]}
             />
             <label className="block">
-              <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-stone-500">Bulk note</span>
+              <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-zinc-500">Bulk note</span>
               <input
                 value={bulkNote}
                 onChange={(event) => setBulkNote(event.target.value)}
                 placeholder="Необов'язкова нотатка для історії замовлень"
-                className="w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-stone-100 placeholder:text-stone-500 focus:border-white/20 focus:outline-none"
+                className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-white/20 focus:outline-none"
               />
             </label>
             <div className="flex items-end">
@@ -628,7 +648,7 @@ export default function AdminOrdersPage() {
                 type="button"
                 onClick={handleBulkUpdate}
                 disabled={!bulkStatus || !selectedIds.length || bulkUpdating}
-                className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
               >
                 {bulkUpdating ? 'Applying…' : 'Apply'}
               </button>
@@ -653,9 +673,9 @@ export default function AdminOrdersPage() {
             onOpen={setActiveOrderId}
           />
           {activeOrderId ? (
-            <div className="rounded-[28px] border border-white/10 bg-black/25 p-4">
+            <div className="rounded-[6px] border border-white/10 bg-black/25 p-4">
               {activeOrderLoading ? (
-                <div className="rounded-[24px] border border-white/10 bg-[#101010] px-4 py-6 text-sm text-stone-400">
+                <div className="rounded-[6px] border border-white/10 bg-[#171717] px-4 py-6 text-sm text-zinc-400">
                   Loading order workbench...
                 </div>
               ) : activeOrderError ? (
@@ -677,7 +697,7 @@ export default function AdminOrdersPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1180px] text-left text-sm">
               <thead>
-                <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                   <th className="px-4 py-4">
                     <input
                       type="checkbox"
@@ -709,13 +729,13 @@ export default function AdminOrdersPage() {
                         />
                       </td>
                       <td className="px-4 py-4">
-                        <div className="font-mono text-xs font-semibold tracking-wide text-stone-100">{order.orderNumber}</div>
-                        <div className="mt-1 text-sm font-medium text-stone-200">{order.customerName}</div>
-                        <div className="mt-1 text-xs text-stone-500">{order.email}</div>
+                        <div className="font-mono text-xs font-semibold tracking-wide text-zinc-100">{order.orderNumber}</div>
+                        <div className="mt-1 text-sm font-medium text-zinc-200">{order.customerName}</div>
+                        <div className="mt-1 text-xs text-zinc-500">{order.email}</div>
                       </td>
                       <td className="px-4 py-4">
                         <AdminStatusBadge tone={statusTone(order.status)}>{statusLabel(order.status)}</AdminStatusBadge>
-                        <div className="mt-2 text-xs text-stone-500">
+                        <div className="mt-2 text-xs text-zinc-500">
                           {order.allowedTransitions.length
                             ? `Next: ${order.allowedTransitions.map(statusLabel).join(', ')}`
                             : 'No available transitions'}
@@ -730,7 +750,7 @@ export default function AdminOrdersPage() {
                         <AdminStatusBadge tone={paymentTone(order.paymentStatus, order.outstandingAmount)}>
                           {order.paymentStatus.replace(/_/g, ' ')}
                         </AdminStatusBadge>
-                        <div className="mt-2 text-xs text-stone-500">
+                        <div className="mt-2 text-xs text-zinc-500">
                           Paid {formatMoney(order.amountPaid, order.currency)}
                         </div>
                         <div className={`mt-1 text-xs ${order.outstandingAmount > 0 ? 'text-amber-200' : 'text-emerald-300'}`}>
@@ -738,40 +758,50 @@ export default function AdminOrdersPage() {
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <div className="text-stone-200">{order.shippingZoneName || 'Без зони'}</div>
-                        <div className="mt-1 text-xs text-stone-500">{order.taxRegionName || 'Без правила'}</div>
-                        <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-stone-600">
+                        <div className="text-zinc-200">{order.shippingZoneName || 'Без зони'}</div>
+                        <div className="mt-1 text-xs text-zinc-500">{order.taxRegionName || 'Без правила'}</div>
+                        <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-zinc-600">
                           {order.itemCount} items · {order.shipmentsCount} shipments
                         </div>
                       </td>
-                      <td className="px-4 py-4 font-medium text-stone-100">{formatMoney(order.total, order.currency)}</td>
+                      <td className="px-4 py-4 font-medium text-zinc-100">{formatMoney(order.total, order.currency)}</td>
                       <td className="px-4 py-4">
                         {order.latestEvent ? (
                           <div className="max-w-[180px]">
-                            <div className="text-xs font-medium text-stone-300">{statusLabel(order.latestEvent.toStatus)}</div>
-                            <div className="mt-1 truncate text-xs text-stone-500">{order.latestEvent.note || 'Status update'}</div>
-                            <div className="mt-1 text-[11px] text-stone-600">{new Date(order.latestEvent.createdAt).toLocaleDateString()}</div>
+                            <div className="text-xs font-medium text-zinc-300">{statusLabel(order.latestEvent.toStatus)}</div>
+                            <div className="mt-1 truncate text-xs text-zinc-500">{order.latestEvent.note || 'Status update'}</div>
+                            <div className="mt-1 text-[11px] text-zinc-600">{new Date(order.latestEvent.createdAt).toLocaleDateString()}</div>
                           </div>
                         ) : (
-                          <span className="text-xs text-stone-600">No timeline</span>
+                          <span className="text-xs text-zinc-600">No timeline</span>
                         )}
                       </td>
-                      <td className="px-4 py-4 text-xs text-stone-500">{new Date(order.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-4 text-xs text-zinc-500">{new Date(order.createdAt).toLocaleDateString()}</td>
                       <td className="px-4 py-4">
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setQuickViewId(order.id)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.08] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-500/[0.12]"
+                            title="Quick view (no navigation)"
+                          >
+                            <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                            Quick view
+                          </button>
                           <button
                             type="button"
                             onClick={() => setActiveOrderId((current) => (current === order.id ? null : order.id))}
-                            className="inline-flex items-center gap-2 rounded-full border border-amber-100/15 bg-amber-100/[0.06] px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-amber-100 transition hover:bg-amber-100/[0.1]"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
                           >
                             Workbench
-                            <ChevronRight className={`h-3.5 w-3.5 transition ${activeOrderId === order.id ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`h-3.5 w-3.5 transition ${activeOrderId === order.id ? 'rotate-90' : ''}`} aria-hidden="true" />
                           </button>
                           <Link
                             href={`/admin/shop/orders/${order.id}`}
-                            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-stone-200 transition hover:bg-white/10"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
                           >
                             Detail
+                            <ExternalLink className="h-3 w-3" aria-hidden="true" />
                           </Link>
                         </div>
                       </td>
@@ -780,7 +810,7 @@ export default function AdminOrdersPage() {
                       <tr>
                         <td colSpan={9} className="bg-black/20 px-4 py-5">
                           {activeOrderLoading ? (
-                            <div className="rounded-[24px] border border-white/10 bg-[#101010] px-4 py-6 text-sm text-stone-400">
+                            <div className="rounded-[6px] border border-white/10 bg-[#171717] px-4 py-6 text-sm text-zinc-400">
                               Loading order workbench...
                             </div>
                           ) : activeOrderError ? (
@@ -804,7 +834,189 @@ export default function AdminOrdersPage() {
           </div>
         </AdminTableShell>
       )}
+
+      {/* Quick-view slide-over */}
+      <OrderQuickView
+        order={visibleOrders.find((o) => o.id === quickViewId) ?? null}
+        open={quickViewId !== null}
+        onClose={() => setQuickViewId(null)}
+        formatMoney={formatMoney}
+      />
     </AdminPage>
+  );
+}
+
+function OrderQuickView({
+  order,
+  open,
+  onClose,
+  formatMoney,
+}: {
+  order: OrderSummary | null;
+  open: boolean;
+  onClose: () => void;
+  formatMoney: (value: number, currency: string) => string;
+}) {
+  return (
+    <AdminSlideOver
+      open={open}
+      onClose={onClose}
+      width="md"
+      title={order ? `Order ${order.orderNumber}` : 'Order'}
+      subtitle={order ? `Created ${new Date(order.createdAt).toLocaleString('uk-UA')}` : undefined}
+      footer={
+        order ? (
+          <div className="flex items-center justify-between gap-3">
+            <Link
+              href={`/admin/shop/orders/${order.id}`}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-400 transition hover:text-blue-300"
+            >
+              Open full order
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.06]"
+            >
+              Close
+            </button>
+          </div>
+        ) : undefined
+      }
+    >
+      {order ? (
+        <div className="space-y-5">
+          {/* Status row */}
+          <div className="flex flex-wrap items-center gap-2">
+            <AdminStatusBadge tone={statusTone(order.status)}>{statusLabel(order.status)}</AdminStatusBadge>
+            <AdminStatusBadge tone={paymentTone(order.paymentStatus, order.outstandingAmount)}>
+              {order.paymentStatus.replace(/_/g, ' ')}
+            </AdminStatusBadge>
+            <AdminStatusBadge tone={slaTone(statusAgeHours(order), order.status)}>SLA {statusAgeHours(order)}h</AdminStatusBadge>
+          </div>
+
+          {/* Customer */}
+          <section className="space-y-2">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Customer</div>
+            <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
+              <div className="text-base font-semibold text-zinc-50">{order.customerName}</div>
+              <div className="mt-2 space-y-1 text-sm">
+                <div className="flex items-center gap-2 text-zinc-400">
+                  <MailIcon className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
+                  <span className="truncate">{order.email}</span>
+                </div>
+                {order.customerGroupSnapshot ? (
+                  <div className="flex items-center gap-2 text-zinc-500">
+                    <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                      {order.customerGroupSnapshot}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </section>
+
+          {/* Totals */}
+          <section className="space-y-2">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Financial</div>
+            <div className="grid grid-cols-3 gap-2">
+              <QvStat label="Total" value={formatMoney(order.total, order.currency)} tone="default" />
+              <QvStat label="Paid" value={formatMoney(order.amountPaid, order.currency)} tone="success" />
+              <QvStat
+                label="Outstanding"
+                value={formatMoney(order.outstandingAmount, order.currency)}
+                tone={order.outstandingAmount > 0 ? 'warning' : 'success'}
+              />
+            </div>
+          </section>
+
+          {/* Items + Shipments counts */}
+          <section className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Items</div>
+              <div className="mt-1 text-2xl font-bold tabular-nums text-zinc-50">{order.itemCount}</div>
+            </div>
+            <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Shipments</div>
+              <div className="mt-1 text-2xl font-bold tabular-nums text-zinc-50">{order.shipmentsCount}</div>
+            </div>
+          </section>
+
+          {/* Shipping zone & Tax */}
+          <section className="space-y-2">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Routing</div>
+            <div className="space-y-1.5 text-sm">
+              <QvRow label="Shipping zone" value={order.shippingZoneName ?? '—'} />
+              <QvRow label="Tax region" value={order.taxRegionName ?? '—'} />
+            </div>
+          </section>
+
+          {/* Latest event */}
+          {order.latestEvent ? (
+            <section className="space-y-2">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Latest activity</div>
+              <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
+                <div className="flex items-center gap-2">
+                  <AdminStatusBadge tone={statusTone(order.latestEvent.toStatus)}>
+                    {statusLabel(order.latestEvent.toStatus)}
+                  </AdminStatusBadge>
+                  <span className="text-[11px] text-zinc-500">
+                    {new Date(order.latestEvent.createdAt).toLocaleString('uk-UA')}
+                  </span>
+                </div>
+                {order.latestEvent.note ? (
+                  <p className="mt-2 text-sm leading-6 text-zinc-300">{order.latestEvent.note}</p>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+
+          {/* Allowed transitions */}
+          {order.allowedTransitions.length > 0 ? (
+            <section className="space-y-2">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Available transitions</div>
+              <div className="flex flex-wrap gap-1.5">
+                {order.allowedTransitions.map((t) => (
+                  <span
+                    key={t}
+                    className="rounded-full border border-blue-500/25 bg-blue-500/[0.06] px-2.5 py-0.5 text-[11px] font-medium text-blue-300"
+                  >
+                    {statusLabel(t)}
+                  </span>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </div>
+      ) : null}
+    </AdminSlideOver>
+  );
+}
+
+function QvStat({ label, value, tone }: { label: string; value: string; tone: 'default' | 'success' | 'warning' | 'danger' }) {
+  const cls =
+    tone === 'success'
+      ? 'border-green-500/20 bg-green-500/[0.05]'
+      : tone === 'warning'
+        ? 'border-amber-500/20 bg-amber-500/[0.05]'
+        : tone === 'danger'
+          ? 'border-red-500/20 bg-red-500/[0.05]'
+          : 'border-white/[0.05] bg-[#171717]';
+  return (
+    <div className={`rounded-xl border ${cls} p-3`}>
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</div>
+      <div className="mt-1 truncate text-base font-semibold tabular-nums text-zinc-50">{value}</div>
+    </div>
+  );
+}
+
+function QvRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2">
+      <span className="text-xs text-zinc-500">{label}</span>
+      <span className="truncate text-sm font-medium text-zinc-200">{value}</span>
+    </div>
   );
 }
 
@@ -822,11 +1034,11 @@ function OrdersKanban({
       {KANBAN_STATUSES.map((status) => {
         const columnOrders = orders.filter((order) => order.status === status);
         return (
-          <section key={status} className="min-h-[240px] rounded-[28px] border border-white/10 bg-white/[0.03] p-3">
+          <section key={status} className="min-h-[240px] rounded-[6px] border border-white/10 bg-white/[0.03] p-3">
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <div className="text-sm font-semibold text-stone-100">{statusLabel(status)}</div>
-                <div className="text-xs text-stone-500">{columnOrders.length} orders</div>
+                <div className="text-sm font-semibold text-zinc-100">{statusLabel(status)}</div>
+                <div className="text-xs text-zinc-500">{columnOrders.length} orders</div>
               </div>
               <AdminStatusBadge tone={statusTone(status)}>{status.replace(/_/g, ' ')}</AdminStatusBadge>
             </div>
@@ -839,22 +1051,22 @@ function OrdersKanban({
                     key={order.id}
                     type="button"
                     onClick={() => onOpen(order.id)}
-                    className={`w-full rounded-2xl border p-3 text-left transition ${
+                    className={`w-full rounded-[6px] border p-3 text-left transition ${
                       activeOrderId === order.id
-                        ? 'border-amber-100/25 bg-amber-100/[0.08]'
+                        ? 'border-blue-500/25 bg-blue-500/[0.08]'
                         : 'border-white/10 bg-black/25 hover:bg-white/[0.05]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="truncate font-mono text-xs font-semibold text-stone-100">{order.orderNumber}</div>
-                        <div className="mt-1 truncate text-sm text-stone-200">{order.customerName}</div>
-                        <div className="mt-1 truncate text-xs text-stone-500">{order.email}</div>
+                        <div className="truncate font-mono text-xs font-semibold text-zinc-100">{order.orderNumber}</div>
+                        <div className="mt-1 truncate text-sm text-zinc-200">{order.customerName}</div>
+                        <div className="mt-1 truncate text-xs text-zinc-500">{order.email}</div>
                       </div>
                       <AdminStatusBadge tone={slaTone(hours, order.status)}>SLA {hours}h</AdminStatusBadge>
                     </div>
                     <div className="mt-3 flex items-center justify-between text-xs">
-                      <span className="text-stone-500">{order.itemCount} items · {order.shipmentsCount} shipments</span>
+                      <span className="text-zinc-500">{order.itemCount} items · {order.shipmentsCount} shipments</span>
                       <span className={order.outstandingAmount > 0 ? 'text-amber-200' : 'text-emerald-300'}>
                         {formatMoney(order.outstandingAmount, order.currency)}
                       </span>
@@ -863,7 +1075,7 @@ function OrdersKanban({
                 );
               })}
               {!columnOrders.length ? (
-                <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-6 text-center text-sm text-stone-600">
+                <div className="rounded-[6px] border border-white/10 bg-black/20 px-3 py-6 text-center text-sm text-zinc-600">
                   Empty
                 </div>
               ) : null}
@@ -888,11 +1100,11 @@ function FilterSelect({
 }) {
   return (
     <label className="block min-w-[180px]">
-      <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-stone-500">{label}</span>
+      <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-zinc-500">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-stone-100 focus:border-white/20 focus:outline-none"
+        className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
       >
         {options.map((option) => (
           <option key={`${label}-${option.value || option.label}`} value={option.value}>
@@ -974,10 +1186,10 @@ function OrderInlineWorkbench({
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
       <div className="space-y-4">
-        <AdminActionBar className="bg-[#101010]">
+        <AdminActionBar className="bg-[#171717]">
           <div className="min-w-0">
-            <div className="font-mono text-sm font-semibold text-stone-100">{order.orderNumber}</div>
-            <div className="mt-1 text-sm text-stone-400">
+            <div className="font-mono text-sm font-semibold text-zinc-100">{order.orderNumber}</div>
+            <div className="mt-1 text-sm text-zinc-400">
               {order.customerName} · {order.email}
             </div>
           </div>
@@ -989,7 +1201,7 @@ function OrderInlineWorkbench({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-stone-300 transition hover:bg-white/10"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-300 transition hover:bg-white/10"
               aria-label="Close order workbench"
             >
               <X className="h-4 w-4" />
@@ -1014,13 +1226,13 @@ function OrderInlineWorkbench({
                     type="button"
                     onClick={() => void updateStatus(status)}
                     disabled={Boolean(statusUpdating || saving)}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-stone-200 transition hover:bg-white/10 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
                   >
                     {statusUpdating === status ? 'Applying...' : statusLabel(status)}
                   </button>
                 ))
               ) : (
-                <div className="text-sm text-stone-500">No available transitions for the current state.</div>
+                <div className="text-sm text-zinc-500">No available transitions for the current state.</div>
               )}
             </div>
           </AdminInspectorCard>
@@ -1056,7 +1268,7 @@ function OrderInlineWorkbench({
                   type="button"
                   onClick={() => void savePaymentAndFulfillment()}
                   disabled={saving}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" />
                   {saving ? 'Saving...' : 'Save'}
@@ -1068,13 +1280,13 @@ function OrderInlineWorkbench({
 
         <AdminTableShell>
           <div className="border-b border-white/10 px-5 py-4">
-            <h2 className="text-sm font-medium text-stone-100">Items</h2>
-            <p className="mt-1 text-xs text-stone-500">Order composition and line totals.</p>
+            <h2 className="text-sm font-medium text-zinc-100">Items</h2>
+            <p className="mt-1 text-xs text-zinc-500">Order composition and line totals.</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
-                <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                   <th className="px-4 py-4 font-medium">Item</th>
                   <th className="px-4 py-4 font-medium">SKU</th>
                   <th className="px-4 py-4 font-medium">Qty</th>
@@ -1086,13 +1298,13 @@ function OrderInlineWorkbench({
                 {order.items.map((item) => (
                   <tr key={item.id} className="transition hover:bg-white/[0.03]">
                     <td className="px-4 py-4">
-                      <div className="font-medium text-stone-100">{item.title}</div>
-                      <div className="mt-1 text-xs text-stone-500">{item.brand || item.productSlug}</div>
+                      <div className="font-medium text-zinc-100">{item.title}</div>
+                      <div className="mt-1 text-xs text-zinc-500">{item.brand || item.productSlug}</div>
                     </td>
-                    <td className="px-4 py-4 font-mono text-xs text-stone-400">{item.sku || item.productSlug || '-'}</td>
-                    <td className="px-4 py-4 text-stone-300">{item.quantity}</td>
-                    <td className="px-4 py-4 text-stone-300">{formatMoney(item.price, order.currency)}</td>
-                    <td className="px-4 py-4 font-medium text-stone-100">{formatMoney(item.total, order.currency)}</td>
+                    <td className="px-4 py-4 font-mono text-xs text-zinc-400">{item.sku || item.productSlug || '-'}</td>
+                    <td className="px-4 py-4 text-zinc-300">{item.quantity}</td>
+                    <td className="px-4 py-4 text-zinc-300">{formatMoney(item.price, order.currency)}</td>
+                    <td className="px-4 py-4 font-medium text-zinc-100">{formatMoney(item.total, order.currency)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1118,19 +1330,19 @@ function OrderInlineWorkbench({
           {order.shipments.length ? (
             <div className="space-y-3">
               {order.shipments.map((shipment) => (
-                <div key={shipment.id} className="rounded-2xl border border-white/10 bg-black/25 px-3 py-3">
+                <div key={shipment.id} className="rounded-[6px] border border-white/10 bg-black/25 px-3 py-3">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="font-medium text-stone-100">{shipment.trackingNumber}</div>
+                    <div className="font-medium text-zinc-100">{shipment.trackingNumber}</div>
                     <AdminStatusBadge tone={shipment.status === 'DELIVERED' ? 'success' : shipment.status === 'CANCELLED' ? 'danger' : 'warning'}>
                       {shipment.status.replace(/_/g, ' ')}
                     </AdminStatusBadge>
                   </div>
-                  <div className="mt-2 text-xs text-stone-500">
+                  <div className="mt-2 text-xs text-zinc-500">
                     {shipment.carrier}
                     {shipment.serviceLevel ? ` · ${shipment.serviceLevel}` : ''}
                   </div>
                   {shipment.trackingUrl ? (
-                    <a href={shipment.trackingUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-amber-100/75 hover:text-amber-100">
+                    <a href={shipment.trackingUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-blue-300 hover:text-blue-300">
                       Tracking URL
                     </a>
                   ) : null}
@@ -1138,7 +1350,7 @@ function OrderInlineWorkbench({
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-white/10 px-4 py-8 text-sm text-stone-500">
+            <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">
               No shipment records yet.
             </div>
           )}
@@ -1147,15 +1359,15 @@ function OrderInlineWorkbench({
         <AdminInspectorCard title="Latest timeline" description="Most recent order events.">
           <div className="space-y-3">
             {order.events.slice(0, 4).map((event) => (
-              <div key={event.id} className="rounded-2xl border border-white/10 bg-black/25 px-3 py-3">
-                <div className="text-sm font-medium text-stone-100">
+              <div key={event.id} className="rounded-[6px] border border-white/10 bg-black/25 px-3 py-3">
+                <div className="text-sm font-medium text-zinc-100">
                   {event.fromStatus ? `${statusLabel(event.fromStatus)} -> ` : ''}
                   {statusLabel(event.toStatus)}
                 </div>
-                <div className="mt-1 text-xs text-stone-500">
+                <div className="mt-1 text-xs text-zinc-500">
                   {event.actorName || event.actorType} · {new Date(event.createdAt).toLocaleString()}
                 </div>
-                {event.note ? <div className="mt-2 text-sm text-stone-300">{event.note}</div> : null}
+                {event.note ? <div className="mt-2 text-sm text-zinc-300">{event.note}</div> : null}
               </div>
             ))}
           </div>

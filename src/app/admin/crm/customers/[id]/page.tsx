@@ -77,8 +77,8 @@ export default function CrmCustomerDetailPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+          <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
           Завантаження клієнта…
         </div>
       </AdminPage>
@@ -94,7 +94,7 @@ export default function CrmCustomerDetailPage() {
           action={
             <Link
               href="/admin/crm"
-              className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               Back to CRM
             </Link>
@@ -109,7 +109,7 @@ export default function CrmCustomerDetailPage() {
   return (
     <AdminPage className="space-y-6">
       <div className="space-y-4">
-        <Link href="/admin/crm" className="inline-flex items-center gap-2 text-sm text-stone-400 transition hover:text-stone-100">
+        <Link href="/admin/crm" className="inline-flex items-center gap-2 text-sm text-zinc-400 transition hover:text-zinc-100">
           CRM Dashboard
         </Link>
         <AdminPageHeader
@@ -120,7 +120,7 @@ export default function CrmCustomerDetailPage() {
             customer.markup ? (
               <Link
                 href="/admin/shop/pricing"
-                className="rounded-[24px] border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-right"
+                className="rounded-[6px] border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-right"
               >
                 <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-200/70">
                   Персональна націнка
@@ -157,19 +157,19 @@ export default function CrmCustomerDetailPage() {
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <AdminTableShell>
           <div className="border-b border-white/10 px-5 py-4">
-            <h2 className="text-sm font-medium text-stone-100">Orders</h2>
-            <p className="mt-1 text-xs text-stone-500">Order history and profitability linked to this customer.</p>
+            <h2 className="text-sm font-medium text-zinc-100">Orders</h2>
+            <p className="mt-1 text-xs text-zinc-500">Order history and profitability linked to this customer.</p>
           </div>
           {customer.orders.length ? (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500">Order</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500">Status</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500">Payment</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Revenue</th>
-                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-stone-500 text-right">Profit</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Order</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Status</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500">Payment</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Revenue</th>
+                    <th className="px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-zinc-500 text-right">Profit</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04]">
@@ -177,8 +177,8 @@ export default function CrmCustomerDetailPage() {
                     <tr key={order.id} className="hover:bg-white/[0.02]">
                       <td className="px-5 py-4">
                         <Link href={`/admin/crm/orders/${order.airtableId}`} className="block">
-                          <div className="font-medium text-stone-100">#{order.number}</div>
-                          <div className="mt-1 text-xs text-stone-500">{order.name}</div>
+                          <div className="font-medium text-zinc-100">#{order.number}</div>
+                          <div className="mt-1 text-xs text-zinc-500">{order.name}</div>
                         </Link>
                       </td>
                       <td className="px-5 py-4">
@@ -191,10 +191,10 @@ export default function CrmCustomerDetailPage() {
                           {order.paymentStatus}
                         </AdminStatusBadge>
                       </td>
-                      <td className="px-5 py-4 text-right font-medium text-stone-200">
+                      <td className="px-5 py-4 text-right font-medium text-zinc-200">
                         ${order.clientTotal.toLocaleString()}
                       </td>
-                      <td className={`px-5 py-4 text-right font-medium ${order.profit >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+                      <td className={`px-5 py-4 text-right font-medium ${order.profit >= 0 ? 'text-emerald-300' : 'text-blue-300'}`}>
                         ${order.profit.toFixed(0)}
                       </td>
                     </tr>
@@ -213,18 +213,18 @@ export default function CrmCustomerDetailPage() {
 
         <AdminTableShell>
           <div className="border-b border-white/10 px-5 py-4">
-            <h2 className="text-sm font-medium text-stone-100">Top products</h2>
-            <p className="mt-1 text-xs text-stone-500">Highest-value purchased products for this customer.</p>
+            <h2 className="text-sm font-medium text-zinc-100">Top products</h2>
+            <p className="mt-1 text-xs text-zinc-500">Highest-value purchased products for this customer.</p>
           </div>
           {customer.topProducts.length ? (
             <div className="divide-y divide-white/[0.04]">
               {customer.topProducts.map((product) => (
                 <div key={product.name} className="px-5 py-4">
-                  <div className="truncate font-medium text-stone-100">{product.name}</div>
-                  <div className="mt-2 grid gap-2 text-xs text-stone-400 sm:grid-cols-3">
+                  <div className="truncate font-medium text-zinc-100">{product.name}</div>
+                  <div className="mt-2 grid gap-2 text-xs text-zinc-400 sm:grid-cols-3">
                     <div>{product.totalQty} pcs</div>
                     <div>${product.totalRevenue.toLocaleString()} revenue</div>
-                    <div className={product.totalProfit >= 0 ? 'text-emerald-300' : 'text-red-300'}>
+                    <div className={product.totalProfit >= 0 ? 'text-emerald-300' : 'text-blue-300'}>
                       ${product.totalProfit.toFixed(0)} profit
                     </div>
                   </div>

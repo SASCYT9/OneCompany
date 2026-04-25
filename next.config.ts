@@ -185,6 +185,11 @@ const nextConfig: NextConfig = {
         protocol: 'https' as const,
         hostname,
       })),
+      // Vercel Blob storage — admin product images live here
+      {
+        protocol: 'https' as const,
+        hostname: '**.public.blob.vercel-storage.com',
+      },
     ],
     formats: ['image/avif', 'image/webp'], // Modern image formats
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],

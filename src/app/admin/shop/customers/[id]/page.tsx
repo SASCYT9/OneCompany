@@ -318,7 +318,7 @@ export default function AdminShopCustomerDetailPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[28px] border border-white/10 bg-[#101010] px-5 py-6 text-sm text-stone-400">
+        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <UserRound className="h-4 w-4 animate-pulse" />
           Loading customer…
         </div>
@@ -329,10 +329,10 @@ export default function AdminShopCustomerDetailPage() {
   if (!customer || !form) {
     return (
       <AdminPage className="space-y-4">
-        <div className="rounded-[24px] border border-red-500/20 bg-red-950/20 px-4 py-3 text-sm text-red-200">
+        <div className="rounded-[6px] border border-blue-500/20 bg-blue-950/20 px-4 py-3 text-sm text-red-200">
           {error || 'Customer not found'}
         </div>
-        <Link href="/admin/shop/customers" className="inline-block text-sm text-stone-300 hover:text-stone-100">
+        <Link href="/admin/shop/customers" className="inline-block text-sm text-zinc-300 hover:text-zinc-100">
           Back to customers
         </Link>
       </AdminPage>
@@ -371,7 +371,7 @@ export default function AdminShopCustomerDetailPage() {
               type="button"
               onClick={() => void runAction('revert_b2c')}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-stone-200 transition hover:bg-white/10 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
             >
               <RotateCcw className="h-4 w-4" />
               Revert to B2C
@@ -381,7 +381,7 @@ export default function AdminShopCustomerDetailPage() {
             type="button"
             onClick={() => void runAction('create_setup_link')}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-500/10 px-4 py-2 text-sm text-amber-100 transition hover:bg-amber-500/15 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-500/10 px-4 py-2 text-sm text-blue-300 transition hover:bg-amber-500/15 disabled:opacity-50"
           >
             Access setup
           </button>
@@ -390,7 +390,7 @@ export default function AdminShopCustomerDetailPage() {
           type="button"
           onClick={() => void save()}
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
         >
           <Save className="h-4 w-4" />
           {saving ? 'Saving…' : 'Save'}
@@ -408,15 +408,15 @@ export default function AdminShopCustomerDetailPage() {
         main={
           <>
             {(error || success) && (
-              <div className={`rounded-[24px] border px-4 py-3 text-sm ${error ? 'border-red-500/20 bg-red-950/20 text-red-200' : 'border-emerald-500/20 bg-emerald-950/20 text-emerald-200'}`}>
+              <div className={`rounded-[6px] border px-4 py-3 text-sm ${error ? 'border-blue-500/20 bg-blue-950/20 text-red-200' : 'border-emerald-500/20 bg-emerald-950/20 text-emerald-200'}`}>
                 {error || success}
               </div>
             )}
 
-            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
-                <h2 className="text-xl font-semibold text-stone-100">Profile and commercial context</h2>
-                <p className="mt-1 text-sm text-stone-500">Редагування account profile, B2B terms, балансів і локалі.</p>
+                <h2 className="text-xl font-semibold text-zinc-100">Profile and commercial context</h2>
+                <p className="mt-1 text-sm text-zinc-500">Редагування account profile, B2B terms, балансів і локалі.</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <AdminInputField label="First name" value={form.firstName} onChange={(value) => updateForm('firstName', value)} />
@@ -471,15 +471,15 @@ export default function AdminShopCustomerDetailPage() {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
               <div className="mb-5 flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-stone-100">Orders</h2>
-                  <p className="mt-1 text-sm text-stone-500">Storefront orders and the fastest route to open the full order detail.</p>
+                  <h2 className="text-xl font-semibold text-zinc-100">Orders</h2>
+                  <p className="mt-1 text-sm text-zinc-500">Storefront orders and the fastest route to open the full order detail.</p>
                 </div>
                 <Link
                   href={`/admin/shop/orders/create?customerId=${customer.id}`}
-                  className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-black transition hover:bg-stone-200"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
                 >
                   New order
                 </Link>
@@ -489,7 +489,7 @@ export default function AdminShopCustomerDetailPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[720px] text-left text-sm">
                       <thead>
-                        <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                        <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                           <th className="px-4 py-4 font-medium">Order</th>
                           <th className="px-4 py-4 font-medium">Status</th>
                           <th className="px-4 py-4 font-medium">Items</th>
@@ -501,20 +501,20 @@ export default function AdminShopCustomerDetailPage() {
                         {customer.orders.map((order) => (
                           <tr key={order.id} className="transition hover:bg-white/[0.03]">
                             <td className="px-4 py-4">
-                              <div className="font-medium text-stone-100">{order.orderNumber}</div>
-                              <div className="mt-1 text-xs text-stone-500">{new Date(order.createdAt).toLocaleString()}</div>
+                              <div className="font-medium text-zinc-100">{order.orderNumber}</div>
+                              <div className="mt-1 text-xs text-zinc-500">{new Date(order.createdAt).toLocaleString()}</div>
                             </td>
                             <td className="px-4 py-4">
                               <AdminStatusBadge tone={order.status === 'DELIVERED' ? 'success' : order.status === 'CANCELLED' ? 'danger' : 'warning'}>
                                 {order.status.replace(/_/g, ' ')}
                               </AdminStatusBadge>
                             </td>
-                            <td className="px-4 py-4 text-stone-300">{order.itemCount}</td>
-                            <td className="px-4 py-4 text-stone-100">
+                            <td className="px-4 py-4 text-zinc-300">{order.itemCount}</td>
+                            <td className="px-4 py-4 text-zinc-100">
                               {order.currency} {order.total.toFixed(2)}
                             </td>
                             <td className="px-4 py-4">
-                              <Link href={`/admin/shop/orders/${order.id}`} className="text-sm text-stone-300 transition hover:text-stone-100">
+                              <Link href={`/admin/shop/orders/${order.id}`} className="text-sm text-zinc-300 transition hover:text-zinc-100">
                                 Open →
                               </Link>
                             </td>
@@ -525,101 +525,101 @@ export default function AdminShopCustomerDetailPage() {
                   </div>
                 </AdminTableShell>
               ) : (
-                <div className="rounded-[24px] border border-dashed border-white/10 px-4 py-10 text-sm text-stone-500">No orders yet.</div>
+                <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-10 text-sm text-zinc-500">No orders yet.</div>
               )}
             </section>
 
-            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
-                <h2 className="text-xl font-semibold text-stone-100">Addresses and carts</h2>
-                <p className="mt-1 text-sm text-stone-500">Stored shipping data and current storefront activity.</p>
+                <h2 className="text-xl font-semibold text-zinc-100">Addresses and carts</h2>
+                <p className="mt-1 text-sm text-zinc-500">Stored shipping data and current storefront activity.</p>
               </div>
               <div className="grid gap-6 lg:grid-cols-2">
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Addresses</h3>
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Addresses</h3>
                   {customer.addresses.length ? (
                     customer.addresses.map((address) => (
-                      <div key={address.id} className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4 text-sm text-stone-300">
-                        <div className="font-medium text-stone-100">{address.label}</div>
+                      <div key={address.id} className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4 text-sm text-zinc-300">
+                        <div className="font-medium text-zinc-100">{address.label}</div>
                         <div className="mt-2 space-y-1">
                           <div>{address.line1}</div>
                           {address.line2 ? <div>{address.line2}</div> : null}
                           <div>{[address.city, address.region, address.postcode].filter(Boolean).join(', ')}</div>
                           <div>{address.country}</div>
                         </div>
-                        <div className="mt-3 text-xs text-stone-500">
+                        <div className="mt-3 text-xs text-zinc-500">
                           {address.isDefaultShipping ? 'Default shipping' : '—'}
                           {address.isDefaultBilling ? ' · Default billing' : ''}
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-[24px] border border-dashed border-white/10 px-4 py-8 text-sm text-stone-500">No saved addresses.</div>
+                    <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">No saved addresses.</div>
                   )}
                 </div>
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Carts</h3>
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Carts</h3>
                   {customer.carts.length ? (
                     customer.carts.map((cart) => (
-                      <div key={cart.id} className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4 text-sm text-stone-300">
-                        <div className="font-medium text-stone-100">
+                      <div key={cart.id} className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4 text-sm text-zinc-300">
+                        <div className="font-medium text-zinc-100">
                           {cart.currency} · {cart.locale}
                         </div>
-                        <div className="mt-2 text-xs text-stone-500">
+                        <div className="mt-2 text-xs text-zinc-500">
                           {cart.itemCount} items · updated {new Date(cart.updatedAt).toLocaleString()}
                         </div>
-                        <div className="mt-2 font-mono text-[11px] text-stone-500">{cart.token}</div>
+                        <div className="mt-2 font-mono text-[11px] text-zinc-500">{cart.token}</div>
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-[24px] border border-dashed border-white/10 px-4 py-8 text-sm text-stone-500">No active carts.</div>
+                    <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">No active carts.</div>
                   )}
                 </div>
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-white/10 bg-[#101010] p-6">
+            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
               <div className="mb-5 flex items-center gap-2">
-                <Database className="h-4 w-4 text-amber-100/60" />
+                <Database className="h-4 w-4 text-blue-300/60" />
                 <div>
-                  <h2 className="text-xl font-semibold text-stone-100">CRM and pricing context</h2>
-                  <p className="mt-1 text-sm text-stone-500">Airtable-linked orders and customer-specific markup signals.</p>
+                  <h2 className="text-xl font-semibold text-zinc-100">CRM and pricing context</h2>
+                  <p className="mt-1 text-sm text-zinc-500">Airtable-linked orders and customer-specific markup signals.</p>
                 </div>
               </div>
               <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-                <div className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Customer markup</div>
+                <div className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Customer markup</div>
                   {customerMarkup ? (
                     <div className="mt-3 space-y-2">
                       <div className="text-2xl font-semibold text-emerald-300">{customerMarkup.markupPct}%</div>
-                      <div className="text-sm text-stone-400">
+                      <div className="text-sm text-zinc-400">
                         Custom pricing override{customerMarkup.notes ? ` · ${customerMarkup.notes}` : ''}
                       </div>
                     </div>
                   ) : (
-                    <div className="mt-3 text-sm text-stone-500">Uses default pricing rules.</div>
+                    <div className="mt-3 text-sm text-zinc-500">Uses default pricing rules.</div>
                   )}
                 </div>
                 <div className="space-y-3">
                   {crmLoading ? (
-                    <div className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-8 text-sm text-stone-500">Loading CRM orders…</div>
+                    <div className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-8 text-sm text-zinc-500">Loading CRM orders…</div>
                   ) : crmOrders.length ? (
                     crmOrders.map((order) => (
-                      <div key={order.id} className="rounded-[24px] border border-white/10 bg-black/25 px-4 py-4">
+                      <div key={order.id} className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>
-                            <div className="font-medium text-stone-100">#{order.number}</div>
-                            <div className="mt-1 text-xs text-stone-500">{order.name}</div>
+                            <div className="font-medium text-zinc-100">#{order.number}</div>
+                            <div className="mt-1 text-xs text-zinc-500">{order.name}</div>
                           </div>
                           <div className="text-right">
-                            <div className="text-sm text-stone-100">${order.clientTotal.toLocaleString()}</div>
-                            <div className="mt-1 text-xs text-stone-500">{order.itemCount} items</div>
+                            <div className="text-sm text-zinc-100">${order.clientTotal.toLocaleString()}</div>
+                            <div className="mt-1 text-xs text-zinc-500">{order.itemCount} items</div>
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-[24px] border border-dashed border-white/10 px-4 py-8 text-sm text-stone-500">
+                    <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">
                       No linked CRM orders or Airtable reference was not found in notes.
                     </div>
                   )}
@@ -649,24 +649,24 @@ export default function AdminShopCustomerDetailPage() {
               title="Password setup"
               description="One-time access link for first login or password reset."
             >
-              <div className="space-y-3 text-sm text-stone-300">
+              <div className="space-y-3 text-sm text-zinc-300">
                 <div>
                   {customer.account?.hasPassword
                     ? 'Password already exists. You can still issue a fresh setup link.'
                     : 'Password is not configured yet.'}
                 </div>
                 {setupLinkExpiresAt ? (
-                  <div className="text-xs text-stone-500">
+                  <div className="text-xs text-zinc-500">
                     Active setup link expires at {new Date(setupLinkExpiresAt).toLocaleString()}
                   </div>
                 ) : null}
                 {setupLinkUrl ? (
-                  <div className="rounded-2xl border border-white/10 bg-black/25 px-3 py-3">
-                    <div className="break-all font-mono text-xs text-stone-200">{setupLinkUrl}</div>
+                  <div className="rounded-[6px] border border-white/10 bg-black/25 px-3 py-3">
+                    <div className="break-all font-mono text-xs text-zinc-200">{setupLinkUrl}</div>
                     <button
                       type="button"
                       onClick={() => void copySetupLink()}
-                      className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-stone-200 transition hover:bg-white/10"
+                      className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-200 transition hover:bg-white/10"
                     >
                       <Copy className="h-3.5 w-3.5" />
                       {copiedSetupLink ? 'Copied' : 'Copy link'}
@@ -701,7 +701,7 @@ export default function AdminShopCustomerDetailPage() {
                   title: entry.action,
                   meta: `${entry.actorName || entry.actorEmail} · ${new Date(entry.createdAt).toLocaleString()}`,
                   body: entry.metadata ? (
-                    <pre className="overflow-x-auto rounded-2xl border border-white/10 bg-black/25 p-3 text-[11px] text-stone-400">
+                    <pre className="overflow-x-auto rounded-[6px] border border-white/10 bg-black/25 p-3 text-[11px] text-zinc-400">
                       {JSON.stringify(entry.metadata, null, 2)}
                     </pre>
                   ) : undefined,

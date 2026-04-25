@@ -30,7 +30,7 @@ const TAX_TYPES = [
   { value: 'VAT', label: 'ПДВ (VAT)', color: 'text-zinc-400' },
   { value: 'GST', label: 'GST', color: 'text-teal-400' },
   { value: 'SALES_TAX', label: 'Sales Tax', color: 'text-amber-400' },
-  { value: 'CUSTOMS_DUTY', label: 'Мито', color: 'text-red-400' },
+  { value: 'CUSTOMS_DUTY', label: 'Мито', color: 'text-blue-400' },
   { value: 'NONE', label: 'Без податку', color: 'text-white/30' },
 ];
 
@@ -108,7 +108,7 @@ export default function TaxRegionPage() {
   return (
     <div className="relative h-full w-full overflow-auto bg-black text-white">
       {/* Ambient glow */}
-      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-none-full bg-rose-600/8 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-600/8 blur-[120px]" />
 
       <div className="w-full px-4 py-8 md:px-8 lg:px-12">
         <Link href="/admin/shop/logistics"
@@ -159,7 +159,7 @@ export default function TaxRegionPage() {
 
         {/* Table */}
         {loading ? (
-          <div className="py-20 flex justify-center"><RefreshCw className="w-6 h-6 animate-spin text-white/20" /></div>
+          <div className="py-20 flex justify-center"><RefreshCw className="w-6 h-6 motion-safe:animate-spin text-white/20" /></div>
         ) : filtered.length === 0 && rules.length === 0 ? (
           <div className="text-center py-20 text-white/20 text-sm border border-dashed border-white/10 rounded-none">
             <Receipt className="w-12 h-12 mx-auto mb-4 text-white/10" />
@@ -245,12 +245,12 @@ export default function TaxRegionPage() {
                         <div className="flex items-center gap-1.5">
                           <button onClick={() => saveRule(r)} disabled={savingKey === r.regionCode}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 rounded-none text-[10px] uppercase tracking-wider font-semibold transition disabled:opacity-50">
-                            {savingKey === r.regionCode ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                            {savingKey === r.regionCode ? <RefreshCw className="w-3 h-3 motion-safe:animate-spin" /> : <Save className="w-3 h-3" />}
                             Save
                           </button>
                           {r.id && (
                             <button onClick={() => deleteRule(r.id!)}
-                              className="p-1.5 rounded-none hover:bg-red-950/30 border border-red-900/50 text-red-500/10 text-white/15 hover:text-red-400 transition-colors">
+                              className="p-1.5 rounded-none hover:bg-blue-950/40/10 text-white/15 hover:text-blue-400 transition-colors">
                               <Trash2 className="w-3 h-3" />
                             </button>
                           )}
@@ -293,7 +293,7 @@ export default function TaxRegionPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/[0.08] w-full max-w-lg p-6 rounded-none shadow-2xl"
+              className="bg-[#0A0A0A] border border-white/[0.08] w-full max-w-lg p-6 rounded-none shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
