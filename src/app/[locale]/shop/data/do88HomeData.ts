@@ -11,6 +11,7 @@ export type Do88FeaturedModel = {
   buttonLabelUk: string;
   link: string;
   imageUrl: string;
+  flipImage?: boolean;
 };
 
 export const DO88_HERO = {
@@ -44,35 +45,36 @@ export const DO88_FEATURED_MODELS: Do88FeaturedModel[] = [
     tagTwo: 'Radiators',
     buttonLabel: 'View Products',
     buttonLabelUk: 'Переглянути товари',
-    link: '/shop/stock?distributor=DO88&q=G80',
+    link: '/shop/do88/collections/all?brand=BMW&keyword=M3+%2F+M4+(G80%2FG82)',
     imageUrl: '/branding/do88/do88_bw_featured_bmw_1774445183885.png',
   },
   {
-    title: 'Porsche 911',
-    titleUk: 'Porsche 911',
-    subtitle: 'Performance Cooling',
-    subtitleUk: 'Продуктивне охолодження',
-    badge: 'Track',
-    badgeUk: 'Трек',
-    tagOne: 'Cooler Kits',
+    title: 'Porsche 911 Turbo S (992)',
+    titleUk: 'Porsche 911 Turbo S (992)',
+    subtitle: 'Track-spec cooling for the 992',
+    subtitleUk: 'Трекове охолодження для 992',
+    badge: 'Featured',
+    badgeUk: 'Рекомендовано',
+    tagOne: 'Intercoolers',
     tagTwo: 'Y-Pipes',
     buttonLabel: 'View Products',
     buttonLabelUk: 'Переглянути товари',
-    link: '/shop/stock?distributor=DO88&q=Porsche',
-    imageUrl: '/branding/do88/do88_bw_featured_porsche_1774445208629.png',
+    link: '/shop/do88/collections/all?brand=Porsche&keyword=911+Turbo+S+(992)',
+    imageUrl: '/branding/do88/do88_bw_porsche_hero_1774443620183.png',
   },
   {
-    title: 'Audi RS6 / RS7',
-    titleUk: 'Audi RS6 / RS7',
+    title: 'Audi RS6 / RS7 (C8)',
+    titleUk: 'Audi RS6 / RS7 (C8)',
     subtitle: '4.0 TFSI C8 Cooling',
     subtitleUk: 'Охолодження 4.0 TFSI C8',
     badge: 'Popular',
     badgeUk: 'Популярно',
     tagOne: 'Intercoolers',
-    tagTwo: 'Air Filters',
+    tagTwo: 'Oil Coolers',
     buttonLabel: 'View Products',
     buttonLabelUk: 'Переглянути товари',
-    link: '/shop/stock?distributor=DO88&q=RS6',
+    link: '/shop/do88/collections/all?brand=Audi&keyword=RS6+%2F+RS7+(C8)',
     imageUrl: '/branding/do88/do88_bw_engine_bay_1774443712195.png',
+    flipImage: true,
   }
 ];

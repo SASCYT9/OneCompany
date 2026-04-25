@@ -1,10 +1,10 @@
 "use client";
 
 import type { CSSProperties } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
+import { ShopProductImage } from '@/components/shop/ShopProductImage';
 import { useShopCurrency } from '@/components/shop/CurrencyContext';
 import type { SupportedLocale } from '@/lib/seo';
 import type { ShopProduct } from '@/lib/shopCatalog';
@@ -164,7 +164,7 @@ export default function Do88CollectionProductGrid({
                 />
                 <div className="urban-product-grid__media">
                   {product.image && product.image.trim().length > 0 ? (
-                    <Image
+                    <ShopProductImage
                       src={product.image.trim()}
                       alt={productTitle}
                       fill

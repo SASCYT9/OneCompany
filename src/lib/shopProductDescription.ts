@@ -67,6 +67,16 @@ const SPEC_LABELS = [
   /^finish$/i,
   /^material$/i,
   /^fitment$/i,
+  /^type$/i,
+  /^category$/i,
+  /^origin$/i,
+  /^country of origin$/i,
+  /^manufactured in$/i,
+  /^chassis$/i,
+  /^platform$/i,
+  /^application$/i,
+  /^engine$/i,
+  /^key spec(ification)?$/i,
   /^артикул$/i,
   /^бренд обвісу$/i,
   /^марка авто$/i,
@@ -76,7 +86,19 @@ const SPEC_LABELS = [
   /^покриття$/i,
   /^матеріал$/i,
   /^сумісність$/i,
+  /^тип$/i,
+  /^категорія$/i,
+  /^походження$/i,
+  /^країна походження$/i,
+  /^виробник$/i,
+  /^шасі$/i,
+  /^платформа$/i,
+  /^застосування$/i,
+  /^двигун$/i,
+  /^ключова специфікація$/i,
 ];
+
+const SPEC_LABEL_HINT_RE = /^[\p{L}][\p{L}0-9 .,/&()-]{1,40}$/u;
 
 function normalizeText(value: string | null | undefined) {
   return String(value ?? '')
@@ -128,7 +150,7 @@ function detectSectionHeading(text: string): SectionKind | null {
   return null;
 }
 
-function parseSpec(text: string): ShopProductDescriptionSpec | null {
+function parseSpec(text: string, options: { lenient?: boolean } = {}): ShopProductDescriptionSpec | null {
   const normalized = normalizeText(text);
   const separatorIndex = normalized.indexOf(':');
 
@@ -143,11 +165,15 @@ function parseSpec(text: string): ShopProductDescriptionSpec | null {
     return null;
   }
 
-  if (!SPEC_LABELS.some((pattern) => pattern.test(label))) {
-    return null;
+  if (SPEC_LABELS.some((pattern) => pattern.test(label))) {
+    return { label, value };
   }
 
-  return { label, value };
+  if (options.lenient && SPEC_LABEL_HINT_RE.test(label) && !value.includes(':')) {
+    return { label, value };
+  }
+
+  return null;
 }
 
 function splitInlineItems(value: string) {
@@ -215,6 +241,7 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
   const $ = load(`<body>${sanitizedSource}</body>`);
   const introFragments: string[] = [];
   let activeSection: SectionKind | null = null;
+  let lastIntroFragmentWasCustomHeading = false;
 
   const visit = (element: Element) => {
     const tagName = element.tagName?.toLowerCase() ?? '';
@@ -234,6 +261,7 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
     const sectionHeading = detectSectionHeading(text);
     if (sectionHeading && (/^h[1-6]$/.test(tagName) || tagName === 'p' || tagName === 'div')) {
       activeSection = sectionHeading;
+      lastIntroFragmentWasCustomHeading = false;
       return;
     }
 
@@ -244,8 +272,37 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
         .get()
         .filter(Boolean);
 
-      if (items.length > 0 && activeSection) {
-        pushToSection(sections, activeSection, items);
+      if (items.length > 0) {
+        if (activeSection) {
+          pushToSection(sections, activeSection, items);
+          lastIntroFragmentWasCustomHeading = false;
+          return;
+        }
+
+        if (lastIntroFragmentWasCustomHeading) {
+          introFragments.push($.html(element));
+          lastIntroFragmentWasCustomHeading = false;
+          return;
+        }
+
+        // Detect spec-style list: most/all items look like "Label: Value"
+        const parsedSpecs = items
+          .map((item) => parseSpec(item, { lenient: true }))
+          .filter((spec): spec is ShopProductDescriptionSpec => spec !== null);
+
+        if (parsedSpecs.length >= 2 && parsedSpecs.length >= items.length - 1) {
+          parsedSpecs.forEach((spec) => {
+            if (!sections.specs.some((existing) => existing.label === spec.label && existing.value === spec.value)) {
+              sections.specs.push(spec);
+            }
+          });
+          lastIntroFragmentWasCustomHeading = false;
+          return;
+        }
+
+        // Otherwise treat as feature bullets
+        pushUnique(sections.features, items);
+        lastIntroFragmentWasCustomHeading = false;
         return;
       }
     }
@@ -256,6 +313,7 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
       if (prefixedSection.items.length > 0) {
         pushToSection(sections, prefixedSection.section, prefixedSection.items);
       }
+      lastIntroFragmentWasCustomHeading = false;
       return;
     }
 
@@ -264,6 +322,7 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
       if (!sections.specs.some((item) => item.label === spec.label && item.value === spec.value)) {
         sections.specs.push(spec);
       }
+      lastIntroFragmentWasCustomHeading = false;
       return;
     }
 
@@ -271,11 +330,13 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
       const listItems = splitInlineItems(text);
       if (listItems.length > 1) {
         pushToSection(sections, activeSection, listItems);
+        lastIntroFragmentWasCustomHeading = false;
         return;
       }
     }
 
     introFragments.push($.html(element));
+    lastIntroFragmentWasCustomHeading = /^h[1-6]$/.test(tagName);
   };
 
   $('body')

@@ -22,15 +22,11 @@ export const DO88_COLLECTIONS_GRID_SETTINGS = {
 } as const;
 
 export const DO88_COLLECTION_CARDS: Do88CollectionCard[] = [
-  { title: 'Intercoolers', titleUk: 'Інтеркулери', categoryHandle: 'intercoolers', externalImageUrl: '/branding/do88/do88_intercooler_real.png' },
+  { title: 'Intercoolers', titleUk: 'Інтеркулери', categoryHandle: 'intercoolers', externalImageUrl: '/branding/do88/do88_category_intercoolers_1774437909826.png' },
   { title: 'Radiators', titleUk: 'Радіатори', categoryHandle: 'radiators', externalImageUrl: '/branding/do88/do88_radiator_real.png' },
   { title: 'Intake Systems', titleUk: 'Системи впуску', categoryHandle: 'intake-systems', externalImageUrl: '/branding/do88/do88_intake_real.png' },
   { title: 'Performance Hoses', titleUk: 'Патрубки', categoryHandle: 'performance-hoses', externalImageUrl: '/branding/do88/do88_hoses_real.png' },
   { title: 'Oil Coolers', titleUk: 'Масляні радіатори', categoryHandle: 'oil-coolers', externalImageUrl: '/branding/do88/do88_oil_cooler_real.png' },
   { title: 'Y-Pipes & Plenums', titleUk: 'Y-Пайпи та Пленуми', categoryHandle: 'y-pipes-plenums', externalImageUrl: '/branding/do88/do88_y_pipe_real.png' },
-  { title: 'Carbon Fiber', titleUk: 'Карбонові деталі', categoryHandle: 'carbon-fiber', externalImageUrl: '/branding/do88/do88_carbon_real.png' },
   { title: 'Fans & Accessories', titleUk: 'Вентилятори та аксесуари', categoryHandle: 'cooling-accessories', externalImageUrl: '/branding/do88/do88_fan_real.png' },
-  { title: 'Exhaust Parts', titleUk: 'Вихлопні деталі', categoryHandle: 'exhaust-parts', externalImageUrl: 'https://www.do88.se/bilder/artiklar/liten/U327600_S.jpg' },
-  { title: 'Aluminum Pipes', titleUk: 'Алюмінієві труби', categoryHandle: 'aluminum-pipes', externalImageUrl: 'https://www.do88.se/bilder/artiklar/liten/A3B90G60-L_S.jpg' },
-  { title: 'Heat Protection', titleUk: 'Теплозахист', categoryHandle: 'heat-protection', externalImageUrl: 'https://www.do88.se/bilder/artiklar/liten/VS-J-50-5_S.jpg' },
 ];

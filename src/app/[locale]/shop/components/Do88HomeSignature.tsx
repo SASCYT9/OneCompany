@@ -42,13 +42,9 @@ export default function Do88HomeSignature({ locale }: { locale: SupportedLocale 
             : 'Swedish excellence in intercooler and plumbing engineering. Uncompromising quality to deliver maximum results on the track.'}
         </p>
 
-        {/* Vehicle Filter in Glass Container */}
+        {/* Vehicle Filter (chips + search/reset) */}
         <div className="w-full relative z-20 do88-animate-up" style={{ animationDelay: '0.2s' }}>
-          <div className="mx-auto max-w-4xl do88-glass-panel relative overflow-visible group">
-            {/* Ambient inner glow */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#c29d59]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
-            <Do88VehicleFilter locale={locale} />
-          </div>
+          <Do88VehicleFilter locale={locale} />
         </div>
 
         {/* All categories CTA */}

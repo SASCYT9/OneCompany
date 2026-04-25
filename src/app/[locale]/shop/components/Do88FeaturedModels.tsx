@@ -37,7 +37,7 @@ export default function Do88FeaturedModels({ locale }: Props) {
                 alt={isUa ? model.titleUk : model.title}
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover transition duration-700 group-hover:scale-105"
+                className={`object-cover transition duration-700 group-hover:scale-105 ${model.flipImage ? '[transform:scaleX(-1)] group-hover:[transform:scaleX(-1)_scale(1.05)]' : ''}`}
               />
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/80 transition duration-500 group-hover:bg-black/40" />
               

@@ -12,13 +12,27 @@ type ShopProductImageProps = Omit<ImageProps, 'src' | 'alt'> & {
   fallbackSrc?: string;
 };
 
+const DO88_THUMB_PATTERN = /^https?:\/\/(?:www\.)?do88\.se\/bilder\/artiklar\/liten\/(.+?)_S\.jpg$/i;
+
+function upgradeSupplierImage(src: string) {
+  // do88 thumbnails (`/bilder/artiklar/liten/<sku>_S.jpg`) have a larger
+  // un-suffixed counterpart (`/bilder/artiklar/<sku>.jpg`) — ~50% larger and
+  // visually identical, so prefer it when available.
+  const do88Match = src.match(DO88_THUMB_PATTERN);
+  if (do88Match) {
+    return `https://www.do88.se/bilder/artiklar/${do88Match[1]}.jpg`;
+  }
+  return src;
+}
+
 function normalizeImageSrc(src: string | null | undefined) {
   const normalized = String(src ?? '').trim();
   if (!normalized) {
     return '';
   }
 
-  return normalized.startsWith('//') ? `https:${normalized}` : normalized;
+  const withProtocol = normalized.startsWith('//') ? `https:${normalized}` : normalized;
+  return upgradeSupplierImage(withProtocol);
 }
 
 export function ShopProductImage({

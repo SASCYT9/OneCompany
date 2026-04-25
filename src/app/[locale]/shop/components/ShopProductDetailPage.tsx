@@ -20,6 +20,7 @@ import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { localizeShopDescription, localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopViewerPricingContext, resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import { extractShopProductDescriptionSections } from '@/lib/shopProductDescription';
+import { buildDo88EnrichedDescription } from '@/lib/do88DescriptionEnricher';
 import { buildShopStorefrontProductPathForProduct } from '@/lib/shopStorefrontRouting';
 import { BurgerShopProductDetailLayout } from './BurgerShopProductDetailLayout';
 import { BrabusShopProductDetailLayout } from './BrabusShopProductDetailLayout';
@@ -169,7 +170,7 @@ function isKitProduct(product: Pick<ShopProduct, 'category' | 'productType' | 't
 
   return (
     Boolean(product.bundle) ||
-    /\b(body\s?kit|bodykit|full kit|complete kit|kit package|комплект обвісу|повний комплект|пакет urban)\b/i.test(titleValue)
+    /\b(body\s?kit|bodykit|full kit|complete kit|kit package|replacement bumper package|комплект обвісу|повний комплект|пакет urban|пакет заміни бамперів)\b/i.test(titleValue)
   );
 }
 
@@ -201,6 +202,22 @@ function isSameVehicleFamily(product: Pick<ShopProduct, 'brand' | 'vendor' | 'ti
 
   if (/(mercedes|g-wagon|g wagon|g-class|g class|g63|w465)/i.test(currentHaystack)) {
     return /(mercedes|g-wagon|g wagon|g-class|g class|g63|w465)/i.test(productHaystack);
+  }
+
+  const chassisFamilies = [
+    ['range rover l460', 'l460'],
+    ['range rover sport l461', 'sport l461', 'l461'],
+    ['range rover sport l494', 'sport l494', 'l494', 'svr 2018'],
+    ['discovery 5'],
+    ['defender 90'],
+    ['defender 110'],
+    ['defender 130'],
+  ];
+  const currentFamily = chassisFamilies.find((markers) =>
+    markers.some((marker) => currentHaystack.includes(marker))
+  );
+  if (currentFamily) {
+    return currentFamily.some((marker) => productHaystack.includes(marker));
   }
 
   return product.brand.toLowerCase() === current.brand.toLowerCase();
@@ -315,9 +332,27 @@ export default async function ShopProductDetailPage({
 
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
   const productCategory = localizeShopText(resolvedLocale, product.category);
-  const shortDescription = localizeShopDescription(resolvedLocale, product.shortDescription);
-  const longDescription = localizeShopDescription(resolvedLocale, product.longDescription);
-  const descriptionSections = extractShopProductDescriptionSections(longDescription || shortDescription);
+
+  // For DO88 products we override the supplier's templated descriptions with
+  // a concise, info-dense version generated from the product type + chassis.
+  const do88Enriched = isDo88Mode
+    ? buildDo88EnrichedDescription(product, resolvedLocale === 'ua' ? 'ua' : 'en')
+    : null;
+
+  const shortDescription = do88Enriched
+    ? do88Enriched.shortDescription
+    : localizeShopDescription(resolvedLocale, product.shortDescription);
+  const supplierLongDescription = localizeShopDescription(resolvedLocale, product.longDescription);
+  // Keep parsing the supplier long description so spec list still extracts;
+  // the enriched headline + bullets replace the intro narrative.
+  const descriptionSections = extractShopProductDescriptionSections(supplierLongDescription || shortDescription);
+  if (do88Enriched) {
+    descriptionSections.introHtml = do88Enriched.longDescriptionHtml;
+    if (descriptionSections.features.length === 0) {
+      descriptionSections.features = [...do88Enriched.bullets];
+    }
+  }
+  const longDescription = do88Enriched ? do88Enriched.longDescriptionHtml : supplierLongDescription;
   const fallbackSpecs: Array<{ label: string; value: string }> = [];
   const pushFallbackSpec = (label: string, value?: string | null) => {
     const normalizedValue = value?.trim();
@@ -344,7 +379,20 @@ export default async function ShopProductDetailPage({
   if (product.weightKg != null) {
     pushFallbackSpec(isUa ? 'Вага' : 'Weight', `${product.weightKg} kg`);
   }
-  const detailSpecs = [...descriptionSections.specs];
+  const productBrandLc = (product.brand || '').toLowerCase();
+  const detailSpecs = [...descriptionSections.specs].filter((spec) => {
+    if (/^категорія$|^category$/i.test(spec.label) && /[>›→]/.test(spec.value)) {
+      return false;
+    }
+    if (
+      /^бренд$|^brand$/i.test(spec.label)
+      && productBrandLc
+      && spec.value.toLowerCase().replace(/\s+/g, '') === productBrandLc.replace(/\s+/g, '')
+    ) {
+      return false;
+    }
+    return true;
+  });
   const existingSpecKeys = new Set(
     detailSpecs.map((spec) => `${spec.label.toLowerCase()}::${spec.value.toLowerCase()}`)
   );
@@ -729,7 +777,7 @@ export default async function ShopProductDetailPage({
                 variantId={defaultVariant?.id ?? null} 
                 productName={productTitle}
                 variant="minimal"
-                className="group relative overflow-hidden rounded-full border border-white/10 bg-black px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#c29d59] transition-all duration-500 hover:border-[#c29d59]/50 hover:shadow-[0_0_20px_-5px_rgba(194,157,89,0.4)] disabled:opacity-50"
+                className="inline-flex min-h-[54px] min-w-[220px] items-center justify-center rounded-full border border-white bg-white px-10 py-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-black shadow-[0_18px_40px_-24px_rgba(255,255,255,0.95)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#f2f2f2] hover:shadow-[0_22px_46px_-24px_rgba(255,255,255,1)] disabled:translate-y-0 disabled:opacity-50"
               />
               <Link
                 href={`/${resolvedLocale}/contact`}
