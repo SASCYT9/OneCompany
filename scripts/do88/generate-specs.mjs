@@ -151,16 +151,22 @@ function extractBackgroundFacts(allText) {
 function detectKind(title, url) {
   const text = `${title || ''} ${url || ''}`.toLowerCase();
   if (/big[-\s]?pack|bigpack/.test(text)) return 'big-pack';
+  // Carbon engine/intake covers are tagged before "intake" because the
+  // intake-cover variant contains "insug" (intake) too — prioritise the
+  // material indicator + cover noun in either order.
+  const hasCarbonMaterial = /(carbon|kolfiber|карбон)/.test(text);
+  const hasCoverNoun = /(cover|cap\b|motork[åa]pa|insugsk[åa]pa|k[åa]pa|кришк)/.test(text);
+  if (hasCarbonMaterial && hasCoverNoun) return 'carbon-cover';
   if (/intercooler|laddluftkylare|laddluftk/.test(text)) return 'intercooler';
   if (/oljekyl|oil[-\s]?cool/.test(text)) return 'oil-cooler';
-  if (/intag|insug|intake/.test(text)) return 'intake';
   if (/y[-\s]?r[oö]r|y[-\s]?pipe/.test(text)) return 'y-pipe';
   if (/plenum/.test(text)) return 'plenum';
   if (/charge\s*pipe|tryckr[oö]r|laddtryck/.test(text)) return 'charge-pipe';
-  if (/kolfiber|carbon/.test(text)) return 'carbon-cover';
+  if (/intag|insug|intake/.test(text)) return 'intake';
   if (/luftfilter|air[-\s]?filter/.test(text)) return 'air-filter';
   if (/vattenkyl/.test(text)) return 'radiator';
   if (/slangkit|hose[-\s]?kit|kylarslang/.test(text)) return 'hose-kit';
+  if (hasCarbonMaterial) return 'carbon-cover';
   return 'unknown';
 }
 
