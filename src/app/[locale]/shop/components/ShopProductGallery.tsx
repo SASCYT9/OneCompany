@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag } from 'lucide-react';
 import { ShopProductImage } from '@/components/shop/ShopProductImage';
@@ -16,8 +16,14 @@ type Props = {
 
 export function ShopProductGallery({ images, productTitle, category, isInStock, isUa }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const imageKey = useMemo(() => images.join('|'), [images]);
 
-  const activeImage = images[activeIndex];
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [imageKey]);
+
+  const safeActiveIndex = activeIndex >= 0 && activeIndex < images.length ? activeIndex : 0;
+  const activeImage = images[safeActiveIndex];
 
   return (
     <div className="space-y-4">
@@ -25,8 +31,8 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
       <div className="group relative aspect-[4/5] overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl">
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeIndex}
-            initial={{ opacity: 0, scale: 1.05 }}
+            key={`${imageKey}-${safeActiveIndex}`}
+            initial={{ opacity: 1, scale: 1 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1] }}
@@ -35,7 +41,7 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
             {activeImage && activeImage.length > 0 ? (
               <ShopProductImage
                 src={activeImage}
-                alt={`${productTitle} - Image ${activeIndex + 1}`}
+                alt={`${productTitle} - Image ${safeActiveIndex + 1}`}
                 fill
                 sizes="(max-width: 1280px) 100vw, 58vw"
                 className="object-contain p-4 transition duration-1000 group-hover:scale-105"
@@ -79,7 +85,7 @@ export function ShopProductGallery({ images, productTitle, category, isInStock, 
       {images.length > 1 && (
         <div className="flex gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-color:rgba(194,157,89,0.55)_transparent] [scrollbar-width:thin]">
           {images.map((image, index) => {
-            const isActive = index === activeIndex;
+            const isActive = index === safeActiveIndex;
             return (
               <button
                 key={index}

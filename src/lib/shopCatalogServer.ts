@@ -62,6 +62,142 @@ function uniqueStrings(values: Array<string | null | undefined>) {
 const SHOP_PRODUCT_FALLBACK_IMAGE = '/images/placeholders/product-fallback.svg';
 
 const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: string[] }> = {
+  'URB-DIF-25358211-V1': {
+    image:
+      '/images/shop/urban/products/urus-se/410-0001_Audi_20RS3_208Y_20-_20Visual_20Carbon_20Fibre_20Diffuser_20Assembly_20with_20URBAN_20Branding_1.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/410-0001_Audi_20RS3_208Y_20-_20Visual_20Carbon_20Fibre_20Diffuser_20Assembly_20with_20URBAN_20Branding_1.png',
+      '/images/shop/urban/products/urus-se/410-0001_Audi_20RS3_208Y_20-_20Visual_20Carbon_20Fibre_20Diffuser_20Assembly_20with_20URBAN_20Branding_2.png',
+      '/images/shop/urban/products/urus-se/410-0001_Audi_20RS3_208Y_20-_20Visual_20Carbon_20Fibre_20Diffuser_20Assembly_20with_20URBAN_20Branding_3.png',
+      '/images/shop/urban/products/urus-se/410-0001_Audi_20RS3_208Y_20-_20Visual_20Carbon_20Fibre_20Diffuser_20Assembly_20with_20URBAN_20Branding_5.png',
+      '/images/shop/urban/products/urus-se/Audi_RS3_Saloon_Kit_Back.jpg',
+      '/images/shop/urban/products/urus-se/Audi_RS3_Saloon_1.jpg',
+    ],
+  },
+  'URB-FRO-25358209-V1': {
+    image:
+      '/images/shop/urban/products/urus-se/410-0002_Audi_20RS3_208Y_20-_20Visual_20Carbon_20Fibre_20Front_20Bumper_20Intake_20Overlays_1.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/410-0002_Audi_20RS3_208Y_20-_20Visual_20Carbon_20Fibre_20Front_20Bumper_20Intake_20Overlays_1.png',
+      '/images/shop/urban/products/urus-se/410-0002_Audi_20RS3_208Y_20-_20Visual_20Carbon_20Fibre_20Front_20Bumper_20Intake_20Overlays_2.png',
+      '/images/shop/urban/products/urus-se/410-0002_Audi_20RS3_208Y_20-_20Visual_20Carbon_20Fibre_20Front_20Bumper_20Intake_20Overlays_3.png',
+      '/images/shop/urban/products/urus-se/Audi_RS3_Saloon_Kit_Front.jpg',
+      '/images/shop/urban/products/urus-se/Audi_RS3_Saloon.jpg',
+    ],
+  },
+  'URB-SIL-25358218-V1': {
+    image:
+      '/images/shop/urban/products/urus-se/410-0017_Audi_20RS4_20B9_20-_209.5_20-_20Visual_20Carbon_20Fibre_20Rear_20Diffuser_20Spats_20LH_1.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/410-0017_Audi_20RS4_20B9_20-_209.5_20-_20Visual_20Carbon_20Fibre_20Rear_20Diffuser_20Spats_20LH_1.png',
+      '/images/shop/urban/products/urus-se/410-0017_Audi_20RS4_20B9_20-_209.5_20-_20Visual_20Carbon_20Fibre_20Rear_20Diffuser_20Spats_20LH_2.png',
+      '/images/shop/urban/products/urus-se/Audi_RS4_B95_Kit_Back.jpg',
+      '/images/shop/urban/products/urus-se/Audi_RS4_B95_1.jpg',
+    ],
+  },
+  'URB-SPL-25358221-V1': {
+    image:
+      '/images/shop/urban/products/urus-se/410-0015_Audi_20RS4_20B9_20-_20Visual_20Carbon_20Fibre_20Front_20Splitter_1.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/410-0015_Audi_20RS4_20B9_20-_20Visual_20Carbon_20Fibre_20Front_20Splitter_1.png',
+      '/images/shop/urban/products/urus-se/410-0015_Audi_20RS4_20B9_20-_20Visual_20Carbon_20Fibre_20Front_20Splitter_2_b5b05de5-2f26-4305-a38d-1626af38ff52.png',
+      '/images/shop/urban/products/urus-se/410-0015_Audi_20RS4_20B9_20-_20Visual_20Carbon_20Fibre_20Front_20Splitter_3.png',
+      '/images/shop/urban/products/urus-se/410-0015_Audi_20RS4_20B9_20-_20Visual_20Carbon_20Fibre_20Front_20Splitter_4.png',
+      '/images/shop/urban/products/urus-se/410-0015_Audi_20RS4_20B9_20-_20Visual_20Carbon_20Fibre_20Front_20Splitter_5.png',
+      '/images/shop/urban/products/urus-se/Audi_RS4_B95_Kit_Front.jpg',
+    ],
+  },
+  'URB-SPO-25358219-V1': {
+    image:
+      '/images/shop/urban/products/urus-se/410-0016_Audi_20RS4_20B9_20-_209.5_20-_20Visual_20Carbon_20Fibre_20Lower_20Spoiler_1.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/410-0016_Audi_20RS4_20B9_20-_209.5_20-_20Visual_20Carbon_20Fibre_20Lower_20Spoiler_1.png',
+      '/images/shop/urban/products/urus-se/410-0016_Audi_20RS4_20B9_20-_209.5_20-_20Visual_20Carbon_20Fibre_20Lower_20Spoiler_2.png',
+      '/images/shop/urban/products/urus-se/Audi_RS4_B95_Kit_Back.jpg',
+      '/images/shop/urban/products/urus-se/Audi_RS4_B95.jpg',
+    ],
+  },
+  'URB-SPO-25358220-V1': {
+    image:
+      '/images/shop/urban/products/urus-se/410-0021_Audi_20RS4_20B9_20-_209.5_20-_20Visual_20Carbon_20Fibre_20Upper_20Spoiler_1.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/410-0021_Audi_20RS4_20B9_20-_209.5_20-_20Visual_20Carbon_20Fibre_20Upper_20Spoiler_1.png',
+      '/images/shop/urban/products/urus-se/410-0021_Audi_20RS4_20B9_20-_209.5_20-_20Visual_20Carbon_20Fibre_20Upper_20Spoiler_2.png',
+      '/images/shop/urban/products/urus-se/Audi_RS4_B95_Kit_Back.jpg',
+      '/images/shop/urban/products/urus-se/Audi_RS4_B95_1.jpg',
+    ],
+  },
+  'URB-DIF-25358226-V1': {
+    image:
+      '/images/shop/urban/products/urus-se/410-0029_Audi_20RS6_20C8_20-_20Visual_20Carbon_20Fibre_20Rear_20Diffuser_20Assembly_20with_20Urban_20Branding_1.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/410-0029_Audi_20RS6_20C8_20-_20Visual_20Carbon_20Fibre_20Rear_20Diffuser_20Assembly_20with_20Urban_20Branding_1.png',
+      '/images/shop/urban/products/urus-se/410-0029_Audi_20RS6_20C8_20-_20Visual_20Carbon_20Fibre_20Rear_20Diffuser_20Assembly_20with_20Urban_20Branding_2.png',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rs6/back.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-1-1920.jpg',
+    ],
+  },
+  'URB-SPO-25358227-V1': {
+    image:
+      '/images/shop/urban/products/urus-se/410-0030_Audi_20RS6_20C8_20-_20Visual_20Carbon_20Fibre_20Rear_20Lip_20Spoiler_20-_20Lower_1.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/410-0030_Audi_20RS6_20C8_20-_20Visual_20Carbon_20Fibre_20Rear_20Lip_20Spoiler_20-_20Lower_1.png',
+      '/images/shop/urban/products/urus-se/410-0030_Audi_20RS6_20C8_20-_20Visual_20Carbon_20Fibre_20Rear_20Lip_20Spoiler_20-_20Lower_2.png',
+      '/images/shop/urban/products/urus-se/410-0030_Audi_20RS6_20C8_20-_20Visual_20Carbon_20Fibre_20Rear_20Lip_20Spoiler_20-_20Lower_3.png',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rs6/back.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rs6/carousel-2-1920.jpg',
+    ],
+  },
+  'URB-FRO-25358230-V1': {
+    image: 'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/RSQ8.png?v=1767898805',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/RSQ8.png?v=1767898805',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/front.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rsq8/carousel-1-1920.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/rsq8/hero-1-1920.jpg',
+    ],
+  },
+  'URB-SPO-26006234-V1': {
+    image:
+      '/images/shop/urban/products/urus-se/410-0059_Audi_20RSQ8_20MY19-24_20-_20Visual_20Carbon_20Fibre_20Rear_20Lip_20Spoiler_20-_20Lower_20-_20Urban_20Weave_20Orientation_1.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/410-0059_Audi_20RSQ8_20MY19-24_20-_20Visual_20Carbon_20Fibre_20Rear_20Lip_20Spoiler_20-_20Lower_20-_20Urban_20Weave_20Orientation_1.png',
+      '/images/shop/urban/products/urus-se/410-0059_Audi_20RSQ8_20MY19-24_20-_20Visual_20Carbon_20Fibre_20Rear_20Lip_20Spoiler_20-_20Lower_20-_20Urban_20Weave_20Orientation_2.png',
+      '/images/shop/urban/products/urus-se/410-0059_Audi_20RSQ8_20MY19-24_20-_20Visual_20Carbon_20Fibre_20Rear_20Lip_20Spoiler_20-_20Lower_20-_20Urban_20Weave_20Orientation_3.png',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/back.jpg',
+    ],
+  },
+  'URB-SPO-25358234-V1': {
+    image:
+      '/images/shop/urban/products/urus-se/410-0061_Audi_20RSQ8_20MY19-24_20-_20Visual_20Carbon_20Fibre_20Rear_20Lip_20Spoiler_20-_20Upper_20-_20Urban_20Weave_20Orientation_1.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/410-0061_Audi_20RSQ8_20MY19-24_20-_20Visual_20Carbon_20Fibre_20Rear_20Lip_20Spoiler_20-_20Upper_20-_20Urban_20Weave_20Orientation_1.png',
+      '/images/shop/urban/products/urus-se/410-0061_Audi_20RSQ8_20MY19-24_20-_20Visual_20Carbon_20Fibre_20Rear_20Lip_20Spoiler_20-_20Upper_20-_20Urban_20Weave_20Orientation_2.png',
+      '/images/shop/urban/products/urus-se/410-0061_Audi_20RSQ8_20MY19-24_20-_20Visual_20Carbon_20Fibre_20Rear_20Lip_20Spoiler_20-_20Upper_20-_20Urban_20Weave_20Orientation_3.png',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/back.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-front-1920.webp',
+    ],
+  },
+  'URB-DIF-25358238-V1': {
+    image:
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-1-2560.webp',
+    gallery: [
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-1-2560.webp',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/back.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-1-2560.webp',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-front-1920.webp',
+    ],
+  },
+  'URB-FRO-25358235-V1': {
+    image:
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-front-1920.webp',
+    gallery: [
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-front-1920.webp',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/front.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-2-2560.webp',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/cols/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-uc9-gtc.webp',
+    ],
+  },
   'URB-BOD-25353001-V1': {
     image: '/images/shop/urban/products/urus-se/Range_Rover_2022_3.jpg',
     gallery: [
@@ -93,6 +229,334 @@ const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: st
       '/images/shop/urban/cols/models/rangeRoverSportL461/col-image-2-lg.jpg',
       '/images/shop/urban/cols/models/rangeRoverSportL461/col-image-3-lg.jpg',
       '/images/shop/urban/banners/models/rangeRoverSportL461/banner-1-1920.jpg',
+    ],
+  },
+  'URB-WID-25353015-V1': {
+    image: '/images/shop/urban/products/urus-se/Urban_Range_Rover_Widetrack_Arches.jpg',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Urban_Range_Rover_Widetrack_Arches.jpg',
+      '/images/shop/urban/kits/models/rangeRover2022Plus/left.jpg',
+      '/images/shop/urban/kits/models/rangeRover2022Plus/right.jpg',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-1-1920.webp',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-2-1920.webp',
+      '/images/shop/urban/cols/models/rangeRover2022Plus/col-image-1-lg.jpg',
+    ],
+  },
+  'URB-ARC-26006219-V1': {
+    image: '/images/shop/urban/cols/models/rangeRoverSportL461/col-image-1-lg.jpg',
+    gallery: [
+      '/images/shop/urban/cols/models/rangeRoverSportL461/col-image-1-lg.jpg',
+      '/images/shop/urban/kits/models/rangeRoverSportL461/left.jpg',
+      '/images/shop/urban/kits/models/rangeRoverSportL461/right.jpg',
+      '/images/shop/urban/cols/models/rangeRoverSportL461/col-image-2-lg.jpg',
+      '/images/shop/urban/cols/models/rangeRoverSportL461/col-image-3-lg.jpg',
+      '/images/shop/urban/banners/models/rangeRoverSportL461/banner-1-1920.jpg',
+    ],
+  },
+  'URB-ARC-25353085-V1': {
+    image:
+      '/images/shop/urban/products/urus-se/440-0076_20Defender_202020_20-_2090_20-_20Urban_20Widetrack_20Arch_20Kit_20_28Gloss_20Black_29-1.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/440-0076_20Defender_202020_20-_2090_20-_20Urban_20Widetrack_20Arch_20Kit_20_28Gloss_20Black_29-1.png',
+      '/images/shop/urban/products/urus-se/440-0076_20Defender_202020_20-_2090_20-_20Urban_20Widetrack_20Arch_20Kit_20_28Gloss_20Black_29-2.png',
+      '/images/shop/urban/products/urus-se/440-0076_20Defender_202020_20-_2090_20-_20Urban_20Widetrack_20Arch_20Kit_20_28Gloss_20Black_29-3.png',
+      '/images/shop/urban/products/urus-se/440-0076_20Defender_202020_20-_2090_20-_20Urban_20Widetrack_20Arch_20Kit_20_28Gloss_20Black_29-4.png',
+      '/images/shop/urban/products/urus-se/440-0076_20Defender_202020_20-_2090_20-_20Urban_20Widetrack_20Arch_20Kit_20_28Gloss_20Black_29-5.png',
+      '/images/shop/urban/kits/models/defender2020Plus/right.jpg',
+      '/images/shop/urban/kits/models/defender2020Plus/left.jpg',
+      '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-3-2560.webp',
+    ],
+  },
+  'URB-ARC-25358153-V1': {
+    image: '/images/shop/urban/products/urus-se/Bentley_Continental_GTGTC.jpg',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Bentley_Continental_GTGTC.jpg',
+      '/images/shop/urban/products/urus-se/Bentley_Continental_GTGTC_Kit_Left.jpg',
+      '/images/shop/urban/products/urus-se/Bentley_Continental_GTGTC_Kit_Right.jpg',
+      '/images/shop/urban/kits/models/continentalGT/left.jpg',
+      '/images/shop/urban/kits/models/continentalGT/right.jpg',
+      '/images/shop/urban/carousel/models/continentalGT/carousel-1-1920.jpg',
+    ],
+  },
+  'URB-ARC-26006231-V1': {
+    image: '/images/shop/urban/products/urus-se/Urban_Widetrack_Arch_Set_1.webp',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Urban_Widetrack_Arch_Set_1.webp',
+      '/images/shop/urban/carousel/models/defender2020Plus/carousel-13-1920.jpg',
+      '/images/shop/urban/kits/models/defender2020Plus/right.jpg',
+      '/images/shop/urban/kits/models/defender2020Plus/left.jpg',
+      '/images/shop/urban/kits/models/defender2020Plus/front.jpg',
+      '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp',
+    ],
+  },
+  'URB-ARC-26009359-V1': {
+    image: '/images/shop/urban/carousel/models/defender2020Plus/carousel-13-1920.jpg',
+    gallery: [
+      '/images/shop/urban/carousel/models/defender2020Plus/carousel-13-1920.jpg',
+      '/images/shop/urban/kits/models/defender2020Plus/back.jpg',
+      '/images/shop/urban/kits/models/defender2020Plus/right.jpg',
+      '/images/shop/urban/kits/models/defender2020Plus/left.jpg',
+      '/images/shop/urban/products/urus-se/Urban_Widetrack_Arch_Set_1.webp',
+      '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-3-2560.webp',
+    ],
+  },
+  'URB-CAN-25353086-V1': {
+    image:
+      '/images/shop/urban/products/urus-se/440-0095_20Defender_202020_20-_2090-110-130_20-_20Urban_20Front_20Canards_20-_20_28Pair_29-1.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/440-0095_20Defender_202020_20-_2090-110-130_20-_20Urban_20Front_20Canards_20-_20_28Pair_29-1.png',
+      '/images/shop/urban/products/urus-se/440-0095_20Defender_202020_20-_2090-110-130_20-_20Urban_20Front_20Canards_20-_20_28Pair_29-12.jpg',
+      '/images/shop/urban/products/urus-se/440-0095_20Defender_202020_20-_2090-110-130_20-_20Urban_20Front_20Canards_20-_20_28Pair_29-1a.png',
+      '/images/shop/urban/products/urus-se/440-0095_20Defender_202020_20-_2090-110-130_20-_20Urban_20Front_20Canards_20-_20_28Pair_29-2.png',
+      '/images/shop/urban/products/urus-se/440-0095_20Defender_202020_20-_2090-110-130_20-_20Urban_20Front_20Canards_20-_20_28Pair_29-3.png',
+      '/images/shop/urban/carousel/models/defender2020Plus/carousel-13-1920.jpg',
+    ],
+  },
+  'URB-FRO-26054204-V1': {
+    image: '/images/shop/urban/products/urus-se/Urban-Widetrack-Lamborghini-Urus-SE-Front-Diffuser-Canard.jpg',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Urban-Widetrack-Lamborghini-Urus-SE-Front-Diffuser-Canard.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/urusSE/webp/urban-automotive-urus-se-widetrack-1-2560.webp',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/urusSE/webp/urban-automotive-urus-se-widetrack-2-2560.webp',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/detailed-gallery/models/urusSE/webp/urban-automotive-urus-se-carbon-bonnet.webp',
+      '/images/shop/urban/products/urus-se/Urban-Widetrack-Lamborghini-Urus-SE-Dragonscale-Bonnet-Vents.jpg',
+    ],
+  },
+  'URB-DOO-26093237-V1': {
+    image: '/images/shop/urban/products/urus-se/Urban-Widetrack-Lamborghini-Urus-SE-Side-Vent.jpg',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Urban-Widetrack-Lamborghini-Urus-SE-Side-Vent.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/detailed-gallery/models/urusSE/webp/urban-automotive-urus-se-side-vents.webp',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/urusSE/webp/urban-automotive-urus-se-side-2560.webp',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/urusSE/webp/urban-automotive-urus-se-widetrack-3-2560.webp',
+      '/images/shop/urban/products/urus-se/Urban-Widetrack-Lamborghini-Urus-SE-Wide-Arches.jpg',
+    ],
+  },
+  'URB-BOD-25353062-V1': {
+    image: '/images/shop/urban/products/urus-se/Range_Rover_SVR_1.jpg',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Range_Rover_SVR_1.jpg',
+      '/images/shop/urban/products/urus-se/Range_Rover_SVR.jpg',
+      '/images/shop/urban/products/urus-se/Range_Rover_SVR_2.jpg',
+      '/images/shop/urban/products/urus-se/Range_Rover_SVR_Kit_Front.jpg',
+      '/images/shop/urban/products/urus-se/Range_Rover_SVR_Kit_Back.jpg',
+      '/images/shop/urban/products/urus-se/Range_Rover_SVR_Kit_Left.jpg',
+      '/images/shop/urban/products/urus-se/Range_Rover_SVR_Kit_Right.jpg',
+      '/images/shop/urban/products/urus-se/Range_Rover_SVR.png',
+    ],
+  },
+  'URB-BOD-25353068-V1': {
+    image: 'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-3-lg.jpg',
+    gallery: [
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-3-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/front.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/right.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/left.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/back.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-1-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-6-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-7-lg.jpg',
+    ],
+  },
+  'URB-ARC-25353072-V1': {
+    image: '/images/shop/urban/kits/models/rangeRoverSVR/right.jpg',
+    gallery: [
+      '/images/shop/urban/kits/models/rangeRoverSVR/right.jpg',
+      '/images/shop/urban/kits/models/rangeRoverSVR/left.jpg',
+      '/images/shop/urban/carousel/models/rangeRoverSVR/carousel-1-1920.jpg',
+      '/images/shop/urban/carousel/models/rangeRoverSVR/carousel-7-1920.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-1-lg.jpg',
+    ],
+  },
+  'URB-BOD-25353069-V1': {
+    image: 'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-1-lg.jpg',
+    gallery: [
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-1-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/front.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/right.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/left.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/back.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-3-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-6-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-7-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-9-1920.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-10-1920.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-11-1920.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-12-1920.jpg',
+    ],
+  },
+  'URB-BOD-25353070-V1': {
+    image: 'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-6-lg.jpg',
+    gallery: [
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-6-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/front.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/back.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/right.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/left.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-7-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-3-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-17-1920.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-18-1920.jpg',
+    ],
+  },
+  'URB-BOD-25353071-V1': {
+    image: 'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-7-lg.jpg',
+    gallery: [
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-7-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/front.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/right.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/left.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rangeRoverSVR/back.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-1-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/gallery/models/rangeRoverSVR/gallery-3-lg.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rangeRoverSVR/carousel-13-1920.jpg',
+    ],
+  },
+  'URB-BOD-25353141-V1': {
+    image: '/images/shop/urban/hero/models/discovery2021Plus/hero-1-1920.jpg',
+    gallery: [
+      '/images/shop/urban/hero/models/discovery2021Plus/hero-1-1920.jpg',
+      '/images/shop/urban/kits/models/discovery2021Plus/front.jpg',
+      '/images/shop/urban/kits/models/discovery2021Plus/back.jpg',
+      '/images/shop/urban/kits/models/discovery2021Plus/right.jpg',
+      '/images/shop/urban/kits/models/discovery2021Plus/left.jpg',
+      '/images/shop/urban/cols/models/discovery2021Plus/col-image-1-lg.jpg',
+      '/images/shop/urban/cols/models/discovery2021Plus/col-image-2-lg.jpg',
+      '/images/shop/urban/cols/models/discovery2021Plus/col-image-3-lg.jpg',
+      '/images/shop/urban/banners/models/discovery2021Plus/banner-1-1920.jpg',
+      '/images/shop/urban/banners/models/discovery2021Plus/banner-2-1920.jpg',
+      '/images/shop/urban/banners/models/discovery2021Plus/banner-3-1920.jpg',
+    ],
+  },
+  'URB-BOD-25353142-V1': {
+    image: '/images/shop/urban/cols/models/discovery2021Plus/col-image-1-lg.jpg',
+    gallery: [
+      '/images/shop/urban/cols/models/discovery2021Plus/col-image-1-lg.jpg',
+      '/images/shop/urban/kits/models/discovery2021Plus/front.jpg',
+      '/images/shop/urban/kits/models/discovery2021Plus/back.jpg',
+      '/images/shop/urban/kits/models/discovery2021Plus/right.jpg',
+      '/images/shop/urban/kits/models/discovery2021Plus/left.jpg',
+      '/images/shop/urban/hero/models/discovery2021Plus/hero-1-1920.jpg',
+      '/images/shop/urban/cols/models/discovery2021Plus/col-image-2-lg.jpg',
+      '/images/shop/urban/cols/models/discovery2021Plus/col-image-3-lg.jpg',
+      '/images/shop/urban/banners/models/discovery2021Plus/banner-1-1920.jpg',
+      '/images/shop/urban/banners/models/discovery2021Plus/banner-2-1920.jpg',
+    ],
+  },
+  'URB-BUN-25358150-V1': {
+    image: '/images/shop/urban/hero/models/continentalGT/hero-1-1920.jpg',
+    gallery: [
+      '/images/shop/urban/hero/models/continentalGT/hero-1-1920.jpg',
+      '/images/shop/urban/kits/models/continentalGT/front.jpg',
+      '/images/shop/urban/kits/models/continentalGT/left.jpg',
+      '/images/shop/urban/kits/models/continentalGT/right.jpg',
+      '/images/shop/urban/kits/models/continentalGT/back.jpg',
+      '/images/shop/urban/carousel/models/continentalGT/carousel-1-1920.jpg',
+      '/images/shop/urban/carousel/models/continentalGT/carousel-2-1920.jpg',
+      '/images/shop/urban/carousel/models/continentalGT/carousel-3-1920.jpg',
+      '/images/shop/urban/carousel/models/continentalGT/carousel-4-1920.jpg',
+      '/images/shop/urban/carousel/models/continentalGT/carousel-5-1920.jpg',
+      '/images/shop/urban/carousel/models/continentalGT/carousel-6-1920.jpg',
+      '/images/shop/urban/carousel/models/continentalGT/carousel-7-1920.jpg',
+      '/images/shop/urban/banners/models/continentalGT/banner-1-1920.jpg',
+    ],
+  },
+  'URB-BUN-25358144-V1': {
+    image: '/images/shop/urban/hero/models/cullinan/hero-1-1920.jpg',
+    gallery: [
+      '/images/shop/urban/hero/models/cullinan/hero-1-1920.jpg',
+      '/images/shop/urban/cols/models/cullinan/col-image-1-lg.png',
+      '/images/shop/urban/banners/models/cullinan/banner-1-1920.jpg',
+      '/images/shop/urban/banners/models/cullinan/banner-2-1920.jpg',
+      '/images/shop/urban/banners/models/cullinan/banner-3-1920.jpg',
+      '/images/shop/urban/banners/models/cullinan/banner-4-1920.jpg',
+      '/images/shop/urban/products/urus-se/Rolls-Royce_Cullinan.jpg',
+      '/images/shop/urban/products/urus-se/Rolls-Royce_Cullinan_1.jpg',
+      '/images/shop/urban/products/urus-se/Rolls-Royce_Cullinan_2.jpg',
+    ],
+  },
+  'URB-BUN-25358147-V1': {
+    image: '/images/shop/urban/hero/models/cullinanSeriesII/webp/urban-automotive-cullinan-profile-1920.webp',
+    gallery: [
+      '/images/shop/urban/hero/models/cullinanSeriesII/webp/urban-automotive-cullinan-profile-1920.webp',
+      '/images/shop/urban/carousel/models/cullinanSeriesII/webp/urban-automotive-cullinan-series-ii-1-2560.webp',
+      '/images/shop/urban/carousel/models/cullinanSeriesII/webp/urban-automotive-cullinan-series-ii-2-2560.webp',
+      '/images/shop/urban/carousel/models/cullinanSeriesII/webp/urban-automotive-cullinan-series-ii-3-2560.webp',
+      '/images/shop/urban/carousel/models/cullinanSeriesII/webp/urban-automotive-cullinan-series-ii-4-2560.webp',
+      '/images/shop/urban/carousel/models/cullinanSeriesII/webp/urban-automotive-cullinan-series-ii-5-2560.webp',
+      '/images/shop/urban/carousel/models/cullinanSeriesII/webp/urban-automotive-cullinan-series-ii-6-2560.webp',
+      '/images/shop/urban/carousel/models/cullinanSeriesII/webp/urban-automotive-cullinan-series-ii-7-2560.webp',
+      '/images/shop/urban/cols/models/cullinanSeriesII/webp/urban-automotive-rolls-royce-cullinan.webp',
+      '/images/shop/urban/products/urus-se/Cullinan_Series_II.webp',
+      '/images/shop/urban/products/urus-se/Urban_Automotive_Cullinan_Series_II_1.webp',
+      '/images/shop/urban/products/urus-se/Urban_Automotive_Cullinan_Series_II_2.webp',
+    ],
+  },
+  'URB-BUN-25358159-V1': {
+    image: '/images/shop/urban/hero/models/t6-1/hero-1-1920.jpg',
+    gallery: [
+      '/images/shop/urban/hero/models/t6-1/hero-1-1920.jpg',
+      '/images/shop/urban/kits/models/t6-1/front.jpg',
+      '/images/shop/urban/kits/models/t6-1/left.jpg',
+      '/images/shop/urban/kits/models/t6-1/right.jpg',
+      '/images/shop/urban/kits/models/t6-1/back.jpg',
+      '/images/shop/urban/carousel/models/t6-1/carousel-1-1920.jpg',
+      '/images/shop/urban/carousel/models/t6-1/carousel-2-1920.jpg',
+      '/images/shop/urban/carousel/models/t6-1/carousel-3-1920.jpg',
+      '/images/shop/urban/carousel/models/t6-1/carousel-4-1920.jpg',
+      '/images/shop/urban/gallery/models/t6-1/gallery-1-lg.jpg',
+      '/images/shop/urban/gallery/models/t6-1/gallery-2-lg.jpg',
+      '/images/shop/urban/gallery/models/t6-1/gallery-3-lg.jpg',
+      '/images/shop/urban/gallery/models/t6-1/gallery-4-lg.jpg',
+      '/images/shop/urban/gallery/models/t6-1/gallery-5-lg.jpg',
+      '/images/shop/urban/gallery/models/t6-1/gallery-6-lg.jpg',
+      '/images/shop/urban/banners/models/t6-1/banner-1-1920.jpg',
+      '/images/shop/urban/products/urus-se/VW_Transporter_T61.jpg',
+      '/images/shop/urban/products/urus-se/VW_Transporter_T61_1.jpg',
+      '/images/shop/urban/products/urus-se/VW_Transporter_T61_2.jpg',
+      '/images/shop/urban/products/urus-se/VW_Transporter_T61_Kit_Front.jpg',
+      '/images/shop/urban/products/urus-se/VW_Transporter_T61_Kit_Left.jpg',
+      '/images/shop/urban/products/urus-se/VW_Transporter_T61_Kit_Right.jpg',
+      '/images/shop/urban/products/urus-se/VW_Transporter_T61_Kit_Back.jpg',
+    ],
+  },
+  'URB-ACC-25358162-V1': {
+    image: 'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/Transporter_108b9d64-838e-422c-9d6a-879c28b99668.png?v=1776080792',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/Transporter_108b9d64-838e-422c-9d6a-879c28b99668.png?v=1776080792',
+      '/images/shop/urban/kits/models/t6-1/left.jpg',
+      '/images/shop/urban/kits/models/t6-1/right.jpg',
+      '/images/shop/urban/carousel/models/t6-1/carousel-3-1920.jpg',
+      '/images/shop/urban/gallery/models/t6-1/gallery-4-lg.jpg',
+    ],
+  },
+  'URB-ACC-25358163-V1': {
+    image: 'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/Transporter_ac824b99-ffaa-4aaa-b12c-efa7737b1fff.png?v=1776080822',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/Transporter_ac824b99-ffaa-4aaa-b12c-efa7737b1fff.png?v=1776080822',
+      '/images/shop/urban/kits/models/t6-1/back.jpg',
+      '/images/shop/urban/carousel/models/t6-1/carousel-4-1920.jpg',
+      '/images/shop/urban/gallery/models/t6-1/gallery-6-lg.jpg',
+    ],
+  },
+  'URB-BUN-25358198-V1': {
+    image: '/images/shop/urban/hero/models/gwagonSoftKit/hero-1-1920.jpg',
+    gallery: [
+      '/images/shop/urban/hero/models/gwagonSoftKit/hero-1-1920.jpg',
+      '/images/shop/urban/kits/models/gwagonSoftKit/front.jpg',
+      '/images/shop/urban/kits/models/gwagonSoftKit/left.jpg',
+      '/images/shop/urban/kits/models/gwagonSoftKit/right.jpg',
+      '/images/shop/urban/kits/models/gwagonSoftKit/back.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-1-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-2-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-3-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-4-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-5-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-6-1920.jpg',
+      '/images/shop/urban/products/urus-se/G-Wagon_Soft_Kit_2018.jpg',
+      '/images/shop/urban/products/urus-se/G-Wagon_Soft_Kit_2018_1.jpg',
+      '/images/shop/urban/products/urus-se/G-Wagon_Soft_Kit_2018_2.jpg',
+      '/images/shop/urban/products/urus-se/G-Wagon_Soft_Kit_2018_3.jpg',
     ],
   },
   'URB-BUN-25358207-V1': {

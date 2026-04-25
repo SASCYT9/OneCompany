@@ -4,6 +4,7 @@ Use this workflow when curating Urban Automotive BodyKit product pages.
 
 ## Source Rules
 - Verify fitment, kit contents, exclusions, and terminology against official Urban sources first.
+- Treat an official source as usable only if the live page opens or a directly accessible official Urban asset is available. Search-result snippets alone are not enough for final customer-facing claims.
 - Product photos should come from official Urban/House of Urban/authorized Urban site material. Do not use random web, stock, AI, or unrelated collection fallback images for customer-facing product photos.
 - If a related product does not have a correct product-level image, do not show a misleading fallback image.
 
@@ -29,5 +30,6 @@ Use this workflow when curating Urban Automotive BodyKit product pages.
 
 ## Internal Photo Roles
 - When adding official photos, mentally tag each image by role so later component pages can reuse the correct visual without guessing.
+- Use a polished full-vehicle beauty/build photo as the primary product image. Official kit diagrams or technical annotated images should be secondary gallery images immediately after the hero, not the hero itself.
 - Use role names like `hero-front`, `rear`, `side`, `front-bumper-detail`, `rear-bumper-detail`, `diffuser-detail`, `exhaust-detail`, `grille-detail`, `arch-detail`, `sill-detail`, `spoiler-detail`, and `branding-detail`.
 - Do not expose these roles as customer-facing gallery labels unless explicitly requested.
