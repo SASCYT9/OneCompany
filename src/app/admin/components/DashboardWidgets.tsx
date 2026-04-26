@@ -67,17 +67,19 @@ export function ViewAllLink({ href, label = 'Усі' }: { href: string; label?: 
 
 export function DashboardSalesChart({
   data,
-  primaryLabel = 'Revenue (USD)',
-  secondaryLabel = 'Orders',
+  primaryLabel = 'Дохід',
+  secondaryLabel = 'Замовлення',
+  currencySymbol = '₴',
 }: {
   data: Array<{ label: string; primary: number; secondary?: number }>;
   primaryLabel?: string;
   secondaryLabel?: string;
+  currencySymbol?: string;
 }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   if (!data.length) {
-    return <div className="h-72 rounded-lg bg-black/20 px-4 py-12 text-center text-sm text-zinc-500">No data</div>;
+    return <div className="h-72 rounded-lg bg-black/20 px-4 py-12 text-center text-sm text-zinc-500">Немає даних</div>;
   }
 
   const w = 720;
@@ -125,7 +127,7 @@ export function DashboardSalesChart({
         <svg
           viewBox={`0 0 ${w} ${h}`}
           role="img"
-          aria-label="Sales analytics"
+          aria-label="Аналітика продажів"
           className="h-72 w-full"
           onMouseLeave={() => setHoveredIdx(null)}
           onMouseMove={(e) => {
@@ -158,7 +160,7 @@ export function DashboardSalesChart({
               <g key={i}>
                 <line x1={padX} x2={w - padX} y1={y} y2={y} stroke="rgba(255,255,255,0.04)" strokeDasharray="3 4" />
                 <text x={padX - 8} y={y + 3} textAnchor="end" fill="rgb(113 113 122)" fontSize="10">
-                  ${formatShort(value)}
+                  {currencySymbol}{formatShort(value)}
                 </text>
               </g>
             );
@@ -207,6 +209,23 @@ export function DashboardSalesChart({
             />
           ))}
 
+          {/* Value labels above each primary point — when ≤8 data points show always */}
+          {data.length <= 8
+            ? primaryPoints.map((p, i) => (
+                <text
+                  key={`v-${i}`}
+                  x={p.x}
+                  y={p.y - 10}
+                  textAnchor="middle"
+                  fill="rgb(228 228 231)"
+                  fontSize="11"
+                  fontWeight="600"
+                >
+                  {currencySymbol}{formatShort(p.raw)}
+                </text>
+              ))
+            : null}
+
           {data.map((d, i) => {
             if (data.length > 12 && i % 2 !== 0 && i !== data.length - 1) return null;
             return (
@@ -233,7 +252,7 @@ export function DashboardSalesChart({
             <div className="flex items-center gap-2 whitespace-nowrap">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
               <span className="text-zinc-400">{primaryLabel}</span>
-              <span className="font-semibold tabular-nums text-zinc-50">${formatShort(data[hoveredIdx].primary)}</span>
+              <span className="font-semibold tabular-nums text-zinc-50">{currencySymbol}{formatShort(data[hoveredIdx].primary)}</span>
             </div>
             {data[hoveredIdx].secondary != null ? (
               <div className="mt-0.5 flex items-center gap-2 whitespace-nowrap">
@@ -261,17 +280,19 @@ function formatShort(n: number): string {
 
 export function DashboardRevenueBars({
   data,
+  currencySymbol = '₴',
 }: {
   data: Array<{ label: string; value: number }>;
+  currencySymbol?: string;
 }) {
   if (!data.length) {
-    return <div className="h-72 rounded-lg bg-black/20 px-4 py-12 text-center text-sm text-zinc-500">No data</div>;
+    return <div className="h-72 rounded-lg bg-black/20 px-4 py-12 text-center text-sm text-zinc-500">Немає даних</div>;
   }
 
   const w = 520;
   const h = 280;
-  const padX = 36;
-  const padTop = 20;
+  const padX = 52;
+  const padTop = 24;
   const padBottom = 36;
   const plotH = h - padTop - padBottom;
   const max = Math.max(...data.map((d) => d.value), 1);
@@ -281,7 +302,7 @@ export function DashboardRevenueBars({
   const yTicks = [0, 0.25, 0.5, 0.75, 1];
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Revenue overview" className="h-72 w-full">
+    <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Огляд доходу" className="h-72 w-full">
       <defs>
         <linearGradient id="oc-rev-bar" x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor="rgb(96 165 250)" />
@@ -295,8 +316,8 @@ export function DashboardRevenueBars({
         return (
           <g key={i}>
             <line x1={padX} x2={w - padX} y1={y} y2={y} stroke="rgba(255,255,255,0.04)" strokeDasharray="3 4" />
-            <text x={padX - 6} y={y + 3} textAnchor="end" fill="rgb(113 113 122)" fontSize="9">
-              ${formatShort(value)}
+            <text x={padX - 8} y={y + 3} textAnchor="end" fill="rgb(113 113 122)" fontSize="10">
+              {currencySymbol}{formatShort(value)}
             </text>
           </g>
         );
@@ -311,6 +332,19 @@ export function DashboardRevenueBars({
         return (
           <g key={i}>
             <rect x={x} y={y} width={barW} height={Math.max(2, barH)} fill="url(#oc-rev-bar)" rx="2" />
+            {/* Value label above bar (only when ≤12 to avoid clutter) */}
+            {data.length <= 12 ? (
+              <text
+                x={x + barW / 2}
+                y={y - 6}
+                textAnchor="middle"
+                fill="rgb(228 228 231)"
+                fontSize="10"
+                fontWeight="600"
+              >
+                {currencySymbol}{formatShort(d.value)}
+              </text>
+            ) : null}
             {showLabel ? (
               <text x={x + barW / 2} y={h - 14} textAnchor="middle" fill="rgb(113 113 122)" fontSize="10">
                 {d.label}

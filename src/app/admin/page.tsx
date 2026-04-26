@@ -854,18 +854,27 @@ export default function AdminDashboardPage() {
               primary: m.revenue,
               secondary: m.orders,
             }))}
-            primaryLabel="Дохід (UAH)"
+            primaryLabel="Дохід"
             secondaryLabel="Замовлення"
+            currencySymbol="₴"
           />
         </WidgetCard>
 
         <WidgetCard
           title="Огляд доходу"
-          action={<span className="text-xs text-zinc-500">Останні 30 днів</span>}
+          action={
+            <span className="text-xs text-zinc-500">
+              {(() => {
+                const n = Math.min(data.shop.monthlyRevenue.length, 30);
+                return `Останні ${n} ${pluralUk(n, 'період', 'періоди', 'періодів')}`;
+              })()}
+            </span>
+          }
           className="lg:col-span-3"
         >
           <DashboardRevenueBars
             data={data.shop.monthlyRevenue.slice(-30).map((m) => ({ label: m.month.slice(-2), value: m.revenue }))}
+            currencySymbol="₴"
           />
         </WidgetCard>
 
