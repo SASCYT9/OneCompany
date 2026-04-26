@@ -159,7 +159,7 @@ export function CustomerCreditPanel({
           {Object.entries(data.balanceByCurrency).map(([cur, bal]) => (
             <div
               key={cur}
-              className="flex items-center justify-between rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] px-3 py-2"
+              className="flex items-center justify-between rounded-none border border-emerald-500/20 bg-emerald-500/[0.04] px-3 py-2"
             >
               <div className="flex items-center gap-2">
                 <Coins className="h-3.5 w-3.5 text-emerald-300" />
@@ -170,7 +170,7 @@ export function CustomerCreditPanel({
           ))}
         </div>
       ) : (
-        <div className="rounded-lg border border-dashed border-white/[0.08] bg-black/20 p-3 text-center text-xs text-zinc-500">
+        <div className="rounded-none border border-dashed border-white/[0.08] bg-black/20 p-3 text-center text-xs text-zinc-500">
           Немає активних кредитів.
         </div>
       )}
@@ -181,13 +181,13 @@ export function CustomerCreditPanel({
           <button
             type="button"
             onClick={() => setShowIssueForm(true)}
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.06] px-3 py-2 text-xs font-bold uppercase tracking-wider text-blue-300 transition hover:bg-blue-500/[0.12]"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/[0.06] px-3 py-2 text-xs font-bold uppercase tracking-wider text-blue-300 transition hover:bg-blue-500/[0.12]"
           >
             <Plus className="h-3 w-3" />
             Нарахувати кредит
           </button>
         ) : (
-          <div className="space-y-3 rounded-lg border border-blue-500/20 bg-blue-500/[0.03] p-3">
+          <div className="space-y-3 rounded-none border border-blue-500/20 bg-blue-500/[0.03] p-3">
             <div className="grid gap-2 md:grid-cols-2">
               <AdminInputField label="Сума" value={amount} onChange={setAmount} type="number" step="0.01" min={0} />
               <AdminSelectField
@@ -220,7 +220,7 @@ export function CustomerCreditPanel({
                 type="button"
                 onClick={() => void handleIssue()}
                 disabled={issuing || !amount}
-                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none bg-blue-600 px-3 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
               >
                 {issuing ? <Loader2 className="h-3 w-3 motion-safe:animate-spin" /> : <Plus className="h-3 w-3" />}
                 Нарахувати
@@ -228,7 +228,7 @@ export function CustomerCreditPanel({
               <button
                 type="button"
                 onClick={() => setShowIssueForm(false)}
-                className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/[0.06]"
+                className="rounded-none border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/[0.06]"
               >
                 Скасувати
               </button>
@@ -242,7 +242,7 @@ export function CustomerCreditPanel({
         <div className="mt-4 space-y-2">
           <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Останні кредити</div>
           {data.credits.slice(0, 6).map((c) => (
-            <div key={c.id} className="rounded-lg border border-white/[0.05] bg-[#171717] p-2.5">
+            <div key={c.id} className="rounded-none border border-white/[0.05] bg-[#171717] p-2.5">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
@@ -269,7 +269,7 @@ export function CustomerCreditPanel({
                     onClick={() => void handleVoid(c)}
                     aria-label="Анулювати кредит"
                     title="Анулювати кредит"
-                    className="rounded p-1 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
+                    className="rounded-none p-1 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>

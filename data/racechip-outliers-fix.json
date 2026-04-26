@@ -1,0 +1,112 @@
+[
+  {
+    "slug": "racechip-gts5-dodge-caliber-2006-to-2011-2-2-crd-2143ccm-163hp-120kw-410nm",
+    "url": "https://www.racechip.eu/shop/dodge/caliber-2006-to-2011/2-2-crd-2143ccm-163hp-120kw-410nm.html",
+    "strategy": "tier-container",
+    "tierContainerClass": "product-chip_rs column -is-available  -data-sensitive -is-connect -is-consumption -is-warranty -is-warranty_feature -is-",
+    "tierPrices": [
+      299
+    ],
+    "bodyPrices": [
+      59,
+      179,
+      299
+    ],
+    "chosenBase": 299,
+    "appControlPrice": 59,
+    "finalPriceEur": 358,
+    "gainHp": 47,
+    "gainNm": 107,
+    "clickedTierIndex": 3
+  },
+  {
+    "slug": "racechip-gts5-dodge-nitro-2006-to-2012-2-8-crd-2777ccm-177hp-130kw-410nm",
+    "url": "https://www.racechip.eu/shop/dodge/nitro-2006-to-2012/2-8-crd-2777ccm-177hp-130kw-410nm.html",
+    "strategy": "tier-container",
+    "tierContainerClass": "product-chip_rs column -is-available  -data-sensitive -is-connect -is-consumption -is-warranty -is-warranty_feature -is-",
+    "tierPrices": [
+      299
+    ],
+    "bodyPrices": [
+      59,
+      199,
+      299
+    ],
+    "chosenBase": 299,
+    "appControlPrice": 59,
+    "finalPriceEur": 358,
+    "gainHp": 50,
+    "gainNm": 107,
+    "clickedTierIndex": 3
+  },
+  {
+    "slug": "racechip-gts5-lamborghini-urus-from-2018-4-0t-3996ccm-650hp-478kw-850nm",
+    "url": "https://www.racechip.eu/shop/lamborghini/urus-from-2018/4-0t-3996ccm-650hp-478kw-850nm.html",
+    "strategy": "body-drop-outlier",
+    "tierContainerClass": "product-chip_rs column -not-available first -data-sensitive -not-connect -not-consumption -not-warranty -not-warranty_fe",
+    "tierPrices": [],
+    "bodyPrices": [
+      179,
+      1699
+    ],
+    "chosenBase": 179,
+    "appControlPrice": 50,
+    "finalPriceEur": 229,
+    "gainHp": 58,
+    "gainNm": 100,
+    "clickedTierIndex": 3
+  },
+  {
+    "slug": "racechip-gts5-mclaren-570s-from-2015-3-8-v8-3799ccm-570hp-419kw-600nm",
+    "url": "https://www.racechip.eu/shop/mclaren/570s-from-2015/3-8-v8-3799ccm-570hp-419kw-600nm.html",
+    "strategy": "body-drop-outlier",
+    "tierContainerClass": "product-chip_rs column -not-available first -data-sensitive -not-connect -not-consumption -not-warranty -not-warranty_fe",
+    "tierPrices": [],
+    "bodyPrices": [
+      1699
+    ],
+    "chosenBase": 1699,
+    "appControlPrice": 50,
+    "finalPriceEur": 1749,
+    "gainHp": 86,
+    "gainNm": 194,
+    "clickedTierIndex": 3
+  },
+  {
+    "slug": "racechip-gts5-mclaren-570gt-from-2016-3-8-v8-3799ccm-570hp-419kw-600nm",
+    "url": "https://www.racechip.eu/shop/mclaren/570gt-from-2016/3-8-v8-3799ccm-570hp-419kw-600nm.html",
+    "strategy": "body-drop-outlier",
+    "tierContainerClass": "product-chip_rs column -not-available first -data-sensitive -not-connect -not-consumption -not-warranty -not-warranty_fe",
+    "tierPrices": [],
+    "bodyPrices": [
+      1699
+    ],
+    "chosenBase": 1699,
+    "appControlPrice": 50,
+    "finalPriceEur": 1749,
+    "gainHp": 86,
+    "gainNm": 194,
+    "clickedTierIndex": 3
+  },
+  {
+    "slug": "racechip-gts5-mercedes-benz-s-class-w221-2005-to-2013-s-500-cgi-4663ccm-435hp-320kw-700nm",
+    "url": "https://www.racechip.eu/shop/mercedes-benz/s-class-w221-2005-to-2013/s-500-cgi-4663ccm-435hp-320kw-700nm.html",
+    "strategy": "tier-container",
+    "tierContainerClass": "product-chip_rs column -is-available  -data-sensitive -is-connect -is-consumption -is-warranty -is-warranty_feature -is-",
+    "tierPrices": [
+      349
+    ],
+    "bodyPrices": [
+      59,
+      179,
+      229,
+      349
+    ],
+    "chosenBase": 349,
+    "appControlPrice": 59,
+    "finalPriceEur": 408,
+    "gainHp": 84,
+    "gainNm": 136,
+    "clickedTierIndex": 3
+  }
+]

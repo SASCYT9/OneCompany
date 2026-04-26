@@ -65,7 +65,7 @@ export function AdminBulkActionBar({
           role="region"
           aria-label="Bulk actions"
         >
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/[0.1] bg-[#171717]/95 px-3 py-2.5 shadow-[0_30px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+          <div className="flex flex-wrap items-center gap-3 rounded-none border border-white/[0.1] bg-[#171717]/95 px-3 py-2.5 shadow-[0_30px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl">
             {/* Counter */}
             <div className="flex items-center gap-2 pl-1">
               <span className="flex h-7 min-w-[28px] items-center justify-center rounded-full bg-blue-600 px-2 text-[11px] font-bold text-white tabular-nums">
@@ -76,7 +76,7 @@ export function AdminBulkActionBar({
                 type="button"
                 onClick={onClear}
                 aria-label="Clear selection"
-                className="rounded-md p-1 text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200"
+                className="rounded-none p-1 text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200"
               >
                 <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
@@ -109,7 +109,7 @@ export function AdminBulkActionBar({
                     onClick={action.onClick}
                     disabled={action.disabled}
                     className={cn(
-                      'inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition',
+                      'inline-flex h-8 items-center gap-1.5 rounded-none px-3 text-xs font-semibold transition',
                       'focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:ring-offset-2 focus:ring-offset-[#171717]',
                       'disabled:cursor-not-allowed disabled:opacity-50',
                       cls

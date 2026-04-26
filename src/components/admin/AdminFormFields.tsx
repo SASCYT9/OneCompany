@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 const INPUT_BASE =
-  'w-full rounded-lg border border-white/[0.08] bg-[#171717] px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 transition-all duration-150 focus:border-blue-500/50 focus:bg-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:opacity-50';
+  'w-full rounded-none border border-white/[0.08] bg-[#171717] px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 transition-all duration-150 focus:border-blue-500/50 focus:bg-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:opacity-50';
 
 const LABEL_BASE = 'mb-1.5 block text-xs font-medium text-zinc-400';
 
@@ -53,7 +53,7 @@ export function AdminInputField({
       {hasAffix ? (
         <div
           className={cn(
-            'flex items-stretch overflow-hidden rounded-lg border border-white/[0.08] bg-[#171717] transition-all duration-150 focus-within:border-blue-500/50 focus-within:bg-[#1A1A1A] focus-within:ring-2 focus-within:ring-blue-500/15',
+            'flex items-stretch overflow-hidden rounded-none border border-white/[0.08] bg-[#171717] transition-all duration-150 focus-within:border-blue-500/50 focus-within:bg-[#1A1A1A] focus-within:ring-2 focus-within:ring-blue-500/15',
             disabled && 'cursor-not-allowed opacity-50'
           )}
         >
@@ -195,7 +195,7 @@ export function AdminCheckboxField({
           type="checkbox"
           checked={checked}
           onChange={(event) => onChange(event.target.checked)}
-          className="peer absolute inset-0 cursor-pointer appearance-none rounded border border-white/[0.14] bg-[#171717] transition-all checked:border-blue-500 checked:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-[#0A0A0A]"
+          className="peer absolute inset-0 cursor-pointer appearance-none rounded-none border border-white/[0.14] bg-[#171717] transition-all checked:border-blue-500 checked:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-[#0A0A0A]"
         />
         <svg
           className="pointer-events-none relative h-3 w-3 text-white opacity-0 peer-checked:opacity-100"

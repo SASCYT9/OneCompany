@@ -204,8 +204,8 @@ function NewReturnPageContent() {
     return (
       <AdminPage>
         <div className="space-y-3">
-          <div className="h-3 w-20 motion-safe:animate-pulse rounded bg-white/[0.06]" />
-          <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
+          <div className="h-3 w-20 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+          <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
         </div>
       </AdminPage>
     );
@@ -291,7 +291,7 @@ function NewReturnPageContent() {
                             type="checkbox"
                             checked={draft.selected}
                             onChange={() => toggleSelected(it)}
-                            className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+                            className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -310,7 +310,7 @@ function NewReturnPageContent() {
                             value={draft.quantity}
                             onChange={(e) => updateDraft(it.id, { quantity: e.target.value })}
                             disabled={!draft.selected}
-                            className="w-20 rounded-[6px] border border-white/10 bg-black/30 px-2 py-1 text-sm text-zinc-100 disabled:opacity-50"
+                            className="w-20 rounded-none border border-white/10 bg-black/30 px-2 py-1 text-sm text-zinc-100 disabled:opacity-50"
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -321,7 +321,7 @@ function NewReturnPageContent() {
                             value={draft.refundAmount}
                             onChange={(e) => updateDraft(it.id, { refundAmount: e.target.value })}
                             disabled={!draft.selected}
-                            className="w-24 rounded-[6px] border border-white/10 bg-black/30 px-2 py-1 text-sm text-zinc-100 disabled:opacity-50"
+                            className="w-24 rounded-none border border-white/10 bg-black/30 px-2 py-1 text-sm text-zinc-100 disabled:opacity-50"
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -331,7 +331,7 @@ function NewReturnPageContent() {
                             onChange={(e) => updateDraft(it.id, { conditionNote: e.target.value })}
                             disabled={!draft.selected}
                             placeholder="e.g. box damaged"
-                            className="w-full rounded-[6px] border border-white/10 bg-black/30 px-2 py-1 text-sm text-zinc-100 placeholder:text-zinc-600 disabled:opacity-50"
+                            className="w-full rounded-none border border-white/10 bg-black/30 px-2 py-1 text-sm text-zinc-100 placeholder:text-zinc-600 disabled:opacity-50"
                           />
                         </td>
                       </tr>
@@ -397,11 +397,11 @@ function NewReturnPageContent() {
         <aside className="space-y-4">
           <AdminInspectorCard title="Submit RMA" description="Creates the return in REQUESTED state. You can move it through the workflow next.">
             <div className="space-y-3">
-              <div className="rounded-lg border border-white/[0.05] bg-[#171717] p-3">
+              <div className="rounded-none border border-white/[0.05] bg-[#171717] p-3">
                 <div className="text-[10px] uppercase tracking-wider text-zinc-500">Items selected</div>
                 <div className="mt-1 text-2xl font-bold tabular-nums text-zinc-50">{selectedCount}</div>
               </div>
-              <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] p-3">
+              <div className="rounded-none border border-emerald-500/20 bg-emerald-500/[0.04] p-3">
                 <div className="text-[10px] uppercase tracking-wider text-zinc-500">Refund total</div>
                 <div className="mt-1 text-2xl font-bold tabular-nums text-emerald-300">{formatMoney(totalRefund, order.currency)}</div>
               </div>

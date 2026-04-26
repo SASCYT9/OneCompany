@@ -221,8 +221,8 @@ export default function AdminReturnDetailPage() {
     return (
       <AdminPage>
         <div className="space-y-3">
-          <div className="h-3 w-20 motion-safe:animate-pulse rounded bg-white/[0.06]" />
-          <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
+          <div className="h-3 w-20 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+          <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
         </div>
       </AdminPage>
     );
@@ -399,7 +399,7 @@ export default function AdminReturnDetailPage() {
           {/* Customer note */}
           {ret.customerNote ? (
             <AdminInspectorCard title="Customer note" description="What the customer wrote when requesting the return.">
-              <div className="rounded-lg border border-white/[0.05] bg-[#171717] p-4 text-sm leading-6 text-zinc-300">
+              <div className="rounded-none border border-white/[0.05] bg-[#171717] p-4 text-sm leading-6 text-zinc-300">
                 {ret.customerNote}
               </div>
             </AdminInspectorCard>
@@ -421,7 +421,7 @@ export default function AdminReturnDetailPage() {
             />
             <Link
               href={`/admin/shop/orders/${ret.order.id}`}
-              className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
+              className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
             >
               Open original order
             </Link>

@@ -373,7 +373,7 @@ export default function AdminShopBundlesPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+        <div className="flex items-center gap-3 rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <Boxes className="h-4 w-4 animate-pulse" />
           Loading bundles…
         </div>
@@ -393,7 +393,7 @@ export default function AdminShopBundlesPage() {
               type="button"
               onClick={() => void load(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
             >
               <RefreshCcw className={`h-4 w-4 ${refreshing ? 'motion-safe:animate-spin' : ''}`} />
               Refresh
@@ -401,7 +401,7 @@ export default function AdminShopBundlesPage() {
             <button
               type="button"
               onClick={resetToNew}
-              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+              className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
               New bundle
@@ -432,7 +432,7 @@ export default function AdminShopBundlesPage() {
                   <button
                     type="button"
                     onClick={resetToNew}
-                    className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+                    className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
                   >
                     <Plus className="h-4 w-4" />
                     New bundle
@@ -462,7 +462,7 @@ export default function AdminShopBundlesPage() {
           </div>
         </AdminTableShell>
 
-        <div className="rounded-[6px] border border-white/10 bg-[#171717] p-5 md:p-6">
+        <div className="rounded-none border border-white/10 bg-[#171717] p-5 md:p-6">
           <div className="space-y-6">
             <div className="space-y-2">
               <h2 className="text-xl font-semibold tracking-tight text-zinc-50">
@@ -484,7 +484,7 @@ export default function AdminShopBundlesPage() {
                 {selectedBundle ? (
                   <Link
                     href={`/admin/shop/${selectedBundle.productId}`}
-                    className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+                    className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
                   >
                     Open product
                   </Link>
@@ -494,7 +494,7 @@ export default function AdminShopBundlesPage() {
                     type="button"
                     onClick={handleDelete}
                     disabled={deleting}
-                    className="inline-flex items-center gap-2 rounded-[6px] border border-blue-500/25 bg-blue-950/30 px-4 py-2.5 text-sm text-red-200 transition hover:bg-blue-950/40 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-none border border-blue-500/25 bg-blue-950/30 px-4 py-2.5 text-sm text-red-200 transition hover:bg-blue-950/40 disabled:opacity-50"
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete
@@ -504,7 +504,7 @@ export default function AdminShopBundlesPage() {
                   type="button"
                   onClick={handleSave}
                   disabled={saving || detailLoading}
-                  className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" />
                   {saving ? 'Saving…' : 'Save bundle'}
@@ -545,7 +545,7 @@ export default function AdminShopBundlesPage() {
                 <button
                   type="button"
                   onClick={addRow}
-                  className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+                  className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
                 >
                   <Plus className="h-4 w-4" />
                   Add item
@@ -561,7 +561,7 @@ export default function AdminShopBundlesPage() {
                 return (
                   <div
                     key={item.id}
-                    className="grid gap-4 rounded-[6px] border border-white/10 bg-black/20 p-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_140px_56px]"
+                    className="grid gap-4 rounded-none border border-white/10 bg-black/20 p-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_140px_56px]"
                   >
                     <AdminSelectField
                       label={`Component product #${index + 1}`}
@@ -616,14 +616,14 @@ export default function AdminShopBundlesPage() {
                         type="button"
                         onClick={() => removeRow(item.id)}
                         disabled={form.items.length === 1}
-                        className="inline-flex h-[46px] w-full items-center justify-center rounded-[6px] border border-blue-500/25 bg-blue-950/30 text-red-200 transition hover:bg-blue-950/40 disabled:opacity-40"
+                        className="inline-flex h-[46px] w-full items-center justify-center rounded-none border border-blue-500/25 bg-blue-950/30 text-red-200 transition hover:bg-blue-950/40 disabled:opacity-40"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
 
                     {componentProduct ? (
-                      <div className="lg:col-span-4 rounded-[6px] border border-white/10 bg-white/[0.03] px-3 py-3 text-xs text-zinc-400">
+                      <div className="lg:col-span-4 rounded-none border border-white/10 bg-white/[0.03] px-3 py-3 text-xs text-zinc-400">
                         <span className="font-medium text-zinc-200">
                           {componentProduct.titleEn || componentProduct.titleUa}
                         </span>{' '}

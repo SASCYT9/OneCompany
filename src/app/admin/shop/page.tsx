@@ -5,8 +5,10 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
+  CheckSquare,
   Download,
   Eye,
+  Layers,
   Layers3,
   Loader2,
   Pencil,
@@ -19,7 +21,7 @@ import {
 import {
   AdminActionBar,
   AdminEmptyState,
-  AdminFilterBar,
+  AdminEntityToolbar,
   AdminInlineAlert,
   AdminMetricCard,
   AdminMetricGrid,
@@ -34,6 +36,18 @@ import { useToast } from '@/components/admin/AdminToast';
 import { AdminSavedViewsBar, useSavedViews } from '@/components/admin/AdminSavedViews';
 import { ProductQuickView } from '@/app/admin/shop/components/ProductQuickView';
 import { AdminMobileCard } from '@/components/admin/AdminMobileCard';
+import { AdminBrandHero } from '@/components/admin/AdminBrandHero';
+import { AdminFilterChips, type FilterChip } from '@/components/admin/AdminFilterChips';
+import { AdminPagination } from '@/components/admin/AdminPagination';
+import { AdminProductThumbnail } from '@/components/admin/AdminProductThumbnail';
+import {
+  AdminDensityToggle,
+  DENSITY_ROW_PADDING,
+  DENSITY_THUMB_SIZE,
+  useAdminDensity,
+} from '@/components/admin/AdminDensityToggle';
+import { adminBrandTheme, isBrandFilterActive } from '@/lib/admin/brandTheme';
+import { cn } from '@/lib/utils';
 
 type ShopProductListItem = {
   id: string;
@@ -54,6 +68,7 @@ type ShopProductListItem = {
   priceUsd: number | null;
   isPublished: boolean;
   updatedAt: string;
+  imageUrl: string | null;
   variantsCount: number;
   mediaCount: number;
   collectionsCount: number;
@@ -66,10 +81,84 @@ function priceLabel(product: ShopProductListItem) {
   return '—';
 }
 
+function priceMeta(product: ShopProductListItem): string | null {
+  const parts: string[] = [];
+  if (product.priceEur != null && product.priceUsd != null) parts.push(`$${product.priceUsd}`);
+  if (product.priceUah != null) parts.push(`₴${product.priceUah}`);
+  return parts.length ? parts.join(' · ') : null;
+}
+
 function getStatusTone(status: ShopProductListItem['status']) {
   if (status === 'ACTIVE') return 'success';
   if (status === 'ARCHIVED') return 'danger';
   return 'warning';
+}
+
+function relativeTime(iso: string): { label: string; full: string } {
+  const date = new Date(iso);
+  const full = date.toLocaleString();
+  const diff = Date.now() - date.getTime();
+  const seconds = Math.max(0, Math.floor(diff / 1000));
+  if (seconds < 60) return { label: 'щойно', full };
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return { label: `${minutes} хв тому`, full };
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return { label: `${hours} год тому`, full };
+  const days = Math.floor(hours / 24);
+  if (days < 30) return { label: `${days} дн. тому`, full };
+  const months = Math.floor(days / 30);
+  if (months < 12) return { label: `${months} міс. тому`, full };
+  return { label: `${Math.floor(months / 12)} р. тому`, full };
+}
+
+function CoverageHealth({
+  variants,
+  media,
+  collections,
+}: {
+  variants: number;
+  media: number;
+  collections: number;
+}) {
+  const items: Array<{ short: string; full: string; value: number; tone: 'good' | 'warn' }> = [
+    { short: 'Варіанти', full: 'Варіанти', value: variants, tone: variants > 0 ? 'good' : 'warn' },
+    { short: 'Медіа', full: 'Медіа', value: media, tone: media > 0 ? 'good' : 'warn' },
+    { short: 'Колекції', full: 'Колекції', value: collections, tone: collections > 0 ? 'good' : 'warn' },
+  ];
+  return (
+    <div
+      className="flex flex-wrap items-center gap-x-4 gap-y-1.5"
+      title={`Варіанти ${variants} · Медіа ${media} · Колекції ${collections}`}
+    >
+      {items.map((item) => (
+        <div key={item.full} className="flex items-center gap-2">
+          <span
+            className={cn(
+              'inline-block h-1.5 w-6 rounded-full',
+              item.tone === 'good' ? 'bg-emerald-500/70' : 'bg-amber-500/70'
+            )}
+            aria-hidden="true"
+          />
+          <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+            {item.short}
+          </span>
+          <span className="text-[12px] font-semibold tabular-nums text-zinc-200">
+            {item.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PriceCell({ product }: { product: ShopProductListItem }) {
+  const meta = priceMeta(product);
+  return (
+    <div className="space-y-0.5">
+      <div className="text-base font-semibold tabular-nums text-zinc-50">{priceLabel(product)}</div>
+      {meta ? <div className="text-[11px] text-zinc-500 tabular-nums">{meta}</div> : null}
+    </div>
+  );
 }
 
 function AdminShopPageContent() {
@@ -77,6 +166,7 @@ function AdminShopPageContent() {
   const toast = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { density, setDensity } = useAdminDensity('comfortable');
 
   const searchParam = searchParams.get('search') || '';
   const brandParam = searchParams.get('brand') || 'ALL';
@@ -94,6 +184,20 @@ function AdminShopPageContent() {
   const [searchInput, setSearchInput] = useState(searchParam);
   const [quickViewId, setQuickViewId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+
+  const brandActive = isBrandFilterActive(brandParam);
+  const brandTheme = useMemo(() => adminBrandTheme(brandParam), [brandParam]);
+
+  const visibleStats = useMemo(() => {
+    const counts = { active: 0, draft: 0, archived: 0, published: 0 };
+    for (const p of products) {
+      if (p.status === 'ACTIVE') counts.active += 1;
+      if (p.status === 'DRAFT') counts.draft += 1;
+      if (p.status === 'ARCHIVED') counts.archived += 1;
+      if (p.isPublished) counts.published += 1;
+    }
+    return counts;
+  }, [products]);
 
   // Saved views — filter combinations stored in localStorage
   const savedViews = useSavedViews({
@@ -338,18 +442,87 @@ function AdminShopPageContent() {
   const selectionLabel =
     selectedCount === 0 ? 'Нічого не вибрано' : `${selectedCount} вибрано для масової зміни статусу.`;
 
+  // Build active filter chips
+  const filterChips: FilterChip[] = [];
+  if (brandActive) {
+    filterChips.push({
+      id: 'brand',
+      label: 'Бренд',
+      value: brandTheme.displayName,
+      onRemove: () => updateParams({ brand: 'ALL' }),
+      tintHex: brandTheme.tintHex,
+    });
+  }
+  if (statusParam !== 'ALL') {
+    filterChips.push({
+      id: 'status',
+      label: 'Статус',
+      value: statusParam,
+      onRemove: () => updateParams({ status: 'ALL' }),
+    });
+  }
+  if (searchParam) {
+    filterChips.push({
+      id: 'search',
+      label: 'Пошук',
+      value: `«${searchParam}»`,
+      onRemove: () => {
+        setSearchInput('');
+        updateParams({ search: '' });
+      },
+    });
+  }
+
+  // Action buttons (rendered in either hero or page header)
+  const headerActions = (
+    <>
+      <button
+        type="button"
+        onClick={() => void handleExport()}
+        disabled={exporting}
+        className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
+      >
+        <Download className="h-4 w-4" />
+        {exporting ? 'Експорт…' : 'Експорт CSV'}
+      </button>
+      <Link
+        href="/admin/shop/import"
+        className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+      >
+        <Upload className="h-4 w-4" />
+        Імпорт
+      </Link>
+      <button
+        type="button"
+        onClick={handleStorefrontBackfill}
+        disabled={storefrontBackfilling}
+        className="inline-flex items-center gap-2 rounded-none border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2.5 text-sm text-blue-300 transition hover:bg-blue-500/[0.12] disabled:opacity-60"
+      >
+        {storefrontBackfilling ? <Loader2 className="h-4 w-4 motion-safe:animate-spin" /> : <Layers3 className="h-4 w-4" />}
+        Нормалізувати
+      </button>
+      <Link
+        href="/admin/shop/new"
+        className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+      >
+        <Plus className="h-4 w-4" />
+        Новий товар
+      </Link>
+    </>
+  );
+
   if (loading && products.length === 0) {
     return (
-      <AdminPage className="space-y-6">
+      <AdminPage wide className="space-y-6">
         <div role="status" aria-live="polite" aria-busy="true" className="space-y-6">
           <span className="sr-only">Завантаження каталогу…</span>
           <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
             <div className="space-y-3">
-              <div className="h-3 w-20 motion-safe:animate-pulse rounded bg-white/[0.06]" />
-              <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
-              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded bg-white/[0.04]" />
+              <div className="h-3 w-20 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+              <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
             </div>
-            <div className="h-9 w-44 motion-safe:animate-pulse rounded-lg bg-white/[0.04]" />
+            <div className="h-9 w-44 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
           </div>
           <AdminSkeletonKpiGrid count={4} />
           <AdminSkeletonTable rows={10} cols={6} />
@@ -358,98 +531,131 @@ function AdminShopPageContent() {
     );
   }
 
+  const thumbSize = DENSITY_THUMB_SIZE[density];
+  const rowPad = DENSITY_ROW_PADDING[density];
+
   return (
-    <AdminPage className="space-y-6">
-      <AdminPageHeader
-        eyebrow="Каталог"
-        title="Товари"
-        description="Основний каталог: відповідальність за товари, стан публікації, колекції, покриття медіа та швидкий доступ до редагування."
-        actions={
-          <>
-            <AdminSavedViewsBar {...savedViews} />
-            <button
-              type="button"
-              onClick={() => void handleExport()}
-              disabled={exporting}
-              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
-            >
-              <Download className="h-4 w-4" />
-              {exporting ? 'Експорт…' : 'Експорт CSV'}
-            </button>
-            <Link
-              href="/admin/shop/import"
-              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
-            >
-              <Upload className="h-4 w-4" />
-              Центр імпорту
-            </Link>
-            <button
-              type="button"
-              onClick={handleStorefrontBackfill}
-              disabled={storefrontBackfilling}
-              className="inline-flex items-center gap-2 rounded-[6px] border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2.5 text-sm text-blue-300 transition hover:bg-blue-500/[0.12] disabled:opacity-60"
-            >
-              {storefrontBackfilling ? <Loader2 className="h-4 w-4 motion-safe:animate-spin" /> : <Layers3 className="h-4 w-4" />}
-              Нормалізувати storefronts
-            </button>
-            <Link
-              href="/admin/shop/new"
-              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
-            >
-              <Plus className="h-4 w-4" />
-              Новий товар
-            </Link>
-          </>
+    <AdminPage wide className="space-y-6">
+      {brandActive ? (
+        <AdminBrandHero
+          brand={brandParam}
+          onClearBrand={() => updateParams({ brand: 'ALL' })}
+          stats={[
+            { label: 'Усього', value: metadata.totalCount, tone: 'accent' },
+            { label: 'Активні', value: visibleStats.active, tone: 'success' },
+            { label: 'Чернетки', value: visibleStats.draft, tone: 'warning' },
+            { label: 'Архів', value: visibleStats.archived, tone: 'danger' },
+            { label: 'Опубліковано', value: visibleStats.published, tone: 'default' },
+          ]}
+          actions={headerActions}
+        />
+      ) : (
+        <AdminPageHeader
+          eyebrow="Каталог"
+          title="Товари"
+          description="Основний каталог: відповідальність за товари, стан публікації, колекції, покриття медіа та швидкий доступ до редагування."
+          actions={
+            <>
+              <AdminSavedViewsBar {...savedViews} />
+              {headerActions}
+            </>
+          }
+        />
+      )}
+
+      {brandActive ? (
+        <div className="-mt-2">
+          <AdminSavedViewsBar {...savedViews} />
+        </div>
+      ) : null}
+
+      <AdminMetricGrid>
+        <AdminMetricCard
+          label="Знайдено товарів"
+          value={metadata.totalCount}
+          meta={brandActive ? `Бренд: ${brandTheme.displayName}` : 'Поточний фільтрований результат'}
+          tone="accent"
+          icon={<Layers3 />}
+        />
+        <AdminMetricCard
+          label="Поточна сторінка"
+          value={`${metadata.currentPage}/${metadata.totalPages}`}
+          meta={`Розмір сторінки ${metadata.limit}`}
+          icon={<Layers />}
+        />
+        <AdminMetricCard
+          label="Видимі зараз"
+          value={products.length}
+          meta="Рядки в цьому перегляді"
+          icon={<Eye />}
+        />
+        <AdminMetricCard
+          label="Вибрано"
+          value={selectedCount}
+          meta={selectionLabel}
+          tone={selectedCount > 0 ? 'accent' : 'default'}
+          icon={<CheckSquare />}
+        />
+      </AdminMetricGrid>
+
+      <AdminFilterChips
+        chips={filterChips}
+        onClearAll={
+          filterChips.length > 1
+            ? () => {
+                setSearchInput('');
+                updateParams({ brand: 'ALL', status: 'ALL', search: '' });
+              }
+            : undefined
         }
       />
 
-      <AdminMetricGrid>
-        <AdminMetricCard label="Знайдено товарів" value={metadata.totalCount} meta="Поточний фільтрований результат" tone="accent" />
-        <AdminMetricCard label="Поточна сторінка" value={`${metadata.currentPage}/${metadata.totalPages}`} meta={`Розмір сторінки ${metadata.limit}`} />
-        <AdminMetricCard label="Видимі зараз" value={products.length} meta="Рядки в цьому перегляді" />
-        <AdminMetricCard label="Вибрано" value={selectedCount} meta={selectionLabel} />
-      </AdminMetricGrid>
+      <AdminEntityToolbar>
+        <div className="flex flex-1 flex-wrap items-center gap-3">
+          <select
+            value={statusParam}
+            onChange={(event) => updateParams({ status: event.target.value })}
+            className="rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-none"
+            aria-label="Фільтр за статусом"
+          >
+            <option value="ALL">Усі статуси</option>
+            <option value="ACTIVE">Активні</option>
+            <option value="DRAFT">Чернетки</option>
+            <option value="ARCHIVED">Архів</option>
+          </select>
 
-      <AdminFilterBar>
-        <select
-          value={statusParam}
-          onChange={(event) => updateParams({ status: event.target.value })}
-          className="rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-none"
-        >
-          <option value="ALL">Усі статуси</option>
-          <option value="ACTIVE">Активні</option>
-          <option value="DRAFT">Чернетки</option>
-          <option value="ARCHIVED">Архів</option>
-        </select>
+          <select
+            value={brandParam}
+            onChange={(event) => updateParams({ brand: event.target.value })}
+            className="rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-none"
+            aria-label="Фільтр за брендом"
+          >
+            <option value="ALL">Усі бренди</option>
+            {commonBrands.map((brand) => (
+              <option key={brand} value={brand}>
+                {brand}
+              </option>
+            ))}
+          </select>
 
-        <select
-          value={brandParam}
-          onChange={(event) => updateParams({ brand: event.target.value })}
-          className="rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-none"
-        >
-          <option value="ALL">Усі бренди</option>
-          {commonBrands.map((brand) => (
-            <option key={brand} value={brand}>
-              {brand}
-            </option>
-          ))}
-        </select>
+          <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+            <Search className="h-4 w-4 text-zinc-500" />
+            <input
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  updateParams({ search: searchInput });
+                }
+              }}
+              placeholder="Пошук за slug, SKU, брендом або назвою — натисніть Enter"
+              className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+            />
+          </label>
+        </div>
 
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
-          <Search className="h-4 w-4 text-zinc-500" />
-          <input
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                updateParams({ search: searchInput });
-              }
-            }}
-            placeholder="Пошук за slug, SKU, брендом або назвою — натисніть Enter"
-            className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
-          />
-        </label>
-      </AdminFilterBar>
+        <AdminDensityToggle value={density} onChange={setDensity} />
+      </AdminEntityToolbar>
 
       {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
       {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
@@ -465,7 +671,7 @@ function AdminShopPageContent() {
               type="button"
               disabled={bulkUpdating}
               onClick={() => handleBulkStatus('ACTIVE')}
-              className="rounded-[6px] border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-200 transition hover:bg-emerald-500/15 disabled:opacity-50"
+              className="rounded-none border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-200 transition hover:bg-emerald-500/15 disabled:opacity-50"
             >
               {bulkUpdating ? 'Оновлення…' : 'Зробити активними'}
             </button>
@@ -473,7 +679,7 @@ function AdminShopPageContent() {
               type="button"
               disabled={bulkUpdating}
               onClick={() => handleBulkStatus('DRAFT')}
-              className="rounded-[6px] border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2.5 text-sm text-blue-300 transition hover:bg-blue-500/[0.12] disabled:opacity-50"
+              className="rounded-none border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2.5 text-sm text-blue-300 transition hover:bg-blue-500/[0.12] disabled:opacity-50"
             >
               {bulkUpdating ? 'Оновлення…' : 'У чернетки'}
             </button>
@@ -481,14 +687,14 @@ function AdminShopPageContent() {
               type="button"
               disabled={bulkUpdating}
               onClick={() => handleBulkStatus('ARCHIVED')}
-              className="rounded-[6px] border border-blue-500/20 bg-red-950/25 px-4 py-2.5 text-sm text-red-200 transition hover:bg-red-950/35 disabled:opacity-50"
+              className="rounded-none border border-red-500/25 bg-red-950/30 px-4 py-2.5 text-sm text-red-200 transition hover:bg-red-950/45 disabled:opacity-50"
             >
               {bulkUpdating ? 'Оновлення…' : 'Архівувати'}
             </button>
             <button
               type="button"
               onClick={() => setSelectedIds(new Set())}
-              className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-white/[0.06]"
+              className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-white/[0.06]"
             >
               Очистити вибір
             </button>
@@ -499,11 +705,11 @@ function AdminShopPageContent() {
       {products.length === 0 ? (
         <AdminEmptyState
           title="Жоден товар не відповідає фільтрам"
-          description="Змініть фільтри, імпортуйте CSV-партію або додайте товар вручну, щоб заповнити каталог."
+          description="Спробуйте змінити фільтри, імпортувати CSV-партію або додати товар вручну, щоб заповнити каталог."
           action={
             <Link
               href="/admin/shop/new"
-              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+              className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
               Створити товар
@@ -519,6 +725,17 @@ function AdminShopPageContent() {
                 key={product.id}
                 title={product.titleEn || product.titleUa}
                 subtitle={[product.brand, product.sku, product.slug].filter(Boolean).join(' · ')}
+                leading={
+                  <AdminProductThumbnail
+                    imageUrl={product.imageUrl}
+                    brand={product.brand}
+                    title={product.titleEn || product.titleUa}
+                    size="sm"
+                    tintHex={
+                      product.brand === brandParam ? brandTheme.tintHex : undefined
+                    }
+                  />
+                }
                 badge={
                   <div className="flex flex-wrap gap-1">
                     <AdminStatusBadge tone={getStatusTone(product.status)}>{product.status}</AdminStatusBadge>
@@ -535,14 +752,14 @@ function AdminShopPageContent() {
                     <button
                       type="button"
                       onClick={() => setQuickViewId(product.id)}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.08] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/[0.08] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
                     >
                       <Eye className="h-3.5 w-3.5" />
                       Швидкий перегляд
                     </button>
                     <Link
                       href={`/admin/shop/${product.id}`}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                       Редагувати
@@ -555,117 +772,155 @@ function AdminShopPageContent() {
 
           {/* Desktop table */}
           <AdminTableShell className="hidden lg:block">
-          <table className="w-full min-w-[980px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-white/10 bg-white/[0.03]">
-                <th className="w-12 px-4 py-3">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.size === products.length && products.length > 0}
-                    onChange={toggleSelectAll}
-                    className="rounded border-white/20 bg-black/40 text-emerald-500"
-                  />
-                </th>
-                <th className="px-4 py-3 font-medium text-zinc-400">Товар</th>
-                <th className="px-4 py-3 font-medium text-zinc-400">Тип</th>
-                <th className="px-4 py-3 font-medium text-zinc-400">Статус</th>
-                <th className="px-4 py-3 font-medium text-zinc-400">Покриття</th>
-                <th className="px-4 py-3 font-medium text-zinc-400">Ціна</th>
-                <th className="px-4 py-3 font-medium text-zinc-400">Оновлено</th>
-                <th className="w-28 px-4 py-3 font-medium text-zinc-400">Дії</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product) => (
-                <tr
-                  key={product.id}
-                  className={`border-b border-white/5 align-top transition hover:bg-white/[0.02] ${
-                    selectedIds.has(product.id) ? 'bg-blue-500/[0.06]' : ''
-                  }`}
-                >
-                  <td className="px-4 py-4">
+            <table className="w-full min-w-[1080px] text-left text-sm">
+              <thead className="sticky top-0 z-20 bg-[#171717]/95 backdrop-blur-md">
+                <tr className="border-b border-white/10">
+                  <th className="w-12 px-4 py-3">
                     <input
                       type="checkbox"
-                      checked={selectedIds.has(product.id)}
-                      onChange={() => toggleSelect(product.id)}
-                      className="rounded border-white/20 bg-black/40 text-emerald-500"
+                      checked={selectedIds.size === products.length && products.length > 0}
+                      onChange={toggleSelectAll}
+                      className="border-white/20 bg-black/40 text-emerald-500"
+                      aria-label="Вибрати всі рядки"
                     />
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="font-medium text-zinc-50">{product.titleEn || product.titleUa}</div>
-                    <div className="mt-1 font-mono text-xs text-zinc-500">{product.slug}</div>
-                    <div className="mt-1 text-xs text-zinc-500">
-                      {[product.brand, product.vendor, product.sku].filter(Boolean).join(' · ') || '—'}
-                    </div>
-                    {product.collectionHandles.length ? (
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {product.collectionHandles.slice(0, 3).map((handle) => (
-                          <span
-                            key={handle}
-                            className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-zinc-300"
-                          >
-                            {handle}
-                          </span>
-                        ))}
-                        {product.collectionHandles.length > 3 ? (
-                          <span className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-zinc-500">
-                            +{product.collectionHandles.length - 3}
-                          </span>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-4 text-zinc-300">{product.productType || product.scope}</td>
-                  <td className="px-4 py-4">
-                    <div className="flex flex-wrap gap-2">
-                      <AdminStatusBadge tone={getStatusTone(product.status)}>{product.status}</AdminStatusBadge>
-                      <AdminStatusBadge tone={product.isPublished ? 'success' : 'warning'}>
-                        {product.isPublished ? 'Опубліковано' : 'Прихований'}
-                      </AdminStatusBadge>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-zinc-300">
-                    <div>{product.variantsCount} варіантів</div>
-                    <div className="mt-1 text-xs text-zinc-500">
-                      {product.mediaCount} медіа · {product.collectionsCount} колекцій · {product.stock}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-zinc-200">{priceLabel(product)}</td>
-                  <td className="px-4 py-4 text-zinc-500">
-                    {new Date(product.updatedAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setQuickViewId(product.id)}
-                        className="rounded-[6px] border border-blue-500/25 bg-blue-500/[0.08] p-2 text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-500/[0.12]"
-                        title="Швидкий перегляд (без переходу)"
-                      >
-                        <Eye className="h-4 w-4" aria-label="Швидкий перегляд" />
-                      </button>
-                      <Link
-                        href={`/admin/shop/${product.id}`}
-                        className="rounded-[6px] border border-white/10 p-2 text-zinc-300 transition hover:bg-white/[0.06] hover:text-zinc-50"
-                        title="Редагувати товар"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => handleArchive(product.id)}
-                        disabled={deletingId === product.id}
-                        className="rounded-[6px] border border-amber-500/30 bg-amber-500/[0.06] p-2 text-amber-300 transition hover:border-amber-500/50 hover:bg-amber-500/[0.12] disabled:opacity-50"
-                        title="Архівувати (м'яке видалення — можна відновити)"
-                      >
-                        <Trash2 className="h-4 w-4" aria-label="Архівувати" />
-                      </button>
-                    </div>
-                  </td>
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">Товар</th>
+                  <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">Тип</th>
+                  <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">Статус</th>
+                  <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">Покриття</th>
+                  <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">Ціна</th>
+                  <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">Оновлено</th>
+                  <th className="sticky right-0 z-10 w-[180px] bg-[#171717]/95 px-4 py-3 text-right text-[11px] font-medium uppercase tracking-wider text-zinc-500 whitespace-nowrap backdrop-blur-md">
+                    Дії
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+                <tbody>
+                  {products.map((product) => {
+                    const time = relativeTime(product.updatedAt);
+                    const isSelected = selectedIds.has(product.id);
+                    return (
+                      <tr
+                        key={product.id}
+                        className={cn(
+                          'group border-b border-white/[0.04] align-top transition-colors',
+                          isSelected ? 'bg-blue-500/[0.06]' : 'hover:bg-white/[0.025]'
+                        )}
+                      >
+                        <td className={cn('px-4 align-middle', rowPad)}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelect(product.id)}
+                            className="rounded-none border-white/20 bg-black/40 text-emerald-500"
+                            aria-label={`Вибрати ${product.titleEn || product.titleUa}`}
+                          />
+                        </td>
+                        <td className={cn('px-4', rowPad)}>
+                          <button
+                            type="button"
+                            onClick={() => setQuickViewId(product.id)}
+                            className="flex w-full items-start gap-3 text-left"
+                          >
+                            <AdminProductThumbnail
+                              imageUrl={product.imageUrl}
+                              brand={product.brand}
+                              title={product.titleEn || product.titleUa}
+                              size={thumbSize}
+                              tintHex={
+                                product.brand === brandParam ? brandTheme.tintHex : undefined
+                              }
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate font-medium text-zinc-50 transition group-hover:text-blue-200">
+                                {product.titleEn || product.titleUa}
+                              </div>
+                              <div className="mt-0.5 truncate font-mono text-[11px] text-zinc-500">{product.slug}</div>
+                              <div className="mt-1 truncate text-[11px] text-zinc-500">
+                                {[product.brand, product.vendor, product.sku].filter(Boolean).join(' · ') || '—'}
+                              </div>
+                              {product.collectionHandles.length ? (
+                                <div className="mt-2 flex flex-wrap gap-1">
+                                  {product.collectionHandles.slice(0, 2).map((handle) => (
+                                    <span
+                                      key={handle}
+                                      className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-[10px] text-zinc-400"
+                                    >
+                                      {handle}
+                                    </span>
+                                  ))}
+                                  {product.collectionHandles.length > 2 ? (
+                                    <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-[10px] text-zinc-500">
+                                      +{product.collectionHandles.length - 2}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              ) : null}
+                            </div>
+                          </button>
+                        </td>
+                        <td className={cn('px-4 text-zinc-300', rowPad)}>{product.productType || product.scope}</td>
+                        <td className={cn('px-4', rowPad)}>
+                          <div className="flex flex-wrap gap-1.5">
+                            <AdminStatusBadge tone={getStatusTone(product.status)}>{product.status}</AdminStatusBadge>
+                            {!product.isPublished ? (
+                              <AdminStatusBadge tone="warning">Прихований</AdminStatusBadge>
+                            ) : null}
+                          </div>
+                        </td>
+                        <td className={cn('px-4', rowPad)}>
+                          <CoverageHealth
+                            variants={product.variantsCount}
+                            media={product.mediaCount}
+                            collections={product.collectionsCount}
+                          />
+                        </td>
+                        <td className={cn('px-4', rowPad)}>
+                          <PriceCell product={product} />
+                        </td>
+                        <td className={cn('px-4 text-zinc-500', rowPad)} title={time.full}>
+                          {time.label}
+                        </td>
+                        <td
+                          className={cn(
+                            'sticky right-0 z-10 px-4 whitespace-nowrap',
+                            rowPad,
+                            isSelected ? 'bg-[#0F1B33]' : 'bg-[#171717] group-hover:bg-[#1B1B1B]'
+                          )}
+                        >
+                          <div className="flex items-center justify-end gap-1.5 opacity-80 transition-opacity group-hover:opacity-100">
+                            <button
+                              type="button"
+                              onClick={() => setQuickViewId(product.id)}
+                              data-action="quick-view"
+                              className="rounded-none border border-blue-500/25 bg-blue-500/[0.08] p-2 text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-500/[0.14]"
+                              title="Швидкий перегляд (без переходу)"
+                            >
+                              <Eye className="h-4 w-4" aria-label="Швидкий перегляд" />
+                            </button>
+                            <Link
+                              href={`/admin/shop/${product.id}`}
+                              className="rounded-none border border-white/10 p-2 text-zinc-300 transition hover:bg-white/[0.06] hover:text-zinc-50"
+                              title="Редагувати товар"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => handleArchive(product.id)}
+                              disabled={deletingId === product.id}
+                              className="rounded-none border border-amber-500/30 bg-amber-500/[0.06] p-2 text-amber-300 transition hover:border-amber-500/50 hover:bg-amber-500/[0.14] disabled:opacity-50"
+                              title="Архівувати (м'яке видалення — можна відновити)"
+                            >
+                              <Trash2 className="h-4 w-4" aria-label="Архівувати" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
           </AdminTableShell>
         </>
       )}
@@ -676,33 +931,13 @@ function AdminShopPageContent() {
         onClose={() => setQuickViewId(null)}
       />
 
-      {metadata.totalPages > 1 ? (
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-4 text-sm text-zinc-400">
-          <div>
-            Показано {(metadata.currentPage - 1) * metadata.limit + 1}–
-            {Math.min(metadata.currentPage * metadata.limit, metadata.totalCount)} з {metadata.totalCount}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={metadata.currentPage <= 1}
-              onClick={() => updateParams({ page: metadata.currentPage - 1 })}
-              className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2 text-zinc-100 transition hover:bg-white/[0.06] disabled:opacity-50"
-            >
-              Попередня
-            </button>
-            <span className="px-2 text-zinc-100">{metadata.currentPage}</span>
-            <button
-              type="button"
-              disabled={metadata.currentPage >= metadata.totalPages}
-              onClick={() => updateParams({ page: metadata.currentPage + 1 })}
-              className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2 text-zinc-100 transition hover:bg-white/[0.06] disabled:opacity-50"
-            >
-              Наступна
-            </button>
-          </div>
-        </div>
-      ) : null}
+      <AdminPagination
+        currentPage={metadata.currentPage}
+        totalPages={metadata.totalPages}
+        totalCount={metadata.totalCount}
+        pageSize={metadata.limit}
+        onPageChange={(page) => updateParams({ page })}
+      />
     </AdminPage>
   );
 }

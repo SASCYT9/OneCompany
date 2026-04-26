@@ -164,14 +164,14 @@ export default function MessagesPanel() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-        <div className="rounded-[6px] border border-white/10 bg-white/5 p-4 backdrop-blur">
+        <div className="rounded-none border border-white/10 bg-white/5 p-4 backdrop-blur">
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Пошук по імені, e-mail або тексту"
-              className="w-full rounded-xl border border-white/10 bg-black/20 py-2 pl-9 pr-4 text-sm text-white placeholder:text-white/40 focus:border-white/40 focus:outline-none"
+              className="w-full rounded-none border border-white/10 bg-black/20 py-2 pl-9 pr-4 text-sm text-white placeholder:text-white/40 focus:border-white/40 focus:outline-none"
             />
           </div>
           <div className="flex gap-2 pb-4 text-xs uppercase tracking-[0.3em] text-white/40">
@@ -189,7 +189,7 @@ export default function MessagesPanel() {
           </div>
           <div className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: 'calc(100dvh - 320px)' }}>
             {filteredMessages.length === 0 && (
-              <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-white/40">
+              <div className="rounded-none border border-dashed border-white/10 p-6 text-center text-sm text-white/40">
                 Немає повідомлень
               </div>
             )}
@@ -203,7 +203,7 @@ export default function MessagesPanel() {
                   }
                 }}
                 whileHover={{ x: 6 }}
-                className={`w-full rounded-[6px] border p-4 text-left transition-colors ${
+                className={`w-full rounded-none border p-4 text-left transition-colors ${
                   selectedMessage?.id === msg.id
                     ? 'border-white/60 bg-white/10'
                     : 'border-white/5 bg-white/5 hover:border-white/40'
@@ -223,7 +223,7 @@ export default function MessagesPanel() {
         </div>
 
         <div className={`fixed inset-0 z-50 bg-black lg:static lg:bg-transparent ${selectedMessage ? 'block' : 'hidden lg:block'}`}>
-          <div className="h-full rounded-none border-0 bg-black p-6 lg:rounded-[8px] lg:border lg:border-white/10 lg:bg-black/30 lg:backdrop-blur">
+          <div className="h-full rounded-none border-0 bg-black p-6 lg:rounded-none lg:border lg:border-white/10 lg:bg-black/30 lg:backdrop-blur">
           <AnimatePresence mode="wait">
             {selectedMessage ? (
               <motion.div
@@ -286,7 +286,7 @@ export default function MessagesPanel() {
                     <div className="space-y-3">
                       <p className="text-xs uppercase tracking-[0.4em] text-white/40">Історія відповідей</p>
                       {selectedMessage.replies.map((reply, index) => (
-                        <div key={`${reply.repliedAt}-${index}`} className="rounded-[6px] border border-white/10 bg-white/5 p-3">
+                        <div key={`${reply.repliedAt}-${index}`} className="rounded-none border border-white/10 bg-white/5 p-3">
                           <p className="text-sm text-white/80">{reply.replyText}</p>
                           <p className="mt-2 text-[11px] text-white/40">{new Date(reply.repliedAt).toLocaleString()}</p>
                         </div>
@@ -295,13 +295,13 @@ export default function MessagesPanel() {
                   )}
                 </div>
 
-                <div className="mt-6 rounded-[6px] border border-white/10 bg-white/5 p-4">
+                <div className="mt-6 rounded-none border border-white/10 bg-white/5 p-4">
                   <textarea
                     value={replyText}
                     onChange={(event) => setReplyText(event.target.value)}
                     rows={4}
                     placeholder={`Відповісти ${selectedMessage.userName}...`}
-                    className="w-full rounded-xl border border-white/10 bg-black/40 p-3 text-sm text-white placeholder:text-white/40 focus:border-white/40 focus:outline-none"
+                    className="w-full rounded-none border border-white/10 bg-black/40 p-3 text-sm text-white placeholder:text-white/40 focus:border-white/40 focus:outline-none"
                   />
                   <div className="mt-3 flex justify-end gap-3">
                     <button
@@ -320,7 +320,7 @@ export default function MessagesPanel() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="flex h-full flex-col items-center justify-center rounded-[8px] border border-dashed border-white/15 bg-white/5 p-12 text-center text-white/50"
+                className="flex h-full flex-col items-center justify-center rounded-none border border-dashed border-white/15 bg-white/5 p-12 text-center text-white/50"
               >
                 <Inbox className="mb-4 h-10 w-10" />
                 <p className="text-lg font-light">Оберіть повідомлення ліворуч</p>
@@ -347,7 +347,7 @@ function StatCard({
   accent?: string;
 }) {
   return (
-    <div className={`rounded-[6px] border ${accent ?? 'border-white/10'} bg-white/5 p-4 text-white backdrop-blur`}>
+    <div className={`rounded-none border ${accent ?? 'border-white/10'} bg-white/5 p-4 text-white backdrop-blur`}>
       <div className="flex items-center gap-3 text-sm uppercase tracking-[0.3em] text-white/60">
         {icon}
         <span>{label}</span>

@@ -43,6 +43,8 @@ type Props = {
   title?: ReactNode;
   subtitle?: ReactNode;
   badge?: ReactNode;
+  /** Optional slot rendered to the left of title/subtitle (e.g. product thumbnail). */
+  leading?: ReactNode;
   rows?: MobileCardRow[];
   footer?: ReactNode;
   href?: string;
@@ -55,6 +57,7 @@ export function AdminMobileCard({
   title,
   subtitle,
   badge,
+  leading,
   rows,
   footer,
   href,
@@ -73,11 +76,14 @@ export function AdminMobileCard({
 
   const content = (
     <>
-      {(title || badge) ? (
+      {(title || badge || leading) ? (
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            {title ? <div className="font-semibold text-zinc-50">{title}</div> : null}
-            {subtitle ? <div className="mt-0.5 truncate text-xs text-zinc-500">{subtitle}</div> : null}
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            {leading ? <div className="shrink-0">{leading}</div> : null}
+            <div className="min-w-0 flex-1">
+              {title ? <div className="font-semibold text-zinc-50">{title}</div> : null}
+              {subtitle ? <div className="mt-0.5 truncate text-xs text-zinc-500">{subtitle}</div> : null}
+            </div>
           </div>
           {badge ? <div className="shrink-0">{badge}</div> : null}
         </div>
@@ -106,7 +112,7 @@ export function AdminMobileCard({
   );
 
   const baseClass = cn(
-    'group relative block rounded-xl border p-3 transition active:scale-[0.99]',
+    'group relative block rounded-none border p-3 transition active:scale-[0.99]',
     toneClass,
     (href || onClick) && 'cursor-pointer hover:border-blue-500/30 hover:bg-blue-500/[0.06] pr-9',
     className

@@ -100,7 +100,7 @@ export function AdminInlineSelect<T extends string>({
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'group inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 transition hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-blue-500/40',
+          'group inline-flex items-center gap-1.5 rounded-none px-1.5 py-0.5 transition hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-blue-500/40',
           className
         )}
         aria-haspopup="listbox"
@@ -121,7 +121,7 @@ export function AdminInlineSelect<T extends string>({
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.12 }}
-          className="absolute left-0 top-full z-30 mt-1.5 min-w-[180px] overflow-hidden rounded-lg border border-white/[0.08] bg-[#171717] shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+          className="absolute left-0 top-full z-30 mt-1.5 min-w-[180px] overflow-hidden rounded-none border border-white/[0.08] bg-[#171717] shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
           role="listbox"
         >
           {options.map((opt) => {
@@ -247,7 +247,7 @@ export function AdminInlineNumber({
         type="button"
         onClick={() => setEditing(true)}
         className={cn(
-          'group inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 transition hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-blue-500/40',
+          'group inline-flex items-center gap-1.5 rounded-none px-1.5 py-0.5 transition hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-blue-500/40',
           className
         )}
       >
@@ -258,7 +258,7 @@ export function AdminInlineNumber({
   }
 
   return (
-    <span className="inline-flex items-center gap-1 rounded-md border border-blue-500/40 bg-[#0F0F0F] pl-1 pr-0.5 py-0.5">
+    <span className="inline-flex items-center gap-1 rounded-none border border-blue-500/40 bg-[#0F0F0F] pl-1 pr-0.5 py-0.5">
       {prefix ? <span className="text-xs text-zinc-500">{prefix}</span> : null}
       <input
         ref={inputRef}
@@ -289,7 +289,7 @@ export function AdminInlineNumber({
           type="button"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => void commit()}
-          className="rounded p-0.5 text-blue-400 hover:bg-blue-500/[0.15]"
+          className="rounded-none p-0.5 text-blue-400 hover:bg-blue-500/[0.15]"
           aria-label="Save"
         >
           <Check className="h-3 w-3" aria-hidden="true" />
@@ -300,7 +300,7 @@ export function AdminInlineNumber({
         onMouseDown={(e) => e.preventDefault()}
         onClick={cancel}
         disabled={saving}
-        className="rounded p-0.5 text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200"
+        className="rounded-none p-0.5 text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200"
         aria-label="Cancel"
       >
         <X className="h-3 w-3" aria-hidden="true" />

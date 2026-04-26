@@ -355,7 +355,7 @@ export default function AdminSettingsPage() {
                     onChange={(value) => updateDraft('soundEnabled', value)}
                     helper="Play a sound cue when new requests enter the admin queue."
                   />
-                  <div className="rounded-[6px] border border-white/8 bg-black/25 p-4">
+                  <div className="rounded-none border border-white/8 bg-black/25 p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <div className="text-sm font-medium text-zinc-100">Push notifications</div>
@@ -486,7 +486,7 @@ export default function AdminSettingsPage() {
                       onChange={(value) => updateDraft('logoUrl', value)}
                     />
                   </div>
-                  <div className="rounded-[6px] border border-white/8 bg-white p-4">
+                  <div className="rounded-none border border-white/8 bg-white p-4">
                     <div className="text-lg text-[#1a0dab]">{draft.metaTitle || 'OneCompany'}</div>
                     <div className="mt-1 text-sm text-[#006621]">onecompany.com.ua</div>
                     <div className="mt-1 text-sm leading-6 text-[#545454]">{draft.metaDescription || 'Description preview'}</div>

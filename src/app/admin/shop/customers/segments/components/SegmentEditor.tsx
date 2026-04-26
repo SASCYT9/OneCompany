@@ -161,7 +161,7 @@ export function SegmentEditor({ initialName = '', initialDescription = '', initi
               return (
                 <div
                   key={idx}
-                  className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto] items-end gap-2 rounded-lg border border-white/[0.05] bg-[#171717] p-2"
+                  className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto] items-end gap-2 rounded-none border border-white/[0.05] bg-[#171717] p-2"
                 >
                   <AdminSelectField
                     label="Field"
@@ -183,7 +183,7 @@ export function SegmentEditor({ initialName = '', initialDescription = '', initi
                   <button
                     type="button"
                     onClick={() => removeCondition(idx)}
-                    className="rounded p-1.5 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
+                    className="rounded-none p-1.5 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
                     aria-label="Remove condition"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -196,7 +196,7 @@ export function SegmentEditor({ initialName = '', initialDescription = '', initi
           <button
             type="button"
             onClick={addCondition}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 transition hover:bg-white/[0.06]"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-none border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 transition hover:bg-white/[0.06]"
           >
             <Plus className="h-3 w-3" />
             Add condition
@@ -211,13 +211,13 @@ export function SegmentEditor({ initialName = '', initialDescription = '', initi
               type="button"
               onClick={() => void handlePreview()}
               disabled={previewing || conditions.length === 0}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-blue-500/25 bg-blue-500/[0.06] px-3 py-2 text-xs font-bold uppercase tracking-wider text-blue-300 transition hover:bg-blue-500/[0.12] disabled:opacity-50"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-none border border-blue-500/25 bg-blue-500/[0.06] px-3 py-2 text-xs font-bold uppercase tracking-wider text-blue-300 transition hover:bg-blue-500/[0.12] disabled:opacity-50"
             >
               <Users className="h-3.5 w-3.5" />
               {previewing ? 'Computing…' : 'Preview matches'}
             </button>
             {previewCount !== null ? (
-              <div className="rounded-xl border border-blue-500/30 bg-blue-500/[0.08] p-3 text-center">
+              <div className="rounded-none border border-blue-500/30 bg-blue-500/[0.08] p-3 text-center">
                 <div className="text-[10px] uppercase tracking-wider text-blue-300">Matching customers</div>
                 <div className="mt-1 text-3xl font-bold tabular-nums text-blue-200">{previewCount}</div>
               </div>

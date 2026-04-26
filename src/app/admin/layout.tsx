@@ -130,7 +130,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               />
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#121212] shadow-[0_50px_120px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.04)]">
+            <div className="relative overflow-hidden rounded-none border border-white/[0.07] bg-[#121212] shadow-[0_50px_120px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.04)]">
               {/* Top blue accent line */}
               <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
 
@@ -140,7 +140,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                     initial={{ opacity: 0, scale: 0.85 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1, duration: 0.4 }}
-                    className="relative mx-auto mb-7 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600/15 shadow-[inset_0_1px_0_rgba(96,165,250,0.2),0_8px_24px_rgba(59,130,246,0.2)]"
+                    className="relative mx-auto mb-7 flex h-14 w-14 items-center justify-center rounded-none bg-blue-600/15 shadow-[inset_0_1px_0_rgba(96,165,250,0.2),0_8px_24px_rgba(59,130,246,0.2)]"
                   >
                     <Lock className="h-6 w-6 text-blue-400" strokeWidth={2} aria-hidden="true" />
                   </motion.div>
@@ -165,7 +165,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="admin@onecompany.local"
                       autoComplete="email"
-                      className="w-full rounded-lg border border-white/[0.08] bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 transition-all duration-150 focus:border-blue-500/50 focus:bg-[#171717] focus:outline-none focus:ring-2 focus:ring-blue-500/15"
+                      className="w-full rounded-none border border-white/[0.08] bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 transition-all duration-150 focus:border-blue-500/50 focus:bg-[#171717] focus:outline-none focus:ring-2 focus:ring-blue-500/15"
                       required
                     />
                   </div>
@@ -181,7 +181,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="••••••••••••"
                       autoComplete="current-password"
-                      className="w-full rounded-lg border border-white/[0.08] bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 transition-all duration-150 focus:border-blue-500/50 focus:bg-[#171717] focus:outline-none focus:ring-2 focus:ring-blue-500/15"
+                      className="w-full rounded-none border border-white/[0.08] bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 transition-all duration-150 focus:border-blue-500/50 focus:bg-[#171717] focus:outline-none focus:ring-2 focus:ring-blue-500/15"
                       required
                     />
                   </div>
@@ -192,7 +192,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       animate={{ opacity: 1, y: 0 }}
                       role="alert"
                       aria-live="assertive"
-                      className="rounded-lg border border-blue-500/30 bg-blue-950/30 px-4 py-3 text-sm text-red-100"
+                      className="rounded-none border border-blue-500/30 bg-blue-950/30 px-4 py-3 text-sm text-red-100"
                     >
                       {error}
                     </motion.div>
@@ -201,7 +201,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="group relative mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_4px_18px_rgba(59,130,246,0.4)] transition-all duration-150 hover:bg-blue-500 disabled:opacity-50"
+                    className="group relative mt-2 flex w-full items-center justify-center gap-2 rounded-none bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_4px_18px_rgba(59,130,246,0.4)] transition-all duration-150 hover:bg-blue-500 disabled:opacity-50"
                   >
                     {loading ? (
                       <>

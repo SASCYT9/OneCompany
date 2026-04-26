@@ -140,7 +140,7 @@ export default function AdminShopAuditPage() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="actor, action, entity, metadata"
-            className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+            className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
           />
         </label>
 
@@ -149,7 +149,7 @@ export default function AdminShopAuditPage() {
           <select
             value={entityType}
             onChange={(event) => setEntityType(event.target.value)}
-            className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+            className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
           >
             <option value="">Усі типи</option>
             {entityTypes.map((entry) => (
@@ -204,7 +204,7 @@ export default function AdminShopAuditPage() {
                           <td className="px-4 py-4">
                             <div className="font-medium text-zinc-100">{log.action}</div>
                             {log.metadata ? (
-                              <pre className="mt-2 max-h-40 overflow-auto rounded-[6px] border border-white/10 bg-black/25 p-3 text-[11px] text-zinc-500">
+                              <pre className="mt-2 max-h-40 overflow-auto rounded-none border border-white/10 bg-black/25 p-3 text-[11px] text-zinc-500">
                                 {JSON.stringify(log.metadata, null, 2)}
                               </pre>
                             ) : null}

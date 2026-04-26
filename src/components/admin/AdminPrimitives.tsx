@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
  * "OneCompany Blue" — premium dark with single blue accent.
  * See src/lib/admin/adminTheme.ts for color tokens.
  *
- * Geometry: 12px card radius (rounded-xl), full pills for status badges.
+ * Geometry: 12px card radius (rounded-none), full pills for status badges.
  * Backgrounds are pure warm-black surfaces; no carbon weave.
  */
 
@@ -18,8 +18,27 @@ const SURFACE_HOVER = 'hover:bg-[#1F1F1F]';
 const BORDER = 'border-white/[0.05]';
 const BORDER_HOVER = 'hover:border-white/[0.10]';
 
-export function AdminPage({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('mx-auto w-full max-w-[1640px] px-4 py-6 md:px-8 xl:px-10', className)}>{children}</div>;
+export function AdminPage({
+  children,
+  className,
+  wide,
+}: {
+  children: ReactNode;
+  className?: string;
+  /** Remove the 1640px max-width constraint — page fills the entire viewport. */
+  wide?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        'mx-auto w-full px-4 py-6 md:px-8 xl:px-10',
+        wide ? 'max-w-none' : 'max-w-[1640px]',
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function AdminPageHeader({
@@ -57,7 +76,7 @@ export function AdminPageHeader({
 
 export function AdminActionBar({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <section className={cn('rounded-xl border bg-[#171717] px-4 py-3.5', BORDER, className)}>
+    <section className={cn('rounded-none border bg-[#171717] px-4 py-3.5', BORDER, className)}>
       <div className="flex flex-wrap items-center justify-between gap-3">{children}</div>
     </section>
   );
@@ -67,7 +86,7 @@ export function AdminEntityToolbar({ children, className }: { children: ReactNod
   return (
     <section
       className={cn(
-        'sticky top-4 z-20 rounded-xl border border-white/[0.08] bg-[#171717]/95 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl',
+        'sticky top-4 z-20 rounded-none border border-white/[0.08] bg-[#171717]/95 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl',
         className
       )}
     >
@@ -106,7 +125,7 @@ export function AdminMetricCard({
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-xl border bg-[#171717] px-5 pt-5 transition-all duration-200',
+        'group relative overflow-hidden rounded-none border bg-[#171717] px-5 pt-5 transition-all duration-200',
         tone === 'accent' ? 'border-blue-500/25' : BORDER,
         'hover:border-white/[0.12]',
         spark && spark.length > 0 ? 'pb-0' : 'pb-5'
@@ -180,7 +199,7 @@ function SparkLine({ data }: { data: number[] }) {
 
 export function AdminFilterBar({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <section className={cn('rounded-xl border bg-[#171717] px-4 py-3', BORDER, className)}>
+    <section className={cn('rounded-none border bg-[#171717] px-4 py-3', BORDER, className)}>
       <div className="flex flex-wrap items-center gap-3">{children}</div>
     </section>
   );
@@ -188,7 +207,7 @@ export function AdminFilterBar({ children, className }: { children: ReactNode; c
 
 export function AdminTableShell({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('overflow-hidden rounded-xl border bg-[#171717]', BORDER, className)}>
+    <div className={cn('overflow-x-auto border bg-[#171717]', BORDER, className)}>
       {children}
     </div>
   );
@@ -242,7 +261,7 @@ export function AdminInsightPanel({
         : BORDER;
 
   return (
-    <section className={cn('rounded-xl border bg-[#171717] p-5 md:p-6', toneBorder, className)}>
+    <section className={cn('rounded-none border bg-[#171717] p-5 md:p-6', toneBorder, className)}>
       <div className="space-y-1">
         <h3 className="text-sm font-semibold tracking-tight text-zinc-100">{title}</h3>
         {description ? <p className="text-xs leading-5 text-zinc-500">{description}</p> : null}
@@ -294,7 +313,7 @@ export function AdminTrendChart({
 
   if (!chartData.length) {
     return (
-      <div className={cn('rounded-xl border border-dashed border-white/[0.08] bg-black/20 px-4 py-12 text-sm text-zinc-500', className)}>
+      <div className={cn('rounded-none border border-dashed border-white/[0.08] bg-black/20 px-4 py-12 text-sm text-zinc-500', className)}>
         No chart data available.
       </div>
     );
@@ -320,11 +339,11 @@ export function AdminTrendChart({
   const hasSecondary = chartData.some((d) => d.secondaryValue != null);
 
   return (
-    <div className={cn('rounded-xl border border-white/[0.05] bg-[#171717] p-4', className)}>
+    <div className={cn('rounded-none border border-white/[0.05] bg-[#171717] p-4', className)}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">
           <span className="inline-flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-sm bg-blue-500" />
+            <span className="h-2.5 w-2.5 rounded-none bg-blue-500" />
             <span className="font-medium">{valueLabel}</span>
           </span>
           {hasSecondary && secondaryLabel ? (
@@ -420,7 +439,7 @@ export function AdminBarList({
   };
 
   if (!normalized.length) {
-    return <div className={cn('rounded-xl border border-dashed border-white/[0.08] px-4 py-10 text-sm text-zinc-500', className)}>No data available.</div>;
+    return <div className={cn('rounded-none border border-dashed border-white/[0.08] px-4 py-10 text-sm text-zinc-500', className)}>No data available.</div>;
   }
 
   return (
@@ -487,7 +506,7 @@ export function AdminQuickActionCard({
     <Link
       href={href}
       className={cn(
-        'group relative overflow-hidden rounded-xl border bg-[#171717] px-5 py-5 transition-all duration-200',
+        'group relative overflow-hidden rounded-none border bg-[#171717] px-5 py-5 transition-all duration-200',
         BORDER,
         'hover:border-blue-500/30 hover:bg-[#1A1A1A]',
         className
@@ -541,7 +560,7 @@ export function AdminSettingsNav({
   className?: string;
 }) {
   return (
-    <nav className={cn('rounded-xl border bg-[#171717] p-2', BORDER, className)}>
+    <nav className={cn('rounded-none border bg-[#171717] p-2', BORDER, className)}>
       <div className="space-y-0.5">
         {items.map((item) => {
           const active = item.id === activeId;
@@ -551,7 +570,7 @@ export function AdminSettingsNav({
               type="button"
               onClick={() => onChange(item.id)}
               className={cn(
-                'w-full rounded-lg px-3.5 py-2.5 text-left transition-all duration-150',
+                'w-full rounded-none px-3.5 py-2.5 text-left transition-all duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]',
                 active
                   ? 'bg-blue-600 text-white'
@@ -572,7 +591,7 @@ export function AdminStickyActionBar({ children, className }: { children: ReactN
   return (
     <section
       className={cn(
-        'sticky top-4 z-20 rounded-xl border border-white/[0.08] bg-[#171717]/95 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl',
+        'sticky top-4 z-20 rounded-none border border-white/[0.08] bg-[#171717]/95 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl',
         className
       )}
     >
@@ -593,7 +612,7 @@ export function AdminDangerZone({
   className?: string;
 }) {
   return (
-    <section className={cn('rounded-xl border border-red-500/25 bg-red-950/20 p-5 md:p-6', className)}>
+    <section className={cn('rounded-none border border-red-500/25 bg-red-950/20 p-5 md:p-6', className)}>
       <div className="space-y-2">
         <h3 className="text-lg font-semibold tracking-tight text-red-100">{title}</h3>
         <p className="text-sm leading-6 text-red-200/80">{description}</p>
@@ -632,7 +651,7 @@ export function AdminInspectorCard({
   className?: string;
 }) {
   return (
-    <section className={cn('rounded-xl border bg-[#171717] p-5', BORDER, className)}>
+    <section className={cn('rounded-none border bg-[#171717] p-5', BORDER, className)}>
       <div className="space-y-1">
         <h2 className="text-sm font-semibold tracking-tight text-zinc-100">{title}</h2>
         {description ? <p className="text-xs leading-5 text-zinc-500">{description}</p> : null}
@@ -652,7 +671,7 @@ export function AdminKeyValueGrid({
   return (
     <dl className={cn('grid gap-1', className)}>
       {rows.map((row) => (
-        <div key={row.label} className="grid grid-cols-[120px_minmax(0,1fr)] items-center gap-3 rounded-lg bg-black/20 px-3 py-2">
+        <div key={row.label} className="grid grid-cols-[120px_minmax(0,1fr)] items-center gap-3 rounded-none bg-black/20 px-3 py-2">
           <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">{row.label}</dt>
           <dd className="text-sm font-medium text-zinc-100 [&_*]:tabular-nums">{row.value}</dd>
         </div>
@@ -691,7 +710,7 @@ export function AdminTimelineList({
 
   if (!items.length) {
     return (
-      <div className={cn('rounded-xl border border-dashed border-white/[0.08] bg-[#171717] px-4 py-10 text-sm text-zinc-500', className)}>
+      <div className={cn('rounded-none border border-dashed border-white/[0.08] bg-[#171717] px-4 py-10 text-sm text-zinc-500', className)}>
         {empty}
       </div>
     );
@@ -702,7 +721,7 @@ export function AdminTimelineList({
       {items.map((item) => (
         <li
           key={item.id}
-          className={cn('rounded-xl border bg-[#171717] px-4 py-3 transition-colors', BORDER, BORDER_HOVER)}
+          className={cn('rounded-none border bg-[#171717] px-4 py-3 transition-colors', BORDER, BORDER_HOVER)}
         >
           <div className="flex items-start gap-3">
             <div className="mt-1.5 h-2 w-2 rounded-full" aria-hidden="true">
@@ -741,7 +760,7 @@ export function AdminInlineAlert({
   const tonePrefix = tone === 'error' ? 'Error: ' : tone === 'success' ? 'Success: ' : 'Warning: ';
 
   return (
-    <div role={ariaRole} aria-live={ariaLive} aria-atomic="true" className={cn('rounded-lg border px-4 py-3 text-sm', toneClass, className)}>
+    <div role={ariaRole} aria-live={ariaLive} aria-atomic="true" className={cn('rounded-none border px-4 py-3 text-sm', toneClass, className)}>
       <span className="sr-only">{tonePrefix}</span>
       {children}
     </div>
@@ -778,24 +797,72 @@ export function AdminEmptyState({
   title,
   description,
   action,
+  illustration,
   className,
 }: {
   title: string;
   description: string;
   action?: ReactNode;
+  /** Optional override illustration. Defaults to a minimal "open box" SVG. */
+  illustration?: ReactNode;
   className?: string;
 }) {
   return (
-    <div className={cn('rounded-xl border border-dashed border-white/[0.08] bg-[#171717] px-6 py-16 text-center', className)}>
-      <div className="mx-auto max-w-md space-y-3">
-        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-blue-600/15">
-          <span className="h-2 w-2 rounded-full bg-blue-400" />
+    <div className={cn('rounded-none border border-dashed border-white/[0.08] bg-[#141414] px-6 py-20 text-center', className)}>
+      <div className="mx-auto max-w-lg space-y-4">
+        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-none bg-gradient-to-b from-blue-500/[0.08] to-transparent">
+          {illustration ?? <AdminEmptyStateIllustration />}
         </div>
-        <h2 className="text-lg font-semibold text-zinc-50">{title}</h2>
-        <p className="text-sm leading-6 text-zinc-400">{description}</p>
-        {action ? <div className="pt-2">{action}</div> : null}
+        <h2 className="text-xl font-semibold tracking-tight text-zinc-50">{title}</h2>
+        <p className="mx-auto max-w-md text-sm leading-6 text-zinc-400">{description}</p>
+        {action ? <div className="pt-3">{action}</div> : null}
       </div>
     </div>
+  );
+}
+
+function AdminEmptyStateIllustration() {
+  return (
+    <svg
+      width="72"
+      height="72"
+      viewBox="0 0 72 72"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Порожня скриня каталогу"
+      className="text-blue-400"
+    >
+      <defs>
+        <linearGradient id="oc-empty-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgb(59 130 246)" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="rgb(59 130 246)" stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M14 28L36 18l22 10v6L36 24 14 34v-6z"
+        fill="url(#oc-empty-fill)"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M14 34v18l22 10 22-10V34"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        opacity="0.85"
+      />
+      <path
+        d="M36 24v38"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+        opacity="0.6"
+      />
+      <circle cx="36" cy="40" r="2" fill="currentColor" opacity="0.6" />
+    </svg>
   );
 }
 
@@ -839,16 +906,16 @@ export function AdminEditorShell({
           <div className="min-w-0 space-y-6">{children}</div>
           <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
             {summary}
-            <div className={cn('rounded-xl border bg-[#171717] p-4', BORDER)}>
+            <div className={cn('rounded-none border bg-[#171717] p-4', BORDER)}>
               <div className="text-xs font-medium uppercase tracking-wider text-zinc-500">Editor map</div>
               <nav className="mt-3 space-y-0.5">
                 {sections.map((section, index) => (
                   <a
                     key={section.id}
                     href={`#${section.id}`}
-                    className="group flex items-start gap-3 rounded-lg px-3 py-2 text-sm text-zinc-400 transition-all hover:bg-white/[0.04] hover:text-zinc-50"
+                    className="group flex items-start gap-3 rounded-none px-3 py-2 text-sm text-zinc-400 transition-all hover:bg-white/[0.04] hover:text-zinc-50"
                   >
-                    <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-blue-600/15 text-[10px] font-semibold tabular-nums text-blue-400 transition-colors group-hover:bg-blue-600/25 group-hover:text-blue-300">
+                    <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-none bg-blue-600/15 text-[10px] font-semibold tabular-nums text-blue-400 transition-colors group-hover:bg-blue-600/25 group-hover:text-blue-300">
                       {String(index + 1).padStart(2, '0')}
                     </span>
                     <span className="space-y-0.5">
@@ -880,7 +947,7 @@ export function AdminEditorSection({
   className?: string;
 }) {
   return (
-    <section id={id} className={cn('scroll-mt-24 rounded-xl border bg-[#171717] p-5 md:p-6', BORDER, className)}>
+    <section id={id} className={cn('scroll-mt-24 rounded-none border bg-[#171717] p-5 md:p-6', BORDER, className)}>
       <div className="mb-5 max-w-2xl space-y-1.5">
         <h2 className="text-xl font-semibold tracking-tight text-zinc-50">{title}</h2>
         <p className="text-sm leading-6 text-zinc-400">{description}</p>
@@ -933,7 +1000,7 @@ export function AdminButton({
           : 'border border-white/[0.1] bg-white/[0.03] text-zinc-100 hover:border-white/20 hover:bg-white/[0.06]';
 
   const baseClass = cn(
-    'inline-flex items-center justify-center gap-2 rounded-lg font-medium tracking-tight transition-all duration-150',
+    'inline-flex items-center justify-center gap-2 rounded-none font-medium tracking-tight transition-all duration-150',
     'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-[#0A0A0A]',
     'disabled:cursor-not-allowed disabled:opacity-50',
     sizeClass,
@@ -983,7 +1050,7 @@ export function AdminCardSection({
   className?: string;
 }) {
   return (
-    <section className={cn('rounded-xl border bg-[#171717] p-5 md:p-6', BORDER, className)}>
+    <section className={cn('rounded-none border bg-[#171717] p-5 md:p-6', BORDER, className)}>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
           <h3 className="text-base font-semibold tracking-tight text-zinc-50">{title}</h3>

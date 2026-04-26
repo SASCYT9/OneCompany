@@ -114,7 +114,7 @@ export function AdminProductVariantCard({
   return (
     <div
       className={cn(
-        'group rounded-[6px] border bg-gradient-to-b from-[#141B33] to-[#0E1325] shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_1px_2px_rgba(0,0,0,0.4)] transition-all',
+        'group rounded-none border bg-gradient-to-b from-[#141B33] to-[#0E1325] shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_1px_2px_rgba(0,0,0,0.4)] transition-all',
         variant.isDefault ? 'border-blue-500/30' : 'border-white/[0.07]',
         open && 'shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_30px_rgba(0,0,0,0.4)]'
       )}
@@ -130,7 +130,7 @@ export function AdminProductVariantCard({
         <GripVertical className="h-4 w-4 shrink-0 text-zinc-600" aria-hidden="true" />
 
         {/* Image preview */}
-        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[8px] border border-white/[0.07] bg-black/40">
+        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-none border border-white/[0.07] bg-black/40">
           {variantImageSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -189,7 +189,7 @@ export function AdminProductVariantCard({
                     e.stopPropagation();
                     onSetDefault();
                   }}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-[6px] border border-white/[0.08] bg-white/[0.03] px-3 text-xs font-medium text-zinc-200 transition hover:border-blue-500/40 hover:text-blue-300"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 text-xs font-medium text-zinc-200 transition hover:border-blue-500/40 hover:text-blue-300"
                 >
                   <Star className="h-3.5 w-3.5" />
                   Make default
@@ -203,7 +203,7 @@ export function AdminProductVariantCard({
                   e.stopPropagation();
                   onRemove();
                 }}
-                className="inline-flex h-8 items-center gap-1.5 rounded-[6px] border border-blue-500/25 bg-blue-950/20 px-3 text-xs font-medium text-red-200 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                className="inline-flex h-8 items-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-950/20 px-3 text-xs font-medium text-red-200 transition hover:border-blue-500/50 hover:bg-blue-950/40"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Delete variant
@@ -212,7 +212,7 @@ export function AdminProductVariantCard({
           </div>
 
           {/* Tabs */}
-          <div role="tablist" aria-label="Variant sections" className="mb-4 flex gap-1 rounded-[6px] border border-white/[0.06] bg-black/30 p-1">
+          <div role="tablist" aria-label="Variant sections" className="mb-4 flex gap-1 rounded-none border border-white/[0.06] bg-black/30 p-1">
             {(['general', 'pricing', 'inventory', 'shipping'] as Tab[]).map((t) => (
               <button
                 key={t}
@@ -224,7 +224,7 @@ export function AdminProductVariantCard({
                   setTab(t);
                 }}
                 className={cn(
-                  'flex-1 rounded-[4px] px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all',
+                  'flex-1 rounded-none px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#171717]',
                   tab === t
                     ? 'bg-gradient-to-b from-white/[0.08] to-white/[0.03] text-zinc-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]'
@@ -362,7 +362,7 @@ export function AdminProductVariantCard({
                 <InputField label="Grams (override)" type="number" value={variant.grams} onChange={(v) => onUpdate({ grams: v })} />
                 <InputField label="Weight unit" value={variant.weightUnit} onChange={(v) => onUpdate({ weightUnit: v })} placeholder="kg / lb / g" />
               </div>
-              <div className="flex flex-wrap gap-6 rounded-[6px] border border-white/[0.06] bg-black/30 p-4">
+              <div className="flex flex-wrap gap-6 rounded-none border border-white/[0.06] bg-black/30 p-4">
                 <CheckboxField
                   label="Requires shipping"
                   checked={variant.requiresShipping}
@@ -404,7 +404,7 @@ function PricingGroup({
   onChange: (p: { eur: string; usd: string; uah: string }) => void;
 }) {
   return (
-    <div className="rounded-[6px] border border-white/[0.06] bg-black/20 p-4">
+    <div className="rounded-none border border-white/[0.06] bg-black/20 p-4">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <div className="text-sm font-semibold text-zinc-100">{title}</div>

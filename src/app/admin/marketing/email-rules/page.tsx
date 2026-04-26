@@ -190,8 +190,8 @@ export default function AdminEmailRulesPage() {
     return (
       <AdminPage className="space-y-6">
         <div className="space-y-3">
-          <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
-          <div className="h-3.5 w-96 motion-safe:animate-pulse rounded bg-white/[0.04]" />
+          <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+          <div className="h-3.5 w-96 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
         </div>
         <AdminSkeletonKpiGrid count={4} />
         <AdminSkeletonTable rows={6} cols={5} />
@@ -317,7 +317,7 @@ export default function AdminEmailRulesPage() {
                         <button
                           type="button"
                           onClick={() => setEditingRule(r)}
-                          className="rounded p-1.5 text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200"
+                          className="rounded-none p-1.5 text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200"
                           aria-label="Редагувати правило"
                         >
                           <FileEdit className="h-3.5 w-3.5" />
@@ -325,7 +325,7 @@ export default function AdminEmailRulesPage() {
                         <button
                           type="button"
                           onClick={() => void deleteRule(r.id, r.name)}
-                          className="rounded p-1.5 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
+                          className="rounded-none p-1.5 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
                           aria-label="Видалити правило"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -388,7 +388,7 @@ export default function AdminEmailRulesPage() {
                       <button
                         type="button"
                         onClick={() => setEditingTemplate(t)}
-                        className="rounded p-1.5 text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200"
+                        className="rounded-none p-1.5 text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200"
                         aria-label="Редагувати шаблон"
                       >
                         <FileEdit className="h-3.5 w-3.5" />
@@ -397,7 +397,7 @@ export default function AdminEmailRulesPage() {
                         type="button"
                         onClick={() => void deleteTemplate(t)}
                         disabled={t.isSystem}
-                        className="rounded p-1.5 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400 disabled:opacity-30"
+                        className="rounded-none p-1.5 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400 disabled:opacity-30"
                         aria-label="Видалити шаблон"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -490,7 +490,7 @@ function RuleEditor({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-[#171717] shadow-2xl">
+      <div className="w-full max-w-2xl rounded-none border border-white/[0.08] bg-[#171717] shadow-2xl">
         <div className="border-b border-white/[0.05] p-5">
           <h2 className="text-lg font-bold text-zinc-50">{rule ? 'Редагування правила' : 'Нове правило автоматизації'}</h2>
           <p className="mt-1 text-xs text-zinc-500">Правило запускає шаблон, коли відбувається тригер.</p>
@@ -516,7 +516,7 @@ function RuleEditor({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
+            className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-2 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
           >
             Скасувати
           </button>
@@ -524,7 +524,7 @@ function RuleEditor({
             type="button"
             onClick={() => void handleSave()}
             disabled={saving || !name || !templateId}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-none bg-blue-600 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
           >
             {saving ? 'Збереження…' : rule ? 'Зберегти правило' : 'Створити правило'}
             <ChevronRight className="h-3.5 w-3.5" />
@@ -587,11 +587,11 @@ function TemplateEditor({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="flex h-full max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl border border-white/[0.08] bg-[#171717] shadow-2xl">
+      <div className="flex h-full max-h-[90vh] w-full max-w-3xl flex-col rounded-none border border-white/[0.08] bg-[#171717] shadow-2xl">
         <div className="border-b border-white/[0.05] p-5">
           <h2 className="text-lg font-bold text-zinc-50">{template ? 'Редагування шаблону' : 'Новий email-шаблон'}</h2>
           <p className="mt-1 text-xs text-zinc-500">
-            Використовуйте <code className="rounded bg-white/[0.04] px-1 py-0 text-blue-300">{`{{назваЗмінної}}`}</code> для підстановок. Поширені: customerName, orderNumber, total, currency.
+            Використовуйте <code className="rounded-none bg-white/[0.04] px-1 py-0 text-blue-300">{`{{назваЗмінної}}`}</code> для підстановок. Поширені: customerName, orderNumber, total, currency.
           </p>
         </div>
         <div className="flex-1 space-y-4 overflow-auto p-5">
@@ -625,7 +625,7 @@ function TemplateEditor({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
+            className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-2 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
           >
             Скасувати
           </button>
@@ -633,7 +633,7 @@ function TemplateEditor({
             type="button"
             onClick={() => void handleSave()}
             disabled={saving || !name || !subject || !bodyHtml || (!template && !key)}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-none bg-blue-600 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
           >
             {saving ? 'Збереження…' : template ? 'Зберегти шаблон' : 'Створити шаблон'}
           </button>

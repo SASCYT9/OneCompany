@@ -62,6 +62,259 @@ function uniqueStrings(values: Array<string | null | undefined>) {
 const SHOP_PRODUCT_FALLBACK_IMAGE = '/images/placeholders/product-fallback.svg';
 
 const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: string[] }> = {
+  'URB-WHE-26009228-V1': {
+    image: '/images/shop/urban/products/fallback/urban-ucr-1.webp',
+    gallery: [
+      '/images/shop/urban/products/fallback/urban-ucr-1.webp',
+      '/images/shop/urban/products/fallback/urban-ucr-2.webp',
+      '/images/shop/urban/products/fallback/urban-ucr-3.webp',
+      '/images/shop/urban/carousel/models/golfRMk8/carousel-1-1920.jpg',
+    ],
+  },
+  'URB-WHE-26009229-V1': {
+    image: '/images/shop/urban/products/fallback/urban-ucr-1.webp',
+    gallery: [
+      '/images/shop/urban/products/fallback/urban-ucr-1.webp',
+      '/images/shop/urban/products/fallback/urban-ucr-2.webp',
+      '/images/shop/urban/products/fallback/urban-ucr-3.webp',
+      '/images/shop/urban/carousel/models/golfRMk8/carousel-1-1920.jpg',
+    ],
+  },
+  'URB-WHE-26009230-V1': {
+    image: '/images/shop/urban/products/fallback/urban-ucr-1.webp',
+    gallery: [
+      '/images/shop/urban/products/fallback/urban-ucr-1.webp',
+      '/images/shop/urban/products/fallback/urban-ucr-2.webp',
+      '/images/shop/urban/products/fallback/urban-ucr-3.webp',
+      '/images/shop/urban/carousel/models/golfRMk8/carousel-1-1920.jpg',
+    ],
+  },
+  'URB-WHE-26009235-V1': {
+    image: '/images/shop/urban/products/fallback/urban-ucr-1.webp',
+    gallery: [
+      '/images/shop/urban/products/fallback/urban-ucr-1.webp',
+      '/images/shop/urban/products/fallback/urban-ucr-2.webp',
+      '/images/shop/urban/products/fallback/urban-ucr-3.webp',
+      '/images/shop/urban/carousel/models/golfRMk8/carousel-1-1920.jpg',
+    ],
+  },
+  'URB-WHE-26009245-V1': {
+    image: '/images/shop/urban/products/urus-se/UC7_BLACK_GLOSS_2.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/UC7_BLACK_GLOSS_2.png',
+      '/images/shop/urban/products/urus-se/Mercedes_EQC_Kit_Left.jpg',
+      '/images/shop/urban/products/urus-se/Mercedes_EQC_Kit_Front.jpg',
+    ],
+  },
+  'URB-WHE-26009246-V1': {
+    image: '/images/shop/urban/products/urus-se/UC7_BLACK_GLOSS_2.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/UC7_BLACK_GLOSS_2.png',
+      '/images/shop/urban/products/urus-se/Mercedes_EQC_Kit_Left.jpg',
+      '/images/shop/urban/products/urus-se/Mercedes_EQC_Kit_Front.jpg',
+    ],
+  },
+  'URB-WHE-26009247-V1': {
+    image: '/images/shop/urban/products/urus-se/UC7_BLACK_GLOSS_2.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/UC7_BLACK_GLOSS_2.png',
+      '/images/shop/urban/products/urus-se/Mercedes_EQC_Kit_Left.jpg',
+      '/images/shop/urban/products/urus-se/Mercedes_EQC_Kit_Front.jpg',
+    ],
+  },
+  'URB-WHE-26009248-V1': {
+    image: '/images/shop/urban/products/urus-se/UC7_BLACK_GLOSS_2.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/UC7_BLACK_GLOSS_2.png',
+      '/images/shop/urban/products/urus-se/Mercedes_EQC_Kit_Left.jpg',
+      '/images/shop/urban/products/urus-se/Mercedes_EQC_Kit_Front.jpg',
+    ],
+  },
+  'URB-WHE-25358183-V1': {
+    image: '/images/shop/urban/products/urus-se/Mercedes_EQC_Kit_Left.jpg',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Mercedes_EQC_Kit_Left.jpg',
+      '/images/shop/urban/kits/models/eqc/front.jpg',
+      '/images/shop/urban/kits/models/eqc/back.jpg',
+      '/images/shop/urban/products/urus-se/Mercedes_EQC_Kit_Right.jpg',
+    ],
+  },
+  'URB-GRI-25353018-V1': {
+    image:
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban-Automotive-Range-Rover-L460-Front-Grille-Main.png?v=1712841292',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban-Automotive-Range-Rover-L460-Front-Grille-Main.png?v=1712841292',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban-Automotive-Range-Rover-L460-Front-Grille-2.png?v=1712841292',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban-Automotive-Range-Rover-L460-Front-Grille-GlossBlack.png?v=1712841292',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban-Automotive-Range-Rover-L460-Front-Grille-Satin-Black.png?v=1712841292',
+    ],
+  },
+  'URB-GRI-26006222-V1': {
+    image:
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban-Automotive-Range-Rover-Sport-L461-Front-Grille-Main.png?v=1734085371',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban-Automotive-Range-Rover-Sport-L461-Front-Grille-Main.png?v=1734085371',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban-Automotive-Range-Rover-Sport-L461-Front-Grille-2.png?v=1734085371',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban-Automotive-Range-Rover-Sport-L461-Front-Grille-Gloss-Black.png?v=1734085371',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban-Automotive-Range-Rover-Sport-L461-Front-Grille-Satin-Black.png?v=1734085358',
+    ],
+  },
+  'URB-MIR-25353022-V1': {
+    image:
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/LandRoverL460_L461WingMirrorCaps_1.png?v=1739203308',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/LandRoverL460_L461WingMirrorCaps_1.png?v=1739203308',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/LandRoverL460_L461WingMirrorCaps_2_846bb061-c8fa-4387-8ffb-eb0c954671d7.png?v=1739276195',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/LandRoverL460_L461WingMirrorCaps_3_85731aaf-9206-4d2a-a23d-bf0c630b39f7.png?v=1739276195',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/RR_Sport_HQ_Stock-24.jpg?v=1739276195',
+    ],
+  },
+  'URB-SID-26014095-V1': {
+    image:
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/440-0229-L460RangeRover-CarbonFibreSideAccentTrim-LH_1.png?v=1767968718',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/440-0229-L460RangeRover-CarbonFibreSideAccentTrim-LH_1.png?v=1767968718',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/440-0229-L460RangeRover-CarbonFibreSideAccentTrim-LH_3.png?v=1767968812',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/440-0229-L460RangeRover-CarbonFibreSideAccentTrim-LH_2.png?v=1767968812',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban_Automotive_RangeRover_L460_Black_UC9_SatinBlack_CarbonSideblade_Location-2copy.jpg?v=1767968812',
+    ],
+  },
+  'URB-FRO-25290062-V1': {
+    image:
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban_Automotive_RangeRoverSport_L461_AeroKit_FrontSplitter-1.png?v=1760704798',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban_Automotive_RangeRoverSport_L461_AeroKit_FrontSplitter-1.png?v=1760704798',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban_Automotive_RangeRoverSport_L461_AeroKit_FrontSplitter-2.png?v=1760705745',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban_Automotive_RangeRoverSport_L461_AeroKit_FrontSplitter-3.png?v=1760705745',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Urban_Automotive_RangeRover_Sport_Black_UC9_Black_Satin-4_be339b10-6f39-41d9-8822-4552a170b9a1.jpg?v=1760705745',
+    ],
+  },
+  'URB-SPO-26006220-V1': {
+    image: 'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Full_Spoiler_Image.png?v=1708013223',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Full_Spoiler_Image.png?v=1708013223',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Detail_2_Gloss_Black_Badge.png?v=1708013223',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Detail_1_80ee2c0e-a503-4055-aa0b-b89f94392efd.png?v=1708013223',
+    ],
+  },
+  'URB-SPO-25353016-V1': {
+    image:
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Gloss-Black-Top_c4dfe69c-0365-426f-b7fe-e4c4bc333728.png?v=1704993666',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Gloss-Black-Top_c4dfe69c-0365-426f-b7fe-e4c4bc333728.png?v=1704993666',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Gloss-Black-Top-2.png?v=1704993666',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/DSC06364.jpg?v=1704993961',
+    ],
+  },
+  'URB-SPO-25353021-V1': {
+    image: 'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Carbon-Spoiler-Lower.png?v=1705046784',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Carbon-Spoiler-Lower.png?v=1705046784',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/files/Carbon-Spoiler-Top.png?v=1705046783',
+    ],
+  },
+  'URB-NUM-25353147-V1': {
+    image: 'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/J0A3100.jpg?v=1542208351',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/J0A3100.jpg?v=1542208351',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/J0A3099.jpg?v=1542208351',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/J0A3094.jpg?v=1542208351',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/J0A3101.jpg?v=1542208351',
+    ],
+  },
+  'URB-NUM-25353148-V1': {
+    image: 'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/J0A3100.jpg?v=1542208351',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/J0A3100.jpg?v=1542208351',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/J0A3099.jpg?v=1542208351',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/J0A3094.jpg?v=1542208351',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/J0A3101.jpg?v=1542208351',
+    ],
+  },
+  'URB-SPO-25353150-V1': {
+    image: 'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/URBANLandRoverDiscoveryD5Spoiler01.png?v=1633530072',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/URBANLandRoverDiscoveryD5Spoiler01.png?v=1633530072',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/URBANLandRoverDiscoveryD5Spoiler02.png?v=1633530073',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/URBANLandRoverDiscoveryD5Spoiler03.png?v=1633530072',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/URBANLandRoverDiscoveryD5Spoiler04.png?v=1633530070',
+    ],
+  },
+  'URB-ROO-25353149-V1': {
+    image: 'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/D5LightBar-1.png?v=1646054211',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/D5LightBar-1.png?v=1646054211',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/D5LightBar-2.png?v=1646054210',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/D5LightBar-3.png?v=1646054211',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/D5LightBar-4.png?v=1646054212',
+    ],
+  },
+  'URB-MIR-25353056-V1': {
+    image:
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/Urban-Range-Rover-Sport-Carbon-Wing-MIrror-Cap_1.jpg?v=1603986862',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/Urban-Range-Rover-Sport-Carbon-Wing-MIrror-Cap_1.jpg?v=1603986862',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/Urban-Range-Rover-Sport-Carbon-Wing-MIrror-Cap_2.jpg?v=1603986862',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/Urban-Range-Rover-Sport-Carbon-Wing-MIrror-Cap_5.jpg?v=1603986862',
+      'https://cdn.shopify.com/s/files/1/0074/4190/7790/products/Urban-Range-Rover-Sport-Carbon-Wing-MIrror-Cap_7.jpg?v=1603986862',
+    ],
+  },
+  'URB-WHE-26009282-V1': {
+    image: '/images/shop/urban/products/urus-se/Urban_Cast_UC_8_Alloy_Wheels_Gloss_Black_7.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Urban_Cast_UC_8_Alloy_Wheels_Gloss_Black_7.png',
+      '/images/shop/urban/products/urus-se/Urban_Cast_UC_8_Alloy_Wheels_Satin_Black_2.png',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-1-1920.webp',
+    ],
+  },
+  'URB-WHE-26009283-V1': {
+    image: '/images/shop/urban/products/urus-se/Urban_Cast_UC_8_Alloy_Wheels_Satin_Black_2.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Urban_Cast_UC_8_Alloy_Wheels_Satin_Black_2.png',
+      '/images/shop/urban/products/urus-se/Urban_Cast_UC_8_Alloy_Wheels_Gloss_Black_7.png',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-1-1920.webp',
+    ],
+  },
+  'URB-WHE-26009315-V1': {
+    image: '/images/shop/urban/products/urus-se/Urban_Cast_UC_8_Alloy_Wheels_Gloss_Black_7.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Urban_Cast_UC_8_Alloy_Wheels_Gloss_Black_7.png',
+      '/images/shop/urban/products/urus-se/Urban_Cast_UC_8_Alloy_Wheels_Satin_Black_2.png',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-1-1920.webp',
+    ],
+  },
+  'URB-WHE-26009316-V1': {
+    image: '/images/shop/urban/products/urus-se/Urban_Cast_UC_8_Alloy_Wheels_Satin_Black_2.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Urban_Cast_UC_8_Alloy_Wheels_Satin_Black_2.png',
+      '/images/shop/urban/products/urus-se/Urban_Cast_UC_8_Alloy_Wheels_Gloss_Black_7.png',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-1-1920.webp',
+    ],
+  },
+  'URB-WHE-26009362-V1': {
+    image: '/images/shop/urban/products/fallback/wheel-spacer-5x120-pair.jpg',
+    gallery: [
+      '/images/shop/urban/products/fallback/wheel-spacer-5x120-pair.jpg',
+      '/images/shop/urban/products/fallback/wheel-spacer-installed-context.webp',
+      '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-3-2560.webp',
+    ],
+  },
+  'URB-WHE-26009363-V1': {
+    image: '/images/shop/urban/products/fallback/wheel-spacer-5x120-pair.jpg',
+    gallery: [
+      '/images/shop/urban/products/fallback/wheel-spacer-5x120-pair.jpg',
+      '/images/shop/urban/products/fallback/wheel-spacer-installed-context.webp',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-1-1920.webp',
+    ],
+  },
+  'URB-WHE-26009364-V1': {
+    image: '/images/shop/urban/products/fallback/wheel-spacer-5x120-pair.jpg',
+    gallery: [
+      '/images/shop/urban/products/fallback/wheel-spacer-5x120-pair.jpg',
+      '/images/shop/urban/products/fallback/wheel-spacer-installed-context.webp',
+      '/images/shop/urban/carousel/models/rangeRover2022Plus/webp/urban-range-rover-mk-dons-1-1920.webp',
+    ],
+  },
   'URB-DIF-25358211-V1': {
     image:
       '/images/shop/urban/products/urus-se/410-0001_Audi_20RS3_208Y_20-_20Visual_20Carbon_20Fibre_20Diffuser_20Assembly_20with_20URBAN_20Branding_1.png',
@@ -149,12 +402,37 @@ const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: st
     ],
   },
   'URB-FRO-25358230-V1': {
-    image: 'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/RSQ8.png?v=1767898805',
+    image: 'https://houseofurban.co.uk/cdn/shop/files/RSQ8_FULL_KIT_12_1800x1800.png?v=1683016207',
     gallery: [
-      'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/RSQ8.png?v=1767898805',
+      'https://houseofurban.co.uk/cdn/shop/files/RSQ8_FULL_KIT_12_1800x1800.png?v=1683016207',
+      'https://houseofurban.co.uk/cdn/shop/files/RSQ8_FULL_KIT_13_1800x1800.png?v=1683016207',
       'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/front.jpg',
       'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/rsq8/carousel-1-1920.jpg',
       'https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/rsq8/hero-1-1920.jpg',
+    ],
+  },
+  'URB-SPL-25358229-V1': {
+    image: 'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/RSQ8_ab0399e4-b449-4045-83f1-78b002f223b3.png?v=1776079114',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/RSQ8_ab0399e4-b449-4045-83f1-78b002f223b3.png?v=1776079114',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/front.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/rsq8/hero-1-1920.jpg',
+    ],
+  },
+  'URB-SIL-25358231-V1': {
+    image: 'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/RSQ8_997427ee-7805-40bb-a0ff-72275b9886ee.png?v=1776079225',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/RSQ8_997427ee-7805-40bb-a0ff-72275b9886ee.png?v=1776079225',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/left.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/hero/models/rsq8/hero-1-1920.jpg',
+    ],
+  },
+  'URB-SIL-25358232-V1': {
+    image: 'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/RSQ8_80247883-e612-48a7-b581-67b24e863b37.png?v=1776079247',
+    gallery: [
+      'https://cdn.shopify.com/s/files/1/0733/4058/4242/files/RSQ8_80247883-e612-48a7-b581-67b24e863b37.png?v=1776079247',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/kits/models/rsq8/back.jpg',
+      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/rsq8/banner-2-1920.jpg',
     ],
   },
   'URB-SPO-26006234-V1': {
@@ -683,6 +961,10 @@ const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: st
   },
 };
 
+export function getShopProductImageOverrideForSku(sku: string | null | undefined) {
+  return SHOP_PRODUCT_IMAGE_OVERRIDES[String(sku ?? '').trim().toUpperCase()] ?? null;
+}
+
 function isGirodiscCatalogProduct(product: Pick<ShopProduct, 'brand' | 'vendor'>) {
   return normalizeBrandImageKey(product.brand) === 'GIRODISC' || normalizeBrandImageKey(product.vendor) === 'GIRODISC';
 }
@@ -692,7 +974,7 @@ function isImageComingSoonAsset(value: string | null | undefined) {
 }
 
 function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {
-  const override = SHOP_PRODUCT_IMAGE_OVERRIDES[String(product.sku ?? '').trim().toUpperCase()];
+  const override = getShopProductImageOverrideForSku(product.sku);
   const hasGirodiscPlaceholder =
     isGirodiscCatalogProduct(product) &&
     (isImageComingSoonAsset(product.image) || Boolean(product.gallery?.some(isImageComingSoonAsset)));
@@ -1259,14 +1541,14 @@ function normalizeCatalogProducts(products: ShopProduct[]) {
 let globalProductsCache: ShopProduct[] | null = null;
 let lastCacheTime = 0;
 let globalProductsPromise: Promise<ShopProduct[]> | null = null;
-const SHOP_PRODUCTS_DEV_CACHE_VERSION = 4;
+const SHOP_PRODUCTS_DEV_CACHE_VERSION = 5;
 
 /** All products: from DB (published) then static catalog (by slug, DB wins). */
 export async function getShopProductsServer(): Promise<ShopProduct[]> {
   const now = Date.now();
   // Memory cache for 45 seconds (prevents Vercel OOM during heavy static build)
   if (globalProductsCache && (now - lastCacheTime < 45000)) {
-    return globalProductsCache;
+    return globalProductsCache.map(applyShopProductImageOverrides);
   }
   if (globalProductsPromise) {
     return globalProductsPromise;
@@ -1292,7 +1574,7 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
             : null;
 
         if (cachedProducts) {
-          globalProductsCache = normalizeCatalogProducts(cachedProducts);
+          globalProductsCache = normalizeCatalogProducts(cachedProducts).map(applyShopProductImageOverrides);
           lastCacheTime = stat.mtimeMs;
           return globalProductsCache as ShopProduct[];
         }
@@ -1338,7 +1620,7 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
       if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
     });
 
-    globalProductsCache = Array.from(bySlug.values());
+    globalProductsCache = Array.from(bySlug.values()).map(applyShopProductImageOverrides);
     lastCacheTime = Date.now();
 
     if (isDev && cachePath) {

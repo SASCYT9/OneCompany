@@ -77,7 +77,7 @@ export default function CrmCustomerDetailPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+        <div className="flex items-center gap-3 rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
           Завантаження клієнта…
         </div>
@@ -94,7 +94,7 @@ export default function CrmCustomerDetailPage() {
           action={
             <Link
               href="/admin/crm"
-              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+              className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               Back to CRM
             </Link>
@@ -120,7 +120,7 @@ export default function CrmCustomerDetailPage() {
             customer.markup ? (
               <Link
                 href="/admin/shop/pricing"
-                className="rounded-[6px] border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-right"
+                className="rounded-none border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-right"
               >
                 <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-200/70">
                   Персональна націнка

@@ -968,7 +968,7 @@ export default function AdminShopSettingsPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+        <div className="flex items-center gap-3 rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <Settings2 className="h-4 w-4 animate-pulse" />
           Завантаження налаштувань магазину…
         </div>
@@ -987,7 +987,7 @@ export default function AdminShopSettingsPage() {
           title="Налаштування магазину"
           description="Валюти вітрини, правила доставки та податків, видимість B2B, платіжні реквізити та операційні інтеграції каталогу. Порядок правил важливий: застосовується перша збіжна зона доставки або податкове правило."
           actions={
-            <div className="rounded-[6px] border border-white/10 bg-[#171717] px-4 py-3 text-right">
+            <div className="rounded-none border border-white/10 bg-[#171717] px-4 py-3 text-right">
               <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Оновлено</div>
               <div className="mt-2 text-sm text-zinc-200">{updatedAt ? new Date(updatedAt).toLocaleString() : '—'}</div>
             </div>
@@ -1015,7 +1015,7 @@ export default function AdminShopSettingsPage() {
             type="submit"
             form="admin-shop-settings-form"
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
             {saving ? 'Saving…' : 'Save settings'}
@@ -1023,14 +1023,14 @@ export default function AdminShopSettingsPage() {
           <button
             type="button"
             onClick={() => void load()}
-            className="rounded-[6px] border border-white/15 px-5 py-2.5 text-sm text-zinc-200 transition hover:bg-white/5"
+            className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-zinc-200 transition hover:bg-white/5"
           >
             Reload
           </button>
           <button
             type="button"
             onClick={exportSettings}
-            className="inline-flex items-center gap-2 rounded-[6px] border border-white/15 px-5 py-2.5 text-sm text-zinc-200 transition hover:bg-white/5"
+            className="inline-flex items-center gap-2 rounded-none border border-white/15 px-5 py-2.5 text-sm text-zinc-200 transition hover:bg-white/5"
           >
             <Download className="h-4 w-4" />
             Export
@@ -1410,7 +1410,7 @@ export default function AdminShopSettingsPage() {
                       <button
                         type="button"
                         onClick={() => removeShippingZone(index)}
-                        className="rounded-[4px] border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                        className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
                         title="Видалити зону"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1594,7 +1594,7 @@ export default function AdminShopSettingsPage() {
                       <button
                         type="button"
                         onClick={() => removeBrandShippingRule(index)}
-                        className="rounded-[4px] border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                        className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
                         title="Видалити"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1704,7 +1704,7 @@ export default function AdminShopSettingsPage() {
                       <button
                         type="button"
                         onClick={() => removeTaxRegion(index)}
-                        className="rounded-[4px] border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                        className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
                         title="Видалити правило податку"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1808,7 +1808,7 @@ export default function AdminShopSettingsPage() {
                       <button
                         type="button"
                         onClick={() => removeRegionalPricingRule(index)}
-                        className="rounded-[4px] border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                        className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
                         title="Видалити регіональне правило"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -2002,7 +2002,7 @@ export default function AdminShopSettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-[4px] bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
               {saving ? 'Saving…' : 'Save settings'}

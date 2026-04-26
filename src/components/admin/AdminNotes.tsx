@@ -119,7 +119,7 @@ export function AdminNotes({
   return (
     <div className="space-y-3">
       {/* Composer */}
-      <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-3">
+      <div className="rounded-none border border-white/[0.05] bg-[#171717] p-3">
         <textarea
           value={composeText}
           onChange={(e) => setComposeText(e.target.value)}
@@ -138,7 +138,7 @@ export function AdminNotes({
             type="button"
             onClick={() => void addNote()}
             disabled={composing || !composeText.trim()}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-none bg-blue-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
           >
             {composing ? <Loader2 className="h-3 w-3 motion-safe:animate-spin" /> : <MessageSquarePlus className="h-3 w-3" />}
             Додати нотатку
@@ -150,9 +150,9 @@ export function AdminNotes({
       {loading ? (
         <div className="text-xs text-zinc-500">Завантаження нотаток…</div>
       ) : error ? (
-        <div className="rounded-lg border border-red-500/20 bg-red-500/[0.05] p-3 text-xs text-red-300">{error}</div>
+        <div className="rounded-none border border-red-500/20 bg-red-500/[0.05] p-3 text-xs text-red-300">{error}</div>
       ) : notes.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-white/[0.08] bg-black/20 p-4 text-center text-xs text-zinc-500">
+        <div className="rounded-none border border-dashed border-white/[0.08] bg-black/20 p-4 text-center text-xs text-zinc-500">
           Поки немає нотаток. Додайте першу вище.
         </div>
       ) : (
@@ -160,7 +160,7 @@ export function AdminNotes({
           {notes.map((n) => (
             <div
               key={n.id}
-              className={`group rounded-xl border p-3 transition ${
+              className={`group rounded-none border p-3 transition ${
                 n.isPinned
                   ? 'border-amber-500/25 bg-amber-500/[0.04]'
                   : 'border-white/[0.05] bg-[#171717]'
@@ -182,7 +182,7 @@ export function AdminNotes({
                     onClick={() => void togglePin(n)}
                     aria-label={n.isPinned ? 'Відкріпити' : 'Закріпити'}
                     title={n.isPinned ? 'Відкріпити' : 'Закріпити'}
-                    className="rounded p-1 text-zinc-500 hover:bg-white/[0.06] hover:text-amber-300"
+                    className="rounded-none p-1 text-zinc-500 hover:bg-white/[0.06] hover:text-amber-300"
                   >
                     {n.isPinned ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
                   </button>
@@ -191,7 +191,7 @@ export function AdminNotes({
                     onClick={() => void deleteNote(n)}
                     aria-label="Видалити"
                     title="Видалити (тільки автор)"
-                    className="rounded p-1 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
+                    className="rounded-none p-1 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>

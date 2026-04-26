@@ -230,8 +230,8 @@ export default function AdminDraftDetailPage() {
     return (
       <AdminPage>
         <div className="space-y-3">
-          <div className="h-3 w-20 motion-safe:animate-pulse rounded bg-white/[0.06]" />
-          <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
+          <div className="h-3 w-20 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+          <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
         </div>
       </AdminPage>
     );
@@ -374,7 +374,7 @@ export default function AdminDraftDetailPage() {
                 type="button"
                 onClick={() => void copyShareLink()}
                 disabled={!draft.draftQuoteToken}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-blue-500/25 bg-blue-500/[0.06] px-3 py-2 text-xs font-bold uppercase tracking-wider text-blue-300 transition hover:bg-blue-500/[0.12] disabled:opacity-50"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-none border border-blue-500/25 bg-blue-500/[0.06] px-3 py-2 text-xs font-bold uppercase tracking-wider text-blue-300 transition hover:bg-blue-500/[0.12] disabled:opacity-50"
               >
                 <Copy className="h-3.5 w-3.5" />
                 Copy quote link
@@ -383,7 +383,7 @@ export default function AdminDraftDetailPage() {
                 type="button"
                 onClick={() => void handleSendQuote()}
                 disabled={Boolean(draft.quoteSentAt) || closed}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500/25 bg-amber-500/[0.06] px-3 py-2 text-xs font-bold uppercase tracking-wider text-amber-300 transition hover:bg-amber-500/[0.12] disabled:opacity-50"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-none border border-amber-500/25 bg-amber-500/[0.06] px-3 py-2 text-xs font-bold uppercase tracking-wider text-amber-300 transition hover:bg-amber-500/[0.12] disabled:opacity-50"
               >
                 <Send className="h-3.5 w-3.5" />
                 {draft.quoteSentAt ? 'Sent' : 'Mark as sent'}
@@ -392,7 +392,7 @@ export default function AdminDraftDetailPage() {
                 type="button"
                 onClick={() => void handleConvert()}
                 disabled={closed}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.08] px-3 py-2 text-xs font-bold uppercase tracking-wider text-emerald-300 transition hover:bg-emerald-500/[0.15] disabled:opacity-50"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-none border border-emerald-500/30 bg-emerald-500/[0.08] px-3 py-2 text-xs font-bold uppercase tracking-wider text-emerald-300 transition hover:bg-emerald-500/[0.15] disabled:opacity-50"
               >
                 <Check className="h-3.5 w-3.5" />
                 Convert to order
@@ -401,7 +401,7 @@ export default function AdminDraftDetailPage() {
                 type="button"
                 onClick={() => void handleDecline()}
                 disabled={closed}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/25 bg-red-500/[0.06] px-3 py-2 text-xs font-bold uppercase tracking-wider text-red-300 transition hover:bg-red-500/[0.12] disabled:opacity-50"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-none border border-red-500/25 bg-red-500/[0.06] px-3 py-2 text-xs font-bold uppercase tracking-wider text-red-300 transition hover:bg-red-500/[0.12] disabled:opacity-50"
               >
                 <X className="h-3.5 w-3.5" />
                 Mark declined
@@ -409,7 +409,7 @@ export default function AdminDraftDetailPage() {
               <button
                 type="button"
                 onClick={() => void handleDiscard()}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-400 transition hover:bg-white/[0.06] hover:text-red-300"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-400 transition hover:bg-white/[0.06] hover:text-red-300"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Discard draft
@@ -429,7 +429,7 @@ export default function AdminDraftDetailPage() {
             {draft.customerId ? (
               <Link
                 href={`/admin/shop/customers/${draft.customerId}`}
-                className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
+                className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
               >
                 Open customer profile
                 <ArrowRight className="h-3 w-3" />

@@ -259,7 +259,7 @@ export default function Turn14AdminPage() {
         <AdminFilterBar>
           <label className="min-w-[260px] flex-1">
             <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Search supplier catalog</span>
-            <div className="flex items-center gap-2 rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3">
+            <div className="flex items-center gap-2 rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3">
               <Search className="h-4 w-4 text-zinc-500" />
               <input
                 value={query}
@@ -275,7 +275,7 @@ export default function Turn14AdminPage() {
             <select
               value={stockFilter}
               onChange={(e) => setStockFilter(e.target.value as 'all' | 'inStock' | 'notInStock')}
-              className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+              className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
             >
               <option value="all">All results</option>
               <option value="inStock">Already in One Company</option>
@@ -415,7 +415,7 @@ export default function Turn14AdminPage() {
 
       {orderModalOpen && selectedItem ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-[6px] border border-white/10 bg-[#09090b] p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+          <div className="w-full max-w-md rounded-none border border-white/10 bg-[#09090b] p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
             <h3 className="text-xl font-medium text-white">Оформити швидке замовлення</h3>
             <p className="mt-2 text-sm leading-relaxed text-white/50">
               Система створить нове `UNPAID` замовлення для {(selectedItem.attributes as any)?.product_name || (selectedItem.attributes as any)?.item_name || 'деталі Turn14'}.
@@ -428,7 +428,7 @@ export default function Turn14AdminPage() {
                   required
                   value={orderForm.email}
                   onChange={(e) => setOrderForm((prev) => ({ ...prev, email: e.target.value }))}
-                  className="w-full rounded-[6px] border border-white/10 bg-black/40 px-4 py-3 text-sm text-white focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-black/40 px-4 py-3 text-sm text-white focus:border-white/20 focus:outline-none"
                   placeholder="client@mail.com"
                 />
               </label>
@@ -441,7 +441,7 @@ export default function Turn14AdminPage() {
                   required
                   value={orderForm.price}
                   onChange={(e) => setOrderForm((prev) => ({ ...prev, price: e.target.value }))}
-                  className="w-full rounded-[6px] border border-white/10 bg-black/40 px-4 py-3 text-sm text-white focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-black/40 px-4 py-3 text-sm text-white focus:border-white/20 focus:outline-none"
                   placeholder="1500.00"
                 />
               </label>

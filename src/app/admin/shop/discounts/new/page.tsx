@@ -140,7 +140,7 @@ export default function AdminNewDiscountPage() {
                 <button
                   type="button"
                   onClick={() => setCode(generateCode())}
-                  className="rounded-[6px] border border-white/10 bg-white/[0.03] p-2 text-zinc-400 transition hover:bg-white/[0.06] hover:text-blue-300"
+                  className="rounded-none border border-white/10 bg-white/[0.03] p-2 text-zinc-400 transition hover:bg-white/[0.06] hover:text-blue-300"
                   title="Generate a random code"
                 >
                   <Sparkles className="h-4 w-4" />
@@ -214,7 +214,7 @@ export default function AdminNewDiscountPage() {
 
             {type === 'BUY_X_GET_Y' ? (
               <div className="mt-4 space-y-4">
-                <div className="rounded-lg border border-blue-500/20 bg-blue-500/[0.05] p-3 text-xs text-blue-200">
+                <div className="rounded-none border border-blue-500/20 bg-blue-500/[0.05] p-3 text-xs text-blue-200">
                   Customer must buy <b>{buyQty || 'X'}</b> items, then gets <b>{getQty || 'Y'}</b> items at{' '}
                   <b>{getDiscountPct || '100'}% off</b>. The cheapest items will receive the discount.
                 </div>
@@ -273,7 +273,7 @@ export default function AdminNewDiscountPage() {
           </AdminInspectorCard>
 
           <AdminInspectorCard title="Preview" description="How customers see this code.">
-            <div className="rounded-xl border border-blue-500/25 bg-blue-500/[0.06] p-4">
+            <div className="rounded-none border border-blue-500/25 bg-blue-500/[0.06] p-4">
               <div className="font-mono text-lg font-bold tracking-wider text-blue-200">{code}</div>
               <div className="mt-1 text-sm text-blue-300/80">
                 {type === 'PERCENTAGE' && `${value}% off`}

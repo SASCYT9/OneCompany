@@ -188,7 +188,7 @@ export default function BrandMarkupsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Швидкий пошук бренду..."
-            className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+            className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
           />
         </label>
 
@@ -197,7 +197,7 @@ export default function BrandMarkupsPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as 'name' | 'markup')}
-            className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+            className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
           >
             <option value="name">A → Z</option>
             <option value="markup">% descending</option>
@@ -257,7 +257,7 @@ export default function BrandMarkupsPage() {
                         step={1}
                         value={markup}
                         onChange={(e) => handleMarkupChange(brand.id, Number(e.target.value))}
-                        className="w-28 rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+                        className="w-28 rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
                       />
                     </td>
                     <td className="px-4 py-4 font-mono text-zinc-200">×{multiplier.toFixed(2)}</td>

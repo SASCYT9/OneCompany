@@ -128,6 +128,75 @@ const BRAND_MODEL_FALLBACKS: { brand: string; match: RegExp; model: string }[] =
   { brand: "BMW", match: /\bBMW\s+Z4(?:\s+M40i)?\b/i, model: "G29" },
 ];
 
+/**
+ * Marketing trim names (M440i, X5M, A45, RS6 …) ↔ chassis codes (G22/G23, F95, W177, C8 …).
+ *
+ * Used when a title references the trim only, with no chassis code in parentheses.
+ * Brands like Porsche/Ferrari are not listed because their model name doubles as the chassis
+ * (992, 488, F8 …). Entries with `chassis: []` are recognised model designations that should
+ * NOT be promoted to chassis codes (e.g. Porsche GT3 / GT3 RS) — they fall through to "Other".
+ */
+const TRIM_TO_CHASSIS: Record<string, { brand: string; chassis: string[] }> = {
+  // BMW
+  M135I: { brand: "BMW", chassis: ["F40"] },
+  M140I: { brand: "BMW", chassis: ["F20"] },
+  M235I: { brand: "BMW", chassis: ["F22"] },
+  M240I: { brand: "BMW", chassis: ["F22", "G42"] },
+  M340I: { brand: "BMW", chassis: ["G20", "G21"] },
+  M340D: { brand: "BMW", chassis: ["G20", "G21"] },
+  M440I: { brand: "BMW", chassis: ["G22", "G23"] },
+  M440D: { brand: "BMW", chassis: ["G22", "G23"] },
+  M550I: { brand: "BMW", chassis: ["G30"] },
+  M850I: { brand: "BMW", chassis: ["G14", "G15", "G16"] },
+  X3M: { brand: "BMW", chassis: ["F97"] },
+  X4M: { brand: "BMW", chassis: ["F98"] },
+  X5M: { brand: "BMW", chassis: ["F95"] },
+  X6M: { brand: "BMW", chassis: ["F96"] },
+  // Audi
+  RS3: { brand: "Audi", chassis: ["8Y"] },
+  RS6: { brand: "Audi", chassis: ["C8"] },
+  RS7: { brand: "Audi", chassis: ["C8"] },
+  // Mercedes-AMG
+  A45: { brand: "Mercedes-AMG", chassis: ["W177"] },
+  A45S: { brand: "Mercedes-AMG", chassis: ["W177"] },
+  CLA45: { brand: "Mercedes-AMG", chassis: ["C118"] },
+  CLA45S: { brand: "Mercedes-AMG", chassis: ["C118"] },
+  // Porsche — model designations that aren't chassis codes; suppress from the dropdown.
+  GT3: { brand: "Porsche", chassis: [] },
+  GT3RS: { brand: "Porsche", chassis: [] },
+  GT4: { brand: "Porsche", chassis: [] },
+  GT4RS: { brand: "Porsche", chassis: [] },
+};
+
+/**
+ * Natural sort for chassis/model keys.
+ *
+ * Groups chassis-like keys (containing a digit) before pure-text fallbacks (Cayenne, Macan, Yaris…),
+ * then within each group: letter-prefix groups alphabetically, with numeric-aware ordering inside
+ * the group so e.g. BMW chassis come out as E82 → E90 → E92 → … → F06 → F10 → … → F87N → F90 → … → G09 → G20 → … → G99.
+ */
+const MODEL_COLLATOR = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
+export function compareVehicleModelKeys(a: string, b: string): number {
+  const aHasDigit = /\d/.test(a);
+  const bHasDigit = /\d/.test(b);
+  if (aHasDigit !== bHasDigit) return aHasDigit ? -1 : 1;
+  return MODEL_COLLATOR.compare(a, b);
+}
+
+function applyTrimToChassisFallback(brand: string, segment: string, sink: Set<string>): boolean {
+  let added = false;
+  for (const [trim, info] of Object.entries(TRIM_TO_CHASSIS)) {
+    if (info.brand !== brand) continue;
+    if (info.chassis.length === 0) continue;
+    const re = new RegExp(`\\b${trim}\\b`, "i");
+    if (re.test(segment)) {
+      info.chassis.forEach((c) => sink.add(c));
+      added = true;
+    }
+  }
+  return added;
+}
+
 export function extractVehicleModelsForBrand(title: string, brand: string): string[] {
   const afterFor = title.match(/\bfor\s+(.+)$/i)?.[1] ?? title;
   const titleBrands = extractVehicleBrands(title);
@@ -155,6 +224,11 @@ export function extractVehicleModelsForBrand(title: string, brand: string): stri
     if (fallback.brand === brand && fallback.match.test(afterFor)) {
       models.add(fallback.model);
     }
+  }
+
+  // Trim-name fallback (e.g. "BMW M440i (OPF vehicles)" → G22/G23, "BMW X4M" → F98)
+  if (models.size === 0 && (titleBrands.length === 0 || titleBrands.includes(brand))) {
+    applyTrimToChassisFallback(brand, afterFor, models);
   }
 
   if (models.size > 0) {
@@ -198,10 +272,12 @@ export function extractVehicleModel(title: string): string {
   }
 
   if (afterFor) {
-    const inlineModelMatch = afterFor.match(/\b([A-Z]{0,4}\d{1,3}[A-Z]{0,4})\b/i);
-    if (inlineModelMatch) {
-      return inlineModelMatch[1].toUpperCase();
-    }
+    const inlineTokens = [...afterFor.matchAll(/\b([A-Z]{0,4}\d{1,3}[A-Z]{0,4})\b/gi)]
+      .map((m) => m[1].toUpperCase());
+    const realChassis = inlineTokens.find((t) => !TRIM_TO_CHASSIS[t]);
+    if (realChassis) return realChassis;
+    const mappedTrim = inlineTokens.find((t) => (TRIM_TO_CHASSIS[t]?.chassis.length ?? 0) > 0);
+    if (mappedTrim) return TRIM_TO_CHASSIS[mappedTrim].chassis[0];
   }
 
   const fallbackModelPatterns: { match: RegExp; value: string }[] = [

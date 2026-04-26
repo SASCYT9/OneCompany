@@ -93,8 +93,8 @@ export default function AdminDraftsPage() {
           <span className="sr-only">Завантаження чернеток…</span>
           <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
             <div className="space-y-3">
-              <div className="h-3 w-20 motion-safe:animate-pulse rounded bg-white/[0.06]" />
-              <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
+              <div className="h-3 w-20 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+              <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
             </div>
           </div>
           <AdminSkeletonKpiGrid count={4} />
@@ -143,7 +143,7 @@ export default function AdminDraftsPage() {
       </AdminMetricGrid>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={search}
@@ -236,7 +236,7 @@ export default function AdminDraftsPage() {
                       <td className="px-4 py-4">
                         <Link
                           href={`/admin/shop/drafts/${d.id}`}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
+                          className="inline-flex items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
                         >
                           Редагувати
                           <ExternalLink className="h-3 w-3" aria-hidden="true" />

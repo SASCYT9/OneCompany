@@ -137,7 +137,7 @@ function ToastCard({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
       role={role}
       aria-live={ariaLive}
       className={cn(
-        'pointer-events-auto relative overflow-hidden rounded-xl border bg-[#171717] shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl',
+        'pointer-events-auto relative overflow-hidden rounded-none border bg-[#171717] shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl',
         accentClass
       )}
     >
@@ -164,7 +164,7 @@ function ToastCard({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss notification"
-          className="-mr-1 -mt-1 rounded p-1 text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-200"
+          className="-mr-1 -mt-1 rounded-none p-1 text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-200"
         >
           <X className="h-3.5 w-3.5" aria-hidden="true" />
         </button>

@@ -79,8 +79,8 @@ export default function AdminSegmentEditPage() {
     return (
       <AdminPage>
         <div className="space-y-3">
-          <div className="h-3 w-20 motion-safe:animate-pulse rounded bg-white/[0.06]" />
-          <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
+          <div className="h-3 w-20 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+          <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
         </div>
       </AdminPage>
     );
@@ -129,7 +129,7 @@ export default function AdminSegmentEditPage() {
               <Link
                 key={c.id}
                 href={`/admin/shop/customers/${c.id}`}
-                className="rounded-lg border border-white/[0.05] bg-[#171717] p-2.5 text-sm transition hover:border-blue-500/30 hover:bg-blue-500/[0.04]"
+                className="rounded-none border border-white/[0.05] bg-[#171717] p-2.5 text-sm transition hover:border-blue-500/30 hover:bg-blue-500/[0.04]"
               >
                 <div className="font-medium text-zinc-100">
                   {[c.firstName, c.lastName].filter(Boolean).join(' ') || c.email}

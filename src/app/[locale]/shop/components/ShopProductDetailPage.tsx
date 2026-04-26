@@ -15,7 +15,11 @@ import {
 } from '@/lib/seo';
 import { getBrandLogo } from '@/lib/brandLogos';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCatalogServer';
+import {
+  getShopProductBySlugServer,
+  getShopProductImageOverrideForSku,
+  getShopProductsServer,
+} from '@/lib/shopCatalogServer';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { localizeShopDescription, localizeShopProductTitle, localizeShopText, fixDo88UaDescriptionFragments } from '@/lib/shopText';
 import { buildShopViewerPricingContext, resolveShopProductPricing } from '@/lib/shopPricingAudience';
@@ -237,7 +241,7 @@ function isSameVehicleFamily(product: Pick<ShopProduct, 'brand' | 'vendor' | 'ti
 function getFirstExternalProductImage(product: Pick<ShopProduct, 'image' | 'gallery'>) {
   return [product.image, ...(product.gallery ?? [])]
     .map((value) => String(value ?? '').replace(/^["']|["']$/g, '').trim())
-    .find((value) => /^https?:\/\//i.test(value)) ?? null;
+    .find((value) => /^https?:\/\//i.test(value) && !/coming[\s_-]*soon|placeholder/i.test(value)) ?? null;
 }
 
 export async function getShopProductPageMetadata({
@@ -838,15 +842,19 @@ export default async function ShopProductDetailPage({
               const relatedUrbanHandle = isUrbanMode
                 ? getUrbanCollectionHandleForProduct(item) ?? urbanCollectionHandle
                 : null;
+              const relatedImageOverride = isUrbanMode
+                ? getShopProductImageOverrideForSku(item.sku)
+                : null;
               const relatedImage = isUrbanMode
-                ? getFirstExternalProductImage(item) ??
+                ? relatedImageOverride?.image ??
+                  getFirstExternalProductImage(item) ??
                   (relatedUrbanHandle
                     ? resolveUrbanCollectionCardImage(
-                        item.image,
+                        relatedImageOverride?.image ?? item.image,
                         [relatedUrbanHandle],
                         urbanRelatedImagePools.get(relatedUrbanHandle) ?? [],
                         item.slug,
-                        item.gallery,
+                        relatedImageOverride?.gallery ?? item.gallery,
                         item
                       )
                     : null)

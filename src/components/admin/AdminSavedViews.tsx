@@ -158,7 +158,7 @@ export function AdminSavedViewsBar<T extends Record<string, unknown>>({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.08] bg-[#171717] px-3 text-xs font-medium text-zinc-200 transition hover:border-white/15 hover:bg-[#1F1F1F]"
+        className="inline-flex h-9 items-center gap-1.5 rounded-none border border-white/[0.08] bg-[#171717] px-3 text-xs font-medium text-zinc-200 transition hover:border-white/15 hover:bg-[#1F1F1F]"
         aria-haspopup="true"
         aria-expanded={open}
       >
@@ -173,7 +173,7 @@ export function AdminSavedViewsBar<T extends Record<string, unknown>>({
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-full z-30 mt-2 w-[320px] overflow-hidden rounded-xl border border-white/[0.08] bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)]">
+        <div className="absolute right-0 top-full z-30 mt-2 w-[320px] overflow-hidden rounded-none border border-white/[0.08] bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)]">
           {/* Save current */}
           <div className="border-b border-white/[0.04] p-3">
             {showSaveInput ? (
@@ -193,12 +193,12 @@ export function AdminSavedViewsBar<T extends Record<string, unknown>>({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Назва виду (напр. «Неоплачені >14д»)"
-                  className="flex-1 rounded-lg border border-white/[0.08] bg-[#0F0F0F] px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-500/15"
+                  className="flex-1 rounded-none border border-white/[0.08] bg-[#0F0F0F] px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-500/15"
                 />
                 <button
                   type="submit"
                   disabled={!name.trim()}
-                  className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:opacity-40"
+                  className="rounded-none bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:opacity-40"
                 >
                   Зберегти
                 </button>
@@ -207,7 +207,7 @@ export function AdminSavedViewsBar<T extends Record<string, unknown>>({
               <button
                 type="button"
                 onClick={() => setShowSaveInput(true)}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-blue-300 transition hover:bg-white/[0.03]"
+                className="flex w-full items-center gap-2 rounded-none px-2 py-1.5 text-sm text-blue-300 transition hover:bg-white/[0.03]"
               >
                 <BookmarkPlus className="h-4 w-4" aria-hidden="true" />
                 Зберегти поточні фільтри як вид…
@@ -227,7 +227,7 @@ export function AdminSavedViewsBar<T extends Record<string, unknown>>({
                     applyPreset(preset);
                     setOpen(false);
                   }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-zinc-200 transition hover:bg-white/[0.03]"
+                  className="flex w-full items-center gap-2 rounded-none px-2 py-1.5 text-left text-sm text-zinc-200 transition hover:bg-white/[0.03]"
                 >
                   <span className="flex-1 truncate">{preset.name}</span>
                 </button>
@@ -249,7 +249,7 @@ export function AdminSavedViewsBar<T extends Record<string, unknown>>({
                 <div
                   key={view.id}
                   className={cn(
-                    'group flex items-center gap-1 rounded-lg px-1 transition hover:bg-white/[0.03]',
+                    'group flex items-center gap-1 rounded-none px-1 transition hover:bg-white/[0.03]',
                     activeViewId === view.id && 'bg-blue-500/[0.08]'
                   )}
                 >
@@ -259,7 +259,7 @@ export function AdminSavedViewsBar<T extends Record<string, unknown>>({
                       applyView(view.id);
                       setOpen(false);
                     }}
-                    className="flex flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-zinc-200"
+                    className="flex flex-1 items-center gap-2 rounded-none px-2 py-1.5 text-left text-sm text-zinc-200"
                   >
                     {activeViewId === view.id ? (
                       <Check className="h-3.5 w-3.5 shrink-0 text-blue-400" aria-hidden="true" />
@@ -272,7 +272,7 @@ export function AdminSavedViewsBar<T extends Record<string, unknown>>({
                     type="button"
                     onClick={() => deleteView(view.id)}
                     aria-label={`Видалити вид «${view.name}»`}
-                    className="rounded-md p-1.5 text-zinc-600 opacity-0 transition hover:bg-red-500/[0.1] hover:text-red-400 group-hover:opacity-100 focus:opacity-100"
+                    className="rounded-none p-1.5 text-zinc-600 opacity-0 transition hover:bg-red-500/[0.1] hover:text-red-400 group-hover:opacity-100 focus:opacity-100"
                   >
                     <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>

@@ -156,7 +156,7 @@ export default function AdminIntegrationsPage() {
 
       <AdminInlineAlert tone="warning">
         API-ключі зберігаються у базі. Для продакшну шифруйте ключі — задайте{' '}
-        <code className="rounded bg-white/[0.06] px-1 text-xs">INTEGRATIONS_ENCRYPTION_KEY</code> у змінних середовища.
+        <code className="rounded-none bg-white/[0.06] px-1 text-xs">INTEGRATIONS_ENCRYPTION_KEY</code> у змінних середовища.
       </AdminInlineAlert>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -197,24 +197,24 @@ export default function AdminIntegrationsPage() {
 
                   {connected && integration && !isEditing ? (
                     <div className="space-y-2 text-sm">
-                      <div className="flex items-center justify-between rounded-lg border border-white/[0.04] bg-black/25 px-3 py-1.5 text-xs">
+                      <div className="flex items-center justify-between rounded-none border border-white/[0.04] bg-black/25 px-3 py-1.5 text-xs">
                         <span className="text-zinc-500">API-ключ</span>
                         <span className="font-mono text-zinc-300">{integration.apiKey ?? '—'}</span>
                       </div>
                       {integration.accountId ? (
-                        <div className="flex items-center justify-between rounded-lg border border-white/[0.04] bg-black/25 px-3 py-1.5 text-xs">
+                        <div className="flex items-center justify-between rounded-none border border-white/[0.04] bg-black/25 px-3 py-1.5 text-xs">
                           <span className="text-zinc-500">ID акаунту</span>
                           <span className="font-mono text-zinc-300">{integration.accountId}</span>
                         </div>
                       ) : null}
                       {integration.connectedAt ? (
-                        <div className="flex items-center justify-between rounded-lg border border-white/[0.04] bg-black/25 px-3 py-1.5 text-xs">
+                        <div className="flex items-center justify-between rounded-none border border-white/[0.04] bg-black/25 px-3 py-1.5 text-xs">
                           <span className="text-zinc-500">Підключено</span>
                           <span className="text-zinc-300">{new Date(integration.connectedAt).toLocaleString()}</span>
                         </div>
                       ) : null}
                       {integration.lastSyncError ? (
-                        <div className="rounded-lg border border-red-500/20 bg-red-500/[0.04] px-3 py-1.5 text-xs text-red-300">
+                        <div className="rounded-none border border-red-500/20 bg-red-500/[0.04] px-3 py-1.5 text-xs text-red-300">
                           {integration.lastSyncError}
                         </div>
                       ) : null}
@@ -224,7 +224,7 @@ export default function AdminIntegrationsPage() {
                           type="button"
                           onClick={() => void testConnection(provider)}
                           disabled={testing === provider}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.06] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-blue-300 transition hover:bg-blue-500/[0.12] disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/[0.06] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-blue-300 transition hover:bg-blue-500/[0.12] disabled:opacity-50"
                         >
                           {testing === provider ? (
                             <Loader2 className="h-3 w-3 motion-safe:animate-spin" />
@@ -236,14 +236,14 @@ export default function AdminIntegrationsPage() {
                         <button
                           type="button"
                           onClick={() => setEditingProvider(provider)}
-                          className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 transition hover:bg-white/[0.06]"
+                          className="rounded-none border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 transition hover:bg-white/[0.06]"
                         >
                           Оновити ключі
                         </button>
                         <button
                           type="button"
                           onClick={() => void disconnect(provider)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/25 bg-red-500/[0.04] px-3 py-1.5 text-xs text-red-300 transition hover:bg-red-500/[0.1]"
+                          className="inline-flex items-center gap-1.5 rounded-none border border-red-500/25 bg-red-500/[0.04] px-3 py-1.5 text-xs text-red-300 transition hover:bg-red-500/[0.1]"
                         >
                           <Trash2 className="h-3 w-3" />
                           Відключити
@@ -349,7 +349,7 @@ function ConnectForm({
           type="button"
           onClick={() => void handleConnect()}
           disabled={saving || !apiKey.trim()}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-none bg-blue-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
         >
           {saving ? <Loader2 className="h-3 w-3 motion-safe:animate-spin" /> : <Plug className="h-3 w-3" />}
           Підключити
@@ -358,7 +358,7 @@ function ConnectForm({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 transition hover:bg-white/[0.06]"
+            className="rounded-none border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 transition hover:bg-white/[0.06]"
           >
             Скасувати
           </button>

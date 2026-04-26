@@ -238,7 +238,7 @@ export default function AdminNewDraftPage() {
           >
             <label className="block">
               <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-zinc-500">Search customers</span>
-              <div className="flex items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3 py-2">
+              <div className="flex items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2">
                 <Search className="h-4 w-4 text-zinc-500" />
                 <input
                   value={customerSearch}
@@ -249,7 +249,7 @@ export default function AdminNewDraftPage() {
               </div>
             </label>
             {customerOptions.length > 0 ? (
-              <div className="mt-2 overflow-hidden rounded-lg border border-white/[0.05] bg-[#0F0F0F]">
+              <div className="mt-2 overflow-hidden rounded-none border border-white/[0.05] bg-[#0F0F0F]">
                 {customerOptions.map((c) => (
                   <button
                     key={c.id}
@@ -269,7 +269,7 @@ export default function AdminNewDraftPage() {
               </div>
             ) : null}
             {selectedCustomer ? (
-              <div className="mt-3 rounded-lg border border-blue-500/25 bg-blue-500/[0.06] px-3 py-2 text-sm">
+              <div className="mt-3 rounded-none border border-blue-500/25 bg-blue-500/[0.06] px-3 py-2 text-sm">
                 <div className="font-medium text-zinc-100">{selectedCustomer.fullName}</div>
                 <div className="mt-0.5 text-[11px] text-zinc-400">{selectedCustomer.email}</div>
                 <button
@@ -310,7 +310,7 @@ export default function AdminNewDraftPage() {
           >
             <label className="block">
               <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-zinc-500">Search catalog</span>
-              <div className="flex items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3 py-2">
+              <div className="flex items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2">
                 <Search className="h-4 w-4 text-zinc-500" />
                 <input
                   value={productSearch}
@@ -321,7 +321,7 @@ export default function AdminNewDraftPage() {
               </div>
             </label>
             {productOptions.length > 0 ? (
-              <div className="mt-2 max-h-72 overflow-auto rounded-lg border border-white/[0.05] bg-[#0F0F0F]">
+              <div className="mt-2 max-h-72 overflow-auto rounded-none border border-white/[0.05] bg-[#0F0F0F]">
                 {productOptions.map((p) => {
                   const price = currency === 'EUR' ? p.priceEur : currency === 'USD' ? p.priceUsd : p.priceUah;
                   return (
@@ -377,7 +377,7 @@ export default function AdminNewDraftPage() {
                               min={1}
                               value={it.quantity}
                               onChange={(e) => updateLineItem(idx, { quantity: parseInt(e.target.value, 10) || 1 })}
-                              className="w-16 rounded-[6px] border border-white/10 bg-black/30 px-2 py-1 text-sm text-zinc-100 focus:outline-none"
+                              className="w-16 rounded-none border border-white/10 bg-black/30 px-2 py-1 text-sm text-zinc-100 focus:outline-none"
                             />
                           </td>
                           <td className="px-3 py-2">
@@ -387,7 +387,7 @@ export default function AdminNewDraftPage() {
                               min={0}
                               value={it.price}
                               onChange={(e) => updateLineItem(idx, { price: parseFloat(e.target.value) || 0 })}
-                              className="w-24 rounded-[6px] border border-white/10 bg-black/30 px-2 py-1 text-sm text-zinc-100 focus:outline-none"
+                              className="w-24 rounded-none border border-white/10 bg-black/30 px-2 py-1 text-sm text-zinc-100 focus:outline-none"
                             />
                           </td>
                           <td className="px-3 py-2 font-medium text-zinc-100 tabular-nums">
@@ -397,7 +397,7 @@ export default function AdminNewDraftPage() {
                             <button
                               type="button"
                               onClick={() => removeLineItem(idx)}
-                              className="rounded p-1 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
+                              className="rounded-none p-1 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
                               aria-label="Remove"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -410,7 +410,7 @@ export default function AdminNewDraftPage() {
                 </AdminTableShell>
               </div>
             ) : (
-              <div className="mt-3 rounded-lg border border-dashed border-white/[0.08] px-4 py-6 text-center text-xs text-zinc-500">
+              <div className="mt-3 rounded-none border border-dashed border-white/[0.08] px-4 py-6 text-center text-xs text-zinc-500">
                 No items yet. Search catalog and add products above.
               </div>
             )}
@@ -430,19 +430,19 @@ export default function AdminNewDraftPage() {
         <aside className="space-y-4">
           <AdminInspectorCard title="Summary" description="Quote totals.">
             <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2">
+              <div className="flex items-center justify-between rounded-none border border-white/[0.04] bg-black/25 px-3 py-2">
                 <span className="text-zinc-500">Items</span>
                 <span className="font-medium text-zinc-200 tabular-nums">{items.length}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2">
+              <div className="flex items-center justify-between rounded-none border border-white/[0.04] bg-black/25 px-3 py-2">
                 <span className="text-zinc-500">Subtotal</span>
                 <span className="font-medium text-zinc-200 tabular-nums">{formatMoney(subtotal, currency)}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2">
+              <div className="flex items-center justify-between rounded-none border border-white/[0.04] bg-black/25 px-3 py-2">
                 <span className="text-zinc-500">Shipping</span>
                 <span className="font-medium text-zinc-200 tabular-nums">{formatMoney(parseFloat(shippingCost) || 0, currency)}</span>
               </div>
-              <div className="flex items-center justify-between rounded-xl border border-blue-500/30 bg-blue-500/[0.06] px-3 py-3">
+              <div className="flex items-center justify-between rounded-none border border-blue-500/30 bg-blue-500/[0.06] px-3 py-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-blue-300">Total</span>
                 <span className="text-base font-bold text-blue-200 tabular-nums">{formatMoney(total, currency)}</span>
               </div>

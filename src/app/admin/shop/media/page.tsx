@@ -210,7 +210,7 @@ export default function AdminShopMediaPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+        <div className="flex items-center gap-3 rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <RefreshCcw className="h-4 w-4 motion-safe:animate-spin" />
           Loading media library…
         </div>
@@ -229,7 +229,7 @@ export default function AdminShopMediaPage() {
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
             >
               <RefreshCcw className="h-4 w-4" />
               Refresh
@@ -245,7 +245,7 @@ export default function AdminShopMediaPage() {
               type="button"
               onClick={() => uploadInputRef.current?.click()}
               disabled={uploading}
-              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-60"
             >
               <Upload className="h-4 w-4" />
               {uploading ? 'Uploading…' : 'Upload asset'}
@@ -265,7 +265,7 @@ export default function AdminShopMediaPage() {
       </AdminMetricGrid>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={query}
@@ -285,7 +285,7 @@ export default function AdminShopMediaPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredItems.map((item) => (
-              <div key={item.id} className="overflow-hidden rounded-[6px] border border-white/10 bg-[#171717]">
+              <div key={item.id} className="overflow-hidden rounded-none border border-white/10 bg-[#171717]">
                 <div className="border-b border-white/10 bg-black/30">
                   {item.kind === 'image' ? (
                     <img src={item.url} alt={item.originalName} className="h-48 w-full object-cover" />
@@ -337,7 +337,7 @@ export default function AdminShopMediaPage() {
                       <span>Storage</span>
                       <span className="text-zinc-200">{item.provider}</span>
                     </div>
-                    <div className="rounded-[6px] border border-white/10 bg-black/20 p-3 text-zinc-400">
+                    <div className="rounded-none border border-white/10 bg-black/20 p-3 text-zinc-400">
                       {usageLabel(item)}
                     </div>
                     <div className="truncate font-mono text-[11px] text-zinc-600">{item.url}</div>
@@ -348,7 +348,7 @@ export default function AdminShopMediaPage() {
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
+                      className="inline-flex items-center gap-2 rounded-none border border-white/10 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
                     >
                       <ArrowUpRight className="h-3.5 w-3.5" />
                       Open
@@ -356,7 +356,7 @@ export default function AdminShopMediaPage() {
                     <button
                       type="button"
                       onClick={() => void handleCopy(item.url)}
-                      className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
+                      className="inline-flex items-center gap-2 rounded-none border border-white/10 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Copy URL
@@ -365,7 +365,7 @@ export default function AdminShopMediaPage() {
                       type="button"
                       onClick={() => void handleDelete(item)}
                       disabled={deletingId === item.id || item.usageCount > 0}
-                      className="inline-flex items-center gap-2 rounded-[6px] border border-blue-500/20 px-3 py-2 text-xs text-blue-300 transition hover:bg-blue-950/30 disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-none border border-blue-500/20 px-3 py-2 text-xs text-blue-300 transition hover:bg-blue-950/30 disabled:opacity-50"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       {deletingId === item.id ? 'Deleting…' : item.usageCount > 0 ? 'In use' : 'Delete'}

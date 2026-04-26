@@ -96,7 +96,7 @@ export function AdminSlideOver({
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="-mr-1 rounded-lg p-1.5 text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100"
+                className="-mr-1 rounded-none p-1.5 text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>

@@ -51,7 +51,7 @@ export function CustomerLtvHeader({ customerId }: { customerId: string }) {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-white/[0.05] bg-[#171717] px-4 py-3 text-sm text-zinc-500">
+      <div className="flex items-center gap-2 rounded-none border border-white/[0.05] bg-[#171717] px-4 py-3 text-sm text-zinc-500">
         <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
         Обчислення LTV…
       </div>
@@ -134,7 +134,7 @@ function KpiCard({
           : 'text-zinc-50';
 
   return (
-    <div className={`rounded-xl border ${accentClass} p-3`}>
+    <div className={`rounded-none border ${accentClass} p-3`}>
       <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
         <span className="text-zinc-500">{icon}</span>
         {label}

@@ -273,7 +273,7 @@ export default function AdminImportJobDetailPage() {
                               <td className="px-4 py-4 text-zinc-200">{rowError.message}</td>
                               <td className="px-4 py-4">
                                 {rowError.payload ? (
-                                  <pre className="max-h-48 overflow-auto rounded-[6px] border border-white/10 bg-black/30 p-3 text-[11px] text-zinc-400">
+                                  <pre className="max-h-48 overflow-auto rounded-none border border-white/10 bg-black/30 p-3 text-[11px] text-zinc-400">
                                     {JSON.stringify(rowError.payload, null, 2)}
                                   </pre>
                                 ) : (
@@ -311,7 +311,7 @@ export default function AdminImportJobDetailPage() {
                   description="Знімок конфігурації, з якою реально виконувався job."
                 >
                   {job.templateSnapshot ? (
-                    <pre className="max-h-[420px] overflow-auto rounded-[6px] border border-white/10 bg-black/30 p-3 text-[11px] text-zinc-400">
+                    <pre className="max-h-[420px] overflow-auto rounded-none border border-white/10 bg-black/30 p-3 text-[11px] text-zinc-400">
                       {JSON.stringify(job.templateSnapshot, null, 2)}
                     </pre>
                   ) : (

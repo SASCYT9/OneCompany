@@ -642,7 +642,7 @@ export default function AdminCreateOrderPage() {
         description="Додавайте локальні або Turn14 позиції, розраховуйте markup/discount і формуйте логістичні параметри прямо в draft."
       >
               {items.map((item, idx) => (
-                <div key={item.key} className="mb-4 rounded-[6px] border border-white/10 bg-black/20 p-4">
+                <div key={item.key} className="mb-4 rounded-none border border-white/10 bg-black/20 p-4">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <span className="text-xs text-white/30 uppercase tracking-wider">#{idx + 1}</span>
                     <div className="flex items-center gap-3">
@@ -703,12 +703,12 @@ export default function AdminCreateOrderPage() {
                               }
                             }}
                             placeholder="SKU, part number, brand, product name..."
-                            className="h-11 w-full rounded-[6px] border border-blue-500/25 bg-zinc-950 px-3 text-sm text-white placeholder:text-white/25 focus:border-blue-500/40 focus:outline-none"
+                            className="h-11 w-full rounded-none border border-blue-500/25 bg-zinc-950 px-3 text-sm text-white placeholder:text-white/25 focus:border-blue-500/40 focus:outline-none"
                           />
                         </label>
 
                         {addingToItemIdx === idx && (turn14Results.length > 0 || turn14Loading || turn14Query.trim().length >= 2) ? (
-                          <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-[420px] overflow-y-auto rounded-[6px] border border-blue-500/25 bg-zinc-950 p-2 shadow-2xl shadow-black/60">
+                          <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-[420px] overflow-y-auto rounded-none border border-blue-500/25 bg-zinc-950 p-2 shadow-2xl shadow-black/60">
                             {turn14Loading ? (
                               <div className="px-3 py-2 text-center text-xs text-zinc-400/70">Searching catalogs...</div>
                             ) : null}
@@ -718,7 +718,7 @@ export default function AdminCreateOrderPage() {
                             ))}
 
                             {!turn14Loading && turn14Results.length === 0 ? (
-                              <div className="rounded-[6px] border border-dashed border-white/10 bg-black/30 p-3">
+                              <div className="rounded-none border border-dashed border-white/10 bg-black/30 p-3">
                                 <div className="text-sm font-medium text-zinc-100">No catalog match</div>
                                 <div className="mt-1 text-xs leading-5 text-zinc-500">
                                   Keep this text and create a manual line item. You can still fill SKU, brand, price and dimensions.
@@ -737,7 +737,7 @@ export default function AdminCreateOrderPage() {
                         ) : null}
                       </div>
                     ) : (
-                      <div className="rounded-[6px] border border-blue-500/25 bg-blue-500/[0.06] p-3">
+                      <div className="rounded-none border border-blue-500/25 bg-blue-500/[0.06] p-3">
                         <div className="mb-3 flex items-start justify-between gap-3">
                           <div>
                             <div className="text-sm font-medium text-zinc-100">Manual line item</div>
@@ -915,7 +915,7 @@ export default function AdminCreateOrderPage() {
               )}
 
               <button type="button" onClick={submitOrder} disabled={submitting}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-[4px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50">
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50">
                 <Save className="h-4 w-4" />
                 {submitting ? 'Створення...' : 'Створити замовлення'}
               </button>
@@ -947,9 +947,9 @@ function SearchItemResult({ item, onSelect }: { item: any; onSelect: () => void 
     <button
       type="button"
       onClick={onSelect}
-      className="mb-1 grid w-full grid-cols-[52px_minmax(0,1fr)_112px] items-center gap-3 rounded-[6px] border border-white/8 bg-white/[0.03] p-2.5 text-left transition last:mb-0 hover:border-blue-500/25 hover:bg-white/[0.06]"
+      className="mb-1 grid w-full grid-cols-[52px_minmax(0,1fr)_112px] items-center gap-3 rounded-none border border-white/8 bg-white/[0.03] p-2.5 text-left transition last:mb-0 hover:border-blue-500/25 hover:bg-white/[0.06]"
     >
-      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/40">
+      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-none border border-white/10 bg-black/40">
         {image ? (
           <img src={image} alt="" className="h-full w-full object-contain" />
         ) : (
@@ -992,7 +992,7 @@ function Field({ label, value, onChange, placeholder }: { label: string; value: 
     <label className="block">
       <span className="mb-1 block text-[10px] text-white/40 uppercase tracking-wider">{label}</span>
       <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        className="h-10 w-full min-w-0 rounded-[6px] border border-white/10 bg-zinc-950 px-3 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none" />
+        className="h-10 w-full min-w-0 rounded-none border border-white/10 bg-zinc-950 px-3 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none" />
     </label>
   );
 }
@@ -1003,7 +1003,7 @@ function NumField({ label, value, onChange, step, placeholder }: { label: string
       <span className="mb-1 block text-[10px] text-white/40 uppercase tracking-wider">{label}</span>
       <input type="number" step={step ?? 0.01} value={value || ''} onChange={e => onChange(Number(e.target.value) || 0)}
         placeholder={placeholder}
-        className="h-10 w-full min-w-0 rounded-[6px] border border-white/10 bg-zinc-950 px-3 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none" />
+        className="h-10 w-full min-w-0 rounded-none border border-white/10 bg-zinc-950 px-3 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none" />
     </label>
   );
 }

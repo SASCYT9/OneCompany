@@ -216,7 +216,7 @@ export default function AdminNewCustomerPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex items-center gap-2 rounded-[4px] bg-gradient-to-b from-blue-500 to-blue-700 px-8 py-3.5 text-sm font-bold uppercase tracking-widest text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_4px_18px_rgba(59,130,246,0.5)] hover:from-blue-400 hover:to-blue-600 transition-all duration-300 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-8 py-3.5 text-sm font-bold uppercase tracking-widest text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_4px_18px_rgba(59,130,246,0.5)] hover:from-blue-400 hover:to-blue-600 transition-all duration-300 disabled:opacity-50"
               >
                 {loading ? (
                   'Створення...'

@@ -51,7 +51,7 @@ export function DashboardKpiCard({
   return (
     <div
       className={cn(
-        'group relative flex h-full flex-col overflow-hidden rounded-xl border bg-[#171717] transition-all duration-200',
+        'group relative flex h-full flex-col overflow-hidden rounded-none border bg-[#171717] transition-all duration-200',
         tone === 'accent' ? 'border-blue-500/25' : 'border-white/[0.05]',
         'hover:border-white/[0.12]'
       )}

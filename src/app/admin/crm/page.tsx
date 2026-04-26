@@ -253,7 +253,7 @@ export default function CrmDashboardPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+        <div className="flex items-center gap-3 rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
           Loading CRM dashboard…
         </div>
@@ -276,7 +276,7 @@ export default function CrmDashboardPage() {
               type="button"
               onClick={() => void handleFullSync()}
               disabled={syncing}
-              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${syncing ? 'motion-safe:animate-spin' : ''}`} />
               {syncing ? 'Синхронізація…' : 'Повна синхронізація'}
@@ -326,7 +326,7 @@ export default function CrmDashboardPage() {
               key={tabKey}
               type="button"
               onClick={() => setActiveTab(tabKey)}
-              className={`rounded-[6px] border px-4 py-2.5 text-sm transition ${
+              className={`rounded-none border px-4 py-2.5 text-sm transition ${
                 activeTab === tabKey
                   ? 'border-white/15 bg-white/[0.08] text-zinc-50'
                   : 'border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200'
@@ -346,7 +346,7 @@ export default function CrmDashboardPage() {
 
       {activeTab !== 'overview' ? (
         <AdminFilterBar>
-          <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+          <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
             <Search className="h-4 w-4 text-zinc-500" />
             <input
               value={searchQuery}
@@ -464,22 +464,22 @@ export default function CrmDashboardPage() {
               </div>
               <div className="space-y-5 px-5 py-5">
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-3">
+                  <div className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-3">
                     <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Active</div>
                     <div className="mt-2 text-2xl font-semibold text-zinc-100">{activeOrders}</div>
                   </div>
-                  <div className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-3">
+                  <div className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-3">
                     <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Paid</div>
                     <div className="mt-2 text-2xl font-semibold text-emerald-300">{paidOrders}</div>
                   </div>
-                  <div className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-3">
+                  <div className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-3">
                     <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Pending payment</div>
                     <div className="mt-2 text-2xl font-semibold text-amber-200">{unpaidOrders}</div>
                   </div>
                 </div>
                 <div className="space-y-2">
                   {statusSummary.map((entry) => (
-                    <div key={entry.status} className="flex items-center justify-between gap-4 rounded-[6px] border border-white/10 bg-black/20 px-4 py-3">
+                    <div key={entry.status} className="flex items-center justify-between gap-4 rounded-none border border-white/10 bg-black/20 px-4 py-3">
                       <AdminStatusBadge tone={getOrderStatusTone(entry.status)}>{entry.status}</AdminStatusBadge>
                       <span className="text-sm font-medium text-zinc-200">{entry.count}</span>
                     </div>
@@ -526,7 +526,7 @@ export default function CrmDashboardPage() {
                       <td className="px-5 py-4">
                         <Link
                           href={`/admin/crm/customers/${customer.id}`}
-                          className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+                          className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
                         >
                           Open
                         </Link>
@@ -588,7 +588,7 @@ export default function CrmDashboardPage() {
                       <td className="px-5 py-4">
                         <Link
                           href={`/admin/crm/orders/${order.id}`}
-                          className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+                          className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
                         >
                           Open
                         </Link>

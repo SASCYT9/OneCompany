@@ -163,11 +163,11 @@ export default function AdminShopCustomersPage() {
           <span className="sr-only">Завантаження клієнтів…</span>
           <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
             <div className="space-y-3">
-              <div className="h-3 w-20 motion-safe:animate-pulse rounded bg-white/[0.06]" />
-              <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
-              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded bg-white/[0.04]" />
+              <div className="h-3 w-20 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+              <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
             </div>
-            <div className="h-9 w-44 motion-safe:animate-pulse rounded-lg bg-white/[0.04]" />
+            <div className="h-9 w-44 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
           </div>
           <AdminSkeletonKpiGrid count={4} />
           <AdminSkeletonTable rows={8} cols={7} />
@@ -227,7 +227,7 @@ export default function AdminShopCustomersPage() {
       </AdminActionBar>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={query}
@@ -287,14 +287,14 @@ export default function AdminShopCustomersPage() {
                     <button
                       type="button"
                       onClick={() => setQuickViewId(customer.id)}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.08] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/[0.08] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
                     >
                       <Eye className="h-3.5 w-3.5" />
                       Швидкий перегляд
                     </button>
                     <Link
                       href={`/admin/shop/customers/${customer.id}`}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
                     >
                       Відкрити
                       <ExternalLink className="h-3 w-3" />
@@ -364,7 +364,7 @@ export default function AdminShopCustomersPage() {
                         <button
                           type="button"
                           onClick={() => setQuickViewId(customer.id)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.08] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-500/[0.12]"
+                          className="inline-flex items-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/[0.08] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-500/[0.12]"
                           title="Швидкий перегляд (без переходу)"
                         >
                           <Eye className="h-3.5 w-3.5" aria-hidden="true" />
@@ -372,7 +372,7 @@ export default function AdminShopCustomersPage() {
                         </button>
                         <Link
                           href={`/admin/shop/customers/${customer.id}`}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
+                          className="inline-flex items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
                         >
                           Детально
                           <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -429,7 +429,7 @@ function CustomerQuickView({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.06]"
+              className="rounded-none border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.06]"
             >
               Закрити
             </button>
@@ -459,18 +459,18 @@ function CustomerQuickView({
           <section className="space-y-2">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Контакти</div>
             <div className="space-y-1.5">
-              <div className="flex items-center gap-2.5 rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2 text-sm">
+              <div className="flex items-center gap-2.5 rounded-none border border-white/[0.04] bg-black/25 px-3 py-2 text-sm">
                 <Mail className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
                 <span className="truncate text-zinc-200">{customer.email}</span>
               </div>
               {customer.phone ? (
-                <div className="flex items-center gap-2.5 rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2 text-sm">
+                <div className="flex items-center gap-2.5 rounded-none border border-white/[0.04] bg-black/25 px-3 py-2 text-sm">
                   <Phone className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
                   <span className="truncate text-zinc-200">{customer.phone}</span>
                 </div>
               ) : null}
               {customer.companyName ? (
-                <div className="flex items-center gap-2.5 rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2 text-sm">
+                <div className="flex items-center gap-2.5 rounded-none border border-white/[0.04] bg-black/25 px-3 py-2 text-sm">
                   <Building2 className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
                   <span className="truncate text-zinc-200">{customer.companyName}</span>
                 </div>
@@ -491,7 +491,7 @@ function CustomerQuickView({
           {/* CRM linkage */}
           {customer.notes?.includes('[Airtable:') ? (
             <section>
-              <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] px-3 py-2.5 text-xs">
+              <div className="rounded-none border border-emerald-500/20 bg-emerald-500/[0.04] px-3 py-2.5 text-xs">
                 <div className="flex items-center gap-2 text-emerald-300">
                   <Database className="h-3.5 w-3.5" aria-hidden="true" />
                   <span className="font-semibold uppercase tracking-wider">Пов'язано з Airtable CRM</span>
@@ -505,7 +505,7 @@ function CustomerQuickView({
           {customer.notes ? (
             <section className="space-y-2">
               <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Нотатки</div>
-              <div className="rounded-lg border border-white/[0.05] bg-[#171717] px-3 py-2.5 text-sm leading-6 text-zinc-300">
+              <div className="rounded-none border border-white/[0.05] bg-[#171717] px-3 py-2.5 text-sm leading-6 text-zinc-300">
                 {customer.notes}
               </div>
             </section>
@@ -515,11 +515,11 @@ function CustomerQuickView({
           <section className="space-y-2">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Часові мітки</div>
             <div className="space-y-1 text-xs">
-              <div className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2">
+              <div className="flex items-center justify-between gap-3 rounded-none border border-white/[0.04] bg-black/25 px-3 py-2">
                 <span className="text-zinc-500">Створено</span>
                 <span className="text-zinc-200">{new Date(customer.createdAt).toLocaleString('uk-UA')}</span>
               </div>
-              <div className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2">
+              <div className="flex items-center justify-between gap-3 rounded-none border border-white/[0.04] bg-black/25 px-3 py-2">
                 <span className="text-zinc-500">Оновлено</span>
                 <span className="text-zinc-200">{new Date(customer.updatedAt).toLocaleString('uk-UA')}</span>
               </div>
@@ -533,7 +533,7 @@ function CustomerQuickView({
 
 function CqStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-3 text-center">
+    <div className="rounded-none border border-white/[0.05] bg-[#171717] p-3 text-center">
       <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</div>
       <div className="mt-1 text-xl font-bold tabular-nums text-zinc-50">{value}</div>
     </div>
@@ -557,7 +557,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+        className="w-full rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
       >
         {options.map((option) => (
           <option key={`${label}-${option.value}`} value={option.value}>

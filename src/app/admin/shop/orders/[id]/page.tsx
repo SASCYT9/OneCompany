@@ -484,7 +484,7 @@ export default function AdminOrderDetailPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+        <div className="rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           Завантаження замовлення…
         </div>
       </AdminPage>
@@ -494,7 +494,7 @@ export default function AdminOrderDetailPage() {
   if (error && !order) {
     return (
       <AdminPage className="space-y-4">
-        <div className="rounded-[6px] border border-blue-500/20 bg-blue-950/20 px-4 py-3 text-sm text-red-200">{error}</div>
+        <div className="rounded-none border border-blue-500/20 bg-blue-950/20 px-4 py-3 text-sm text-red-200">{error}</div>
         <Link href="/admin/shop/orders" className="inline-block text-sm text-zinc-300 hover:text-zinc-100">
           Back to orders
         </Link>
@@ -583,18 +583,18 @@ export default function AdminOrderDetailPage() {
         main={
           <>
             {(error || success) && (
-              <div className={`rounded-[6px] border px-4 py-3 text-sm ${error ? 'border-blue-500/20 bg-blue-950/20 text-red-200' : 'border-emerald-500/20 bg-emerald-950/20 text-emerald-200'}`}>
+              <div className={`rounded-none border px-4 py-3 text-sm ${error ? 'border-blue-500/20 bg-blue-950/20 text-red-200' : 'border-emerald-500/20 bg-emerald-950/20 text-emerald-200'}`}>
                 {error || success}
               </div>
             )}
 
-            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
+            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
                 <h2 className="text-xl font-semibold text-zinc-100">Customer and shipping snapshot</h2>
                 <p className="mt-1 text-sm text-zinc-500">Контакт, B2B context і адреса доставки для поточного fulfillment.</p>
               </div>
               <div className="grid gap-4 lg:grid-cols-2">
-                <div className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4">
+                <div className="rounded-none border border-white/10 bg-black/25 px-4 py-4">
                   <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Customer</div>
                   <div className="mt-3 space-y-2 text-sm text-zinc-300">
                     <div className="text-lg font-medium text-zinc-100">{order.customerName}</div>
@@ -609,7 +609,7 @@ export default function AdminOrderDetailPage() {
                     ) : null}
                   </div>
                 </div>
-                <div className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4">
+                <div className="rounded-none border border-white/10 bg-black/25 px-4 py-4">
                   <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Shipping address</div>
                   <div className="mt-3 space-y-1 text-sm text-zinc-300">
                     <div>{address.line1 || '—'}</div>
@@ -621,7 +621,7 @@ export default function AdminOrderDetailPage() {
               </div>
             </section>
 
-            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
+            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
                 <h2 className="text-xl font-semibold text-zinc-100">Items</h2>
                 <p className="mt-1 text-sm text-zinc-500">Current order composition and pricing at line level.</p>
@@ -645,9 +645,9 @@ export default function AdminOrderDetailPage() {
                             <div className="flex items-center gap-3">
                               {item.image ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={item.image} alt={item.title} className="h-10 w-10 rounded-xl border border-white/10 object-cover" />
+                                <img src={item.image} alt={item.title} className="h-10 w-10 rounded-none border border-white/10 object-cover" />
                               ) : (
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/25">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-none border border-white/10 bg-black/25">
                                   <Package className="h-4 w-4 text-zinc-600" />
                                 </div>
                               )}
@@ -669,7 +669,7 @@ export default function AdminOrderDetailPage() {
               </AdminTableShell>
             </section>
 
-            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
+            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
                 <h2 className="text-xl font-semibold text-zinc-100">Shipments</h2>
                 <p className="mt-1 text-sm text-zinc-500">Tracking records and shipment state transitions tied to the order.</p>
@@ -679,7 +679,7 @@ export default function AdminOrderDetailPage() {
                   const draft = shipmentDrafts[shipment.id];
                   if (!draft) return null;
                   return (
-                    <div key={shipment.id} className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4">
+                    <div key={shipment.id} className="rounded-none border border-white/10 bg-black/25 px-4 py-4">
                       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                           <AdminStatusBadge tone={shipmentTone(shipment.status)}>{shipment.status.replace(/_/g, ' ')}</AdminStatusBadge>
@@ -731,7 +731,7 @@ export default function AdminOrderDetailPage() {
                   );
                 })}
 
-                <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-4">
+                <div className="rounded-none border border-dashed border-white/10 px-4 py-4">
                   <div className="mb-4 flex items-center gap-2 text-zinc-100">
                     <Truck className="h-4 w-4 text-blue-300/60" />
                     <span className="font-medium">Create shipment</span>
@@ -761,17 +761,17 @@ export default function AdminOrderDetailPage() {
               </div>
             </section>
 
-            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
+            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
                 <h2 className="text-xl font-semibold text-zinc-100">Pricing snapshot</h2>
                 <p className="mt-1 text-sm text-zinc-500">Stored pricing snapshot for audit and manual review.</p>
               </div>
-              <pre className="overflow-x-auto rounded-[6px] border border-white/10 bg-black/25 p-4 text-[11px] text-zinc-400">
+              <pre className="overflow-x-auto rounded-none border border-white/10 bg-black/25 p-4 text-[11px] text-zinc-400">
                 {JSON.stringify(order.pricingSnapshot ?? {}, null, 2)}
               </pre>
             </section>
 
-            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
+            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
                 <h2 className="text-xl font-semibold text-zinc-100">Timeline</h2>
                 <p className="mt-1 text-sm text-zinc-500">Status transitions and admin notes captured on the order.</p>
@@ -944,7 +944,7 @@ export default function AdminOrderDetailPage() {
                   type="button"
                   onClick={() => void handleGenerateWhitepayCryptoLink()}
                   disabled={updating}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-[4px] border border-blue-500/25 bg-blue-500/[0.06] px-4 py-2 text-sm font-bold uppercase tracking-wider text-red-200 transition hover:border-blue-500/40 hover:bg-blue-500/[0.1] disabled:opacity-50"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-none border border-blue-500/25 bg-blue-500/[0.06] px-4 py-2 text-sm font-bold uppercase tracking-wider text-red-200 transition hover:border-blue-500/40 hover:bg-blue-500/[0.1] disabled:opacity-50"
                 >
                   Whitepay Crypto
                 </button>

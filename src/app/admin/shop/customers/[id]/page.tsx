@@ -332,7 +332,7 @@ export default function AdminShopCustomerDetailPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+        <div className="flex items-center gap-3 rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <UserRound className="h-4 w-4 animate-pulse" />
           Loading customer…
         </div>
@@ -343,7 +343,7 @@ export default function AdminShopCustomerDetailPage() {
   if (!customer || !form) {
     return (
       <AdminPage className="space-y-4">
-        <div className="rounded-[6px] border border-blue-500/20 bg-blue-950/20 px-4 py-3 text-sm text-red-200">
+        <div className="rounded-none border border-blue-500/20 bg-blue-950/20 px-4 py-3 text-sm text-red-200">
           {error || 'Customer not found'}
         </div>
         <Link href="/admin/shop/customers" className="inline-block text-sm text-zinc-300 hover:text-zinc-100">
@@ -424,12 +424,12 @@ export default function AdminShopCustomerDetailPage() {
         main={
           <>
             {(error || success) && (
-              <div className={`rounded-[6px] border px-4 py-3 text-sm ${error ? 'border-blue-500/20 bg-blue-950/20 text-red-200' : 'border-emerald-500/20 bg-emerald-950/20 text-emerald-200'}`}>
+              <div className={`rounded-none border px-4 py-3 text-sm ${error ? 'border-blue-500/20 bg-blue-950/20 text-red-200' : 'border-emerald-500/20 bg-emerald-950/20 text-emerald-200'}`}>
                 {error || success}
               </div>
             )}
 
-            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
+            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
                 <h2 className="text-xl font-semibold text-zinc-100">Profile and commercial context</h2>
                 <p className="mt-1 text-sm text-zinc-500">Редагування account profile, B2B terms, балансів і локалі.</p>
@@ -487,7 +487,7 @@ export default function AdminShopCustomerDetailPage() {
               </div>
             </section>
 
-            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
+            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5 flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-semibold text-zinc-100">Orders</h2>
@@ -541,11 +541,11 @@ export default function AdminShopCustomerDetailPage() {
                   </div>
                 </AdminTableShell>
               ) : (
-                <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-10 text-sm text-zinc-500">No orders yet.</div>
+                <div className="rounded-none border border-dashed border-white/10 px-4 py-10 text-sm text-zinc-500">No orders yet.</div>
               )}
             </section>
 
-            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
+            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5">
                 <h2 className="text-xl font-semibold text-zinc-100">Addresses and carts</h2>
                 <p className="mt-1 text-sm text-zinc-500">Stored shipping data and current storefront activity.</p>
@@ -555,7 +555,7 @@ export default function AdminShopCustomerDetailPage() {
                   <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Addresses</h3>
                   {customer.addresses.length ? (
                     customer.addresses.map((address) => (
-                      <div key={address.id} className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4 text-sm text-zinc-300">
+                      <div key={address.id} className="rounded-none border border-white/10 bg-black/25 px-4 py-4 text-sm text-zinc-300">
                         <div className="font-medium text-zinc-100">{address.label}</div>
                         <div className="mt-2 space-y-1">
                           <div>{address.line1}</div>
@@ -570,14 +570,14 @@ export default function AdminShopCustomerDetailPage() {
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">No saved addresses.</div>
+                    <div className="rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">No saved addresses.</div>
                   )}
                 </div>
                 <div className="space-y-3">
                   <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Carts</h3>
                   {customer.carts.length ? (
                     customer.carts.map((cart) => (
-                      <div key={cart.id} className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4 text-sm text-zinc-300">
+                      <div key={cart.id} className="rounded-none border border-white/10 bg-black/25 px-4 py-4 text-sm text-zinc-300">
                         <div className="font-medium text-zinc-100">
                           {cart.currency} · {cart.locale}
                         </div>
@@ -588,13 +588,13 @@ export default function AdminShopCustomerDetailPage() {
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">No active carts.</div>
+                    <div className="rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">No active carts.</div>
                   )}
                 </div>
               </div>
             </section>
 
-            <section className="rounded-[6px] border border-white/10 bg-[#171717] p-6">
+            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
               <div className="mb-5 flex items-center gap-2">
                 <Database className="h-4 w-4 text-blue-300/60" />
                 <div>
@@ -603,7 +603,7 @@ export default function AdminShopCustomerDetailPage() {
                 </div>
               </div>
               <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-                <div className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4">
+                <div className="rounded-none border border-white/10 bg-black/25 px-4 py-4">
                   <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Customer markup</div>
                   {customerMarkup ? (
                     <div className="mt-3 space-y-2">
@@ -618,10 +618,10 @@ export default function AdminShopCustomerDetailPage() {
                 </div>
                 <div className="space-y-3">
                   {crmLoading ? (
-                    <div className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-8 text-sm text-zinc-500">Loading CRM orders…</div>
+                    <div className="rounded-none border border-white/10 bg-black/25 px-4 py-8 text-sm text-zinc-500">Loading CRM orders…</div>
                   ) : crmOrders.length ? (
                     crmOrders.map((order) => (
-                      <div key={order.id} className="rounded-[6px] border border-white/10 bg-black/25 px-4 py-4">
+                      <div key={order.id} className="rounded-none border border-white/10 bg-black/25 px-4 py-4">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>
                             <div className="font-medium text-zinc-100">#{order.number}</div>
@@ -635,7 +635,7 @@ export default function AdminShopCustomerDetailPage() {
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">
+                    <div className="rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">
                       No linked CRM orders or Airtable reference was not found in notes.
                     </div>
                   )}
@@ -677,7 +677,7 @@ export default function AdminShopCustomerDetailPage() {
                   </div>
                 ) : null}
                 {setupLinkUrl ? (
-                  <div className="rounded-[6px] border border-white/10 bg-black/25 px-3 py-3">
+                  <div className="rounded-none border border-white/10 bg-black/25 px-3 py-3">
                     <div className="break-all font-mono text-xs text-zinc-200">{setupLinkUrl}</div>
                     <button
                       type="button"

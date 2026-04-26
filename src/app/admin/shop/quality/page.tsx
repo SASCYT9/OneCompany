@@ -125,7 +125,7 @@ export default function CatalogQualityPage() {
       <AdminPage>
         <div className="grid gap-3 md:grid-cols-4">
           {Array.from({ length: 8 }).map((_, index) => (
-            <div key={index} className="h-28 motion-safe:animate-pulse rounded-[6px] border border-white/10 bg-white/[0.03]" />
+            <div key={index} className="h-28 motion-safe:animate-pulse rounded-none border border-white/10 bg-white/[0.03]" />
           ))}
         </div>
       </AdminPage>
@@ -188,7 +188,7 @@ export default function CatalogQualityPage() {
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div className="space-y-4">
               <AdminFilterBar>
-                <label className="flex min-w-[260px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+                <label className="flex min-w-[260px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
                   <Search className="h-4 w-4 text-zinc-500" />
                   <input
                     value={query}
@@ -285,7 +285,7 @@ export default function CatalogQualityPage() {
               <AdminInspectorCard title="Brand quality score" description="Worst brand groups first.">
                 <div className="space-y-3">
                   {report.brandScores.map((brand) => (
-                    <div key={brand.brand} className="rounded-[6px] border border-white/10 bg-black/25 px-3 py-3">
+                    <div key={brand.brand} className="rounded-none border border-white/10 bg-black/25 px-3 py-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <div className="truncate text-sm font-medium text-zinc-100">{brand.brand}</div>
@@ -329,7 +329,7 @@ function SelectFilter({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+        className="w-full rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
       >
         {options.map((option) => (
           <option key={`${label}-${option.value}`} value={option.value}>

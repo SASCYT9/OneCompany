@@ -286,7 +286,7 @@ function AdminInventoryPageContent() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+        <div className="flex items-center gap-3 rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <Warehouse className="h-4 w-4 animate-pulse" />
           Loading inventory…
         </div>
@@ -306,21 +306,21 @@ function AdminInventoryPageContent() {
               type="button"
               onClick={() => void handleExport()}
               disabled={exporting}
-              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
             >
               <Download className="h-4 w-4" />
               {exporting ? 'Exporting…' : 'Export CSV'}
             </button>
             <Link
               href="/admin/shop/pricing"
-              className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+              className="rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
             >
               Pricing
             </Link>
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
             >
               <RefreshCcw className="h-4 w-4" />
               Refresh
@@ -366,7 +366,7 @@ function AdminInventoryPageContent() {
             ]}
             className="min-w-[220px]"
           />
-          <label className="flex min-w-[320px] flex-1 items-center gap-2 self-end rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+          <label className="flex min-w-[320px] flex-1 items-center gap-2 self-end rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
             <Search className="h-4 w-4 text-zinc-500" />
             <input
               value={query}
@@ -392,21 +392,21 @@ function AdminInventoryPageContent() {
           <button
             type="button"
             onClick={selectVisible}
-            className="rounded-[6px] border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+            className="rounded-none border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
           >
             Select visible
           </button>
           <button
             type="button"
             onClick={clearSelection}
-            className="rounded-[6px] border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+            className="rounded-none border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
           >
             Clear
           </button>
         </div>
       </AdminActionBar>
 
-      <div className="rounded-[6px] border border-white/10 bg-[#171717] p-5">
+      <div className="rounded-none border border-white/10 bg-[#171717] p-5">
           <div className="mb-4">
             <h3 className="text-lg font-medium text-zinc-50">Bulk update</h3>
             <p className="mt-1 text-sm text-zinc-400">
@@ -434,7 +434,7 @@ function AdminInventoryPageContent() {
               type="button"
               onClick={applyBulk}
               disabled={applying}
-              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
             >
               <Boxes className="h-4 w-4" />
               {applying ? 'Applying…' : 'Apply to selected'}

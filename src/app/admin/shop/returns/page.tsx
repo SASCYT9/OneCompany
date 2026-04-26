@@ -117,11 +117,11 @@ export default function AdminReturnsPage() {
           <span className="sr-only">Завантаження повернень…</span>
           <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
             <div className="space-y-3">
-              <div className="h-3 w-20 motion-safe:animate-pulse rounded bg-white/[0.06]" />
-              <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
-              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded bg-white/[0.04]" />
+              <div className="h-3 w-20 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+              <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
             </div>
-            <div className="h-9 w-44 motion-safe:animate-pulse rounded-lg bg-white/[0.04]" />
+            <div className="h-9 w-44 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
           </div>
           <AdminSkeletonKpiGrid count={4} />
           <AdminSkeletonTable rows={6} cols={6} />
@@ -160,7 +160,7 @@ export default function AdminReturnsPage() {
       </AdminMetricGrid>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={search}
@@ -173,7 +173,7 @@ export default function AdminReturnsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+          className="rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
         >
           <option value="">Усі статуси</option>
           <option value="REQUESTED">Запит</option>
@@ -247,7 +247,7 @@ export default function AdminReturnsPage() {
                     <td className="px-4 py-4">
                       <Link
                         href={`/admin/shop/returns/${r.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
+                        className="inline-flex items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
                       >
                         Керувати
                         <ExternalLink className="h-3 w-3" aria-hidden="true" />

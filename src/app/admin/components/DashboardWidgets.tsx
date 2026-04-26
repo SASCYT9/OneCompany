@@ -37,7 +37,7 @@ export function WidgetCard({
   contentClassName?: string;
 }) {
   return (
-    <section className={cn('rounded-xl border border-white/[0.05] bg-[#171717]', className)}>
+    <section className={cn('rounded-none border border-white/[0.05] bg-[#171717]', className)}>
       {title || action ? (
         <header className="flex items-center justify-between gap-3 border-b border-white/[0.04] px-5 py-3.5">
           {title ? <h3 className="text-sm font-semibold tracking-tight text-zinc-100">{title}</h3> : <span />}
@@ -79,7 +79,7 @@ export function DashboardSalesChart({
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   if (!data.length) {
-    return <div className="h-72 rounded-lg bg-black/20 px-4 py-12 text-center text-sm text-zinc-500">Немає даних</div>;
+    return <div className="h-72 rounded-none bg-black/20 px-4 py-12 text-center text-sm text-zinc-500">Немає даних</div>;
   }
 
   const w = 720;
@@ -239,7 +239,7 @@ export function DashboardSalesChart({
         {/* Tooltip */}
         {hoveredIdx !== null && data[hoveredIdx] ? (
           <div
-            className="pointer-events-none absolute z-10 rounded-lg border border-white/[0.08] bg-[#0F0F0F] px-3 py-2 text-xs shadow-[0_8px_24px_rgba(0,0,0,0.6)] backdrop-blur"
+            className="pointer-events-none absolute z-10 rounded-none border border-white/[0.08] bg-[#0F0F0F] px-3 py-2 text-xs shadow-[0_8px_24px_rgba(0,0,0,0.6)] backdrop-blur"
             style={{
               left: `${(primaryPoints[hoveredIdx].x / w) * 100}%`,
               top: `${(primaryPoints[hoveredIdx].y / h) * 100}%`,
@@ -286,7 +286,7 @@ export function DashboardRevenueBars({
   currencySymbol?: string;
 }) {
   if (!data.length) {
-    return <div className="h-72 rounded-lg bg-black/20 px-4 py-12 text-center text-sm text-zinc-500">Немає даних</div>;
+    return <div className="h-72 rounded-none bg-black/20 px-4 py-12 text-center text-sm text-zinc-500">Немає даних</div>;
   }
 
   const w = 520;
@@ -543,7 +543,7 @@ export function DashboardTopBrands({
   return (
     <ul className="space-y-0.5">
       {brands.map((b, i) => (
-        <li key={b.name} className="flex items-center gap-2.5 rounded-lg px-2 py-2 transition hover:bg-white/[0.025]">
+        <li key={b.name} className="flex items-center gap-2.5 rounded-none px-2 py-2 transition hover:bg-white/[0.025]">
           <span className="w-4 shrink-0 text-center text-xs font-medium tabular-nums text-zinc-500">{i + 1}</span>
           <div className="min-w-0 flex-1 overflow-hidden">
             {b.logo ? (
@@ -580,7 +580,7 @@ export function DashboardDealerInquiries({
     <ul className="space-y-2.5">
       {inquiries.map((q) => (
         <li key={q.id} className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-zinc-800/60 text-sm">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-zinc-800/60 text-sm">
             {q.flag}
           </div>
           <div className="min-w-0 flex-1">
@@ -621,7 +621,7 @@ export function DashboardWorldMap({
 
   return (
     <div className="space-y-4">
-      <div className="relative aspect-[16/8] w-full overflow-hidden rounded-lg bg-[#0F0F0F]">
+      <div className="relative aspect-[16/8] w-full overflow-hidden rounded-none bg-[#0F0F0F]">
         {/* Real Wikimedia world map — sits as background, tinted to blend with dark theme */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -668,7 +668,7 @@ export function DashboardWorldMap({
       ) : (
         <div className="grid grid-cols-3 gap-2 lg:grid-cols-5">
           {regions.map((r) => (
-            <div key={r.name} className="rounded-lg border border-white/[0.04] bg-black/30 px-3 py-2.5 text-center">
+            <div key={r.name} className="rounded-none border border-white/[0.04] bg-black/30 px-3 py-2.5 text-center">
               <div className="truncate text-[10px] font-medium uppercase tracking-wider text-zinc-500">{r.name}</div>
               <div className="mt-0.5 text-sm font-bold tabular-nums text-zinc-100">{r.value}</div>
               <div className="text-[10px] tabular-nums text-zinc-500">{r.pct}%</div>
@@ -694,7 +694,7 @@ export function DashboardTopProducts({
       {products.map((p) => {
         const inner = (
           <>
-            <div className="aspect-square overflow-hidden rounded-lg bg-gradient-to-br from-zinc-900 to-black">
+            <div className="aspect-square overflow-hidden rounded-none bg-gradient-to-br from-zinc-900 to-black">
               {p.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -720,7 +720,7 @@ export function DashboardTopProducts({
           </>
         );
         const className =
-          'group block rounded-lg p-1 transition hover:bg-white/[0.02]';
+          'group block rounded-none p-1 transition hover:bg-white/[0.02]';
         return p.href ? (
           <Link key={p.id} href={p.href} className={className}>
             {inner}
@@ -770,7 +770,7 @@ export function DashboardMarketingPerformance({
         const Channel = CHANNEL_ICONS[c.channel];
         const Icon = Channel.icon;
         return (
-          <div key={c.id} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 rounded-lg px-2 py-2 transition hover:bg-white/[0.025]">
+          <div key={c.id} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 rounded-none px-2 py-2 transition hover:bg-white/[0.025]">
             <div className="flex min-w-0 items-center gap-2.5">
               <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-800/60', Channel.color)}>
                 <Icon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -819,7 +819,7 @@ export function DashboardInventorySnapshot({
         <InvCell icon={<AlertTriangle className="text-amber-400" />} label="Low Stock" value={lowStock.toLocaleString()} sub={`(${lowStockPct}%)`} />
         <InvCell icon={<XCircle className="text-red-400" />} label="Out of Stock" value={outOfStock.toLocaleString()} sub={`(${outPct}%)`} />
       </div>
-      <div className="aspect-[16/7] overflow-hidden rounded-lg bg-gradient-to-br from-zinc-900 to-black">
+      <div className="aspect-[16/7] overflow-hidden rounded-none bg-gradient-to-br from-zinc-900 to-black">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imageUrl ?? '/images/hero-moto.jpg'}
@@ -834,7 +834,7 @@ export function DashboardInventorySnapshot({
 
 function InvCell({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-white/[0.04] bg-black/30 px-3 py-4 text-center">
+    <div className="flex flex-col items-center justify-center rounded-none border border-white/[0.04] bg-black/30 px-3 py-4 text-center">
       <div className="mb-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.04] [&>svg]:h-4 [&>svg]:w-4">
         {icon}
       </div>
@@ -916,7 +916,7 @@ export function WarehouseCarSilhouette({ className }: { className?: string }) {
 
 export function DashboardDateRange({ label }: { label: string }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-lg border border-white/[0.06] bg-[#171717] px-3 py-2 text-xs font-medium text-zinc-200">
+    <div className="inline-flex items-center gap-2 rounded-none border border-white/[0.06] bg-[#171717] px-3 py-2 text-xs font-medium text-zinc-200">
       <Calendar className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
       {label}
     </div>

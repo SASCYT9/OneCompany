@@ -15,7 +15,7 @@ import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import AkrapovicSpotlightGrid from "./AkrapovicSpotlightGrid";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
-import { BRAND_PATTERNS, LINE_PATTERNS, extractVehicleBrands, extractProductLine, extractVehicleModel, extractVehicleModelsForBrand } from "@/lib/akrapovicFilterUtils";
+import { BRAND_PATTERNS, LINE_PATTERNS, extractVehicleBrands, extractProductLine, extractVehicleModel, extractVehicleModelsForBrand, compareVehicleModelKeys } from "@/lib/akrapovicFilterUtils";
 
 type AkrapovicVehicleFilterProps = {
   locale: SupportedLocale;
@@ -116,7 +116,9 @@ export default function AkrapovicVehicleFilter({
         if (model && model !== 'Other') models.set(model, (models.get(model) || 0) + 1);
       }
     }
-    return [...models.entries()].sort((a, b) => b[1] - a[1]).map(([key, count]) => ({ key, label: key, count }));
+    return [...models.entries()]
+      .sort((a, b) => compareVehicleModelKeys(a[0], b[0]))
+      .map(([key, count]) => ({ key, label: key, count }));
   }, [activeBrand, products, productBrandMap]);
 
   useEffect(() => {
@@ -247,12 +249,13 @@ export default function AkrapovicVehicleFilter({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="ak-hero-filter__field ak-hero-filter__search"
-          placeholder={isUa ? "Пошук" : "Search"}
+          placeholder="BMW F10, Slip-On…"
           aria-label={isUa ? "Пошук" : "Search"}
         />
 
         <Link href={catalogHref} className="ak-hero-filter__cta">
-          {isUa ? "Пошук" : "Search"}
+          {isUa ? `Показати ${filteredProducts.length}` : `Show ${filteredProducts.length}`}
+          <ArrowRight size={13} aria-hidden />
         </Link>
       </div>
     );

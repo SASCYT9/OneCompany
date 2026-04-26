@@ -190,9 +190,9 @@ export default function AdminDiscountDetailPage() {
     return (
       <AdminPage>
         <div className="space-y-3">
-          <div className="h-3 w-20 motion-safe:animate-pulse rounded bg-white/[0.06]" />
-          <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
-          <div className="h-3.5 w-96 motion-safe:animate-pulse rounded bg-white/[0.04]" />
+          <div className="h-3 w-20 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+          <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+          <div className="h-3.5 w-96 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
         </div>
       </AdminPage>
     );
@@ -298,7 +298,7 @@ export default function AdminDiscountDetailPage() {
             <AdminInspectorCard title={`Redemptions · ${discount.redemptionCount}`} description="Recent uses of this code.">
               <div className="space-y-1.5">
                 {discount.redemptions.map((r) => (
-                  <div key={r.id} className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.05] bg-black/25 px-3 py-2 text-xs">
+                  <div key={r.id} className="flex items-center justify-between gap-3 rounded-none border border-white/[0.05] bg-black/25 px-3 py-2 text-xs">
                     <div className="min-w-0">
                       <div className="truncate text-zinc-200">
                         {r.email || r.customerId || 'Guest'}

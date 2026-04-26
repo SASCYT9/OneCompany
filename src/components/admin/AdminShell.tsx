@@ -378,7 +378,7 @@ export default function AdminShell({
       {/* Skip link */}
       <a
         href="#admin-main-content"
-        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-[100] focus-visible:rounded-lg focus-visible:border focus-visible:border-blue-500/40 focus-visible:bg-[#171717] focus-visible:px-4 focus-visible:py-2.5 focus-visible:text-sm focus-visible:font-semibold focus-visible:text-blue-300 focus-visible:shadow-[0_8px_24px_rgba(0,0,0,0.6)] focus-visible:outline-none"
+        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-[100] focus-visible:rounded-none focus-visible:border focus-visible:border-blue-500/40 focus-visible:bg-[#171717] focus-visible:px-4 focus-visible:py-2.5 focus-visible:text-sm focus-visible:font-semibold focus-visible:text-blue-300 focus-visible:shadow-[0_8px_24px_rgba(0,0,0,0.6)] focus-visible:outline-none"
       >
         Перейти до основного вмісту
       </a>
@@ -425,7 +425,7 @@ export default function AdminShell({
           {collapsed ? (
             <Link
               href="/admin"
-              className="mx-auto hidden h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tracking-tight text-white lg:flex"
+              className="mx-auto hidden h-10 w-10 items-center justify-center rounded-none bg-blue-600 text-sm font-bold tracking-tight text-white lg:flex"
               aria-label="OneCompany Admin home"
             >
               OC
@@ -437,7 +437,7 @@ export default function AdminShell({
               type="button"
               onClick={() => setMobileDrawerOpen(false)}
               aria-label="Закрити навігацію"
-              className="flex h-9 w-9 items-center justify-center rounded-md text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200 lg:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-none text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200 lg:hidden"
             >
               <XIcon className="h-4 w-4" />
             </button>
@@ -447,7 +447,7 @@ export default function AdminShell({
                 type="button"
                 onClick={toggleCollapsed}
                 aria-label="Згорнути навігацію"
-                className="hidden h-7 w-7 items-center justify-center rounded-md text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200 lg:flex"
+                className="hidden h-7 w-7 items-center justify-center rounded-none text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200 lg:flex"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -461,7 +461,7 @@ export default function AdminShell({
               type="button"
               onClick={toggleCollapsed}
               aria-label="Розгорнути навігацію"
-              className="flex h-7 w-full items-center justify-center rounded-md text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200"
+              className="flex h-7 w-full items-center justify-center rounded-none text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -476,7 +476,7 @@ export default function AdminShell({
 
         {/* Hero card — real Mansory photo (matches reference) */}
         {!collapsed ? (
-          <div className="mx-3 mb-3 mt-2 overflow-hidden rounded-xl border border-white/[0.05] bg-[#0F0F0F]">
+          <div className="mx-3 mb-3 mt-2 overflow-hidden rounded-none border border-white/[0.05] bg-[#0F0F0F]">
             <div className="relative h-32 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -505,7 +505,7 @@ export default function AdminShell({
             type="button"
             onClick={() => void onLogout()}
             className={cn(
-              'mt-2 flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-400 transition hover:bg-red-500/[0.06] hover:text-red-300',
+              'mt-2 flex w-full items-center gap-2.5 rounded-none px-3 py-2 text-sm text-zinc-400 transition hover:bg-red-500/[0.06] hover:text-red-300',
               collapsed && 'justify-center px-0'
             )}
           >
@@ -522,7 +522,7 @@ export default function AdminShell({
               type="button"
               onClick={() => setMobileDrawerOpen(true)}
               aria-label="Відкрити навігацію"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100 lg:hidden"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100 lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -534,7 +534,7 @@ export default function AdminShell({
                   submitQuickLink();
                 }}
                 className={cn(
-                  'flex items-center gap-2 rounded-lg border bg-[#171717] px-3.5 py-2 transition-all',
+                  'flex items-center gap-2 rounded-none border bg-[#171717] px-3.5 py-2 transition-all',
                   searchFocused ? 'border-blue-500/40 shadow-[0_0_0_4px_rgba(59,130,246,0.08)]' : 'border-white/[0.06] hover:border-white/15'
                 )}
               >
@@ -548,7 +548,7 @@ export default function AdminShell({
                   placeholder="Пошук…"
                   className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
                 />
-                <kbd className="hidden items-center gap-0.5 rounded border border-white/[0.08] bg-black/40 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline-flex">
+                <kbd className="hidden items-center gap-0.5 rounded-none border border-white/[0.08] bg-black/40 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline-flex">
                   ⌘K
                 </kbd>
               </form>
@@ -571,7 +571,7 @@ export default function AdminShell({
                 onClick={() => setShortcutsOpen(true)}
                 aria-label="Гарячі клавіші"
                 title="Натисніть ? щоб показати гарячі клавіші"
-                className="hidden h-9 w-9 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100 md:flex"
+                className="hidden h-9 w-9 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100 md:flex"
               >
                 <Keyboard className="h-[18px] w-[18px]" aria-hidden="true" />
               </button>
@@ -584,7 +584,7 @@ export default function AdminShell({
                   onClick={() => setBellOpen((v) => !v)}
                   aria-label={`${notifCount} notification${notifCount === 1 ? '' : 's'}`}
                   aria-expanded={bellOpen}
-                  className="relative flex h-9 w-9 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100"
+                  className="relative flex h-9 w-9 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100"
                 >
                   <Bell className="h-[18px] w-[18px]" aria-hidden="true" />
                   {notifCount > 0 ? (
@@ -597,7 +597,7 @@ export default function AdminShell({
                 {bellOpen ? (
                   <div
                     data-bell-popover
-                    className="absolute right-0 z-50 mt-2 w-[360px] overflow-hidden rounded-xl border border-white/[0.08] bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+                    className="absolute right-0 z-50 mt-2 w-[360px] overflow-hidden rounded-none border border-white/[0.08] bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
                   >
                     <div className="flex items-center justify-between border-b border-white/[0.04] px-4 py-3">
                       <span className="text-sm font-semibold text-zinc-100">Сповіщення</span>
@@ -655,7 +655,7 @@ export default function AdminShell({
               <button
                 type="button"
                 aria-label="Меню користувача"
-                className="ml-1 flex items-center gap-2.5 rounded-lg border border-white/[0.05] bg-[#171717] px-2 py-1.5 transition hover:bg-[#1F1F1F]"
+                className="ml-1 flex items-center gap-2.5 rounded-none border border-white/[0.05] bg-[#171717] px-2 py-1.5 transition hover:bg-[#1F1F1F]"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-[11px] font-semibold text-white">
                   OC
@@ -689,7 +689,7 @@ export default function AdminShell({
           aria-label="Keyboard shortcuts"
         >
           <div
-            className="w-full max-w-[520px] overflow-hidden rounded-xl border border-white/[0.08] bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+            className="w-full max-w-[520px] overflow-hidden rounded-none border border-white/[0.08] bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-white/[0.05] px-5 py-3.5">
@@ -700,7 +700,7 @@ export default function AdminShell({
               <button
                 type="button"
                 onClick={() => setShortcutsOpen(false)}
-                className="rounded-md p-1 text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-100"
+                className="rounded-none p-1 text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-100"
                 aria-label="Закрити"
               >
                 <ChevronDown className="h-4 w-4 rotate-180" aria-hidden="true" />
@@ -724,7 +724,7 @@ export default function AdminShell({
             </div>
             <div className="border-t border-white/[0.05] bg-black/30 px-5 py-2.5 text-[11px] text-zinc-500">
               Натисніть{' '}
-              <kbd className="rounded border border-white/[0.1] bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px]">G</kbd>{' '}
+              <kbd className="rounded-none border border-white/[0.1] bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px]">G</kbd>{' '}
               а потім літеру протягом 1.5 секунди.
             </div>
           </div>
@@ -751,7 +751,7 @@ function ShortcutRow({ keys, label }: { keys: string[]; label: string }) {
         {keys.map((k, i) => (
           <kbd
             key={i}
-            className="inline-flex h-5 min-w-[20px] items-center justify-center rounded border border-white/[0.1] bg-white/[0.04] px-1.5 font-mono text-[10px] font-medium text-zinc-300"
+            className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-none border border-white/[0.1] bg-white/[0.04] px-1.5 font-mono text-[10px] font-medium text-zinc-300"
           >
             {k}
           </kbd>
@@ -801,7 +801,7 @@ function CommandCenterResults({
       initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.15 }}
-      className="absolute right-0 z-30 mt-2 w-full overflow-hidden rounded-xl border border-white/[0.08] bg-[#171717]/95 shadow-[0_30px_80px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+      className="absolute right-0 z-30 mt-2 w-full overflow-hidden rounded-none border border-white/[0.08] bg-[#171717]/95 shadow-[0_30px_80px_rgba(0,0,0,0.6)] backdrop-blur-xl"
     >
       <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="border-b border-white/[0.05] p-3 lg:border-b-0 lg:border-r">
@@ -860,7 +860,7 @@ function CommandCenterResults({
             </SearchGroup>
 
             {!loading && search.total === 0 ? (
-              <div className="rounded-lg border border-white/[0.05] bg-white/[0.02] px-3 py-4 text-sm text-zinc-500">
+              <div className="rounded-none border border-white/[0.05] bg-white/[0.02] px-3 py-4 text-sm text-zinc-500">
                 Збігів не знайдено. Спробуйте швидкі дії або сторінки нижче.
               </div>
             ) : null}
@@ -878,7 +878,7 @@ function CommandCenterResults({
                     key={action.href}
                     type="button"
                     onClick={() => onNavigate(action.href)}
-                    className="group flex items-center gap-3 rounded-lg border border-white/[0.05] bg-white/[0.02] px-3 py-2.5 text-left transition hover:border-blue-500/25 hover:bg-blue-500/[0.04]"
+                    className="group flex items-center gap-3 rounded-none border border-white/[0.05] bg-white/[0.02] px-3 py-2.5 text-left transition hover:border-blue-500/25 hover:bg-blue-500/[0.04]"
                   >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600/15 transition group-hover:bg-blue-600/25">
                       <Icon className="h-4 w-4 text-blue-400" aria-hidden="true" />
@@ -938,7 +938,7 @@ function SearchResultButton({
     <button
       type="button"
       onClick={onClick}
-      className="group flex w-full items-center justify-between gap-3 rounded-lg border border-white/[0.05] bg-white/[0.015] px-3 py-2.5 text-left transition hover:border-blue-500/25 hover:bg-blue-500/[0.04]"
+      className="group flex w-full items-center justify-between gap-3 rounded-none border border-white/[0.05] bg-white/[0.015] px-3 py-2.5 text-left transition hover:border-blue-500/25 hover:bg-blue-500/[0.04]"
     >
       <span className="min-w-0">
         <span className="block truncate text-sm font-medium text-zinc-100 group-hover:text-blue-300">{title}</span>
@@ -998,7 +998,7 @@ function AdminSidebarItem({
       aria-current={active ? 'page' : undefined}
       aria-label={collapsed ? item.label : undefined}
       className={cn(
-        'group relative flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-150',
+        'group relative flex items-center gap-3 rounded-none px-3 py-2 transition-all duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F0F0F]',
         collapsed && 'justify-center px-2',
         active
@@ -1070,7 +1070,7 @@ function AdminCurrencySwitcher({ collapsed }: { collapsed: boolean }) {
       <button
         type="button"
         onClick={() => setCurrency(next.value)}
-        className="flex w-full items-center justify-center rounded-lg border border-blue-500/25 bg-blue-600/15 px-3 py-2 text-sm font-semibold text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-600/25"
+        className="flex w-full items-center justify-center rounded-none border border-blue-500/25 bg-blue-600/15 px-3 py-2 text-sm font-semibold text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-600/25"
         title={`Switch currency from ${currency}`}
       >
         {CURRENCY_OPTIONS.find((option) => option.value === currency)?.symbol ?? currency}
@@ -1079,7 +1079,7 @@ function AdminCurrencySwitcher({ collapsed }: { collapsed: boolean }) {
   }
 
   return (
-    <div className="rounded-lg border border-white/[0.05] bg-black/30 p-1">
+    <div className="rounded-none border border-white/[0.05] bg-black/30 p-1">
       <div className="grid grid-cols-3 gap-1">
         {CURRENCY_OPTIONS.map((option) => (
           <button
@@ -1087,7 +1087,7 @@ function AdminCurrencySwitcher({ collapsed }: { collapsed: boolean }) {
             type="button"
             onClick={() => setCurrency(option.value)}
             className={cn(
-              'rounded-md px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition-all',
+              'rounded-none px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition-all',
               currency === option.value
                 ? 'bg-blue-600 text-white'
                 : 'text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-200'

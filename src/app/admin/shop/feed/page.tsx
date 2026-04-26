@@ -246,7 +246,7 @@ export default function AdminFeedExportsPage() {
                   value={brand}
                   onChange={(event) => setBrand(event.target.value)}
                   placeholder="Eventuri"
-                  className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-white/20 focus:outline-none"
                 />
               </label>
               <label className="block sm:col-span-1">
@@ -255,7 +255,7 @@ export default function AdminFeedExportsPage() {
                   value={skuPrefix}
                   onChange={(event) => setSkuPrefix(event.target.value)}
                   placeholder="kw_"
-                  className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-white/20 focus:outline-none"
                 />
               </label>
             </div>
@@ -372,7 +372,7 @@ function FeedSelect({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+        className="w-full rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
       >
         {options.map((option) => (
           <option key={`${label}-${option.value}`} value={option.value}>
@@ -398,7 +398,7 @@ function FeedUrlCard({
   onCopy: () => void;
 }) {
   return (
-    <div className="rounded-[6px] border border-white/10 bg-black/25 p-4">
+    <div className="rounded-none border border-white/10 bg-black/25 p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm font-medium text-zinc-100">
           <span className="text-blue-300">{icon}</span>
@@ -413,7 +413,7 @@ function FeedUrlCard({
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <code className="block break-all rounded-[6px] border border-white/10 bg-[#080808] px-3 py-3 text-xs leading-5 text-zinc-400">
+      <code className="block break-all rounded-none border border-white/10 bg-[#080808] px-3 py-3 text-xs leading-5 text-zinc-400">
         {url}
       </code>
     </div>

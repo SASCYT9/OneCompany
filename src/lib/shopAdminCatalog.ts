@@ -103,6 +103,7 @@ export const adminProductListSelect = {
   vendor: true,
   tags: true,
   productType: true,
+  image: true,
   category: {
     select: {
       id: true,
@@ -123,6 +124,11 @@ export const adminProductListSelect = {
   priceUsdB2b: true,
   isPublished: true,
   updatedAt: true,
+  media: {
+    take: 1,
+    orderBy: { position: 'asc' },
+    select: { src: true },
+  },
   variants: {
     orderBy: [{ isDefault: 'desc' }, { position: 'asc' }],
     take: 1,
@@ -1066,6 +1072,7 @@ export function serializeAdminProductListItem(record: AdminShopProductRecord | A
     priceUsdB2b: decimalToNumber(record.priceUsdB2b) ?? decimalToNumber(primaryVariant?.priceUsdB2b),
     isPublished: record.isPublished,
     updatedAt: record.updatedAt.toISOString(),
+    imageUrl: (Array.isArray(record.media) && record.media[0]?.src) || record.image || null,
     variantsCount: '_count' in record ? record._count.variants : record.variants.length,
     mediaCount: '_count' in record ? record._count.media : record.media.length,
     collectionsCount: '_count' in record ? record._count.collections : record.collections.length,

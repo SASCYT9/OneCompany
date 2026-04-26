@@ -357,7 +357,7 @@ export default function AdminUsersPage() {
       <AdminSplitDetailShell
         main={
           loading ? (
-            <div className="flex min-h-[320px] items-center justify-center rounded-[6px] border border-white/10 bg-[#171717] text-sm text-zinc-400">
+            <div className="flex min-h-[320px] items-center justify-center rounded-none border border-white/10 bg-[#171717] text-sm text-zinc-400">
               <Loader2 className="mr-3 h-4 w-4 motion-safe:animate-spin" />
               Loading admin users…
             </div>
@@ -462,7 +462,7 @@ export default function AdminUsersPage() {
                         return (
                           <label
                             key={role.id}
-                            className={`flex cursor-pointer items-start gap-3 rounded-[6px] border px-3 py-3 transition ${
+                            className={`flex cursor-pointer items-start gap-3 rounded-none border px-3 py-3 transition ${
                               checked
                                 ? 'border-blue-500/25 bg-blue-500/[0.08]'
                                 : 'border-white/10 bg-black/20 hover:bg-white/[0.03]'
@@ -472,7 +472,7 @@ export default function AdminUsersPage() {
                               type="checkbox"
                               checked={checked}
                               onChange={() => toggleRole(role.id, 'edit')}
-                              className="mt-1 h-4 w-4 rounded border-white/20 bg-[#171717]"
+                              className="mt-1 h-4 w-4 rounded-none border-white/20 bg-[#171717]"
                             />
                             <span className="min-w-0">
                               <span className="block text-sm font-medium text-zinc-100">{role.name}</span>
@@ -524,7 +524,7 @@ export default function AdminUsersPage() {
               >
                 <div className="space-y-3">
                   {roles.map((role) => (
-                    <div key={role.id} className="rounded-[6px] border border-white/8 bg-black/25 px-3 py-3">
+                    <div key={role.id} className="rounded-none border border-white/8 bg-black/25 px-3 py-3">
                       <div className="text-sm font-medium text-zinc-100">{role.name}</div>
                       <div className="mt-1 text-xs leading-5 text-zinc-500">
                         {role.key} · {role.permissions.length} permissions
@@ -607,7 +607,7 @@ export default function AdminUsersPage() {
                     return (
                       <label
                         key={role.id}
-                        className={`flex cursor-pointer items-start gap-3 rounded-[6px] border px-3 py-3 transition ${
+                        className={`flex cursor-pointer items-start gap-3 rounded-none border px-3 py-3 transition ${
                           checked ? 'border-blue-500/25 bg-blue-500/[0.08]' : 'border-white/10 bg-black/20 hover:bg-white/[0.03]'
                         }`}
                       >
@@ -615,7 +615,7 @@ export default function AdminUsersPage() {
                           type="checkbox"
                           checked={checked}
                           onChange={() => toggleRole(role.id, 'create')}
-                          className="mt-1 h-4 w-4 rounded border-white/20 bg-[#171717]"
+                          className="mt-1 h-4 w-4 rounded-none border-white/20 bg-[#171717]"
                         />
                         <span className="min-w-0">
                           <span className="block text-sm font-medium text-zinc-100">{role.name}</span>

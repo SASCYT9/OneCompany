@@ -112,7 +112,7 @@ export default function AdminSegmentsPage() {
     return (
       <AdminPage className="space-y-6">
         <div className="space-y-3">
-          <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
+          <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
         </div>
         <AdminSkeletonKpiGrid count={3} />
         <AdminSkeletonTable rows={6} cols={5} />
@@ -153,7 +153,7 @@ export default function AdminSegmentsPage() {
         <AdminMetricCard label="Найбільший сегмент" value={stats.largest} meta="Кількість клієнтів" />
       </AdminMetricGrid>
 
-      <label className="flex max-w-md items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+      <label className="flex max-w-md items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
         <Search className="h-4 w-4 text-zinc-500" />
         <input
           value={search}
@@ -221,7 +221,7 @@ export default function AdminSegmentsPage() {
                         type="button"
                         onClick={() => void recompute(s.id)}
                         disabled={recomputing === s.id}
-                        className="rounded p-1.5 text-zinc-500 hover:bg-white/[0.06] hover:text-blue-300 disabled:opacity-50"
+                        className="rounded-none p-1.5 text-zinc-500 hover:bg-white/[0.06] hover:text-blue-300 disabled:opacity-50"
                         aria-label="Перерахувати"
                         title="Перерахувати"
                       >
@@ -229,7 +229,7 @@ export default function AdminSegmentsPage() {
                       </button>
                       <Link
                         href={`/admin/shop/customers/segments/${s.id}`}
-                        className="rounded p-1.5 text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200"
+                        className="rounded-none p-1.5 text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-200"
                         aria-label="Відкрити"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
@@ -237,7 +237,7 @@ export default function AdminSegmentsPage() {
                       <button
                         type="button"
                         onClick={() => void deleteSegment(s)}
-                        className="rounded p-1.5 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
+                        className="rounded-none p-1.5 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
                         aria-label="Видалити"
                       >
                         <Trash2 className="h-3.5 w-3.5" />

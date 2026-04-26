@@ -122,7 +122,7 @@ export function ProductQuickView({
           <div className="flex items-center justify-between gap-3">
             <Link
               href={`/admin/shop/${detail.id}`}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] transition hover:bg-blue-500"
+              className="inline-flex items-center gap-1.5 rounded-none bg-blue-600 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] transition hover:bg-blue-500"
               onClick={onClose}
             >
               Редагувати товар
@@ -131,7 +131,7 @@ export function ProductQuickView({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.06]"
+              className="rounded-none border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.06]"
             >
               Закрити
             </button>
@@ -141,20 +141,20 @@ export function ProductQuickView({
     >
       {loading ? (
         <div className="space-y-4">
-          <div className="aspect-video rounded-xl border border-white/[0.05] bg-white/[0.03] motion-safe:animate-pulse" />
-          <div className="h-3 w-32 rounded bg-white/[0.06] motion-safe:animate-pulse" />
-          <div className="h-12 w-full rounded bg-white/[0.04] motion-safe:animate-pulse" />
-          <div className="h-32 w-full rounded bg-white/[0.04] motion-safe:animate-pulse" />
+          <div className="aspect-video rounded-none border border-white/[0.05] bg-white/[0.03] motion-safe:animate-pulse" />
+          <div className="h-3 w-32 rounded-none bg-white/[0.06] motion-safe:animate-pulse" />
+          <div className="h-12 w-full rounded-none bg-white/[0.04] motion-safe:animate-pulse" />
+          <div className="h-32 w-full rounded-none bg-white/[0.04] motion-safe:animate-pulse" />
         </div>
       ) : error ? (
-        <div className="rounded-xl border border-red-500/20 bg-red-500/[0.05] p-4 text-sm text-red-300">{error}</div>
+        <div className="rounded-none border border-red-500/20 bg-red-500/[0.05] p-4 text-sm text-red-300">{error}</div>
       ) : detail ? (
         <div className="space-y-5">
           {/* Image gallery */}
           <section>
             {allImages.length > 0 ? (
               <div className="space-y-2">
-                <div className="relative aspect-video overflow-hidden rounded-xl border border-white/[0.05] bg-[#0F0F0F]">
+                <div className="relative aspect-video overflow-hidden rounded-none border border-white/[0.05] bg-[#0F0F0F]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={allImages[activeImageIndex]}
@@ -169,7 +169,7 @@ export function ProductQuickView({
                         key={src}
                         type="button"
                         onClick={() => setActiveImageIndex(idx)}
-                        className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border bg-[#0F0F0F] transition ${
+                        className={`h-14 w-14 shrink-0 overflow-hidden rounded-none border bg-[#0F0F0F] transition ${
                           activeImageIndex === idx
                             ? 'border-blue-500/60 ring-2 ring-blue-500/20'
                             : 'border-white/[0.05] hover:border-white/20'
@@ -183,7 +183,7 @@ export function ProductQuickView({
                 ) : null}
               </div>
             ) : (
-              <div className="flex aspect-video items-center justify-center rounded-xl border border-white/[0.05] bg-[#0F0F0F] text-zinc-600">
+              <div className="flex aspect-video items-center justify-center rounded-none border border-white/[0.05] bg-[#0F0F0F] text-zinc-600">
                 <ImageOff className="h-10 w-10" aria-hidden="true" />
               </div>
             )}
@@ -234,7 +234,7 @@ export function ProductQuickView({
                 {detail.variants.slice(0, 6).map((v) => (
                   <div
                     key={v.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.05] bg-[#171717] px-3 py-2"
+                    className="flex items-center justify-between gap-3 rounded-none border border-white/[0.05] bg-[#171717] px-3 py-2"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -290,14 +290,14 @@ export function ProductQuickView({
 
           {/* Stock + Lead time */}
           <section className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
+            <div className="rounded-none border border-white/[0.05] bg-[#171717] p-4">
               <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Залишок</div>
               <div className="mt-1 flex items-center gap-2">
                 <Package className="h-4 w-4 text-zinc-500" aria-hidden="true" />
                 <span className="text-sm font-medium text-zinc-100">{detail.stock || '—'}</span>
               </div>
             </div>
-            <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
+            <div className="rounded-none border border-white/[0.05] bg-[#171717] p-4">
               <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Термін поставки</div>
               <div className="mt-1 truncate text-sm font-medium text-zinc-100">
                 {detail.leadTimeEn || detail.leadTimeUa || '—'}
@@ -341,7 +341,7 @@ function PriceCell({
   symbol: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-3">
+    <div className="rounded-none border border-white/[0.05] bg-[#171717] p-3">
       <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</div>
       <div className="mt-1 text-base font-semibold tabular-nums text-zinc-50">
         {b2c != null ? `${symbol}${b2c}` : '—'}
@@ -358,7 +358,7 @@ function PriceCell({
 
 function DimCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/[0.05] bg-black/25 p-2">
+    <div className="rounded-none border border-white/[0.05] bg-black/25 p-2">
       <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</div>
       <div className="mt-0.5 truncate text-sm font-medium text-zinc-100">{value}</div>
     </div>

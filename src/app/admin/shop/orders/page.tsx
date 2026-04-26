@@ -546,11 +546,11 @@ export default function AdminOrdersPage() {
           <span className="sr-only">Завантаження замовлень…</span>
           <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
             <div className="space-y-3">
-              <div className="h-3 w-16 motion-safe:animate-pulse rounded bg-white/[0.06]" />
-              <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
-              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded bg-white/[0.04]" />
+              <div className="h-3 w-16 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+              <div className="h-9 w-72 motion-safe:animate-pulse rounded-none bg-white/[0.06]" />
+              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
             </div>
-            <div className="h-9 w-44 motion-safe:animate-pulse rounded-lg bg-white/[0.04]" />
+            <div className="h-9 w-44 motion-safe:animate-pulse rounded-none bg-white/[0.04]" />
           </div>
           <AdminSkeletonKpiGrid count={4} />
           <AdminSkeletonTable rows={8} cols={7} />
@@ -642,7 +642,7 @@ export default function AdminOrdersPage() {
       </AdminActionBar>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200">
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={query}
@@ -698,7 +698,7 @@ export default function AdminOrdersPage() {
               key={filter.key}
               type="button"
               onClick={() => setSmartFilter(filter.key)}
-              className={`rounded-[6px] border px-3 py-2 text-left transition ${
+              className={`rounded-none border px-3 py-2 text-left transition ${
                 smartFilter === filter.key
                   ? 'border-blue-500/30 bg-blue-500/[0.08] text-blue-300'
                   : 'border-white/10 bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06]'
@@ -736,7 +736,7 @@ export default function AdminOrdersPage() {
                 value={bulkNote}
                 onChange={(event) => setBulkNote(event.target.value)}
                 placeholder="Необов'язкова нотатка для історії замовлень"
-                className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-white/20 focus:outline-none"
+                className="w-full rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-white/20 focus:outline-none"
               />
             </label>
             <div className="flex items-end">
@@ -769,9 +769,9 @@ export default function AdminOrdersPage() {
             onOpen={setActiveOrderId}
           />
           {activeOrderId ? (
-            <div className="rounded-[6px] border border-white/10 bg-black/25 p-4">
+            <div className="rounded-none border border-white/10 bg-black/25 p-4">
               {activeOrderLoading ? (
-                <div className="rounded-[6px] border border-white/10 bg-[#171717] px-4 py-6 text-sm text-zinc-400">
+                <div className="rounded-none border border-white/10 bg-[#171717] px-4 py-6 text-sm text-zinc-400">
                   Завантаження робочої панелі замовлення…
                 </div>
               ) : activeOrderError ? (
@@ -813,14 +813,14 @@ export default function AdminOrdersPage() {
                     <button
                       type="button"
                       onClick={() => setQuickViewId(order.id)}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.08] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/[0.08] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
                     >
                       <Eye className="h-3.5 w-3.5" />
                       Швидкий перегляд
                     </button>
                     <Link
                       href={`/admin/shop/orders/${order.id}`}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
                     >
                       Відкрити
                       <ExternalLink className="h-3 w-3" />
@@ -842,7 +842,7 @@ export default function AdminOrdersPage() {
                       type="checkbox"
                       checked={visibleOrders.length > 0 && selectedIds.length === visibleOrders.length}
                       onChange={toggleSelectAll}
-                      className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+                      className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
                     />
                   </th>
                   <th className="px-4 py-4 font-medium">Замовлення</th>
@@ -864,7 +864,7 @@ export default function AdminOrdersPage() {
                           type="checkbox"
                           checked={selectedIds.includes(order.id)}
                           onChange={() => toggleSelected(order.id)}
-                          className="h-4 w-4 rounded border-white/20 bg-zinc-950"
+                          className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
                         />
                       </td>
                       <td className="px-4 py-4">
@@ -932,7 +932,7 @@ export default function AdminOrdersPage() {
                           <button
                             type="button"
                             onClick={() => setQuickViewId(order.id)}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.08] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-500/[0.12]"
+                            className="inline-flex items-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/[0.08] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-500/[0.12]"
                             title="Швидкий перегляд (без переходу)"
                           >
                             <Eye className="h-3.5 w-3.5" aria-hidden="true" />
@@ -941,14 +941,14 @@ export default function AdminOrdersPage() {
                           <button
                             type="button"
                             onClick={() => setActiveOrderId((current) => (current === order.id ? null : order.id))}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
+                            className="inline-flex items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
                           >
                             Робоча панель
                             <ChevronRight className={`h-3.5 w-3.5 transition ${activeOrderId === order.id ? 'rotate-90' : ''}`} aria-hidden="true" />
                           </button>
                           <Link
                             href={`/admin/shop/orders/${order.id}`}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
+                            className="inline-flex items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
                           >
                             Детально
                             <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -960,7 +960,7 @@ export default function AdminOrdersPage() {
                       <tr>
                         <td colSpan={9} className="bg-black/20 px-4 py-5">
                           {activeOrderLoading ? (
-                            <div className="rounded-[6px] border border-white/10 bg-[#171717] px-4 py-6 text-sm text-zinc-400">
+                            <div className="rounded-none border border-white/10 bg-[#171717] px-4 py-6 text-sm text-zinc-400">
                               Завантаження робочої панелі замовлення…
                             </div>
                           ) : activeOrderError ? (
@@ -1028,7 +1028,7 @@ function OrderQuickView({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.06]"
+              className="rounded-none border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.06]"
             >
               Закрити
             </button>
@@ -1050,7 +1050,7 @@ function OrderQuickView({
           {/* Customer */}
           <section className="space-y-2">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Клієнт</div>
-            <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
+            <div className="rounded-none border border-white/[0.05] bg-[#171717] p-4">
               <div className="text-base font-semibold text-zinc-50">{order.customerName}</div>
               <div className="mt-2 space-y-1 text-sm">
                 <div className="flex items-center gap-2 text-zinc-400">
@@ -1084,11 +1084,11 @@ function OrderQuickView({
 
           {/* Items + Shipments counts */}
           <section className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
+            <div className="rounded-none border border-white/[0.05] bg-[#171717] p-4">
               <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Позицій</div>
               <div className="mt-1 text-2xl font-bold tabular-nums text-zinc-50">{order.itemCount}</div>
             </div>
-            <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
+            <div className="rounded-none border border-white/[0.05] bg-[#171717] p-4">
               <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Відправлень</div>
               <div className="mt-1 text-2xl font-bold tabular-nums text-zinc-50">{order.shipmentsCount}</div>
             </div>
@@ -1107,7 +1107,7 @@ function OrderQuickView({
           {order.latestEvent ? (
             <section className="space-y-2">
               <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Остання активність</div>
-              <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
+              <div className="rounded-none border border-white/[0.05] bg-[#171717] p-4">
                 <div className="flex items-center gap-2">
                   <AdminStatusBadge tone={statusTone(order.latestEvent.toStatus)}>
                     {statusLabel(order.latestEvent.toStatus)}
@@ -1155,7 +1155,7 @@ function QvStat({ label, value, tone }: { label: string; value: string; tone: 'd
           ? 'border-red-500/20 bg-red-500/[0.05]'
           : 'border-white/[0.05] bg-[#171717]';
   return (
-    <div className={`rounded-xl border ${cls} p-3`}>
+    <div className={`rounded-none border ${cls} p-3`}>
       <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</div>
       <div className="mt-1 truncate text-base font-semibold tabular-nums text-zinc-50">{value}</div>
     </div>
@@ -1164,7 +1164,7 @@ function QvStat({ label, value, tone }: { label: string; value: string; tone: 'd
 
 function QvRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2">
+    <div className="flex items-center justify-between gap-3 rounded-none border border-white/[0.04] bg-black/25 px-3 py-2">
       <span className="text-xs text-zinc-500">{label}</span>
       <span className="truncate text-sm font-medium text-zinc-200">{value}</span>
     </div>
@@ -1185,7 +1185,7 @@ function OrdersKanban({
       {KANBAN_STATUSES.map((status) => {
         const columnOrders = orders.filter((order) => order.status === status);
         return (
-          <section key={status} className="min-h-[240px] rounded-[6px] border border-white/10 bg-white/[0.03] p-3">
+          <section key={status} className="min-h-[240px] rounded-none border border-white/10 bg-white/[0.03] p-3">
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <div className="text-sm font-semibold text-zinc-100">{statusLabel(status)}</div>
@@ -1202,7 +1202,7 @@ function OrdersKanban({
                     key={order.id}
                     type="button"
                     onClick={() => onOpen(order.id)}
-                    className={`w-full rounded-[6px] border p-3 text-left transition ${
+                    className={`w-full rounded-none border p-3 text-left transition ${
                       activeOrderId === order.id
                         ? 'border-blue-500/25 bg-blue-500/[0.08]'
                         : 'border-white/10 bg-black/25 hover:bg-white/[0.05]'
@@ -1226,7 +1226,7 @@ function OrdersKanban({
                 );
               })}
               {!columnOrders.length ? (
-                <div className="rounded-[6px] border border-white/10 bg-black/20 px-3 py-6 text-center text-sm text-zinc-600">
+                <div className="rounded-none border border-white/10 bg-black/20 px-3 py-6 text-center text-sm text-zinc-600">
                   Порожньо
                 </div>
               ) : null}
@@ -1255,7 +1255,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-[6px] border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+        className="w-full rounded-none border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
       >
         {options.map((option) => (
           <option key={`${label}-${option.value || option.label}`} value={option.value}>
@@ -1481,7 +1481,7 @@ function OrderInlineWorkbench({
           {order.shipments.length ? (
             <div className="space-y-3">
               {order.shipments.map((shipment) => (
-                <div key={shipment.id} className="rounded-[6px] border border-white/10 bg-black/25 px-3 py-3">
+                <div key={shipment.id} className="rounded-none border border-white/10 bg-black/25 px-3 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="font-medium text-zinc-100">{shipment.trackingNumber}</div>
                     <AdminStatusBadge tone={shipment.status === 'DELIVERED' ? 'success' : shipment.status === 'CANCELLED' ? 'danger' : 'warning'}>
@@ -1501,7 +1501,7 @@ function OrderInlineWorkbench({
               ))}
             </div>
           ) : (
-            <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">
+            <div className="rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">
               Записів про відправлення поки немає.
             </div>
           )}
@@ -1510,7 +1510,7 @@ function OrderInlineWorkbench({
         <AdminInspectorCard title="Остання історія" description="Останні події замовлення.">
           <div className="space-y-3">
             {order.events.slice(0, 4).map((event) => (
-              <div key={event.id} className="rounded-[6px] border border-white/10 bg-black/25 px-3 py-3">
+              <div key={event.id} className="rounded-none border border-white/10 bg-black/25 px-3 py-3">
                 <div className="text-sm font-medium text-zinc-100">
                   {event.fromStatus ? `${statusLabel(event.fromStatus)} -> ` : ''}
                   {statusLabel(event.toStatus)}

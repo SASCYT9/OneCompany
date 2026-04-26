@@ -106,7 +106,7 @@ export function AdminTagInput({
 
   return (
     <div className={cn('space-y-2', className)}>
-      <div className="flex flex-wrap items-center gap-1.5 rounded-[6px] border border-white/10 bg-black/30 px-2 py-2">
+      <div className="flex flex-wrap items-center gap-1.5 rounded-none border border-white/10 bg-black/30 px-2 py-2">
         {loading ? (
           <Loader2 className="h-3 w-3 motion-safe:animate-spin text-zinc-500" />
         ) : tags.length === 0 ? null : (
@@ -142,7 +142,7 @@ export function AdminTagInput({
             onClick={() => void addTag(text)}
             disabled={composing}
             aria-label="Додати тег"
-            className="rounded-md p-1 text-zinc-500 transition hover:bg-blue-500/[0.1] hover:text-blue-300"
+            className="rounded-none p-1 text-zinc-500 transition hover:bg-blue-500/[0.1] hover:text-blue-300"
           >
             <Plus className="h-3 w-3" />
           </button>

@@ -9,7 +9,7 @@ export function AdminSkeleton({ className, style }: { className?: string; style?
   return (
     <div
       className={cn(
-        'motion-safe:animate-pulse rounded-md bg-white/[0.06]',
+        'motion-safe:animate-pulse rounded-none bg-white/[0.06]',
         className
       )}
       style={style}
@@ -25,7 +25,7 @@ export function AdminSkeletonText({ className, width = 'w-32' }: { className?: s
 /** KPI card skeleton matching DashboardKpiCard layout */
 export function AdminSkeletonKpi() {
   return (
-    <div className="rounded-xl border border-white/[0.05] bg-[#171717] px-5 pt-5 pb-3">
+    <div className="rounded-none border border-white/[0.05] bg-[#171717] px-5 pt-5 pb-3">
       <div className="flex items-start gap-3">
         <AdminSkeleton className="h-9 w-9 rounded-full" />
         <div className="flex-1 space-y-2">
@@ -42,7 +42,7 @@ export function AdminSkeletonKpi() {
 /** Card skeleton (generic content panel) */
 export function AdminSkeletonCard({ rows = 4, className }: { rows?: number; className?: string }) {
   return (
-    <div className={cn('rounded-xl border border-white/[0.05] bg-[#171717] p-5', className)}>
+    <div className={cn('rounded-none border border-white/[0.05] bg-[#171717] p-5', className)}>
       <div className="space-y-2 border-b border-white/[0.04] pb-3">
         <AdminSkeleton className="h-4 w-32" />
         <AdminSkeleton className="h-3 w-48" />
@@ -77,7 +77,7 @@ export function AdminSkeletonTableRow({ cols = 5 }: { cols?: number }) {
 /** Full table skeleton (header + N rows) */
 export function AdminSkeletonTable({ rows = 5, cols = 5 }: { rows?: number; cols?: number }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-white/[0.05] bg-[#171717]">
+    <div className="overflow-hidden rounded-none border border-white/[0.05] bg-[#171717]">
       <table className="w-full">
         <thead className="border-b border-white/[0.04]">
           <tr>

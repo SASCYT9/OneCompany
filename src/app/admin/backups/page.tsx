@@ -163,7 +163,7 @@ export default function AdminBackupsPage() {
       <AdminSplitDetailShell
         main={
           loading ? (
-            <div className="flex min-h-[320px] items-center justify-center rounded-[6px] border border-white/10 bg-[#171717] text-sm text-zinc-400">
+            <div className="flex min-h-[320px] items-center justify-center rounded-none border border-white/10 bg-[#171717] text-sm text-zinc-400">
               <Loader2 className="mr-3 h-4 w-4 motion-safe:animate-spin" />
               Loading backups…
             </div>

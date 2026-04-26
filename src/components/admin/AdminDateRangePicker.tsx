@@ -203,7 +203,7 @@ export function AdminDateRangePicker({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/[0.08] bg-[#171717] px-3 text-xs font-medium text-zinc-200 transition hover:border-white/15 hover:bg-[#1F1F1F]"
+        className="inline-flex h-9 items-center gap-2 rounded-none border border-white/[0.08] bg-[#171717] px-3 text-xs font-medium text-zinc-200 transition hover:border-white/15 hover:bg-[#1F1F1F]"
         aria-haspopup="dialog"
         aria-expanded={open}
       >
@@ -215,7 +215,7 @@ export function AdminDateRangePicker({
       {open ? (
         <div
           className={cn(
-            'absolute z-30 mt-2 flex flex-col gap-0 overflow-hidden rounded-xl border border-white/[0.08] bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)] sm:flex-row',
+            'absolute z-30 mt-2 flex flex-col gap-0 overflow-hidden rounded-none border border-white/[0.08] bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)] sm:flex-row',
             align === 'right' ? 'right-0' : 'left-0'
           )}
         >
@@ -227,7 +227,7 @@ export function AdminDateRangePicker({
                 type="button"
                 onClick={() => applyPreset(p)}
                 className={cn(
-                  'rounded-lg px-3 py-1.5 text-left text-xs font-medium transition',
+                  'rounded-none px-3 py-1.5 text-left text-xs font-medium transition',
                   value.preset === p.key
                     ? 'bg-blue-500/[0.15] text-blue-300'
                     : 'text-zinc-300 hover:bg-white/[0.04]'
@@ -244,7 +244,7 @@ export function AdminDateRangePicker({
                 setPendingTo(null);
                 setOpen(false);
               }}
-              className="mt-1 rounded-lg border-t border-white/[0.04] px-3 py-1.5 text-left text-xs text-zinc-500 transition hover:bg-white/[0.04]"
+              className="mt-1 rounded-none border-t border-white/[0.04] px-3 py-1.5 text-left text-xs text-zinc-500 transition hover:bg-white/[0.04]"
             >
               All time
             </button>
@@ -256,7 +256,7 @@ export function AdminDateRangePicker({
               <button
                 type="button"
                 onClick={() => setActiveMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
-                className="rounded-md p-1 text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+                className="rounded-none p-1 text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
                 aria-label="Previous month"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
@@ -267,7 +267,7 @@ export function AdminDateRangePicker({
               <button
                 type="button"
                 onClick={() => setActiveMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
-                className="rounded-md p-1 text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+                className="rounded-none p-1 text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
                 aria-label="Next month"
               >
                 <ChevronRight className="h-3.5 w-3.5" />
@@ -286,14 +286,14 @@ export function AdminDateRangePicker({
                 type="date"
                 value={pendingFrom ?? ''}
                 onChange={(e) => setPendingFrom(e.target.value || null)}
-                className="flex-1 rounded-md border border-white/[0.08] bg-black/30 px-2 py-1 text-xs text-zinc-100 focus:outline-none"
+                className="flex-1 rounded-none border border-white/[0.08] bg-black/30 px-2 py-1 text-xs text-zinc-100 focus:outline-none"
               />
               <span className="text-xs text-zinc-500">→</span>
               <input
                 type="date"
                 value={pendingTo ?? ''}
                 onChange={(e) => setPendingTo(e.target.value || null)}
-                className="flex-1 rounded-md border border-white/[0.08] bg-black/30 px-2 py-1 text-xs text-zinc-100 focus:outline-none"
+                className="flex-1 rounded-none border border-white/[0.08] bg-black/30 px-2 py-1 text-xs text-zinc-100 focus:outline-none"
               />
             </div>
 
@@ -301,7 +301,7 @@ export function AdminDateRangePicker({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-1.5 text-xs text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+                className="rounded-none px-3 py-1.5 text-xs text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
               >
                 Cancel
               </button>
@@ -309,7 +309,7 @@ export function AdminDateRangePicker({
                 type="button"
                 onClick={applyCustom}
                 disabled={!pendingFrom || !pendingTo}
-                className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
+                className="rounded-none bg-blue-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
               >
                 Apply
               </button>
@@ -369,7 +369,7 @@ function CalendarGrid({
             type="button"
             onClick={() => onDayClick(day)}
             className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-md text-xs tabular-nums transition',
+              'flex h-8 w-8 items-center justify-center rounded-none text-xs tabular-nums transition',
               isFrom || isTo
                 ? 'bg-blue-600 font-bold text-white'
                 : inRange

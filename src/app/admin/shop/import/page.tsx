@@ -445,7 +445,7 @@ export default function AdminShopImportPage() {
                 <select
                   value={selectedTemplateId}
                   onChange={(event) => setSelectedTemplateId(event.target.value)}
-                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
                 >
                   <option value="">Без шаблону</option>
                   {templates.map((template) => (
@@ -460,7 +460,7 @@ export default function AdminShopImportPage() {
                 <select
                   value={conflictMode}
                   onChange={(event) => setConflictMode(event.target.value as ImportConflictMode)}
-                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
                 >
                   {Object.entries(CONFLICT_MODE_COPY).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -476,7 +476,7 @@ export default function AdminShopImportPage() {
                 <input
                   value={supplierName}
                   onChange={(event) => setSupplierName(event.target.value)}
-                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                   placeholder="Urban, GP Portal, supplier alias..."
                 />
               </Field>
@@ -485,7 +485,7 @@ export default function AdminShopImportPage() {
                 <input
                   value={sourceFilename}
                   onChange={(event) => setSourceFilename(event.target.value)}
-                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                   placeholder="catalog.csv"
                 />
               </Field>
@@ -496,7 +496,7 @@ export default function AdminShopImportPage() {
                 value={csvText}
                 onChange={(event) => setCsvText(event.target.value)}
                 rows={16}
-                className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-4 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-4 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                 placeholder="Вставте CSV тут або завантажте файл вище."
               />
             </Field>
@@ -535,7 +535,7 @@ export default function AdminShopImportPage() {
                 <input
                   value={templateDraft.name}
                   onChange={(event) => setTemplateDraftField('name', event.target.value)}
-                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                   placeholder="Urban supplier feed"
                 />
               </Field>
@@ -545,7 +545,7 @@ export default function AdminShopImportPage() {
                   onChange={(event) =>
                     setTemplateDraftField('defaultConflictMode', event.target.value as ImportConflictMode)
                   }
-                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 focus:border-white/20 focus:outline-none"
                 >
                   {Object.entries(CONFLICT_MODE_COPY).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -561,7 +561,7 @@ export default function AdminShopImportPage() {
                 <input
                   value={templateDraft.supplierName}
                   onChange={(event) => setTemplateDraftField('supplierName', event.target.value)}
-                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                   placeholder="Optional supplier alias"
                 />
               </Field>
@@ -569,7 +569,7 @@ export default function AdminShopImportPage() {
                 <input
                   value={templateDraft.notes}
                   onChange={(event) => setTemplateDraftField('notes', event.target.value)}
-                  className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                  className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                   placeholder="Коли застосовувати цей mapping"
                 />
               </Field>
@@ -590,17 +590,17 @@ export default function AdminShopImportPage() {
 
               <div className="space-y-3">
                 {templateDraft.mappingRows.map((row) => (
-                  <div key={row.id} className="grid gap-3 rounded-[6px] border border-white/10 bg-black/20 p-4 md:grid-cols-[1fr_1fr_auto]">
+                  <div key={row.id} className="grid gap-3 rounded-none border border-white/10 bg-black/20 p-4 md:grid-cols-[1fr_1fr_auto]">
                     <input
                       value={row.source}
                       onChange={(event) => updateMappingRow(row.id, { source: event.target.value })}
-                      className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                       placeholder="supplier_column"
                     />
                     <input
                       value={row.target}
                       onChange={(event) => updateMappingRow(row.id, { target: event.target.value })}
-                      className="w-full rounded-[6px] border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
+                      className="w-full rounded-none border border-white/10 bg-[#0F0F0F] px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-white/20 focus:outline-none"
                       placeholder="shop_field"
                     />
                     <button

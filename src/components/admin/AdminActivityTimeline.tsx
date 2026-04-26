@@ -97,7 +97,7 @@ export function AdminActivityTimeline({
   if (error) {
     return (
       <div className={className}>
-        <div className="rounded-xl border border-red-500/20 bg-red-500/[0.05] p-3 text-sm text-red-300">
+        <div className="rounded-none border border-red-500/20 bg-red-500/[0.05] p-3 text-sm text-red-300">
           {error}
         </div>
       </div>
@@ -107,7 +107,7 @@ export function AdminActivityTimeline({
   if (entries.length === 0) {
     return (
       <div className={className}>
-        <div className="rounded-xl border border-dashed border-white/[0.08] bg-black/25 p-6 text-center">
+        <div className="rounded-none border border-dashed border-white/[0.08] bg-black/25 p-6 text-center">
           <Activity className="mx-auto h-6 w-6 text-zinc-600" aria-hidden="true" />
           <div className="mt-2 text-sm font-medium text-zinc-300">{emptyTitle}</div>
           <div className="mt-1 text-xs text-zinc-500">{emptyDescription}</div>
@@ -131,7 +131,7 @@ export function AdminActivityTimeline({
                 <ActionIcon action={entry.action} />
               </div>
 
-              <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-3">
+              <div className="rounded-none border border-white/[0.05] bg-[#171717] p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium text-zinc-100">{actionLabel(entry.action)}</div>

@@ -125,7 +125,7 @@ export default function AdminShopCategoriesPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+        <div className="flex items-center gap-3 rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <FolderTree className="h-4 w-4 animate-pulse" />
           Loading categories…
         </div>
@@ -145,14 +145,14 @@ export default function AdminShopCategoriesPage() {
               type="button"
               onClick={handleSync}
               disabled={syncing}
-              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
             >
               <RefreshCcw className={`h-4 w-4 ${syncing ? 'motion-safe:animate-spin' : ''}`} />
               {syncing ? 'Syncing…' : 'Sync from products'}
             </button>
             <Link
               href="/admin/shop/categories/new"
-              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+              className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
               New category
@@ -176,7 +176,7 @@ export default function AdminShopCategoriesPage() {
       </AdminMetricGrid>
 
       <AdminFilterBar>
-        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+        <label className="flex min-w-[280px] flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             value={query}
@@ -196,7 +196,7 @@ export default function AdminShopCategoriesPage() {
           action={
             <Link
               href="/admin/shop/categories/new"
-              className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+              className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
               Create category
@@ -248,7 +248,7 @@ export default function AdminShopCategoriesPage() {
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/admin/shop/categories/${category.id}`}
-                        className="rounded-[6px] border border-white/10 p-2 text-zinc-300 transition hover:bg-white/[0.06] hover:text-zinc-50"
+                        className="rounded-none border border-white/10 p-2 text-zinc-300 transition hover:bg-white/[0.06] hover:text-zinc-50"
                         title="Edit category"
                       >
                         <Pencil className="h-4 w-4" />
@@ -257,7 +257,7 @@ export default function AdminShopCategoriesPage() {
                         type="button"
                         onClick={() => handleDelete(category.id)}
                         disabled={deletingId === category.id}
-                        className="rounded-[6px] border border-blue-500/20 p-2 text-blue-300 transition hover:bg-blue-950/30 disabled:opacity-50"
+                        className="rounded-none border border-blue-500/20 p-2 text-blue-300 transition hover:bg-blue-950/30 disabled:opacity-50"
                         title="Delete category"
                       >
                         <Trash2 className="h-4 w-4" />

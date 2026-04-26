@@ -7,11 +7,12 @@ import { ChevronDown, ChevronUp, Copy, Plus, Save, Trash2, Upload, Wand2 } from 
 
 import {
   AdminEditorSection,
-  AdminEditorShell,
   AdminInlineAlert,
   AdminPage,
   AdminStatusBadge,
 } from '@/components/admin/AdminPrimitives';
+import { AdminCollapsibleSection } from '@/components/admin/AdminCollapsibleSection';
+import { AdminEditorTopBar } from '@/components/admin/AdminEditorTopBar';
 import {
   AdminCheckboxField as CheckboxField,
   AdminInputField as InputField,
@@ -25,7 +26,6 @@ import { useToast } from '@/components/admin/AdminToast';
 import { AdminActivityTimeline } from '@/components/admin/AdminActivityTimeline';
 import { AdminNotes } from '@/components/admin/AdminNotes';
 import { AdminTagInput } from '@/components/admin/AdminTagInput';
-import { ADMIN_PRODUCT_EDITOR_SECTIONS } from './adminProductEditorSections';
 import { AdminProductVariantCard } from './AdminProductVariantCard';
 
 type ProductStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
@@ -1528,32 +1528,49 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
     );
   }
 
-  return (
-    <AdminEditorShell
-      backHref="/admin/shop"
-      backLabel="Back to products"
-      title={isEditing ? `Edit product: ${form.titleEn || form.titleUa || form.slug}` : 'New product'}
-      description="Catalog editor for storefront ownership, pricing, media, variants, and Urban-specific merchandising fields."
-      sections={ADMIN_PRODUCT_EDITOR_SECTIONS}
-      summary={
-        <div className="rounded-[6px] border border-white/10 bg-[#171717] p-5">
-          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Catalog state</div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <AdminStatusBadge tone={form.status === 'ACTIVE' ? 'success' : form.status === 'ARCHIVED' ? 'danger' : 'warning'}>
-              {form.status}
-            </AdminStatusBadge>
-            <AdminStatusBadge tone={form.isPublished ? 'success' : 'warning'}>
-              {form.isPublished ? 'Published' : 'Hidden'}
-            </AdminStatusBadge>
-            <AdminStatusBadge>{form.variants.length} variants</AdminStatusBadge>
-          </div>
-        </div>
-      }
-    >
-      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
-      {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
+  const productDisplayTitle = form.titleEn || form.titleUa || form.slug || (isEditing ? 'Без назви' : 'Новий товар');
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+  return (
+    <AdminPage wide>
+      <form onSubmit={handleSubmit}>
+        <AdminEditorTopBar
+          backHref="/admin/shop"
+          backLabel="Каталог"
+          eyebrow={isEditing ? 'Редагування товару' : 'Новий товар'}
+          title={productDisplayTitle}
+          status={
+            <div className="hidden sm:flex flex-wrap items-center gap-1.5">
+              <AdminStatusBadge tone={form.status === 'ACTIVE' ? 'success' : form.status === 'ARCHIVED' ? 'danger' : 'warning'}>
+                {form.status}
+              </AdminStatusBadge>
+              {form.isPublished ? null : <AdminStatusBadge tone="warning">Прихований</AdminStatusBadge>}
+            </div>
+          }
+          actions={
+            <>
+              <Link
+                href="/admin/shop"
+                className="hidden sm:inline-flex items-center gap-2 border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
+              >
+                Скасувати
+              </Link>
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex items-center gap-2 bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2 text-sm font-semibold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" />
+                {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти' : 'Створити'}
+              </button>
+            </>
+          }
+        />
+
+        {error ? <div className="mb-4"><AdminInlineAlert tone="error">{error}</AdminInlineAlert></div> : null}
+        {success ? <div className="mb-4"><AdminInlineAlert tone="success">{success}</AdminInlineAlert></div> : null}
+
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="min-w-0 space-y-5">
           <AdminEditorSection
             id="overview"
             title="Огляд"
@@ -1779,9 +1796,9 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             </div>
           </AdminEditorSection>
 
-          <AdminEditorSection
+          <AdminCollapsibleSection
             id="dimensions"
-            title="Габарити та Вага (Базові)"
+            title="Габарити та вага"
             description="Використовуються для розрахунку об'ємної ваги та доставки, якщо поточний варіант не має власних значень."
           >
             <div className="mb-4">
@@ -1803,11 +1820,11 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             <div className="mt-4 flex items-center">
               <CheckboxField label="Орієнтовні габарити (згенеровано ШІ / потребують перевірки)" checked={form.isDimensionsEstimated} onChange={(value) => updateField('isDimensionsEstimated', value)} />
             </div>
-          </AdminEditorSection>
+          </AdminCollapsibleSection>
 
-          <AdminEditorSection
+          <AdminCollapsibleSection
             id="seo"
-            title="SEO"
+            title="SEO та пошук"
             description="SEO‑поля з імпорту Shopify, які напряму мапляться в наш каталог і метадані сторінки."
           >
             <div className="grid gap-4 md:grid-cols-2">
@@ -1816,7 +1833,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <TextareaField label="SEO description (EN)" value={form.seoDescriptionEn} onChange={(value) => updateField('seoDescriptionEn', value)} rows={3} />
               <TextareaField label="SEO description (UA)" value={form.seoDescriptionUa} onChange={(value) => updateField('seoDescriptionUa', value)} rows={3} />
             </div>
-          </AdminEditorSection>
+          </AdminCollapsibleSection>
 
           <AdminEditorSection
             id="media"
@@ -1897,7 +1914,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                             type="button"
                             onClick={() => void handleDeleteLibraryMedia(item)}
                             disabled={deletingLibraryMediaId === item.id || item.usageCount > 0}
-                            className="rounded-[4px] border border-blue-500/30 bg-blue-950/20 px-3 py-1.5 text-xs font-semibold text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40 disabled:opacity-50"
+                            className="rounded-none border border-blue-500/30 bg-blue-950/20 px-3 py-1.5 text-xs font-semibold text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40 disabled:opacity-50"
                           >
                             {deletingLibraryMediaId === item.id
                               ? 'Видаляємо…'
@@ -1944,7 +1961,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                       >
                         Use as main
                       </button>
-                      <button type="button" onClick={() => removeListItem('media', index)} className="rounded-[4px] border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40">
+                      <button type="button" onClick={() => removeListItem('media', index)} className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
@@ -2023,7 +2040,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <button
                       type="button"
                       onClick={() => removeListItem('options', index)}
-                      className="rounded-[4px] border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                      className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -2047,7 +2064,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             description="Ціни, залишки та опції на рівні SKU. Один варіант завжди має залишатися основним."
           >
             <div className="space-y-4">
-              <div className="rounded-[6px] border border-white/[0.07] bg-gradient-to-b from-[#141B33] to-[#0E1325] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <div className="rounded-none border border-white/[0.07] bg-gradient-to-b from-[#141B33] to-[#0E1325] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="text-sm font-semibold text-zinc-50">Variant tools</div>
@@ -2059,7 +2076,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <button
                       type="button"
                       onClick={generateVariantsFromOptions}
-                      className="inline-flex items-center gap-1.5 rounded-[6px] border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-blue-500/30 hover:bg-blue-500/[0.06] hover:text-blue-300"
+                      className="inline-flex items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-blue-500/30 hover:bg-blue-500/[0.06] hover:text-blue-300"
                     >
                       <Wand2 className="h-3.5 w-3.5" />
                       Generate from options
@@ -2067,7 +2084,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <button
                       type="button"
                       onClick={applyProductPricingToVariants}
-                      className="inline-flex items-center gap-1.5 rounded-[6px] border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-white/15 hover:bg-white/[0.06]"
+                      className="inline-flex items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-white/15 hover:bg-white/[0.06]"
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Copy product pricing
@@ -2075,7 +2092,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <button
                       type="button"
                       onClick={copyDefaultVariantSettings}
-                      className="inline-flex items-center gap-1.5 rounded-[6px] border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-white/15 hover:bg-white/[0.06]"
+                      className="inline-flex items-center gap-1.5 rounded-none border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-white/15 hover:bg-white/[0.06]"
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Copy default settings
@@ -2193,7 +2210,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   <button
                     type="button"
                     onClick={applyBulkVariantFields}
-                    className="inline-flex items-center gap-2 rounded-[4px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+                    className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
                   >
                     <Copy className="h-3.5 w-3.5" />
                     Apply bulk fields
@@ -2223,7 +2240,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <button
                 type="button"
                 onClick={addVariant}
-                className="inline-flex items-center gap-2 rounded-[6px] border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-blue-500/30 hover:bg-blue-500/[0.06] hover:text-blue-300"
+                className="inline-flex items-center gap-2 rounded-none border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-blue-500/30 hover:bg-blue-500/[0.06] hover:text-blue-300"
               >
                 <Plus className="h-4 w-4" />
                 Add variant
@@ -2231,7 +2248,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             </div>
           </AdminEditorSection>
 
-          <AdminEditorSection
+          <AdminCollapsibleSection
             id="metafields"
             title="Мета‑поля"
             description="Кастомні мета‑поля товару (як у Shopify), які використовуються темою URBAN та в CSV‑експорті."
@@ -2243,7 +2260,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     <button
                       type="button"
                       onClick={() => removeListItem('metafields', index)}
-                      className="rounded-[4px] border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                      className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -2267,13 +2284,13 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 Додати мета‑поле
               </button>
             </div>
-          </AdminEditorSection>
+          </AdminCollapsibleSection>
 
           {isEditing && productId && (
-            <AdminEditorSection
+            <AdminCollapsibleSection
               id="activity"
-              title="Activity"
-              description="Internal admin notes, tags, and audit trail of mutations on this product."
+              title="Активність та нотатки"
+              description="Внутрішні нотатки адміна, теги та аудит-трейл змін цього товару."
             >
               <div className="space-y-5">
                 <div>
@@ -2298,11 +2315,11 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   />
                 </div>
               </div>
-            </AdminEditorSection>
+            </AdminCollapsibleSection>
           )}
 
           {isEditing && (
-            <AdminEditorSection
+            <AdminCollapsibleSection
               id="danger-zone"
               title="Небезпечні дії"
               description="Безпечне зняття товару з публікації та переведення в архів. Жорстке видалення більше не є дією за замовчуванням."
@@ -2316,35 +2333,78 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   type="button"
                   onClick={() => void handleHardDelete()}
                   disabled={hardDeleting}
-                  className="inline-flex items-center gap-2 rounded-[4px] border border-blue-500/40 bg-blue-950/40 px-4 py-2 text-sm font-medium text-white hover:bg-blue-950/40 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-none border border-blue-500/40 bg-blue-950/40 px-4 py-2 text-sm font-medium text-white hover:bg-blue-950/40 disabled:opacity-50"
                 >
                   <Trash2 className="h-4 w-4" />
                   {hardDeleting ? 'Архівуємо…' : 'Архівувати товар'}
                 </button>
               </div>
-            </AdminEditorSection>
+            </AdminCollapsibleSection>
           )}
+          </div>
 
-          <div className="flex flex-wrap gap-3 pb-6 md:pb-0 hidden md:flex">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-[4px] bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50">
-              <Save className="h-4 w-4" />
-              {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти товар' : 'Створити товар'}
-            </button>
-            <Link href="/admin/shop" className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
-              Скасувати
-            </Link>
-          </div>
-          <div className="h-20 md:hidden" aria-hidden />
-          <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-3 border-t border-white/10 bg-zinc-900/95 px-4 py-3 backdrop-blur-sm safe-area-pb md:hidden">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-[4px] bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50">
-              <Save className="h-4 w-4" />
-              {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти товар' : 'Створити товар'}
-            </button>
-            <Link href="/admin/shop" className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
-              Скасувати
-            </Link>
-          </div>
-        </form>
-    </AdminEditorShell>
+          {/* Right sidebar — Shopify-style organization & quick actions */}
+          <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">
+            <div className="border border-white/[0.05] bg-[#171717] p-5">
+              <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+                Стан каталогу
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <AdminStatusBadge tone={form.status === 'ACTIVE' ? 'success' : form.status === 'ARCHIVED' ? 'danger' : 'warning'}>
+                  {form.status}
+                </AdminStatusBadge>
+                <AdminStatusBadge tone={form.isPublished ? 'success' : 'warning'}>
+                  {form.isPublished ? 'Опубліковано' : 'Прихований'}
+                </AdminStatusBadge>
+                <AdminStatusBadge>{form.variants.length} варіантів</AdminStatusBadge>
+                <AdminStatusBadge>{form.media.length} медіа</AdminStatusBadge>
+              </div>
+              <div className="mt-5 space-y-3 border-t border-white/[0.05] pt-4">
+                <SelectField
+                  label="Статус"
+                  value={form.status}
+                  onChange={(value) => updateField('status', value as ProductStatus)}
+                  options={[
+                    { label: 'Active', value: 'ACTIVE' },
+                    { label: 'Draft', value: 'DRAFT' },
+                    { label: 'Archived', value: 'ARCHIVED' },
+                  ]}
+                />
+                <CheckboxField
+                  label="Опубліковано на storefront"
+                  checked={form.isPublished}
+                  onChange={(value) => updateField('isPublished', value)}
+                />
+              </div>
+            </div>
+
+            {isEditing && productId ? (
+              <div className="border border-white/[0.05] bg-[#171717] p-5">
+                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+                  Теги
+                </div>
+                <div className="mt-3">
+                  <AdminTagInput
+                    entityType="shop.product"
+                    entityId={productId}
+                    suggestions={['featured', 'new-arrival', 'clearance', 'discontinued', 'staff-pick', 'bestseller']}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </aside>
+        </div>
+        <div className="h-20 md:hidden" aria-hidden />
+        <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-3 border-t border-white/10 bg-zinc-900/95 px-4 py-3 backdrop-blur-sm safe-area-pb md:hidden">
+          <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-none bg-gradient-to-b from-blue-500 to-blue-700 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-50">
+            <Save className="h-4 w-4" />
+            {saving ? 'Зберігаємо…' : isEditing ? 'Зберегти' : 'Створити'}
+          </button>
+          <Link href="/admin/shop" className="rounded-none border border-white/15 px-5 py-2.5 text-sm text-white hover:bg-white/5">
+            Скасувати
+          </Link>
+        </div>
+      </form>
+    </AdminPage>
   );
 }

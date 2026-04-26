@@ -173,7 +173,7 @@ export function AdminFileUpload({
           }
         }}
         className={cn(
-          'cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition',
+          'cursor-pointer rounded-none border-2 border-dashed p-6 text-center transition',
           dragOver
             ? 'border-blue-500/60 bg-blue-500/[0.06]'
             : 'border-white/[0.1] bg-black/20 hover:border-blue-500/40 hover:bg-blue-500/[0.04]'
@@ -205,15 +205,15 @@ export function AdminFileUpload({
             <div
               key={q.id}
               className={cn(
-                'flex items-center gap-3 rounded-lg border bg-[#171717] p-2 transition',
+                'flex items-center gap-3 rounded-none border bg-[#171717] p-2 transition',
                 q.status === 'error' ? 'border-red-500/25' : q.status === 'done' ? 'border-emerald-500/20' : 'border-white/[0.05]'
               )}
             >
               {q.previewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={q.previewUrl} alt="" className="h-12 w-12 shrink-0 rounded-md border border-white/[0.05] object-cover" />
+                <img src={q.previewUrl} alt="" className="h-12 w-12 shrink-0 rounded-none border border-white/[0.05] object-cover" />
               ) : (
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-white/[0.05] bg-black/30">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-none border border-white/[0.05] bg-black/30">
                   <ImageIcon className="h-5 w-5 text-zinc-600" />
                 </div>
               )}
@@ -237,7 +237,7 @@ export function AdminFileUpload({
                 type="button"
                 onClick={() => removeFromQueue(q.id)}
                 aria-label="Remove"
-                className="rounded p-1 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
+                className="rounded-none p-1 text-zinc-500 hover:bg-red-500/[0.1] hover:text-red-400"
               >
                 <X className="h-3 w-3" />
               </button>
