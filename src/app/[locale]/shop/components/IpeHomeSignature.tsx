@@ -95,15 +95,6 @@ export default function IpeHomeSignature({ locale }: Props) {
           <div className="ipe-valvetronic__content" data-ipe-reveal style={{ transitionDelay: '0.15s' }}>
             <h2>{L(isUa, IPE_VALVETRONIC.title, IPE_VALVETRONIC.titleUk)}</h2>
             <p>{L(isUa, IPE_VALVETRONIC.description, IPE_VALVETRONIC.descriptionUk)}</p>
-
-            <div className="ipe-valve-specs">
-              {IPE_VALVETRONIC.specs.map((s, i) => (
-                <div key={i} className="ipe-valve-spec">
-                  <span className="ipe-valve-spec__val">{s.val}</span>
-                  <span className="ipe-valve-spec__label">{L(isUa, s.label, s.labelUk)}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
@@ -166,15 +157,6 @@ export default function IpeHomeSignature({ locale }: Props) {
           <div className="ipe-titanium__content" data-ipe-reveal>
             <h2>{L(isUa, IPE_MATERIALS.title, IPE_MATERIALS.titleUk)}</h2>
             <p>{L(isUa, IPE_MATERIALS.description, IPE_MATERIALS.descriptionUk)}</p>
-
-            <div className="ipe-valve-specs">
-              {IPE_MATERIALS.specs.map((s, i) => (
-                <div key={i} className="ipe-valve-spec">
-                  <span className="ipe-valve-spec__val">{s.val}</span>
-                  <span className="ipe-valve-spec__label">{L(isUa, s.label, s.labelUk)}</span>
-                </div>
-              ))}
-            </div>
           </div>
           <div className="ipe-titanium__image-wrap" data-ipe-reveal style={{ transitionDelay: '0.15s' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}

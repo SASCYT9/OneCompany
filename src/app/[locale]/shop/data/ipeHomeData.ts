@@ -26,12 +26,6 @@ export const IPE_VALVETRONIC = {
   descriptionUk:
     'Фірмова система клапанів Valvetronic від iPE забезпечує два режими звучання — від цивілізованої їзди до повноцінного F1-саундтреку. Управління здійснюється бездротовим пультом або кнопкою в салоні: клапани перенаправляють потік через камерні перегородки або прямоточні труби для максимальної гучності.',
   image: '/images/shop/ipe/ipe-gt3rs-titanium.jpg',
-  specs: [
-    { val: '2', label: 'Sound Modes', labelUk: 'Режими звуку' },
-    { val: '85–110', label: 'dB Range', labelUk: 'дБ Діапазон' },
-    { val: 'RF', label: 'Wireless Remote', labelUk: 'Бездротовий пульт' },
-    { val: '<1s', label: 'Response Time', labelUk: 'Час відгуку' },
-  ],
 };
 
 export const IPE_MATERIALS = {
@@ -42,12 +36,6 @@ export const IPE_MATERIALS = {
   descriptionUk:
     'Вихлопні системи iPE використовують авіаційний титановий сплав для критичних компонентів — колектори, з\'єднувальні труби та корпуси глушників. Кожне з\'єднання зварюється вручну TIG-зварюванням для максимальної точності, створюючи характерний синьо-фіолетовий відтінок, що підтверджує справжність титану. Результат: зменшення ваги на 45% порівняно з нержавіючою сталлю.',
   image: '/images/shop/ipe/ipe-valve-detail.jpg',
-  specs: [
-    { val: '800°C', label: 'Max Temperature', labelUk: 'Макс. температура' },
-    { val: '−45%', label: 'vs Stainless Steel', labelUk: 'проти нерж. сталі' },
-    { val: 'Gr.2', label: 'Titanium Grade', labelUk: 'Клас титану' },
-    { val: 'TW', label: 'Made in Taiwan', labelUk: 'Виготовлено в Тайвані' },
-  ],
 };
 
 export type IpeProductLine = {
