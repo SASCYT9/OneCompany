@@ -42,18 +42,14 @@ export default function Do88FeaturedModels({ locale }: Props) {
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/80 transition duration-500 group-hover:bg-black/40" />
               
               <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                <span className="inline-block px-3 py-1 mb-4 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-[10px] uppercase tracking-[0.2em] w-max">
-                  {isUa ? model.badgeUk : model.badge}
-                </span>
-                
                 <h3 className="text-2xl md:text-3xl font-light mb-2">
                   {isUa ? model.titleUk : model.title}
                 </h3>
-                
+
                 <p className="text-sm text-white/60 mb-6">
                   {isUa ? model.subtitleUk : model.subtitle}
                 </p>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex gap-2">
                     <span className="text-[10px] uppercase tracking-wider text-white/40 border border-white/10 px-2 py-1 rounded">
@@ -63,7 +59,7 @@ export default function Do88FeaturedModels({ locale }: Props) {
                       {model.tagTwo}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/50 group-hover:text-white transition">
                     <span>{isUa ? model.buttonLabelUk : model.buttonLabel}</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-4 h-4 transform group-hover:translate-x-1 transition"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
