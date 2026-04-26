@@ -1,17 +1,25 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Search, X, ChevronDown, SlidersHorizontal, ShoppingCart } from "lucide-react";
+import { Search, X, ChevronDown, ShoppingCart } from "lucide-react";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
+import fitmentOptions from "../data/burgerFitmentOptions.json";
+
+type FitmentOptionsShape = Record<string, {
+  count: number;
+  models: Record<string, { count: number; chassis: string[]; engines: string[] }>;
+  allChassis: string[];
+  allEngines: string[];
+}>;
+const FITMENT = fitmentOptions as FitmentOptionsShape;
 
 type Props = {
   locale: SupportedLocale;
@@ -24,6 +32,7 @@ const TYPE_LABELS: Record<string, Record<string, string>> = {
   "jb4-tuners": { en: "JB4 Tuners", ua: "JB4 Тюнери" },
   "jb-plus-tuners": { en: "JB+ Tuners", ua: "JB+ Тюнери" },
   "stage-1-tuners": { en: "Stage 1 Tuners", ua: "Stage 1 Тюнери" },
+  "pedal-tuners": { en: "Pedal Tuners", ua: "Педаль-тюнери" },
   "flex-fuel": { en: "Flex Fuel Kits", ua: "Flex Fuel Кіти" },
   "intakes": { en: "Intakes", ua: "Впускні системи" },
   "oil-catch-cans": { en: "Oil Catch Cans", ua: "Маслозбірники" },
@@ -37,11 +46,22 @@ const TYPE_LABELS: Record<string, Record<string, string>> = {
   "blow-off-valves": { en: "Blow Off Valves", ua: "BOV" },
   "spark-plugs": { en: "Spark Plugs", ua: "Свічки" },
   "cooling": { en: "Cooling", ua: "Охолодження" },
+  "transmission-coolers": { en: "Transmission Coolers", ua: "Радіатори АКПП" },
   "sensors": { en: "Sensors", ua: "Датчики" },
   "exhaust-tips": { en: "Exhaust Tips", ua: "Глушники" },
   "strut-braces": { en: "Strut Braces", ua: "Розтяжки" },
+  "chassis-reinforcement": { en: "Chassis Reinforcement", ua: "Підсилення кузова" },
   "turbo-accessories": { en: "Turbo Parts", ua: "Турбо деталі" },
   "billet-accessories": { en: "Billet Parts", ua: "Billet деталі" },
+  "obdii-accessories": { en: "OBDII Accessories", ua: "OBDII Аксесуари" },
+  "clutch-stops": { en: "Clutch Stops", ua: "Обмежувачі зчеплення" },
+  "dragy": { en: "Dragy GPS", ua: "Dragy GPS" },
+  "universal": { en: "Universal", ua: "Універсальні" },
+};
+
+const UNIVERSAL_BRAND_KEY = "Universal";
+const BRAND_LABELS: Record<string, Record<string, string>> = {
+  Universal: { en: "Universal Fit", ua: "Універсальні" },
 };
 
 const PAGE_SIZE = 30;
@@ -68,13 +88,18 @@ export default function BurgerVehicleFilter({
   const searchParams = useSearchParams();
   const initialBrand = searchParams?.get("brand") || "all";
   const initialType = searchParams?.get("type") || "all";
+  const initialModel = searchParams?.get("model") || "all";
+  const initialChassis = searchParams?.get("chassis") || "all";
+  const initialEngine = searchParams?.get("engine") || "all";
 
   const [activeBrand, setActiveBrand] = useState<string>(initialBrand);
   const [activeType, setActiveType] = useState<string>(initialType);
+  const [activeModel, setActiveModel] = useState<string>(initialModel);
+  const [activeChassis, setActiveChassis] = useState<string>(initialChassis);
+  const [activeEngine, setActiveEngine] = useState<string>(initialEngine);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
   // ─── Extract brands from tags ───
   const availableBrands = useMemo(() => {
@@ -88,9 +113,20 @@ export default function BurgerVehicleFilter({
       }
     }
     return [...brands.entries()]
-      .map(([key, count]) => ({ key, label: key, count }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [products]);
+      .map(([key, count]) => ({
+        key,
+        label: BRAND_LABELS[key]?.[locale] || key,
+        count,
+      }))
+      .sort((a, b) => {
+        // "Universal" always last
+        if (a.key === UNIVERSAL_BRAND_KEY) return 1;
+        if (b.key === UNIVERSAL_BRAND_KEY) return -1;
+        // Then by count desc
+        if (b.count !== a.count) return b.count - a.count;
+        return a.label.localeCompare(b.label);
+      });
+  }, [products, locale]);
 
   // ─── Extract product types from tags ───
   const availableTypes = useMemo(() => {
@@ -111,17 +147,109 @@ export default function BurgerVehicleFilter({
         label: TYPE_LABELS[key]?.[locale] || key,
         count,
       }))
-      .sort((a, b) => a.label.localeCompare(b.label, locale === "ua" ? "uk" : "en"));
+      .sort((a, b) => {
+        if (b.count !== a.count) return b.count - a.count;
+        return a.label.localeCompare(b.label, locale === "ua" ? "uk" : "en");
+      });
   }, [products, activeBrand, locale]);
 
-  // Reset type when brand changes
+  // ─── Smart sort helpers (mirror picker logic) ───
+  function bmwGroup(model: string) {
+    if (/-Series$/.test(model)) return 0;
+    if (/^M\d/.test(model)) return 1;
+    if (/^X\d/.test(model) || model === "XM") return 2;
+    if (/^Z\d/.test(model)) return 3;
+    if (/^i\d/.test(model)) return 4;
+    return 5;
+  }
+  function modelSortValue(model: string) {
+    const m = model.match(/(\d+)/);
+    return m ? parseInt(m[1], 10) : 999;
+  }
+
+  // ─── Extract models / chassis / engines ───
+  // Chassis canonical-per-model (via static map) when a brand+model is selected.
+  function extractFacet(prefix: "model" | "chassis" | "engine") {
+    const map = new Map<string, number>();
+
+    // For chassis/engine with brand+model selected, restrict to canonical set for that model
+    let canonicalAllowlist: Set<string> | null = null;
+    if ((prefix === "chassis" || prefix === "engine") && activeBrand !== "all" && activeModel !== "all") {
+      const modelData = FITMENT[activeBrand]?.models[activeModel];
+      const canon = prefix === "chassis" ? modelData?.chassis : modelData?.engines;
+      if (canon && canon.length > 0) canonicalAllowlist = new Set(canon);
+    }
+
+    for (const p of products) {
+      if (activeBrand !== "all" && !p.tags?.includes(`brand:${activeBrand}`)) continue;
+      if ((prefix === "chassis" || prefix === "engine") && activeModel !== "all") {
+        if (!p.tags?.includes(`model:${activeModel}`)) continue;
+      }
+      for (const tag of p.tags || []) {
+        if (tag.startsWith(`${prefix}:`)) {
+          const v = tag.slice(prefix.length + 1);
+          if (canonicalAllowlist && !canonicalAllowlist.has(v)) continue;
+          map.set(v, (map.get(v) || 0) + 1);
+        }
+      }
+    }
+    const items = [...map.entries()].map(([key, count]) => ({ key, label: key, count }));
+
+    if (prefix === "model" && activeBrand === "BMW") {
+      return items.sort((a, b) => {
+        const ga = bmwGroup(a.key);
+        const gb = bmwGroup(b.key);
+        if (ga !== gb) return ga - gb;
+        const na = modelSortValue(a.key);
+        const nb = modelSortValue(b.key);
+        if (na !== nb) return na - nb;
+        return a.label.localeCompare(b.label);
+      });
+    }
+
+    // Chassis & non-BMW models: natural alphanumeric (E36 < E46 < F30 < G20)
+    if (prefix === "chassis" || prefix === "model" || prefix === "engine") {
+      return items.sort((a, b) =>
+        a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: "base" })
+      );
+    }
+
+    return items.sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      return a.label.localeCompare(b.label);
+    });
+  }
+
+  const availableModels = useMemo(() => extractFacet("model"), [products, activeBrand]);
+  const availableChassis = useMemo(() => extractFacet("chassis"), [products, activeBrand, activeModel]);
+  const availableEngines = useMemo(() => extractFacet("engine"), [products, activeBrand, activeModel]);
+
+  // Reset narrower filters when brand actually changes (skip initial mount so
+  // ?brand=BMW&model=M5&chassis=F90 from URL is preserved).
+  const prevBrandRef = useRef(activeBrand);
   useEffect(() => {
-    setActiveType("all");
+    if (prevBrandRef.current !== activeBrand) {
+      prevBrandRef.current = activeBrand;
+      setActiveType("all");
+      setActiveModel("all");
+      setActiveChassis("all");
+      setActiveEngine("all");
+    }
   }, [activeBrand]);
+
+  // Same for model: reset chassis/engine only when model actually changes (not on mount)
+  const prevModelRef = useRef(activeModel);
+  useEffect(() => {
+    if (prevModelRef.current !== activeModel) {
+      prevModelRef.current = activeModel;
+      setActiveChassis("all");
+      setActiveEngine("all");
+    }
+  }, [activeModel]);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [activeBrand, activeType, searchQuery, sortOrder]);
+  }, [activeBrand, activeType, activeModel, activeChassis, activeEngine, searchQuery, sortOrder]);
 
   // ─── Filter & Sort ───
   const filtered = useMemo(() => {
@@ -132,6 +260,38 @@ export default function BurgerVehicleFilter({
     }
     if (activeType !== "all") {
       list = list.filter(p => p.tags?.includes(`type:${activeType}`));
+    }
+    if (activeModel !== "all") {
+      list = list.filter(p => p.tags?.includes(`model:${activeModel}`));
+      // Canonical sanity: model must belong to the selected brand.
+      // E.g. ?brand=BMW&model=Supra is invalid even if some cross-fit product has both tags.
+      if (activeBrand !== "all") {
+        const brandModels = FITMENT[activeBrand]?.models;
+        if (brandModels && !brandModels[activeModel]) {
+          list = [];
+        }
+      }
+    }
+    if (activeChassis !== "all") {
+      list = list.filter(p => p.tags?.includes(`chassis:${activeChassis}`));
+      // Canonical sanity: if a model is also selected, the chassis must canonically
+      // belong to that model. Otherwise the URL combo is invalid (e.g. 3-Series + F22).
+      if (activeModel !== "all" && activeBrand !== "all") {
+        const canon = FITMENT[activeBrand]?.models[activeModel]?.chassis || [];
+        if (canon.length > 0 && !canon.includes(activeChassis)) {
+          list = [];
+        }
+      }
+    }
+    if (activeEngine !== "all") {
+      list = list.filter(p => p.tags?.includes(`engine:${activeEngine}`));
+      // Same canonical sanity for engine
+      if (activeModel !== "all" && activeBrand !== "all") {
+        const canon = FITMENT[activeBrand]?.models[activeModel]?.engines || [];
+        if (canon.length > 0 && !canon.includes(activeEngine)) {
+          list = [];
+        }
+      }
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -159,7 +319,7 @@ export default function BurgerVehicleFilter({
     });
 
     return list;
-  }, [products, activeBrand, activeType, searchQuery, sortOrder, locale]);
+  }, [products, activeBrand, activeType, activeModel, activeChassis, activeEngine, searchQuery, sortOrder, locale]);
 
   const getDisplayPrice = (p: ShopProduct) => {
     if (!mounted) return null;
@@ -181,6 +341,9 @@ export default function BurgerVehicleFilter({
   const hasActiveFilters =
     activeBrand !== "all" ||
     activeType !== "all" ||
+    activeModel !== "all" ||
+    activeChassis !== "all" ||
+    activeEngine !== "all" ||
     searchQuery.trim().length > 0 ||
     sortOrder !== "default";
   const displayedProducts = useMemo(
@@ -196,184 +359,125 @@ export default function BurgerVehicleFilter({
       <div className="absolute -top-40 -right-40 w-[1000px] h-[1000px] bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.06)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none" />
       
       <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20 relative z-20">
-        <div className="lg:hidden mb-4 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={toggleMobileFilter}
-            aria-expanded={mobileFilterOpen}
-            aria-controls="burger-mobile-filters"
-            className="flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-[#050505]/90 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:border-[var(--burger-yellow)]/40"
-          >
-            <SlidersHorizontal size={13} />
-            {isUa ? "Фільтри" : "Filters"}
-            {hasActiveFilters ? (
-              <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[var(--burger-yellow)]" />
-            ) : null}
-          </button>
-          <p className="text-xs tracking-wide text-zinc-500">
-            {filtered.length} {isUa ? "з" : "of"} {products.length}
-          </p>
+        {/* ─── COUNT + TITLE ─── */}
+        <div className="mb-6 flex items-end justify-between gap-4 flex-wrap">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight uppercase text-white">
+              {isUa ? "Каталог JB4" : "JB4 Catalog"}
+            </h2>
+            <p className="mt-2 text-zinc-400 text-[11px] tracking-[0.2em] uppercase font-semibold">
+              {filtered.length} {isUa ? "з" : "of"} {products.length} {isUa ? "товарів" : "products"}
+            </p>
+          </div>
+
+          {/* Sort */}
+          <div className="relative inline-flex items-center">
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
+              className="appearance-none bg-[#111] border border-zinc-800 text-white text-[11px] uppercase tracking-[0.1em] font-semibold px-5 py-3 pr-10 rounded-lg outline-none focus:border-[var(--burger-yellow)] focus:ring-1 focus:ring-[var(--burger-yellow)] transition-all cursor-pointer"
+            >
+              <option value="default">{isUa ? "За замовчуванням" : "Default"}</option>
+              <option value="price_asc">{isUa ? "Ціна: ↑" : "Price: ↑"}</option>
+              <option value="price_desc">{isUa ? "Ціна: ↓" : "Price: ↓"}</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-400">
+              <ChevronDown size={14} />
+            </div>
+          </div>
         </div>
-        
-        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
-          
-          {/* ─── LEFT: STICKY SIDEBAR ─── */}
-          <aside
-            id="burger-mobile-filters"
-            className={`flex-shrink-0 transition-transform duration-300 ${
-              mobileFilterOpen
-                ? "fixed inset-y-0 left-0 z-50 block w-[88vw] max-w-[360px]"
-                : "hidden lg:block w-full lg:w-[260px] xl:w-[280px]"
-            }`}
-          >
-            <div
-              className={`${
-                mobileFilterOpen
-                  ? "flex min-h-full flex-col gap-8 overflow-y-auto border-r border-white/[0.08] bg-[#050505] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl"
-                  : "lg:sticky lg:top-[120px] pb-10 flex flex-col gap-8"
+
+        {/* ─── SEARCH ─── */}
+        <div className="mb-5 relative max-w-md">
+          <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={isUa ? "Пошук деталей..." : "Search parts..."}
+            className="w-full bg-[#111] border border-zinc-800 rounded-lg pl-11 pr-10 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--burger-yellow)]/60 focus:ring-1 focus:ring-[var(--burger-yellow)]/50 transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--burger-yellow)] hover:text-white transition-colors"
+              aria-label="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* ─── TYPE FILTER PILLS ─── */}
+        {availableTypes.length > 1 && (
+          <div className="mb-3 flex items-center gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <button
+              type="button"
+              onClick={() => setActiveType("all")}
+              className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] uppercase tracking-[0.12em] font-semibold border transition-colors ${
+                activeType === "all"
+                  ? "bg-[var(--burger-yellow)] text-black border-[var(--burger-yellow)]"
+                  : "bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600 hover:text-white"
               }`}
             >
+              {isUa ? "Всі типи" : "All Types"}
+            </button>
+            {availableTypes.map((t) => (
               <button
+                key={t.key}
                 type="button"
-                onClick={closeMobileFilter}
-                className="self-end p-1.5 text-zinc-500 transition-colors hover:text-white lg:hidden"
-                aria-label="Close filters"
+                onClick={() => setActiveType(t.key)}
+                className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] uppercase tracking-[0.12em] font-semibold border transition-colors flex items-center gap-2 ${
+                  activeType === t.key
+                    ? "bg-[var(--burger-yellow)] text-black border-[var(--burger-yellow)]"
+                    : "bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600 hover:text-white"
+                }`}
               >
-                <X size={16} />
+                <span>{t.label}</span>
+                <span className={`text-[10px] ${activeType === t.key ? "text-black/60" : "text-zinc-600"}`}>{t.count}</span>
               </button>
-              
-              {/* Header */}
-              <div>
-                <h2 className="text-3xl font-extrabold tracking-tight uppercase mb-2 drop-shadow-sm text-white">
-                  {isUa ? "Каталог JB4" : "JB4 Catalog"}
-                </h2>
-                <div className="w-8 h-1 bg-[var(--burger-yellow)] mb-4" />
-                <p className="text-zinc-400 text-xs tracking-widest uppercase font-semibold">
-                  {filtered.length} {isUa ? "з" : "of"} {products.length} {isUa ? "товарів" : "products"}
-                </p>
-              </div>
+            ))}
+          </div>
+        )}
 
-              {/* Search */}
-              <div className="relative">
-                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={isUa ? "Пошук деталей..." : "Search parts..."}
-                  className="w-full bg-[#111] border border-zinc-800 rounded-lg pl-11 pr-4 py-3.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--burger-yellow)]/60 focus:ring-1 focus:ring-[var(--burger-yellow)]/50 transition-all shadow-inner"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--burger-yellow)] hover:text-white transition-colors"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
+        {/* ─── ENGINE FILTER PILLS (only when brand selected & engines available) ─── */}
+        {activeBrand !== "all" && availableEngines.length > 0 && (
+          <div className="mb-8 flex items-center gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <span className="whitespace-nowrap text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-semibold pr-2">
+              {isUa ? "Двигун:" : "Engine:"}
+            </span>
+            <button
+              type="button"
+              onClick={() => setActiveEngine("all")}
+              className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] uppercase tracking-[0.12em] font-semibold border transition-colors ${
+                activeEngine === "all"
+                  ? "bg-white/10 text-white border-white/20"
+                  : "bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600 hover:text-white"
+              }`}
+            >
+              {isUa ? "Усі" : "All"}
+            </button>
+            {availableEngines.map((e) => (
+              <button
+                key={e.key}
+                type="button"
+                onClick={() => setActiveEngine(e.key)}
+                className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] uppercase tracking-[0.12em] font-semibold border transition-colors flex items-center gap-1.5 ${
+                  activeEngine === e.key
+                    ? "bg-white/10 text-white border-white/20"
+                    : "bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600 hover:text-white"
+                }`}
+              >
+                <span>{e.label}</span>
+                <span className="text-zinc-600">{e.count}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
-              {/* BRANDS FILTER */}
-              <div className="flex flex-col gap-3 mt-4 bg-[#111]/50 p-5 rounded-2xl border border-white/[0.03]">
-                <h3 className="text-[11px] text-zinc-400 uppercase tracking-[0.2em] border-b border-white/[0.06] pb-3 mb-2 font-bold flex items-center justify-between">
-                  {isUa ? "Оберіть платформу" : "Select Platform"}
-                </h3>
-                <ul className="flex flex-col max-h-[250px] overflow-y-auto pr-3 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-black/20 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
-                  <li>
-                    <button
-                      onClick={() => setActiveBrand("all")}
-                      className={`w-full text-left py-2.5 text-[13px] uppercase tracking-wide font-medium transition-colors flex justify-between items-center ${
-                        activeBrand === "all" ? "text-white" : "text-zinc-500 hover:text-white"
-                      }`}
-                    >
-                      <span>{isUa ? "Всі платформи" : "All Platforms"}</span>
-                      {activeBrand === "all" && <span className="w-2 h-2 rounded-full bg-[var(--burger-yellow)] shadow-[0_0_10px_rgba(255,215,0,0.6)]"></span>}
-                    </button>
-                  </li>
-                  {availableBrands.map((brand) => (
-                    <li key={brand.key}>
-                      <button
-                         onClick={() => setActiveBrand(brand.key)}
-                         className={`w-full text-left py-2.5 text-[13px] uppercase tracking-wide font-medium transition-colors flex justify-between items-center ${
-                           activeBrand === brand.key ? "text-white" : "text-zinc-500 hover:text-white"
-                         }`}
-                      >
-                         <span>{brand.label}</span>
-                         <div className="flex items-center gap-3">
-                           <span className="text-[11px] text-zinc-600 font-bold bg-black/40 px-2 rounded-full">{brand.count}</span>
-                           {activeBrand === brand.key && <span className="w-2 h-2 rounded-full bg-[var(--burger-yellow)] shadow-[0_0_10px_rgba(255,215,0,0.6)]"></span>}
-                         </div>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
 
-              {/* TYPE FILTER */}
-              {availableTypes.length > 1 && (
-                <div className="flex flex-col gap-3 mt-2 bg-[#111]/50 p-5 rounded-2xl border border-white/[0.03] animate-in fade-in slide-in-from-top-4 duration-500">
-                  <h3 className="text-[11px] text-zinc-400 uppercase tracking-[0.2em] border-b border-white/[0.06] pb-3 mb-2 flex items-center gap-2 font-bold">
-                    <SlidersHorizontal size={13} />
-                    {isUa ? "Тип компонента" : "Component Type"}
-                  </h3>
-                  <ul className="flex flex-col max-h-[250px] overflow-y-auto pr-3 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-black/20 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
-                    <li>
-                      <button
-                        onClick={() => setActiveType("all")}
-                        className={`w-full text-left py-2 text-[12px] uppercase tracking-wide font-medium transition-colors flex justify-between items-center ${
-                           activeType === "all" ? "text-[var(--burger-yellow)]" : "text-zinc-500 hover:text-white"
-                        }`}
-                      >
-                        {isUa ? "Всі типи" : "All Types"}
-                      </button>
-                    </li>
-                    {availableTypes.map((typeObj) => (
-                      <li key={typeObj.key}>
-                        <button
-                          onClick={() => setActiveType(typeObj.key)}
-                          className={`w-full text-left py-2 text-[12px] uppercase tracking-wide font-medium transition-colors flex justify-between items-center ${
-                             activeType === typeObj.key ? "text-[var(--burger-yellow)]" : "text-zinc-500 hover:text-white"
-                          }`}
-                        >
-                          <span className="truncate pr-2">{typeObj.label}</span>
-                          <span className="text-[10px] text-zinc-600">{typeObj.count}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-            </div>
-          </aside>
-
-          {mobileFilterOpen && (
-            <div
-              className="fixed inset-0 z-40 bg-black/60 lg:hidden"
-              onClick={closeMobileFilter}
-            />
-          )}
-
-          {/* ─── RIGHT: PRODUCT GRID ─── */}
+          {/* ─── PRODUCT GRID — full-width ─── */}
           <main className="flex-1 min-w-0">
-            {/* Top Sort Bar */}
-            <div className="flex justify-end mb-8 z-20 relative">
-              <div className="relative inline-flex items-center">
-                <select
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
-                  className="appearance-none bg-[#111] border border-zinc-800 text-white text-[11px] uppercase tracking-[0.1em] font-semibold px-6 py-3.5 pr-12 rounded-lg outline-none focus:border-[var(--burger-yellow)] focus:ring-1 focus:ring-[var(--burger-yellow)] transition-all shadow-lg cursor-pointer"
-                >
-                  <option value="default">{isUa ? "За замовчуванням (Тюнери та Преміум)" : "Default (Tuners & Premium)"}</option>
-                  <option value="price_asc">{isUa ? "Ціна: Від найменшої" : "Price: Low to High"}</option>
-                  <option value="price_desc">{isUa ? "Ціна: Від найбільшої" : "Price: High to Low"}</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-400">
-                  <ChevronDown size={14} />
-                </div>
-              </div>
-            </div>
-
             {filtered.length === 0 ? (
               <div className="py-32 text-center bg-[#111] border border-zinc-900 rounded-2xl flex flex-col items-center shadow-2xl">
                 <div className="w-20 h-20 rounded-full bg-black flex items-center justify-center mb-6 border border-white/5">
@@ -468,7 +572,6 @@ export default function BurgerVehicleFilter({
               </>
             )}
           </main>
-        </div>
 
       </div>
     </section>

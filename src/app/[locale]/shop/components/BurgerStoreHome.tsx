@@ -8,6 +8,7 @@ import {
 } from '../data/burgerHomeData';
 
 import ScrollRevealClient from './ScrollRevealClient';
+import BurgerHeroPicker from './BurgerHeroPicker';
 
 type Props = { locale: SupportedLocale };
 
@@ -83,6 +84,9 @@ export default function BurgerStoreHome({ locale }: Props) {
               <span className="cta-arrow">→</span>
             </Link>
           </div>
+
+          {/* Vehicle picker */}
+          <BurgerHeroPicker locale={locale} />
         </div>
 
         {/* Scroll indicator */}
@@ -113,7 +117,7 @@ export default function BurgerStoreHome({ locale }: Props) {
           <div className="bm-step" data-bm-reveal style={{ transitionDelay: '0.2s' }}>
             <span className="bm-step__num">03</span>
             <h3>{L(isUa, 'Drive', 'Їзда')}</h3>
-            <p>{L(isUa, 'Experience gains up to +100 HP with full logging, safety limiters, and instant revert to stock at any time.', 'Отримайте до +100 к.с. з повним логуванням, захисними лімітерами та миттєвим поверненням до заводських налаштувань.')}</p>
+            <p>{L(isUa, 'Experience gains up to +200 HP with full logging, safety limiters, and instant revert to stock at any time.', 'Отримайте до +200 к.с. з повним логуванням, захисними лімітерами та миттєвим поверненням до заводських налаштувань.')}</p>
           </div>
         </div>
       </section>

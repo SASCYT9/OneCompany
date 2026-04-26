@@ -1,6 +1,8 @@
+import { Suspense } from 'react';
 import { prisma } from '@/lib/prisma';
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
 import BurgerVehicleFilter from '../../components/BurgerVehicleFilter';
+import BurgerHeroPicker from '../../components/BurgerHeroPicker';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
@@ -52,18 +54,28 @@ export default async function BurgerProductsCatalogPage({ params }: Props) {
   );
 
   return (
-    <div className="relative min-h-screen" style={{ background: '#0a0a0a' }}>
+    <div className="relative min-h-screen" style={{ background: '#050505' }}>
       <div style={{ paddingTop: '100px' }}>
         <div className="burger-back">
           <Link href={`/${locale}/shop/burger`} className="burger-back__link">
             ← {resolvedLocale === 'ua' ? 'Головна Burger' : 'Burger home'}
           </Link>
         </div>
-        <BurgerVehicleFilter
-          locale={resolvedLocale}
-          products={burgerProducts}
-          viewerContext={viewerContext}
-        />
+
+        {/* Top picker — same UX as home hero */}
+        <div className="burger-catalog-picker">
+          <Suspense fallback={null}>
+            <BurgerHeroPicker locale={resolvedLocale} />
+          </Suspense>
+        </div>
+
+        <Suspense fallback={null}>
+          <BurgerVehicleFilter
+            locale={resolvedLocale}
+            products={burgerProducts}
+            viewerContext={viewerContext}
+          />
+        </Suspense>
       </div>
     </div>
   );

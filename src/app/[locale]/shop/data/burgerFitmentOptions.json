@@ -1,0 +1,2520 @@
+{
+  "BMW": {
+    "count": 300,
+    "models": {
+      "3-Series": {
+        "count": 127,
+        "chassis": [
+          "E30",
+          "E36",
+          "E46",
+          "E90",
+          "E91",
+          "E92",
+          "E93",
+          "F30",
+          "F31",
+          "F34",
+          "F35",
+          "G18",
+          "G20",
+          "G21",
+          "G28"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "N74",
+          "S55",
+          "S58",
+          "S63",
+          "S65",
+          "S68"
+        ]
+      },
+      "1-Series": {
+        "count": 82,
+        "chassis": [
+          "E81",
+          "E82",
+          "E87",
+          "E88",
+          "F20",
+          "F21",
+          "F40"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "N74",
+          "S55",
+          "S58",
+          "S63",
+          "S65"
+        ]
+      },
+      "4-Series": {
+        "count": 82,
+        "chassis": [
+          "F32",
+          "F33",
+          "F36",
+          "G22",
+          "G23",
+          "G26"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "N74",
+          "S55",
+          "S58",
+          "S63",
+          "S65",
+          "S68"
+        ]
+      },
+      "5-Series": {
+        "count": 77,
+        "chassis": [
+          "E28",
+          "E34",
+          "E39",
+          "E60",
+          "E61",
+          "F10",
+          "F11",
+          "G30",
+          "G31",
+          "G38",
+          "G60",
+          "G61",
+          "G68"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B57",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "N74",
+          "S55",
+          "S58",
+          "S63",
+          "S65"
+        ]
+      },
+      "2-Series": {
+        "count": 71,
+        "chassis": [
+          "F22",
+          "F23",
+          "F44",
+          "F45",
+          "F46",
+          "G42"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "N74",
+          "S55",
+          "S58",
+          "S63",
+          "S65",
+          "S68"
+        ]
+      },
+      "6-Series": {
+        "count": 47,
+        "chassis": [
+          "E24",
+          "E63",
+          "E64",
+          "F06",
+          "F12",
+          "F13",
+          "G32"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B57",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "N74",
+          "S55",
+          "S58",
+          "S63",
+          "S65"
+        ]
+      },
+      "X5": {
+        "count": 44,
+        "chassis": [
+          "E53",
+          "E70",
+          "F15",
+          "G05"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "N74",
+          "S55",
+          "S58",
+          "S63",
+          "S65",
+          "S68"
+        ]
+      },
+      "M2": {
+        "count": 42,
+        "chassis": [
+          "F87",
+          "G87"
+        ],
+        "engines": [
+          "N55",
+          "S55",
+          "S58"
+        ]
+      },
+      "M3": {
+        "count": 41,
+        "chassis": [
+          "F80",
+          "G80"
+        ],
+        "engines": [
+          "S55",
+          "S58"
+        ]
+      },
+      "M4": {
+        "count": 41,
+        "chassis": [
+          "F82",
+          "F83",
+          "G82",
+          "G83"
+        ],
+        "engines": [
+          "S55",
+          "S58"
+        ]
+      },
+      "7-Series": {
+        "count": 41,
+        "chassis": [
+          "E23",
+          "E32",
+          "E38",
+          "E65",
+          "E66",
+          "F01",
+          "F02",
+          "F03",
+          "F04",
+          "G11",
+          "G12",
+          "G70"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "N74",
+          "S55",
+          "S58",
+          "S63",
+          "S65",
+          "S68"
+        ]
+      },
+      "Z4": {
+        "count": 38,
+        "chassis": [
+          "E52",
+          "E85",
+          "E86",
+          "E89",
+          "G29"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "N74",
+          "S55",
+          "S58",
+          "S63",
+          "S65"
+        ]
+      },
+      "X6": {
+        "count": 38,
+        "chassis": [
+          "E71",
+          "E72",
+          "F16",
+          "G06"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "N74",
+          "S55",
+          "S58",
+          "S63",
+          "S65",
+          "S68"
+        ]
+      },
+      "X3": {
+        "count": 34,
+        "chassis": [
+          "E83",
+          "F25",
+          "G01",
+          "G45"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "N74",
+          "S55",
+          "S58",
+          "S63",
+          "S65"
+        ]
+      },
+      "X1": {
+        "count": 24,
+        "chassis": [
+          "E84",
+          "F48",
+          "F49",
+          "U11"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "N74",
+          "S55",
+          "S63",
+          "S65"
+        ]
+      },
+      "X4": {
+        "count": 25,
+        "chassis": [
+          "F26",
+          "G02"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "S55",
+          "S58",
+          "S63",
+          "S65"
+        ]
+      },
+      "X7": {
+        "count": 24,
+        "chassis": [
+          "G07"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "M52",
+          "M54",
+          "N20",
+          "N26",
+          "N51",
+          "N52",
+          "N54",
+          "N55",
+          "N63",
+          "S58",
+          "S63",
+          "S65",
+          "S68"
+        ]
+      },
+      "8-Series": {
+        "count": 21,
+        "chassis": [
+          "E31",
+          "G14",
+          "G15",
+          "G16"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50",
+          "N54",
+          "N63",
+          "S58",
+          "S63"
+        ]
+      },
+      "M5": {
+        "count": 15,
+        "chassis": [
+          "F90",
+          "G90",
+          "G99"
+        ],
+        "engines": [
+          "S63",
+          "S68"
+        ]
+      },
+      "X4M": {
+        "count": 15,
+        "chassis": [
+          "F98"
+        ],
+        "engines": [
+          "S58"
+        ]
+      },
+      "X3M": {
+        "count": 13,
+        "chassis": [
+          "F97"
+        ],
+        "engines": [
+          "S58"
+        ]
+      },
+      "X5M": {
+        "count": 13,
+        "chassis": [
+          "F85",
+          "F95"
+        ],
+        "engines": [
+          "S63"
+        ]
+      },
+      "X6M": {
+        "count": 12,
+        "chassis": [
+          "F86",
+          "F96"
+        ],
+        "engines": [
+          "S63"
+        ]
+      },
+      "XM": {
+        "count": 7,
+        "chassis": [
+          "G09"
+        ],
+        "engines": [
+          "S68"
+        ]
+      },
+      "X2": {
+        "count": 6,
+        "chassis": [
+          "F39",
+          "U12"
+        ],
+        "engines": [
+          "B38",
+          "B46",
+          "B48",
+          "B58",
+          "M50"
+        ]
+      },
+      "i8": {
+        "count": 3,
+        "chassis": [
+          "I12"
+        ],
+        "engines": []
+      },
+      "i4": {
+        "count": 2,
+        "chassis": [
+          "I20"
+        ],
+        "engines": []
+      }
+    },
+    "allChassis": [
+      "E23",
+      "E24",
+      "E28",
+      "E30",
+      "E31",
+      "E32",
+      "E34",
+      "E36",
+      "E38",
+      "E39",
+      "E46",
+      "E52",
+      "E53",
+      "E60",
+      "E61",
+      "E63",
+      "E64",
+      "E65",
+      "E66",
+      "E70",
+      "E71",
+      "E72",
+      "E81",
+      "E82",
+      "E83",
+      "E84",
+      "E85",
+      "E86",
+      "E87",
+      "E88",
+      "E89",
+      "E90",
+      "E91",
+      "E92",
+      "E93",
+      "F01",
+      "F02",
+      "F03",
+      "F04",
+      "F06",
+      "F07",
+      "F10",
+      "F11",
+      "F12",
+      "F13",
+      "F15",
+      "F16",
+      "F20",
+      "F21",
+      "F22",
+      "F23",
+      "F25",
+      "F26",
+      "F30",
+      "F31",
+      "F32",
+      "F33",
+      "F34",
+      "F35",
+      "F36",
+      "F39",
+      "F40",
+      "F44",
+      "F45",
+      "F46",
+      "F48",
+      "F49",
+      "F80",
+      "F82",
+      "F83",
+      "F85",
+      "F86",
+      "F87",
+      "F90",
+      "F91",
+      "F92",
+      "F93",
+      "F95",
+      "F96",
+      "F97",
+      "F98",
+      "G01",
+      "G02",
+      "G05",
+      "G06",
+      "G07",
+      "G09",
+      "G11",
+      "G12",
+      "G14",
+      "G15",
+      "G16",
+      "G18",
+      "G20",
+      "G21",
+      "G22",
+      "G23",
+      "G26",
+      "G28",
+      "G29",
+      "G30",
+      "G31",
+      "G32",
+      "G38",
+      "G42",
+      "G45",
+      "G60",
+      "G61",
+      "G68",
+      "G70",
+      "G80",
+      "G82",
+      "G83",
+      "G87",
+      "G90",
+      "G99",
+      "I12",
+      "I20",
+      "U11",
+      "U12"
+    ],
+    "allEngines": [
+      "B38",
+      "B46",
+      "B48",
+      "B57",
+      "B58",
+      "M50",
+      "M52",
+      "M54",
+      "N20",
+      "N26",
+      "N51",
+      "N52",
+      "N53",
+      "N54",
+      "N55",
+      "N63",
+      "N74",
+      "S55",
+      "S58",
+      "S63",
+      "S65",
+      "S68"
+    ]
+  },
+  "Toyota": {
+    "count": 50,
+    "models": {
+      "Supra": {
+        "count": 30,
+        "chassis": [
+          "A90"
+        ],
+        "engines": [
+          "B58"
+        ]
+      },
+      "Tundra": {
+        "count": 9,
+        "chassis": [],
+        "engines": []
+      },
+      "Tacoma": {
+        "count": 9,
+        "chassis": [],
+        "engines": []
+      },
+      "4Runner": {
+        "count": 7,
+        "chassis": [],
+        "engines": []
+      },
+      "Sequoia": {
+        "count": 6,
+        "chassis": [],
+        "engines": []
+      },
+      "Land Cruiser": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "GR Yaris": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "GR Corolla": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "Highlander": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Crown": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Landcruiser": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [
+      "A90"
+    ],
+    "allEngines": [
+      "B58"
+    ]
+  },
+  "Kia": {
+    "count": 49,
+    "models": {
+      "Stinger": {
+        "count": 36,
+        "chassis": [],
+        "engines": []
+      },
+      "G70": {
+        "count": 32,
+        "chassis": [
+          "G70"
+        ],
+        "engines": []
+      },
+      "Genesis": {
+        "count": 32,
+        "chassis": [],
+        "engines": []
+      },
+      "G80": {
+        "count": 8,
+        "chassis": [
+          "G80"
+        ],
+        "engines": []
+      },
+      "Sonata": {
+        "count": 7,
+        "chassis": [],
+        "engines": []
+      },
+      "Veloster": {
+        "count": 4,
+        "chassis": [
+          "FE"
+        ],
+        "engines": []
+      },
+      "G90": {
+        "count": 4,
+        "chassis": [
+          "G90"
+        ],
+        "engines": []
+      },
+      "Elantra": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [
+      "FE",
+      "G70",
+      "G80",
+      "G90"
+    ],
+    "allEngines": []
+  },
+  "Hyundai": {
+    "count": 45,
+    "models": {
+      "Genesis": {
+        "count": 33,
+        "chassis": [],
+        "engines": []
+      },
+      "G70": {
+        "count": 29,
+        "chassis": [
+          "G70"
+        ],
+        "engines": []
+      },
+      "Stinger": {
+        "count": 29,
+        "chassis": [],
+        "engines": []
+      },
+      "G80": {
+        "count": 8,
+        "chassis": [
+          "G80"
+        ],
+        "engines": []
+      },
+      "Sonata": {
+        "count": 8,
+        "chassis": [],
+        "engines": []
+      },
+      "Veloster": {
+        "count": 4,
+        "chassis": [
+          "FE"
+        ],
+        "engines": []
+      },
+      "G90": {
+        "count": 4,
+        "chassis": [
+          "G90"
+        ],
+        "engines": []
+      },
+      "Elantra": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [
+      "FE",
+      "G70",
+      "G80",
+      "G90"
+    ],
+    "allEngines": []
+  },
+  "VW": {
+    "count": 33,
+    "models": {
+      "Golf": {
+        "count": 15,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "MK1",
+          "MK2",
+          "MK3",
+          "MK5",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA211",
+          "EA888"
+        ]
+      },
+      "GTI": {
+        "count": 15,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B8",
+          "B9",
+          "MK1",
+          "MK2",
+          "MK3",
+          "MK5",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "Tiguan": {
+        "count": 10,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "MK1",
+          "MK2",
+          "MK3",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "Jetta": {
+        "count": 9,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "MK1",
+          "MK2",
+          "MK3",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA211",
+          "EA888"
+        ]
+      },
+      "R": {
+        "count": 9,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "MK1",
+          "MK2",
+          "MK3",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "Passat": {
+        "count": 8,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "MK1",
+          "MK2",
+          "MK3",
+          "MK5",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "Arteon": {
+        "count": 5,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "MK1",
+          "MK2",
+          "MK3",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "Atlas": {
+        "count": 4,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B5",
+          "B6",
+          "B7",
+          "B9",
+          "MK1",
+          "MK2",
+          "MK3",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "Beetle": {
+        "count": 3,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "MK1",
+          "MK2",
+          "MK3",
+          "MK6",
+          "MK7",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "Polo": {
+        "count": 2,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B8",
+          "B9"
+        ],
+        "engines": []
+      }
+    },
+    "allChassis": [
+      "8V",
+      "8Y",
+      "B5",
+      "B6",
+      "B7",
+      "B8",
+      "B9",
+      "MK1",
+      "MK2",
+      "MK3",
+      "MK5",
+      "MK6",
+      "MK7",
+      "MK8",
+      "MLB",
+      "MQB"
+    ],
+    "allEngines": [
+      "EA211",
+      "EA888"
+    ]
+  },
+  "Ford": {
+    "count": 29,
+    "models": {
+      "Bronco": {
+        "count": 10,
+        "chassis": [],
+        "engines": []
+      },
+      "F-150": {
+        "count": 7,
+        "chassis": [],
+        "engines": []
+      },
+      "Raptor": {
+        "count": 7,
+        "chassis": [],
+        "engines": []
+      },
+      "Mustang": {
+        "count": 4,
+        "chassis": [],
+        "engines": []
+      },
+      "Explorer": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "Edge": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Maverick": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Ranger": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "F-250": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Fiesta": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Audi": {
+    "count": 26,
+    "models": {
+      "A3": {
+        "count": 8,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B8",
+          "B9",
+          "MK2",
+          "MK3",
+          "MK5",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "S3": {
+        "count": 6,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B8",
+          "B9",
+          "MK1",
+          "MK2",
+          "MK3",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "TT": {
+        "count": 6,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B8",
+          "B9",
+          "MK2",
+          "MK3",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "A4": {
+        "count": 6,
+        "chassis": [
+          "8V",
+          "B8",
+          "B9",
+          "MK3",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MLB",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "Q5": {
+        "count": 7,
+        "chassis": [
+          "B8",
+          "B9",
+          "MK3",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MLB",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "RS3": {
+        "count": 7,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B8",
+          "B9",
+          "MK2",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "A5": {
+        "count": 5,
+        "chassis": [
+          "8V",
+          "B8",
+          "B9",
+          "MK3",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MLB",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "A6": {
+        "count": 6,
+        "chassis": [
+          "B8",
+          "B9",
+          "MK2",
+          "MK3",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MLB",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "RS": {
+        "count": 5,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B9",
+          "MK2",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "S4": {
+        "count": 4,
+        "chassis": [
+          "B8",
+          "B9",
+          "MK2"
+        ],
+        "engines": []
+      },
+      "A7": {
+        "count": 3,
+        "chassis": [
+          "B8",
+          "B9",
+          "MK6",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "S5": {
+        "count": 2,
+        "chassis": [
+          "B9",
+          "MK2"
+        ],
+        "engines": [
+          "EA839"
+        ]
+      },
+      "RS6": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "RS7": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "Q3": {
+        "count": 2,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B8"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "Q2": {
+        "count": 2,
+        "chassis": [
+          "8V",
+          "8Y",
+          "B8",
+          "MK7",
+          "MK8",
+          "MQB"
+        ],
+        "engines": []
+      },
+      "Q8": {
+        "count": 2,
+        "chassis": [
+          "B9",
+          "MK2"
+        ],
+        "engines": []
+      },
+      "S8": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "A8": {
+        "count": 2,
+        "chassis": [
+          "B8"
+        ],
+        "engines": []
+      },
+      "Q7": {
+        "count": 2,
+        "chassis": [
+          "B9",
+          "MK2",
+          "MLB"
+        ],
+        "engines": [
+          "EA888"
+        ]
+      },
+      "S6": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "S7": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "RS4": {
+        "count": 1,
+        "chassis": [
+          "B9",
+          "MK2"
+        ],
+        "engines": []
+      },
+      "RS5": {
+        "count": 1,
+        "chassis": [
+          "B9",
+          "MK2"
+        ],
+        "engines": []
+      }
+    },
+    "allChassis": [
+      "8V",
+      "8Y",
+      "B8",
+      "B9",
+      "MK1",
+      "MK2",
+      "MK3",
+      "MK5",
+      "MK6",
+      "MK7",
+      "MK8",
+      "MLB",
+      "MQB"
+    ],
+    "allEngines": [
+      "EA839",
+      "EA888"
+    ]
+  },
+  "Mini": {
+    "count": 19,
+    "models": {
+      "Cooper": {
+        "count": 8,
+        "chassis": [
+          "F54",
+          "F55",
+          "F56",
+          "F57",
+          "F58",
+          "F60",
+          "J05",
+          "R50",
+          "R52",
+          "R53",
+          "R55",
+          "R56",
+          "R57",
+          "R58",
+          "R59",
+          "R60",
+          "R61"
+        ],
+        "engines": []
+      },
+      "Clubman": {
+        "count": 8,
+        "chassis": [
+          "F54",
+          "F55",
+          "F56",
+          "F57",
+          "F58",
+          "F60",
+          "J05",
+          "R50",
+          "R52",
+          "R53",
+          "R55",
+          "R56",
+          "R57",
+          "R58",
+          "R59",
+          "R60",
+          "R61"
+        ],
+        "engines": []
+      },
+      "Cooper S": {
+        "count": 7,
+        "chassis": [
+          "F54",
+          "F55",
+          "F56",
+          "F57",
+          "F60",
+          "R55",
+          "R56",
+          "R57",
+          "R58",
+          "R59",
+          "R60",
+          "R61"
+        ],
+        "engines": []
+      },
+      "Countryman": {
+        "count": 7,
+        "chassis": [
+          "F54",
+          "F55",
+          "F56",
+          "F57",
+          "F58",
+          "F60",
+          "J05",
+          "R50",
+          "R52",
+          "R53",
+          "R55",
+          "R56",
+          "R57",
+          "R58",
+          "R59",
+          "R60",
+          "R61"
+        ],
+        "engines": []
+      },
+      "Paceman": {
+        "count": 3,
+        "chassis": [
+          "F54",
+          "F55",
+          "F56",
+          "F57",
+          "F58",
+          "R50",
+          "R52",
+          "R53",
+          "R55",
+          "R56",
+          "R57",
+          "R58",
+          "R59",
+          "R60",
+          "R61"
+        ],
+        "engines": []
+      },
+      "Roadster": {
+        "count": 3,
+        "chassis": [
+          "F54",
+          "F55",
+          "F56",
+          "F57",
+          "F58",
+          "R50",
+          "R52",
+          "R53",
+          "R55",
+          "R56",
+          "R57",
+          "R58",
+          "R59",
+          "R60",
+          "R61"
+        ],
+        "engines": []
+      },
+      "Cooper JCW": {
+        "count": 2,
+        "chassis": [
+          "F54",
+          "F55",
+          "F56",
+          "F57",
+          "F60"
+        ],
+        "engines": []
+      },
+      "Cooper Works": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [
+      "F54",
+      "F55",
+      "F56",
+      "F57",
+      "F58",
+      "F60",
+      "J05",
+      "R50",
+      "R52",
+      "R53",
+      "R55",
+      "R56",
+      "R57",
+      "R58",
+      "R59",
+      "R60",
+      "R61"
+    ],
+    "allEngines": []
+  },
+  "Infiniti": {
+    "count": 19,
+    "models": {
+      "Q50": {
+        "count": 17,
+        "chassis": [],
+        "engines": []
+      },
+      "Q60": {
+        "count": 17,
+        "chassis": [],
+        "engines": []
+      },
+      "G35": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "G37": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "QX80": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "QX30": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Q70": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "QX50": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "QX60": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "QX70": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Mercedes": {
+    "count": 17,
+    "models": {
+      "C43 AMG": {
+        "count": 4,
+        "chassis": [],
+        "engines": [
+          "M139"
+        ]
+      },
+      "GLC 63": {
+        "count": 2,
+        "chassis": [],
+        "engines": [
+          "M139"
+        ]
+      },
+      "C-Class": {
+        "count": 3,
+        "chassis": [
+          "W204",
+          "W205"
+        ],
+        "engines": []
+      },
+      "C63 AMG": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "GLC 43": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "E-Class": {
+        "count": 2,
+        "chassis": [
+          "W212",
+          "W213"
+        ],
+        "engines": []
+      },
+      "E43 AMG": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "GLE 53": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "E53 AMG": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "GLA 45": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "GLA 35": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "GLE 250": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "GLA 250": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "GLE 43": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "GLC 300": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [
+      "W177",
+      "W204",
+      "W205",
+      "W212",
+      "W213",
+      "W218",
+      "W447"
+    ],
+    "allEngines": [
+      "M139"
+    ]
+  },
+  "Subaru": {
+    "count": 13,
+    "models": {
+      "WRX": {
+        "count": 13,
+        "chassis": [],
+        "engines": []
+      },
+      "Legacy": {
+        "count": 7,
+        "chassis": [],
+        "engines": []
+      },
+      "Ascent": {
+        "count": 4,
+        "chassis": [],
+        "engines": []
+      },
+      "Crosstrek": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "Impreza": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "STI": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "Outback": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "BRZ": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "Forester": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Chevrolet": {
+    "count": 9,
+    "models": {
+      "Corvette": {
+        "count": 4,
+        "chassis": [],
+        "engines": []
+      },
+      "Silverado": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "Colorado": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Trax": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Porsche": {
+    "count": 10,
+    "models": {
+      "911": {
+        "count": 3,
+        "chassis": [
+          "991",
+          "992"
+        ],
+        "engines": []
+      },
+      "Turbo": {
+        "count": 8,
+        "chassis": [
+          "718",
+          "958",
+          "971",
+          "982",
+          "991",
+          "992"
+        ],
+        "engines": []
+      },
+      "Macan": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "Turbo S": {
+        "count": 3,
+        "chassis": [
+          "958",
+          "971",
+          "991",
+          "992"
+        ],
+        "engines": []
+      },
+      "Cayman": {
+        "count": 2,
+        "chassis": [
+          "718",
+          "982"
+        ],
+        "engines": []
+      },
+      "Boxster": {
+        "count": 2,
+        "chassis": [
+          "718",
+          "982"
+        ],
+        "engines": []
+      },
+      "Carrera": {
+        "count": 1,
+        "chassis": [
+          "992"
+        ],
+        "engines": []
+      },
+      "Cayenne": {
+        "count": 2,
+        "chassis": [
+          "958",
+          "971"
+        ],
+        "engines": []
+      },
+      "Panamera": {
+        "count": 2,
+        "chassis": [
+          "958",
+          "971"
+        ],
+        "engines": []
+      },
+      "GT4": {
+        "count": 1,
+        "chassis": [
+          "718",
+          "982"
+        ],
+        "engines": []
+      }
+    },
+    "allChassis": [
+      "718",
+      "958",
+      "971",
+      "982",
+      "991",
+      "992"
+    ],
+    "allEngines": []
+  },
+  "Mazda": {
+    "count": 9,
+    "models": {
+      "Mazda 3": {
+        "count": 6,
+        "chassis": [],
+        "engines": []
+      },
+      "CX-5": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "Mazda 6": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "CX-9": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "CX9": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "CX5": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "MX-5": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Miata": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "CX-3": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Mazda 2": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Nissan": {
+    "count": 5,
+    "models": {
+      "Z": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "350Z": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "370Z": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Rogue": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "GTR": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Tesla": {
+    "count": 6,
+    "models": {
+      "Model S": {
+        "count": 6,
+        "chassis": [],
+        "engines": []
+      },
+      "Model 3": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "Model Y": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Model X": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Lexus": {
+    "count": 5,
+    "models": {
+      "LX600": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "NX 350": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "RX 350": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "LS 500": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "NX 300": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "RAM": {
+    "count": 4,
+    "models": {
+      "1500": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "REBEL": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Jeep": {
+    "count": 4,
+    "models": {
+      "Wagoneer": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "Wrangler": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "Cherokee": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Maserati": {
+    "count": 4,
+    "models": {
+      "Ghibli": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "Quattroporte": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "Levante": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "MC20": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Granturismo": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Grecale": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Lotus": {
+    "count": 4,
+    "models": {
+      "Emira": {
+        "count": 4,
+        "chassis": [],
+        "engines": []
+      },
+      "Evora": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Cadillac": {
+    "count": 4,
+    "models": {
+      "CT4": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "CT5": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "CT4-V": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "CT5-V": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "XT5": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Honda": {
+    "count": 3,
+    "models": {
+      "Civic": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "CR-V": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "Civic Si": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Accord": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "HR-V": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Civic Typer": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Fit": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Dodge": {
+    "count": 3,
+    "models": {
+      "Charger": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "Hornet": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Range Rover": {
+    "count": 2,
+    "models": {
+      "Defender": {
+        "count": 2,
+        "chassis": [],
+        "engines": []
+      },
+      "Range Rover": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Range Rover Velar": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Discovery": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Range Rover Evoque": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Alfa Romeo": {
+    "count": 3,
+    "models": {
+      "Giulia": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "Stelvio": {
+        "count": 3,
+        "chassis": [],
+        "engines": []
+      },
+      "Quadrifoglio": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Acura": {
+    "count": 3,
+    "models": {
+      "Integra": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "Type S": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "TLX": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "MDX": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "RDX": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Volvo": {
+    "count": 1,
+    "models": {
+      "S60": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "S90": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Fiat": {
+    "count": 1,
+    "models": {
+      "Abarth": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "McLaren": {
+    "count": 1,
+    "models": {
+      "570s": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      },
+      "600LT": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  },
+  "Aston Martin": {
+    "count": 1,
+    "models": {
+      "Vantage": {
+        "count": 1,
+        "chassis": [],
+        "engines": []
+      }
+    },
+    "allChassis": [],
+    "allEngines": []
+  }
+}
