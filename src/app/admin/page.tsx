@@ -234,6 +234,11 @@ type DashboardResponse = {
       importsHealth: HealthLevel;
     };
   };
+  analytics: {
+    activeUsers: number;
+    sessions: number;
+    periodDays: number;
+  } | null;
   period: RevenuePeriod;
 };
 
@@ -794,20 +799,26 @@ export default function AdminDashboardPage() {
         <DashboardKpiCard
           icon={<BarChart3 />}
           label="Трафік сайту"
-          value={(data.shop.totalCustomers * 88).toLocaleString()}
-          meta="Унікальних відвідувачів"
-          spark={data.shop.monthlyRevenue.slice(-12).map((m) => m.orders * 50 + 1000)}
+          value={data.analytics ? data.analytics.activeUsers.toLocaleString('uk-UA') : '—'}
+          meta={
+            data.analytics
+              ? `Активних користувачів за ${data.analytics.periodDays} ${pluralUk(data.analytics.periodDays, 'день', 'дні', 'днів')}`
+              : 'GA4 не підключено'
+          }
         />
         <DashboardKpiCard
           icon={<Target />}
           label="Конверсія"
-          value={`${
-            data.shop.totalOrders > 0 && data.shop.totalCustomers > 0
-              ? ((data.shop.totalOrders / (data.shop.totalCustomers * 88)) * 100).toFixed(2)
-              : '0.00'
-          }%`}
-          meta="Замовлення / відвідувачі"
-          spark={data.shop.monthlyRevenue.slice(-12).map((m) => m.orders)}
+          value={
+            data.analytics && data.analytics.activeUsers > 0
+              ? `${((data.shop.ordersCountPeriod / data.analytics.activeUsers) * 100).toFixed(2)}%`
+              : '—'
+          }
+          meta={
+            data.analytics
+              ? 'Замовлення / активні користувачі'
+              : 'GA4 не підключено'
+          }
         />
         <DashboardKpiCard
           icon={<Award />}

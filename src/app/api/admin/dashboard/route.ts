@@ -4,9 +4,16 @@ import { cookies } from 'next/headers';
 import { assertAdminRequest } from '@/lib/adminAuth';
 import { getCatalogQualityReport } from '@/lib/admin/catalogQuality';
 import { getDashboardDataQuality } from '@/lib/dashboard/dataQuality';
+import { getGa4Metrics } from '@/lib/dashboard/ga4';
 import { OrderStatus } from '@prisma/client';
 
 type RevenuePeriod = 'monthly' | 'weekly' | 'daily';
+
+const PERIOD_TO_DAYS: Record<RevenuePeriod, number> = {
+  daily: 1,
+  weekly: 7,
+  monthly: 30,
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,13 +23,14 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const period = (searchParams.get('period') as RevenuePeriod) || 'monthly';
 
-    const [shop, crm, system] = await Promise.all([
+    const [shop, crm, system, analytics] = await Promise.all([
       getShopMetrics(period),
       getCrmMetrics(period),
       getSystemMetrics(),
+      getGa4Metrics(PERIOD_TO_DAYS[period]),
     ]);
 
-    return NextResponse.json({ shop, crm, system, period });
+    return NextResponse.json({ shop, crm, system, analytics, period });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

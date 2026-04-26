@@ -46,6 +46,7 @@
     "sync:instagram-blog": "node scripts/sync-instagram-blog.mjs"
   },
   "dependencies": {
+    "@google-analytics/data": "^5.2.1",
     "@google/generative-ai": "^0.24.1",
     "@grammyjs/auto-retry": "^2.0.2",
     "@grammyjs/conversations": "^2.1.1",
