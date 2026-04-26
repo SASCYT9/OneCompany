@@ -8,7 +8,7 @@ import { useShopCurrency } from '@/components/shop/CurrencyContext';
 import type { SupportedLocale } from '@/lib/seo';
 import type { ShopProduct } from '@/lib/shopCatalog';
 import { localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
-import { buildShopProductPath } from '@/lib/urbanCollectionMatcher';
+import { buildShopProductPath, getUrbanCollectionHandleForProduct } from '@/lib/urbanCollectionMatcher';
 import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import { resolveUrbanCollectionCardImage } from '@/lib/urbanImageUtils';
@@ -188,10 +188,11 @@ export default function UrbanCollectionProductGrid({
                 : null;
               const productTitle = localizeShopProductTitle(locale, product);
               const productCollection = localizeShopText(locale, product.collection);
+              const productCollectionHandle = getUrbanCollectionHandleForProduct(product) ?? collectionHandle;
               
               const safeImageUrl = resolveUrbanCollectionCardImage(
                 product.image,
-                [collectionHandle],
+                [productCollectionHandle],
                 collectionImages,
                 product.slug,
                 product.gallery,

@@ -449,6 +449,10 @@ export function resolveUrbanCollectionCardImage(
     return matchingOwnImages[0]!;
   }
 
+  if (ownImages.length > 0) {
+    return ownImages[0]!;
+  }
+
   if (!product) {
     return resolveUrbanProgramFallback(resolvedModelHandles, collectionImages);
   }
@@ -465,19 +469,14 @@ export function resolveUrbanCollectionCardImage(
   }
 
   const stableFallback =
-    mediaSet.rolePhotos.hero[0] ??
-    mediaSet.photoGallery[0] ??
-    uniqueNonPlaceholderImages(collectionImages).find((url) =>
-      isUrbanImageCompatibleWithModel(url, resolvedModelHandles)
-    ) ??
-    null;
+    uniqueNonPlaceholderImages([
+      ...mediaSet.rolePhotos.hero,
+      ...mediaSet.photoGallery,
+      ...collectionImages,
+    ]).find((url) => isUrbanImageCompatibleWithModel(url, resolvedModelHandles)) ?? null;
 
   if (stableFallback) {
     return stableFallback;
-  }
-
-  if (ownImages.length > 0) {
-    return ownImages[0]!;
   }
 
   return resolveUrbanProgramFallback(resolvedModelHandles, collectionImages);
