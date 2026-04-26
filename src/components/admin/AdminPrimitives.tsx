@@ -36,17 +36,21 @@ export function AdminPageHeader({
   className?: string;
 }) {
   return (
-    <section className={cn('flex flex-wrap items-start justify-between gap-6 pb-2', className)}>
-      <div className="max-w-3xl space-y-2">
+    <section className={cn('flex flex-wrap items-start justify-between gap-4 pb-2 sm:gap-6', className)}>
+      <div className="min-w-0 max-w-3xl flex-1 space-y-2">
         {eyebrow ? (
-          <div className="text-xs font-medium uppercase tracking-wider text-blue-400">{eyebrow}</div>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-blue-400 sm:text-xs">{eyebrow}</div>
         ) : null}
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-50 md:text-[32px]">{title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl md:text-[32px]">{title}</h1>
           {description ? <p className="max-w-2xl text-sm leading-6 text-zinc-400">{description}</p> : null}
         </div>
       </div>
-      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+      {actions ? (
+        <div className="-mx-4 flex w-full items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:px-0">
+          {actions}
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -73,7 +77,7 @@ export function AdminEntityToolbar({ children, className }: { children: ReactNod
 }
 
 export function AdminMetricGrid({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('grid gap-3 md:grid-cols-2 xl:grid-cols-4', className)}>{children}</div>;
+  return <div className={cn('grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-2 xl:grid-cols-4', className)}>{children}</div>;
 }
 
 /**

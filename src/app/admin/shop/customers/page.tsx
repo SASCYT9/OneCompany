@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Building2, Database, ExternalLink, Eye, Mail, Phone, RefreshCcw, Search, Users } from 'lucide-react';
+import { Building2, Database, Download, ExternalLink, Eye, Mail, Phone, RefreshCcw, Search } from 'lucide-react';
 
 import {
   AdminActionBar,
@@ -16,7 +16,11 @@ import {
   AdminStatusBadge,
   AdminTableShell,
 } from '@/components/admin/AdminPrimitives';
+import { AdminSkeletonKpiGrid, AdminSkeletonTable } from '@/components/admin/AdminSkeleton';
 import { AdminSlideOver } from '@/components/admin/AdminSlideOver';
+import { AdminSavedViewsBar, useSavedViews } from '@/components/admin/AdminSavedViews';
+import { useToast } from '@/components/admin/AdminToast';
+import { AdminMobileCard } from '@/components/admin/AdminMobileCard';
 
 type CustomerGroup = 'B2C' | 'B2B_PENDING' | 'B2B_APPROVED';
 
@@ -53,6 +57,7 @@ function groupTone(group: CustomerGroup): 'default' | 'success' | 'warning' {
 }
 
 export default function AdminShopCustomersPage() {
+  const toast = useToast();
   const [quickViewId, setQuickViewId] = useState<string | null>(null);
   const [customers, setCustomers] = useState<CustomerListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,6 +66,56 @@ export default function AdminShopCustomersPage() {
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('ALL');
   const [status, setStatus] = useState('ALL');
+  const [exporting, setExporting] = useState(false);
+
+  // Saved views — filter combinations stored in localStorage
+  const savedViews = useSavedViews({
+    scope: 'customers',
+    currentValue: { query, group, status },
+    presets: [
+      { name: 'Усі клієнти', value: { query: '', group: 'ALL', status: 'ALL' } },
+      { name: 'B2B на розгляді', value: { group: 'B2B_PENDING', status: 'ALL' } },
+      { name: 'B2B затверджені', value: { group: 'B2B_APPROVED', status: 'ALL' } },
+      { name: 'Лише B2C', value: { group: 'B2C', status: 'ALL' } },
+      { name: 'Неактивні', value: { status: 'inactive', group: 'ALL' } },
+    ],
+    onApply: (v) => {
+      setQuery((v.query as string) ?? '');
+      setGroup((v.group as string) ?? 'ALL');
+      setStatus((v.status as string) ?? 'ALL');
+    },
+  });
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const filtersJson = JSON.stringify({
+        search: query,
+        group,
+        status: status === 'active' ? 'ACTIVE' : status === 'inactive' ? 'INACTIVE' : '',
+      });
+      const filtersB64 = btoa(unescape(encodeURIComponent(filtersJson)));
+      const response = await fetch(`/api/admin/export/customers?filters=${filtersB64}`, { cache: 'no-store' });
+      if (!response.ok) {
+        toast.error('Не вдалося експортувати клієнтів');
+        return;
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] || 'customers.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success('Клієнтів експортовано', `Завантажено ${a.download}`);
+    } catch (e) {
+      toast.error('Експорт не вдався', (e as Error).message);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const filteredCustomers = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -103,10 +158,19 @@ export default function AdminShopCustomersPage() {
 
   if (loading) {
     return (
-      <AdminPage>
-        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
-          <Users className="h-4 w-4 animate-pulse" />
-          Loading customers…
+      <AdminPage className="space-y-6">
+        <div role="status" aria-live="polite" aria-busy="true" className="space-y-6">
+          <span className="sr-only">Завантаження клієнтів…</span>
+          <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
+            <div className="space-y-3">
+              <div className="h-3 w-20 motion-safe:animate-pulse rounded bg-white/[0.06]" />
+              <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
+              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded bg-white/[0.04]" />
+            </div>
+            <div className="h-9 w-44 motion-safe:animate-pulse rounded-lg bg-white/[0.04]" />
+          </div>
+          <AdminSkeletonKpiGrid count={4} />
+          <AdminSkeletonTable rows={8} cols={7} />
         </div>
       </AdminPage>
     );
@@ -115,29 +179,41 @@ export default function AdminShopCustomersPage() {
   return (
     <AdminPage className="space-y-6">
       <AdminPageHeader
-        eyebrow="Customers"
-        title="Customer Ops"
-        description="B2C і B2B клієнти, approval state, account readiness і активність замовлень в одному робочому центрі."
+        eyebrow="Клієнти"
+        title="Робота з клієнтами"
+        description="B2C та B2B клієнти, стан затвердження, готовність акаунтів та активність замовлень в одному робочому центрі."
         actions={
-          <Link
-            href="/admin/shop/customers/new"
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
-          >
-            New customer
-          </Link>
+          <>
+            <AdminSavedViewsBar {...savedViews} />
+            <button
+              type="button"
+              onClick={() => void handleExport()}
+              disabled={exporting}
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
+            >
+              <Download className="h-4 w-4" />
+              {exporting ? 'Експорт…' : 'Експорт CSV'}
+            </button>
+            <Link
+              href="/admin/shop/customers/new"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
+            >
+              Новий клієнт
+            </Link>
+          </>
         }
       />
 
       <AdminMetricGrid>
-        <AdminMetricCard label="Customers" value={customers.length} meta="Public storefront accounts" />
-        <AdminMetricCard label="Pending B2B" value={customers.filter((item) => item.group === 'B2B_PENDING').length} meta="Need approval decision" tone="accent" />
-        <AdminMetricCard label="Approved B2B" value={customers.filter((item) => item.group === 'B2B_APPROVED').length} meta="Wholesale-ready accounts" />
-        <AdminMetricCard label="Order activity" value={customers.reduce((sum, item) => sum + item.counts.orders, 0)} meta="Orders across visible customers" />
+        <AdminMetricCard label="Клієнтів" value={customers.length} meta="Публічні storefront-акаунти" />
+        <AdminMetricCard label="B2B на розгляді" value={customers.filter((item) => item.group === 'B2B_PENDING').length} meta="Потребують рішення" tone="accent" />
+        <AdminMetricCard label="B2B затверджені" value={customers.filter((item) => item.group === 'B2B_APPROVED').length} meta="Готові до оптової роботи" />
+        <AdminMetricCard label="Активність замовлень" value={customers.reduce((sum, item) => sum + item.counts.orders, 0)} meta="Замовлень серед видимих клієнтів" />
       </AdminMetricGrid>
 
       <AdminActionBar>
         <div className="text-sm text-zinc-500">
-          Use the filters to isolate approval queues, inactive accounts, or CRM-linked customers.
+          Використовуйте фільтри щоб виділити чергу на затвердження, неактивних або CRM-зв’язаних клієнтів.
         </div>
         <button
           type="button"
@@ -146,7 +222,7 @@ export default function AdminShopCustomersPage() {
           className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
         >
           <RefreshCcw className={`h-4 w-4 ${refreshing ? 'motion-safe:animate-spin' : ''}`} />
-          Refresh
+          Оновити
         </button>
       </AdminActionBar>
 
@@ -156,29 +232,29 @@ export default function AdminShopCustomersPage() {
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by email, name, company or phone"
+            placeholder="Пошук за email, ім'ям, компанією або телефоном"
             className="w-full bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
           />
         </label>
         <FilterSelect
-          label="Group"
+          label="Група"
           value={group}
           onChange={setGroup}
           options={[
-            { value: 'ALL', label: 'All groups' },
+            { value: 'ALL', label: 'Усі групи' },
             { value: 'B2C', label: 'B2C' },
-            { value: 'B2B_PENDING', label: 'B2B pending' },
-            { value: 'B2B_APPROVED', label: 'B2B approved' },
+            { value: 'B2B_PENDING', label: 'B2B на розгляді' },
+            { value: 'B2B_APPROVED', label: 'B2B затверджені' },
           ]}
         />
         <FilterSelect
-          label="Status"
+          label="Статус"
           value={status}
           onChange={setStatus}
           options={[
-            { value: 'ALL', label: 'All status' },
-            { value: 'active', label: 'Active' },
-            { value: 'inactive', label: 'Inactive' },
+            { value: 'ALL', label: 'Усі статуси' },
+            { value: 'active', label: 'Активні' },
+            { value: 'inactive', label: 'Неактивні' },
           ]}
         />
       </AdminFilterBar>
@@ -187,22 +263,61 @@ export default function AdminShopCustomersPage() {
 
       {filteredCustomers.length === 0 ? (
         <AdminEmptyState
-          title="No customers match the current filters"
+          title="Жоден клієнт не відповідає фільтрам"
           description="Спробуйте інший запит або створіть нового клієнта вручну."
         />
       ) : (
-        <AdminTableShell>
+        <>
+          {/* Mobile card view */}
+          <div className="space-y-2 lg:hidden">
+            {filteredCustomers.map((customer) => (
+              <AdminMobileCard
+                key={customer.id}
+                title={customer.fullName || customer.email}
+                subtitle={customer.email}
+                badge={<AdminStatusBadge tone={groupTone(customer.group)}>{customer.group.replace('B2B_', 'B2B ')}</AdminStatusBadge>}
+                rows={[
+                  { label: 'Статус', value: customer.isActive ? 'Активний' : 'Неактивний' },
+                  { label: 'Замовлень', value: customer.counts.orders },
+                  { label: 'Компанія', value: customer.companyName || '—' },
+                  { label: 'Оновлено', value: new Date(customer.updatedAt).toLocaleDateString() },
+                ]}
+                footer={
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setQuickViewId(customer.id)}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.08] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      Швидкий перегляд
+                    </button>
+                    <Link
+                      href={`/admin/shop/customers/${customer.id}`}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
+                    >
+                      Відкрити
+                      <ExternalLink className="h-3 w-3" />
+                    </Link>
+                  </div>
+                }
+              />
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <AdminTableShell className="hidden lg:block">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[920px] text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                  <th className="px-4 py-4 font-medium">Customer</th>
-                  <th className="px-4 py-4 font-medium">Group</th>
-                  <th className="px-4 py-4 font-medium">Status</th>
+                  <th className="px-4 py-4 font-medium">Клієнт</th>
+                  <th className="px-4 py-4 font-medium">Група</th>
+                  <th className="px-4 py-4 font-medium">Статус</th>
                   <th className="px-4 py-4 font-medium">CRM</th>
-                  <th className="px-4 py-4 font-medium">Activity</th>
-                  <th className="px-4 py-4 font-medium">Updated</th>
-                  <th className="px-4 py-4 font-medium">Open</th>
+                  <th className="px-4 py-4 font-medium">Активність</th>
+                  <th className="px-4 py-4 font-medium">Оновлено</th>
+                  <th className="px-4 py-4 font-medium">Відкрити</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/6">
@@ -220,25 +335,25 @@ export default function AdminShopCustomersPage() {
                     </td>
                     <td className="px-4 py-4">
                       {customer.isActive ? (
-                        <AdminStatusBadge tone="success">Active</AdminStatusBadge>
+                        <AdminStatusBadge tone="success">Активний</AdminStatusBadge>
                       ) : (
-                        <AdminStatusBadge tone="default">Inactive</AdminStatusBadge>
+                        <AdminStatusBadge tone="default">Неактивний</AdminStatusBadge>
                       )}
                     </td>
                     <td className="px-4 py-4">
                       {customer.notes?.includes('[Airtable:') ? (
                         <span className="inline-flex items-center gap-1.5 text-xs text-emerald-300">
                           <Database className="h-3.5 w-3.5" />
-                          Linked
+                          Зв'язано
                         </span>
                       ) : (
                         <span className="text-xs text-zinc-600">—</span>
                       )}
                     </td>
                     <td className="px-4 py-4 text-zinc-300">
-                      <div className="font-medium">{customer.counts.orders} orders</div>
+                      <div className="font-medium">{customer.counts.orders} замовлень</div>
                       <div className="mt-1 text-xs text-zinc-500">
-                        {customer.counts.carts} carts · {customer.counts.addresses} addresses
+                        {customer.counts.carts} кошиків · {customer.counts.addresses} адрес
                       </div>
                     </td>
                     <td className="px-4 py-4 text-xs text-zinc-500">
@@ -250,16 +365,16 @@ export default function AdminShopCustomersPage() {
                           type="button"
                           onClick={() => setQuickViewId(customer.id)}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.08] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-500/[0.12]"
-                          title="Quick view (no navigation)"
+                          title="Швидкий перегляд (без переходу)"
                         >
                           <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-                          Quick view
+                          Швидкий перегляд
                         </button>
                         <Link
                           href={`/admin/shop/customers/${customer.id}`}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
                         >
-                          Detail
+                          Детально
                           <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         </Link>
                       </div>
@@ -269,7 +384,8 @@ export default function AdminShopCustomersPage() {
               </tbody>
             </table>
           </div>
-        </AdminTableShell>
+          </AdminTableShell>
+        </>
       )}
 
       <CustomerQuickView
@@ -298,8 +414,8 @@ function CustomerQuickView({
       open={open}
       onClose={onClose}
       width="md"
-      title={customer ? customer.fullName || customer.email : 'Customer'}
-      subtitle={customer ? `Created ${new Date(customer.createdAt).toLocaleDateString('uk-UA')}` : undefined}
+      title={customer ? customer.fullName || customer.email : 'Клієнт'}
+      subtitle={customer ? `Створено ${new Date(customer.createdAt).toLocaleDateString('uk-UA')}` : undefined}
       footer={
         customer ? (
           <div className="flex items-center justify-between gap-3">
@@ -307,7 +423,7 @@ function CustomerQuickView({
               href={`/admin/shop/customers/${customer.id}`}
               className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-400 transition hover:text-blue-300"
             >
-              Open full profile
+              Відкрити повний профіль
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
             <button
@@ -315,7 +431,7 @@ function CustomerQuickView({
               onClick={onClose}
               className="rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.06]"
             >
-              Close
+              Закрити
             </button>
           </div>
         ) : undefined
@@ -333,7 +449,7 @@ function CustomerQuickView({
               <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                 <AdminStatusBadge tone={groupTone(customer.group)}>{customer.group.replace('B2B_', 'B2B ')}</AdminStatusBadge>
                 <AdminStatusBadge tone={customer.isActive ? 'success' : 'default'}>
-                  {customer.isActive ? 'Active' : 'Inactive'}
+                  {customer.isActive ? 'Активний' : 'Неактивний'}
                 </AdminStatusBadge>
               </div>
             </div>
@@ -341,7 +457,7 @@ function CustomerQuickView({
 
           {/* Contact rows */}
           <section className="space-y-2">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Contact</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Контакти</div>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2.5 rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2 text-sm">
                 <Mail className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
@@ -364,11 +480,11 @@ function CustomerQuickView({
 
           {/* Activity stats */}
           <section className="space-y-2">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Activity</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Активність</div>
             <div className="grid grid-cols-3 gap-2">
-              <CqStat label="Orders" value={customer.counts.orders.toString()} />
-              <CqStat label="Carts" value={customer.counts.carts.toString()} />
-              <CqStat label="Addresses" value={customer.counts.addresses.toString()} />
+              <CqStat label="Замовлень" value={customer.counts.orders.toString()} />
+              <CqStat label="Кошиків" value={customer.counts.carts.toString()} />
+              <CqStat label="Адрес" value={customer.counts.addresses.toString()} />
             </div>
           </section>
 
@@ -378,9 +494,9 @@ function CustomerQuickView({
               <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] px-3 py-2.5 text-xs">
                 <div className="flex items-center gap-2 text-emerald-300">
                   <Database className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span className="font-semibold uppercase tracking-wider">Linked to Airtable CRM</span>
+                  <span className="font-semibold uppercase tracking-wider">Пов'язано з Airtable CRM</span>
                 </div>
-                <div className="mt-1 text-zinc-500">Customer record is synchronized with the CRM database.</div>
+                <div className="mt-1 text-zinc-500">Запис клієнта синхронізовано з базою CRM.</div>
               </div>
             </section>
           ) : null}
@@ -388,7 +504,7 @@ function CustomerQuickView({
           {/* Notes */}
           {customer.notes ? (
             <section className="space-y-2">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Notes</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Нотатки</div>
               <div className="rounded-lg border border-white/[0.05] bg-[#171717] px-3 py-2.5 text-sm leading-6 text-zinc-300">
                 {customer.notes}
               </div>
@@ -397,14 +513,14 @@ function CustomerQuickView({
 
           {/* Updated */}
           <section className="space-y-2">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Timestamps</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Часові мітки</div>
             <div className="space-y-1 text-xs">
               <div className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2">
-                <span className="text-zinc-500">Created</span>
+                <span className="text-zinc-500">Створено</span>
                 <span className="text-zinc-200">{new Date(customer.createdAt).toLocaleString('uk-UA')}</span>
               </div>
               <div className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.04] bg-black/25 px-3 py-2">
-                <span className="text-zinc-500">Updated</span>
+                <span className="text-zinc-500">Оновлено</span>
                 <span className="text-zinc-200">{new Date(customer.updatedAt).toLocaleString('uk-UA')}</span>
               </div>
             </div>

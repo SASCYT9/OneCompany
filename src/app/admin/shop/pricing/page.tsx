@@ -3,6 +3,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Search, Save, Trash2, Plus, Users, Percent, DollarSign, Loader2, Calculator } from 'lucide-react';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
 
 import {
   AdminActionBar,
@@ -32,6 +34,8 @@ type AirtableCustomer = {
 };
 
 export default function CustomerPricingPage() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const [markups, setMarkups] = useState<CustomerMarkup[]>([]);
   const [airtableCustomers, setAirtableCustomers] = useState<AirtableCustomer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,25 +108,46 @@ export default function CustomerPricingPage() {
   }
 
   async function handleDelete(customerId: string) {
-    if (!confirm('Видалити персональну націнку? Буде використовуватись націнка бренду.')) return;
-    await fetch(`/api/admin/shop/pricing/customer-markups?customerId=${customerId}`, { method: 'DELETE' });
+    const ok = await confirm({
+      tone: 'warning',
+      title: 'Видалити персональну націнку?',
+      description: 'Для цього клієнта буде використовуватись націнка бренду за замовчуванням.',
+      confirmLabel: 'Видалити',
+    });
+    if (!ok) return;
+    const response = await fetch(`/api/admin/shop/pricing/customer-markups?customerId=${customerId}`, { method: 'DELETE' });
+    if (!response.ok) {
+      toast.error('Не вдалося видалити націнку');
+      return;
+    }
     setEditedMarkups(prev => { const n = { ...prev }; delete n[customerId]; return n; });
     await fetchData();
+    toast.success('Персональну націнку видалено');
   }
 
   async function handleAddNew() {
     if (!newCustomer.customerId) return;
     setSaving(true);
     try {
-      await fetch('/api/admin/shop/pricing/customer-markups', {
+      const response = await fetch('/api/admin/shop/pricing/customer-markups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCustomer),
       });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        toast.error('Не вдалося додати націнку', data.error);
+        return;
+      }
+      const customerLabel = newCustomer.customerName || newCustomer.customerId;
       setShowAddModal(false);
       setNewCustomer({ customerId: '', customerName: '', markupPct: 25, notes: '' });
+      // Force fresh fetch with no-store so dropdown reflects new state immediately
       await fetchData();
-    } finally { setSaving(false); }
+      toast.success('Персональну націнку додано', `Клієнт ${customerLabel}`);
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (loading) {

@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SHIPPING_ZONES, ShippingZone } from '@/lib/shippingCalc';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
 
 // ─── Interfaces ───
 
@@ -53,6 +55,8 @@ interface ZoneConfig {
 // ─── Component ───
 
 export default function LogisticsPage() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<'outbound' | 'inbound'>('outbound');
   const [selectedWarehouse, setSelectedWarehouse] = useState<string | null>(null); // warehouseId
 
@@ -173,10 +177,21 @@ export default function LogisticsPage() {
   }
 
   async function deleteWarehouse(id: string) {
-    if (!confirm('Деактивувати цей склад?')) return;
-    await fetch(`/api/admin/shop/logistics/warehouses?id=${id}`, { method: 'DELETE' });
+    const ok = await confirm({
+      tone: 'warning',
+      title: 'Деактивувати цей склад?',
+      description: 'Склад буде помічено як неактивний. Зони і бренди залишаться, але не використовуватимуться у розрахунку доставки.',
+      confirmLabel: 'Деактивувати',
+    });
+    if (!ok) return;
+    const response = await fetch(`/api/admin/shop/logistics/warehouses?id=${id}`, { method: 'DELETE' });
+    if (!response.ok) {
+      toast.error('Не вдалося деактивувати склад');
+      return;
+    }
     if (selectedWarehouse === id) setSelectedWarehouse(null);
     await fetchWarehouses();
+    toast.success('Склад деактивовано');
   }
 
   async function saveBrandConfig(cfg: BrandConfig) {
@@ -205,9 +220,20 @@ export default function LogisticsPage() {
   }
 
   async function deleteZone(id: string) {
-    if (!confirm('Видалити цю зону доставки?')) return;
-    await fetch(`/api/admin/shop/logistics/zones?id=${id}`, { method: 'DELETE' });
+    const ok = await confirm({
+      tone: 'danger',
+      title: 'Видалити цю зону доставки?',
+      description: 'Замовлення з цією зоною доставки потребуватимуть нового призначення.',
+      confirmLabel: 'Видалити зону',
+    });
+    if (!ok) return;
+    const response = await fetch(`/api/admin/shop/logistics/zones?id=${id}`, { method: 'DELETE' });
+    if (!response.ok) {
+      toast.error('Не вдалося видалити зону');
+      return;
+    }
     await fetchTabData();
+    toast.success('Зону доставки видалено');
   }
 
   async function addNewZone() {

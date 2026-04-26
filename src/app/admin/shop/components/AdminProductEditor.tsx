@@ -20,6 +20,11 @@ import {
 } from '@/components/admin/AdminFormFields';
 import { isLibraryBackedAssetReference } from '@/lib/runtimeAssetPaths';
 import { stripStorefrontTags, type ShopProductStorefront } from '@/lib/shopProductStorefront';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
+import { AdminActivityTimeline } from '@/components/admin/AdminActivityTimeline';
+import { AdminNotes } from '@/components/admin/AdminNotes';
+import { AdminTagInput } from '@/components/admin/AdminTagInput';
 import { ADMIN_PRODUCT_EDITOR_SECTIONS } from './adminProductEditorSections';
 import { AdminProductVariantCard } from './AdminProductVariantCard';
 
@@ -817,6 +822,8 @@ type AdminProductEditorProps = {
 };
 
 export default function AdminProductEditor({ productId }: AdminProductEditorProps) {
+  const confirm = useConfirm();
+  const toast = useToast();
   const router = useRouter();
   const isEditing = Boolean(productId);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
@@ -1170,13 +1177,13 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
   const handleHardDelete = async () => {
     if (!productId) return;
-    if (
-      !confirm(
-        'Архівувати цей товар?\n\nТовар буде знято з публікації та переведено в ARCHIVED. Це безпечніше за безповоротне видалення.'
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      tone: 'warning',
+      title: 'Архівувати цей товар?',
+      description: 'Товар буде знято з публікації та переведено в ARCHIVED. Це безпечніше за безповоротне видалення — товар можна відновити пізніше.',
+      confirmLabel: 'Архівувати товар',
+    });
+    if (!ok) return;
 
     setHardDeleting(true);
     setError('');
@@ -1185,9 +1192,12 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       const response = await fetch(`/api/admin/shop/products/${productId}`, { method: 'DELETE' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Не вдалося архівувати товар');
+        const msg = data.error || 'Не вдалося архівувати товар';
+        toast.error('Не вдалося архівувати товар', msg);
+        throw new Error(msg);
       }
       setSuccess('Товар архівовано.');
+      toast.success('Товар архівовано');
       router.push('/admin/shop');
     } catch (deleteError) {
       setError((deleteError as Error).message);
@@ -1489,15 +1499,19 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       );
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Save failed');
+        const msg = data.error || 'Save failed';
+        toast.error('Could not save product', msg);
+        throw new Error(msg);
       }
       if (!productId && data.id) {
+        toast.success('Product created', form.titleEn || form.titleUa || form.slug);
         router.push(`/admin/shop/${data.id}`);
         return;
       }
       if (productId) {
         setForm(productToForm(data as ProductResponse));
         setSuccess('Saved');
+        toast.success('Product saved');
       }
     } catch (saveError) {
       setError((saveError as Error).message);
@@ -2254,6 +2268,38 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               </button>
             </div>
           </AdminEditorSection>
+
+          {isEditing && productId && (
+            <AdminEditorSection
+              id="activity"
+              title="Activity"
+              description="Internal admin notes, tags, and audit trail of mutations on this product."
+            >
+              <div className="space-y-5">
+                <div>
+                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Tags</h3>
+                  <AdminTagInput
+                    entityType="shop.product"
+                    entityId={productId}
+                    suggestions={['featured', 'new-arrival', 'clearance', 'discontinued', 'staff-pick', 'bestseller']}
+                  />
+                </div>
+                <div>
+                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Notes</h3>
+                  <AdminNotes entityType="shop.product" entityId={productId} />
+                </div>
+                <div>
+                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Audit timeline</h3>
+                  <AdminActivityTimeline
+                    entityType="shop.product"
+                    entityId={productId}
+                    emptyTitle="No activity logged yet"
+                    emptyDescription="Edits to fields, status changes and bulk updates will appear here."
+                  />
+                </div>
+              </div>
+            </AdminEditorSection>
+          )}
 
           {isEditing && (
             <AdminEditorSection

@@ -20,6 +20,8 @@ type InputFieldProps = BaseFieldProps & {
   onChange: (value: string) => void;
   type?: string;
   step?: string;
+  min?: number | string;
+  max?: number | string;
   placeholder?: string;
   mono?: boolean;
   disabled?: boolean;
@@ -33,6 +35,8 @@ export function AdminInputField({
   onChange,
   type = 'text',
   step,
+  min,
+  max,
   placeholder,
   helper,
   mono = false,
@@ -61,6 +65,8 @@ export function AdminInputField({
           <input
             type={type}
             step={step}
+            min={min}
+            max={max}
             value={value}
             onChange={(event) => onChange(event.target.value)}
             placeholder={placeholder}
@@ -80,6 +86,8 @@ export function AdminInputField({
         <input
           type={type}
           step={step}
+          min={min}
+          max={max}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}

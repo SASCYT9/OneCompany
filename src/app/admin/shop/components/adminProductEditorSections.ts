@@ -47,6 +47,11 @@ export const ADMIN_PRODUCT_EDITOR_SECTIONS: AdminEditorNavSection[] = [
     description: 'Theme-specific structured data.',
   },
   {
+    id: 'activity',
+    label: 'Activity',
+    description: 'Audit trail of admin mutations.',
+  },
+  {
     id: 'danger-zone',
     label: 'Danger zone',
     description: 'Archive-only destructive actions.',

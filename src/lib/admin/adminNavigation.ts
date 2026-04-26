@@ -6,6 +6,8 @@ export type AdminNavSectionKey =
   | 'imports'
   | 'logistics'
   | 'content'
+  | 'marketing'
+  | 'operations'
   | 'system';
 
 export type AdminNavIconKey =
@@ -32,7 +34,13 @@ export type AdminNavIconKey =
   | 'settings'
   | 'users'
   | 'backups'
-  | 'crm';
+  | 'crm'
+  | 'tag'
+  | 'returns'
+  | 'drafts'
+  | 'email'
+  | 'segments'
+  | 'integrations';
 
 export type AdminNavItemDefinition = {
   href: string;
@@ -52,13 +60,13 @@ export type AdminNavSectionDefinition = {
 export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
   {
     key: 'overview',
-    label: 'Overview',
-    description: 'System health and commerce pulse.',
+    label: 'Огляд',
+    description: 'Стан системи та активність бізнесу.',
     items: [
       {
         href: '/admin',
-        label: 'Dashboard',
-        description: 'Company-wide metrics and current alerts.',
+        label: 'Дашборд',
+        description: 'Метрики компанії та поточні сповіщення.',
         icon: 'dashboard',
         exactMatch: true,
       },
@@ -66,201 +74,251 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
   },
   {
     key: 'orders',
-    label: 'Orders',
-    description: 'Operational order management.',
+    label: 'Замовлення',
+    description: 'Робота з замовленнями.',
     items: [
       {
         href: '/admin/shop/orders',
-        label: 'Order center',
-        description: 'Shop orders, manual creation, and status flow.',
+        label: 'Центр замовлень',
+        description: 'Замовлення магазину, ручне створення, рух статусів.',
         icon: 'orders',
+      },
+      {
+        href: '/admin/shop/drafts',
+        label: 'Чернетки та котирування',
+        description: 'B2B котирування, ціни на замовлення, посилання для клієнта.',
+        icon: 'drafts',
       },
     ],
   },
   {
     key: 'customers',
-    label: 'Customers',
-    description: 'B2C, B2B, and CRM relationships.',
+    label: 'Клієнти',
+    description: 'B2C, B2B та CRM-зв’язки.',
     items: [
       {
         href: '/admin/shop/customers',
-        label: 'Customers',
-        description: 'Shop customer records and account states.',
+        label: 'Клієнти',
+        description: 'Записи клієнтів магазину та стани акаунтів.',
         icon: 'customers',
       },
       {
+        href: '/admin/shop/customers/segments',
+        label: 'Сегменти',
+        description: 'Збережені правила для фільтрації та таргетингу.',
+        icon: 'segments',
+      },
+      {
         href: '/admin/crm',
-        label: 'CRM dashboard',
-        description: 'Airtable CRM drilldowns and customer context.',
+        label: 'CRM-дашборд',
+        description: 'Деталізація з Airtable CRM та контекст клієнта.',
         icon: 'crm',
       },
     ],
   },
   {
     key: 'catalog',
-    label: 'Catalog',
-    description: 'Products, structure, media, and pricing.',
+    label: 'Каталог',
+    description: 'Товари, структура, медіа та ціни.',
     items: [
       {
         href: '/admin/shop',
-        label: 'Products',
-        description: 'Primary product catalog and merchandising state.',
+        label: 'Товари',
+        description: 'Головний каталог товарів та стан мерчандайзингу.',
         icon: 'catalog',
         exactMatch: true,
       },
       {
         href: '/admin/shop/inventory',
-        label: 'Inventory',
-        description: 'Variant stock, quantities, and warehouse readiness.',
+        label: 'Склад',
+        description: 'Залишки варіантів, кількості, готовність складу.',
         icon: 'inventory',
       },
       {
         href: '/admin/shop/categories',
-        label: 'Categories',
-        description: 'Structured catalog taxonomy.',
+        label: 'Категорії',
+        description: 'Структурована таксономія каталогу.',
         icon: 'categories',
       },
       {
         href: '/admin/shop/collections',
-        label: 'Collections',
-        description: 'Merchandising collections and landing assignments.',
+        label: 'Колекції',
+        description: 'Маркетингові колекції та прив’язки до сторінок.',
         icon: 'collections',
       },
       {
         href: '/admin/shop/bundles',
-        label: 'Bundles',
-        description: 'Multi-product packages and assembly logic.',
+        label: 'Комплекти',
+        description: 'Багатотоварні набори та правила збірки.',
         icon: 'bundles',
       },
       {
         href: '/admin/shop/media',
-        label: 'Media',
-        description: 'Product imagery and uploaded assets.',
+        label: 'Медіа',
+        description: 'Зображення товарів та завантажені файли.',
         icon: 'media',
       },
       {
         href: '/admin/shop/quality',
-        label: 'Quality center',
-        description: 'Catalog gaps, SEO issues, and bulk-fix triage.',
+        label: 'Контроль якості',
+        description: 'Прогалини в каталозі, SEO-проблеми та масові виправлення.',
         icon: 'seo',
       },
       {
         href: '/admin/shop/pricing',
-        label: 'Pricing',
-        description: 'B2C and B2B pricing control.',
+        label: 'Ціни',
+        description: 'Керування B2C та B2B цінами.',
         icon: 'pricing',
       },
       {
         href: '/admin/shop/seo',
         label: 'SEO AI',
-        description: 'Catalog SEO generation and QA tooling.',
+        description: 'AI-генерація SEO для каталогу та QA-інструменти.',
         icon: 'seo',
       },
     ],
   },
   {
     key: 'imports',
-    label: 'Imports & Integrations',
-    description: 'Inbound catalog flows and supplier syncs.',
+    label: 'Імпорти та інтеграції',
+    description: 'Вхідні потоки каталогу та синхронізації постачальників.',
     items: [
       {
         href: '/admin/shop/import',
-        label: 'Import center',
-        description: 'CSV imports, dry-runs, and result review.',
+        label: 'Центр імпортів',
+        description: 'CSV-імпорти, тестові прогони та результати.',
         icon: 'imports',
       },
       {
         href: '/admin/shop/stock',
-        label: 'CSV import',
-        description: 'Legacy stock import and column mapping.',
+        label: 'CSV-імпорт',
+        description: 'Старий імпорт залишків та зіставлення колонок.',
         icon: 'csv',
       },
       {
         href: '/admin/shop/feed',
-        label: 'Feed exports',
-        description: 'Distributor product and stock export URLs.',
+        label: 'Експорт фідів',
+        description: 'URL-адреси експорту товарів та залишків для дистриб’юторів.',
         icon: 'csv',
       },
       {
         href: '/admin/shop/turn14',
         label: 'Turn14',
-        description: 'Supplier proxy, brand markups, and sync control.',
+        description: 'Проксі постачальника, націнки на бренди, керування синхронізацією.',
         icon: 'turn14',
       },
       {
         href: '/admin/shop/audit',
-        label: 'Import audit',
-        description: 'Catalog change history and import traceability.',
+        label: 'Аудит імпортів',
+        description: 'Історія змін каталогу та трасування імпортів.',
         icon: 'audit',
       },
     ],
   },
   {
     key: 'logistics',
-    label: 'Logistics',
-    description: 'Warehouses, shipping zones, and taxes.',
+    label: 'Логістика',
+    description: 'Склади, зони доставки та податки.',
     items: [
       {
         href: '/admin/shop/logistics',
-        label: 'Warehouses & zones',
-        description: 'Warehouse configuration and delivery geography.',
+        label: 'Склади та зони',
+        description: 'Налаштування складів та географія доставки.',
         icon: 'logistics',
         exactMatch: true,
       },
       {
         href: '/admin/shop/logistics/taxes',
-        label: 'Regional taxes',
-        description: 'Regional tax rules and destination logic.',
+        label: 'Регіональні податки',
+        description: 'Податкові правила за регіонами доставки.',
         icon: 'taxes',
       },
     ],
   },
   {
     key: 'content',
-    label: 'Content',
-    description: 'Editorial content and inbound messages.',
+    label: 'Контент',
+    description: 'Редакційний контент та вхідні повідомлення.',
     items: [
       {
         href: '/admin/messages',
-        label: 'Messages',
-        description: 'Inbound contact forms and lead follow-up.',
+        label: 'Повідомлення',
+        description: 'Вхідні форми зв’язку та робота з лідами.',
         icon: 'messages',
       },
       {
         href: '/admin/blog',
-        label: 'Blog',
-        description: 'Editorial posts and publishing workflow.',
+        label: 'Блог',
+        description: 'Редакційні матеріали та робочий процес публікації.',
         icon: 'blog',
       },
     ],
   },
   {
+    key: 'marketing',
+    label: 'Маркетинг',
+    description: 'Промокоди, кампанії, email-автоматизація.',
+    items: [
+      {
+        href: '/admin/shop/discounts',
+        label: 'Промокоди',
+        description: 'Промо, BOGO-правила, кампанії тільки для B2B.',
+        icon: 'tag',
+      },
+      {
+        href: '/admin/marketing/email-rules',
+        label: 'Email-автоматизація',
+        description: 'Тригери, шаблони, журнал розсилок.',
+        icon: 'email',
+      },
+    ],
+  },
+  {
+    key: 'operations',
+    label: 'Операції',
+    description: 'Повернення, RMA, виконання замовлень.',
+    items: [
+      {
+        href: '/admin/shop/returns',
+        label: 'Повернення / RMA',
+        description: 'Запити на повернення, відстеження поповнення, B2C+B2B процеси.',
+        icon: 'returns',
+      },
+    ],
+  },
+  {
     key: 'system',
-    label: 'System',
-    description: 'Configuration, access, and recovery.',
+    label: 'Система',
+    description: 'Налаштування, доступи, бекапи.',
     items: [
       {
         href: '/admin/settings',
-        label: 'Settings',
-        description: 'Global configuration and business rules.',
+        label: 'Налаштування',
+        description: 'Глобальні параметри та бізнес-правила.',
         icon: 'settings',
       },
       {
         href: '/admin/shop/settings',
-        label: 'Shop settings',
-        description: 'Commerce-specific settings and defaults.',
+        label: 'Налаштування магазину',
+        description: 'Параметри електронної комерції та значення за замовчуванням.',
         icon: 'settings',
       },
       {
         href: '/admin/users',
-        label: 'Users & access',
-        description: 'Internal access controls.',
+        label: 'Користувачі та доступи',
+        description: 'Внутрішні контролі доступу.',
         icon: 'users',
       },
       {
+        href: '/admin/settings/integrations',
+        label: 'Інтеграції',
+        description: 'Mailchimp, Meta Ads, Google-сервіси.',
+        icon: 'integrations',
+      },
+      {
         href: '/admin/backups',
-        label: 'Backups',
-        description: 'Operational backup and restore guardrails.',
+        label: 'Резервні копії',
+        description: 'Бекапи та контроль відновлення.',
         icon: 'backups',
       },
     ],

@@ -5,6 +5,8 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
+  Download,
+  Eye,
   Layers3,
   Loader2,
   Pencil,
@@ -26,6 +28,12 @@ import {
   AdminStatusBadge,
   AdminTableShell,
 } from '@/components/admin/AdminPrimitives';
+import { AdminSkeletonKpiGrid, AdminSkeletonTable } from '@/components/admin/AdminSkeleton';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
+import { AdminSavedViewsBar, useSavedViews } from '@/components/admin/AdminSavedViews';
+import { ProductQuickView } from '@/app/admin/shop/components/ProductQuickView';
+import { AdminMobileCard } from '@/components/admin/AdminMobileCard';
 
 type ShopProductListItem = {
   id: string;
@@ -65,6 +73,8 @@ function getStatusTone(status: ShopProductListItem['status']) {
 }
 
 function AdminShopPageContent() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -82,6 +92,61 @@ function AdminShopPageContent() {
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [storefrontBackfilling, setStorefrontBackfilling] = useState(false);
   const [searchInput, setSearchInput] = useState(searchParam);
+  const [quickViewId, setQuickViewId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  // Saved views — filter combinations stored in localStorage
+  const savedViews = useSavedViews({
+    scope: 'products',
+    currentValue: { search: searchParam, brand: brandParam, status: statusParam },
+    presets: [
+      { name: 'Усі товари', value: { search: '', brand: 'ALL', status: 'ALL' } },
+      { name: 'Лише активні', value: { status: 'ACTIVE' } },
+      { name: 'Чернетки', value: { status: 'DRAFT' } },
+      { name: 'Архів', value: { status: 'ARCHIVED' } },
+      { name: 'Brabus', value: { brand: 'Brabus', status: 'ALL' } },
+      { name: 'Akrapovic', value: { brand: 'Akrapovic', status: 'ALL' } },
+      { name: 'RaceChip', value: { brand: 'RaceChip', status: 'ALL' } },
+    ],
+    onApply: (v) => {
+      updateParams({
+        search: (v.search as string) ?? '',
+        brand: (v.brand as string) ?? 'ALL',
+        status: (v.status as string) ?? 'ALL',
+      });
+    },
+  });
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const filtersJson = JSON.stringify({
+        search: searchParam,
+        brand: brandParam !== 'ALL' ? brandParam : '',
+        status: statusParam !== 'ALL' ? statusParam : '',
+      });
+      const filtersB64 = btoa(unescape(encodeURIComponent(filtersJson)));
+      const response = await fetch(`/api/admin/export/products?filters=${filtersB64}`, { cache: 'no-store' });
+      if (!response.ok) {
+        toast.error('Не вдалося експортувати товари');
+        return;
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] || 'products.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success('Товари експортовано', `Завантажено ${a.download}`);
+    } catch (e) {
+      toast.error('Експорт не вдався', (e as Error).message);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const commonBrands = [
     'ADRO',
@@ -151,7 +216,7 @@ function AdminShopPageContent() {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Failed to load products');
+        setError((data as { error?: string }).error || 'Не вдалося завантажити товари');
         return;
       }
 
@@ -170,14 +235,14 @@ function AdminShopPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  async function handleDelete(id: string) {
-    if (
-      !confirm(
-        'Archive this product?\n\nThe product will be unpublished and moved to ARCHIVED without being hard deleted.'
-      )
-    ) {
-      return;
-    }
+  async function handleArchive(id: string) {
+    const ok = await confirm({
+      tone: 'warning',
+      title: 'Архівувати цей товар?',
+      description: 'Товар буде знято з публікації та переведено в архів. Його можна буде відновити — це не повне видалення.',
+      confirmLabel: 'Архівувати',
+    });
+    if (!ok) return;
 
     setDeletingId(id);
     setSuccess('');
@@ -188,11 +253,14 @@ function AdminShopPageContent() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Archive failed');
+        const msg = (data as { error?: string }).error || 'Archive failed';
+        setError(msg);
+        toast.error('Не вдалося архівувати товар', msg);
         return;
       }
 
-      setSuccess('Product archived.');
+      setSuccess('Товар архівовано.');
+      toast.success('Товар архівовано');
       await load();
     } finally {
       setDeletingId(null);
@@ -214,7 +282,7 @@ function AdminShopPageContent() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError((data as { error?: string }).error || 'Bulk status update failed');
+        setError((data as { error?: string }).error || 'Масова зміна статусу не вдалась');
         return;
       }
 
@@ -226,13 +294,13 @@ function AdminShopPageContent() {
   }
 
   async function handleStorefrontBackfill() {
-    if (
-      !confirm(
-        'Normalize storefront tags for the whole catalog?\n\nEach product will keep exactly one store:* tag based on Urban / Brabus / Main signals.'
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      tone: 'warning',
+      title: 'Нормалізувати storefront-теги для всього каталогу?',
+      description: 'Кожен товар отримає рівно один тег store:* залежно від сигналів Urban / Brabus / Main. Поточні теги буде замінено.',
+      confirmLabel: 'Виконати нормалізацію',
+    });
+    if (!ok) return;
 
     setStorefrontBackfilling(true);
     setError('');
@@ -243,7 +311,7 @@ function AdminShopPageContent() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Failed to normalize storefront tags');
+        setError((data as { error?: string }).error || 'Не вдалося нормалізувати storefront-теги');
         return;
       }
 
@@ -254,13 +322,13 @@ function AdminShopPageContent() {
       };
 
       setSuccess(
-        `Storefront tags normalized: ${payload.updatedCount ?? 0} of ${payload.totalCount ?? 0} updated. Urban: ${
+        `Storefront-теги нормалізовано: оновлено ${payload.updatedCount ?? 0} з ${payload.totalCount ?? 0}. Urban: ${
           payload.storefrontCounts?.urban ?? 0
         }, Brabus: ${payload.storefrontCounts?.brabus ?? 0}, Main: ${payload.storefrontCounts?.main ?? 0}.`
       );
       await load();
     } catch (backfillError) {
-      setError((backfillError as Error).message || 'Failed to normalize storefront tags');
+      setError((backfillError as Error).message || 'Не вдалося нормалізувати storefront-теги');
     } finally {
       setStorefrontBackfilling(false);
     }
@@ -268,14 +336,23 @@ function AdminShopPageContent() {
 
   const selectedCount = selectedIds.size;
   const selectionLabel =
-    selectedCount === 0 ? 'Nothing selected' : `${selectedCount} selected for a bulk status change.`;
+    selectedCount === 0 ? 'Нічого не вибрано' : `${selectedCount} вибрано для масової зміни статусу.`;
 
   if (loading && products.length === 0) {
     return (
-      <AdminPage>
-        <div className="flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
-          <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
-          Loading catalog…
+      <AdminPage className="space-y-6">
+        <div role="status" aria-live="polite" aria-busy="true" className="space-y-6">
+          <span className="sr-only">Завантаження каталогу…</span>
+          <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
+            <div className="space-y-3">
+              <div className="h-3 w-20 motion-safe:animate-pulse rounded bg-white/[0.06]" />
+              <div className="h-9 w-72 motion-safe:animate-pulse rounded-md bg-white/[0.06]" />
+              <div className="h-3.5 w-96 motion-safe:animate-pulse rounded bg-white/[0.04]" />
+            </div>
+            <div className="h-9 w-44 motion-safe:animate-pulse rounded-lg bg-white/[0.04]" />
+          </div>
+          <AdminSkeletonKpiGrid count={4} />
+          <AdminSkeletonTable rows={10} cols={6} />
         </div>
       </AdminPage>
     );
@@ -284,17 +361,27 @@ function AdminShopPageContent() {
   return (
     <AdminPage className="space-y-6">
       <AdminPageHeader
-        eyebrow="Catalog"
-        title="Products"
-        description="Primary catalog surface for product ownership, publication state, collections, media coverage, and fast edit access."
+        eyebrow="Каталог"
+        title="Товари"
+        description="Основний каталог: відповідальність за товари, стан публікації, колекції, покриття медіа та швидкий доступ до редагування."
         actions={
           <>
+            <AdminSavedViewsBar {...savedViews} />
+            <button
+              type="button"
+              onClick={() => void handleExport()}
+              disabled={exporting}
+              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
+            >
+              <Download className="h-4 w-4" />
+              {exporting ? 'Експорт…' : 'Експорт CSV'}
+            </button>
             <Link
               href="/admin/shop/import"
               className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"
             >
               <Upload className="h-4 w-4" />
-              Import center
+              Центр імпорту
             </Link>
             <button
               type="button"
@@ -303,24 +390,24 @@ function AdminShopPageContent() {
               className="inline-flex items-center gap-2 rounded-[6px] border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2.5 text-sm text-blue-300 transition hover:bg-blue-500/[0.12] disabled:opacity-60"
             >
               {storefrontBackfilling ? <Loader2 className="h-4 w-4 motion-safe:animate-spin" /> : <Layers3 className="h-4 w-4" />}
-              Normalize storefronts
+              Нормалізувати storefronts
             </button>
             <Link
               href="/admin/shop/new"
               className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
-              New product
+              Новий товар
             </Link>
           </>
         }
       />
 
       <AdminMetricGrid>
-        <AdminMetricCard label="Products found" value={metadata.totalCount} meta="Current filtered result set" tone="accent" />
-        <AdminMetricCard label="Current page" value={`${metadata.currentPage}/${metadata.totalPages}`} meta={`Page size ${metadata.limit}`} />
-        <AdminMetricCard label="Visible now" value={products.length} meta="Rows rendered in this view" />
-        <AdminMetricCard label="Bulk selection" value={selectedCount} meta={selectionLabel} />
+        <AdminMetricCard label="Знайдено товарів" value={metadata.totalCount} meta="Поточний фільтрований результат" tone="accent" />
+        <AdminMetricCard label="Поточна сторінка" value={`${metadata.currentPage}/${metadata.totalPages}`} meta={`Розмір сторінки ${metadata.limit}`} />
+        <AdminMetricCard label="Видимі зараз" value={products.length} meta="Рядки в цьому перегляді" />
+        <AdminMetricCard label="Вибрано" value={selectedCount} meta={selectionLabel} />
       </AdminMetricGrid>
 
       <AdminFilterBar>
@@ -329,10 +416,10 @@ function AdminShopPageContent() {
           onChange={(event) => updateParams({ status: event.target.value })}
           className="rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-none"
         >
-          <option value="ALL">All statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="DRAFT">Draft</option>
-          <option value="ARCHIVED">Archived</option>
+          <option value="ALL">Усі статуси</option>
+          <option value="ACTIVE">Активні</option>
+          <option value="DRAFT">Чернетки</option>
+          <option value="ARCHIVED">Архів</option>
         </select>
 
         <select
@@ -340,7 +427,7 @@ function AdminShopPageContent() {
           onChange={(event) => updateParams({ brand: event.target.value })}
           className="rounded-[6px] border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-none"
         >
-          <option value="ALL">All brands</option>
+          <option value="ALL">Усі бренди</option>
           {commonBrands.map((brand) => (
             <option key={brand} value={brand}>
               {brand}
@@ -358,7 +445,7 @@ function AdminShopPageContent() {
                 updateParams({ search: searchInput });
               }
             }}
-            placeholder="Search by slug, SKU, brand, or title and press Enter"
+            placeholder="Пошук за slug, SKU, брендом або назвою — натисніть Enter"
             className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
           />
         </label>
@@ -370,7 +457,7 @@ function AdminShopPageContent() {
       {selectedCount > 0 ? (
         <AdminActionBar>
           <div className="space-y-1">
-            <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Bulk action bar</div>
+            <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">Панель масових дій</div>
             <div className="text-sm text-zinc-200">{selectionLabel}</div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -380,7 +467,7 @@ function AdminShopPageContent() {
               onClick={() => handleBulkStatus('ACTIVE')}
               className="rounded-[6px] border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-200 transition hover:bg-emerald-500/15 disabled:opacity-50"
             >
-              {bulkUpdating ? 'Updating…' : 'Set Active'}
+              {bulkUpdating ? 'Оновлення…' : 'Зробити активними'}
             </button>
             <button
               type="button"
@@ -388,7 +475,7 @@ function AdminShopPageContent() {
               onClick={() => handleBulkStatus('DRAFT')}
               className="rounded-[6px] border border-blue-500/25 bg-blue-500/[0.08] px-4 py-2.5 text-sm text-blue-300 transition hover:bg-blue-500/[0.12] disabled:opacity-50"
             >
-              {bulkUpdating ? 'Updating…' : 'Set Draft'}
+              {bulkUpdating ? 'Оновлення…' : 'У чернетки'}
             </button>
             <button
               type="button"
@@ -396,14 +483,14 @@ function AdminShopPageContent() {
               onClick={() => handleBulkStatus('ARCHIVED')}
               className="rounded-[6px] border border-blue-500/20 bg-red-950/25 px-4 py-2.5 text-sm text-red-200 transition hover:bg-red-950/35 disabled:opacity-50"
             >
-              {bulkUpdating ? 'Updating…' : 'Archive'}
+              {bulkUpdating ? 'Оновлення…' : 'Архівувати'}
             </button>
             <button
               type="button"
               onClick={() => setSelectedIds(new Set())}
               className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-white/[0.06]"
             >
-              Clear selection
+              Очистити вибір
             </button>
           </div>
         </AdminActionBar>
@@ -411,20 +498,63 @@ function AdminShopPageContent() {
 
       {products.length === 0 ? (
         <AdminEmptyState
-          title="No products match this view"
-          description="Adjust filters, import a CSV batch, or add a product manually to seed the catalog."
+          title="Жоден товар не відповідає фільтрам"
+          description="Змініть фільтри, імпортуйте CSV-партію або додайте товар вручну, щоб заповнити каталог."
           action={
             <Link
               href="/admin/shop/new"
               className="inline-flex items-center gap-2 rounded-[6px] bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
-              Create product
+              Створити товар
             </Link>
           }
         />
       ) : (
-        <AdminTableShell>
+        <>
+          {/* Mobile card view */}
+          <div className="space-y-2 lg:hidden">
+            {products.map((product) => (
+              <AdminMobileCard
+                key={product.id}
+                title={product.titleEn || product.titleUa}
+                subtitle={[product.brand, product.sku, product.slug].filter(Boolean).join(' · ')}
+                badge={
+                  <div className="flex flex-wrap gap-1">
+                    <AdminStatusBadge tone={getStatusTone(product.status)}>{product.status}</AdminStatusBadge>
+                  </div>
+                }
+                rows={[
+                  { label: 'Ціна', value: priceLabel(product) },
+                  { label: 'Варіантів', value: product.variantsCount },
+                  { label: 'Залишок', value: product.stock },
+                  { label: 'Публікація', value: product.isPublished ? 'Так' : 'Прихований' },
+                ]}
+                footer={
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setQuickViewId(product.id)}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.08] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      Швидкий перегляд
+                    </button>
+                    <Link
+                      href={`/admin/shop/${product.id}`}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Редагувати
+                    </Link>
+                  </div>
+                }
+              />
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <AdminTableShell className="hidden lg:block">
           <table className="w-full min-w-[980px] text-left text-sm">
             <thead>
               <tr className="border-b border-white/10 bg-white/[0.03]">
@@ -436,13 +566,13 @@ function AdminShopPageContent() {
                     className="rounded border-white/20 bg-black/40 text-emerald-500"
                   />
                 </th>
-                <th className="px-4 py-3 font-medium text-zinc-400">Product</th>
-                <th className="px-4 py-3 font-medium text-zinc-400">Type</th>
-                <th className="px-4 py-3 font-medium text-zinc-400">Status</th>
-                <th className="px-4 py-3 font-medium text-zinc-400">Coverage</th>
-                <th className="px-4 py-3 font-medium text-zinc-400">Price</th>
-                <th className="px-4 py-3 font-medium text-zinc-400">Updated</th>
-                <th className="w-28 px-4 py-3 font-medium text-zinc-400">Actions</th>
+                <th className="px-4 py-3 font-medium text-zinc-400">Товар</th>
+                <th className="px-4 py-3 font-medium text-zinc-400">Тип</th>
+                <th className="px-4 py-3 font-medium text-zinc-400">Статус</th>
+                <th className="px-4 py-3 font-medium text-zinc-400">Покриття</th>
+                <th className="px-4 py-3 font-medium text-zinc-400">Ціна</th>
+                <th className="px-4 py-3 font-medium text-zinc-400">Оновлено</th>
+                <th className="w-28 px-4 py-3 font-medium text-zinc-400">Дії</th>
               </tr>
             </thead>
             <tbody>
@@ -490,14 +620,14 @@ function AdminShopPageContent() {
                     <div className="flex flex-wrap gap-2">
                       <AdminStatusBadge tone={getStatusTone(product.status)}>{product.status}</AdminStatusBadge>
                       <AdminStatusBadge tone={product.isPublished ? 'success' : 'warning'}>
-                        {product.isPublished ? 'Published' : 'Hidden'}
+                        {product.isPublished ? 'Опубліковано' : 'Прихований'}
                       </AdminStatusBadge>
                     </div>
                   </td>
                   <td className="px-4 py-4 text-zinc-300">
-                    <div>{product.variantsCount} variants</div>
+                    <div>{product.variantsCount} варіантів</div>
                     <div className="mt-1 text-xs text-zinc-500">
-                      {product.mediaCount} media · {product.collectionsCount} collections · {product.stock}
+                      {product.mediaCount} медіа · {product.collectionsCount} колекцій · {product.stock}
                     </div>
                   </td>
                   <td className="px-4 py-4 text-zinc-200">{priceLabel(product)}</td>
@@ -506,21 +636,29 @@ function AdminShopPageContent() {
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setQuickViewId(product.id)}
+                        className="rounded-[6px] border border-blue-500/25 bg-blue-500/[0.08] p-2 text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-500/[0.12]"
+                        title="Швидкий перегляд (без переходу)"
+                      >
+                        <Eye className="h-4 w-4" aria-label="Швидкий перегляд" />
+                      </button>
                       <Link
                         href={`/admin/shop/${product.id}`}
                         className="rounded-[6px] border border-white/10 p-2 text-zinc-300 transition hover:bg-white/[0.06] hover:text-zinc-50"
-                        title="Edit product"
+                        title="Редагувати товар"
                       >
                         <Pencil className="h-4 w-4" />
                       </Link>
                       <button
                         type="button"
-                        onClick={() => handleDelete(product.id)}
+                        onClick={() => handleArchive(product.id)}
                         disabled={deletingId === product.id}
-                        className="rounded-[6px] border border-blue-500/20 p-2 text-blue-300 transition hover:bg-blue-950/30 disabled:opacity-50"
-                        title="Archive product"
+                        className="rounded-[6px] border border-amber-500/30 bg-amber-500/[0.06] p-2 text-amber-300 transition hover:border-amber-500/50 hover:bg-amber-500/[0.12] disabled:opacity-50"
+                        title="Архівувати (м'яке видалення — можна відновити)"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" aria-label="Архівувати" />
                       </button>
                     </div>
                   </td>
@@ -528,14 +666,21 @@ function AdminShopPageContent() {
               ))}
             </tbody>
           </table>
-        </AdminTableShell>
+          </AdminTableShell>
+        </>
       )}
+
+      <ProductQuickView
+        productId={quickViewId}
+        open={quickViewId !== null}
+        onClose={() => setQuickViewId(null)}
+      />
 
       {metadata.totalPages > 1 ? (
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-4 text-sm text-zinc-400">
           <div>
-            Showing {(metadata.currentPage - 1) * metadata.limit + 1}-
-            {Math.min(metadata.currentPage * metadata.limit, metadata.totalCount)} of {metadata.totalCount}
+            Показано {(metadata.currentPage - 1) * metadata.limit + 1}–
+            {Math.min(metadata.currentPage * metadata.limit, metadata.totalCount)} з {metadata.totalCount}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -544,7 +689,7 @@ function AdminShopPageContent() {
               onClick={() => updateParams({ page: metadata.currentPage - 1 })}
               className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2 text-zinc-100 transition hover:bg-white/[0.06] disabled:opacity-50"
             >
-              Previous
+              Попередня
             </button>
             <span className="px-2 text-zinc-100">{metadata.currentPage}</span>
             <button
@@ -553,7 +698,7 @@ function AdminShopPageContent() {
               onClick={() => updateParams({ page: metadata.currentPage + 1 })}
               className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2 text-zinc-100 transition hover:bg-white/[0.06] disabled:opacity-50"
             >
-              Next
+              Наступна
             </button>
           </div>
         </div>
@@ -564,7 +709,7 @@ function AdminShopPageContent() {
 
 export default function AdminShopPage() {
   return (
-    <Suspense fallback={<AdminPage><div className="text-sm text-zinc-400">Loading catalog…</div></AdminPage>}>
+    <Suspense fallback={<AdminPage><div className="text-sm text-zinc-400">Завантаження каталогу…</div></AdminPage>}>
       <AdminShopPageContent />
     </Suspense>
   );

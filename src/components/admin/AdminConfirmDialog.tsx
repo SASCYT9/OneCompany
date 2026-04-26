@@ -87,7 +87,7 @@ export function useConfirm(): ConfirmContextValue {
     // SSR-safe fallback: degrade to native confirm
     return (options) => {
       if (typeof window === 'undefined') return Promise.resolve(false);
-      const text = `${typeof options.title === 'string' ? options.title : 'Confirm'}\n\n${typeof options.description === 'string' ? options.description : ''}`;
+      const text = `${typeof options.title === 'string' ? options.title : 'Підтвердити'}\n\n${typeof options.description === 'string' ? options.description : ''}`;
       return Promise.resolve(window.confirm(text));
     };
   }
@@ -110,8 +110,8 @@ function ConfirmDialog({
   onConfirm: () => void;
 }) {
   const tone: ConfirmTone = options.tone ?? 'default';
-  const confirmLabel = options.confirmLabel ?? (tone === 'danger' ? 'Delete' : 'Confirm');
-  const cancelLabel = options.cancelLabel ?? 'Cancel';
+  const confirmLabel = options.confirmLabel ?? (tone === 'danger' ? 'Видалити' : 'Підтвердити');
+  const cancelLabel = options.cancelLabel ?? 'Скасувати';
 
   const Icon = tone === 'danger' ? Trash2 : tone === 'warning' ? AlertTriangle : Info;
   const iconCls =
@@ -192,11 +192,11 @@ function ConfirmDialog({
             {options.typedConfirmation ? (
               <div className="pt-2">
                 <label className="block text-xs text-zinc-500">
-                  Type{' '}
+                  Введіть{' '}
                   <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-[11px] text-zinc-200">
                     {options.typedConfirmation}
                   </code>{' '}
-                  to confirm
+                  для підтвердження
                 </label>
                 <input
                   ref={inputRef}

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Archive,
   ArrowRight,
@@ -14,8 +14,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Keyboard,
-  Moon,
-  Sun,
   Database,
   DollarSign,
   FileInput,
@@ -34,11 +32,18 @@ import {
   Shield,
   ShoppingBag,
   Sparkles,
+  Menu,
+  Plug,
   Tag,
   Truck,
+  X as XIcon,
+  Undo2,
   Users,
+  UsersRound,
   Warehouse,
   Boxes,
+  FileText,
+  Mail,
 } from 'lucide-react';
 
 import {
@@ -79,6 +84,12 @@ const iconMap: Record<AdminNavIconKey, React.ComponentType<{ className?: string 
   users: Shield,
   backups: Archive,
   crm: Database,
+  tag: Tag,
+  returns: Undo2,
+  drafts: FileText,
+  email: Mail,
+  segments: UsersRound,
+  integrations: Plug,
 };
 
 const CURRENCY_OPTIONS: { value: AdminCurrency; label: string; symbol: string }[] = [
@@ -141,26 +152,26 @@ const EMPTY_SEARCH: GlobalSearchResponse = {
 const COMMAND_ACTIONS = [
   {
     href: '/admin/shop/orders/create',
-    label: 'Create B2B order',
-    description: 'Manual order from local or Turn14 stock',
+    label: 'Створити B2B замовлення',
+    description: 'Ручне замовлення з місцевого або Turn14 складу',
     icon: PackagePlus,
   },
   {
     href: '/admin/shop/feed',
-    label: 'Open Feed',
-    description: 'Distributor export links and previews',
+    label: 'Відкрити фіди',
+    description: 'Експорт-посилання дистриб’юторів та попередній перегляд',
     icon: Archive,
   },
   {
     href: '/admin/shop/turn14',
-    label: 'Turn14 stock check',
-    description: 'Supplier catalog and stock workflow',
+    label: 'Перевірка залишків Turn14',
+    description: 'Каталог постачальника та робочий процес залишків',
     icon: Truck,
   },
   {
     href: '/admin/shop/import',
-    label: 'Import CSV',
-    description: 'Catalog import and validation tools',
+    label: 'Імпорт CSV',
+    description: 'Інструменти імпорту каталогу та валідації',
     icon: FileInput,
   },
 ];
@@ -175,6 +186,7 @@ export default function AdminShell({
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [globalSearch, setGlobalSearch] = useState<GlobalSearchResponse>(EMPTY_SEARCH);
   const [globalSearchLoading, setGlobalSearchLoading] = useState(false);
@@ -327,6 +339,31 @@ export default function AdminShell({
     });
   }
 
+  // Auto-close mobile drawer on route change
+  useEffect(() => {
+    setMobileDrawerOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll when drawer open
+  useEffect(() => {
+    if (!mobileDrawerOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [mobileDrawerOpen]);
+
+  // Escape closes drawer
+  useEffect(() => {
+    if (!mobileDrawerOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setMobileDrawerOpen(false);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mobileDrawerOpen]);
+
   function submitQuickLink() {
     const entityHref = getFirstSearchHref(globalSearch);
     const match = filteredQuickLinks[0]?.href;
@@ -343,66 +380,79 @@ export default function AdminShell({
         href="#admin-main-content"
         className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-[100] focus-visible:rounded-lg focus-visible:border focus-visible:border-blue-500/40 focus-visible:bg-[#171717] focus-visible:px-4 focus-visible:py-2.5 focus-visible:text-sm focus-visible:font-semibold focus-visible:text-blue-300 focus-visible:shadow-[0_8px_24px_rgba(0,0,0,0.6)] focus-visible:outline-none"
       >
-        Skip to main content
+        Перейти до основного вмісту
       </a>
+
+      {/* Mobile drawer backdrop */}
+      {mobileDrawerOpen ? (
+        <div
+          onClick={() => setMobileDrawerOpen(false)}
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          aria-hidden="true"
+        />
+      ) : null}
 
       <aside
         className={cn(
-          'relative flex h-full flex-none flex-col border-r border-white/[0.05] bg-[#0F0F0F] transition-[width] duration-200',
-          collapsed ? 'w-[80px]' : 'w-[240px]'
+          'flex h-full flex-none flex-col border-r border-white/[0.05] bg-[#0F0F0F] transition-all duration-200',
+          // Desktop: always visible, width changes based on collapsed
+          'lg:relative lg:translate-x-0',
+          collapsed ? 'lg:w-[80px]' : 'lg:w-[240px]',
+          // Mobile: fixed drawer, slide in from left
+          'fixed inset-y-0 left-0 z-50 w-[280px]',
+          mobileDrawerOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
         )}
+        aria-label="Primary navigation"
       >
         {/* Brand — ONE COMPANY logo */}
         <div className="flex items-center justify-between px-5 py-5">
-          <AnimatePresence initial={false} mode="wait">
-            {!collapsed ? (
-              <motion.div
-                key="brand"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <Link href="/admin" className="block" aria-label="OneCompany Admin home">
-                  <Image
-                    src="/branding/logo-light.svg"
-                    alt="OneCompany"
-                    width={140}
-                    height={36}
-                    className="h-9 w-auto"
-                    priority
-                  />
-                </Link>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="mark"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.15 }}
-                className="mx-auto"
-              >
-                <Link
-                  href="/admin"
-                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tracking-tight text-white"
-                  aria-label="OneCompany Admin home"
-                >
-                  OC
-                </Link>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          {!collapsed ? (
+          {/* Full logo: always visible on mobile, only when not collapsed on desktop */}
+          <Link
+            href="/admin"
+            className={cn('block', collapsed ? 'lg:hidden' : 'lg:block')}
+            aria-label="OneCompany Admin home"
+          >
+            <Image
+              src="/branding/logo-light.svg"
+              alt="OneCompany"
+              width={140}
+              height={36}
+              className="h-9 w-auto"
+              priority
+            />
+          </Link>
+          {/* Collapsed mark: only on desktop when collapsed */}
+          {collapsed ? (
+            <Link
+              href="/admin"
+              className="mx-auto hidden h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tracking-tight text-white lg:flex"
+              aria-label="OneCompany Admin home"
+            >
+              OC
+            </Link>
+          ) : null}
+          <div className="flex items-center gap-1">
+            {/* Mobile close button */}
             <button
               type="button"
-              onClick={toggleCollapsed}
-              aria-label="Collapse navigation"
-              className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200"
+              onClick={() => setMobileDrawerOpen(false)}
+              aria-label="Закрити навігацію"
+              className="flex h-9 w-9 items-center justify-center rounded-md text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200 lg:hidden"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <XIcon className="h-4 w-4" />
             </button>
-          ) : null}
+            {/* Desktop collapse button */}
+            {!collapsed ? (
+              <button
+                type="button"
+                onClick={toggleCollapsed}
+                aria-label="Згорнути навігацію"
+                className="hidden h-7 w-7 items-center justify-center rounded-md text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200 lg:flex"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            ) : null}
+          </div>
         </div>
 
         {collapsed ? (
@@ -410,7 +460,7 @@ export default function AdminShell({
             <button
               type="button"
               onClick={toggleCollapsed}
-              aria-label="Expand navigation"
+              aria-label="Розгорнути навігацію"
               className="flex h-7 w-full items-center justify-center rounded-md text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-200"
             >
               <ChevronRight className="h-4 w-4" />
@@ -460,21 +510,21 @@ export default function AdminShell({
             )}
           >
             <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-            {!collapsed ? <span>Log out</span> : null}
+            {!collapsed ? <span>Вийти</span> : null}
           </button>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="relative z-30 border-b border-white/[0.05] bg-[#0A0A0A]/85 px-6 py-3.5 backdrop-blur-xl">
+        <header className="relative z-30 border-b border-white/[0.05] bg-[#0A0A0A]/85 px-3 py-3 backdrop-blur-xl sm:px-6 sm:py-3.5">
           <div className="flex items-center justify-between gap-4">
             <button
               type="button"
-              onClick={toggleCollapsed}
-              aria-label="Toggle navigation"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100 lg:hidden"
+              onClick={() => setMobileDrawerOpen(true)}
+              aria-label="Відкрити навігацію"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100 lg:hidden"
             >
-              <ChevronRight className="h-5 w-5" />
+              <Menu className="h-5 w-5" />
             </button>
 
             <div className="relative min-w-0 max-w-[640px] flex-1">
@@ -495,7 +545,7 @@ export default function AdminShell({
                   onChange={(event) => setQuery(event.target.value)}
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
-                  placeholder="Search anything..."
+                  placeholder="Пошук…"
                   className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
                 />
                 <kbd className="hidden items-center gap-0.5 rounded border border-white/[0.08] bg-black/40 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline-flex">
@@ -515,23 +565,12 @@ export default function AdminShell({
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
-              {/* Theme toggle */}
-              <button
-                type="button"
-                aria-label="Toggle theme"
-                title="Toggle theme (visual only)"
-                className="relative flex h-9 w-9 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100"
-              >
-                <Sun className="h-[18px] w-[18px] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" aria-hidden="true" />
-                <Moon className="absolute h-[18px] w-[18px] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" aria-hidden="true" />
-              </button>
-
               {/* Keyboard shortcuts hint button */}
               <button
                 type="button"
                 onClick={() => setShortcutsOpen(true)}
-                aria-label="Keyboard shortcuts"
-                title="Press ? for keyboard shortcuts"
+                aria-label="Гарячі клавіші"
+                title="Натисніть ? щоб показати гарячі клавіші"
                 className="hidden h-9 w-9 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-100 md:flex"
               >
                 <Keyboard className="h-[18px] w-[18px]" aria-hidden="true" />
@@ -561,16 +600,16 @@ export default function AdminShell({
                     className="absolute right-0 z-50 mt-2 w-[360px] overflow-hidden rounded-xl border border-white/[0.08] bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
                   >
                     <div className="flex items-center justify-between border-b border-white/[0.04] px-4 py-3">
-                      <span className="text-sm font-semibold text-zinc-100">Notifications</span>
+                      <span className="text-sm font-semibold text-zinc-100">Сповіщення</span>
                       {notifCount > 0 ? (
                         <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold text-red-300">
-                          {notifCount} new
+                          {notifCount} нових
                         </span>
                       ) : null}
                     </div>
                     <ul className="max-h-[420px] overflow-y-auto">
                       {notifications.length === 0 ? (
-                        <li className="px-4 py-8 text-center text-sm text-zinc-500">All clear. No active issues.</li>
+                        <li className="px-4 py-8 text-center text-sm text-zinc-500">Все спокійно. Активних проблем немає.</li>
                       ) : (
                         notifications.map((n) => (
                           <li key={n.id}>
@@ -604,7 +643,7 @@ export default function AdminShell({
                           onClick={() => setBellOpen(false)}
                           className="block text-center text-xs font-medium text-blue-400 hover:text-blue-300"
                         >
-                          View all on dashboard →
+                          Переглянути все в дашборді →
                         </Link>
                       </div>
                     ) : null}
@@ -615,15 +654,15 @@ export default function AdminShell({
               {/* User profile chip */}
               <button
                 type="button"
-                aria-label="Admin user menu"
+                aria-label="Меню користувача"
                 className="ml-1 flex items-center gap-2.5 rounded-lg border border-white/[0.05] bg-[#171717] px-2 py-1.5 transition hover:bg-[#1F1F1F]"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-[11px] font-semibold text-white">
                   OC
                 </div>
                 <div className="hidden flex-col items-start leading-tight md:flex">
-                  <span className="text-[12px] font-semibold text-zinc-100">Admin User</span>
-                  <span className="text-[10px] text-zinc-500">Administrator</span>
+                  <span className="whitespace-nowrap text-[12px] font-semibold text-zinc-100">Адмін</span>
+                  <span className="whitespace-nowrap text-[10px] text-zinc-500">Керівник</span>
                 </div>
                 <ChevronDown className="hidden h-3.5 w-3.5 text-zinc-500 md:block" aria-hidden="true" />
               </button>
@@ -656,37 +695,37 @@ export default function AdminShell({
             <div className="flex items-center justify-between border-b border-white/[0.05] px-5 py-3.5">
               <div className="flex items-center gap-2.5">
                 <Keyboard className="h-4 w-4 text-blue-400" aria-hidden="true" />
-                <span className="text-sm font-semibold text-zinc-100">Keyboard shortcuts</span>
+                <span className="text-sm font-semibold text-zinc-100">Гарячі клавіші</span>
               </div>
               <button
                 type="button"
                 onClick={() => setShortcutsOpen(false)}
                 className="rounded-md p-1 text-zinc-500 transition hover:bg-white/[0.04] hover:text-zinc-100"
-                aria-label="Close"
+                aria-label="Закрити"
               >
                 <ChevronDown className="h-4 w-4 rotate-180" aria-hidden="true" />
               </button>
             </div>
             <div className="grid grid-cols-1 gap-x-8 gap-y-3 p-5 sm:grid-cols-2">
-              <ShortcutGroup title="Search">
-                <ShortcutRow keys={['⌘', 'K']} label="Open command center" />
-                <ShortcutRow keys={['?']} label="Show this help" />
-                <ShortcutRow keys={['Esc']} label="Close popovers" />
+              <ShortcutGroup title="Пошук">
+                <ShortcutRow keys={['⌘', 'K']} label="Командний центр" />
+                <ShortcutRow keys={['?']} label="Ця довідка" />
+                <ShortcutRow keys={['Esc']} label="Закрити попап" />
               </ShortcutGroup>
-              <ShortcutGroup title="Navigation">
-                <ShortcutRow keys={['G', 'D']} label="Dashboard" />
-                <ShortcutRow keys={['G', 'O']} label="Orders" />
-                <ShortcutRow keys={['G', 'P']} label="Products" />
-                <ShortcutRow keys={['G', 'C']} label="Customers" />
-                <ShortcutRow keys={['G', 'I']} label="Inventory" />
+              <ShortcutGroup title="Навігація">
+                <ShortcutRow keys={['G', 'D']} label="Дашборд" />
+                <ShortcutRow keys={['G', 'O']} label="Замовлення" />
+                <ShortcutRow keys={['G', 'P']} label="Товари" />
+                <ShortcutRow keys={['G', 'C']} label="Клієнти" />
+                <ShortcutRow keys={['G', 'I']} label="Склад" />
                 <ShortcutRow keys={['G', 'T']} label="Turn14" />
-                <ShortcutRow keys={['G', 'S']} label="Settings" />
+                <ShortcutRow keys={['G', 'S']} label="Налаштування" />
               </ShortcutGroup>
             </div>
             <div className="border-t border-white/[0.05] bg-black/30 px-5 py-2.5 text-[11px] text-zinc-500">
-              Press{' '}
+              Натисніть{' '}
               <kbd className="rounded border border-white/[0.1] bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px]">G</kbd>{' '}
-              then a letter within 1.5 seconds.
+              а потім літеру протягом 1.5 секунди.
             </div>
           </div>
         </div>
@@ -767,24 +806,24 @@ function CommandCenterResults({
       <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="border-b border-white/[0.05] p-3 lg:border-b-0 lg:border-r">
           <div className="mb-2 flex items-center justify-between px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-            <span className="text-blue-400">Command Center</span>
-            <span>{loading ? 'Searching...' : `${search.total} results`}</span>
+            <span className="text-blue-400">Командний центр</span>
+            <span>{loading ? 'Пошук…' : `Результатів: ${search.total}`}</span>
           </div>
 
           <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1 [scrollbar-width:thin]">
-            <SearchGroup title="Orders">
+            <SearchGroup title="Замовлення">
               {search.results.orders.map((order) => (
                 <SearchResultButton
                   key={order.id}
                   title={`${order.orderNumber} · ${order.customerName}`}
-                  meta={`${order.paymentStatus} · Outstanding ${commandMoney(order.outstandingAmount, order.currency)}`}
+                  meta={`${order.paymentStatus} · Заборгованість ${commandMoney(order.outstandingAmount, order.currency)}`}
                   badge={order.status.replace(/_/g, ' ')}
                   onClick={() => onNavigate(`/admin/shop/orders/${order.id}`)}
                 />
               ))}
             </SearchGroup>
 
-            <SearchGroup title="Products">
+            <SearchGroup title="Товари">
               {search.results.products.map((product) => (
                 <SearchResultButton
                   key={product.id}
@@ -796,7 +835,7 @@ function CommandCenterResults({
               ))}
             </SearchGroup>
 
-            <SearchGroup title="Customers">
+            <SearchGroup title="Клієнти">
               {search.results.customers.map((customer) => (
                 <SearchResultButton
                   key={customer.id}
@@ -814,7 +853,7 @@ function CommandCenterResults({
                   key={item.id}
                   title={item.productName}
                   meta={[item.brand, item.partNumber, item.mfrPartNumber].filter(Boolean).join(' · ')}
-                  badge={item.weight != null ? `${item.weight} lb` : 'catalog'}
+                  badge={item.weight != null ? `${item.weight} lb` : 'каталог'}
                   onClick={() => onNavigate('/admin/shop/turn14')}
                 />
               ))}
@@ -822,7 +861,7 @@ function CommandCenterResults({
 
             {!loading && search.total === 0 ? (
               <div className="rounded-lg border border-white/[0.05] bg-white/[0.02] px-3 py-4 text-sm text-zinc-500">
-                No entity matches. Use quick actions or page shortcuts.
+                Збігів не знайдено. Спробуйте швидкі дії або сторінки нижче.
               </div>
             ) : null}
           </div>
@@ -830,7 +869,7 @@ function CommandCenterResults({
 
         <div className="space-y-3 p-3">
           <div>
-            <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-blue-400">Quick actions</div>
+            <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-blue-400">Швидкі дії</div>
             <div className="grid gap-2">
               {COMMAND_ACTIONS.map((action) => {
                 const Icon = action.icon;
@@ -855,7 +894,7 @@ function CommandCenterResults({
           </div>
 
           <div>
-            <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Page shortcuts</div>
+            <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Швидкі переходи</div>
             <div className="flex flex-wrap gap-1.5">
               {quickLinks.slice(0, 8).map((item) => (
                 <button

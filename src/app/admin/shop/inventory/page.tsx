@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Boxes, CheckSquare, RefreshCcw, Search, Warehouse } from 'lucide-react';
+import { Boxes, CheckSquare, Download, RefreshCcw, Search, Warehouse } from 'lucide-react';
 
 import {
   AdminActionBar,
@@ -20,6 +20,7 @@ import {
   AdminInputField as InputField,
   AdminSelectField as SelectField,
 } from '@/components/admin/AdminFormFields';
+import { useToast } from '@/components/admin/AdminToast';
 
 type InventoryRow = {
   id: string;
@@ -86,6 +87,7 @@ function createEmptyBulkState(): BulkInventoryState {
 }
 
 function AdminInventoryPageContent() {
+  const toast = useToast();
   const searchParams = useSearchParams();
   const initialBrand = searchParams.get('brand') || 'ALL';
 
@@ -100,6 +102,32 @@ function AdminInventoryPageContent() {
   const [query, setQuery] = useState('');
   const [brandFilter, setBrandFilter] = useState<string>(initialBrand);
   const [bulk, setBulk] = useState<BulkInventoryState>(createEmptyBulkState());
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const response = await fetch(`/api/admin/export/inventory`, { cache: 'no-store' });
+      if (!response.ok) {
+        toast.error('Could not export inventory');
+        return;
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] || 'inventory.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success('Inventory exported', `Downloaded ${a.download}`);
+    } catch (e) {
+      toast.error('Export failed', (e as Error).message);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   useEffect(() => {
     if (searchParams.get('brand')) {
@@ -187,6 +215,38 @@ function AdminInventoryPageContent() {
       return;
     }
 
+    // Validate non-negative absolute quantity
+    if (bulk.inventoryQty.trim()) {
+      const qty = Number(bulk.inventoryQty);
+      if (!Number.isFinite(qty) || qty < 0) {
+        setError('Inventory quantity cannot be negative.');
+        return;
+      }
+    }
+
+    // Validate adjustment doesn't push any selected variant below zero
+    if (bulk.inventoryAdjustment.trim()) {
+      const adj = Number(bulk.inventoryAdjustment);
+      if (!Number.isFinite(adj)) {
+        setError('Adjustment must be a number.');
+        return;
+      }
+      if (adj < 0) {
+        // Check if any selected variant would go negative at the chosen location
+        const wouldGoNegative = selectedIds.some((id) => {
+          const variant = variants.find((v) => v.id === id);
+          if (!variant) return false;
+          const level = variant.inventoryLevels?.find((l) => l.locationId === selectedLocationId);
+          const currentQty = level?.stockedQuantity ?? variant.inventoryQty ?? 0;
+          return currentQty + adj < 0;
+        });
+        if (wouldGoNegative) {
+          setError('Adjustment would push at least one variant below zero. Reduce the adjustment or exclude variants with low stock.');
+          return;
+        }
+      }
+    }
+
     const payload: Record<string, unknown> = {
       variantIds: selectedIds,
       locationId: selectedLocationId,
@@ -242,6 +302,15 @@ function AdminInventoryPageContent() {
         description="Operational stock control for variant quantities, inventory policy, and fulfillment metadata across warehouse locations."
         actions={
           <>
+            <button
+              type="button"
+              onClick={() => void handleExport()}
+              disabled={exporting}
+              className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06] disabled:opacity-50"
+            >
+              <Download className="h-4 w-4" />
+              {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
             <Link
               href="/admin/shop/pricing"
               className="rounded-[6px] border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]"

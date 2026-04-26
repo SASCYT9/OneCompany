@@ -3,6 +3,8 @@
 import { useState, useCallback } from 'react';
 import { Upload, RefreshCcw, Trash2, FileSpreadsheet, CheckCircle2, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
 
 type DistributorStat = { name: string; count: number };
 
@@ -116,6 +118,8 @@ function groupShopifyProducts(rows: Record<string, string>[]) {
 }
 
 export default function AdminStockPage() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const [stats, setStats] = useState<{ total: number; distributors: DistributorStat[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
@@ -198,7 +202,14 @@ export default function AdminStockPage() {
   };
 
   const handleDelete = async (dist: string) => {
-    if (!confirm(`Видалити всі товари від ${dist}?`)) return;
+    const ok = await confirm({
+      tone: 'danger',
+      title: `Видалити всі товари від ${dist}?`,
+      description: 'Усі імпортовані товари цього дистриб\'ютора будуть видалені з каталогу. Дію не можна скасувати.',
+      confirmLabel: 'Видалити все',
+      typedConfirmation: dist,
+    });
+    if (!ok) return;
     
     try {
       const res = await fetch('/api/admin/stock/import', {

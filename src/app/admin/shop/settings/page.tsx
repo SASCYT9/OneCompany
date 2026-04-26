@@ -30,6 +30,8 @@ import {
   AdminSelectField as SelectField,
   AdminTextareaField as TextareaField,
 } from '@/components/admin/AdminFormFields';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
 
 type ShopCurrencyCode = 'EUR' | 'USD' | 'UAH';
 
@@ -551,6 +553,8 @@ function moveItem<T>(items: T[], index: number, direction: -1 | 1) {
 }
 
 export default function AdminShopSettingsPage() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -2061,17 +2065,23 @@ export default function AdminShopSettingsPage() {
             type="button"
             disabled={saving} // using saving state to block multiple requests
             onClick={async () => {
-              if (!confirm('Запустити масове оновлення розмірів на основі Turn14? Це може зайняти хвилину.')) return;
+              const ok = await confirm({
+                tone: 'warning',
+                title: 'Запустити масове оновлення розмірів?',
+                description: 'Розміри товарів будуть оновлені на основі даних Turn14. Процес може зайняти хвилину і не може бути скасований.',
+                confirmLabel: 'Запустити синхронізацію',
+              });
+              if (!ok) return;
               try {
                 const res = await fetch('/api/admin/shop/turn14/sync-dimensions', { method: 'POST' });
                 const json = await res.json();
                 if (res.ok) {
-                  alert(`Синхронізацію успішно завершено! Оновлено товарів: ${json.updatedCount || 0}.`);
+                  toast.success('Синхронізацію завершено', `Оновлено товарів: ${json.updatedCount || 0}`);
                 } else {
-                  alert(`Помилка: ${json.error}`);
+                  toast.error('Помилка синхронізації', json.error);
                 }
               } catch (e: any) {
-                alert(`Помилка мережі: ${e.message}`);
+                toast.error('Помилка мережі', e.message);
               }
             }}
             className="inline-flex items-center gap-2 rounded-none bg-blue-500/15 text-zinc-100 px-5 py-2.5 text-sm font-medium hover:bg-blue-500/15 text-zinc-100 disabled:opacity-50"

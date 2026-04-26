@@ -91,6 +91,8 @@ export const ADMIN_SECTION_ACCENTS: Record<AdminNavSectionKey, SectionAccent> = 
   imports: SKY_ACCENT,
   logistics: SKY_ACCENT,
   content: VIOLET_ACCENT,
+  marketing: VIOLET_ACCENT,
+  operations: SKY_ACCENT,
   system: BLUE_ACCENT,
 };
 

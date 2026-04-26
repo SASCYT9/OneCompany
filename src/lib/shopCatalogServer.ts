@@ -697,6 +697,33 @@ function isFeedManagedCatalogProduct(product: Pick<ShopProduct, 'brand' | 'vendo
   return isFeedManagedBrandValue(product.brand) || isFeedManagedBrandValue(product.vendor);
 }
 
+function hasUrbanGpPortalSource(product: Pick<ShopProduct, 'tags'>) {
+  return (product.tags ?? []).some((tag) => String(tag).trim().toLowerCase() === 'urban-source:gp-portal');
+}
+
+function isUrbanCatalogProduct(product: Pick<ShopProduct, 'brand' | 'vendor' | 'tags' | 'slug'>) {
+  const brandKey = normalizeBrandImageKey(product.brand);
+  const vendorKey = normalizeBrandImageKey(product.vendor);
+  const tags = product.tags ?? [];
+
+  return (
+    brandKey === 'URBAN' ||
+    brandKey === 'URBAN AUTOMOTIVE' ||
+    vendorKey === 'URBAN' ||
+    vendorKey === 'URBAN AUTOMOTIVE' ||
+    String(product.slug ?? '').startsWith('urb-') ||
+    String(product.slug ?? '').startsWith('urban-') ||
+    tags.some((tag) => {
+      const normalizedTag = String(tag).trim().toLowerCase();
+      return normalizedTag === 'store:urban' || normalizedTag.startsWith('urban-source:');
+    })
+  );
+}
+
+function shouldExposeCatalogProduct(product: Pick<ShopProduct, 'brand' | 'vendor' | 'tags' | 'slug'>) {
+  return !isUrbanCatalogProduct(product) || hasUrbanGpPortalSource(product);
+}
+
 function resolveFeedManagedBrandKey(brand: string | null | undefined, vendor?: string | null) {
   const brandKey = normalizeBrandImageKey(brand);
   if (FEED_MANAGED_BRANDS.has(brandKey)) {
@@ -1120,6 +1147,10 @@ function normalizeCatalogProducts(products: ShopProduct[]) {
   for (const rawProduct of products) {
     const product = applyShopProductImageOverrides(normalizeFeedManagedProductImages(rawProduct));
 
+    if (!shouldExposeCatalogProduct(product)) {
+      continue;
+    }
+
     if (isFeedManagedCatalogProduct(product) && !hasCatalogPrice(product)) {
       continue;
     }
@@ -1232,7 +1263,7 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
       });
     } catch {
       // No DB or not migrated — use only static
-      return [...SHOP_PRODUCTS];
+      return normalizeCatalogProducts(SHOP_PRODUCTS);
     }
 
     const dbProducts = normalizeCatalogProducts(dbRows.map((row) => mapDbToCatalog(row)));
@@ -1245,6 +1276,10 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
         .filter((value) => FEED_MANAGED_BRANDS.has(value))
     );
     SHOP_PRODUCTS.forEach((p) => {
+      if (!shouldExposeCatalogProduct(p)) {
+        return;
+      }
+
       if (
         isFeedManagedCatalogProduct(p) &&
         [p.brand, p.vendor].some((value) => liveFeedBrands.has(normalizeBrandImageKey(value)))
@@ -1287,10 +1322,36 @@ export async function getShopProductBySlugServer(slug: string): Promise<ShopProd
       where: { slug, isPublished: true },
       include: adminProductInclude,
     });
-    if (row) return applyShopProductImageOverrides(mapDbToCatalog(row));
+    if (row) {
+      const product = applyShopProductImageOverrides(mapDbToCatalog(row));
+      return shouldExposeCatalogProduct(product) ? product : undefined;
+    }
   } catch {
     // ignore
   }
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const cachePath = path.join(process.cwd(), '.shop-products-dev-cache.json');
+      if (fs.existsSync(cachePath)) {
+        const parsedCache = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+        const cachedProducts =
+          parsedCache &&
+          typeof parsedCache === 'object' &&
+          parsedCache.version === SHOP_PRODUCTS_DEV_CACHE_VERSION &&
+          Array.isArray(parsedCache.products)
+            ? normalizeCatalogProducts(parsedCache.products)
+            : [];
+        const cachedProduct = cachedProducts.find((product) => product.slug === slug);
+        if (cachedProduct) return applyShopProductImageOverrides(cachedProduct);
+      }
+    } catch {
+      // ignore stale local cache
+    }
+  }
   const staticProduct = getStaticBySlug(slug);
-  return staticProduct ? applyShopProductImageOverrides(staticProduct) : undefined;
+  if (!staticProduct || !shouldExposeCatalogProduct(staticProduct)) {
+    return undefined;
+  }
+
+  return applyShopProductImageOverrides(staticProduct);
 }

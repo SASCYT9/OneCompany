@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Columns3, ExternalLink, Eye, FileClock, List, Mail as MailIcon, Package, Phone, RefreshCcw, Save, Search, ShoppingCart, X } from 'lucide-react';
+import { ChevronRight, Columns3, Download, ExternalLink, Eye, FileClock, List, Mail as MailIcon, Package, Phone, RefreshCcw, Save, Search, ShoppingCart, X } from 'lucide-react';
 
 import {
   AdminActionBar,
@@ -21,7 +21,10 @@ import {
 import { AdminInputField, AdminSelectField } from '@/components/admin/AdminFormFields';
 import { AdminSkeletonKpiGrid, AdminSkeletonTable } from '@/components/admin/AdminSkeleton';
 import { AdminSlideOver } from '@/components/admin/AdminSlideOver';
+import { AdminInlineSelect } from '@/components/admin/AdminInlineEdit';
+import { AdminSavedViewsBar, useSavedViews } from '@/components/admin/AdminSavedViews';
 import { useToast } from '@/components/admin/AdminToast';
+import { AdminMobileCard } from '@/components/admin/AdminMobileCard';
 
 type OrderStatus =
   | 'PENDING_PAYMENT'
@@ -144,6 +147,16 @@ const STATUS_OPTIONS = [
   { value: 'REFUNDED', label: 'Повернено' },
 ] as const;
 
+const SMART_FILTER_LABELS: Record<string, { label: string; description: string }> = {
+  all: { label: 'Усі', description: 'Поточна черга' },
+  unpaid: { label: 'Неоплачено', description: 'Залишок до сплати' },
+  no_shipment: { label: 'Без відправлення', description: 'Потребує відправки' },
+  no_customer: { label: 'Без клієнта', description: 'Гість або без акаунта' },
+  b2b: { label: 'B2B', description: 'B2B-група' },
+  high_value: { label: 'Високий чек', description: '>= 1 000 у валюті замовлення' },
+  delayed: { label: 'Затримано', description: 'Поза SLA' },
+};
+
 const ORDER_STATUS_LABELS: Record<string, string> = {
   PENDING_PAYMENT: 'Очікує оплату',
   PENDING_REVIEW: 'На перевірці',
@@ -158,13 +171,13 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
 type SmartFilterKey = 'all' | 'unpaid' | 'no_shipment' | 'no_customer' | 'b2b' | 'high_value' | 'delayed';
 
 const SMART_FILTERS: Array<{ key: SmartFilterKey; label: string; description: string }> = [
-  { key: 'all', label: 'All', description: 'Visible queue' },
-  { key: 'unpaid', label: 'Unpaid', description: 'Outstanding balance' },
-  { key: 'no_shipment', label: 'No shipment', description: 'Needs fulfillment' },
-  { key: 'no_customer', label: 'No customer', description: 'Guest or missing account' },
-  { key: 'b2b', label: 'B2B', description: 'B2B customer group' },
-  { key: 'high_value', label: 'High value', description: '>= 1,000 in order currency' },
-  { key: 'delayed', label: 'Delayed', description: 'Status age over SLA' },
+  { key: 'all', label: 'Усі', description: 'Поточна черга' },
+  { key: 'unpaid', label: 'Неоплачено', description: 'Залишок до сплати' },
+  { key: 'no_shipment', label: 'Без відправлення', description: 'Потребує відправки' },
+  { key: 'no_customer', label: 'Без клієнта', description: 'Гість або без акаунта' },
+  { key: 'b2b', label: 'B2B', description: 'B2B-група клієнтів' },
+  { key: 'high_value', label: 'Високий чек', description: '>= 1 000 у валюті замовлення' },
+  { key: 'delayed', label: 'Затримано', description: 'Поза SLA' },
 ];
 
 const KANBAN_STATUSES: OrderStatus[] = ['PENDING_PAYMENT', 'PENDING_REVIEW', 'PROCESSING', 'SHIPPED'];
@@ -270,6 +283,79 @@ export default function AdminOrdersPage() {
   const [activeOrderError, setActiveOrderError] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
   const [smartFilter, setSmartFilter] = useState<SmartFilterKey>('all');
+  const [exporting, setExporting] = useState(false);
+
+  // Saved views — filter combinations stored in localStorage
+  const savedViews = useSavedViews({
+    scope: 'orders',
+    currentValue: { status, currency, shippingZone, taxRegion, query, smartFilter },
+    presets: [
+      { name: 'Усі замовлення', value: { status: '', smartFilter: 'all' as SmartFilterKey, currency: '', shippingZone: '', taxRegion: '', query: '' } },
+      { name: 'Неоплачені', value: { smartFilter: 'unpaid' as SmartFilterKey, status: '' } },
+      { name: 'Очікують оплату', value: { status: 'PENDING_PAYMENT', smartFilter: 'all' as SmartFilterKey } },
+      { name: 'B2B замовлення', value: { smartFilter: 'b2b' as SmartFilterKey, status: '' } },
+      { name: 'Високий чек (1k+)', value: { smartFilter: 'high_value' as SmartFilterKey, status: '' } },
+      { name: 'Затримані (>24г)', value: { smartFilter: 'delayed' as SmartFilterKey, status: '' } },
+      { name: 'Без відправлення', value: { smartFilter: 'no_shipment' as SmartFilterKey, status: '' } },
+    ],
+    onApply: (v) => {
+      setStatus((v.status as string) ?? '');
+      setCurrency((v.currency as string) ?? '');
+      setShippingZone((v.shippingZone as string) ?? '');
+      setTaxRegion((v.taxRegion as string) ?? '');
+      setQuery((v.query as string) ?? '');
+      setSmartFilter((v.smartFilter as SmartFilterKey) ?? 'all');
+    },
+  });
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const filtersJson = JSON.stringify({ status, currency, search: query });
+      const filtersB64 = btoa(unescape(encodeURIComponent(filtersJson)));
+      const response = await fetch(`/api/admin/export/orders?filters=${filtersB64}`, { cache: 'no-store' });
+      if (!response.ok) {
+        toast.error('Не вдалося експортувати замовлення');
+        return;
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] || 'orders.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success('Замовлення експортовано', `Завантажено ${a.download}`);
+    } catch (e) {
+      toast.error('Експорт не вдався', (e as Error).message);
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  // Inline status change for a single order row
+  async function changeOrderStatus(orderId: string, nextStatus: OrderStatus) {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order || order.status === nextStatus) return;
+    if (!order.allowedTransitions.includes(nextStatus)) {
+      toast.warning('Зміна статусу не дозволена', `${statusLabel(order.status)} → ${statusLabel(nextStatus)} відсутня в робочому процесі.`);
+      throw new Error('Invalid transition');
+    }
+    const response = await fetch('/api/admin/shop/orders', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderIds: [orderId], status: nextStatus, note: 'Inline change from list' }),
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      toast.error('Не вдалося оновити статус', data.error || 'Спробуйте ще раз');
+      throw new Error(data.error || 'Update failed');
+    }
+    toast.success(`Замовлення ${order.orderNumber} → ${statusLabel(nextStatus)}`);
+    setReloadKey((k) => k + 1);
+  }
 
   useEffect(() => {
     async function run() {
@@ -457,7 +543,7 @@ export default function AdminOrdersPage() {
     return (
       <AdminPage className="space-y-6">
         <div role="status" aria-live="polite" aria-busy="true" className="space-y-6">
-          <span className="sr-only">Loading orders…</span>
+          <span className="sr-only">Завантаження замовлень…</span>
           <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
             <div className="space-y-3">
               <div className="h-3 w-16 motion-safe:animate-pulse rounded bg-white/[0.06]" />
@@ -476,32 +562,42 @@ export default function AdminOrdersPage() {
   return (
     <AdminPage className="space-y-6">
       <AdminPageHeader
-        eyebrow="Orders"
-        title="Order Center"
+        eyebrow="Замовлення"
+        title="Центр замовлень"
         description="Робоча черга замовлень: від перевірки і оплати до виконання, відправлення та контролю винятків."
         actions={
           <>
+            <AdminSavedViewsBar {...savedViews} />
+            <button
+              type="button"
+              onClick={() => void handleExport()}
+              disabled={exporting}
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
+            >
+              <Download className="h-4 w-4" />
+              {exporting ? 'Експорт…' : 'Експорт CSV'}
+            </button>
             <Link
               href="/admin/shop/orders/create"
               className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
-              B2B order
+              B2B замовлення
             </Link>
             <Link
               href="/admin/shop/orders/new"
               className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
             >
-              Manual order
+              Ручне замовлення
             </Link>
           </>
         }
       />
 
       <AdminMetricGrid>
-        <AdminMetricCard label="Visible orders" value={visibleOrders.length} meta={`${selectedIds.length} selected`} />
-        <AdminMetricCard label="Hot queue" value={hotQueue.length} meta="Need action now" tone="accent" />
-        <AdminMetricCard label="Pending payment" value={stats.statusCounts.PENDING_PAYMENT || 0} meta="Need payment follow-up" tone="accent" />
-        <AdminMetricCard label="Pending review" value={stats.statusCounts.PENDING_REVIEW || 0} meta="Need manager validation" />
+        <AdminMetricCard label="Видимі замовлення" value={visibleOrders.length} meta={`${selectedIds.length} вибрано`} />
+        <AdminMetricCard label="Гаряча черга" value={hotQueue.length} meta="Потребує дії зараз" tone="accent" />
+        <AdminMetricCard label="Очікують оплату" value={stats.statusCounts.PENDING_PAYMENT || 0} meta="Потребують контролю оплати" tone="accent" />
+        <AdminMetricCard label="На перевірці" value={stats.statusCounts.PENDING_REVIEW || 0} meta="Потребують підтвердження менеджером" />
       </AdminMetricGrid>
 
       <AdminActionBar>
@@ -512,14 +608,14 @@ export default function AdminOrdersPage() {
             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
           >
             <RefreshCcw className="h-4 w-4" />
-            Refresh
+            Оновити
           </button>
           <Link
             href="/admin/shop/audit"
             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
           >
             <FileClock className="h-4 w-4" />
-            Audit
+            Аудит
           </Link>
           <div className="inline-flex overflow-hidden rounded-full border border-white/10 bg-white/5">
             <button
@@ -528,7 +624,7 @@ export default function AdminOrdersPage() {
               className={`inline-flex items-center gap-2 px-3 py-2 text-sm transition ${viewMode === 'table' ? 'bg-zinc-100 text-black' : 'text-zinc-300 hover:bg-white/10'}`}
             >
               <List className="h-4 w-4" />
-              Table
+              Таблиця
             </button>
             <button
               type="button"
@@ -536,12 +632,12 @@ export default function AdminOrdersPage() {
               className={`inline-flex items-center gap-2 px-3 py-2 text-sm transition ${viewMode === 'kanban' ? 'bg-zinc-100 text-black' : 'text-zinc-300 hover:bg-white/10'}`}
             >
               <Columns3 className="h-4 w-4" />
-              Kanban
+              Канбан
             </button>
           </div>
         </div>
         <div className="text-sm text-zinc-500">
-          Bulk actions are limited to transitions valid for the currently selected orders.
+          Масові дії обмежені переходами, що дозволені для всіх вибраних замовлень.
         </div>
       </AdminActionBar>
 
@@ -555,9 +651,9 @@ export default function AdminOrdersPage() {
             className="w-full bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
           />
         </label>
-        <FilterSelect label="Status" value={status} onChange={setStatus} options={STATUS_OPTIONS.map((option) => ({ value: option.value, label: option.label }))} />
+        <FilterSelect label="Статус" value={status} onChange={setStatus} options={STATUS_OPTIONS.map((option) => ({ value: option.value, label: option.label }))} />
         <FilterSelect
-          label="Currency"
+          label="Валюта"
           value={currency}
           onChange={setCurrency}
           options={[
@@ -569,7 +665,7 @@ export default function AdminOrdersPage() {
           ]}
         />
         <FilterSelect
-          label="Shipping zone"
+          label="Зона доставки"
           value={shippingZone}
           onChange={setShippingZone}
           options={[
@@ -581,7 +677,7 @@ export default function AdminOrdersPage() {
           ]}
         />
         <FilterSelect
-          label="Tax rule"
+          label="Правило податку"
           value={taxRegion}
           onChange={setTaxRegion}
           options={[
@@ -619,11 +715,11 @@ export default function AdminOrdersPage() {
         <AdminActionBar className="sticky top-4 z-30 bg-[#171717]/95 backdrop-blur-xl">
           <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-300">
             <ShoppingCart className="h-4 w-4 text-blue-300" />
-            {selectedOrders.length} selected
+            {selectedOrders.length} вибрано
           </div>
           <div className="grid flex-1 gap-3 lg:grid-cols-[240px_minmax(0,1fr)_auto]">
             <FilterSelect
-              label="Bulk status"
+              label="Масовий статус"
               value={bulkStatus}
               onChange={setBulkStatus}
               options={[
@@ -635,7 +731,7 @@ export default function AdminOrdersPage() {
               ]}
             />
             <label className="block">
-              <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-zinc-500">Bulk note</span>
+              <span className="mb-1.5 block text-xs uppercase tracking-[0.18em] text-zinc-500">Масова нотатка</span>
               <input
                 value={bulkNote}
                 onChange={(event) => setBulkNote(event.target.value)}
@@ -650,7 +746,7 @@ export default function AdminOrdersPage() {
                 disabled={!bulkStatus || !selectedIds.length || bulkUpdating}
                 className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
               >
-                {bulkUpdating ? 'Applying…' : 'Apply'}
+                {bulkUpdating ? 'Застосування…' : 'Застосувати'}
               </button>
             </div>
           </div>
@@ -662,7 +758,7 @@ export default function AdminOrdersPage() {
 
       {visibleOrders.length === 0 ? (
         <AdminEmptyState
-          title="No orders for current filters"
+          title="Немає замовлень за поточними фільтрами"
           description="Змініть фільтри або створіть нове замовлення, щоб почати роботу з чергою."
         />
       ) : viewMode === 'kanban' ? (
@@ -676,7 +772,7 @@ export default function AdminOrdersPage() {
             <div className="rounded-[6px] border border-white/10 bg-black/25 p-4">
               {activeOrderLoading ? (
                 <div className="rounded-[6px] border border-white/10 bg-[#171717] px-4 py-6 text-sm text-zinc-400">
-                  Loading order workbench...
+                  Завантаження робочої панелі замовлення…
                 </div>
               ) : activeOrderError ? (
                 <AdminInlineAlert tone="error">{activeOrderError}</AdminInlineAlert>
@@ -693,7 +789,50 @@ export default function AdminOrdersPage() {
           ) : null}
         </>
       ) : (
-        <AdminTableShell>
+        <>
+          {/* Mobile card view */}
+          <div className="space-y-2 lg:hidden">
+            {visibleOrders.map((order) => (
+              <AdminMobileCard
+                key={order.id}
+                title={
+                  <span className="flex items-center gap-2">
+                    <span className="font-mono text-xs">{order.orderNumber}</span>
+                  </span>
+                }
+                subtitle={`${order.customerName} · ${order.email}`}
+                badge={<AdminStatusBadge tone={statusTone(order.status)}>{statusLabel(order.status)}</AdminStatusBadge>}
+                rows={[
+                  { label: 'Сума', value: formatMoney(order.total, order.currency) },
+                  { label: 'Залишок', value: formatMoney(order.outstandingAmount, order.currency) },
+                  { label: 'Позицій', value: `${order.itemCount} · ${order.shipmentsCount} відпр.` },
+                  { label: 'SLA', value: `${statusAgeHours(order)}год` },
+                ]}
+                footer={
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setQuickViewId(order.id)}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.08] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-blue-300"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      Швидкий перегляд
+                    </button>
+                    <Link
+                      href={`/admin/shop/orders/${order.id}`}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-200"
+                    >
+                      Відкрити
+                      <ExternalLink className="h-3 w-3" />
+                    </Link>
+                  </div>
+                }
+              />
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <AdminTableShell className="hidden lg:block">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1180px] text-left text-sm">
               <thead>
@@ -706,14 +845,14 @@ export default function AdminOrdersPage() {
                       className="h-4 w-4 rounded border-white/20 bg-zinc-950"
                     />
                   </th>
-                  <th className="px-4 py-4 font-medium">Order</th>
-                  <th className="px-4 py-4 font-medium">Status</th>
-                  <th className="px-4 py-4 font-medium">Payment</th>
-                  <th className="px-4 py-4 font-medium">Operations</th>
-                  <th className="px-4 py-4 font-medium">Total</th>
-                  <th className="px-4 py-4 font-medium">Latest</th>
-                  <th className="px-4 py-4 font-medium">Created</th>
-                  <th className="px-4 py-4 font-medium">Open</th>
+                  <th className="px-4 py-4 font-medium">Замовлення</th>
+                  <th className="px-4 py-4 font-medium">Статус</th>
+                  <th className="px-4 py-4 font-medium">Оплата</th>
+                  <th className="px-4 py-4 font-medium">Логістика</th>
+                  <th className="px-4 py-4 font-medium">Сума</th>
+                  <th className="px-4 py-4 font-medium">Остання активність</th>
+                  <th className="px-4 py-4 font-medium">Створено</th>
+                  <th className="px-4 py-4 font-medium">Відкрити</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/6">
@@ -734,11 +873,22 @@ export default function AdminOrdersPage() {
                         <div className="mt-1 text-xs text-zinc-500">{order.email}</div>
                       </td>
                       <td className="px-4 py-4">
-                        <AdminStatusBadge tone={statusTone(order.status)}>{statusLabel(order.status)}</AdminStatusBadge>
+                        <AdminInlineSelect<OrderStatus>
+                          value={order.status}
+                          display={
+                            <AdminStatusBadge tone={statusTone(order.status)}>{statusLabel(order.status)}</AdminStatusBadge>
+                          }
+                          options={[
+                            { value: order.status, label: statusLabel(order.status) },
+                            ...order.allowedTransitions.map((t) => ({ value: t, label: statusLabel(t) })),
+                          ]}
+                          onSave={(next) => changeOrderStatus(order.id, next)}
+                          disabled={order.allowedTransitions.length === 0}
+                        />
                         <div className="mt-2 text-xs text-zinc-500">
                           {order.allowedTransitions.length
-                            ? `Next: ${order.allowedTransitions.map(statusLabel).join(', ')}`
-                            : 'No available transitions'}
+                            ? `Клікніть на статус щоб змінити · ${order.allowedTransitions.length} переходів доступно`
+                            : 'Немає доступних переходів'}
                         </div>
                         <div className="mt-2">
                           <AdminStatusBadge tone={slaTone(statusAgeHours(order), order.status)}>
@@ -751,17 +901,17 @@ export default function AdminOrdersPage() {
                           {order.paymentStatus.replace(/_/g, ' ')}
                         </AdminStatusBadge>
                         <div className="mt-2 text-xs text-zinc-500">
-                          Paid {formatMoney(order.amountPaid, order.currency)}
+                          Сплачено {formatMoney(order.amountPaid, order.currency)}
                         </div>
                         <div className={`mt-1 text-xs ${order.outstandingAmount > 0 ? 'text-amber-200' : 'text-emerald-300'}`}>
-                          Outstanding {formatMoney(order.outstandingAmount, order.currency)}
+                          Залишок {formatMoney(order.outstandingAmount, order.currency)}
                         </div>
                       </td>
                       <td className="px-4 py-4">
                         <div className="text-zinc-200">{order.shippingZoneName || 'Без зони'}</div>
                         <div className="mt-1 text-xs text-zinc-500">{order.taxRegionName || 'Без правила'}</div>
                         <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-zinc-600">
-                          {order.itemCount} items · {order.shipmentsCount} shipments
+                          {order.itemCount} позицій · {order.shipmentsCount} відправлень
                         </div>
                       </td>
                       <td className="px-4 py-4 font-medium text-zinc-100">{formatMoney(order.total, order.currency)}</td>
@@ -769,11 +919,11 @@ export default function AdminOrdersPage() {
                         {order.latestEvent ? (
                           <div className="max-w-[180px]">
                             <div className="text-xs font-medium text-zinc-300">{statusLabel(order.latestEvent.toStatus)}</div>
-                            <div className="mt-1 truncate text-xs text-zinc-500">{order.latestEvent.note || 'Status update'}</div>
+                            <div className="mt-1 truncate text-xs text-zinc-500">{order.latestEvent.note || 'Зміна статусу'}</div>
                             <div className="mt-1 text-[11px] text-zinc-600">{new Date(order.latestEvent.createdAt).toLocaleDateString()}</div>
                           </div>
                         ) : (
-                          <span className="text-xs text-zinc-600">No timeline</span>
+                          <span className="text-xs text-zinc-600">Немає історії</span>
                         )}
                       </td>
                       <td className="px-4 py-4 text-xs text-zinc-500">{new Date(order.createdAt).toLocaleDateString()}</td>
@@ -783,24 +933,24 @@ export default function AdminOrdersPage() {
                             type="button"
                             onClick={() => setQuickViewId(order.id)}
                             className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/[0.08] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-500/[0.12]"
-                            title="Quick view (no navigation)"
+                            title="Швидкий перегляд (без переходу)"
                           >
                             <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-                            Quick view
+                            Швидкий перегляд
                           </button>
                           <button
                             type="button"
                             onClick={() => setActiveOrderId((current) => (current === order.id ? null : order.id))}
                             className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
                           >
-                            Workbench
+                            Робоча панель
                             <ChevronRight className={`h-3.5 w-3.5 transition ${activeOrderId === order.id ? 'rotate-90' : ''}`} aria-hidden="true" />
                           </button>
                           <Link
                             href={`/admin/shop/orders/${order.id}`}
                             className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-200 transition hover:border-white/15 hover:bg-white/[0.06]"
                           >
-                            Detail
+                            Детально
                             <ExternalLink className="h-3 w-3" aria-hidden="true" />
                           </Link>
                         </div>
@@ -811,7 +961,7 @@ export default function AdminOrdersPage() {
                         <td colSpan={9} className="bg-black/20 px-4 py-5">
                           {activeOrderLoading ? (
                             <div className="rounded-[6px] border border-white/10 bg-[#171717] px-4 py-6 text-sm text-zinc-400">
-                              Loading order workbench...
+                              Завантаження робочої панелі замовлення…
                             </div>
                           ) : activeOrderError ? (
                             <AdminInlineAlert tone="error">{activeOrderError}</AdminInlineAlert>
@@ -832,7 +982,8 @@ export default function AdminOrdersPage() {
               </tbody>
             </table>
           </div>
-        </AdminTableShell>
+          </AdminTableShell>
+        </>
       )}
 
       {/* Quick-view slide-over */}
@@ -862,8 +1013,8 @@ function OrderQuickView({
       open={open}
       onClose={onClose}
       width="md"
-      title={order ? `Order ${order.orderNumber}` : 'Order'}
-      subtitle={order ? `Created ${new Date(order.createdAt).toLocaleString('uk-UA')}` : undefined}
+      title={order ? `Замовлення ${order.orderNumber}` : 'Замовлення'}
+      subtitle={order ? `Створено ${new Date(order.createdAt).toLocaleString('uk-UA')}` : undefined}
       footer={
         order ? (
           <div className="flex items-center justify-between gap-3">
@@ -871,7 +1022,7 @@ function OrderQuickView({
               href={`/admin/shop/orders/${order.id}`}
               className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-400 transition hover:text-blue-300"
             >
-              Open full order
+              Відкрити повне замовлення
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
             <button
@@ -879,7 +1030,7 @@ function OrderQuickView({
               onClick={onClose}
               className="rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.06]"
             >
-              Close
+              Закрити
             </button>
           </div>
         ) : undefined
@@ -893,12 +1044,12 @@ function OrderQuickView({
             <AdminStatusBadge tone={paymentTone(order.paymentStatus, order.outstandingAmount)}>
               {order.paymentStatus.replace(/_/g, ' ')}
             </AdminStatusBadge>
-            <AdminStatusBadge tone={slaTone(statusAgeHours(order), order.status)}>SLA {statusAgeHours(order)}h</AdminStatusBadge>
+            <AdminStatusBadge tone={slaTone(statusAgeHours(order), order.status)}>SLA {statusAgeHours(order)}год</AdminStatusBadge>
           </div>
 
           {/* Customer */}
           <section className="space-y-2">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Customer</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Клієнт</div>
             <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
               <div className="text-base font-semibold text-zinc-50">{order.customerName}</div>
               <div className="mt-2 space-y-1 text-sm">
@@ -919,12 +1070,12 @@ function OrderQuickView({
 
           {/* Totals */}
           <section className="space-y-2">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Financial</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Фінанси</div>
             <div className="grid grid-cols-3 gap-2">
-              <QvStat label="Total" value={formatMoney(order.total, order.currency)} tone="default" />
-              <QvStat label="Paid" value={formatMoney(order.amountPaid, order.currency)} tone="success" />
+              <QvStat label="Сума" value={formatMoney(order.total, order.currency)} tone="default" />
+              <QvStat label="Сплачено" value={formatMoney(order.amountPaid, order.currency)} tone="success" />
               <QvStat
-                label="Outstanding"
+                label="Залишок"
                 value={formatMoney(order.outstandingAmount, order.currency)}
                 tone={order.outstandingAmount > 0 ? 'warning' : 'success'}
               />
@@ -934,28 +1085,28 @@ function OrderQuickView({
           {/* Items + Shipments counts */}
           <section className="grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Items</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Позицій</div>
               <div className="mt-1 text-2xl font-bold tabular-nums text-zinc-50">{order.itemCount}</div>
             </div>
             <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Shipments</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Відправлень</div>
               <div className="mt-1 text-2xl font-bold tabular-nums text-zinc-50">{order.shipmentsCount}</div>
             </div>
           </section>
 
           {/* Shipping zone & Tax */}
           <section className="space-y-2">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Routing</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Маршрутизація</div>
             <div className="space-y-1.5 text-sm">
-              <QvRow label="Shipping zone" value={order.shippingZoneName ?? '—'} />
-              <QvRow label="Tax region" value={order.taxRegionName ?? '—'} />
+              <QvRow label="Зона доставки" value={order.shippingZoneName ?? '—'} />
+              <QvRow label="Податковий регіон" value={order.taxRegionName ?? '—'} />
             </div>
           </section>
 
           {/* Latest event */}
           {order.latestEvent ? (
             <section className="space-y-2">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Latest activity</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Остання активність</div>
               <div className="rounded-xl border border-white/[0.05] bg-[#171717] p-4">
                 <div className="flex items-center gap-2">
                   <AdminStatusBadge tone={statusTone(order.latestEvent.toStatus)}>
@@ -975,7 +1126,7 @@ function OrderQuickView({
           {/* Allowed transitions */}
           {order.allowedTransitions.length > 0 ? (
             <section className="space-y-2">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Available transitions</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Доступні переходи</div>
               <div className="flex flex-wrap gap-1.5">
                 {order.allowedTransitions.map((t) => (
                   <span
@@ -1038,7 +1189,7 @@ function OrdersKanban({
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <div className="text-sm font-semibold text-zinc-100">{statusLabel(status)}</div>
-                <div className="text-xs text-zinc-500">{columnOrders.length} orders</div>
+                <div className="text-xs text-zinc-500">{columnOrders.length} замовлень</div>
               </div>
               <AdminStatusBadge tone={statusTone(status)}>{status.replace(/_/g, ' ')}</AdminStatusBadge>
             </div>
@@ -1063,10 +1214,10 @@ function OrdersKanban({
                         <div className="mt-1 truncate text-sm text-zinc-200">{order.customerName}</div>
                         <div className="mt-1 truncate text-xs text-zinc-500">{order.email}</div>
                       </div>
-                      <AdminStatusBadge tone={slaTone(hours, order.status)}>SLA {hours}h</AdminStatusBadge>
+                      <AdminStatusBadge tone={slaTone(hours, order.status)}>SLA {hours}год</AdminStatusBadge>
                     </div>
                     <div className="mt-3 flex items-center justify-between text-xs">
-                      <span className="text-zinc-500">{order.itemCount} items · {order.shipmentsCount} shipments</span>
+                      <span className="text-zinc-500">{order.itemCount} позицій · {order.shipmentsCount} відправлень</span>
                       <span className={order.outstandingAmount > 0 ? 'text-amber-200' : 'text-emerald-300'}>
                         {formatMoney(order.outstandingAmount, order.currency)}
                       </span>
@@ -1076,7 +1227,7 @@ function OrdersKanban({
               })}
               {!columnOrders.length ? (
                 <div className="rounded-[6px] border border-white/10 bg-black/20 px-3 py-6 text-center text-sm text-zinc-600">
-                  Empty
+                  Порожньо
                 </div>
               ) : null}
             </div>
@@ -1167,7 +1318,7 @@ function OrderInlineWorkbench({
 
   async function updateStatus(status: OrderStatus) {
     setStatusUpdating(status);
-    await patchOrder({ status, note: `Inline workbench transition to ${statusLabel(status)}` }, `Замовлення переведено в статус «${statusLabel(status)}».`);
+    await patchOrder({ status, note: `Перехід через робочу панель до ${statusLabel(status)}` }, `Замовлення переведено в статус «${statusLabel(status)}».`);
   }
 
   async function savePaymentAndFulfillment() {
@@ -1179,7 +1330,7 @@ function OrderInlineWorkbench({
         ttnNumber,
         shippingCalculatedCost: shippingCalculatedCost ? parseFloat(shippingCalculatedCost) : null,
       },
-      'Оплату та fulfillment збережено.'
+      'Оплату та виконання збережено.'
     );
   }
 
@@ -1202,7 +1353,7 @@ function OrderInlineWorkbench({
               type="button"
               onClick={onClose}
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-300 transition hover:bg-white/10"
-              aria-label="Close order workbench"
+              aria-label="Закрити робочу панель замовлення"
             >
               <X className="h-4 w-4" />
             </button>
@@ -1210,14 +1361,14 @@ function OrderInlineWorkbench({
         </AdminActionBar>
 
         <AdminMetricGrid className="xl:grid-cols-4">
-          <AdminMetricCard label="Subtotal" value={formatMoney(order.subtotal, order.currency)} />
-          <AdminMetricCard label="Shipping" value={formatMoney(order.shippingCost, order.currency)} meta={order.shippingZoneName || 'No zone'} />
-          <AdminMetricCard label="Paid" value={formatMoney(parseFloat(amountPaid) || 0, order.currency)} />
-          <AdminMetricCard label="Outstanding" value={formatMoney(outstanding, order.currency)} tone={outstanding > 0 ? 'accent' : 'default'} />
+          <AdminMetricCard label="Підсумок" value={formatMoney(order.subtotal, order.currency)} />
+          <AdminMetricCard label="Доставка" value={formatMoney(order.shippingCost, order.currency)} meta={order.shippingZoneName || 'Без зони'} />
+          <AdminMetricCard label="Сплачено" value={formatMoney(parseFloat(amountPaid) || 0, order.currency)} />
+          <AdminMetricCard label="Залишок" value={formatMoney(outstanding, order.currency)} tone={outstanding > 0 ? 'accent' : 'default'} />
         </AdminMetricGrid>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <AdminInspectorCard title="Status transitions" description="Only valid next states from the existing order transition rules.">
+          <AdminInspectorCard title="Зміна статусу" description="Лише дозволені переходи з поточного статусу замовлення.">
             <div className="flex flex-wrap gap-2">
               {order.allowedTransitions.length ? (
                 order.allowedTransitions.map((status) => (
@@ -1228,19 +1379,19 @@ function OrderInlineWorkbench({
                     disabled={Boolean(statusUpdating || saving)}
                     className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
                   >
-                    {statusUpdating === status ? 'Applying...' : statusLabel(status)}
+                    {statusUpdating === status ? 'Застосування…' : statusLabel(status)}
                   </button>
                 ))
               ) : (
-                <div className="text-sm text-zinc-500">No available transitions for the current state.</div>
+                <div className="text-sm text-zinc-500">Немає доступних переходів з поточного стану.</div>
               )}
             </div>
           </AdminInspectorCard>
 
-          <AdminInspectorCard title="Payment and fulfillment" description="Edit the fields managers usually need without opening the detail page.">
+          <AdminInspectorCard title="Оплата та доставка" description="Поля, які менеджеру зазвичай потрібні без переходу на детальну сторінку.">
             <div className="grid gap-3 md:grid-cols-2">
               <AdminSelectField
-                label="Payment"
+                label="Оплата"
                 value={paymentStatus}
                 onChange={setPaymentStatus}
                 options={[
@@ -1249,9 +1400,9 @@ function OrderInlineWorkbench({
                   { value: 'PAID', label: 'Оплачено повністю' },
                 ]}
               />
-              <AdminInputField label="Amount paid" value={amountPaid} onChange={setAmountPaid} type="number" step="0.01" />
+              <AdminInputField label="Сума сплати" value={amountPaid} onChange={setAmountPaid} type="number" step="0.01" />
               <AdminSelectField
-                label="Delivery"
+                label="Доставка"
                 value={deliveryMethod}
                 onChange={setDeliveryMethod}
                 options={[
@@ -1261,8 +1412,8 @@ function OrderInlineWorkbench({
                   { value: 'PICKUP', label: 'Самовивіз' },
                 ]}
               />
-              <AdminInputField label="TTN" value={ttnNumber} onChange={setTtnNumber} />
-              <AdminInputField label="Shipping override" value={shippingCalculatedCost} onChange={setShippingCalculatedCost} type="number" step="0.01" />
+              <AdminInputField label="ТТН" value={ttnNumber} onChange={setTtnNumber} />
+              <AdminInputField label="Вартість доставки (override)" value={shippingCalculatedCost} onChange={setShippingCalculatedCost} type="number" step="0.01" />
               <div className="flex items-end">
                 <button
                   type="button"
@@ -1271,7 +1422,7 @@ function OrderInlineWorkbench({
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" />
-                  {saving ? 'Saving...' : 'Save'}
+                  {saving ? 'Збереження…' : 'Зберегти'}
                 </button>
               </div>
             </div>
@@ -1280,18 +1431,18 @@ function OrderInlineWorkbench({
 
         <AdminTableShell>
           <div className="border-b border-white/10 px-5 py-4">
-            <h2 className="text-sm font-medium text-zinc-100">Items</h2>
-            <p className="mt-1 text-xs text-zinc-500">Order composition and line totals.</p>
+            <h2 className="text-sm font-medium text-zinc-100">Позиції</h2>
+            <p className="mt-1 text-xs text-zinc-500">Склад замовлення та суми по рядках.</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/[0.03] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                  <th className="px-4 py-4 font-medium">Item</th>
+                  <th className="px-4 py-4 font-medium">Позиція</th>
                   <th className="px-4 py-4 font-medium">SKU</th>
-                  <th className="px-4 py-4 font-medium">Qty</th>
-                  <th className="px-4 py-4 font-medium">Price</th>
-                  <th className="px-4 py-4 font-medium">Total</th>
+                  <th className="px-4 py-4 font-medium">К-сть</th>
+                  <th className="px-4 py-4 font-medium">Ціна</th>
+                  <th className="px-4 py-4 font-medium">Сума</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/6">
@@ -1314,19 +1465,19 @@ function OrderInlineWorkbench({
       </div>
 
       <aside className="space-y-4">
-        <AdminInspectorCard title="Order snapshot" description="Customer, totals and routing context.">
+        <AdminInspectorCard title="Зведення замовлення" description="Клієнт, суми та маршрутизація.">
           <AdminKeyValueGrid
             rows={[
-              { label: 'Customer', value: order.customerName },
-              { label: 'Phone', value: order.phone || '-' },
-              { label: 'Group', value: order.customerGroupSnapshot || '-' },
-              { label: 'Total', value: formatMoney(order.total, order.currency) },
-              { label: 'Updated', value: new Date(order.updatedAt).toLocaleString() },
+              { label: 'Клієнт', value: order.customerName },
+              { label: 'Телефон', value: order.phone || '-' },
+              { label: 'Група', value: order.customerGroupSnapshot || '-' },
+              { label: 'Сума', value: formatMoney(order.total, order.currency) },
+              { label: 'Оновлено', value: new Date(order.updatedAt).toLocaleString() },
             ]}
           />
         </AdminInspectorCard>
 
-        <AdminInspectorCard title="Shipments" description="Current shipment records tied to this order.">
+        <AdminInspectorCard title="Відправлення" description="Поточні записи відправлень для цього замовлення.">
           {order.shipments.length ? (
             <div className="space-y-3">
               {order.shipments.map((shipment) => (
@@ -1343,7 +1494,7 @@ function OrderInlineWorkbench({
                   </div>
                   {shipment.trackingUrl ? (
                     <a href={shipment.trackingUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-blue-300 hover:text-blue-300">
-                      Tracking URL
+                      Посилання для трекінгу
                     </a>
                   ) : null}
                 </div>
@@ -1351,12 +1502,12 @@ function OrderInlineWorkbench({
             </div>
           ) : (
             <div className="rounded-[6px] border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">
-              No shipment records yet.
+              Записів про відправлення поки немає.
             </div>
           )}
         </AdminInspectorCard>
 
-        <AdminInspectorCard title="Latest timeline" description="Most recent order events.">
+        <AdminInspectorCard title="Остання історія" description="Останні події замовлення.">
           <div className="space-y-3">
             {order.events.slice(0, 4).map((event) => (
               <div key={event.id} className="rounded-[6px] border border-white/10 bg-black/25 px-3 py-3">

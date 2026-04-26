@@ -49,7 +49,7 @@ export function WidgetCard({
   );
 }
 
-export function ViewAllLink({ href, label = 'View all' }: { href: string; label?: string }) {
+export function ViewAllLink({ href, label = 'Усі' }: { href: string; label?: string }) {
   return (
     <Link
       href={href}
@@ -377,9 +377,9 @@ export function DashboardRegionsDonut({
             );
           })}
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <div className="text-base font-bold tabular-nums text-zinc-50">{totalValue}</div>
-          <div className="mt-0.5 text-[9px] font-medium uppercase tracking-wider text-zinc-500">{totalLabel}</div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+          <div className="truncate max-w-full text-sm font-bold tabular-nums text-zinc-50">{totalValue}</div>
+          <div className="mt-0.5 truncate max-w-full text-[9px] font-medium uppercase tracking-wider text-zinc-500">{totalLabel}</div>
         </div>
       </div>
       {/* Region rows below — full width, no truncation */}
@@ -427,13 +427,13 @@ export function DashboardRecentOrdersTable({ orders }: { orders: RichOrderRow[] 
       <table className="w-full min-w-[720px]">
         <thead>
           <tr className="border-b border-white/[0.04] text-left text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-            <th className="px-5 py-2.5 whitespace-nowrap">Order ID</th>
-            <th className="px-3 py-2.5">Customer</th>
-            <th className="px-3 py-2.5 whitespace-nowrap">Brand</th>
-            <th className="px-3 py-2.5 whitespace-nowrap text-center">Items</th>
-            <th className="px-3 py-2.5 whitespace-nowrap text-right">Total</th>
-            <th className="px-3 py-2.5 whitespace-nowrap">Status</th>
-            <th className="px-5 py-2.5 whitespace-nowrap">Date</th>
+            <th className="px-5 py-2.5 whitespace-nowrap">№ замовлення</th>
+            <th className="px-3 py-2.5">Клієнт</th>
+            <th className="px-3 py-2.5 whitespace-nowrap">Бренд</th>
+            <th className="px-3 py-2.5 whitespace-nowrap text-center">Позицій</th>
+            <th className="px-3 py-2.5 whitespace-nowrap text-right">Сума</th>
+            <th className="px-3 py-2.5 whitespace-nowrap">Статус</th>
+            <th className="px-5 py-2.5 whitespace-nowrap">Дата</th>
           </tr>
         </thead>
         <tbody>
@@ -483,11 +483,11 @@ function BrandCell({ brand, logo }: { brand: string; logo?: string }) {
 
 function OrderStatusPill({ status }: { status: RichOrderRow['status'] }) {
   const map = {
-    shipped: { label: 'Shipped', cls: 'border-blue-500/30 bg-blue-500/10 text-blue-300' },
-    processing: { label: 'Processing', cls: 'border-amber-500/30 bg-amber-500/10 text-amber-300' },
-    delivered: { label: 'Delivered', cls: 'border-green-500/30 bg-green-500/10 text-green-300' },
-    pending: { label: 'Pending', cls: 'border-zinc-500/30 bg-zinc-500/10 text-zinc-300' },
-    cancelled: { label: 'Cancelled', cls: 'border-red-500/30 bg-red-500/10 text-red-300' },
+    shipped: { label: 'Відправлено', cls: 'border-blue-500/30 bg-blue-500/10 text-blue-300' },
+    processing: { label: 'В обробці', cls: 'border-amber-500/30 bg-amber-500/10 text-amber-300' },
+    delivered: { label: 'Доставлено', cls: 'border-green-500/30 bg-green-500/10 text-green-300' },
+    pending: { label: 'Очікує', cls: 'border-zinc-500/30 bg-zinc-500/10 text-zinc-300' },
+    cancelled: { label: 'Скасовано', cls: 'border-red-500/30 bg-red-500/10 text-red-300' },
   };
   const m = map[status];
   return (

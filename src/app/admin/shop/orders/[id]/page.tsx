@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Copy, DollarSign, ExternalLink, Package, PackageCheck, Save, Truck } from 'lucide-react';
+import { Copy, DollarSign, ExternalLink, FileText, Package, PackageCheck, Printer, Save, Truck } from 'lucide-react';
 
 import {
   AdminEntityToolbar,
@@ -25,6 +25,10 @@ import {
 } from '@/components/admin/AdminFormFields';
 import { useConfirm } from '@/components/admin/AdminConfirmDialog';
 import { useToast } from '@/components/admin/AdminToast';
+import { AdminActivityTimeline } from '@/components/admin/AdminActivityTimeline';
+import { AdminNotes } from '@/components/admin/AdminNotes';
+import { AdminTagInput } from '@/components/admin/AdminTagInput';
+import { AdminMobileBottomBar } from '@/components/admin/AdminMobileCard';
 
 type OrderStatus =
   | 'PENDING_PAYMENT'
@@ -504,7 +508,7 @@ export default function AdminOrderDetailPage() {
   const outstanding = Math.max(0, order.total - order.amountPaid);
 
   return (
-    <AdminPage className="space-y-6">
+    <AdminPage className="space-y-6 pb-24 lg:pb-0">
       <AdminPageHeader
         eyebrow="Order Detail"
         title={order.orderNumber}
@@ -515,6 +519,13 @@ export default function AdminOrderDetailPage() {
             <AdminStatusBadge tone={outstanding > 0 ? 'warning' : 'success'}>
               {outstanding > 0 ? `Outstanding ${formatMoney(outstanding, order.currency)}` : 'Paid or balanced'}
             </AdminStatusBadge>
+            <Link
+              href={`/admin/shop/returns/new?orderId=${order.id}`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/[0.08] px-3 py-1.5 text-xs font-medium text-amber-300 transition hover:border-amber-500/40 hover:bg-amber-500/[0.12]"
+            >
+              <Package className="h-3.5 w-3.5" />
+              Create return
+            </Link>
           </div>
         }
       />
@@ -843,6 +854,62 @@ export default function AdminOrderDetailPage() {
             </AdminInspectorCard>
 
             <AdminInspectorCard
+              title="Tags"
+              description="Internal labels for filtering and ops workflows."
+            >
+              <AdminTagInput
+                entityType="shop.order"
+                entityId={order.id}
+                suggestions={['priority', 'wholesale', 'fragile', 'gift', 'rush', 'review-needed']}
+              />
+            </AdminInspectorCard>
+
+            <AdminInspectorCard
+              title="Notes"
+              description="Internal notes (visible to admins only)."
+            >
+              <AdminNotes entityType="shop.order" entityId={order.id} />
+            </AdminInspectorCard>
+
+            <AdminInspectorCard
+              title="Activity"
+              description="All admin mutations on this order, newest first."
+            >
+              <AdminActivityTimeline
+                entityType="shop.order"
+                entityId={order.id}
+                emptyTitle="No activity logged"
+                emptyDescription="Status changes, payment edits and shipment updates will appear here."
+              />
+            </AdminInspectorCard>
+
+            <AdminInspectorCard
+              title="Documents"
+              description="Print-ready invoice and packing slip. Use browser Save as PDF."
+            >
+              <div className="space-y-2">
+                <a
+                  href={`/api/admin/pdf/invoice/${order.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/[0.06] px-4 py-2 text-sm font-medium text-blue-300 transition hover:bg-blue-500/[0.12]"
+                >
+                  <FileText className="h-4 w-4" />
+                  Invoice (PDF)
+                </a>
+                <a
+                  href={`/api/admin/pdf/packing-slip/${order.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
+                >
+                  <Printer className="h-4 w-4" />
+                  Packing slip
+                </a>
+              </div>
+            </AdminInspectorCard>
+
+            <AdminInspectorCard
               title="Customer link"
               description="Customer-facing order confirmation and payment shortcuts."
             >
@@ -886,6 +953,28 @@ export default function AdminOrderDetailPage() {
           </>
         }
       />
+
+      {/* Mobile bottom bar — primary save action follows scroll */}
+      <AdminMobileBottomBar>
+        <button
+          type="button"
+          onClick={() => void handlePaymentAndFulfillmentSave()}
+          disabled={updating}
+          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 px-4 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] disabled:opacity-50"
+        >
+          <Save className="h-4 w-4" />
+          {updating ? 'Saving…' : 'Save'}
+        </button>
+        <a
+          href={`/api/admin/pdf/invoice/${order.id}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-zinc-200"
+          aria-label="Invoice PDF"
+        >
+          <FileText className="h-4 w-4" />
+        </a>
+      </AdminMobileBottomBar>
     </AdminPage>
   );
 }

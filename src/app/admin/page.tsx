@@ -238,20 +238,37 @@ type DashboardResponse = {
 };
 
 const PERIOD_OPTIONS: Array<{ value: RevenuePeriod; label: string }> = [
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'daily', label: 'Daily' },
+  { value: 'monthly', label: 'Місяці' },
+  { value: 'weekly', label: 'Тижні' },
+  { value: 'daily', label: 'Дні' },
 ];
 
+/**
+ * Ukrainian pluralization helper. Picks the correct form based on the number.
+ *   one  — 1, 21, 31, …
+ *   few  — 2-4, 22-24, …
+ *   many — 0, 5-20, 25-30, …
+ *
+ * Example: pluralUk(5, 'товар', 'товари', 'товарів') → 'товарів'
+ */
+function pluralUk(n: number, one: string, few: string, many: string): string {
+  const abs = Math.abs(n) % 100;
+  const lastDigit = abs % 10;
+  if (abs > 10 && abs < 20) return many;
+  if (lastDigit === 1) return one;
+  if (lastDigit >= 2 && lastDigit <= 4) return few;
+  return many;
+}
+
 const SHOP_STATUS_LABELS: Record<string, string> = {
-  PENDING_PAYMENT: 'Pending pay',
-  PENDING_REVIEW: 'Review',
-  CONFIRMED: 'Confirmed',
-  PROCESSING: 'Processing',
-  SHIPPED: 'Shipped',
-  DELIVERED: 'Delivered',
-  CANCELLED: 'Cancelled',
-  REFUNDED: 'Refunded',
+  PENDING_PAYMENT: 'Очікує оплату',
+  PENDING_REVIEW: 'На перевірці',
+  CONFIRMED: 'Підтверджено',
+  PROCESSING: 'В обробці',
+  SHIPPED: 'Відправлено',
+  DELIVERED: 'Доставлено',
+  CANCELLED: 'Скасовано',
+  REFUNDED: 'Повернено',
 };
 
 function formatDate(value: string | null) {
@@ -268,12 +285,12 @@ function relativeTime(value: string | null): string {
   if (!value) return '—';
   const diff = Date.now() - new Date(value).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return 'щойно';
+  if (m < 60) return `${m} хв тому`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
+  if (h < 24) return `${h} год тому`;
   const d = Math.floor(h / 24);
-  return `${d}d ago`;
+  return `${d} д тому`;
 }
 
 function getOrderStatusTone(status: string) {
@@ -332,7 +349,7 @@ export default function AdminDashboardPage() {
 
   // ─── Memos ─────────────────────────────────────────────────────────
 
-  const periodLabel = period === 'monthly' ? 'this month' : period === 'weekly' ? 'this week' : 'today';
+  const periodLabel = period === 'monthly' ? 'цей місяць' : period === 'weekly' ? 'цей тиждень' : 'сьогодні';
 
   const profitChartData = useMemo(
     () =>
@@ -499,9 +516,9 @@ export default function AdminDashboardPage() {
       items.push({
         id: 'low-stock',
         severity: 'amber',
-        label: 'Low stock SKUs',
+        label: 'Низькі залишки',
         count: data.shop.lowStockItems.length,
-        detail: `Top: ${data.shop.lowStockItems[0]?.title?.slice(0, 60) ?? '—'}`,
+        detail: `Топ: ${data.shop.lowStockItems[0]?.title?.slice(0, 60) ?? '—'}`,
         href: '/admin/shop/inventory',
       });
     }
@@ -625,7 +642,7 @@ export default function AdminDashboardPage() {
     return data.shop.topBrands.slice(0, 8).map((b) => ({
       name: b.brand,
       logo: b.logo ?? undefined,
-      revenue: `${b.productCount.toLocaleString()} SKUs`,
+      revenue: `${b.productCount.toLocaleString()} артикулів`,
     }));
   }, [data]);
 
@@ -638,7 +655,7 @@ export default function AdminDashboardPage() {
       dealer: c.name,
       location: ['Dubai, UAE', 'London, UK', 'Beirut, Lebanon', 'Los Angeles, USA', 'Sydney, Australia'][i] || 'Global',
       flag: flags[i] || '🌐',
-      ago: i === 0 ? '2h ago' : i === 1 ? '5h ago' : i === 2 ? '8h ago' : '1d ago',
+      ago: i === 0 ? '2 год тому' : i === 1 ? '5 год тому' : i === 2 ? '8 год тому' : '1 д тому',
     }));
   }, [data]);
 
@@ -709,12 +726,12 @@ export default function AdminDashboardPage() {
     <AdminPage className="space-y-6">
       {/* Page header + period selector + refresh */}
       <AdminPageHeader
-        title="Welcome back, Admin"
-        description="Here's what's happening with your business today."
+        title="Вітаємо, Адміністраторе"
+        description="Ось що відбувається з вашим бізнесом сьогодні."
         actions={
           <>
-            <DashboardDateRange label={`Last ${data.shop.monthlyRevenue.length} ${period === 'daily' ? 'days' : period === 'weekly' ? 'weeks' : 'months'}`} />
-            <div role="group" aria-label="Period selector" className="flex items-center gap-1 rounded-[6px] border border-white/[0.08] bg-black/30 p-1">
+            <DashboardDateRange label={`Останні ${data.shop.monthlyRevenue.length} ${period === 'daily' ? 'днів' : period === 'weekly' ? 'тижнів' : 'місяців'}`} />
+            <div role="group" aria-label="Вибір періоду" className="flex items-center gap-1 rounded-[6px] border border-white/[0.08] bg-black/30 p-1">
               {PERIOD_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -735,11 +752,11 @@ export default function AdminDashboardPage() {
               type="button"
               onClick={() => void fetchDashboard('refresh')}
               disabled={refreshing}
-              aria-label={refreshing ? 'Refreshing dashboard' : 'Refresh dashboard'}
+              aria-label={refreshing ? 'Оновлення дашборду' : 'Оновити дашборд'}
               className="inline-flex items-center gap-2 rounded-[4px] border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-bold uppercase tracking-wider text-zinc-200 transition hover:border-blue-500/30 hover:bg-blue-500/[0.04] hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A] disabled:opacity-50"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'motion-safe:animate-spin' : ''}`} aria-hidden="true" />
-              Refresh
+              Оновити
             </button>
           </>
         }
@@ -751,52 +768,52 @@ export default function AdminDashboardPage() {
       <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <DashboardKpiCard
           icon={<DollarSign />}
-          label="Revenue"
+          label="Дохід"
           value={formatMoney(data.shop.totalRevenuePeriod, 'UAH')}
           current={data.shop.totalRevenuePeriod}
           previous={data.shop.totalRevenuePrevPeriod}
-          meta={`AOV ${formatMoney(data.shop.aov, 'UAH')}`}
+          meta={`Середній чек ${formatMoney(data.shop.aov, 'UAH')}`}
           spark={data.shop.monthlyRevenue.slice(-12).map((m) => m.paid)}
         />
         <DashboardKpiCard
           icon={<Package />}
-          label="Orders"
+          label="Замовлення"
           value={(data.shop.activeOrders + data.crm.activeOrders).toLocaleString()}
           current={data.shop.ordersCountPeriod}
           previous={data.shop.ordersCountPrevPeriod}
-          meta={`${data.shop.activeOrders} shop · ${data.crm.activeOrders} CRM`}
+          meta={`${data.shop.activeOrders} ${pluralUk(data.shop.activeOrders, 'магазинне', 'магазинних', 'магазинних')} · ${data.crm.activeOrders} CRM`}
           spark={data.shop.monthlyRevenue.slice(-12).map((m) => m.orders)}
         />
         <DashboardKpiCard
           icon={<Users />}
-          label="Dealer Requests"
+          label="Заявки дилерів"
           value={data.system.operationalRisks.find((r) => r.id === 'b2b-pending')?.count.toString() ?? '0'}
-          meta="B2B pending"
+          meta="B2B на розгляді"
           spark={data.shop.monthlyRevenue.slice(-12).map((m) => Math.max(1, Math.round(m.orders / 4)))}
         />
         <DashboardKpiCard
           icon={<BarChart3 />}
-          label="Site Traffic"
+          label="Трафік сайту"
           value={(data.shop.totalCustomers * 88).toLocaleString()}
-          meta="Unique visitors"
+          meta="Унікальних відвідувачів"
           spark={data.shop.monthlyRevenue.slice(-12).map((m) => m.orders * 50 + 1000)}
         />
         <DashboardKpiCard
           icon={<Target />}
-          label="Conversion"
+          label="Конверсія"
           value={`${
             data.shop.totalOrders > 0 && data.shop.totalCustomers > 0
               ? ((data.shop.totalOrders / (data.shop.totalCustomers * 88)) * 100).toFixed(2)
               : '0.00'
           }%`}
-          meta="Orders / visitors"
+          meta="Замовлення / відвідувачі"
           spark={data.shop.monthlyRevenue.slice(-12).map((m) => m.orders)}
         />
         <DashboardKpiCard
           icon={<Award />}
-          label="Active Brands"
+          label="Активні бренди"
           value={data.shop.topBrands.length.toLocaleString()}
-          meta={`${data.system.turn14Stats.total} via Turn14`}
+          meta={`${data.system.turn14Stats.total} з Turn14`}
           spark={[1, 2, 4, 6, 8, 12, 14, 18, 22, 26, 28, data.shop.topBrands.length || 32]}
         />
       </div>
@@ -806,19 +823,19 @@ export default function AdminDashboardPage() {
         <DashboardKpiCard
           tone="accent"
           icon={<DollarSign />}
-          label={`CRM Profit · ${periodLabel}`}
+          label={`Прибуток CRM · ${periodLabel}`}
           value={formatMoney(data.crm.totalProfitPeriod, 'USD')}
           current={data.crm.totalProfitPeriod}
           previous={data.crm.totalProfitPrevPeriod}
-          meta={periodMarginPct != null ? `Margin ${periodMarginPct}% · Lifetime ${formatMoney(data.crm.totalProfit, 'USD')}` : 'Period scope'}
+          meta={periodMarginPct != null ? `Маржа ${periodMarginPct}% · Загалом ${formatMoney(data.crm.totalProfit, 'USD')}` : 'За період'}
           spark={data.crm.monthlyRevenue.slice(-12).map((m) => m.profit)}
         />
         <DashboardKpiCard
           icon={<Briefcase />}
-          label="Outstanding"
+          label="Заборгованість"
           value={formatMoney(data.crm.totalDebt + data.shop.unpaidTotal, 'USD')}
           invertDelta
-          meta={`${data.crm.debtors.length} debtors · ${data.shop.unpaidCount} unpaid${data.shop.oldestUnpaid ? ` · oldest ${data.shop.oldestUnpaid.ageDays}d` : ''}`}
+          meta={`${data.crm.debtors.length} боржників · ${data.shop.unpaidCount} неоплачених${data.shop.oldestUnpaid ? ` · найстаріша ${data.shop.oldestUnpaid.ageDays}д` : ''}`}
         />
       </div>
 
@@ -827,8 +844,8 @@ export default function AdminDashboardPage() {
       {/* Row A: Sales Analytics + Revenue Overview + Sales by Region */}
       <div className="grid gap-4 lg:grid-cols-12">
         <WidgetCard
-          title="Sales Analytics"
-          action={<span className="text-xs text-zinc-500">Last {data.shop.monthlyRevenue.length} periods</span>}
+          title="Аналітика продажів"
+          action={<span className="text-xs text-zinc-500">За останні {data.shop.monthlyRevenue.length} {pluralUk(data.shop.monthlyRevenue.length, 'період', 'періоди', 'періодів')}</span>}
           className="lg:col-span-6"
         >
           <DashboardSalesChart
@@ -837,14 +854,14 @@ export default function AdminDashboardPage() {
               primary: m.revenue,
               secondary: m.orders,
             }))}
-            primaryLabel="Revenue (UAH)"
-            secondaryLabel="Orders"
+            primaryLabel="Дохід (UAH)"
+            secondaryLabel="Замовлення"
           />
         </WidgetCard>
 
         <WidgetCard
-          title="Revenue Overview"
-          action={<span className="text-xs text-zinc-500">Last 30</span>}
+          title="Огляд доходу"
+          action={<span className="text-xs text-zinc-500">Останні 30 днів</span>}
           className="lg:col-span-3"
         >
           <DashboardRevenueBars
@@ -853,12 +870,12 @@ export default function AdminDashboardPage() {
         </WidgetCard>
 
         <WidgetCard
-          title="Sales by Region"
-          action={<ViewAllLink href="/admin/shop/orders" label="View full report" />}
+          title="Продажі по регіонах"
+          action={<ViewAllLink href="/admin/shop/orders" label="Повний звіт" />}
           className="lg:col-span-3"
         >
           <DashboardRegionsDonut
-            totalLabel="Total Revenue"
+            totalLabel="Дохід"
             totalValue={formatMoney(data.shop.totalRevenue, 'UAH')}
             data={
               data.shop.salesByRegion.length > 0
@@ -867,11 +884,11 @@ export default function AdminDashboardPage() {
                     pct: r.pct,
                     value: formatMoney(r.revenue, 'UAH'),
                   }))
-                : [{ region: 'No regional data yet', pct: 100, value: '—' }]
+                : [{ region: 'Поки немає регіональних даних', pct: 100, value: '—' }]
             }
             footnote={
               data.shop.unknownCountryCount > 0
-                ? `${data.shop.unknownCountryCount} orders without country data`
+                ? `${data.shop.unknownCountryCount} ${pluralUk(data.shop.unknownCountryCount, 'замовлення', 'замовлення', 'замовлень')} без даних про країну`
                 : undefined
             }
           />
@@ -881,7 +898,7 @@ export default function AdminDashboardPage() {
       {/* Row B: Recent Orders (50%) + Top Brands (15%) + Dealer Inquiries (17%) + Global Sales Map (18%) */}
       <div className="grid gap-4 lg:grid-cols-12">
         <WidgetCard
-          title="Recent Orders"
+          title="Останні замовлення"
           action={<ViewAllLink href="/admin/shop/orders" />}
           className="lg:col-span-6"
           contentClassName="p-0"
@@ -890,15 +907,15 @@ export default function AdminDashboardPage() {
         </WidgetCard>
 
         <WidgetCard
-          title="Top Brands"
-          action={<ViewAllLink href="/admin/shop" label="View all" />}
+          title="Топ бренди"
+          action={<ViewAllLink href="/admin/shop" label="Всі" />}
           className="lg:col-span-2"
         >
           <DashboardTopBrands brands={topBrandsList} />
         </WidgetCard>
 
         <WidgetCard
-          title="Recent Dealer Inquiries"
+          title="Останні B2B-заявки"
           action={<ViewAllLink href="/admin/shop/customers" />}
           className="lg:col-span-2"
         >
@@ -906,8 +923,8 @@ export default function AdminDashboardPage() {
         </WidgetCard>
 
         <WidgetCard
-          title="Global Sales Overview"
-          action={<ViewAllLink href="/admin/shop" label="View full report" />}
+          title="Глобальний огляд продажів"
+          action={<ViewAllLink href="/admin/shop" label="Повний звіт" />}
           className="lg:col-span-2"
         >
           <DashboardWorldMap
@@ -928,16 +945,16 @@ export default function AdminDashboardPage() {
       {/* Row C: Top Products (40%) + Marketing Performance (35%) + Inventory Snapshot (25%) */}
       <div className="grid gap-4 lg:grid-cols-12">
         <WidgetCard
-          title="Top Products"
-          action={<ViewAllLink href="/admin/shop" label="View all products" />}
+          title="Топ товари"
+          action={<ViewAllLink href="/admin/shop" label="Усі товари" />}
           className="lg:col-span-5"
         >
           <DashboardTopProducts products={topProductsList} />
         </WidgetCard>
 
         <WidgetCard
-          title="Marketing Performance"
-          action={<ViewAllLink href="/admin/blog" label="View all campaigns" />}
+          title="Результати маркетингу"
+          action={<ViewAllLink href="/admin/blog" label="Всі кампанії" />}
           className="lg:col-span-4"
         >
           <DashboardMarketingPerformance
@@ -951,8 +968,8 @@ export default function AdminDashboardPage() {
         </WidgetCard>
 
         <WidgetCard
-          title="Inventory Snapshot"
-          action={<ViewAllLink href="/admin/shop/inventory" label="View full inventory" />}
+          title="Стан складу"
+          action={<ViewAllLink href="/admin/shop/inventory" label="Повний склад" />}
           className="lg:col-span-3"
         >
           <DashboardInventorySnapshot
@@ -969,22 +986,22 @@ export default function AdminDashboardPage() {
 
       {/* ─── TIER 3 — PROFIT DEEP DIVE ─────────────────────────── */}
       <AdminDashboardSection
-        title="Profit & margin"
-        description="CRM profit trend and brand-level margin breakdown for the selected period."
+        title="Прибуток та маржа"
+        description="Тренд прибутку CRM та розбивка маржі по брендах за обраний період."
       >
         <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
           <AdminInsightPanel
-            title={`Profit trend · ${periodLabel}`}
-            description="Bars: profit per period · dashed line: revenue. Margin printed below the chart."
+            title={`Тренд прибутку · ${periodLabel}`}
+            description="Стовпці: прибуток за період · пунктир: дохід. Маржа виведена нижче."
           >
             <AdminTrendChart
               data={profitChartData}
-              valueLabel="Profit"
-              secondaryLabel="Revenue"
+              valueLabel="Прибуток"
+              secondaryLabel="Дохід"
             />
             {data.crm.marginByPeriod.length > 0 ? (
               <div className="mt-3 flex items-center justify-between border-t border-white/[0.05] pt-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                <span>Margin by period</span>
+                <span>Маржа за період</span>
                 <div className="flex items-center gap-3 tabular-nums">
                   {data.crm.marginByPeriod.slice(-6).map((m) => (
                     <span key={m.month} className="text-zinc-300">
@@ -997,21 +1014,21 @@ export default function AdminDashboardPage() {
           </AdminInsightPanel>
 
           <AdminInsightPanel
-            title="Profit by brand"
-            description="Top 10 brands by lifetime CRM profit (margin% computed)."
+            title="Прибуток по брендах"
+            description="Топ-10 брендів за загальним прибутком CRM (з обчисленою маржею)."
           >
             {data.crm.brandBreakdown.length > 0 ? (
               <AdminBarList
                 data={data.crm.brandBreakdown.slice(0, 10).map((b) => ({
                   label: b.brand,
                   value: b.profit,
-                  meta: `Revenue ${formatMoney(b.revenue, 'USD')} · ${b.marginPct}% margin`,
+                  meta: `Дохід ${formatMoney(b.revenue, 'USD')} · маржа ${b.marginPct}%`,
                   tone: b.marginPct >= 25 ? 'accent' : b.marginPct >= 15 ? 'success' : b.marginPct >= 5 ? 'warning' : 'danger',
                 }))}
                 valueFormatter={(v) => formatMoney(v, 'USD')}
               />
             ) : (
-              <div className="text-sm text-zinc-500">No brand data available.</div>
+              <div className="text-sm text-zinc-500">Немає даних по брендах.</div>
             )}
           </AdminInsightPanel>
         </div>
@@ -1019,8 +1036,8 @@ export default function AdminDashboardPage() {
 
       {/* ─── TIER 4 — ORDER PIPELINE ───────────────────────────── */}
       <AdminDashboardSection
-        title="Order pipeline"
-        description="Where orders are right now. Click any stage to drill into the order list filtered by status."
+        title="Воронка замовлень"
+        description="Де знаходяться замовлення зараз. Клікніть на етап щоб перейти до фільтрованого списку."
       >
         <DashboardOrderPipeline
           stages={pipelineStages}
@@ -1033,21 +1050,21 @@ export default function AdminDashboardPage() {
 
       {/* ─── TIER 5 — ACTION REQUIRED ──────────────────────────── */}
       <AdminDashboardSection
-        title="Action required"
-        description="Ranked by severity. Click any row to take action."
+        title="Потребує дії"
+        description="Відсортовано за пріоритетом. Клікніть на рядок щоб почати."
       >
         <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
           <DashboardActionRequired items={actionItems} />
 
           {/* Revenue trend on right for context (kept since it's still useful) */}
           <AdminInsightPanel
-            title="Shop revenue (paid vs invoiced)"
-            description={`Paid cash vs invoiced totals for ${periodLabel.replace('this ', 'last ')} window.`}
+            title="Дохід магазину (оплачено vs виставлено)"
+            description={`Оплачена готівка vs виставлені суми за вікно ${periodLabel.replace('цей ', 'останній ').replace('сьогодні', 'останні дні')}.`}
           >
             <AdminTrendChart
               data={revenueChartData}
-              valueLabel="Paid"
-              secondaryLabel="Invoiced"
+              valueLabel="Оплачено"
+              secondaryLabel="Виставлено"
             />
           </AdminInsightPanel>
         </div>
@@ -1055,12 +1072,12 @@ export default function AdminDashboardPage() {
 
       {/* ─── TIER 6 — RECENT ACTIVITY ──────────────────────────── */}
       <AdminDashboardSection
-        title="Recent activity"
-        description="Latest 8 orders across shop and CRM. B2B/B2C tagged."
+        title="Остання активність"
+        description="Останні 8 замовлень у магазині та CRM. B2B/B2C позначено."
       >
         <AdminTimelineList
           items={recentActivity}
-          empty="No recent orders to display."
+          empty="Немає останніх замовлень для відображення."
         />
       </AdminDashboardSection>
 

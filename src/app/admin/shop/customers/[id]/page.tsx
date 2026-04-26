@@ -16,7 +16,6 @@ import {
   AdminSplitDetailShell,
   AdminStatusBadge,
   AdminTableShell,
-  AdminTimelineList,
 } from '@/components/admin/AdminPrimitives';
 import {
   AdminCheckboxField,
@@ -24,6 +23,12 @@ import {
   AdminSelectField,
   AdminTextareaField,
 } from '@/components/admin/AdminFormFields';
+import { useToast } from '@/components/admin/AdminToast';
+import { AdminActivityTimeline } from '@/components/admin/AdminActivityTimeline';
+import { AdminNotes } from '@/components/admin/AdminNotes';
+import { AdminTagInput } from '@/components/admin/AdminTagInput';
+import { CustomerCreditPanel } from '@/app/admin/shop/customers/components/CustomerCreditPanel';
+import { CustomerLtvHeader } from '@/app/admin/shop/customers/components/CustomerLtvHeader';
 
 type CustomerGroup = 'B2C' | 'B2B_PENDING' | 'B2B_APPROVED';
 
@@ -166,6 +171,7 @@ function customerGroupTone(group: CustomerGroup): 'default' | 'success' | 'warni
 }
 
 export default function AdminShopCustomerDetailPage() {
+  const toast = useToast();
   const params = useParams();
   const id = params?.id as string;
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
@@ -261,13 +267,16 @@ export default function AdminShopCustomerDetailPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Failed to update customer');
+        const msg = (data as { error?: string }).error || 'Failed to update customer';
+        setError(msg);
+        toast.error('Could not update customer', msg);
         return;
       }
       const nextCustomer = data as CustomerDetail;
       setCustomer(nextCustomer);
       setForm(createForm(nextCustomer));
       setSuccess('Customer updated.');
+      toast.success('Customer updated');
     } finally {
       setSaving(false);
     }
@@ -286,7 +295,9 @@ export default function AdminShopCustomerDetailPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Customer action failed');
+        const msg = (data as { error?: string }).error || 'Customer action failed';
+        setError(msg);
+        toast.error('Action failed', msg);
         return;
       }
       const nextCustomer = data as CustomerDetail;
@@ -296,8 +307,11 @@ export default function AdminShopCustomerDetailPage() {
         setSetupLinkUrl((data as { setupLinkUrl?: string }).setupLinkUrl ?? null);
         setSetupLinkExpiresAt((data as { setupLinkExpiresAt?: string }).setupLinkExpiresAt ?? null);
         setSuccess('Password setup link generated.');
+        toast.success('Setup link generated', 'Share with the customer to set their password');
       } else {
-        setSuccess(action === 'approve_b2b' ? 'Customer approved for B2B.' : 'Customer reverted to B2C.');
+        const msg = action === 'approve_b2b' ? 'Customer approved for B2B' : 'Customer reverted to B2C';
+        setSuccess(msg + '.');
+        toast.success(msg);
       }
     } finally {
       setSaving(false);
@@ -352,6 +366,8 @@ export default function AdminShopCustomerDetailPage() {
           </div>
         }
       />
+
+      <CustomerLtvHeader customerId={customer.id} />
 
       <AdminEntityToolbar>
         <div className="flex flex-wrap items-center gap-3">
@@ -692,21 +708,34 @@ export default function AdminShopCustomerDetailPage() {
             </AdminInspectorCard>
 
             <AdminInspectorCard
-              title="Audit trail"
+              title="Tags"
+              description="Internal labels for filtering and segmentation."
+            >
+              <AdminTagInput
+                entityType="shop.customer"
+                entityId={customer.id}
+                suggestions={['vip', 'bad-payer', 'wholesale', 'champion', 'churn-risk', 'do-not-contact']}
+              />
+            </AdminInspectorCard>
+
+            <AdminInspectorCard
+              title="Notes"
+              description="Internal admin notes (visible to all admins, not the customer)."
+            >
+              <AdminNotes entityType="shop.customer" entityId={customer.id} />
+            </AdminInspectorCard>
+
+            <CustomerCreditPanel customerId={customer.id} preferredCurrency="EUR" />
+
+            <AdminInspectorCard
+              title="Activity"
               description="Recent admin actions affecting this customer."
             >
-              <AdminTimelineList
-                items={customer.auditLog.map((entry) => ({
-                  id: entry.id,
-                  title: entry.action,
-                  meta: `${entry.actorName || entry.actorEmail} · ${new Date(entry.createdAt).toLocaleString()}`,
-                  body: entry.metadata ? (
-                    <pre className="overflow-x-auto rounded-[6px] border border-white/10 bg-black/25 p-3 text-[11px] text-zinc-400">
-                      {JSON.stringify(entry.metadata, null, 2)}
-                    </pre>
-                  ) : undefined,
-                }))}
-                empty="No audit events yet."
+              <AdminActivityTimeline
+                entityType="shop.customer"
+                entityId={customer.id}
+                emptyTitle="No activity yet"
+                emptyDescription="Profile edits, group changes and approvals will appear here."
               />
             </AdminInspectorCard>
           </>

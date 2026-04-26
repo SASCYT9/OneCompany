@@ -27,6 +27,8 @@ import {
   AdminStatusBadge,
   AdminTableShell,
 } from '@/components/admin/AdminPrimitives';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
 
 type ImportConflictMode = 'SKIP' | 'UPDATE' | 'CREATE';
 type ImportAction = 'DRY_RUN' | 'COMMIT';
@@ -134,6 +136,8 @@ function formatAction(action: ImportAction) {
 }
 
 export default function AdminShopImportPage() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const router = useRouter();
   const [csvText, setCsvText] = useState('');
   const [sourceFilename, setSourceFilename] = useState('');
@@ -313,7 +317,13 @@ export default function AdminShopImportPage() {
   }
 
   async function deleteTemplate(templateId: string) {
-    if (!confirm('Видалити цей шаблон імпорту?')) return;
+    const ok = await confirm({
+      tone: 'danger',
+      title: 'Видалити цей шаблон імпорту?',
+      description: 'Шаблон з налаштуваннями колонок і правил буде видалено. Дію не можна скасувати.',
+      confirmLabel: 'Видалити шаблон',
+    });
+    if (!ok) return;
     setDeletingTemplateId(templateId);
     setError('');
     setSuccess('');
@@ -324,8 +334,12 @@ export default function AdminShopImportPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Не вдалося видалити шаблон');
+        const msg = data.error || 'Не вдалося видалити шаблон';
+        toast.error('Не вдалося видалити шаблон', msg);
+        throw new Error(msg);
       }
+
+      toast.success('Шаблон імпорту видалено');
 
       if (selectedTemplateId === templateId) {
         setSelectedTemplateId('');

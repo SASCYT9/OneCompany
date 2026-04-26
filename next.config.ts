@@ -160,6 +160,8 @@ const fileBackedMediaTracingExcludes: Record<string, string[]> = {
 };
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ['127.0.0.1'],
+
   // Для Docker standalone output
   output: isVercel ? undefined : 'standalone',
 

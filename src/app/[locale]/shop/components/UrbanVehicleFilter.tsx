@@ -310,7 +310,7 @@ function ProductCard({
   const hasPrice = currentAmount > 0;
   const canOrder = hasPrice && !pricing.requestQuote;
   const productUrl = buildShopProductPath(locale, entry.product);
-  const productImage = resolveUrbanProductImage(entry.product.image, entry.modelHandles);
+  const productImage = resolveUrbanProductImage(entry.product.image, entry.modelHandles, entry.product.slug);
 
   const availability =
     entry.product.stock === "inStock"

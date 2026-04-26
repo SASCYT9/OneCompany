@@ -7,6 +7,8 @@ import {
   ToggleLeft, ToggleRight, Search, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useConfirm } from '@/components/admin/AdminConfirmDialog';
+import { useToast } from '@/components/admin/AdminToast';
 
 // ─── Interfaces ───
 
@@ -37,6 +39,8 @@ const TAX_TYPES = [
 // ─── Component ───
 
 export default function TaxRegionPage() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const [rules, setRules] = useState<TaxRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState<string | null>(null);
@@ -74,9 +78,20 @@ export default function TaxRegionPage() {
   }
 
   async function deleteRule(id: string) {
-    if (!confirm('Видалити це податкове правило?')) return;
-    await fetch(`/api/admin/shop/logistics/taxes?id=${id}`, { method: 'DELETE' });
+    const ok = await confirm({
+      tone: 'danger',
+      title: 'Видалити це податкове правило?',
+      description: 'Замовлення для відповідного регіону потребуватимуть нового податкового правила.',
+      confirmLabel: 'Видалити',
+    });
+    if (!ok) return;
+    const response = await fetch(`/api/admin/shop/logistics/taxes?id=${id}`, { method: 'DELETE' });
+    if (!response.ok) {
+      toast.error('Не вдалося видалити правило');
+      return;
+    }
     await fetchRules();
+    toast.success('Податкове правило видалено');
   }
 
   async function addNewRule() {

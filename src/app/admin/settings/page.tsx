@@ -37,6 +37,7 @@ import {
   AdminSelectField,
   AdminTextareaField,
 } from '@/components/admin/AdminFormFields';
+import { useToast } from '@/components/admin/AdminToast';
 
 type SettingsSection = 'notifications' | 'company' | 'shop' | 'seo' | 'appearance' | 'security';
 
@@ -91,6 +92,7 @@ function createSnapshot(value: AppSettings) {
 }
 
 export default function AdminSettingsPage() {
+  const toast = useToast();
   const [activeSection, setActiveSection] = useState<SettingsSection>('notifications');
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [draft, setDraft] = useState<AppSettings>(DEFAULT_SETTINGS);
@@ -186,7 +188,9 @@ export default function AdminSettingsPage() {
       const payload = (await response.json().catch(() => ({}))) as Partial<AppSettings> & { error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error || 'Failed to save settings');
+        const msg = payload.error || 'Failed to save settings';
+        toast.error('Could not save settings', msg);
+        throw new Error(msg);
       }
 
       const merged = { ...DEFAULT_SETTINGS, ...payload };
@@ -194,6 +198,7 @@ export default function AdminSettingsPage() {
       setDraft(merged);
       setSaved(true);
       localStorage.removeItem('adminSettings');
+      toast.success('Settings saved');
       window.setTimeout(() => setSaved(false), 2_000);
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Failed to save settings');
