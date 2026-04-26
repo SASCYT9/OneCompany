@@ -583,38 +583,66 @@ const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: st
     ],
   },
   'URB-HOO-25358201-V1': {
-    image: 'https://houseofurban.co.uk/cdn/shop/products/0J0A8668_1800x1800.jpg?v=1573136127',
+    image: '/images/shop/urban/products/urus-se/Urban_G-Wagon_Bullnose_Bonnet.webp',
     gallery: [
-      'https://houseofurban.co.uk/cdn/shop/products/0J0A8668_1800x1800.jpg?v=1573136127',
-      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/1746797497736-F8HY9C67YW8KW6I13KVB/G-Wagon%2BRedefined%2Bby%2BUrban%2BAutomotive%2B-%2BWidetrack-8%2BLarge.jpeg',
+      '/images/shop/urban/products/urus-se/Urban_G-Wagon_Bullnose_Bonnet.webp',
+      '/images/shop/urban/cols/models/gwagonAeroKit2024/webp/urban-g-wagon-aerokit-bullnose-bonnet.webp',
+      '/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-2-2560.webp',
     ],
   },
   'URB-ROO-25358202-V1': {
-    image: 'https://houseofurban.co.uk/cdn/shop/products/0J0A2830_1800x1800.jpg?v=1603891789',
+    image: '/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Light_Bar_1.webp',
     gallery: [
-      'https://houseofurban.co.uk/cdn/shop/products/0J0A2830_1800x1800.jpg?v=1603891789',
-      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/1746797552035-SCWOE15XLLRQVE2J11Y6/8_G63%2BWidetrack-Rear-Spoiler-Detail%2BLarge.jpeg',
+      '/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Light_Bar_1.webp',
+      '/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Light_Bar.webp',
+      '/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-4-2560.webp',
     ],
   },
   'URB-SPO-25358203-V1': {
-    image: 'https://houseofurban.co.uk/cdn/shop/products/0J0A2818_1800x1800.jpg?v=1591879580',
+    image: '/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Rear_Spoiler.webp',
     gallery: [
-      'https://houseofurban.co.uk/cdn/shop/products/0J0A2818_1800x1800.jpg?v=1591879580',
-      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/1746797552035-SCWOE15XLLRQVE2J11Y6/8_G63%2BWidetrack-Rear-Spoiler-Detail%2BLarge.jpeg',
+      '/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Rear_Spoiler.webp',
+      '/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-5-2560.webp',
+      '/images/shop/urban/products/urus-se/G-Wagon_Aero_Kit_2024.webp',
     ],
   },
   'URB-COV-25358204-V1': {
-    image:
-      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/f9a0c4d6-1523-4d89-8280-90eb5c1fd466/9_G63%2BWidetrack-Rear-Three-Detail-Wheel-Turn%2BLarge.jpg',
+    image: '/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Rear_Wheel_Carrier.webp',
     gallery: [
-      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/f9a0c4d6-1523-4d89-8280-90eb5c1fd466/9_G63%2BWidetrack-Rear-Three-Detail-Wheel-Turn%2BLarge.jpg',
+      '/images/shop/urban/products/urus-se/Urban_Automotive_G-Wagon_Rear_Wheel_Carrier.webp',
+      '/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-5-2560.webp',
+      '/images/shop/urban/products/urus-se/G-Wagon_Aero_Kit_2024.webp',
     ],
   },
   'URB-DEC-25358200-V1': {
-    image:
-      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/1746797406281-H5AISC7VYX6JLV9Q9XMK/G-Wagon%2BRedefined%2Bby%2BUrban%2BAutomotive%2B-%2BWidetrack%2BLocation-1%2BLarge.jpeg',
+    image: '/images/shop/urban/products/urus-se/Urban_G-Wagon_Urban_Branding.webp',
     gallery: [
-      'https://images.squarespace-cdn.com/content/v1/56893da11c1210fead067d42/1746797406281-H5AISC7VYX6JLV9Q9XMK/G-Wagon%2BRedefined%2Bby%2BUrban%2BAutomotive%2B-%2BWidetrack%2BLocation-1%2BLarge.jpeg',
+      '/images/shop/urban/products/urus-se/Urban_G-Wagon_Urban_Branding.webp',
+      '/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-1-2560.webp',
+    ],
+  },
+  'URB-SPL-25358199-V1': {
+    image: '/images/shop/urban/products/urus-se/G-Wagon_Aero_Kit_2024.webp',
+    gallery: [
+      '/images/shop/urban/products/urus-se/G-Wagon_Aero_Kit_2024.webp',
+      '/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-3-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-1-2560.webp',
+    ],
+  },
+  'URB-TRI-25358205-V1': {
+    image: '/images/shop/urban/products/urus-se/G-Wagon_Aero_Kit_2024.webp',
+    gallery: [
+      '/images/shop/urban/products/urus-se/G-Wagon_Aero_Kit_2024.webp',
+      '/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-1-2560.webp',
+      '/images/shop/urban/products/urus-se/G-Wagon_Soft_Kit_2018_Kit_Front.jpg',
+    ],
+  },
+  'URB-TRI-25358206-V1': {
+    image: '/images/shop/urban/products/urus-se/G-Wagon_Aero_Kit_2024.webp',
+    gallery: [
+      '/images/shop/urban/products/urus-se/G-Wagon_Aero_Kit_2024.webp',
+      '/images/shop/urban/carousel/models/gwagonAeroKit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-1-2560.webp',
+      '/images/shop/urban/products/urus-se/G-Wagon_Soft_Kit_2018_Kit_Front.jpg',
     ],
   },
   'CCRK-C4': {
