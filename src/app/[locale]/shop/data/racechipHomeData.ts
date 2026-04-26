@@ -1,89 +1,95 @@
 /* ─────────────────────────────────────────────────────
-   RaceChip Home Data — bilingual content & product lines
+   RaceChip Home Data — bilingual content (single flagship: GTS 5 Black)
 ───────────────────────────────────────────────────── */
 
 export const RACECHIP_HERO = {
   eyebrow: 'One Company × RaceChip',
   eyebrowUk: 'One Company × RaceChip',
-  subtitle: 'Unlock the full potential of your engine. German-engineered chip tuning trusted by over 500,000 drivers worldwide.',
-  subtitleUk: 'Розкрийте повний потенціал двигуна. Німецький чіп-тюнінг, якому довіряють понад 500 000 водіїв у всьому світі.',
-  primaryButtonLabel: 'Explore Catalog',
-  primaryButtonLabelUk: 'Відкрити каталог',
-  primaryButtonLink: '/shop/racechip/catalog',
+  subtitle:
+    'German-engineered chip tuning, trusted by 500,000+ drivers worldwide. Up to 30% more power, instant smartphone control, plug & drive in 15 minutes.',
+  subtitleUk:
+    'Німецький чіп-тюнінг, якому довіряють понад 500 000 водіїв у світі. До 30% більше потужності, миттєве керування зі смартфону, встановлення Plug & Drive за 15 хвилин.',
+  primaryButtonLabel: 'Find Your Tuning',
+  primaryButtonLabelUk: 'Підібрати тюнінг',
+  primaryButtonLink: '#rc-finder',
+  // Real RaceChip product photography (host whitelisted in next.config)
+  heroImage: 'https://www.racechip.eu/media/wysiwyg/product_overlay/gts-black-three-quarter.png',
 };
 
-export const RACECHIP_STATS = [
-  { value: '30%', label: 'More Power', labelUk: 'Більше потужності' },
-  { value: '500K+', label: 'Units Sold', labelUk: 'Продано одиниць' },
-  { value: '15 min', label: 'Installation', labelUk: 'Встановлення' },
-  { value: '60+', label: 'Vehicle Brands', labelUk: 'Марок авто' },
-];
-
-export interface RacechipProductLine {
-  title: string;
-  titleUk: string;
-  subtitle: string;
-  subtitleUk: string;
-  badge: string;
-  badgeUk: string;
-  description: string;
-  descriptionUk: string;
-  imageUrl: string;
-  link: string;
-}
-
-export const RACECHIP_PRODUCT_LINES: RacechipProductLine[] = [
-  {
-    title: 'GTS Black',
-    titleUk: 'GTS Black',
-    subtitle: 'Flagship Performance',
-    subtitleUk: 'Флагманська продуктивність',
-    badge: 'Flagship',
-    badgeUk: 'Флагман',
-    description: 'Up to 30% more power. 7-channel mapping with App Control.',
-    descriptionUk: 'До 30% більше потужності. 7-канальна калібровка з App Control.',
-    imageUrl: '/images/shop/racechip/gts-black-macro.png',
-    link: '/shop/racechip/catalog',
-  },
-  {
-    title: 'XLR Throttle',
-    titleUk: 'XLR Педаль газу',
-    subtitle: 'Response Tuning',
-    subtitleUk: 'Тюнінг відгуку',
-    badge: 'Popular',
-    badgeUk: 'Популярно',
-    description: 'Eliminate throttle delay. Instant pedal response via smartphone.',
-    descriptionUk: 'Миттєвий відгук педалі газу. Усунення затримки через смартфон.',
-    imageUrl: '/images/shop/racechip/app-stealth-realui.png',
-    link: '/shop/racechip/catalog',
-  },
-  {
-    title: 'GTS 5',
-    titleUk: 'GTS 5',
-    subtitle: 'Smart Performance',
-    subtitleUk: 'Розумна продуктивність',
-    badge: 'Essential',
-    badgeUk: 'Базовий',
-    description: 'Proven 5-channel chip tuning with plug & drive installation.',
-    descriptionUk: 'Перевірений 5-канальний чіп-тюнінг з встановленням Plug & Drive.',
-    imageUrl: '/images/shop/racechip/hero-stealth-fixed.png',
-    link: '/shop/racechip/catalog',
-  },
-];
+/* GTS 5 Black flagship — single product showcased on the brand home.
+   Copy reflects the official RaceChip positioning of the GTS Black /
+   GTS 5 Black tier (7-channel mapping, App Control included). */
+export const RACECHIP_FLAGSHIP = {
+  badge: 'Flagship',
+  badgeUk: 'Флагман',
+  title: 'RaceChip GTS 5 Black',
+  titleUk: 'RaceChip GTS 5 Black',
+  tagline: 'The most advanced chip tuning module RaceChip has ever built.',
+  taglineUk: 'Найдосконаліший чіп-тюнінг модуль, який коли-небудь випускав RaceChip.',
+  description:
+    'GTS 5 Black is the new flagship of the RaceChip line-up. A 7-channel piggyback computer that reads live data from your engine\'s sensors, calculates a safer fuel-and-boost map than the factory ECU, and feeds it back without overwriting any original software. Optimised in real-world test drives at the RaceChip headquarters in Göppingen, Germany — and shipped with App Control already included.',
+  descriptionUk:
+    'GTS 5 Black — новий флагман модельного ряду RaceChip. 7-канальний piggyback-комп\'ютер зчитує живі дані з датчиків двигуна, формує безпечніший паливо-наддувний мапу, ніж заводський ECU, та повертає їх назад, не перезаписуючи оригінальне ПЗ. Налаштовано у реальних тестових поїздках у штаб-квартирі RaceChip у Гьоппінгені, Німеччина, і поставляється з App Control у комплекті.',
+  imageUrl: 'https://www.racechip.eu/media/wysiwyg/product_overlay/gts-black-three-quarter.png',
+  // Highlight bullets (official-style spec list)
+  highlights: [
+    {
+      en: '7-channel ECU mapping',
+      uk: '7-канальне мапування ECU',
+      detailEn: 'Reads RPM, boost, rail pressure, intake & exhaust temps, MAF and lambda — vs. 3 channels on entry-level chips.',
+      detailUk: 'Зчитує оберти, наддув, тиск у рейці, температуру впуску й випуску, MAF і lambda — проти 3 каналів у базових чіпах.',
+    },
+    {
+      en: 'Up to +30% horsepower & torque',
+      uk: 'До +30% потужності та крутного моменту',
+      detailEn: 'Verified gains across 4,900+ vehicle variants, with calibrations specific to your exact engine code.',
+      detailUk: 'Перевірений приріст на 4 900+ модифікаціях авто, з калібровками під ваш конкретний код двигуна.',
+    },
+    {
+      en: 'App Control included',
+      uk: 'App Control у комплекті',
+      detailEn: 'Switch between Efficiency, Sport and Race modes from your phone. Schedule warm-up timers. Receive OTA updates for life.',
+      detailUk: 'Перемикайте режими Efficiency, Sport, Race зі смартфона. Налаштовуйте таймер прогріву. Отримуйте OTA-оновлення довічно.',
+    },
+    {
+      en: '15-minute Plug & Drive install',
+      uk: 'Встановлення Plug & Drive за 15 хвилин',
+      detailEn: 'Routes through the OEM sensor harness — no cutting, no soldering, no ECU re-flash. Removable in minutes.',
+      detailUk: 'Підключається через штатну OEM-косу датчиків — без різання, паяння чи перепрошивки ECU. Знімається за хвилини.',
+    },
+    {
+      en: 'Built-in safety package',
+      uk: 'Вбудований пакет безпеки',
+      detailEn: 'Multi-layer protection prevents over-boost, over-heating and excess injector duty cycle. Manufacturer warranty cover available.',
+      detailUk: 'Багаторівневий захист запобігає over-boost, перегріву та надмірному навантаженню форсунок. Доступна гарантія виробника.',
+    },
+    {
+      en: 'Made in Germany',
+      uk: 'Зроблено в Німеччині',
+      detailEn: 'Designed, manufactured and quality-controlled at RaceChip\'s Göppingen facility since 2008.',
+      detailUk: 'Розроблено, виготовлено та проконтрольовано на якість на заводі RaceChip у Гьоппінгені з 2008 року.',
+    },
+  ],
+  catalogLink: '/shop/racechip/catalog',
+};
 
 export const RACECHIP_APP = {
-  label: 'Smart Control',
-  labelUk: 'Розумне керування',
-  title: 'Control At Your Fingertips.',
-  titleUk: 'Керування під рукою.',
-  description: 'Choose between Efficiency, Sport, and Race modes dynamically from your smartphone. The RaceChip app allows you to adapt your car\'s performance to any driving situation instantly.',
-  descriptionUk: 'Миттєво перемикайте режими Efficiency, Sport та Race зі свого смартфону. Додаток RaceChip дозволяє динамічно адаптувати характер вашого авто до будь-якої ситуації на дорозі.',
+  label: 'See It In Action',
+  labelUk: 'Дивіться у дії',
+  title: 'Built In Germany. Driven Everywhere.',
+  titleUk: 'Збудовано в Німеччині. Їде всюди.',
+  description:
+    'Engineered in Göppingen. Calibrated for 4,900+ specific engines. Plug & drive in 15 minutes — every driving mode at your fingertips.',
+  descriptionUk:
+    'Інженерія з Гьоппінгена. Каліброване під 4 900+ конкретних двигунів. Plug & drive за 15 хвилин — усі режими у вашому смартфоні.',
   features: [
-    { en: 'Dynamic mode switching on the fly', uk: 'Динамічне перемикання режимів на льоту' },
-    { en: 'Warm-up timer integration', uk: 'Інтегрований таймер прогріву двигуна' },
-    { en: 'Automatic software updates', uk: 'Автоматичні оновлення ПЗ' },
+    { en: 'Switch Efficiency / Sport / Race from your phone', uk: 'Перемикання Efficiency / Sport / Race зі смартфона' },
+    { en: 'Lifetime over-the-air software updates', uk: 'Довічні OTA-оновлення ПЗ' },
+    { en: 'Compatible with 60+ vehicle brands worldwide', uk: 'Сумісність з 60+ марками авто у світі' },
   ],
-  imageUrl: '/images/shop/racechip/app-stealth-realui.png',
+  // Official RaceChip YouTube short: GTS 5 & GTS 5 Black reveal
+  youtubeId: 'xK74ZwMhVeg',
+  youtubeTitle: 'RaceChip GTS 5 & GTS 5 Black',
 };
 
 export const RACECHIP_ENGINEERING = {
@@ -91,19 +97,15 @@ export const RACECHIP_ENGINEERING = {
   labelUk: 'Німецька інженерія',
   title: 'Power Meets Precision.',
   titleUk: 'Абсолютна точність та динаміка.',
-  description: 'Precision engineered in Germany. The RaceChip GTS Black interfaces seamlessly with your engine\'s sensors via a high-grade, plug-and-play wiring harness, safely unlocking hidden power reserves without permanently altering the factory ECU.',
-  descriptionUk: 'Справжня німецька інженерія. RaceChip GTS Black підключається безпосередньо до датчиків двигуна через професійну систему Plug & Drive. Він безпечно розкриває прихований потенціал автомобіля, не залишаючи жодних слідів у заводському блоці управління (ECU).',
+  description:
+    "Precision engineered in Germany. The RaceChip GTS 5 Black interfaces seamlessly with your engine's sensors via a high-grade, plug-and-play wiring harness, safely unlocking hidden power reserves without permanently altering the factory ECU.",
+  descriptionUk:
+    'Справжня німецька інженерія. RaceChip GTS 5 Black підключається безпосередньо до датчиків двигуна через професійну систему Plug & Drive. Він безпечно розкриває прихований потенціал автомобіля, не залишаючи жодних слідів у заводському блоці управління (ECU).',
   features: [
     { en: 'Plug & Drive installation in 15 minutes', uk: 'Встановлення Plug & Drive за 15 хвилин' },
     { en: 'Preserves factory engine warranty limits', uk: 'Зберігає ліміти заводської гарантії' },
     { en: 'Invisible to official dealership diagnostics', uk: 'Невидимий для офіційної діагностики' },
   ],
-  imageUrl: '/images/shop/racechip/gts-black-macro.png',
+  imageUrl: 'https://www.racechip.eu/media/wysiwyg/pdp_images/product-gts-connect_shop.png',
 };
 
-export const RACECHIP_HERITAGE = {
-  title: 'Born in Germany. Trusted Worldwide.',
-  titleUk: 'Народжено в Німеччині. Довіра у всьому світі.',
-  description: 'Since 2008, RaceChip has led the chip tuning market with over 500,000 units sold across 135 countries. Every product is developed, tested, and manufactured at our headquarters in Göppingen, Germany — to the highest standards of automotive engineering.',
-  descriptionUk: 'З 2008 року RaceChip лідирує на ринку чіп-тюнінгу з понад 500 000 проданих одиниць у 135 країнах. Кожен продукт розробляється, тестується та виготовляється в штаб-квартирі в Гьоппінгені, Німеччина — за найвищими стандартами автомобільної інженерії.',
-};
