@@ -25,39 +25,54 @@ type FilterGroup = {
   options: FilterOption[];
 };
 
-const CAR_DATA = {
+/**
+ * Each model entry has two forms:
+ *   - label  → user-facing display string in the chip
+ *   - keyword → simplified search token sent to the catalog filter URL.
+ *               The catalog matches by AND across whitespace-tokens, so the
+ *               keyword should be the chassis code(s) only — multi-word
+ *               labels like "Golf GTI / R (Mk7/Mk7.5)" never resolve because
+ *               "GTI" alone excludes products listed only as "Golf R".
+ */
+type ModelEntry = { label: string; keyword: string };
+
+const CAR_DATA: Record<string, readonly ModelEntry[]> = {
   Porsche: [
-    '911 Turbo S (992)',
-    '911 (992)',
-    '911 (991)',
-    '911 (997)',
-    '911 (996)',
-    '911 (993)',
-    '911 (964)',
-    'Cayman / Boxster (987/981)',
+    { label: '911 Turbo S (992)', keyword: '992' },
+    { label: '911 (992)', keyword: '992' },
+    { label: '911 (991)', keyword: '991' },
+    { label: '911 (997)', keyword: '997' },
+    { label: '911 (996)', keyword: '996' },
+    { label: '911 (993)', keyword: '993' },
+    { label: '911 (964)', keyword: '964' },
   ],
   BMW: [
-    'M2 (G87)',
-    'M3 / M4 (G80/G82)',
-    'M3 / M4 (F80/F82)',
-    'M2 (F87)',
-    'M340i / M440i (G20/G22, B58)',
-    'Z4 M40i (G29, B58)',
+    { label: 'M2 (G87)', keyword: 'G87' },
+    { label: 'M3 / M4 (G80/G82)', keyword: 'G80/G82' },
+    { label: 'M3 / M4 (F80/F82)', keyword: 'F80/F82' },
+    { label: 'M2 (F87)', keyword: 'F87' },
+    { label: 'M340i / M440i (G20/G22, B58)', keyword: 'G20/G22/B58' },
+    { label: 'Z4 M40i (G29, B58)', keyword: 'Z4' },
   ],
   Audi: [
-    'RS6 / RS7 (C8)',
-    'RS3 / TTRS (8V/8S)',
-    'A3 / S3 (8V/8Y, 2015+)',
+    { label: 'RS6 / RS7 (C8)', keyword: 'C8' },
+    { label: 'RS3 / TTRS (8V/8S)', keyword: 'RS3/TTRS' },
+    { label: 'A3 / S3 (8V/8Y, 2015+)', keyword: '8V/8Y' },
   ],
-  Volkswagen: [
-    'Golf GTI / R (Mk7/Mk7.5)',
-    'Golf GTI / R (Mk8)',
+  // Use "VW" as the brand key so the URL filter can find products that label
+  // themselves "VW Golf …" (the supplier never spells out "Volkswagen").
+  VW: [
+    { label: 'Golf GTI / R (Mk7/Mk7.5)', keyword: 'Mk7' },
+    { label: 'Golf GTI / R (Mk8)', keyword: 'Mk8' },
   ],
-  Toyota: ['GR Supra (A90)', 'GR Yaris'],
+  Toyota: [
+    { label: 'GR Supra (A90)', keyword: 'Supra' },
+    { label: 'GR Yaris', keyword: 'Yaris' },
+  ],
 } as const;
 
 const FEATURED_MAKE = 'Porsche' as const;
-const FEATURED_MODEL = '911 Turbo S (992)';
+const FEATURED_MODEL_LABEL = '911 Turbo S (992)';
 
 export const DO88_CATEGORIES = [
   { handle: 'all', title: 'All Parts', titleUa: 'Всі деталі' },
@@ -272,11 +287,22 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
   const searchParams = useSearchParams();
   const isHero = !compact && !isSidebar;
 
+  // Resolve a URL ?keyword= back to a known model LABEL (e.g. "992" → "911
+  // Turbo S (992)") so the chip stays visually selected on landing.
+  const resolveLabelFromKeyword = (make: Make | '', keyword: string): string => {
+    if (!make || !keyword) return keyword;
+    const found = CAR_DATA[make]?.find((m) => m.keyword === keyword);
+    return found ? found.label : keyword;
+  };
+
   const initialBrand = (searchParams?.get('brand') as Make) || (isHero ? FEATURED_MAKE : '');
-  const initialKeyword = searchParams?.get('keyword') || (isHero ? FEATURED_MODEL : '');
+  const initialKeywordParam = searchParams?.get('keyword') || '';
+  const initialModelLabel = initialKeywordParam
+    ? resolveLabelFromKeyword(initialBrand, initialKeywordParam)
+    : (isHero ? FEATURED_MODEL_LABEL : '');
 
   const [selectedMake, setSelectedMake] = useState<Make | ''>(initialBrand);
-  const [selectedModel, setSelectedModel] = useState<string>(initialKeyword);
+  const [selectedModel, setSelectedModel] = useState<string>(initialModelLabel);
   const [selectedCategory, setSelectedCategory] = useState<string>(currentCategory);
 
   const isUa = locale === 'ua';
@@ -287,25 +313,34 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
     const urlKeyword = searchParams?.get('keyword') || '';
     if (urlBrand || urlKeyword) {
       setSelectedMake(urlBrand);
-      setSelectedModel(urlKeyword);
+      setSelectedModel(resolveLabelFromKeyword(urlBrand, urlKeyword));
     }
   }, [searchParams]);
+
+  // Look up the catalog filter keyword for the currently selected label.
+  const lookupKeyword = (make: Make | '', label: string): string => {
+    if (!make || !label) return '';
+    const found = CAR_DATA[make]?.find((m) => m.label === label);
+    return found ? found.keyword : label;
+  };
 
   useEffect(() => {
     setSelectedCategory(currentCategory);
   }, [currentCategory]);
 
-  const pushLiveUpdate = (make: string, model: string, cat: string) => {
+  const pushLiveUpdate = (make: string, modelLabel: string, cat: string) => {
     const params = new URLSearchParams(searchParams?.toString() || '');
     if (make) params.set('brand', make);
     else params.delete('brand');
-    
-    if (model) params.set('keyword', model);
+
+    // Convert label → catalog filter keyword (chassis code) before pushing.
+    const keyword = modelLabel ? lookupKeyword(make as Make, modelLabel) : '';
+    if (keyword) params.set('keyword', keyword);
     else params.delete('keyword');
 
     const q = params.toString();
     const targetPath = `/${locale}/shop/do88/collections/${cat || 'all'}`;
-    
+
     router.push(`${targetPath}${q ? `?${q}` : ''}`);
   };
 
@@ -318,10 +353,10 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
     }
   };
 
-  const handleModelChange = (model: string) => {
-    setSelectedModel(model);
-    if (model || isSidebar || compact) {
-      pushLiveUpdate(selectedMake, model, selectedCategory);
+  const handleModelChange = (modelLabel: string) => {
+    setSelectedModel(modelLabel);
+    if (modelLabel || isSidebar || compact) {
+      pushLiveUpdate(selectedMake, modelLabel, selectedCategory);
     }
   };
 
@@ -348,7 +383,7 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
         ? [
             {
               label: selectedMake,
-              options: CAR_DATA[selectedMake].map((model) => ({
+              options: CAR_DATA[selectedMake].map(({ label: model }) => ({
                 value: model,
                 label: model,
               })),
@@ -462,9 +497,10 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
             </div>
             {selectedMake ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {models.map((model) => {
+                {models.map((entry) => {
+                  const model = entry.label;
                   const active = selectedModel === model;
-                  const isFeatured = selectedMake === FEATURED_MAKE && model === FEATURED_MODEL;
+                  const isFeatured = selectedMake === FEATURED_MAKE && model === FEATURED_MODEL_LABEL;
                   const { title, code } = splitModel(model);
                   return (
                     <button

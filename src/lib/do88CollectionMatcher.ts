@@ -166,6 +166,7 @@ const EXCLUDED_VEHICLE_PATTERNS: RegExp[] = [
   // Old / unsupported Audi platforms not covered by the chassis exclusions
   /\baudi\s+quattro\s+\d+v\b/i,
   /\b20v\s+(?:turbo|quattro)\b/i,
+  /\baudi\s+rs4\b/i, // RS4 not in target list (only RS3, RS6/RS7 C8)
 ];
 
 function isExcludedVehicleProduct(product: Pick<ShopProduct, 'title' | 'collection' | 'tags'>) {
