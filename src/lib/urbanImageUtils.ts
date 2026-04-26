@@ -171,7 +171,7 @@ function isUrbanImageCompatibleWithHandle(url: string, handle: string) {
     return false;
   }
 
-  if (G_WAGON_COLLECTION_HANDLES.has(handle) && NON_G_WAGON_IMAGE_MARKERS.some((marker) => normalized.includes(marker))) {
+  if (G_WAGON_COLLECTION_HANDLES.has(handle) && NON_G_WAGON_IMAGE_MARKERS.some((marker) => markerHaystack.includes(marker))) {
     return false;
   }
 
