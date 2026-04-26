@@ -83,3 +83,14 @@ __pycache__/
 *.part
 *.rar
 .env*.local
+
+# Debug / QA artifacts
+pw-*.png
+pw-debug-*.png
+urban-*.png
+tmp-*.jpg
+tmp-*.png
+do88-urls.txt
+.claude/scheduled_tasks.lock
+.claude/worktrees/
+scripts/_check_*.mjs
