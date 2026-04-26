@@ -1,6 +1,14 @@
 const URBAN_CANONICAL_COLLECTION_HANDLE_OVERRIDES: Record<string, string> = {
   'urb-bun-25358198-v1': 'mercedes-g-wagon-softkit',
   'urb-bun-25358207-v1': 'mercedes-g-wagon-w465-widetrack',
+  'urb-dec-25358200-v1': 'mercedes-g-wagon-w465-aerokit',
+  'urb-hoo-25358201-v1': 'mercedes-g-wagon-w465-aerokit',
+  'urb-roo-25358202-v1': 'mercedes-g-wagon-w465-aerokit',
+  'urb-spo-25358203-v1': 'mercedes-g-wagon-w465-aerokit',
+  'urb-cov-25358204-v1': 'mercedes-g-wagon-w465-aerokit',
+  'urb-tri-25358205-v1': 'mercedes-g-wagon-w465-aerokit',
+  'urb-tri-25358206-v1': 'mercedes-g-wagon-w465-aerokit',
+  'urb-spl-25358199-v1': 'mercedes-g-wagon-w465-aerokit',
 };
 
 const URBAN_PRODUCT_TITLE_OVERRIDES: Record<string, { ua: string; en: string }> = {

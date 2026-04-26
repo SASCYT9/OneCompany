@@ -645,6 +645,27 @@ const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: st
       '/images/shop/urban/products/urus-se/G-Wagon_Soft_Kit_2018_Kit_Front.jpg',
     ],
   },
+  'URB-WHE-26009280-V1': {
+    image: '/images/shop/urban/products/urus-se/Urban_UC-4.webp',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Urban_UC-4.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-5-2560.webp',
+    ],
+  },
+  'URB-WHE-26009281-V1': {
+    image: '/images/shop/urban/products/urus-se/UrbanUC-4_Satin_c.png',
+    gallery: [
+      '/images/shop/urban/products/urus-se/UrbanUC-4_Satin_c.png',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-5-2560.webp',
+    ],
+  },
+  'URB-WHE-26009286-V1': {
+    image: '/images/shop/urban/products/urus-se/Urban_UC-9_2970e730-84c8-436d-9c2d-2cd8e4989cbd.webp',
+    gallery: [
+      '/images/shop/urban/products/urus-se/Urban_UC-9_2970e730-84c8-436d-9c2d-2cd8e4989cbd.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-5-2560.webp',
+    ],
+  },
   'CCRK-C4': {
     image: 'https://cdn11.bigcommerce.com/s-a06wg97csf/images/stencil/original/products/1845/1094/CCRK-C4__53202.1638317631.jpg?c=1',
   },
