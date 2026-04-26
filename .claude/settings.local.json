@@ -13,7 +13,16 @@
       "Bash(xargs ls:*)",
       "Bash(for file in public/logos/*)",
       "Bash(do basename \"$file\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(git -C D:/OneCompany log --oneline -20)",
+      "Bash(git -C D:/OneCompany status --short)",
+      "Bash(git -C D:/OneCompany diff --stat HEAD)",
+      "mcp__Claude_in_Chrome__list_connected_browsers",
+      "mcp__Claude_in_Chrome__select_browser",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__get_page_text",
+      "Bash(xargs wc *)"
     ],
     "deny": [],
     "ask": []
