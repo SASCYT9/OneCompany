@@ -215,8 +215,11 @@ export function Header() {
               isShopRoute ? "border-white/15" : "border-white/10"
             )}
           >
-            <nav className="flex flex-col gap-4 text-center">
-              {renderedNavItems.map((item) => {
+            <nav className="flex flex-col gap-2 text-center">
+              {renderedNavItems
+                /* The shop's "account" key is rendered as a prominent CTA below — skip it here to avoid duplication. */
+                .filter((item) => !(isShopRoute && item.key === 'account'))
+                .map((item) => {
                 const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
                 return (
                   <Link
@@ -224,7 +227,7 @@ export function Header() {
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      "relative font-display border-b border-white/10 pb-3 text-sm uppercase tracking-[0.25em] text-white/60 transition-colors",
+                      "relative font-display flex min-h-[44px] items-center justify-center border-b border-white/10 px-3 text-sm uppercase tracking-[0.25em] text-white/60 transition-colors",
                       isActive && "text-white"
                     )}
                   >
@@ -244,7 +247,7 @@ export function Header() {
                     href={`/${locale}/shop/account`}
                     onClick={() => setMobileMenuOpen(false)}
                     suppressHydrationWarning
-                    className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white transition"
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-xs uppercase tracking-[0.3em] text-white transition"
                   >
                     {isUa ? "Акаунт" : "Account"}
                   </Link>
@@ -254,7 +257,7 @@ export function Header() {
                     href={`/${locale}/partnership`}
                     onClick={() => setMobileMenuOpen(false)}
                     suppressHydrationWarning
-                    className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-black transition"
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/20 bg-white px-5 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-black transition"
                   >
                     {tNav("bookAtelier")}
                   </Link>

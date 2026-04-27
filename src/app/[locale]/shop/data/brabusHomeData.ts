@@ -1,4 +1,6 @@
 export type BrabusFeaturedModel = {
+  /** Unique slug used for React keys and analytics — must differ across cards */
+  slug: string;
   title: string;
   titleUk: string;
   subtitle: string;
@@ -35,38 +37,34 @@ export const BRABUS_HERO = {
 } as const;
 
 /**
- * Fleet grid — each model uses REAL vehicle photos from brabus.com.
- * Links point to real collections defined in brabusCollectionsList.ts.
- * 
- * Image mapping from _manifest.json:
- * - G-Class: BRABUS 900 ROCKET EDITION W465 On Location (22) — front 3/4 view
- * - Porsche: BRABUS ROCKET R Studio (53) — side profile
- * - S-Class: BRABUS 930 S63 E Performance — studio 
- * - Bentley: BRABUS GT and GTC Bentley (29) — front view
- * - Lamborghini: BRABUS 900 Lambo Urus On Location (1) — HQ wide
- * - Range Rover: BRABUS RANGE ROVER 600 Studio (55) — studio
+ * Fleet grid — vehicle programmes with parts that are actually purchasable.
+ * Subtitles describe the sellable BRABUS programme (aero, wheels, power),
+ * not limited-edition complete cars (Rocket Edition, Rocket R, Rocket 1000)
+ * which can't be ordered through the shop.
  */
 export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
   {
-    title: 'G-Class W465',
-    titleUk: 'G-Class W465',
-    subtitle: 'Rocket Edition 900',
-    subtitleUk: 'Rocket Edition 900',
-    badge: 'New',
-    badgeUk: 'Новий',
-    tagOne: 'Widestar',
-    tagTwo: '900 HP',
+    slug: 'mercedes-w223',
+    title: 'Mercedes-Benz W223',
+    titleUk: 'Mercedes-Benz W223',
+    subtitle: 'S-Class Programme',
+    subtitleUk: 'Програма S-Class',
+    badge: 'Flagship',
+    badgeUk: 'Флагман',
+    tagOne: 'Hybrid',
+    tagTwo: '930 HP',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: '/shop/brabus/collections/g-class',
-    /** W465 Rocket Edition — real studio shot (Superblack) */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-134.jpg',
+    link: '/shop/brabus/collections/s-class',
+    /** S-Class W223 (Maybach V12 trim) — clean studio side profile */
+    imageUrl: '/images/shop/brabus/hq/brabus-supercars-112.jpg',
   },
   {
+    slug: 'porsche-911-turbo-s',
     title: 'Porsche 911 Turbo S',
     titleUk: 'Porsche 911 Turbo S',
-    subtitle: 'Brabus 900 Rocket R',
-    subtitleUk: 'Brabus 900 Rocket R',
+    subtitle: 'Performance Programme',
+    subtitleUk: 'Програма Performance',
     badge: 'Limited',
     badgeUk: 'Лімітований',
     tagOne: 'Carbon',
@@ -78,21 +76,7 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     imageUrl: '/images/shop/brabus/hq/brabus-supercars-84.jpg',
   },
   {
-    title: 'Brabus 930',
-    titleUk: 'Brabus 930',
-    subtitle: 'S63 E Performance',
-    subtitleUk: 'S63 E Performance',
-    badge: 'Performance',
-    badgeUk: 'Performance',
-    tagOne: 'Hybrid',
-    tagTwo: '930 HP',
-    buttonLabel: 'View Programme',
-    buttonLabelUk: 'Переглянути програму',
-    link: '/shop/brabus/collections/s-class',
-    /** S63 E Performance — real studio shot */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-112.jpg',
-  },
-  {
+    slug: 'brabus-900-bentley-gtc',
     title: 'Brabus 900',
     titleUk: 'Brabus 900',
     subtitle: 'Bentley GTC',
@@ -108,10 +92,11 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     imageUrl: '/images/shop/brabus/hq/brabus-bentley-side.png',
   },
   {
+    slug: 'brabus-900-lambo-urus-se',
     title: 'Brabus 900',
     titleUk: 'Brabus 900',
-    subtitle: 'Lamborghini Urus',
-    subtitleUk: 'Lamborghini Urus',
+    subtitle: 'Lamborghini Urus SE',
+    subtitleUk: 'Lamborghini Urus SE',
     badge: 'Executive',
     badgeUk: 'Executive',
     tagOne: 'Aero',
@@ -123,6 +108,7 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     imageUrl: '/images/shop/brabus/hq/brabus-supercars-76.jpg',
   },
   {
+    slug: 'range-rover-600',
     title: 'Range Rover 600',
     titleUk: 'Range Rover 600',
     subtitle: 'Brabus Signature',

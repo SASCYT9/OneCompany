@@ -71,8 +71,8 @@ export const BRABUS_COLLECTION_CARDS: BrabusCollectionCard[] = [
     externalImageUrl: '/images/shop/brabus/hq/brabus-supercars-45.jpg',
   },
   {
-    title: 'Lamborghini Urus',
-    titleUk: 'Lamborghini Urus',
+    title: 'Lamborghini Urus SE',
+    titleUk: 'Lamborghini Urus SE',
     brand: 'Lamborghini',
     collectionHandle: 'lamborghini',
     productCount: '900 HP',

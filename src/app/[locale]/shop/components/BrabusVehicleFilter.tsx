@@ -216,7 +216,7 @@ export default function BrabusVehicleFilter({
       <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
 
         {/* ═══ HORIZONTAL FILTER BAR ═══ */}
-        <div className="sticky top-[72px] z-40 -mx-6 md:-mx-12 lg:-mx-16 px-6 md:px-12 lg:px-16 bg-[#0a0a0a] border-y border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.8)] [&_option]:bg-[#111] [&_option]:text-white">
+        <div className="-mx-6 md:-mx-12 lg:-mx-16 px-6 md:px-12 lg:px-16 bg-[#0a0a0a] border-y border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.8)] [&_option]:bg-[#111] [&_option]:text-white">
           <div className="grid grid-cols-2 sm:grid-cols-[1fr_1fr_1fr_auto] lg:grid-cols-[220px_200px_1fr_160px_auto] items-center gap-3 py-4">
 
             {/* Brand Select */}

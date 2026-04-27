@@ -10,12 +10,19 @@ const BRANDS = [
   { key: "Porsche", labelUa: "Porsche", labelEn: "Porsche", models: ["all", "Porsche 911 Turbo", "Porsche Taycan"] },
   { key: "Rolls-Royce", labelUa: "Rolls-Royce", labelEn: "Rolls-Royce", models: ["all", "Rolls-Royce Ghost", "Rolls-Royce Cullinan"] },
   { key: "Bentley", labelUa: "Bentley", labelEn: "Bentley", models: ["all", "Bentley Continental", "Bentley Flying Spur"] },
-  { key: "Lamborghini", labelUa: "Lamborghini", labelEn: "Lamborghini", models: ["all", "Lamborghini Urus"] },
+  { key: "Lamborghini", labelUa: "Lamborghini", labelEn: "Lamborghini", models: ["all", "Lamborghini Urus SE"] },
   { key: "Range Rover", labelUa: "Range Rover", labelEn: "Range Rover", models: ["all", "Range Rover"] },
   { key: "smart", labelUa: "smart", labelEn: "smart", models: ["all", "smart #1", "smart #3"] },
 ];
 
-export default function BrabusQuickSelector({ locale }: { locale: SupportedLocale }) {
+type Props = {
+  locale: SupportedLocale;
+  /** Compact mode: no section wrapper, no video background, no heading.
+   *  Use when embedding inside another section (e.g. inside the hero). */
+  compact?: boolean;
+};
+
+export default function BrabusQuickSelector({ locale, compact = false }: Props) {
   const isUa = locale === "ua";
   const router = useRouter();
   const [selectedBrand, setSelectedBrand] = useState<string>("Mercedes");
@@ -39,13 +46,83 @@ export default function BrabusQuickSelector({ locale }: { locale: SupportedLocal
     router.push(url);
   };
 
+  /* ── Form (used by both modes) ─────────────────────────────────────── */
+  const form = (
+    <div className={
+      compact
+        ? "flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-3xl mx-auto"
+        : "flex flex-col sm:flex-row items-center justify-center gap-4 max-w-4xl mx-auto"
+    }>
+      {/* Brand Select */}
+      <div className="relative w-full sm:flex-1 group">
+        <select
+          value={selectedBrand}
+          onChange={handleBrandChange}
+          className="w-full appearance-none bg-[#050505]/60 backdrop-blur-md border border-white/10 text-white px-6 py-4 lg:py-5 rounded-none outline-none focus:border-[#c29d59]/50 hover:bg-[#111]/80 transition-all cursor-pointer text-xs md:text-sm tracking-[0.1em] uppercase shadow-2xl"
+          aria-label={isUa ? "Марка автомобіля" : "Vehicle brand"}
+        >
+          {BRANDS.map(b => (
+            <option key={b.key} value={b.key} className="bg-black">
+              {isUa ? b.labelUa : b.labelEn}
+            </option>
+          ))}
+        </select>
+        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 group-hover:text-white/60 transition-colors">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#c29d59] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+      </div>
+
+      {/* Model Select */}
+      <div className="relative w-full sm:flex-1 group">
+        <select
+          value={selectedModel}
+          onChange={(e) => setSelectedModel(e.target.value)}
+          className="w-full appearance-none bg-[#050505]/60 backdrop-blur-md border border-white/10 text-white px-6 py-4 lg:py-5 rounded-none outline-none focus:border-[#c29d59]/50 hover:bg-[#111]/80 transition-all cursor-pointer text-xs md:text-sm tracking-[0.1em] uppercase shadow-2xl"
+          aria-label={isUa ? "Модель автомобіля" : "Vehicle model"}
+        >
+          {currentModels.map(m => (
+            <option key={m} value={m} className="bg-black">
+              {m === "all" ? (isUa ? "Всі моделі" : "All Models") : m}
+            </option>
+          ))}
+        </select>
+        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 group-hover:text-white/60 transition-colors">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#c29d59] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+      </div>
+
+      {/* Submit */}
+      <button
+        onClick={handleExplore}
+        className="w-full sm:w-auto px-10 py-4 lg:py-5 bg-[#c29d59]/15 backdrop-blur-xl border border-[#c29d59]/40 hover:bg-[#c29d59]/25 hover:border-[#c29d59]/70 text-white text-[11px] md:text-[13px] uppercase font-medium tracking-[0.2em] rounded-none transition-all duration-500 shadow-[0_0_20px_rgba(194,157,89,0.1)] hover:shadow-[0_0_40px_rgba(194,157,89,0.25)] whitespace-nowrap"
+      >
+        {isUa ? "Показати каталог" : "Explore Catalog"}
+      </button>
+    </div>
+  );
+
+  /* ── Compact: just the form, with a small label above ───────────────── */
+  if (compact) {
+    return (
+      <div className="w-full max-w-3xl mx-auto px-4">
+        <p className="text-[0.65rem] sm:text-xs font-medium text-white/50 uppercase tracking-[0.25em] mb-4 text-center">
+          {isUa ? "Знайдіть деталі для свого авто" : "Find parts for your vehicle"}
+        </p>
+        {form}
+      </div>
+    );
+  }
+
+  /* ── Standalone section (legacy / standalone usage) ─────────────────── */
   return (
     <section className="relative min-h-[500px] flex items-center justify-center py-24 border-y border-white/[0.04] overflow-hidden z-20">
       {/* Background Video */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <BrabusVideoBackground 
+        <BrabusVideoBackground
           videoSrc="/videos/shop/brabus/brabus-hero-new.mp4"
-          fallbackImage="/images/shop/brabus/hq/brabus-supercars-26.jpg" 
+          fallbackImage="/images/shop/brabus/hq/brabus-supercars-26.jpg"
         />
         {/* Strong Blur Overlay for depth */}
         <div className="absolute inset-0 bg-black/75 backdrop-blur-[12px]" />
@@ -56,58 +133,11 @@ export default function BrabusQuickSelector({ locale }: { locale: SupportedLocal
           {isUa ? "Знайдіть комплектуючі для свого автомобіля" : "Find upgrades for your vehicle"}
         </h2>
         <p className="text-sm md:text-base text-white/60 mb-12 max-w-2xl mx-auto font-light tracking-wide leading-relaxed drop-shadow-md">
-          {isUa 
-            ? "Оберіть марку та модель автомобіля, щоб миттєво перейти до всіх доступних преміальних компонентів тюнінгу Brabus у нашому каталозі." 
+          {isUa
+            ? "Оберіть марку та модель автомобіля, щоб миттєво перейти до всіх доступних преміальних компонентів тюнінгу Brabus у нашому каталозі."
             : "Select your vehicle brand and model to instantly jump to all available premium Brabus tuning components in our catalog."}
         </p>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-4xl mx-auto">
-          {/* Brand Select */}
-          <div className="relative w-full sm:flex-1 group">
-            <select
-              value={selectedBrand}
-              onChange={handleBrandChange}
-              className="w-full appearance-none bg-[#050505]/60 backdrop-blur-md border border-white/10 text-white px-6 py-4 lg:py-5 rounded-none outline-none focus:border-[#c29d59]/50 hover:bg-[#111]/80 transition-all cursor-pointer text-xs md:text-sm tracking-[0.1em] uppercase shadow-2xl"
-            >
-              {BRANDS.map(b => (
-                <option key={b.key} value={b.key} className="bg-black">
-                  {isUa ? b.labelUa : b.labelEn}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 group-hover:text-white/60 transition-colors">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#c29d59] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-          </div>
-
-          {/* Model Select */}
-          <div className="relative w-full sm:flex-1 group">
-            <select
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              className="w-full appearance-none bg-[#050505]/60 backdrop-blur-md border border-white/10 text-white px-6 py-4 lg:py-5 rounded-none outline-none focus:border-[#c29d59]/50 hover:bg-[#111]/80 transition-all cursor-pointer text-xs md:text-sm tracking-[0.1em] uppercase shadow-2xl"
-            >
-              {currentModels.map(m => (
-                <option key={m} value={m} className="bg-black">
-                  {m === "all" ? (isUa ? "Всі моделі" : "All Models") : m}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 group-hover:text-white/60 transition-colors">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#c29d59] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-          </div>
-
-          {/* Button */}
-          <button 
-            onClick={handleExplore}
-            className="w-full sm:w-auto px-10 py-4 lg:py-5 bg-[#c29d59]/15 backdrop-blur-xl border border-[#c29d59]/40 hover:bg-[#c29d59]/25 hover:border-[#c29d59]/70 text-white text-[11px] md:text-[13px] uppercase font-medium tracking-[0.2em] rounded-none transition-all duration-500 shadow-[0_0_20px_rgba(194,157,89,0.1)] hover:shadow-[0_0_40px_rgba(194,157,89,0.25)] whitespace-nowrap"
-          >
-            {isUa ? "Показати каталог" : "Explore Catalog"}
-          </button>
-        </div>
+        {form}
       </div>
     </section>
   );

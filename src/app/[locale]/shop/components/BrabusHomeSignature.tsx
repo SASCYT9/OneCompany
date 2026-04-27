@@ -42,7 +42,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
       <div className="br-home" id="BrabusHome">
 
         {/* ════════════════════════════════════════════════════════════════════
-            SECTION 1 — CINEMATIC HERO (full viewport, centered minimal)
+            SECTION 1 — CINEMATIC HERO + INLINE VEHICLE FILTER
         ════════════════════════════════════════════════════════════════════ */}
         <section className="br-hero" id="br-hero">
           <BrabusVideoBackground 
@@ -83,15 +83,9 @@ export default function BrabusHomeSignature({ locale }: Props) {
               One Company × Brabus
             </p>
 
-            {/* Single CTA */}
-            <div className="br-hero__stagger" style={{ '--stagger-i': 4 } as React.CSSProperties}>
-              <Link
-                href={locHref(locale, BRABUS_HERO.primaryButtonLink)}
-                className="br-btn br-btn--ghost"
-              >
-                {L(isUa, 'Explore Range', 'Модельний ряд')}
-                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-              </Link>
+            {/* Inline vehicle filter — replaces the static "Explore Range" CTA */}
+            <div className="br-hero__stagger br-hero__filter" style={{ '--stagger-i': 4 } as React.CSSProperties}>
+              <BrabusQuickSelector locale={locale} compact />
             </div>
           </div>
 
@@ -100,11 +94,6 @@ export default function BrabusHomeSignature({ locale }: Props) {
             <div className="br-hero__scroll-line" />
           </div>
         </section>
-
-        {/* ════════════════════════════════════════════════════════════════════
-            SECTION 2 — QUICK SELECTOR
-        ════════════════════════════════════════════════════════════════════ */}
-        <BrabusQuickSelector locale={locale} />
 
         {/* ════════════════════════════════════════════════════════════════════
             SECTION 3 — HORIZONTAL SHOWCASES (snap-scroll carousel)
@@ -139,7 +128,6 @@ export default function BrabusHomeSignature({ locale }: Props) {
                 <div className="br-sc__overlay" aria-hidden />
                 <span className="br-sc__idx">{s.num}</span>
                 <div className="br-sc__content">
-                  <span className="br-sc__badge">{L(isUa, s.badge, s.badgeUk)}</span>
                   <h3 className="br-sc__name">
                     {L(isUa, s.name, s.nameUk).split('\n').map((line, i) => (
                       <span key={i}>{line}{i === 0 ? <br /> : null}</span>
@@ -190,7 +178,7 @@ export default function BrabusHomeSignature({ locale }: Props) {
           <div className="br-fleet__grid">
             {BRABUS_FEATURED_MODELS.map((model, i) => (
               <Link
-                key={model.title}
+                key={model.slug}
                 href={locHref(locale, model.link)}
                 className="br-fleet__card"
                 data-br-fleet-card
@@ -209,10 +197,6 @@ export default function BrabusHomeSignature({ locale }: Props) {
                   />
                 </div>
                 <div className="br-fleet__card-info">
-                  <div className="br-fleet__card-tags">
-                    <span>{model.tagOne}</span>
-                    <span>{model.tagTwo}</span>
-                  </div>
                   <h3 className="br-fleet__card-title">{L(isUa, model.title, model.titleUk)}</h3>
                   <p className="br-fleet__card-sub">{L(isUa, model.subtitle, model.subtitleUk)}</p>
                   <div className="br-fleet__line" />
@@ -531,6 +515,12 @@ export default function BrabusHomeSignature({ locale }: Props) {
         }
         @keyframes br-stagger-in {
           to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Inline vehicle filter inside the hero — spans the centered content width */
+        .br-hero__filter {
+          width: 100%;
+          margin-top: 1rem;
         }
 
 

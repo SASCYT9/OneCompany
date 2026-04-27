@@ -82,8 +82,8 @@ export const BRABUS_COLLECTION_PAGES: Record<string, BrabusCollectionPageConfig>
   },
   'lamborghini': {
     handle: 'lamborghini',
-    title: 'Lamborghini Urus',
-    titleUk: 'Lamborghini Urus',
+    title: 'Lamborghini Urus SE',
+    titleUk: 'Lamborghini Urus SE',
     subtitle: 'BRABUS 900 Superblack',
     subtitleUk: 'BRABUS 900 Superblack',
     description: 'The definitive super-SUV elevated to its absolute limits. BRABUS engineering delivers 900 horsepower, bespoke carbon aerodynamics, and a presence that commands every road.',
