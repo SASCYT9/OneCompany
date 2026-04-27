@@ -72,9 +72,10 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/s-class',
-    /** Official BRABUS 930 S-Class W223 (V223 chassis, AMG S 63 E Performance)
-     *  front-on press photo from brabus.com — clean white background */
-    imageUrl: '/images/shop/brabus/hq/brabus-930-s63-front.jpg',
+    /** Mercedes-Benz S-Class W223 family side profile (Maybach 850 V12 trim)
+     *  from brabus.com — clean white background, matches the side-profile
+     *  orientation of the other fleet cards. */
+    imageUrl: '/images/shop/brabus/hq/brabus-supercars-112.jpg',
   },
   {
     slug: 'brabus-900-bentley-gtc',
