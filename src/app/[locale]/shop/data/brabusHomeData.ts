@@ -44,11 +44,27 @@ export const BRABUS_HERO = {
  */
 export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
   {
+    slug: 'g-class-w465',
+    title: 'G-Class W465',
+    titleUk: 'G-Class W465',
+    subtitle: 'Widestar Programme',
+    subtitleUk: 'Програма Widestar',
+    badge: 'New',
+    badgeUk: 'Новий',
+    tagOne: 'Widestar',
+    tagTwo: '900 HP',
+    buttonLabel: 'View Programme',
+    buttonLabelUk: 'Переглянути програму',
+    link: '/shop/brabus/collections/g-class',
+    /** W465 — clean studio side profile (Superblack) */
+    imageUrl: '/images/shop/brabus/hq/brabus-supercars-134.jpg',
+  },
+  {
     slug: 'mercedes-w223',
     title: 'Mercedes-Benz W223',
     titleUk: 'Mercedes-Benz W223',
-    subtitle: 'S-Class Programme',
-    subtitleUk: 'Програма S-Class',
+    subtitle: 'BRABUS 930 — S 63 E Performance',
+    subtitleUk: 'BRABUS 930 — S 63 E Performance',
     badge: 'Flagship',
     badgeUk: 'Флагман',
     tagOne: 'Hybrid',
@@ -56,24 +72,9 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/s-class',
-    /** S-Class W223 (Maybach V12 trim) — clean studio side profile */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-112.jpg',
-  },
-  {
-    slug: 'porsche-911-turbo-s',
-    title: 'Porsche 911 Turbo S',
-    titleUk: 'Porsche 911 Turbo S',
-    subtitle: 'Performance Programme',
-    subtitleUk: 'Програма Performance',
-    badge: 'Limited',
-    badgeUk: 'Лімітований',
-    tagOne: 'Carbon',
-    tagTwo: '900 HP',
-    buttonLabel: 'View Programme',
-    buttonLabelUk: 'Переглянути програму',
-    link: '/shop/brabus/collections/porsche',
-    /** 900 Rocket R — real studio shot */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-84.jpg',
+    /** Official BRABUS 930 S-Class W223 (V223 chassis, AMG S 63 E Performance)
+     *  front-on press photo from brabus.com — clean white background */
+    imageUrl: '/images/shop/brabus/hq/brabus-930-s63-front.jpg',
   },
   {
     slug: 'brabus-900-bentley-gtc',
