@@ -337,6 +337,24 @@ function fixDo88TitleTypos(title: string): string {
   return title.replace(/\bRS([67](?:\s+RS[67])?)\s+8C\b/gi, 'RS$1 C8');
 }
 
+// Öhlins ships every product with a leading internal SKU pattern in its title:
+//   "OHLINS BMV GX11 Комплект койловерів ..."
+//   "OHLINS POS 6Y10 Амортизатор задній ..."
+// The prefix is brand + 2–4-letter family (BMV/BMS/POV/POS/HOV/HOS/TOV/TOS/NIS/
+// SUS/TES/VWS/LOV/ALV/FOV/SUV...) + 4–8-char SKU. None of it is meaningful to a
+// retail buyer — the brand badge sits on the card already, and product.sku
+// retains the full code for search and B2B reference.
+function stripOhlinsSkuPrefix(title: string): string {
+  if (!title) return title;
+  return title.replace(
+    /^\s*ÖHLINS\s+[A-Z]{2,4}\s+[A-Z0-9-]{3,10}\s+/i,
+    ''
+  ).replace(
+    /^\s*OHLINS\s+[A-Z]{2,4}\s+[A-Z0-9-]{3,10}\s+/i,
+    ''
+  );
+}
+
 /**
  * Patches Ukrainian descriptions where the supplier left English fragments
  * mid-sentence (mostly GFB / VTA boost-control valve listings).
@@ -364,25 +382,47 @@ function applyDo88LocaleFixes(locale: SupportedLocale, value: string): string {
   return out;
 }
 
-export function localizeShopProductTitle(locale: SupportedLocale, product: Pick<ShopProduct, 'slug' | 'title'>) {
+function applyShopTitleFixes(
+  locale: SupportedLocale,
+  product: Pick<ShopProduct, 'slug' | 'brand' | 'vendor'>,
+  title: string
+): string {
+  let out = applyDo88LocaleFixes(locale, title);
+  const brand = (product.brand || product.vendor || '').toLowerCase();
+  const isOhlins =
+    brand === 'ohlins' || brand === 'öhlins' || product.slug.startsWith('ohlins-');
+  if (isOhlins) {
+    out = stripOhlinsSkuPrefix(out);
+  }
+  return out;
+}
+
+export function localizeShopProductTitle(
+  locale: SupportedLocale,
+  product: Pick<ShopProduct, 'slug' | 'title' | 'brand' | 'vendor'>
+) {
   const overrideTitle = getUrbanProductTitleOverrideForLocale(product.slug, locale);
   if (overrideTitle) {
-    return applyDo88LocaleFixes(locale, overrideTitle);
+    return applyShopTitleFixes(locale, product, overrideTitle);
   }
 
   if (locale === 'en') {
     const translatedFromDb = normalizeWhitespace(product.title.en);
     if (translatedFromDb && !containsCyrillic(translatedFromDb)) {
-      return applyDo88LocaleFixes(locale, disambiguateUrbanTitle(locale, product, translatedFromDb));
+      return applyShopTitleFixes(locale, product, disambiguateUrbanTitle(locale, product, translatedFromDb));
     }
 
     const translatedFromUa = translateShopTitleFromUa(product.title.ua);
     if (translatedFromUa && !containsCyrillic(translatedFromUa)) {
-      return applyDo88LocaleFixes(locale, disambiguateUrbanTitle(locale, product, translatedFromUa));
+      return applyShopTitleFixes(locale, product, disambiguateUrbanTitle(locale, product, translatedFromUa));
     }
   }
 
-  return applyDo88LocaleFixes(locale, disambiguateUrbanTitle(locale, product, localizeShopText(locale, product.title, { slugFallback: product.slug })));
+  return applyShopTitleFixes(
+    locale,
+    product,
+    disambiguateUrbanTitle(locale, product, localizeShopText(locale, product.title, { slugFallback: product.slug }))
+  );
 }
 
 export function localizeShopDescription(

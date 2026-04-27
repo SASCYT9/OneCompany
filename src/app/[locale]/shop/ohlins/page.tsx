@@ -1,9 +1,17 @@
 import { resolveLocale } from '@/lib/seo';
+import { getShopProductsServer } from '@/lib/shopCatalogServer';
+import { buildOhlinsHeroVehicleTree } from '@/lib/ohlinsCatalog';
 import OhlinsHomeSignature from '../components/OhlinsHomeSignature';
 
 type Props = {
   params: Promise<{ locale: string }>;
 };
+
+function isOhlinsProduct(product: { brand?: string | null; vendor?: string | null; slug?: string }) {
+  const brand = product.brand?.toLowerCase();
+  const vendor = product.vendor?.toLowerCase();
+  return brand === 'ohlins' || brand === 'öhlins' || vendor === 'ohlins' || product.slug?.startsWith('ohlins-');
+}
 
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
@@ -21,5 +29,9 @@ export default async function OhlinsSkinPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  return <OhlinsHomeSignature locale={resolvedLocale} />;
+  const products = await getShopProductsServer();
+  const ohlinsProducts = products.filter(isOhlinsProduct);
+  const availableVehicles = buildOhlinsHeroVehicleTree(ohlinsProducts);
+
+  return <OhlinsHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />;
 }
