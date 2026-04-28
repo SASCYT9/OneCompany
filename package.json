@@ -32,6 +32,8 @@
     "shop:urban:ua-copy": "tsx scripts/curate-urban-ua-copy.ts --commit",
     "media:migrate:dry": "tsx scripts/migrate-runtime-media-to-blob.ts --dry-run",
     "media:migrate": "tsx scripts/migrate-runtime-media-to-blob.ts --commit",
+    "shop:brabus:images-to-blob:dry": "tsx --env-file=.env.local scripts/migrate-brabus-images-to-blob.ts",
+    "shop:brabus:images-to-blob": "tsx --env-file=.env.local scripts/migrate-brabus-images-to-blob.ts --commit",
     "shop:ipe:import:dry": "tsx scripts/import-ipe-catalog.ts --dry-run",
     "shop:ipe:import": "tsx scripts/import-ipe-catalog.ts --commit",
     "seo:structure-check": "tsx scripts/seo-structure-audit.ts --baseUrl=https://onecompany.global --locales=ua,en --maxDepth=4",
