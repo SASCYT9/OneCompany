@@ -111,19 +111,38 @@ function parsePrice(text) {
   };
 }
 
+function parseRacechipNumber(value) {
+  return Number(String(value).replace(/\./g, '').replace(',', '.'));
+}
+
 function parseGts5(body) {
+  const productCardIndex = body.search(/RaceChip GTS 5 Black control unit/i);
   const selectorIndex = body.search(/\|\s*\[RaceChip GTS 5 Black\]/i);
   const looseIndex = body.search(/RaceChip GTS 5 Black\s+\+|\[RaceChip GTS 5 Black\]/i);
-  const index = selectorIndex >= 0 ? selectorIndex : looseIndex;
+  const index = productCardIndex >= 0 ? productCardIndex : selectorIndex >= 0 ? selectorIndex : looseIndex;
   if (index < 0) {
     return { hasGts5: false, gainHp: 0, gainNm: 0, priceEur: 0 };
   }
 
-  const windowText = body.slice(index);
+  const endMarkers = [
+    'Noticeable Increased performance',
+    'Powerful Performance boost',
+    'All Features',
+    'By choosing RaceChip GTS 5 Black',
+    'Optimized ',
+  ];
+  const endIndex = Math.min(
+    ...endMarkers
+      .map((marker) => body.indexOf(marker, index))
+      .filter((markerIndex) => markerIndex > index)
+  );
+  const windowText = body.slice(index, Number.isFinite(endIndex) ? endIndex : undefined);
   const compactWindow = windowText.replace(/\s+/g, ' ');
   const gainHp = Math.max(0, ...[...compactWindow.matchAll(/\+\s*(\d+)\s*HP/gi)].map((match) => Number(match[1])));
   const gainNm = Math.max(0, ...[...compactWindow.matchAll(/\+\s*(\d+)\s*Nm/gi)].map((match) => Number(match[1])));
-  const specialPrice = Number(compactWindow.match(/Special price!\s*\d[\d.,]*\s+(\d[\d.,]*)\s*EUR/i)?.[1]?.replace(/\./g, '').replace(',', '.') ?? 0);
+  const specialMatch = compactWindow.match(/Special price!\s*(\d[\d.,]*)\s+(\d[\d.,]*)\s*EUR/i);
+  const regularSpecialPrice = specialMatch ? parseRacechipNumber(specialMatch[1]) : 0;
+  const saleSpecialPrice = specialMatch ? parseRacechipNumber(specialMatch[2]) : 0;
   const prices = parsePrice(windowText);
   const hasConcreteGains = gainHp > 0 || gainNm > 0;
   const hasConcretePrice = prices.first > 0 || prices.max > 0;
@@ -132,7 +151,8 @@ function parseGts5(body) {
     hasGts5: hasConcreteGains || hasConcretePrice,
     gainHp,
     gainNm,
-    priceEur: specialPrice || prices.first || prices.max,
+    priceEur: regularSpecialPrice || prices.max || prices.first || saleSpecialPrice,
+    salePriceEur: saleSpecialPrice,
   };
 }
 
@@ -232,6 +252,7 @@ for (let i = 0; i < candidates.length; i += 1) {
       gainHp: gts5.gainHp,
       gainNm: gts5.gainNm,
       priceEur: gts5.priceEur,
+      ...(gts5.salePriceEur ? { salePriceEur: gts5.salePriceEur } : {}),
     };
     const existingIndex = report.missingGts5.findIndex((item) => item.url === candidate.url);
     if (existingIndex >= 0) {

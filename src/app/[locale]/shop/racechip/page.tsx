@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/prisma';
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
+import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import RacechipHomeSignature from '../components/RacechipHomeSignature';
 import type { RacechipMakeModelEntry } from '../components/RacechipQuickFinder';
 
@@ -27,14 +27,11 @@ export async function generateMetadata({
 }
 
 async function loadMakeModels(): Promise<RacechipMakeModelEntry[]> {
-  const rows = await prisma.shopProduct.findMany({
-    where: {
-      brand: { contains: 'RaceChip', mode: 'insensitive' },
-      status: 'ACTIVE',
-      isPublished: true,
-    },
-    select: { tags: true },
-  });
+  const rows = (await getShopProductsServer()).filter(
+    (product) =>
+      product.brand?.toLowerCase() === 'racechip' ||
+      product.vendor?.toLowerCase() === 'racechip'
+  );
 
   const map = new Map<string, Set<string>>();
   for (const r of rows) {

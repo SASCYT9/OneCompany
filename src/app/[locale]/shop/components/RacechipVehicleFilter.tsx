@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
@@ -67,6 +67,7 @@ export default function RacechipVehicleFilter({
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
+  const previousMakeRef = useRef(activeMake);
 
   // Pagination to restrict the number of visible DOM elements
   const [visibleCount, setVisibleCount] = useState(30);
@@ -135,6 +136,10 @@ export default function RacechipVehicleFilter({
 
   // Reset models when make changes
   useEffect(() => {
+    if (previousMakeRef.current === activeMake) {
+      return;
+    }
+    previousMakeRef.current = activeMake;
     setActiveModel("all");
   }, [activeMake]);
 

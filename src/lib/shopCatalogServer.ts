@@ -1601,7 +1601,7 @@ function normalizeCatalogProducts(products: ShopProduct[]) {
 let globalProductsCache: ShopProduct[] | null = null;
 let lastCacheTime = 0;
 let globalProductsPromise: Promise<ShopProduct[]> | null = null;
-const SHOP_PRODUCTS_DEV_CACHE_VERSION = 7;
+const SHOP_PRODUCTS_DEV_CACHE_VERSION = 8;
 
 /** All products: from DB (published) then static catalog (by slug, DB wins). */
 export async function getShopProductsServer(): Promise<ShopProduct[]> {
