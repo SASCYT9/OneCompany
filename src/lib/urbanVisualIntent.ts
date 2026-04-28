@@ -17,15 +17,15 @@ export type UrbanCollectionMediaSet = {
 };
 
 const PACKAGE_REGEX =
-  /\bbundle\b|\bpackage\b|\bfull kit\b|\bwidetrack\b|\bsoft kit\b|\bsoftkit\b|\baerokit\b|\baero kit\b|replacement bumper package/i;
+  /\bbundle\b|\bpackage\b|\bfull kit\b|\bwidetrack\b|\bsoft kit\b|\bsoftkit\b|\baerokit\b|\baero kit\b|\bbody\s?kit\b|replacement bumper package|пакет|комплект|обвіс|бодікит|кузовн/i;
 const FRONT_REGEX =
-  /\bfront bumper\b|\bgrille\b|\bhood\b|\bsplitter\b|\bfront lip\b|\bcanards\b|\bdrl\b|\broof module\b|\broof light\b/i;
+  /\bfront bumper\b|\bgrille\b|\bhood\b|\bsplitter\b|\bfront lip\b|\bcanards\b|\bdrl\b|\broof module\b|\broof light\b|\bbonnet\b|\bbullnose\b|\bair intake\b|передн[ійяа]+\s*(бампер|спліттер|спойлер|решітк|накладк|губ)|капот|канард|повітрозабірник|решітк[ау]/i;
 const REAR_REGEX =
-  /\brear bumper\b|\bdiffuser\b|\brear spoiler\b|\brear wing\b|\bexhaust surround\b|\bexhaust finisher\b|\bspare wheel cover\b/i;
+  /\brear bumper\b|\bdiffuser\b|\brear spoiler\b|\brear wing\b|\bexhaust\b|\btailpipe\b|\btail pipe\b|\bexhaust surround\b|\bexhaust finisher\b|\bspare wheel cover\b|вихлоп|насадк[аиоуи]|глушник|дифузор|задн[ійяа]+\s*(бампер|дифузор|спойлер|спойлер|крил|кри́ло)|спойлер|запасн|чохол\s+запасного/i;
 const SIDE_REGEX =
-  /\bside steps\b|\bside skirts\b|\barches\b|\bwheel arches\b|\bmirror caps\b|\bside vents\b|\bdoor trims\b|\bwheel package\b/i;
+  /\bside steps\b|\bside skirts\b|\barch(es)?\b|\bwheel arch(es)?\b|\bmirror caps\b|\bmirrors?\b|\bwingmirror\b|\bside vents\b|\bdoor trims\b|\bdoor moulding\b|\bwheel package\b|\bside accent\b|\bquarter\b|\bsill\b|бічн[ійая]|пороги|арк[аиу]|дзеркал|колес|диск[иауі]|бок[оу]|двер[іе]/i;
 const DETAIL_REGEX =
-  /\bbadge\b|\btrim\b|\baccessor(y|ies)\b|\bkey fob\b|\bfinisher\b|\bemblem\b|\bcover\b/i;
+  /\bbadge\b|\btrim\b|\baccessor(y|ies)\b|\bkey fob\b|\bfinisher\b|\bemblem\b|\bcover\b|\bdecal\b|\blettering\b|\bicon\b|\binsert\b|накладк|емблем|значок|наклейк|шильдик|ікон|літер|вставк|логотип/i;
 
 function normalizeText(value: string | null | undefined) {
   return String(value ?? '')

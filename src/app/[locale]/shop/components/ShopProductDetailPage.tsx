@@ -164,6 +164,14 @@ function DetailSpecPanel({
   );
 }
 
+function normalizeSpecComparable(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function isPartNumberSpecLabel(label: string) {
+  return /^(артикул|парт[\s-]?номер|part number|sku|article no\.?)$/i.test(label.trim());
+}
+
 function isWheelProduct(product: Pick<ShopProduct, 'category' | 'productType' | 'tags'>) {
   const values = [
     product.category.en,
@@ -199,6 +207,26 @@ function isStandaloneUrbanComponent(product: Pick<ShopProduct, 'title'>) {
   const titleValue = `${product.title.en} ${product.title.ua}`.toLowerCase();
 
   return /(d-pillar|spoiler|roof|light bar|exhaust|tailpipe|bonnet|hood|mirror|trim|intake|насадк|спойлер|дахов|світлов|капот|оздоблен|повітрозабірник)/i.test(titleValue);
+}
+
+function isAkrapovicTailpipeAccessory(
+  product: Pick<ShopProduct, 'brand' | 'vendor' | 'title' | 'category' | 'productType' | 'tags'>
+) {
+  const brand = `${product.brand} ${product.vendor ?? ''}`.toLowerCase();
+  if (!/akrapovic|akrapovi[cč]/i.test(brand)) {
+    return false;
+  }
+
+  const haystack = [
+    product.title.en,
+    product.title.ua,
+    product.category.en,
+    product.category.ua,
+    product.productType ?? '',
+    ...(product.tags ?? []),
+  ].join(' ');
+
+  return /(tailpipe|exhaust tips?|насадк|наконечник|наконечників)/i.test(haystack);
 }
 
 function isSameVehicleFamily(product: Pick<ShopProduct, 'brand' | 'vendor' | 'title' | 'collection' | 'tags'>, current: Pick<ShopProduct, 'brand' | 'vendor' | 'title' | 'collection' | 'tags'>) {
@@ -350,9 +378,12 @@ export default async function ShopProductDetailPage({
     
   const isUrbanMode = mode === 'urban' || Boolean(urbanCollectionHandle);
   const isDo88Mode = mode === 'do88' || Boolean(do88CollectionHandle);
+  const productBrandLc = (product.brand || '').toLowerCase();
+  const isAkrapovicAccessory = isAkrapovicTailpipeAccessory(product);
 
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
   const productCategory = localizeShopText(resolvedLocale, product.category);
+  const primaryPartNumber = (product.sku || defaultVariant?.sku || '').trim();
 
   // For DO88 products we override the supplier's templated descriptions with
   // a concise, info-dense version generated from the product type + chassis.
@@ -388,10 +419,27 @@ export default async function ShopProductDetailPage({
     }
     fallbackSpecs.push({ label, value: normalizedValue });
   };
-  const detailFeatureItems = descriptionSections.features.length
+  const rawDetailFeatureItems = descriptionSections.features.length
     ? descriptionSections.features
     : product.highlights.map((item) => localizeShopText(resolvedLocale, item));
+  // For main Akrapovič exhausts (Slip-On / Evolution / Downpipe / Link Pipe),
+  // the supplier copy lists exhaust tips / насадки as bullet items even though
+  // tips are a separate, additional accessory rather than a benefit. Strip them
+  // here so they don't pollute the "Переваги" panel.
+  const isAkrapovicMainProduct =
+    /akrapovi[cč]/i.test(product.brand) && !isAkrapovicAccessory;
+  const detailFeatureItems = isAkrapovicMainProduct
+    ? rawDetailFeatureItems.filter(
+        (item) => !/(tail\s*pipe|exhaust\s*tips?|насадк|наконечник)/i.test(item)
+      )
+    : rawDetailFeatureItems;
+  const detailListTitle = isDo88Mode
+    ? undefined
+    : isAkrapovicAccessory
+      ? (isUa ? 'Деталі аксесуара' : 'Accessory details')
+      : (isUa ? 'Переваги' : 'Benefits');
   const leadTime = localizeShopText(resolvedLocale, product.leadTime);
+  pushFallbackSpec(isUa ? 'Артикул' : 'Part number', primaryPartNumber);
   pushFallbackSpec(isUa ? 'Термін постачання' : 'Lead time', leadTime);
   if (product.length != null || product.width != null || product.height != null) {
     const dimensionsValue = [
@@ -406,7 +454,6 @@ export default async function ShopProductDetailPage({
   if (product.weightKg != null) {
     pushFallbackSpec(isUa ? 'Вага' : 'Weight', `${product.weightKg} kg`);
   }
-  const productBrandLc = (product.brand || '').toLowerCase();
   // Patch UA spec values that retained English fragments from supplier copy
   if (resolvedLocale === 'ua' && productBrandLc === 'do88') {
     descriptionSections.specs = descriptionSections.specs.map((s) => ({
@@ -438,10 +485,22 @@ export default async function ShopProductDetailPage({
     return true;
   });
   const existingSpecKeys = new Set(
-    detailSpecs.map((spec) => `${spec.label.toLowerCase()}::${spec.value.toLowerCase()}`)
+    detailSpecs.map((spec) => `${normalizeSpecComparable(spec.label)}::${normalizeSpecComparable(spec.value)}`)
   );
   fallbackSpecs.forEach((spec) => {
-    const key = `${spec.label.toLowerCase()}::${spec.value.toLowerCase()}`;
+    const normalizedSpecValue = normalizeSpecComparable(spec.value);
+    if (
+      isPartNumberSpecLabel(spec.label) &&
+      detailSpecs.some(
+        (existing) =>
+          isPartNumberSpecLabel(existing.label) &&
+          normalizeSpecComparable(existing.value) === normalizedSpecValue
+      )
+    ) {
+      return;
+    }
+
+    const key = `${normalizeSpecComparable(spec.label)}::${normalizedSpecValue}`;
     if (existingSpecKeys.has(key)) {
       return;
     }
@@ -691,6 +750,16 @@ export default async function ShopProductDetailPage({
             </div>
 
             <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">{productTitle}</h1>
+            {primaryPartNumber ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-white/12 bg-white/[0.03] px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-white/45">
+                  {isUa ? 'Артикул' : 'Part number'}
+                </span>
+                <span className="min-w-0 break-all rounded-full border border-[#c29d59]/25 bg-[#c29d59]/10 px-3 py-1 font-mono text-xs tracking-[0.04em] text-[#f1d8a5]">
+                  {primaryPartNumber}
+                </span>
+              </div>
+            ) : null}
             {(descriptionSections.introHtml || detailFeatureItems.length > 0 || detailSpecs.length > 0) ? (
               <MobileProductDisclosure
                 title={isUa ? 'Опис і характеристики' : 'Description & specs'}
@@ -704,7 +773,7 @@ export default async function ShopProductDetailPage({
                 ) : null}
                 {detailFeatureItems.length > 0 ? (
                   <DetailListPanel
-                    title={isDo88Mode ? undefined : (isUa ? 'Переваги' : 'Benefits')}
+                    title={detailListTitle}
                     items={detailFeatureItems}
                   />
                 ) : null}

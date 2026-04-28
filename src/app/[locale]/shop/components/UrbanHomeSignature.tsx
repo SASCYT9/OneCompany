@@ -7,6 +7,7 @@ import { URBAN_HERO, URBAN_FEATURED_MODELS } from '../data/urbanHomeData';
 import { URBAN_COLLECTIONS_INDEX_PATH } from '../data/urbanRoutes';
 import { URBAN_SHOWCASES } from '../data/urbanShowcasesData';
 import UrbanThemeScript from './UrbanThemeScript';
+import { SHOW_STOCK_BADGE } from '@/lib/shopStockUi';
 
 const HOME_ID = 'UrbanHomeV7';
 const ONE_COMPANY_LOGO = 'https://onecompany.global/branding/logo-light.svg';
@@ -251,10 +252,12 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
                     </svg>
                   </Link>
 
-                  <span className="uh7-sc__avail">
-                    <span className="uh7-sc__avail-dot" aria-hidden />
-                    {localize(isUa, s.avail, s.availUk)}
-                  </span>
+                  {SHOW_STOCK_BADGE ? (
+                    <span className="uh7-sc__avail">
+                      <span className="uh7-sc__avail-dot" aria-hidden />
+                      {localize(isUa, s.avail, s.availUk)}
+                    </span>
+                  ) : null}
                 </div>
               </div>
               <div className="uh7-sc__divider" aria-hidden />

@@ -87,7 +87,7 @@ export const OUR_STORES: OurStore[] = [
     description: "Premium ECU tuning modules with App Control. GTS 5 chip tuning for 50+ vehicle brands.",
     descriptionUk: "Преміальні ECU тюнінг-модулі з App Control. GTS 5 чіп-тюнінг для 50+ марок авто.",
     href: "/shop/racechip",
-    imageUrl: "/logos/racechip.png",
+    imageUrl: "https://www.racechip.eu/media/wysiwyg/product_overlay/gts-black-three-quarter.png",
     gridSpan: 'wide',
   },
   {

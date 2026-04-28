@@ -8,6 +8,7 @@ import { URBAN_COLLECTION_CARDS } from '@/app/[locale]/shop/data/urbanCollection
 import type { ShopProduct } from '@/lib/shopCatalog';
 import {
   getUrbanCanonicalCollectionHandleOverride,
+  getUrbanCollectionMediaRoleOverrides,
   getUrbanProgramFallbackImage,
 } from '@/lib/urbanProductOverrides';
 import {
@@ -150,17 +151,25 @@ function resolveCanonicalModelHandles(modelHandles: string[], slug?: string | nu
   );
 }
 
+function flattenSeparators(value: string) {
+  return value.toLowerCase().replace(/[\s_.\-]/g, '');
+}
+
 function isUrbanImageCompatibleWithHandle(url: string, handle: string) {
   const normalized = stripQueryAndHash(normalizeUrbanImageUrl(url)).toLowerCase();
   if (!normalized || isUrbanPlaceholderImage(normalized)) {
     return false;
   }
 
-  const markerHaystack = normalized.includes('/products/')
+  const rawMarkerHaystack = normalized.includes('/products/')
     ? normalized.split('/').pop() ?? normalized
     : normalized;
+  // Filenames mix separators (Range_Rover vs range-rover vs rangerover, G-Wagon_Soft_Kit
+  // vs gwagonsoftkit). Compare on a flattened form so markers match regardless of
+  // which separator the source uses.
+  const flatHaystack = flattenSeparators(rawMarkerHaystack);
   const matchedModelMarkers = ALL_URBAN_MODEL_IMAGE_MARKERS.filter((marker) =>
-    markerHaystack.includes(marker)
+    flatHaystack.includes(flattenSeparators(marker))
   );
   const allowedModelMarkers = URBAN_MODEL_IMAGE_MARKERS_BY_HANDLE[handle] ?? [];
   if (
@@ -171,26 +180,29 @@ function isUrbanImageCompatibleWithHandle(url: string, handle: string) {
     return false;
   }
 
-  if (G_WAGON_COLLECTION_HANDLES.has(handle) && NON_G_WAGON_IMAGE_MARKERS.some((marker) => markerHaystack.includes(marker))) {
+  if (
+    G_WAGON_COLLECTION_HANDLES.has(handle) &&
+    NON_G_WAGON_IMAGE_MARKERS.some((marker) => flatHaystack.includes(flattenSeparators(marker)))
+  ) {
     return false;
   }
 
   if (handle === 'mercedes-g-wagon-softkit') {
-    return !normalized.includes('gwagonwidetrack2024') && !normalized.includes('gwagonaerokit2024');
+    return !flatHaystack.includes('gwagonwidetrack') && !flatHaystack.includes('gwagonaerokit');
   }
 
   if (handle === 'mercedes-g-wagon-w465-widetrack') {
-    return !normalized.includes('gwagonsoftkit') && !normalized.includes('gwagonaerokit2024');
+    return !flatHaystack.includes('gwagonsoftkit') && !flatHaystack.includes('gwagonaerokit');
   }
 
   if (handle === 'mercedes-g-wagon-w465-aerokit') {
-    return !normalized.includes('gwagonsoftkit') && !normalized.includes('gwagonwidetrack2024');
+    return !flatHaystack.includes('gwagonsoftkit') && !flatHaystack.includes('gwagonwidetrack');
   }
 
   return true;
 }
 
-function isUrbanImageCompatibleWithModel(url: string, modelHandles: string[]) {
+export function isUrbanImageCompatibleWithModel(url: string, modelHandles: string[]) {
   if (!modelHandles.length) {
     return !isUrbanPlaceholderImage(url);
   }
@@ -223,7 +235,7 @@ function resolveUrbanProgramFallback(modelHandles: string[], collectionImages: s
   return FALLBACK_URBAN_IMAGE;
 }
 
-function isUrbanBlueprintImage(url: string) {
+export function isUrbanBlueprintImage(url: string) {
   const normalized = stripQueryAndHash(normalizeUrbanImageUrl(url)).toLowerCase();
   return (
     normalized.includes('blueprint-') ||
@@ -231,7 +243,17 @@ function isUrbanBlueprintImage(url: string) {
   );
 }
 
-function classifyUrbanCollectionImageRole(url: string) {
+export function isUrbanGenericCarouselImage(url: string | null | undefined): boolean {
+  const path = stripQueryAndHash(normalizeUrbanImageUrl(url)).toLowerCase();
+  if (!path) return false;
+  if (!/\/carousel\/models\/[^/]+\/(webp\/)?[a-z0-9._-]+-\d+(?:-\d+)?\.(webp|jpg|jpeg|png)$/.test(path)) {
+    return false;
+  }
+  const filename = path.split('/').pop() ?? path;
+  return !/\b(front|rear|back|side|left|right|detail|wheel|arch|exhaust|grille|hood|spoiler|hero)\b/.test(filename);
+}
+
+export function classifyUrbanCollectionImageRole(url: string) {
   const normalized = stripQueryAndHash(normalizeUrbanImageUrl(url)).toLowerCase();
 
   if (
@@ -277,7 +299,10 @@ function classifyUrbanCollectionImageRole(url: string) {
   return 'neutral' as const;
 }
 
-function buildUrbanCollectionMediaFromUrls(collectionImages: string[]) {
+function buildUrbanCollectionMediaFromUrls(
+  collectionImages: string[],
+  collectionHandle?: string | null
+) {
   const photoGallery: string[] = [];
   const rolePhotos: UrbanCollectionMediaSet['rolePhotos'] = {
     hero: [],
@@ -312,6 +337,26 @@ function buildUrbanCollectionMediaFromUrls(collectionImages: string[]) {
       rolePhotos[role].push(url);
     }
   });
+
+  // Merge curated role tags from URBAN_COLLECTION_MEDIA_ROLE_OVERRIDES so
+  // role-based fallback selection can pick the right vehicle angle even when
+  // filename heuristics yield 'neutral' (e.g. carousel-N-1920.jpg). Overrides
+  // are prepended in declared order so the first listed URL wins.
+  const overrides = getUrbanCollectionMediaRoleOverrides(collectionHandle);
+  if (overrides) {
+    (Object.keys(rolePhotos) as Array<keyof UrbanCollectionMediaSet['rolePhotos']>).forEach((role) => {
+      const overrideUrls = overrides[role];
+      if (!overrideUrls) return;
+      const normalizedOverrides = overrideUrls
+        .map((url) => normalizeUrbanImageUrl(url))
+        .filter((url) => url && !isUrbanPlaceholderImage(url));
+      const remaining = rolePhotos[role].filter((url) => !normalizedOverrides.includes(url));
+      rolePhotos[role] = [...normalizedOverrides, ...remaining];
+      normalizedOverrides.forEach((url) => {
+        if (!photoGallery.includes(url)) photoGallery.push(url);
+      });
+    });
+  }
 
   return {
     photoGallery,
@@ -442,22 +487,24 @@ export function resolveUrbanCollectionCardImage(
   const ownImages = uniqueNonPlaceholderImages([image, ...gallery]).filter((url) =>
     isUrbanImageCompatibleWithModel(url, resolvedModelHandles)
   );
+  // Generic carousel kit-shots are compatible with the model but not specific
+  // product photos; treat them as last-resort fallback rather than authoritative
+  // own images so role-tagged collection media can win for products with a
+  // strong visual intent (rear/front/side/detail).
+  const realOwnImages = ownImages.filter((url) => !isUrbanGenericCarouselImage(url));
+  const genericOwnCarousel = ownImages.filter((url) => isUrbanGenericCarouselImage(url));
   const intent = product ? resolveUrbanCardVisualIntent(product) : 'detail';
-  const matchingOwnImages = ownImages.filter((url) => ownImageMatchesIntent(url, intent));
+  const matchingRealOwnImages = realOwnImages.filter((url) => ownImageMatchesIntent(url, intent));
 
-  if (matchingOwnImages.length > 0) {
-    return matchingOwnImages[0]!;
+  if (matchingRealOwnImages.length > 0) {
+    return matchingRealOwnImages[0]!;
   }
 
-  if (ownImages.length > 0) {
-    return ownImages[0]!;
+  if (realOwnImages.length > 0) {
+    return realOwnImages[0]!;
   }
 
-  if (!product) {
-    return resolveUrbanProgramFallback(resolvedModelHandles, collectionImages);
-  }
-
-  const mediaSet = buildUrbanCollectionMediaFromUrls(collectionImages);
+  const mediaSet = buildUrbanCollectionMediaFromUrls(collectionImages, resolvedModelHandles[0]);
   const realCandidate = getMatchingRealPhotoForIntent(mediaSet, intent);
   if (realCandidate && isUrbanImageCompatibleWithModel(realCandidate, resolvedModelHandles)) {
     return realCandidate;
@@ -466,6 +513,14 @@ export function resolveUrbanCollectionCardImage(
   const blueprintCandidate = getMatchingBlueprintForIntent(mediaSet, intent);
   if (blueprintCandidate && isUrbanImageCompatibleWithModel(blueprintCandidate, resolvedModelHandles)) {
     return blueprintCandidate;
+  }
+
+  if (genericOwnCarousel.length > 0) {
+    return genericOwnCarousel[0]!;
+  }
+
+  if (!product) {
+    return resolveUrbanProgramFallback(resolvedModelHandles, collectionImages);
   }
 
   const stableFallback =
@@ -491,25 +546,37 @@ export function resolveUrbanProductGallery(
   const ownImages = uniqueNonPlaceholderImages([product.image, ...(product.gallery ?? [])]).filter((url) =>
     isUrbanImageCompatibleWithModel(url, resolvedModelHandles)
   );
+  const realOwnImages = ownImages.filter((url) => !isUrbanGenericCarouselImage(url));
+  const genericOwnCarousel = ownImages.filter((url) => isUrbanGenericCarouselImage(url));
   const intent = resolveUrbanVisualIntent(product);
   const mediaSet = buildUrbanCollectionMediaSet(config, resolvedModelHandles[0]);
 
-  if (ownImages.length > 0) {
-    return ownImages;
+  // Real (non-generic) product photos take priority — they're the actual item.
+  if (realOwnImages.length > 0) {
+    return realOwnImages;
   }
 
   if (intent === 'package' && mediaSet.photoGallery.length > 0) {
     return mediaSet.photoGallery;
   }
 
+  // Build a hybrid gallery: role-matched collection shots first (best context
+  // for the part), then any generic carousel from the product (vehicle context),
+  // then fallback shots — only if everything else is empty.
+  const candidates: string[] = [];
   const realCandidate = getMatchingRealPhotoForIntent(mediaSet, intent);
   if (realCandidate && isUrbanImageCompatibleWithModel(realCandidate, resolvedModelHandles)) {
-    return [realCandidate];
+    candidates.push(realCandidate);
   }
-
   const blueprintCandidate = getMatchingBlueprintForIntent(mediaSet, intent);
   if (blueprintCandidate && isUrbanImageCompatibleWithModel(blueprintCandidate, resolvedModelHandles)) {
-    return [blueprintCandidate];
+    candidates.push(blueprintCandidate);
+  }
+  for (const url of genericOwnCarousel) {
+    if (!candidates.includes(url)) candidates.push(url);
+  }
+  if (candidates.length > 0) {
+    return candidates;
   }
 
   return [resolveUrbanProgramFallback(resolvedModelHandles, mediaSet.photoGallery)];

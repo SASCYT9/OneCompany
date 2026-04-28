@@ -355,6 +355,14 @@ function stripOhlinsSkuPrefix(title: string): string {
   );
 }
 
+function fixAkrapovicTitleMetadata(product: Pick<ShopProduct, 'slug'>, title: string): string {
+  if (!title || product.slug !== 'akrapovic-tp-t-s-24-1') {
+    return title;
+  }
+
+  return title.replace(/\b2018\+$/u, '2025-');
+}
+
 /**
  * Patches Ukrainian descriptions where the supplier left English fragments
  * mid-sentence (mostly GFB / VTA boost-control valve listings).
@@ -388,6 +396,7 @@ function applyShopTitleFixes(
   title: string
 ): string {
   let out = applyDo88LocaleFixes(locale, title);
+  out = fixAkrapovicTitleMetadata(product, out);
   const brand = (product.brand || product.vendor || '').toLowerCase();
   const isOhlins =
     brand === 'ohlins' || brand === 'öhlins' || product.slug.startsWith('ohlins-');

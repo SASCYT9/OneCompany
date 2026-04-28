@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Search, ChevronDown, ShoppingCart, Package, Loader2, X, Check, Layers, Car, RotateCcw } from 'lucide-react';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { motion } from 'framer-motion';
+import { SHOW_STOCK_BADGE } from '@/lib/shopStockUi';
 
 type StockSource = 'turn14' | 'local' | 'all';
 
@@ -668,7 +669,7 @@ function StockPageContent() {
                   >
                     {/* Status Badges */}
                     <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-                      {item.inStock && (
+                      {SHOW_STOCK_BADGE && item.inStock && (
                         <div className="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-md">
                           <span className="text-[8px] font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1">
                             <div className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />

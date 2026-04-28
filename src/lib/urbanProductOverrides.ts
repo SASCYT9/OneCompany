@@ -205,7 +205,100 @@ const URBAN_PROGRAM_FALLBACK_IMAGES: Record<string, string> = {
   'mercedes-g-wagon-w465-widetrack':
     '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-5-2560.webp',
 };
-const URBAN_COLLECTION_MEDIA_ROLE_OVERRIDES: Record<string, Partial<Record<string, string[]>>> = {};
+// Role tags for the model-carousel images. Visually verified frame-by-frame:
+// `front` = head-on or 3/4 front shot; `rear` = rear bumper / tailgate / spare
+// wheel area (used for exhaust, diffuser, rear spoiler products); `side` = side
+// profile / wheels / mirrors / arches; `detail` = badges / vents / roof modules.
+// `hero` images double as a vehicle establishing shot.
+const URBAN_COLLECTION_MEDIA_ROLE_OVERRIDES: Record<string, Partial<Record<string, string[]>>> = {
+  'mercedes-g-wagon-w465-widetrack': {
+    hero: [
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-1-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-10-2560.webp',
+    ],
+    front: [
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-1-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-10-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-5-2560.webp',
+    ],
+    rear: [
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-11-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-3-2560.webp',
+    ],
+    side: [
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-12-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-9-2560.webp',
+    ],
+    detail: [
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-8-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-6-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-2-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-4-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-7-2560.webp',
+    ],
+  },
+  'mercedes-g-wagon-w465-aerokit': {
+    hero: [
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-2-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-5-2560.webp',
+    ],
+    front: [
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-5-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-2-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-7-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-6-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-9-2560.webp',
+    ],
+    rear: [
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-12-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-1-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-11-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-3-2560.webp',
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-10-2560.webp',
+    ],
+    side: [
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-4-2560.webp',
+    ],
+    detail: [
+      '/images/shop/urban/carousel/models/gwagonAerokit2024/webp/urban-automotive-g-wagon-g63-w465-aerokit-8-2560.webp',
+    ],
+  },
+  'mercedes-g-wagon-softkit': {
+    hero: [
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-19-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-5-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-4-1920.jpg',
+    ],
+    front: [
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-19-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-20-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-5-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-4-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-1-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-7-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-15-1920.jpg',
+    ],
+    rear: [
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-14-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-9-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-18-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-8-1920.jpg',
+    ],
+    side: [
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-3-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-2-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-16-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-17-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-10-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-6-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-13-1920.jpg',
+    ],
+    detail: [
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-11-1920.jpg',
+      '/images/shop/urban/carousel/models/gwagonSoftKit/carousel-12-1920.jpg',
+    ],
+  },
+};
 
 export function getUrbanCanonicalCollectionHandleOverride(slug: string | null | undefined) {
   return slug ? (URBAN_CANONICAL_COLLECTION_HANDLE_OVERRIDES[slug] ?? null) : null;

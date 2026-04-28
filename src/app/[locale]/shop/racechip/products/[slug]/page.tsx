@@ -5,6 +5,7 @@ import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCatalogServer';
+import { localizeShopDescription, localizeShopProductTitle } from '@/lib/shopText';
 import {
   extractProductFitment,
   findCrossShopFitmentMatches,
@@ -20,14 +21,16 @@ export async function generateMetadata({
 }) {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const p = await prisma.shopProduct.findUnique({ where: { slug } });
-  if (!p) return {};
+  const product = await getShopProductBySlugServer(slug);
+  if (!product) return {};
 
-  const title = resolvedLocale === 'ua' && p.titleUa ? p.titleUa : p.titleEn;
+  const title = localizeShopProductTitle(resolvedLocale, product);
   return buildPageMetadata(resolvedLocale, `shop/racechip/products/${slug}`, {
     title: `${title} | RaceChip Ukraine`,
-    description: `Buy ${title} tuning module. Maximum performance and efficiency with RaceChip app control.`,
-    image: p.image || undefined,
+    description:
+      localizeShopDescription(resolvedLocale, product.shortDescription) ||
+      `Buy ${title} tuning module. Maximum performance and efficiency with RaceChip app control.`,
+    image: product.image || undefined,
   });
 }
 
@@ -39,19 +42,15 @@ export default async function RacechipProductPage({
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const product = await prisma.shopProduct.findUnique({
-    where: { slug, status: 'ACTIVE' },
-    include: { variants: true },
-  });
+  const product = await getShopProductBySlugServer(slug);
 
   if (!product) {
     redirect(`/${resolvedLocale}/shop/racechip`);
   }
 
-  const [session, settingsRecord, catalogProduct, allProducts] = await Promise.all([
+  const [session, settingsRecord, allProducts] = await Promise.all([
     getCurrentShopCustomerSession(),
     getOrCreateShopSettings(prisma),
-    getShopProductBySlugServer(slug),
     getShopProductsServer(),
   ]);
 
@@ -67,12 +66,12 @@ export default async function RacechipProductPage({
   // (`car_make:bmw`, `car_model:m340i`) so the unified fitment extractor
   // picks them up via the generic tag fallback.
   const crossShopFitment =
-    catalogProduct && !isExcludedFromCrossShop(catalogProduct)
-      ? extractProductFitment(catalogProduct)
+    product && !isExcludedFromCrossShop(product)
+      ? extractProductFitment(product)
       : null;
   const crossShopGroups =
-    catalogProduct && crossShopFitment && (crossShopFitment.make || crossShopFitment.chassisCodes.length > 0)
-      ? findCrossShopFitmentMatches(catalogProduct, allProducts, {
+    product && crossShopFitment && (crossShopFitment.make || crossShopFitment.chassisCodes.length > 0)
+      ? findCrossShopFitmentMatches(product, allProducts, {
           perBrand: 3,
           totalLimit: 9,
         })
@@ -82,7 +81,7 @@ export default async function RacechipProductPage({
     <>
       <RacechipShopProductDetailLayout
         locale={resolvedLocale}
-        product={JSON.parse(JSON.stringify(product))}
+        product={product}
         viewerContext={viewerContext}
       />
       {crossShopFitment && crossShopGroups.length > 0 ? (

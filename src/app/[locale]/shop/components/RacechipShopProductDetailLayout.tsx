@@ -3,12 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Check, ChevronRight, Zap, Target } from "lucide-react";
+import { ArrowLeft, Check, ChevronRight, Zap, Target, Truck } from "lucide-react";
 
 import type { SupportedLocale } from "@/lib/seo";
-import type { ShopProduct, ShopProductVariant } from "@prisma/client";
+import type { ShopProduct, ShopProductVariantSummary } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+import { resolveShopPriceBands, resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { useRouter } from "next/navigation";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
@@ -16,7 +16,7 @@ import { MobileProductDisclosure } from "./MobileProductDisclosure";
 
 type Props = {
   locale: SupportedLocale;
-  product: ShopProduct & { variants?: ShopProductVariant[] };
+  product: ShopProduct;
   viewerContext: ShopViewerPricingContext;
 };
 
@@ -29,6 +29,19 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | 
   return locale === "ua" ? `${formatted} ${currency}` : `${currency} ${formatted}`;
 }
 
+function resolveVariantPricing(
+  variant: ShopProductVariantSummary,
+  viewerContext: ShopViewerPricingContext
+) {
+  return resolveShopPriceBands({
+    b2cPrice: variant.price,
+    b2cCompareAt: variant.compareAt ?? null,
+    b2bPrice: variant.b2bPrice ?? null,
+    b2bCompareAt: variant.b2bCompareAt ?? null,
+    context: viewerContext,
+  });
+}
+
 export default function RacechipShopProductDetailLayout({
   locale,
   product,
@@ -37,13 +50,15 @@ export default function RacechipShopProductDetailLayout({
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const router = useRouter();
-  const variant = product.variants?.[0];
+  const variant = product.variants?.find((item) => item.isDefault) ?? product.variants?.[0] ?? null;
   const [isAdding, setIsAdding] = useState(false);
   const [inCart, setInCart] = useState(false);
 
-  const productTitle = isUa ? (product.titleUa || product.titleEn) : (product.titleEn || product.titleUa);
+  const productTitle = isUa ? (product.title.ua || product.title.en) : (product.title.en || product.title.ua);
   const longDesc = sanitizeRichTextHtml(
-    isUa ? (product.longDescUa || product.longDescEn) : (product.longDescEn || product.longDescUa)
+    isUa
+      ? (product.longDescription.ua || product.longDescription.en)
+      : (product.longDescription.en || product.longDescription.ua)
   );
   
   // Format Breadcrumbs from tags
@@ -56,17 +71,22 @@ export default function RacechipShopProductDetailLayout({
 
   // Pricing Logic — compute all 3 currencies
   const getPricing = () => {
-    let basePriceEur = 0;
-    if (variant) {
-      basePriceEur = variant.priceEur ? Number(variant.priceEur) : 0;
-    } else {
-      const pPricing = resolveShopProductPricing(product as any, viewerContext);
-      basePriceEur = pPricing.effectivePrice.eur ?? (product.priceEur ? Number(product.priceEur) : 0);
-    }
+    const resolvedPricing = variant
+      ? resolveVariantPricing(variant, viewerContext)
+      : resolveShopProductPricing(product, viewerContext);
+    const basePriceEur = resolvedPricing.effectivePrice.eur ?? 0;
     if (basePriceEur <= 0) return null;
 
-    const priceUsd = product.priceUsd ? Number(product.priceUsd) : (rates?.USD ? Math.round(basePriceEur * rates.USD) : 0);
-    const priceUah = product.priceUah ? Number(product.priceUah) : (rates?.UAH ? Math.round(basePriceEur * rates.UAH) : 0);
+    const priceUsd = resolvedPricing.effectivePrice.usd > 0
+      ? resolvedPricing.effectivePrice.usd
+      : rates?.USD
+        ? Math.round(basePriceEur * rates.USD)
+        : 0;
+    const priceUah = resolvedPricing.effectivePrice.uah > 0
+      ? resolvedPricing.effectivePrice.uah
+      : rates?.UAH
+        ? Math.round(basePriceEur * rates.UAH)
+        : 0;
 
     return {
       eur: formatPrice(locale, basePriceEur, "EUR"),
@@ -89,7 +109,7 @@ export default function RacechipShopProductDetailLayout({
     try {
       const payload = {
         slug: product.slug,
-        variantId: variant.id,
+        variantId: variant?.id ?? null,
         quantity: 1,
       };
       const response = await fetch("/api/shop/cart/items", {
@@ -221,9 +241,9 @@ export default function RacechipShopProductDetailLayout({
                      )}
                    </div>
                    <div className="text-right">
-                     <span className="block text-xs text-[#00e676] font-bold uppercase tracking-widest flex items-center justify-end gap-1.5">
-                        <Check size={14} strokeWidth={3} />
-                        {isUa ? "У наявності" : "In Stock"}
+                     <span className="block text-xs text-zinc-300 font-bold uppercase tracking-widest flex items-center justify-end gap-1.5">
+                        <Truck size={14} strokeWidth={2.5} />
+                        {isUa ? "Доставка 10-14 днів" : "Delivery 10-14 days"}
                      </span>
                    </div>
                 </div>

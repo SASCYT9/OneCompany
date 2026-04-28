@@ -16,6 +16,10 @@ import {
   type ShopStock,
 } from '@/lib/shopCatalog';
 import {
+  RACECHIP_CATALOG_FALLBACK_PRODUCTS,
+  getRacechipCatalogFallbackProductBySlug,
+} from '@/lib/racechipCatalogFallback';
+import {
   adminProductInclude,
   type AdminShopProductRecord,
 } from '@/lib/shopAdminCatalog';
@@ -36,6 +40,10 @@ import {
   isUnsafeUrbanGpDescription,
 } from '@/lib/urbanGpDescriptionFallback';
 import { buildUrbanEditorialCopy } from '@/lib/urbanEditorialCopy';
+import {
+  buildAkrapovicEditorialCopy,
+  extractAkrapovicSkuFromTitle,
+} from '@/lib/akrapovicEditorialCopy';
 
 const BRABUS_LOCAL_ASSETS_DEPLOYED = process.env.BRABUS_LOCAL_ASSETS_DEPLOYED === '1';
 const shouldUseDeployedBrabusFallback =
@@ -54,6 +62,10 @@ const LOCAL_SHOP_BRAND_IMAGE_PREFIXES: Record<string, string> = {
   CSF: '/images/shop/csf/',
   OHLINS: '/images/shop/ohlins/',
 };
+const STATIC_CATALOG_FALLBACK_PRODUCTS = [
+  ...SHOP_PRODUCTS,
+  ...RACECHIP_CATALOG_FALLBACK_PRODUCTS,
+] satisfies ShopProduct[];
 
 function uniqueStrings(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean)));
@@ -1250,26 +1262,41 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
         productType: row.productType,
       })
     : null;
-  const generatedUrbanUaDescription = poorUrbanUaDescription || unsafeGpDescription
-    ? buildUrbanEditorialCopy({
-        slug: row.slug,
-        titleEn: row.titleEn,
-        titleUa: row.titleUa,
-        shortDescEn: row.shortDescEn,
-        shortDescUa: row.shortDescUa,
-        longDescEn: row.longDescEn,
-        longDescUa: row.longDescUa,
-        bodyHtmlEn: row.bodyHtmlEn,
-        bodyHtmlUa: row.bodyHtmlUa,
-        brand: row.brand,
-        categoryEn: resolveEnglishCategory(row.categoryEn, row.categoryUa) || row.category?.titleEn || '',
-        categoryUa: row.categoryUa ?? row.category?.titleUa ?? '',
-        productType: row.productType,
-        collectionEn: row.collectionEn ?? '',
-        collectionUa: row.collectionUa ?? '',
-        tags: row.tags ?? [],
-      })
-    : null;
+  const brandLc = (row.brand ?? '').toLowerCase();
+  const isUrbanBrand =
+    brandLc === 'urban' ||
+    brandLc === 'urban automotive' ||
+    row.slug.startsWith('urb-');
+  const isAkrapovicBrand = /akrapovi[cč]/i.test(row.brand ?? '') || row.slug.startsWith('akrapovic-');
+  const editorialInput = {
+    slug: row.slug,
+    titleEn: row.titleEn,
+    titleUa: row.titleUa,
+    shortDescEn: row.shortDescEn,
+    shortDescUa: row.shortDescUa,
+    longDescEn: row.longDescEn,
+    longDescUa: row.longDescUa,
+    bodyHtmlEn: row.bodyHtmlEn,
+    bodyHtmlUa: row.bodyHtmlUa,
+    brand: row.brand,
+    categoryEn: resolveEnglishCategory(row.categoryEn, row.categoryUa) || row.category?.titleEn || '',
+    categoryUa: row.categoryUa ?? row.category?.titleUa ?? '',
+    productType: row.productType,
+    collectionEn: row.collectionEn ?? '',
+    collectionUa: row.collectionUa ?? '',
+    tags: row.tags ?? [],
+  };
+  const shouldGenerate = poorUrbanUaDescription || unsafeGpDescription;
+  const generatedUrbanUaDescription =
+    shouldGenerate && isUrbanBrand ? buildUrbanEditorialCopy(editorialInput) : null;
+  // Akrapovič ships with English-only Airtable copy; Urban editorial bleeds onto
+  // the page (Urban brand voice on a non-Urban product). Use the Akrapovič
+  // generator instead, which builds copy from the parsed product line + chassis.
+  const generatedAkrapovicUaDescription =
+    isAkrapovicBrand && (shouldGenerate || !row.bodyHtmlUa)
+      ? buildAkrapovicEditorialCopy(editorialInput)
+      : null;
+  const generatedUaDescription = generatedAkrapovicUaDescription ?? generatedUrbanUaDescription;
   const productB2BPrice = moneySet({
     eur: num(row.priceEurB2b ?? primaryVariant?.priceEurB2b),
     usd: num(row.priceUsdB2b ?? primaryVariant?.priceUsdB2b),
@@ -1328,10 +1355,21 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
       )
     : null;
 
+  // Akrapovič rows often have empty `sku` — but the SKU is always the second
+  // token of `titleEn` (e.g. "AKRAPOVIC S-ME/T/13H Slip-On ..."). Backfill so
+  // the "Артикул" pill renders on the detail page. Use `||` rather than `??`
+  // because empty strings need to fall through, not just null/undefined.
+  const rowSku = (row.sku ?? '').trim();
+  const variantSku = (primaryVariant?.sku ?? '').trim();
+  const fallbackAkrapovicSku =
+    isAkrapovicBrand && !rowSku && !variantSku
+      ? extractAkrapovicSkuFromTitle(row.titleEn)
+      : null;
+
   return {
     id: row.id,
     slug: row.slug,
-    sku: row.sku ?? primaryVariant?.sku ?? '',
+    sku: rowSku || variantSku || fallbackAkrapovicSku || '',
     scope: row.scope as ShopScope,
     brand: row.brand ?? '',
     vendor: row.vendor ?? undefined,
@@ -1348,17 +1386,17 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
       isUrban: entry.collection.isUrban,
       sortOrder: entry.sortOrder,
     })),
-    title: { ua: generatedUrbanUaDescription?.titleUa ?? row.titleUa, en: row.titleEn },
+    title: { ua: generatedUaDescription?.titleUa ?? row.titleUa, en: row.titleEn },
     category: {
       ua: row.categoryUa ?? row.category?.titleUa ?? '',
       en: resolveEnglishCategory(row.categoryEn, row.categoryUa) || row.category?.titleEn || '',
     },
     shortDescription: {
-      ua: curatedUrbanDescription?.shortDescription.ua ?? generatedUrbanUaDescription?.shortDescUa ?? safeGpDescription?.shortDescription.ua ?? row.shortDescUa ?? '',
+      ua: curatedUrbanDescription?.shortDescription.ua ?? generatedUaDescription?.shortDescUa ?? safeGpDescription?.shortDescription.ua ?? row.shortDescUa ?? '',
       en: curatedUrbanDescription?.shortDescription.en ?? safeGpDescription?.shortDescription.en ?? row.shortDescEn ?? '',
     },
     longDescription: {
-      ua: sanitizeRichTextHtml(curatedUrbanDescription?.bodyHtml.ua ?? generatedUrbanUaDescription?.bodyHtmlUa ?? safeGpDescription?.bodyHtml.ua ?? row.bodyHtmlUa ?? row.longDescUa ?? ''),
+      ua: sanitizeRichTextHtml(curatedUrbanDescription?.bodyHtml.ua ?? generatedUaDescription?.bodyHtmlUa ?? safeGpDescription?.bodyHtml.ua ?? row.bodyHtmlUa ?? row.longDescUa ?? ''),
       en: sanitizeRichTextHtml(curatedUrbanDescription?.bodyHtml.en ?? safeGpDescription?.bodyHtml.en ?? row.bodyHtmlEn ?? row.longDescEn ?? ''),
     },
     leadTime: { ua: row.leadTimeUa ?? '', en: row.leadTimeEn ?? '' },
@@ -1541,7 +1579,7 @@ function normalizeCatalogProducts(products: ShopProduct[]) {
 let globalProductsCache: ShopProduct[] | null = null;
 let lastCacheTime = 0;
 let globalProductsPromise: Promise<ShopProduct[]> | null = null;
-const SHOP_PRODUCTS_DEV_CACHE_VERSION = 5;
+const SHOP_PRODUCTS_DEV_CACHE_VERSION = 6;
 
 /** All products: from DB (published) then static catalog (by slug, DB wins). */
 export async function getShopProductsServer(): Promise<ShopProduct[]> {
@@ -1594,7 +1632,7 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
       });
     } catch {
       // No DB or not migrated — use only static
-      return normalizeCatalogProducts(SHOP_PRODUCTS);
+      return normalizeCatalogProducts(STATIC_CATALOG_FALLBACK_PRODUCTS);
     }
 
     const dbProducts = normalizeCatalogProducts(dbRows.map((row) => mapDbToCatalog(row)));
@@ -1606,7 +1644,7 @@ export async function getShopProductsServer(): Promise<ShopProduct[]> {
         .flatMap((product) => [product.brand, product.vendor].map((value) => normalizeBrandImageKey(value)))
         .filter((value) => FEED_MANAGED_BRANDS.has(value))
     );
-    SHOP_PRODUCTS.forEach((p) => {
+    STATIC_CATALOG_FALLBACK_PRODUCTS.forEach((p) => {
       if (!shouldExposeCatalogProduct(p)) {
         return;
       }
@@ -1679,7 +1717,7 @@ export async function getShopProductBySlugServer(slug: string): Promise<ShopProd
       // ignore stale local cache
     }
   }
-  const staticProduct = getStaticBySlug(slug);
+  const staticProduct = getStaticBySlug(slug) ?? getRacechipCatalogFallbackProductBySlug(slug);
   if (!staticProduct || !shouldExposeCatalogProduct(staticProduct)) {
     return undefined;
   }
