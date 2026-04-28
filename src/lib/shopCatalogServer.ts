@@ -44,6 +44,10 @@ import {
   buildAkrapovicEditorialCopy,
   extractAkrapovicSkuFromTitle,
 } from '@/lib/akrapovicEditorialCopy';
+import {
+  buildGenericShopEditorialCopy,
+  isUaBodyEmptyOrLatin,
+} from '@/lib/genericShopEditorialCopy';
 
 const BRABUS_LOCAL_ASSETS_DEPLOYED = process.env.BRABUS_LOCAL_ASSETS_DEPLOYED === '1';
 const shouldUseDeployedBrabusFallback =
@@ -1296,7 +1300,25 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
     isAkrapovicBrand && (shouldGenerate || !row.bodyHtmlUa)
       ? buildAkrapovicEditorialCopy(editorialInput)
       : null;
-  const generatedUaDescription = generatedAkrapovicUaDescription ?? generatedUrbanUaDescription;
+  // For everything else (Brabus / OHLINS / CSF / GiroDisc / iPE / Burger / etc.)
+  // when the UA body is empty OR English-dominant (supplier shipped EN copy into
+  // the UA field, the legacy "and→та" patcher only made it worse), generate a
+  // brand-neutral factual UA fallback. Skip Urban / Akrapovič — they have their
+  // own dedicated generators above. Skip DO88 — it has its own generator that
+  // runs on the page.
+  const isDo88Brand = brandLc === 'do88';
+  const generatedGenericUaDescription =
+    !isUrbanBrand &&
+    !isAkrapovicBrand &&
+    !isDo88Brand &&
+    isUaBodyEmptyOrLatin(row)
+      ? buildGenericShopEditorialCopy({
+          ...editorialInput,
+          sku: row.sku ?? primaryVariant?.sku ?? '',
+        })
+      : null;
+  const generatedUaDescription =
+    generatedAkrapovicUaDescription ?? generatedUrbanUaDescription ?? generatedGenericUaDescription;
   const productB2BPrice = moneySet({
     eur: num(row.priceEurB2b ?? primaryVariant?.priceEurB2b),
     usd: num(row.priceUsdB2b ?? primaryVariant?.priceUsdB2b),
@@ -1579,7 +1601,7 @@ function normalizeCatalogProducts(products: ShopProduct[]) {
 let globalProductsCache: ShopProduct[] | null = null;
 let lastCacheTime = 0;
 let globalProductsPromise: Promise<ShopProduct[]> | null = null;
-const SHOP_PRODUCTS_DEV_CACHE_VERSION = 6;
+const SHOP_PRODUCTS_DEV_CACHE_VERSION = 7;
 
 /** All products: from DB (published) then static catalog (by slug, DB wins). */
 export async function getShopProductsServer(): Promise<ShopProduct[]> {
