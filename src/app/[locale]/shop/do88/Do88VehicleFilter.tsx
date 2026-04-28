@@ -42,9 +42,6 @@ const CAR_DATA: Record<string, readonly ModelEntry[]> = {
     { label: '911 (992)', keyword: '992' },
     { label: '911 (991)', keyword: '991' },
     { label: '911 (997)', keyword: '997' },
-    { label: '911 (996)', keyword: '996' },
-    { label: '911 (993)', keyword: '993' },
-    { label: '911 (964)', keyword: '964' },
   ],
   BMW: [
     { label: 'M2 (G87)', keyword: 'G87' },
