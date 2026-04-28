@@ -1,4 +1,6 @@
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
+import { getShopProductsServer } from '@/lib/shopCatalogServer';
+import { buildCsfHeroSummary, isCsfProduct } from '@/lib/csfHeroCatalog';
 import CSFHomeSignature from '../components/CSFHomeSignature';
 
 type Props = {
@@ -33,5 +35,15 @@ export default async function CSFRacingPage({ params, searchParams }: Props) {
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const src = typeof resolvedSearchParams.src === 'string' ? resolvedSearchParams.src : undefined;
 
-  return <CSFHomeSignature locale={resolvedLocale} smmSource={src} />;
+  const products = await getShopProductsServer();
+  const csfProducts = products.filter(isCsfProduct);
+  const heroSummary = buildCsfHeroSummary(csfProducts);
+
+  return (
+    <CSFHomeSignature
+      locale={resolvedLocale}
+      smmSource={src}
+      heroSummary={heroSummary}
+    />
+  );
 }

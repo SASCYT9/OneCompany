@@ -1,18 +1,24 @@
 import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
+import type { AdroHeroVehicleMake } from '@/lib/adroCatalog';
 import { ADRO_PRODUCT_LINES } from '../data/adroHomeData';
 
 import ScrollRevealClient from './ScrollRevealClient';
 import AdroVideoEmbed from './AdroVideoEmbed';
+import AdroHeroFilter from './AdroHeroFilter';
 
-type Props = { locale: SupportedLocale };
+type Props = {
+  locale: SupportedLocale;
+  availableVehicles?: AdroHeroVehicleMake[];
+};
 
 function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
 
-export default function AdroHomeSignature({ locale }: Props) {
+export default function AdroHomeSignature({ locale, availableVehicles }: Props) {
   const isUa = locale === 'ua';
+  const vehicles = availableVehicles ?? [];
 
   return (
     <div className="adro" id="AdroHome">
@@ -50,6 +56,10 @@ export default function AdroHomeSignature({ locale }: Props) {
             {L(isUa, 'Open Catalog', 'Відкрити каталог')}
             <span className="adro__cta-arrow">→</span>
           </Link>
+
+          <div className="adro__hf-wrap" data-r>
+            <AdroHeroFilter locale={locale} vehicles={vehicles} />
+          </div>
         </div>
       </section>
 

@@ -1,4 +1,6 @@
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
+import { getShopProductsServer } from '@/lib/shopCatalogServer';
+import { buildAdroHeroVehicleTree, isAdroProduct } from '@/lib/adroCatalog';
 import AdroHomeSignature from '../components/AdroHomeSignature';
 
 type Props = {
@@ -27,6 +29,9 @@ export async function generateMetadata({
 export default async function ShopAdroPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
+  const products = await getShopProductsServer();
+  const adroProducts = products.filter(isAdroProduct);
+  const availableVehicles = buildAdroHeroVehicleTree(adroProducts);
 
-  return <AdroHomeSignature locale={resolvedLocale} />;
+  return <AdroHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />;
 }

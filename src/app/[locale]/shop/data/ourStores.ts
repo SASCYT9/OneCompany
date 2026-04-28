@@ -87,7 +87,7 @@ export const OUR_STORES: OurStore[] = [
     description: "Premium ECU tuning modules with App Control. GTS 5 chip tuning for 50+ vehicle brands.",
     descriptionUk: "Преміальні ECU тюнінг-модулі з App Control. GTS 5 чіп-тюнінг для 50+ марок авто.",
     href: "/shop/racechip",
-    imageUrl: "/images/shop/racechip/hero-racechip.jpg",
+    imageUrl: "/logos/racechip.png",
     gridSpan: 'wide',
   },
   {
@@ -141,8 +141,8 @@ export const OUR_STORES: OurStore[] = [
       "Керовані вихлопні системи з фірмовим звучанням для преміальних спортивних авто.",
     href: "https://fiexhaust.shop",
     external: true,
-    // Офіційне фото — Lamborghini Revuelto Valvetronic Muffler (збережено локально)
-    imageUrl: "/images/shop/stores/fi-reveulto-valvetronic-exhaust.webp",
+    // Офіційний пресс-кадр FI — Porsche 992 GT3 RS valvetronic system на чорному тлі
+    imageUrl: "/images/shop/stores/fi-992-gt3-rs-exhaust.webp",
   },
   {
     id: "eventuri",

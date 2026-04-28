@@ -260,6 +260,25 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
 
 const BRAND_LOGO_ALIASES: Record<string, string> = {
   'rolls-royce': 'Rolls Royce',
+  // Cross-shop fitment & catalog rendering surface brand names with stray
+  // suffixes / casing variants; map them all back to the canonical map keys.
+  'burger motorsports': 'Burger Motorsport',
+  'burger': 'Burger Motorsport',
+  'ipe': 'iPE exhaust',
+  'innotech performance exhaust': 'iPE exhaust',
+  'innotech': 'iPE exhaust',
+  'akrapovič': 'Akrapovic',
+  'akrapovič exhaust': 'Akrapovic',
+  'akrapovic exhaust': 'Akrapovic',
+  'öhlins': 'Ohlins',
+  'öhlins racing': 'Ohlins',
+  'ohlins racing': 'Ohlins',
+  'csf racing': 'CSF',
+  'csf cooling': 'CSF',
+  'girodisc': 'Girodisc',
+  'gi-ro disc': 'Girodisc',
+  'do 88': 'do88',
+  'racechip ukraine': 'RaceChip',
 };
 
 export function getBrandLogo(brandName: string): string {

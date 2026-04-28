@@ -279,7 +279,7 @@ function StockPageContent() {
           setActiveDistributor(stockStats.distributors[0].name);
         }
       }
-    }).catch(console.error);
+    }).catch(() => {});
   }, []);
 
   // Cascading: Year → Makes
@@ -289,7 +289,7 @@ function StockPageContent() {
     fetch(`/api/shop/turn14/fitment?year=${year}`)
       .then(r => r.json())
       .then(res => setMakes(res.data || []))
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setMakesLoading(false));
     setMake(''); setModel(''); setSubmodel('');
     setModels([]); setSubmodels([]);
@@ -302,7 +302,7 @@ function StockPageContent() {
     fetch(`/api/shop/turn14/fitment?year=${year}&make=${encodeURIComponent(make)}`)
       .then(r => r.json())
       .then(res => setModels(res.data || []))
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setModelsLoading(false));
     setModel(''); setSubmodel(''); setSubmodels([]);
   }, [year, make]);
@@ -314,7 +314,7 @@ function StockPageContent() {
     fetch(`/api/shop/turn14/fitment?year=${year}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`)
       .then(r => r.json())
       .then(res => setSubmodels(res.data || []))
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setSubmodelsLoading(false));
     setSubmodel('');
   }, [year, make, model]);

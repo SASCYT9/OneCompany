@@ -49,6 +49,12 @@ import { ShopProductGallery } from './ShopProductGallery';
 import { MobileProductDisclosure } from './MobileProductDisclosure';
 import { getUrbanCollectionPageConfig } from '../data/urbanCollectionPages.server';
 import { findRelatedProducts } from '@/lib/shopRelatedProducts';
+import {
+  extractProductFitment,
+  findCrossShopFitmentMatches,
+  isExcludedFromCrossShop,
+} from '@/lib/crossShopFitment';
+import CrossShopFitment from './CrossShopFitment';
 
 import type { ShopProduct } from '@/lib/shopCatalog';
 
@@ -518,6 +524,20 @@ export default async function ShopProductDetailPage({
     item,
     price: computeCrossPrices(resolveShopProductPricing(item, viewerContext).effectivePrice),
   }));
+
+  // Cross-shop fitment matches — show parts from OTHER stores that fit the
+  // same vehicle (e.g. ADRO M3 G80 bumper → iPE / Akrapovic / Ohlins / CSF
+  // matches for the same chassis). Suppressed for Urban / Brabus / Turn14.
+  const crossShopFitment = isExcludedFromCrossShop(product)
+    ? null
+    : extractProductFitment(product);
+  const crossShopGroups =
+    crossShopFitment && (crossShopFitment.make || crossShopFitment.chassisCodes.length > 0)
+      ? findCrossShopFitmentMatches(product, allProducts, {
+          perBrand: 3,
+          totalLimit: 9,
+        })
+      : [];
   const urbanRelatedImagePools = new Map<string, string[]>();
   if (isUrbanMode) {
     const relatedUrbanHandles = new Set(
@@ -834,84 +854,21 @@ export default async function ShopProductDetailPage({
           </div>
         </section>
 
-        {relatedProductsWithPricing.length > 0 ? (
-          <section className="space-y-4">
-            <h2 className="text-2xl font-light">{isUa ? 'Схожі товари' : 'Related products'}</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {relatedProductsWithPricing.map(({ item, price }) => {
-              const relatedUrbanHandle = isUrbanMode
-                ? getUrbanCollectionHandleForProduct(item) ?? urbanCollectionHandle
-                : null;
-              const relatedImageOverride = isUrbanMode
-                ? getShopProductImageOverrideForSku(item.sku)
-                : null;
-              const relatedImage = isUrbanMode
-                ? relatedImageOverride?.image ??
-                  getFirstExternalProductImage(item) ??
-                  (relatedUrbanHandle
-                    ? resolveUrbanCollectionCardImage(
-                        relatedImageOverride?.image ?? item.image,
-                        [relatedUrbanHandle],
-                        urbanRelatedImagePools.get(relatedUrbanHandle) ?? [],
-                        item.slug,
-                        relatedImageOverride?.gallery ?? item.gallery,
-                        item
-                      )
-                    : null)
-                : relatedUrbanHandle
-                  ? resolveUrbanCollectionCardImage(
-                    item.image,
-                    [relatedUrbanHandle],
-                    urbanRelatedImagePools.get(relatedUrbanHandle) ?? [],
-                    item.slug,
-                    item.gallery,
-                    item
-                  )
-                  : item.image && item.image.replace(/^[\"']|[\"']$/g, '').trim().length > 0
-                    ? item.image.replace(/^[\"']|[\"']$/g, '').trim()
-                    : null;
-
-              return (
-                <Link
-                  key={item.slug}
-                  href={buildShopStorefrontProductPathForProduct(resolvedLocale, item)}
-                  className="group overflow-hidden rounded-2xl border border-white/15 bg-white/[0.03] transition hover:border-white/35"
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    {relatedImage ? (
-                      <ShopProductImage
-                        src={relatedImage}
-                        alt={localizeShopProductTitle(resolvedLocale, item)}
-                        fill
-                        sizes="(max-width: 1280px) 100vw, 30vw"
-                        fallbackSrc="/images/placeholders/product-fallback.svg"
-                        className="object-cover transition duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-black/40 text-white/10">
-                        <ShoppingBag className="h-12 w-12 opacity-30" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/70" />
-                  </div>
-                  <div className="space-y-2 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-white/55">{item.brand}</p>
-                    <h3 className="text-lg font-light leading-snug">{localizeShopProductTitle(resolvedLocale, item)}</h3>
-                    <p className="text-sm text-white/65">
-                      <ShopInlinePriceText
-                        locale={resolvedLocale}
-                        price={price}
-                        requestLabel={isUa ? 'Ціна за запитом' : 'Price on request'}
-                      />
-                    </p>
-                  </div>
-                </Link>
-              );
-              })}
-            </div>
-          </section>
-        ) : null}
       </div>)}
+
+      {/* Cross-shop fitment matches — sits below the main PDP layout for every
+          brand mode (Burger included). Suppressed for Brabus + Urban + Turn14
+          since `findCrossShopFitmentMatches` excludes their products both as
+          source and as candidates. */}
+      {crossShopFitment && crossShopGroups.length > 0 ? (
+        <div className="mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+          <CrossShopFitment
+            locale={resolvedLocale}
+            fitment={crossShopFitment}
+            groups={crossShopGroups}
+          />
+        </div>
+      ) : null}
 </main>
   );
 }

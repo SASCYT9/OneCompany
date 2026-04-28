@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
+import type { CsfHeroSummary } from '@/lib/csfHeroCatalog';
 import {
   CSF_HERO,
   CSF_TECH_PILLARS,
@@ -8,15 +9,20 @@ import {
 } from '../data/csfHomeData';
 import ScrollRevealClient from './ScrollRevealClient';
 import CSFVideoBackground from './CSFVideoBackground';
+import CSFHeroFilter from './CSFHeroFilter';
 import '../csf/csf-shop.css';
 
-type Props = { locale: SupportedLocale; smmSource?: string };
+type Props = {
+  locale: SupportedLocale;
+  smmSource?: string;
+  heroSummary?: CsfHeroSummary;
+};
 
 function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
 
-export default function CSFHomeSignature({ locale }: Props) {
+export default function CSFHomeSignature({ locale, heroSummary }: Props) {
   const isUa = locale === 'ua';
 
   return (
@@ -71,6 +77,11 @@ export default function CSFHomeSignature({ locale }: Props) {
           </div>
         </div>
       </section>
+
+      {/* Hero quick finder — overlaps the hero on desktop, sits below on mobile */}
+      <div className="csf__finder" data-r data-r-delay="4">
+        <CSFHeroFilter locale={locale} summary={heroSummary} />
+      </div>
 
       {/* ══════════════════════════════════════════════════
           2 · TECH PILLARS — 3 columns with logo background

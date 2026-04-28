@@ -118,7 +118,9 @@ export default function AkrapovicSoundPlayer({ entry, isUa }: Props) {
       audioRef.current.play().then(() => {
         setIsPlaying(true);
         drawVisualizer();
-      }).catch(console.error);
+      }).catch(() => {
+        // Browsers can block autoplay; UI stays paused, user can retry.
+      });
     }
   }, [entry.soundUrl, isPlaying, initAudioEngine, drawVisualizer]);
 

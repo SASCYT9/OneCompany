@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 48" width="64" height="48" aria-hidden="true">
+  <defs>
+    <pattern id="csf-check" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="6" height="6" fill="#0b0b0b"/>
+      <rect x="6" y="0" width="6" height="6" fill="#ffffff"/>
+      <rect x="0" y="6" width="6" height="6" fill="#ffffff"/>
+      <rect x="6" y="6" width="6" height="6" fill="#0b0b0b"/>
+    </pattern>
+    <filter id="csf-flag-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1" stdDeviation="0.6" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <!-- Pole -->
+  <rect x="2" y="2" width="2" height="44" rx="0.5" fill="#1a1a1a"/>
+  <circle cx="3" cy="2" r="1.4" fill="#c8102e"/>
+  <!-- Waving flag body -->
+  <path d="M5 4 Q 18 0, 32 4 T 60 4 L 60 32 Q 46 36, 32 32 T 5 32 Z"
+        fill="url(#csf-check)"
+        filter="url(#csf-flag-shadow)"/>
+</svg>

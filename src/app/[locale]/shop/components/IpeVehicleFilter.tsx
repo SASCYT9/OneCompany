@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback, type ReactNode } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
@@ -350,7 +350,14 @@ export default function IpeVehicleFilter({
       }));
   }, [activeBrand, activeModel, enrichedProducts, locale]);
 
+  // Skip the cascading reset on initial mount so deep-links from the brand-home
+  // hero filter (e.g. ?brand=Porsche&model=...&line=...) keep all their params.
+  const previousBrandRef = useRef(activeBrand);
   useEffect(() => {
+    if (previousBrandRef.current === activeBrand) {
+      return;
+    }
+    previousBrandRef.current = activeBrand;
     setActiveLine("all");
     setActiveModel("all");
     setActiveMaterial("all");
@@ -358,7 +365,12 @@ export default function IpeVehicleFilter({
     setModelQuery("");
   }, [activeBrand]);
 
+  const previousModelRef = useRef(activeModel);
   useEffect(() => {
+    if (previousModelRef.current === activeModel) {
+      return;
+    }
+    previousModelRef.current = activeModel;
     setActiveMaterial("all");
     setActiveSpec("all");
   }, [activeModel]);

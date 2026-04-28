@@ -14,7 +14,7 @@ import { computeShopDisplayPrices, hasAnyShopPrice, pickShopSortableAmount } fro
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import { enrichAdroCatalogProduct, type EnrichedAdroCatalogProduct } from "@/lib/adroCatalog";
+import { detectMakesForModel, enrichAdroCatalogProduct, type EnrichedAdroCatalogProduct } from "@/lib/adroCatalog";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type Props = {
@@ -149,7 +149,17 @@ export default function AdroCatalogGrid({ locale, products, viewerContext }: Pro
       return true;
     });
 
-    return buildFacetOptions(scoped.flatMap((entry) => entry.models));
+    const modelTokens = scoped.flatMap((entry) => {
+      if (activeMake === "all") return entry.models;
+      // Pin each model to its make so a multi-fit product (e.g. "M3 / BRZ kit")
+      // doesn't leak the BRZ token into the BMW model dropdown.
+      return entry.models.filter((model) => {
+        const matched = detectMakesForModel(model);
+        return matched.length === 0 || matched.includes(activeMake);
+      });
+    });
+
+    return buildFacetOptions(modelTokens);
   }, [activeCategory, activeMake, queryFilteredProducts]);
 
   const categoryOptions = useMemo<FacetOption[]>(() => {

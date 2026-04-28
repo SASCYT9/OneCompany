@@ -97,7 +97,7 @@ function StoreCard({
           fill
           sizes={sizes}
           className={`object-cover object-center transition-all duration-700 ease-out group-hover:scale-[1.03] ${
-            isLogoAsset ? "opacity-80 grayscale invert !object-contain p-12" : "opacity-75 group-hover:opacity-100"
+            isLogoAsset ? "opacity-90 !object-contain p-10" : "opacity-75 group-hover:opacity-100"
           }`}
           loading={eager ? "eager" : "lazy"}
           unoptimized={isLogoAsset}

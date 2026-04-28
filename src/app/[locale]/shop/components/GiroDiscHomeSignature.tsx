@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
+import type { GirodiscHeroVehicleMake } from '@/lib/girodiscHeroCatalog';
 import {
   GIRODISC_HERO,
   GIRODISC_PRODUCT_LINES,
@@ -9,15 +10,20 @@ import {
 } from '../data/girodiscHomeData';
 import ScrollRevealClient from './ScrollRevealClient';
 import GiroDiscVideoEmbed from './GiroDiscVideoEmbed';
+import GirodiscHeroFilter from './GirodiscHeroFilter';
 
-type Props = { locale: SupportedLocale };
+type Props = {
+  locale: SupportedLocale;
+  availableVehicles?: GirodiscHeroVehicleMake[];
+};
 
 function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
 }
 
-export default function GiroDiscHomeSignature({ locale }: Props) {
+export default function GiroDiscHomeSignature({ locale, availableVehicles }: Props) {
   const isUa = locale === 'ua';
+  const vehicles = availableVehicles ?? [];
 
   return (
     <div className="gd-page" id="GirodiscHome">
@@ -74,6 +80,10 @@ export default function GiroDiscHomeSignature({ locale }: Props) {
               {L(isUa, GIRODISC_HERO.primaryButtonLabel, GIRODISC_HERO.primaryButtonLabelUk)}
               <span className="gd__cta-arrow">→</span>
             </Link>
+          </div>
+
+          <div className="gd__hf-wrap" data-r data-r-delay="4">
+            <GirodiscHeroFilter locale={locale} vehicles={vehicles} />
           </div>
         </div>
 

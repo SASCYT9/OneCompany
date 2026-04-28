@@ -100,8 +100,8 @@ export default function RacechipShopProductDetailLayout({
       if (!response.ok) throw new Error("Add to cart failed");
       setInCart(true);
       router.push(`/${locale}/shop/cart`);
-    } catch (err) {
-      console.error("Failed to add to cart", err);
+    } catch {
+      // Cart API failed — button resets via finally; user can retry.
     } finally {
       setIsAdding(false);
     }

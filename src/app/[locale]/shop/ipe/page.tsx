@@ -1,4 +1,7 @@
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
+import { getShopProductsServer } from '@/lib/shopCatalogServer';
+import { isIpeProduct } from '@/lib/ipeBrand';
+import { buildIpeHeroVehicleTree } from '@/lib/ipeHeroCatalog';
 import IpeHomeSignature from '../components/IpeHomeSignature';
 
 type Props = {
@@ -27,6 +30,9 @@ export async function generateMetadata({
 export default async function ShopIpePage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
+  const products = await getShopProductsServer();
+  const ipeProducts = products.filter(isIpeProduct);
+  const availableVehicles = buildIpeHeroVehicleTree(ipeProducts);
 
-  return <IpeHomeSignature locale={resolvedLocale} />;
+  return <IpeHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />;
 }

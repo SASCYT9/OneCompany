@@ -195,6 +195,17 @@ export function detectAdroMakes(product: Pick<AdroCatalogProduct, 'title' | 'slu
   return found.length ? uniqueValues(found) : [UNKNOWN_MAKE];
 }
 
+/**
+ * For a given model token (e.g. "BRZ", "M3 (G80)", "Model 3"), returns the
+ * make-labels whose patterns match it. Used to pin a model under its rightful
+ * make on multi-fitment products (e.g. avoid showing BRZ in the BMW list).
+ */
+export function detectMakesForModel(model: string): string[] {
+  return MAKE_PATTERNS.filter((entry) =>
+    entry.patterns.some((pattern) => pattern.test(model))
+  ).map((entry) => entry.label);
+}
+
 export function detectAdroModels(product: Pick<AdroCatalogProduct, 'title' | 'slug'>) {
   const fitmentText = extractFitmentText(product);
   const models = splitTopLevelFitments(fitmentText)
@@ -229,4 +240,86 @@ export function enrichAdroCatalogProduct(product: ShopProduct): EnrichedAdroCata
     category,
     searchText: buildProductText(product).toLowerCase(),
   };
+}
+
+export type AdroHeroVehicleModel = {
+  name: string;
+  categories: AdroCatalogCategory[];
+};
+
+export type AdroHeroVehicleMake = {
+  make: string;
+  models: AdroHeroVehicleModel[];
+};
+
+const ADRO_HERO_MAKE_PRIORITY = [
+  'BMW', 'Porsche', 'Toyota', 'Tesla', 'Subaru', 'Honda',
+  'Hyundai', 'Genesis', 'Kia', 'Ford', 'Chevrolet',
+];
+
+/**
+ * Catalog-first builder. Walks every Adro product and aggregates the
+ * make → model → category tree that powers the home-page quick finder.
+ * Models with the unknown-make/model placeholder are skipped so the
+ * dropdowns stay clean.
+ */
+export function buildAdroHeroVehicleTree(
+  products: ReadonlyArray<ShopProduct>
+): AdroHeroVehicleMake[] {
+  const tree = new Map<string, Map<string, Map<string, AdroCatalogCategory>>>();
+
+  for (const product of products) {
+    const enriched = enrichAdroCatalogProduct(product);
+    const productMakes = enriched.makes.filter((make) => make && make !== UNKNOWN_MAKE);
+    if (productMakes.length === 0) continue;
+
+    // For each model token, pin it to the make(s) it actually belongs to.
+    // Falls back to all of the product's makes when the token is generic
+    // (e.g. "Model 3" → Tesla; "M3 (G80)" → BMW; bare "Coupe" → all makes).
+    for (const rawModel of enriched.models) {
+      if (!rawModel || rawModel === UNKNOWN_MODEL) continue;
+
+      const matchedMakes = detectMakesForModel(rawModel).filter((label) =>
+        productMakes.includes(label)
+      );
+      const targetMakes = matchedMakes.length > 0 ? matchedMakes : productMakes;
+
+      for (const make of targetMakes) {
+        let modelMap = tree.get(make);
+        if (!modelMap) {
+          modelMap = new Map();
+          tree.set(make, modelMap);
+        }
+        let categoryMap = modelMap.get(rawModel);
+        if (!categoryMap) {
+          categoryMap = new Map();
+          modelMap.set(rawModel, categoryMap);
+        }
+        categoryMap.set(enriched.category.key, enriched.category);
+      }
+    }
+  }
+
+  const result: AdroHeroVehicleMake[] = [];
+  for (const [make, modelMap] of tree.entries()) {
+    const models: AdroHeroVehicleModel[] = [];
+    for (const [name, categoryMap] of modelMap.entries()) {
+      models.push({
+        name,
+        categories: [...categoryMap.values()].sort((a, b) =>
+          a.labelEn.localeCompare(b.labelEn)
+        ),
+      });
+    }
+    models.sort((a, b) => a.name.localeCompare(b.name));
+    result.push({ make, models });
+  }
+
+  result.sort((a, b) => {
+    const ai = ADRO_HERO_MAKE_PRIORITY.indexOf(a.make);
+    const bi = ADRO_HERO_MAKE_PRIORITY.indexOf(b.make);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi) || a.make.localeCompare(b.make);
+  });
+
+  return result;
 }

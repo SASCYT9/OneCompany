@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
@@ -253,13 +253,28 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
     setVisibleCount(30);
   }, [activeCategory, activeMake, activeModel, activeChassis, activeYear, activeStock, activePriceBand, searchQuery, sortOrder]);
 
+  // Skip the cascading reset on initial mount so deep-links from the brand-home
+  // hero filter (e.g. ?make=BMW&model=3+Series&category=radiators) keep all params.
+  const previousScopeRef = useRef({ make: activeMake, category: activeCategory });
   useEffect(() => {
+    if (
+      previousScopeRef.current.make === activeMake &&
+      previousScopeRef.current.category === activeCategory
+    ) {
+      return;
+    }
+    previousScopeRef.current = { make: activeMake, category: activeCategory };
     setActiveModel("all");
     setActiveChassis("all");
     setActiveYear("all");
   }, [activeCategory, activeMake]);
 
+  const previousModelRef = useRef(activeModel);
   useEffect(() => {
+    if (previousModelRef.current === activeModel) {
+      return;
+    }
+    previousModelRef.current = activeModel;
     setActiveChassis("all");
     setActiveYear("all");
   }, [activeModel]);

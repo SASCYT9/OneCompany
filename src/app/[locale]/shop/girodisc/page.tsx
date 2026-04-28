@@ -1,4 +1,6 @@
 import { resolveLocale } from '@/lib/seo';
+import { getShopProductsServer } from '@/lib/shopCatalogServer';
+import { buildGirodiscHeroVehicleTree, isGirodiscProduct } from '@/lib/girodiscHeroCatalog';
 import GiroDiscHomeSignature from '../components/GiroDiscHomeSignature';
 
 type Props = {
@@ -20,6 +22,9 @@ export async function generateMetadata({ params }: Props) {
 export default async function GiroDiscSkinPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
+  const products = await getShopProductsServer();
+  const girodiscProducts = products.filter(isGirodiscProduct);
+  const availableVehicles = buildGirodiscHeroVehicleTree(girodiscProducts);
 
-  return <GiroDiscHomeSignature locale={resolvedLocale} />;
+  return <GiroDiscHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />;
 }

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
+import type { IpeHeroVehicleBrand } from '@/lib/ipeHeroCatalog';
 import {
   IPE_HERO,
   IPE_VALVETRONIC,
@@ -8,8 +9,12 @@ import {
 } from '../data/ipeHomeData';
 
 import ScrollRevealClient from './ScrollRevealClient';
+import IpeHeroFilter from './IpeHeroFilter';
 
-type Props = { locale: SupportedLocale };
+type Props = {
+  locale: SupportedLocale;
+  availableVehicles?: IpeHeroVehicleBrand[];
+};
 
 function L(isUa: boolean, en: string, ua: string) {
   return isUa ? ua : en;
@@ -20,8 +25,9 @@ function getIpeCollectionHref(locale: SupportedLocale, brand: string) {
   return `/${locale}/shop/ipe/collections?${params.toString()}`;
 }
 
-export default function IpeHomeSignature({ locale }: Props) {
+export default function IpeHomeSignature({ locale, availableVehicles }: Props) {
   const isUa = locale === 'ua';
+  const vehicles = availableVehicles ?? [];
 
   return (
     <div className="ipe-home" id="IpeHome">
@@ -78,6 +84,15 @@ export default function IpeHomeSignature({ locale }: Props) {
         {/* Scroll indicator */}
         <div className="ipe-hero__scroll" aria-hidden>
           <div className="ipe-hero__scroll-line" />
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 1.5 — HERO QUICK FINDER (Make / Model / Line)
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="ipe-finder" aria-label={isUa ? 'Швидкий підбір' : 'Quick finder'}>
+        <div className="ipe-finder__inner" data-ipe-reveal>
+          <IpeHeroFilter locale={locale} vehicles={vehicles} />
         </div>
       </section>
 
