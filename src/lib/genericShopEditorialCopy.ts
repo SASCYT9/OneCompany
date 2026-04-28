@@ -37,7 +37,9 @@ export type GenericShopEditorialCopy = {
 
 const CATEGORY_UA_FALLBACK: Array<[RegExp, string]> = [
   [/\b(exhaust|tailpipe|catback|cat-back|downpipe|slip[- ]on|muffler|midpipe)\b/i, 'Вихлопна система'],
-  [/\b(suspension|coilover|coil[- ]over|damper|shock|strut|spring|spacer|mount|bushing)\b/i, 'Підвіска'],
+  // EDC / electronic damping / cancellation kits ship as suspension parts even
+  // though the supplier sometimes tags them as "sensors / accessories".
+  [/\b(suspension|coilover|coil[- ]over|damper|damping|shock|strut|spring|spacer|mount|bushing|edc(?:\s+cancel\w*)?|electronic\s+damp\w*)\b/i, 'Підвіска'],
   [/\b(brake|disc|rotor|pad|caliper|hardware\s+kit|big\s+brake)\b/i, 'Гальмівна система'],
   [/\b(radiator|intercooler|oil\s+cooler|charge\s+air|cooling)\b/i, 'Система охолодження'],
   [/\b(intake|inlet\s+manifold|charge\s+pipe|turbo\s+inlet)\b/i, 'Впускна система'],
@@ -129,19 +131,24 @@ function buildVehiclePhrase(titleEn: string): string {
   return normalizeWhitespace(phrase);
 }
 
-// Generic / catchall categories that don't add information — when the DB row
-// ships these we'd rather derive a more specific category from the title.
-const GENERIC_CATEGORY_PATTERN = /^(аксесуар(?:и)?|accessory|accessories|інше|other|component|компонент)\s*\(?[^)]*\)?$/i;
+// Generic / catchall / misleading categories that don't add information — when
+// the DB row ships these we'd rather derive a more specific category from the
+// title. Includes "Датчики і аксесуари" (OHLINS EDC kit case) where the
+// supplier groups suspension electronics under a sensors-and-accessories bag.
+const GENERIC_CATEGORY_PATTERN =
+  /^(аксесуар(?:и)?|accessory|accessories|інше|other|component|компонент|датчик(?:и)?(?:\s+і\s+аксесуар(?:и)?)?|sensor(?:s)?(?:\s+(?:and|&)\s+accessor(?:y|ies))?)\s*\(?[^)]*\)?$/i;
 
 function pickCategoryUa(input: GenericShopEditorialInput): string {
   const fromUa = normalizeWhitespace(input.categoryUa);
   const haystack = `${input.categoryEn ?? ''} ${input.productType ?? ''} ${input.titleEn ?? ''}`;
-  // Try the title-derived domain first when DB shipped a generic catchall.
-  if (fromUa && !GENERIC_CATEGORY_PATTERN.test(fromUa)) return fromUa;
+  // 1. If the title clearly maps to a specific domain (Suspension / Exhaust /
+  //    Cooling / etc.), prefer it — it beats both "Аксесуари" generic and
+  //    misleading vendor labels like "Датчики і аксесуари" for an EDC kit.
   for (const [pattern, label] of CATEGORY_UA_FALLBACK) {
     if (pattern.test(haystack)) return label;
   }
-  if (fromUa) return fromUa;
+  // 2. Otherwise trust the DB categoryUa unless it's a known catchall.
+  if (fromUa && !GENERIC_CATEGORY_PATTERN.test(fromUa)) return fromUa;
   const fromEn = normalizeWhitespace(input.categoryEn);
   return fromEn || 'Компонент';
 }
