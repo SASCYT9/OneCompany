@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Search, X, ChevronDown, ArrowRight } from "lucide-react";
@@ -163,7 +163,12 @@ export default function BrabusVehicleFilter({
       }));
   }, [activeBrand, products, locale, MODEL_KEYS_SET]);
 
+  const skipModelResetRef = useRef(true);
   useEffect(() => {
+    if (skipModelResetRef.current) {
+      skipModelResetRef.current = false;
+      return;
+    }
     setActiveModel("all");
   }, [activeBrand]);
 

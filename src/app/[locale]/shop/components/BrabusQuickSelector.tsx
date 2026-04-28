@@ -50,7 +50,7 @@ export default function BrabusQuickSelector({ locale, compact = false }: Props) 
   const form = (
     <div className={
       compact
-        ? "flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-3xl mx-auto"
+        ? "flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-5xl mx-auto"
         : "flex flex-col sm:flex-row items-center justify-center gap-4 max-w-4xl mx-auto"
     }>
       {/* Brand Select */}
@@ -106,7 +106,7 @@ export default function BrabusQuickSelector({ locale, compact = false }: Props) 
   /* ── Compact: just the form, with a small label above ───────────────── */
   if (compact) {
     return (
-      <div className="w-full max-w-3xl mx-auto px-4">
+      <div className="w-full max-w-5xl mx-auto px-4">
         <p className="text-[0.65rem] sm:text-xs font-medium text-white/50 uppercase tracking-[0.25em] mb-4 text-center">
           {isUa ? "Знайдіть деталі для свого авто" : "Find parts for your vehicle"}
         </p>

@@ -453,7 +453,8 @@ export default function BrabusHomeSignature({ locale }: Props) {
         .br-hero__content--center {
           display: flex; flex-direction: column; align-items: center;
           text-align: center;
-          max-width: 900px;
+          width: 100%;
+          max-width: 1100px;
         }
 
         /* Logo */
