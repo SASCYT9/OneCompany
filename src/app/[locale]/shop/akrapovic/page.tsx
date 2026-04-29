@@ -7,6 +7,7 @@ import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import AkrapovicHomeSignature from '../components/AkrapovicHomeSignature';
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
+export const dynamic = 'force-static';
 export const revalidate = 3600;
 
 type Props = {

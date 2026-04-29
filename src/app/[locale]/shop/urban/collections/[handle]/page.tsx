@@ -19,6 +19,7 @@ import {
 import UrbanCollectionProductGrid from '../../../components/UrbanCollectionProductGrid';
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
+export const dynamic = 'force-static';
 export const revalidate = 3600;
 
 type Props = {

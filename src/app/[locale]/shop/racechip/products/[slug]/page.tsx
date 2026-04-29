@@ -14,6 +14,7 @@ import CrossShopFitment from '../../../components/CrossShopFitment';
 import RacechipShopProductDetailLayout from '../../../components/RacechipShopProductDetailLayout';
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
+export const dynamic = 'force-static';
 export const revalidate = 3600;
 
 export async function generateMetadata({

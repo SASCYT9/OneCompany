@@ -2,6 +2,7 @@ import { buildPageMetadata, resolveLocale } from '@/lib/seo';
 import BurgerStoreHome from '../components/BurgerStoreHome';
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
+export const dynamic = 'force-static';
 export const revalidate = 3600;
 
 type Props = {

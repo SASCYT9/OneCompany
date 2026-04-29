@@ -10,6 +10,7 @@ import BrabusCollectionHero from '../../../components/BrabusCollectionHero';
 import BrabusCollectionProductGrid from '../../../components/BrabusCollectionProductGrid';
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
+export const dynamic = 'force-static';
 export const revalidate = 3600;
 
 type Props = {
