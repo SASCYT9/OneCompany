@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { headers } from "next/headers";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
@@ -138,18 +137,21 @@ const fontCondensed = Bebas_Neue({
   preload: false,
 });
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const requestHeaders = await headers();
-  const activeLocale = requestHeaders.get("x-next-intl-locale") ?? "ua";
-  const htmlLang = activeLocale === "ua" ? "uk" : "en";
-
+  // Default to "uk" — Ukrainian is the default locale and the majority of
+  // traffic. For /en pages the LocaleLangSetter client component (mounted
+  // in [locale]/layout.tsx) updates `html.lang` after hydration so JS-aware
+  // crawlers (including Googlebot) see the correct value.
+  //
+  // We deliberately do NOT call `await headers()` here — that would force
+  // dynamic rendering on every page in the app and bypass ISR edge cache.
   return (
     <html
-      lang={htmlLang}
+      lang="uk"
       suppressHydrationWarning
       className={cn(
         fontUnbounded.variable,
@@ -173,7 +175,7 @@ export default async function RootLayout({
         {/* Schema.org Structured Data */}
         <OrganizationSchema />
         <WebSiteSchema />
-        <LocalBusinessSchema locale={htmlLang === 'uk' ? 'ua' : 'en'} />
+        <LocalBusinessSchema locale="ua" />
 
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
