@@ -26,8 +26,11 @@ export async function POST() {
         const slug = `burger-${p.slug}`;
         const sku = p.sku || `BURGER-${p.shopifyProductId}`;
 
-        const existing = await prisma.shopProduct.findFirst({
-          where: { OR: [{ slug }, { sku }] },
+        // Match by slug only — slug is the unique key. SKU is non-unique in the
+        // Burger catalog (39 duplicate-SKU pairs in source), so matching by SKU
+        // causes the second product with a colliding SKU to overwrite the first.
+        const existing = await prisma.shopProduct.findUnique({
+          where: { slug },
         });
 
         const priceEur = Math.round(p.priceUsd * 0.92 * 100) / 100;

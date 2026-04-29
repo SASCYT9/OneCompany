@@ -1,6 +1,8 @@
 // Imports the brand/model/chassis/engine tags from
 // data/burger-products-with-fitment.json into existing DB ShopProducts.
-// Matches by SKU first, then by slug. Only updates the `tags` column.
+// Matches by slug only (slug is the unique key). SKU is non-unique in the
+// Burger catalog, so matching by SKU silently mis-targets duplicate-SKU pairs.
+// Only updates the `tags` column.
 
 import 'dotenv/config';
 import fs from 'fs';
@@ -21,7 +23,6 @@ async function main() {
   });
   console.log(`DB: ${dbProducts.length} burger products`);
 
-  const bySku = new Map(dbProducts.filter(p => p.sku).map(p => [p.sku, p]));
   const bySlug = new Map(dbProducts.map(p => [p.slug, p]));
 
   let matched = 0, updated = 0, unchanged = 0, missing = 0;
@@ -31,8 +32,7 @@ async function main() {
   const updates = [];
   for (const src of enriched) {
     const slug = `burger-${src.slug}`;
-    const sku = src.sku;
-    const target = (sku && bySku.get(sku)) || bySlug.get(slug);
+    const target = bySlug.get(slug);
     if (!target) {
       missing++;
       if (missingExamples.length < 5) missingExamples.push(`${src.sku || src.slug} | ${src.title.slice(0,80)}`);
