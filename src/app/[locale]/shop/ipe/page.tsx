@@ -4,6 +4,9 @@ import { isIpeProduct } from '@/lib/ipeBrand';
 import { buildIpeHeroVehicleTree } from '@/lib/ipeHeroCatalog';
 import IpeHomeSignature from '../components/IpeHomeSignature';
 
+// ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
+export const revalidate = 3600;
+
 type Props = {
   params: Promise<{ locale: string }>;
 };

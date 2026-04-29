@@ -12,6 +12,7 @@ import { formatShopMoney, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
 import { localizeShopText } from "@/lib/shopText";
 import { buildShopProductPath } from "@/lib/urbanCollectionMatcher";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import {
   buildUrbanCatalogEntries,
@@ -177,6 +178,7 @@ function PremiumCombobox({
   groups,
   allLabel,
 }: PremiumComboboxProps) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const listboxId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -437,7 +439,7 @@ function ProductCard({
 export default function UrbanVehicleFilter({
   locale,
   products,
-  viewerContext,
+  viewerContext: ssrViewerContext,
 }: UrbanVehicleFilterProps) {
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();

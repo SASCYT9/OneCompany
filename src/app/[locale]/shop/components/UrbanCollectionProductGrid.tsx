@@ -10,6 +10,7 @@ import type { ShopProduct } from '@/lib/shopCatalog';
 import { localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopProductPath, getUrbanCollectionHandleForProduct } from '@/lib/urbanCollectionMatcher';
 import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import { resolveUrbanCollectionCardImage } from '@/lib/urbanImageUtils';
 import type { UrbanProductGridConfig } from '../data/urbanCollectionPages';
@@ -111,8 +112,9 @@ export default function UrbanCollectionProductGrid({
   collectionImages,
   products,
   settings,
-  viewerContext,
+  viewerContext: ssrViewerContext,
 }: UrbanCollectionProductGridProps) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === 'ua';
   const { currency, rates } = useShopCurrency();
 

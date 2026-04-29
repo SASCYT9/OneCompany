@@ -3,11 +3,13 @@ import { localizeShopProductTitle } from '@/lib/shopText';
 import { prisma } from '@/lib/prisma';
 import { ADRO_PRODUCT_LINES } from '../../../data/adroHomeData';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { getProductsForAdroCollection } from '@/lib/adroCollectionMatcher';
 import AdroCollectionProductGrid from '../../../components/AdroCollectionProductGrid';
+
+// ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
+export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string; handle: string }>;
@@ -39,17 +41,15 @@ export default async function AdroCollectionHandlePage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
   const line = ADRO_PRODUCT_LINES.find((l) => l.id === handle);
 
-  const [session, settingsRecord, products] = await Promise.all([
-    getCurrentShopCustomerSession(),
-    getOrCreateShopSettings(prisma),
+  const [settingsRecord, products] = await Promise.all([    getOrCreateShopSettings(prisma),
     getShopProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
-    session?.group ?? null,
-    Boolean(session),
-    session?.b2bDiscountPercent ?? null
+    null,
+    false,
+    null
   );
 
   const collectionProducts = getProductsForAdroCollection(products, handle);

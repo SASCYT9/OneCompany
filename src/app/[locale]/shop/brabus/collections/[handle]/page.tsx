@@ -3,12 +3,14 @@ import { buildPageMetadata, resolveLocale } from '@/lib/seo';
 import { BRABUS_COLLECTION_CARDS } from '../../../data/brabusCollectionsList';
 import { getBrabusCollectionPageConfig } from '../../../data/brabusCollectionPages';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { getProductsForBrabusCollection } from '@/lib/brabusCollectionMatcher';
 import BrabusCollectionHero from '../../../components/BrabusCollectionHero';
 import BrabusCollectionProductGrid from '../../../components/BrabusCollectionProductGrid';
+
+// ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
+export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string; handle: string }>;
@@ -41,17 +43,15 @@ export default async function BrabusCollectionHandlePage({ params }: Props) {
   const config = getBrabusCollectionPageConfig(handle);
   const card = BRABUS_COLLECTION_CARDS.find((item) => item.collectionHandle === handle);
 
-  const [session, settingsRecord, products] = await Promise.all([
-    getCurrentShopCustomerSession(),
-    getOrCreateShopSettings(prisma),
+  const [settingsRecord, products] = await Promise.all([    getOrCreateShopSettings(prisma),
     getShopProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
-    session?.group ?? null,
-    Boolean(session),
-    session?.b2bDiscountPercent ?? null
+    null,
+    false,
+    null
   );
 
   const collectionProducts = getProductsForBrabusCollection(products, handle);

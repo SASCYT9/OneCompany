@@ -8,6 +8,7 @@ import { ArrowLeft, Check, ChevronRight, Zap, Target, Truck } from "lucide-react
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct, ShopProductVariantSummary } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopPriceBands, resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { useRouter } from "next/navigation";
@@ -45,8 +46,9 @@ function resolveVariantPricing(
 export default function RacechipShopProductDetailLayout({
   locale,
   product,
-  viewerContext,
+  viewerContext: ssrViewerContext,
 }: Props) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const router = useRouter();

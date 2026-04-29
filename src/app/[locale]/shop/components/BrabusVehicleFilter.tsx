@@ -13,6 +13,7 @@ import { localizeShopProductTitle } from "@/lib/shopText";
 import { buildShopProductPathBrabus } from "@/lib/brabusCollectionMatcher";
 import { resolveBrabusFallbackImage } from "@/lib/brabusImageFallbacks";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import BrabusSpotlightGrid from "./BrabusSpotlightGrid";
 
@@ -112,8 +113,9 @@ function resolveBrabusModelKey(product: ShopProduct, modelKeysSet: Set<string>) 
 export default function BrabusVehicleFilter({
   locale,
   products,
-  viewerContext,
+  viewerContext: ssrViewerContext,
 }: BrabusVehicleFilterProps) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);

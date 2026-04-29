@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCatalogServer';
@@ -13,6 +12,9 @@ import {
 } from '@/lib/crossShopFitment';
 import CrossShopFitment from '../../../components/CrossShopFitment';
 import RacechipShopProductDetailLayout from '../../../components/RacechipShopProductDetailLayout';
+
+// ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
+export const revalidate = 3600;
 
 export async function generateMetadata({
   params,
@@ -48,17 +50,15 @@ export default async function RacechipProductPage({
     redirect(`/${resolvedLocale}/shop/racechip`);
   }
 
-  const [session, settingsRecord, allProducts] = await Promise.all([
-    getCurrentShopCustomerSession(),
-    getOrCreateShopSettings(prisma),
+  const [settingsRecord, allProducts] = await Promise.all([    getOrCreateShopSettings(prisma),
     getShopProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
-    session?.group ?? null,
-    Boolean(session),
-    session?.b2bDiscountPercent ?? null
+    null,
+    false,
+    null
   );
 
   // Cross-shop fitment matches: parts from other stores that fit the same

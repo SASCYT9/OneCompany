@@ -2,7 +2,6 @@ import { Suspense } from 'react';
 import { prisma } from '@/lib/prisma';
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { buildShopSearchText, hasShopVehicleSearchSignal, type ShopAlternativeSearchItem } from '@/lib/shopSearch';
@@ -10,6 +9,9 @@ import { buildShopStorefrontProductPathForProduct } from '@/lib/shopStorefrontRo
 import { localizeShopProductTitle } from '@/lib/shopText';
 import Link from 'next/link';
 import OhlinsVehicleFilter from '../../components/OhlinsVehicleFilter';
+
+// ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
+export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -52,17 +54,15 @@ export default async function OhlinsCatalogPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const [session, settingsRecord, products] = await Promise.all([
-    getCurrentShopCustomerSession(),
-    getOrCreateShopSettings(prisma),
+  const [settingsRecord, products] = await Promise.all([    getOrCreateShopSettings(prisma),
     getShopProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
-    session?.group ?? null,
-    Boolean(session),
-    session?.b2bDiscountPercent ?? null
+    null,
+    false,
+    null
   );
 
   const ohlinsProducts = products.filter(isOhlinsProduct);

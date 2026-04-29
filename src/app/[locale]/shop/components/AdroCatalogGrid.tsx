@@ -13,6 +13,7 @@ import type { ShopProduct } from "@/lib/shopCatalog";
 import { computeShopDisplayPrices, hasAnyShopPrice, pickShopSortableAmount } from "@/lib/shopDisplayPrices";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { detectMakesForModel, enrichAdroCatalogProduct, type EnrichedAdroCatalogProduct } from "@/lib/adroCatalog";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
@@ -70,7 +71,8 @@ function pickPrimaryPriceLabel(
   return null;
 }
 
-export default function AdroCatalogGrid({ locale, products, viewerContext }: Props) {
+export default function AdroCatalogGrid({ locale, products, viewerContext: ssrViewerContext }: Props) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const t = useTranslations("adroCatalog");
   const { currency, rates } = useShopCurrency();
   const router = useRouter();

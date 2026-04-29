@@ -4,10 +4,12 @@ import { buildPageMetadata, resolveLocale } from '@/lib/seo';
 import BurgerVehicleFilter from '../../components/BurgerVehicleFilter';
 import BurgerHeroPicker from '../../components/BurgerHeroPicker';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import Link from 'next/link';
+
+// ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
+export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -36,17 +38,15 @@ export default async function BurgerProductsCatalogPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const [session, settingsRecord, products] = await Promise.all([
-    getCurrentShopCustomerSession(),
-    getOrCreateShopSettings(prisma),
+  const [settingsRecord, products] = await Promise.all([    getOrCreateShopSettings(prisma),
     getShopProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
-    session?.group ?? null,
-    Boolean(session),
-    session?.b2bDiscountPercent ?? null
+    null,
+    false,
+    null
   );
 
   const burgerProducts = products.filter(

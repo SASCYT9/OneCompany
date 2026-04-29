@@ -12,6 +12,7 @@ import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import {
   resolveIpeProductLine,
@@ -78,6 +79,7 @@ type FilterSectionProps = {
 };
 
 function FilterSection({ title, count, isOpen, children, onToggle }: FilterSectionProps) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   return (
     <div className="border-t border-white/[0.07] pt-4">
       <button
@@ -171,7 +173,7 @@ function shouldBypassImageOptimization(reference: string | null | undefined) {
 export default function IpeVehicleFilter({
   locale,
   products,
-  viewerContext,
+  viewerContext: ssrViewerContext,
   productPathPrefix
 }: IpeVehicleFilterProps) {
   const isUa = locale === "ua";

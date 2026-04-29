@@ -3,7 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { absoluteUrl, buildPageMetadata, resolveLocale } from '@/lib/seo';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getProductsForUrbanCollection, sortUrbanCollectionProducts } from '@/lib/urbanCollectionMatcher';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { buildUrbanCollectionImagePool } from '@/lib/urbanImageUtils';
@@ -18,6 +17,9 @@ import {
   UrbanBlueprintKit,
 } from '../../../components/UrbanCollectionSections';
 import UrbanCollectionProductGrid from '../../../components/UrbanCollectionProductGrid';
+
+// ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
+export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string; handle: string }>;
@@ -98,16 +100,14 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
     );
   }
 
-  const [session, settingsRecord] = await Promise.all([
-    getCurrentShopCustomerSession(),
-    getOrCreateShopSettings(prisma),
+  const [settingsRecord] = await Promise.all([    getOrCreateShopSettings(prisma),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
     getShopSettingsRuntime(settingsRecord),
-    session?.group ?? null,
-    Boolean(session),
-    session?.b2bDiscountPercent ?? null
+    null,
+    false,
+    null
   );
 
   const matchedProducts = getProductsForUrbanCollection(products, handle, card?.title, card?.brand);

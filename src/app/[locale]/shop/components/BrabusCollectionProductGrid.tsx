@@ -11,6 +11,7 @@ import { localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopProductPathBrabus } from '@/lib/brabusCollectionMatcher';
 import { resolveBrabusFallbackImage } from '@/lib/brabusImageFallbacks';
 import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import BrabusSpotlightGrid from './BrabusSpotlightGrid';
 
@@ -86,8 +87,9 @@ export default function BrabusCollectionProductGrid({
   title,
   brand,
   products,
-  viewerContext,
+  viewerContext: ssrViewerContext,
 }: BrabusCollectionProductGridProps) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === 'ua';
   const { currency, rates } = useShopCurrency();
 

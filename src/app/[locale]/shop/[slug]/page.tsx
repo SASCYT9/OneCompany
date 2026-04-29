@@ -5,7 +5,6 @@ import { ShoppingBag } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { buildPageMetadata, resolveLocale } from '@/lib/seo';
 import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCatalogServer';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext, resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import { localizeShopDescription, localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
@@ -19,6 +18,9 @@ import { ShopProductGallery } from '../components/ShopProductGallery';
 import { MobileProductDisclosure } from '../components/MobileProductDisclosure';
 import { ShopProductImage } from '@/components/shop/ShopProductImage';
 import { ShopProductViewTracker } from '@/components/shop/ShopProductViewTracker';
+
+// ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
+export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -66,18 +68,16 @@ export default async function ShopProductPage({ params }: Props) {
     redirect(canonicalPath);
   }
 
-  const [allProducts, session, settingsRecord] = await Promise.all([
-    getShopProductsServer(),
-    getCurrentShopCustomerSession(),
-    getOrCreateShopSettings(prisma),
+  const [allProducts, settingsRecord] = await Promise.all([
+    getShopProductsServer(),    getOrCreateShopSettings(prisma),
   ]);
 
   const settingsRuntime = getShopSettingsRuntime(settingsRecord);
   const viewerContext = buildShopViewerPricingContext(
     settingsRuntime,
-    session?.group ?? null,
-    Boolean(session),
-    session?.b2bDiscountPercent ?? null
+    null,
+    false,
+    null
   );
   const pricing = resolveShopProductPricing(product, viewerContext);
   const defaultVariant = product.variants?.find((item) => item.isDefault) ?? product.variants?.[0] ?? null;

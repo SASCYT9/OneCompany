@@ -13,6 +13,7 @@ import { computeShopDisplayPrices, hasAnyShopPrice, pickShopSortableAmount } fro
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import AkrapovicSpotlightGrid from "./AkrapovicSpotlightGrid";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 import { BRAND_PATTERNS, LINE_PATTERNS, extractVehicleBrands, extractProductLine, extractVehicleModel, extractVehicleModelsForBrand, compareVehicleModelKeys } from "@/lib/akrapovicFilterUtils";
@@ -50,11 +51,14 @@ function computeDisplayPrices(
 export default function AkrapovicVehicleFilter({
   locale,
   products,
-  viewerContext,
+  viewerContext: ssrViewerContext,
   productPathPrefix,
   filterOnly = false,
   heroCompact = false
 }: AkrapovicVehicleFilterProps) {
+  // SSR receives an anonymous viewer context (so the page is ISR-cached);
+  // the live B2B-aware context is hydrated client-side from the session.
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const searchParams = useSearchParams();

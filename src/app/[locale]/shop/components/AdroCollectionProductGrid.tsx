@@ -10,6 +10,7 @@ import type { ShopProduct } from '@/lib/shopCatalog';
 import { computeShopDisplayPrices, hasAnyShopPrice } from '@/lib/shopDisplayPrices';
 import { localizeShopProductTitle } from '@/lib/shopText';
 import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
 
 type AdroCollectionProductGridProps = {
@@ -59,8 +60,9 @@ export default function AdroCollectionProductGrid({
   title,
   brand,
   products,
-  viewerContext,
+  viewerContext: ssrViewerContext,
 }: AdroCollectionProductGridProps) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === 'ua';
   const { currency, rates } = useShopCurrency();
 

@@ -11,6 +11,7 @@ import type { ShopProduct } from '@/lib/shopCatalog';
 import { localizeShopProductTitle, localizeShopText } from '@/lib/shopText';
 import { buildShopProductPath } from '@/lib/urbanCollectionMatcher';
 import type { ShopViewerPricingContext } from '@/lib/shopPricingAudience';
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from '@/lib/shopPricingAudience';
 
 type Do88CollectionProductGridProps = {
@@ -65,8 +66,9 @@ export default function Do88CollectionProductGrid({
   title,
   titleUk,
   products,
-  viewerContext,
+  viewerContext: ssrViewerContext,
 }: Do88CollectionProductGridProps) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === 'ua';
   const displayTitle = isUa && titleUk ? titleUk : title;
   const { currency, rates } = useShopCurrency();

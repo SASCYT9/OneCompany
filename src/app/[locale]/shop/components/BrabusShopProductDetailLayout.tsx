@@ -16,6 +16,7 @@ import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import type { SupportedLocale } from "@/lib/seo";
 import BrabusVideoBackground from "./BrabusVideoBackground";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
@@ -36,11 +37,12 @@ export function BrabusShopProductDetailLayout({
   resolvedLocale,
   product,
   pricing,
-  viewerContext,
+  viewerContext: ssrViewerContext,
   rates,
   defaultVariant,
   relatedProducts,
 }: Props) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = resolvedLocale === "ua";
 
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
