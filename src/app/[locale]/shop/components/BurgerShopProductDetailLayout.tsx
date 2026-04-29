@@ -37,6 +37,13 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | 
 
 function formatDescriptionDisplay(text: string) {
   if (!text) return "";
+
+  // If input is already structured HTML (has h3/ul/li/p tags), pass through —
+  // the Tailwind `prose` class will style it. Don't flatten to plain text.
+  if (/<(?:h[1-6]|ul|ol|li)\b/i.test(text)) {
+    return text;
+  }
+
   const escapeHtml = (value: string) =>
     value
       .replace(/&/g, "&amp;")

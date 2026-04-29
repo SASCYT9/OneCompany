@@ -271,6 +271,9 @@ function restructure(htmlOrText, locale) {
   const introHtml = paragraphsFromIntro(intro, locale);
   if (introHtml) parts.push(introHtml);
   for (const s of sections) {
+    // Skip features section — it duplicates content already in the intro
+    // paragraphs and bloats the visible description. (User-requested.)
+    if (s.kind === 'features') continue;
     const h = buildSectionHtml(s, locale);
     if (h) parts.push(h);
   }
