@@ -159,6 +159,14 @@ export default async function proxy(req: NextRequest) {
     }
   }
 
+  // For already-localized paths (/ua/*, /en/*), skip the intl middleware
+  // entirely. Returning NextResponse.next() lets Vercel serve the route
+  // from its ISR/static cache; running intlMiddleware would mutate the
+  // response and force Cache-Control: private, no-store on every request.
+  if (pathnameHasLocale) {
+    return NextResponse.next();
+  }
+
   const response = intlMiddleware(req);
 
   // Fix hreflang in Link headers - replace 'ua' with 'uk'
