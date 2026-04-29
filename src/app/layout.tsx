@@ -111,25 +111,22 @@ export const metadata: Metadata = {
 
 import { cn } from "@/lib/utils";
 
-// Unbounded - гострий шрифт для заголовків
-const fontDisplay = Unbounded({
+// Single Unbounded load, exposed as both --font-display and --font-sans.
+// Previously loaded twice — doubled the font payload on every page.
+const fontUnbounded = Unbounded({
   subsets: ["latin", "cyrillic"],
   variable: "--font-display",
   display: "swap",
   weight: ["300", "400", "500", "600", "700"],
-});
-
-// Unbounded - тепер використовуємо всюди
-const fontSans = Unbounded({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-sans",
-  display: "swap",
+  preload: true,
 });
 
 const fontMono = IBM_Plex_Mono({
   subsets: ["latin", "latin-ext", "cyrillic"],
   weight: ["400", "500"],
   variable: "--font-mono",
+  display: "swap",
+  preload: false,
 });
 
 // Bebas Neue - condensed font for hero headlines (BRABUS, URBAN, AKRAPOVIČ)
@@ -138,6 +135,7 @@ const fontCondensed = Bebas_Neue({
   weight: "400",
   variable: "--font-condensed",
   display: "swap",
+  preload: false,
 });
 
 export default async function RootLayout({
@@ -154,8 +152,7 @@ export default async function RootLayout({
       lang={htmlLang}
       suppressHydrationWarning
       className={cn(
-        fontSans.variable,
-        fontDisplay.variable,
+        fontUnbounded.variable,
         fontMono.variable,
         fontCondensed.variable
       )}
@@ -163,8 +160,9 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async />
+        {process.env.NODE_ENV !== 'production' && (
+          <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async />
+        )}
       </head>
       <body
         className={cn(

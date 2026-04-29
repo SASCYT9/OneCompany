@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import type { SupportedLocale } from "@/lib/seo";
 import { OUR_STORES } from "../data/ourStores";
 
 type OurStoresPortalProps = {
   locale: SupportedLocale;
-  isB2bApproved: boolean;
 };
 
 function t(isUa: boolean, en: string, ua: string) {
@@ -124,7 +124,9 @@ function StoreCard({
   );
 }
 
-export default function OurStoresPortal({ locale, isB2bApproved }: OurStoresPortalProps) {
+export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
+  const { data: session } = useSession();
+  const isB2bApproved = session?.user?.group === 'B2B_APPROVED';
   const isUa = locale === "ua";
   const storesMap = new Map(OUR_STORES.filter((s) => !s.isHidden).map((s) => [s.id, s]));
   const storeCount = storesMap.size;

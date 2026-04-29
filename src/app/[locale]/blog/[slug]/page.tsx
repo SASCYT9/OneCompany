@@ -5,6 +5,9 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/navigation";
 import { readSiteContent } from "@/lib/siteContentServer";
 import {
+
+// ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
+export const revalidate = 3600;
   absoluteUrl,
   buildLocalizedPath,
   buildPageMetadata,

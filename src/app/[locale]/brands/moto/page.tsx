@@ -8,6 +8,9 @@ import { absoluteUrl, buildLocalizedPath, resolveLocale } from "@/lib/seo";
 import { buildBrandsSegmentMetadata } from "../segmentMetadata";
 import { BreadcrumbSchema, CollectionPageSchema } from "@/components/seo/StructuredData";
 
+// ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
+export const revalidate = 3600;
+
 interface MotoBrandsPageProps {
   params: Promise<{
     locale: string;

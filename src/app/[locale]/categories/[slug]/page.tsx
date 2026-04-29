@@ -4,6 +4,9 @@ import { permanentRedirect } from "next/navigation";
 import { categoryData } from "@/lib/categoryData";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 
+// ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
+export const revalidate = 3600;
+
 interface Props {
   params: Promise<{
     locale: string;

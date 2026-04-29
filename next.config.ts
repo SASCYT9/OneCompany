@@ -363,6 +363,16 @@ const nextConfig: NextConfig = {
     optimizeCss: true,
     // Keep build parallel enough to stay fast, but avoid exhausting the DB pool during prerendering.
     cpus: 4,
+    // Tree-shake & barrel-optimize popular packages — meaningfully smaller client bundles.
+    optimizePackageImports: [
+      'framer-motion',
+      'lucide-react',
+      'gsap',
+      '@gsap/react',
+      'date-fns',
+      'lodash-es',
+      '@radix-ui/react-icons',
+    ],
   },
   // redirects removed to allow middleware to handle routing dynamically
 };
