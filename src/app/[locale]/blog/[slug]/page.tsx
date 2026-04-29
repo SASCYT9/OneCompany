@@ -5,9 +5,6 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/navigation";
 import { readSiteContent } from "@/lib/siteContentServer";
 import {
-
-// ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
-export const revalidate = 3600;
   absoluteUrl,
   buildLocalizedPath,
   buildPageMetadata,
@@ -16,6 +13,9 @@ export const revalidate = 3600;
 } from "@/lib/seo";
 import { BlogCarousel } from "./BlogCarousel";
 import { ArticleSchema, BreadcrumbSchema, ProductSchema } from "@/components/seo/StructuredData";
+
+// ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
+export const revalidate = 3600;
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
