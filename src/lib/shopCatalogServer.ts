@@ -75,6 +75,27 @@ function uniqueStrings(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean)));
 }
 
+function firstParagraphFromHtml(value: string | null | undefined, maxLen = 240): string {
+  if (!value) return '';
+  const plain = String(value)
+    .replace(/<\s*br\s*\/?\s*>/gi, ' ')
+    .replace(/<\/(p|div|li|h[1-6])>/gi, ' ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!plain) return '';
+  if (plain.length <= maxLen) return plain;
+  const cut = plain.slice(0, maxLen);
+  const lastBreak = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+  if (lastBreak >= maxLen * 0.6) return cut.slice(0, lastBreak + 1).trim();
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace >= maxLen * 0.6 ? cut.slice(0, lastSpace) : cut).trim() + '…';
+}
+
 const SHOP_PRODUCT_FALLBACK_IMAGE = '/images/placeholders/product-fallback.svg';
 
 const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: string[] }> = {
@@ -1296,8 +1317,13 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
   // Akrapovič ships with English-only Airtable copy; Urban editorial bleeds onto
   // the page (Urban brand voice on a non-Urban product). Use the Akrapovič
   // generator instead, which builds copy from the parsed product line + chassis.
+  // Atomic feed populates `bodyHtmlUa` / `longDescUa` for AKRAPOVIC SKUs — trust
+  // it. Only fall back to the editorial template when the feed gave us nothing
+  // for this SKU. (Previously `shouldGenerate` was also a trigger, but that
+  // heuristic is tuned for Urban GP copy and false-positives on legitimate
+  // Atomic-sourced UA text, so it overrode ~232 good descriptions.)
   const generatedAkrapovicUaDescription =
-    isAkrapovicBrand && (shouldGenerate || !row.bodyHtmlUa)
+    isAkrapovicBrand && !row.bodyHtmlUa && !row.longDescUa
       ? buildAkrapovicEditorialCopy(editorialInput)
       : null;
   // For everything else (Brabus / OHLINS / CSF / GiroDisc / iPE / Burger / etc.)
@@ -1414,8 +1440,17 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
       en: resolveEnglishCategory(row.categoryEn, row.categoryUa) || row.category?.titleEn || '',
     },
     shortDescription: {
-      ua: curatedUrbanDescription?.shortDescription.ua ?? generatedUaDescription?.shortDescUa ?? safeGpDescription?.shortDescription.ua ?? row.shortDescUa ?? '',
-      en: curatedUrbanDescription?.shortDescription.en ?? safeGpDescription?.shortDescription.en ?? row.shortDescEn ?? '',
+      ua:
+        curatedUrbanDescription?.shortDescription.ua
+        ?? generatedUaDescription?.shortDescUa
+        ?? safeGpDescription?.shortDescription.ua
+        ?? (row.shortDescUa?.trim() || firstParagraphFromHtml(row.bodyHtmlUa ?? row.longDescUa ?? ''))
+        ?? '',
+      en:
+        curatedUrbanDescription?.shortDescription.en
+        ?? safeGpDescription?.shortDescription.en
+        ?? (row.shortDescEn?.trim() || firstParagraphFromHtml(row.bodyHtmlEn ?? row.longDescEn ?? ''))
+        ?? '',
     },
     longDescription: {
       ua: sanitizeRichTextHtml(curatedUrbanDescription?.bodyHtml.ua ?? generatedUaDescription?.bodyHtmlUa ?? safeGpDescription?.bodyHtml.ua ?? row.bodyHtmlUa ?? row.longDescUa ?? ''),
