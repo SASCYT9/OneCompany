@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { ShoppingBag } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
@@ -109,13 +110,27 @@ export function BurgerShopProductDetailLayout({
 }: Props) {
   const isUa = resolvedLocale === "ua";
   const title = localizeShopProductTitle(resolvedLocale, product);
-  
+
   // Clean description string from backend (either bodyHtml or longDescription)
   const descriptionRaw = localizeShopDescription(resolvedLocale, product.longDescription);
-  
-  const mainImage = product.image || product.gallery?.[0] || "";
-  const gallery = product.gallery?.length ? product.gallery : (mainImage ? [mainImage] : []);
+
+  // Build gallery: filter out empty/duplicate URLs, dedupe with main image first
+  const rawGallery = (product.gallery || []).filter((g): g is string => !!g && typeof g === "string" && g.trim().length > 0);
+  const galleryUnique = Array.from(new Set([
+    ...(product.image ? [product.image] : []),
+    ...rawGallery,
+  ]));
+  const gallery = galleryUnique.length ? galleryUnique : (product.image ? [product.image] : []);
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [brokenIdx, setBrokenIdx] = useState<Set<number>>(new Set());
+  const visibleGallery = gallery.filter((_, i) => !brokenIdx.has(i));
+  const mainImage = visibleGallery[Math.min(activeImageIdx, visibleGallery.length - 1)] || "";
   const isInStock = product.stock === "inStock";
+
+  // Filter internal facet tags out of the user-facing tag list. brand/type/
+  // vendor/model/chassis/engine prefixes are filter-only metadata, not display.
+  const FACET_PREFIXES = ["brand:", "type:", "vendor:", "model:", "chassis:", "engine:", "year:"];
+  const displayTags = (product.tags || []).filter((t) => !FACET_PREFIXES.some((p) => t.startsWith(p)));
 
   const computeCrossPrices = (priceObj: { eur: number; usd: number; uah: number }) => {
     let computedUah = priceObj.uah || 0;
@@ -148,104 +163,133 @@ export function BurgerShopProductDetailLayout({
         <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 64, alignItems: "start" }}>
           
           {/* ── Left: Media Gallery ── */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Main Image */}
-            <div style={{ 
-              aspectRatio: "1", 
-              background: "var(--burger-card)", 
+            <div style={{
+              aspectRatio: "1",
+              background: "var(--burger-card)",
               border: "1px solid var(--burger-border)",
+              borderRadius: 12,
               position: "relative",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: 40
+              padding: 40,
+              overflow: "hidden",
             }}>
               {mainImage ? (
-                <img 
-                  src={mainImage} 
-                  alt={title} 
+                <img
+                  src={mainImage}
+                  alt={title}
+                  onError={() => {
+                    // Mark this image broken; advance to next visible image if available.
+                    setBrokenIdx((prev) => new Set([...prev, gallery.indexOf(mainImage)]));
+                    setActiveImageIdx(0);
+                  }}
                   style={{ width: "100%", height: "100%", objectFit: "contain" }}
                 />
               ) : (
                 <ShoppingBag size={80} color="var(--burger-border)" />
               )}
-              
+
               {/* Badges */}
-              <div style={{ position: "absolute", top: 24, left: 24, display: "flex", gap: 8 }}>
-                {product.tags?.find(t => t.startsWith("type:")) && (
-                  <span style={{ 
-                    padding: "6px 12px", 
-                    background: "var(--burger-yellow)", 
+              <div style={{ position: "absolute", top: 20, left: 20, display: "flex", gap: 8 }}>
+                {product.tags?.find((t) => t.startsWith("type:")) && (
+                  <span style={{
+                    padding: "5px 10px",
+                    background: "var(--burger-yellow, #FFD700)",
                     color: "#000",
                     fontSize: 10,
-                    letterSpacing: "0.2em",
+                    letterSpacing: "0.18em",
                     textTransform: "uppercase",
-                    fontWeight: 700
+                    fontWeight: 700,
+                    borderRadius: 3,
                   }}>
-                    {product.tags.find(t => t.startsWith("type:"))?.slice(5)}
-                  </span>
-                )}
-                {product.vendor && (
-                  <span style={{ 
-                    padding: "6px 12px", 
-                    background: "#111", 
-                    color: "var(--burger-text)",
-                    border: "1px solid var(--burger-border)",
-                    fontSize: 10,
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
-                  }}>
-                    {product.vendor}
+                    {product.tags.find((t) => t.startsWith("type:"))?.slice(5).replace(/-/g, " ")}
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Thumbnails */}
-            {gallery.length > 1 && (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-                {gallery.slice(0, 4).map((img, idx) => (
-                  <div key={idx} style={{
-                    aspectRatio: "1",
-                    background: "var(--burger-card)",
-                    border: "1px solid var(--burger-border)",
-                    padding: 16,
-                    cursor: "pointer",
-                    transition: "border-color 0.2s"
-                  }}>
-                    <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-                  </div>
-                ))}
+            {/* Thumbnails — click to switch main image */}
+            {visibleGallery.length > 1 && (
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${Math.min(visibleGallery.length, 5)}, 1fr)`,
+                gap: 10,
+              }}>
+                {visibleGallery.slice(0, 5).map((img) => {
+                  const realIdx = gallery.indexOf(img);
+                  const isActive = realIdx === activeImageIdx;
+                  return (
+                    <button
+                      key={realIdx + img}
+                      type="button"
+                      onClick={() => setActiveImageIdx(realIdx)}
+                      style={{
+                        all: "unset",
+                        aspectRatio: "1",
+                        background: "var(--burger-card)",
+                        border: `1.5px solid ${isActive ? "var(--burger-yellow, #FFD700)" : "var(--burger-border)"}`,
+                        borderRadius: 8,
+                        padding: 10,
+                        cursor: "pointer",
+                        transition: "border-color 0.15s, opacity 0.15s",
+                        opacity: isActive ? 1 : 0.7,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = isActive ? "1" : "0.7"; }}
+                    >
+                      <img
+                        src={img}
+                        alt=""
+                        onError={() => setBrokenIdx((prev) => new Set([...prev, realIdx]))}
+                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                      />
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
 
           {/* ── Right: Details ── */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
-                <div style={{ 
-                  width: 48, height: 48, 
-                  background: "#fff", 
-                  borderRadius: 4, 
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+                <div style={{
+                  width: 38, height: 38,
+                  background: "#fff",
+                  borderRadius: 4,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  padding: 4
+                  padding: 3,
+                  flexShrink: 0,
                 }}>
                   <img src={getBrandLogo(product.brand)} alt={product.brand} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                 </div>
-                <div>
-                  <div style={{ fontSize: 11, letterSpacing: "0.25em", textTransform: "uppercase", color: "var(--burger-muted)" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <div style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", fontWeight: 600 }}>
                     {product.brand}
                   </div>
                   {product.sku && (
-                    <div style={{ fontSize: 12, color: "var(--burger-muted)", marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", letterSpacing: "0.04em" }}>
                       SKU: {product.sku}
                     </div>
                   )}
                 </div>
               </div>
-              
-              <h1 style={{ fontSize: 40, fontWeight: 800, lineHeight: 1.1, marginBottom: 16 }}>
+
+              <h1 style={{
+                fontSize: "clamp(22px, 2.4vw, 30px)",
+                fontWeight: 700,
+                lineHeight: 1.25,
+                letterSpacing: "-0.01em",
+                marginBottom: 0,
+                color: "rgba(255,255,255,0.95)",
+              }}>
                 {title}
               </h1>
 
@@ -327,29 +371,27 @@ export function BurgerShopProductDetailLayout({
             {descriptionRaw && (
               <MobileProductDisclosure
                 title={isUa ? "Опис" : "Description"}
-                className="mt-4"
+                className="mt-2"
               >
-                <h3 style={{ fontSize: 12, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--burger-yellow)", marginBottom: 24 }}>
-                  {isUa ? "Опис" : "Description"}
-                </h3>
-                <div 
-                  className="prose prose-invert max-w-none burger-prose" 
-                  style={{ color: "var(--burger-muted)", fontSize: 15, lineHeight: 1.8 }}
-                  dangerouslySetInnerHTML={{ __html: formatDescriptionDisplay(descriptionRaw) }} 
+                <div
+                  className="prose prose-invert max-w-none burger-prose"
+                  dangerouslySetInnerHTML={{ __html: formatDescriptionDisplay(descriptionRaw) }}
                 />
               </MobileProductDisclosure>
             )}
 
-            {/* Metadata Tags */}
-            {product.tags && product.tags.length > 0 && (
-              <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {product.tags.map(tag => (
-                  <span key={tag} style={{ 
-                    padding: "6px 12px", 
-                    background: "var(--burger-card)", 
-                    border: "1px solid var(--burger-border)",
-                    fontSize: 11,
-                    color: "var(--burger-muted)"
+            {/* Display tags only — internal facet tags (brand:/type:/chassis:/...) are hidden. */}
+            {displayTags.length > 0 && (
+              <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {displayTags.map((tag) => (
+                  <span key={tag} style={{
+                    padding: "4px 10px",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: 999,
+                    fontSize: 10.5,
+                    color: "rgba(255,255,255,0.55)",
+                    letterSpacing: "0.02em",
                   }}>
                     {tag}
                   </span>
