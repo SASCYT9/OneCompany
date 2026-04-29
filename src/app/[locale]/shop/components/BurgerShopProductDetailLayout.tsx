@@ -124,7 +124,14 @@ export function BurgerShopProductDetailLayout({
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [brokenIdx, setBrokenIdx] = useState<Set<number>>(new Set());
   const visibleGallery = gallery.filter((_, i) => !brokenIdx.has(i));
-  const mainImage = visibleGallery[Math.min(activeImageIdx, visibleGallery.length - 1)] || "";
+  // activeImageIdx indexes the ORIGINAL gallery array (kept in sync with thumb
+  // click via realIdx). If that image is broken or out of range, fall back to
+  // the first visible image so we never show the wrong picture.
+  const mainImage = (
+    activeImageIdx >= 0 && activeImageIdx < gallery.length && !brokenIdx.has(activeImageIdx)
+      ? gallery[activeImageIdx]
+      : visibleGallery[0]
+  ) || "";
   const isInStock = product.stock === "inStock";
 
   // Filter internal facet tags out of the user-facing tag list. brand/type/
