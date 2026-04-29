@@ -1148,3 +1148,62 @@
     top: 84px;
   }
 }
+
+/* ═══════════════════════════════════════════
+   Product description prose (.burger-prose)
+   ═══════════════════════════════════════════ */
+.burger-prose {
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.burger-prose p {
+  margin: 0 0 1rem;
+  line-height: 1.7;
+}
+.burger-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.burger-prose h3 {
+  margin: 2rem 0 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--burger-yellow, #FFD700);
+}
+.burger-prose h3:first-child {
+  margin-top: 0;
+}
+
+.burger-prose ul {
+  list-style: none;
+  padding-left: 2rem;
+  margin: 0 0 1.25rem;
+}
+.burger-prose ul li {
+  position: relative;
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+  padding-left: 0.25rem;
+}
+.burger-prose ul li::before {
+  content: "•";
+  position: absolute;
+  left: -1.25rem;
+  color: var(--burger-yellow, #FFD700);
+  font-weight: 700;
+}
+
+.burger-prose strong {
+  color: var(--burger-yellow, #FFD700);
+  font-weight: 600;
+}
+
+.burger-prose a {
+  color: var(--burger-yellow, #FFD700);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
