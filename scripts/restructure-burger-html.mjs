@@ -263,8 +263,30 @@ function buildSectionHtml(section, locale) {
   return `<h3>${escapeHtml(label)}</h3>\n<ul>\n${lis}\n</ul>`;
 }
 
+// If input is already structured HTML (has <h3>), do tag-level surgery
+// instead of re-flattening to plain text — that way we don't accidentally
+// lose sections whose headings the regex no longer matches once stripped of
+// their original "S58 JB4 ..." prefix.
+function dropFeaturesByTag(html) {
+  return html
+    .replace(
+      /<h3>[^<]*(?:Особливост[іи]|Функції|Features?(?:\s+(?:and|&|\+)\s+Benefits?)?)[^<]*<\/h3>\s*(?:<ul>[\s\S]*?<\/ul>|<p>[\s\S]*?<\/p>)?\s*/gi,
+      ''
+    )
+    .replace(/(?:\n\s*){3,}/g, '\n\n')
+    .trim();
+}
+
 function restructure(htmlOrText, locale) {
   if (!htmlOrText || htmlOrText.length < 60) return htmlOrText;
+
+  // Idempotent path: if the input is already structured HTML (we ran on it
+  // before), don't re-flatten and re-parse — that would drop sections whose
+  // headings stripped of their original textual prefix no longer match.
+  if (/<h3>/i.test(htmlOrText)) {
+    return dropFeaturesByTag(htmlOrText);
+  }
+
   const text = toPlainText(htmlOrText);
   const { intro, sections } = parseSections(text);
   const parts = [];
