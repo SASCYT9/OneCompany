@@ -7,9 +7,9 @@ import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import Link from 'next/link';
 import RacechipVehicleFilter from '../../components/RacechipVehicleFilter';
 
-// ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
-export const dynamic = 'force-static';
-export const revalidate = 3600;
+// racechip/catalog inlines the full Racechip product catalogue (~25 MB
+// pre-rendered) which exceeds Vercel's ISR fallback limit (19.07 MB).
+// Stay dynamic; future optimization: paginate or split the catalog.
 
 type Props = {
   params: Promise<{ locale: string }>;
