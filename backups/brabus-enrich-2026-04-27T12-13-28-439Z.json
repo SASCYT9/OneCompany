@@ -1,0 +1,461 @@
+{
+  "processed": 36,
+  "updates": [
+    {
+      "id": "cmn9fbodr030le90w1lruqaoj",
+      "sku": "c167-678-63",
+      "before": {
+        "titleEn": "Sport Valve Exhaust System",
+        "titleUa": "Спортивна вихлопна система з клапанами",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Valve controlled sports exhaust system for Mercedes – C 167 – AMG GLE 63",
+        "titleUa": "Спортивна вихлопна система з клапанами для Mercedes – C 167 – AMG GLE 63",
+        "descLen": 907
+      }
+    },
+    {
+      "id": "cmn9fbo4802moe90wg0r447nx",
+      "sku": "167-263-99",
+      "before": {
+        "titleEn": "Front Spoiler Carbon",
+        "titleUa": "Передній спойлер Carbon",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Carbon Front Spoiler for Mercedes – C 167 – AMG GLE 63",
+        "titleUa": "Передній спойлер Carbon для Mercedes – C 167 – AMG GLE 63",
+        "descLen": 544
+      }
+    },
+    {
+      "id": "cmn9fboen031le90w399j36d8",
+      "sku": "c167-871-00n",
+      "before": {
+        "titleEn": "Floor Mats Velour",
+        "titleUa": "Килимки підлоги Велюр",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Velour floor mats for Mercedes – C 167 – Standard model",
+        "titleUa": "Килимки підлоги Велюр для Mercedes – C 167 – Standard model",
+        "descLen": 446
+      }
+    },
+    {
+      "id": "cmn9fboet031ve90wpatie2fz",
+      "sku": "c167-872-00n",
+      "before": {
+        "titleEn": "Trunk Mat Velour",
+        "titleUa": "Килимок багажника Велюр",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Velour trunk mat for Mercedes – C 167 – Standard model",
+        "titleUa": "Килимок багажника Велюр для Mercedes – C 167 – Standard model",
+        "descLen": 446
+      }
+    },
+    {
+      "id": "cmn9fbo7r02rhe90w6p7eyk1j",
+      "sku": "m12-167-cp",
+      "before": {
+        "titleEn": "Monoblock M \"Polished Ceramic\"",
+        "titleUa": "Monoblock M \"Ceramic Polished\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock M \"ceramic-coated\" for Mercedes – C 167 – AMG Line",
+        "titleUa": "Monoblock M \"Ceramic Polished\" для Mercedes – C 167 – AMG Line",
+        "descLen": 1498
+      }
+    },
+    {
+      "id": "cmn9fbod702zre90wmiz58ajj",
+      "sku": "c167-463-99",
+      "before": {
+        "titleEn": "Rear Carbon Spoiler",
+        "titleUa": "Задній карбоновий спойлер",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Carbon rear skirt for Mercedes – C 167 – AMG GLE 63",
+        "titleUa": "Задній карбоновий спойлер для Mercedes – C 167 – AMG GLE 63",
+        "descLen": 615
+      }
+    },
+    {
+      "id": "cmn9fbocy02zhe90w38hrbkkd",
+      "sku": "c167-465-99",
+      "before": {
+        "titleEn": "Carbon Rear Bumper Extensions",
+        "titleUa": "Карбонові подовжувачі заднього бампера",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Carbon rear fascia inserts for Mercedes – C 167 – AMG Line",
+        "titleUa": "Карбонові подовжувачі заднього бампера для Mercedes – C 167 – AMG Line",
+        "descLen": 326
+      }
+    },
+    {
+      "id": "cmn9fbocr02z7e90wgrjtm4hy",
+      "sku": "c167-500-99",
+      "before": {
+        "titleEn": "Fender Extensions Carbon",
+        "titleUa": "Розширювачі крил Carbon",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Carbon fender add-on parts for Mercedes – C 167 – AMG GLE 63",
+        "titleUa": "Розширювачі крил Carbon для Mercedes – C 167 – AMG GLE 63",
+        "descLen": 486
+      }
+    },
+    {
+      "id": "cmn9fbo6x02q3e90wj2540769",
+      "sku": "z12-167-pe-63",
+      "before": {
+        "titleEn": "Monoblock Z \"Platinum Edition\"",
+        "titleUa": "Monoblock Z \"Platinum Edition\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock Z \"Platinum Edition\" for Mercedes – C 167 – AMG GLE 63",
+        "titleUa": "Monoblock Z \"Platinum Edition\" для Mercedes – C 167 – AMG GLE 63",
+        "descLen": 1650
+      }
+    },
+    {
+      "id": "cmn9fbo7302qde90w1wuapy1p",
+      "sku": "y12-167-pe-63",
+      "before": {
+        "titleEn": "Monoblock Y \"Platinum Edition\"",
+        "titleUa": "Monoblock Y \"Platinum Edition\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock Y \"Platinum Edition\" for Mercedes – C 167 – AMG GLE 63",
+        "titleUa": "Monoblock Y \"Platinum Edition\" для Mercedes – C 167 – AMG GLE 63",
+        "descLen": 1650
+      }
+    },
+    {
+      "id": "cmn9fbocl02yxe90wp4a9kj32",
+      "sku": "f14-167-bp",
+      "before": {
+        "titleEn": "Monoblock F \"Black Platinum\"",
+        "titleUa": "Monoblock F \"Black Platinum\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock F \"Black Platinum\" for Mercedes – C 167 – AMG Line",
+        "titleUa": "Monoblock F \"Black Platinum\" для Mercedes – C 167 – AMG Line",
+        "descLen": 2005
+      }
+    },
+    {
+      "id": "cmn9fbo7l02r7e90wckf28zg1",
+      "sku": "m12-167-pe",
+      "before": {
+        "titleEn": "Monoblock M \"Platinum Edition\"",
+        "titleUa": "Monoblock M \"Platinum Edition\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock M \"Platinum Edition\" for Mercedes – C 167 – AMG Line",
+        "titleUa": "Monoblock M \"Platinum Edition\" для Mercedes – C 167 – AMG Line",
+        "descLen": 1429
+      }
+    },
+    {
+      "id": "cmn9fboea0311e90wfpcgjm56",
+      "sku": "z12-c167-gu",
+      "before": {
+        "titleEn": "Monoblock Z",
+        "titleUa": "Monoblock Z",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock Z  for Mercedes – C 167 – AMG Line",
+        "titleUa": "Monoblock Z для Mercedes – C 167 – AMG Line",
+        "descLen": 1598
+      }
+    },
+    {
+      "id": "cmn9fboa702vde90wcoh8v29s",
+      "sku": "167-240-00",
+      "before": {
+        "titleEn": "Front Bumper Inserts",
+        "titleUa": "Вставки переднього бампера",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Front fascia inserts  for Mercedes – C 167 – AMG Line",
+        "titleUa": "Вставки переднього бампера для Mercedes – C 167 – AMG Line",
+        "descLen": 480
+      }
+    },
+    {
+      "id": "cmn9fbodf0301e90w8dqttyo2",
+      "sku": "c167-460-99",
+      "before": {
+        "titleEn": "Rear Spoiler Carbon",
+        "titleUa": "Задній спойлер Carbon",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Carbon rear spoiler for Mercedes – C 167 – Standard model",
+        "titleUa": "Задній спойлер Carbon для Mercedes – C 167 – Standard model",
+        "descLen": 412
+      }
+    },
+    {
+      "id": "cmn9fboc102y3e90w9gg09a3l",
+      "sku": "y12-167-pe",
+      "before": {
+        "titleEn": "Monoblock Y \"Platinum Edition\"",
+        "titleUa": "Monoblock Y \"Platinum Edition\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock Y \"Platinum Edition\" for Mercedes – C 167 – AMG Line",
+        "titleUa": "Monoblock Y \"Platinum Edition\" для Mercedes – C 167 – AMG Line",
+        "descLen": 1682
+      }
+    },
+    {
+      "id": "cmn9fbo8g02sle90wp74bn0ws",
+      "sku": "f14-167-bp-63",
+      "before": {
+        "titleEn": "Monoblock F \"Black Platinum\"",
+        "titleUa": "Monoblock F \"Black Platinum\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock F \"Black Platinum\" for Mercedes – C 167 – AMG GLE 63",
+        "titleUa": "Monoblock F \"Black Platinum\" для Mercedes – C 167 – AMG GLE 63",
+        "descLen": 1973
+      }
+    },
+    {
+      "id": "cmn9fboez0325e90w302d3kd7",
+      "sku": "c167-350-00-rgb-2",
+      "before": {
+        "titleEn": "Door Sills RGB – AB MJ 2023",
+        "titleUa": "Порогові накладки RGB – AB MJ 2023",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "RGB Entry Panels - FROM MY 2023 for Mercedes – C 167 – Standard model",
+        "titleUa": "Порогові накладки RGB – AB MJ 2023 для Mercedes – C 167 – Standard model",
+        "descLen": 446
+      }
+    },
+    {
+      "id": "cmn9fboeg031be90w4c30g6oy",
+      "sku": "c167-350-00-rgb",
+      "before": {
+        "titleEn": "Door Sills RGB – BIS MJ 2022",
+        "titleUa": "Порогові накладки RGB – BIS MJ 2022",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "RGB Entry Panels - UNTIL MY 2022 for Mercedes – C 167 – Standard model",
+        "titleUa": "Порогові накладки RGB – BIS MJ 2022 для Mercedes – C 167 – Standard model",
+        "descLen": 445
+      }
+    },
+    {
+      "id": "cmn9fbodl030be90wscq0e3u1",
+      "sku": "907-167-c-00",
+      "before": {
+        "titleEn": "BRABUS Car Cover",
+        "titleUa": "Чохол BRABUS",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "BRABUS Car Cover for Mercedes – C 167 – Standard model",
+        "titleUa": "Чохол BRABUS для Mercedes – C 167 – Standard model",
+        "descLen": 647
+      }
+    },
+    {
+      "id": "cmn9fboaq02w5e90w6y7tpqpt",
+      "sku": "167-d30-00",
+      "before": {
+        "titleEn": "PowerXtra D30 – GLE 300d",
+        "titleUa": "PowerXtra D30 – GLE 300d",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "PowerXtra D30 - GLE 300d for Mercedes – C 167 – Standard model",
+        "titleUa": "PowerXtra D30 – GLE 300d",
+        "descLen": 961
+      }
+    },
+    {
+      "id": "cmn9fbobn02xje90w02xi35uj",
+      "sku": "zm12-167-pe",
+      "before": {
+        "titleEn": "Monoblock ZM \"Platinum Edition\"",
+        "titleUa": "Monoblock ZM \"Platinum Edition\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock ZM \"Platinum Edition\" for Mercedes – C 167 – Standard model",
+        "titleUa": "Monoblock ZM \"Platinum Edition\" для Mercedes – C 167 – Standard model",
+        "descLen": 1837
+      }
+    },
+    {
+      "id": "cmn9fbo4o02n8e90wr1l4syat",
+      "sku": "167-265-99",
+      "before": {
+        "titleEn": "Carbon Front Bumper Inserts",
+        "titleUa": "Карбонові вставки переднього бампера",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Carbon front fascia attachments for Mercedes – C 167 – AMG GLE 63",
+        "titleUa": "Карбонові вставки переднього бампера для Mercedes – C 167 – AMG GLE 63",
+        "descLen": 488
+      }
+    },
+    {
+      "id": "cmn9fbo8a02sbe90wzqubtfix",
+      "sku": "f14-167-cp",
+      "before": {
+        "titleEn": "Monoblock F \"Polished Ceramic\"",
+        "titleUa": "Monoblock F \"Ceramic Polished\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock F  \"Ceramic-polished\" for Mercedes – C 167 – AMG Line",
+        "titleUa": "Monoblock F \"Ceramic Polished\" для Mercedes – C 167 – AMG Line",
+        "descLen": 2013
+      }
+    },
+    {
+      "id": "cmn9fbof6032fe90wnvzx3f3z",
+      "sku": "t13-167-ss",
+      "before": {
+        "titleEn": "Monoblock T \"Sterling Silver\"",
+        "titleUa": "Monoblock T \"Sterling Silver\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock T \"Sterling Silver\" for Mercedes – C 167 – Standard model",
+        "titleUa": "Monoblock T \"Sterling Silver\" для Mercedes – C 167 – Standard model",
+        "descLen": 1498
+      }
+    },
+    {
+      "id": "cmn9fbo6q02pte90ww5l0bjx4",
+      "sku": "zm12-167-pe-amg",
+      "before": {
+        "titleEn": "Monoblock ZM \"Platinum Edition\"",
+        "titleUa": "Monoblock ZM \"Platinum Edition\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock ZM \"Platinum Edition\" for Mercedes – C 167 – AMG GLE 63",
+        "titleUa": "Monoblock ZM \"Platinum Edition\" для Mercedes – C 167 – AMG GLE 63",
+        "descLen": 2079
+      }
+    },
+    {
+      "id": "cmn9fboc702yde90wu58bjmew",
+      "sku": "y12-167-gp",
+      "before": {
+        "titleEn": "Monoblock Y \"Gold Platinum\"",
+        "titleUa": "Monoblock Y \"Gold Platinum\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock Y \"Gold Platinum\" for Mercedes – C 167 – AMG Line",
+        "titleUa": "Monoblock Y \"Gold Platinum\" для Mercedes – C 167 – AMG Line",
+        "descLen": 1711
+      }
+    },
+    {
+      "id": "cmn9fbobt02xte90wk97xob4u",
+      "sku": "z12-167-pe",
+      "before": {
+        "titleEn": "Monoblock Z \"Platinum Edition\"",
+        "titleUa": "Monoblock Z \"Platinum Edition\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock Z \"Platinum Edition\" for Mercedes – C 167 – AMG Line",
+        "titleUa": "Monoblock Z \"Platinum Edition\" для Mercedes – C 167 – AMG Line",
+        "descLen": 1705
+      }
+    },
+    {
+      "id": "cmn9fbo8402s1e90wvwsud6o4",
+      "sku": "f14-167-pe",
+      "before": {
+        "titleEn": "Monoblock F \"Platinum Edition\"",
+        "titleUa": "Monoblock F \"Platinum Edition\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock F \"Platinum Edition\" for Mercedes – C 167 – AMG Line",
+        "titleUa": "Monoblock F \"Platinum Edition\" для Mercedes – C 167 – AMG Line",
+        "descLen": 1976
+      }
+    },
+    {
+      "id": "cmn9fbo4102mee90wlon7fh41",
+      "sku": "167-295-99",
+      "before": {
+        "titleEn": "Carbon Front Grille Inserts",
+        "titleUa": "Карбонові вставки решітки радіатора",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Carbon front grille inserts for Mercedes – C 167 – AMG GLE 63",
+        "titleUa": "Карбонові вставки решітки радіатора для Mercedes – C 167 – AMG GLE 63",
+        "descLen": 471
+      }
+    },
+    {
+      "id": "cmn9fbo7f02qxe90wbuftqmao",
+      "sku": "m12-167-sp",
+      "before": {
+        "titleEn": "Monoblock M \"Shadow Platinum\"",
+        "titleUa": "Monoblock M \"Shadow Platinum\"",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Monoblock M \"Shadow Platinum\" for Mercedes – C 167 – Standard model",
+        "titleUa": "Monoblock M \"Shadow Platinum\" для Mercedes – C 167 – Standard model",
+        "descLen": 1416
+      }
+    }
+  ],
+  "failures": [
+    {
+      "sku": "464-330-91",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "hd10-464-4x4",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "464-b40s-800-210",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "464-b40-700-50-210",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "464-678-63-sc-r-4x4",
+      "reason": "fetch failed"
+    }
+  ]
+}

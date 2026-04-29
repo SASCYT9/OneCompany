@@ -1,0 +1,26 @@
+{
+  "processed": 5,
+  "updates": [],
+  "failures": [
+    {
+      "sku": "hd10-464-4x4",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "464-330-91",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "464-678-63-sc-r-4x4",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "464-b40s-800-210",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "464-b40-700-50-210",
+      "reason": "fetch failed"
+    }
+  ]
+}

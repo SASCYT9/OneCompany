@@ -1,0 +1,76 @@
+{
+  "processed": 5,
+  "updates": [
+    {
+      "id": "cmnev2cy7007se9mga6xf7gau",
+      "sku": "257-108-053-256-00",
+      "before": {
+        "titleEn": "SportXtra for Mercedes – C257 – AMG CLS 53",
+        "titleUa": "SportXtra для Mercedes – C257 – AMG CLS 53",
+        "descLen": 112
+      },
+      "after": {
+        "titleEn": "SportXtra for Mercedes – C257 – AMG CLS 53",
+        "titleUa": "SportXtra для Mercedes – C257 – AMG CLS 53",
+        "descLen": 567
+      }
+    },
+    {
+      "id": "cmn9fbp5k0438e90wxgovoxj2",
+      "sku": "192-872-00n",
+      "before": {
+        "titleEn": "Trunk Mat Velour",
+        "titleUa": "Килимок багажника Велюр",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Velour Trunk mat for Mercedes – C 192 – AMG GT 63",
+        "titleUa": "Килимок багажника Велюр для Mercedes – C 192 – AMG GT 63",
+        "descLen": 420
+      }
+    },
+    {
+      "id": "cmn9fbo4g02mye90wv22x76ko",
+      "sku": "167-465-99",
+      "before": {
+        "titleEn": "Carbon Rear Bumper Extensions",
+        "titleUa": "Карбонові подовжувачі заднього бампера",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Carbon rear fascia attachments for Mercedes – V 167 – AMG Line",
+        "titleUa": "Карбонові подовжувачі заднього бампера для Mercedes – V 167 – AMG Line",
+        "descLen": 417
+      }
+    },
+    {
+      "id": "cmn9fbnhg01t0e90waq6rltvg",
+      "sku": "214-463-99",
+      "before": {
+        "titleEn": "Rear Diffuser Carbon",
+        "titleUa": "Задній дифузор Carbon",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Carbon rear diffuser for Mercedes – W 214 – AMG E 53",
+        "titleUa": "Задній дифузор Carbon для Mercedes – W 214 – AMG E 53",
+        "descLen": 618
+      }
+    },
+    {
+      "id": "cmnew1fj10a51e9mgz7nv6050",
+      "sku": "RRG-816-20",
+      "before": {
+        "titleEn": "Illuminated foot rest BRABUS based on Rolls – Royce Ghost",
+        "titleUa": "Підніжка з підсвічуванням BRABUS на базі Rolls – Royce Ghost",
+        "descLen": 125
+      },
+      "after": {
+        "titleEn": "Illuminated foot rest BRABUS based on Rolls-Royce Ghost",
+        "titleUa": "Підніжка з підсвічуванням BRABUS на базі Rolls – Royce Ghost",
+        "descLen": 548
+      }
+    }
+  ],
+  "failures": []
+}

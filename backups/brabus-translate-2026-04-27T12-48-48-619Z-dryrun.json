@@ -1,0 +1,29 @@
+{
+  "updated": 0,
+  "titleOnly": 0,
+  "descOnly": 0,
+  "both": 0,
+  "failures": [
+    {
+      "sku": "254-b20e-730-00",
+      "error": "DeepL failed after 3 retries"
+    },
+    {
+      "sku": "223-108-580-176-00",
+      "error": "DeepL failed after 3 retries"
+    },
+    {
+      "sku": "167-465-99",
+      "error": "DeepL failed after 3 retries"
+    },
+    {
+      "sku": "x247-004-00",
+      "error": "DeepL failed after 3 retries"
+    },
+    {
+      "sku": "bc634-851-02",
+      "error": "DeepL failed after 3 retries"
+    }
+  ],
+  "samples": []
+}

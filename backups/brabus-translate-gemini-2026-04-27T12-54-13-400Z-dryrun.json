@@ -1,0 +1,29 @@
+{
+  "updated": 0,
+  "titleOnly": 0,
+  "descOnly": 0,
+  "both": 0,
+  "failures": [
+    {
+      "sku": "167-465-99",
+      "error": "HTTP 403: {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Gemini API has not been used in project 908155797911 before or it is disabled. Enable it by "
+    },
+    {
+      "sku": "bc634-851-02",
+      "error": "HTTP 403: {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Gemini API has not been used in project 908155797911 before or it is disabled. Enable it by "
+    },
+    {
+      "sku": "x247-004-00",
+      "error": "HTTP 403: {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Gemini API has not been used in project 908155797911 before or it is disabled. Enable it by "
+    },
+    {
+      "sku": "223-108-580-176-00",
+      "error": "HTTP 403: {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Gemini API has not been used in project 908155797911 before or it is disabled. Enable it by "
+    },
+    {
+      "sku": "254-b20e-730-00",
+      "error": "HTTP 403: {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Gemini API has not been used in project 908155797911 before or it is disabled. Enable it by "
+    }
+  ],
+  "samples": []
+}

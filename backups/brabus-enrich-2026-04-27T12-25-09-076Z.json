@@ -1,0 +1,20 @@
+{
+  "processed": 1,
+  "updates": [
+    {
+      "id": "cmn9fbrrj079ye90wfloslhhf",
+      "sku": "93-rrg-858-13",
+      "before": {
+        "titleEn": "Trunk Leather Quilted",
+        "titleUa": "Шкіряний стійкий відсік багажника",
+        "descLen": 0
+      },
+      "after": {
+        "titleEn": "Leather trunk quilted BRABUS based on Rolls-Royce Ghost",
+        "titleUa": "Шкіряний стійкий відсік багажника на базі Rolls-Royce Ghost",
+        "descLen": 607
+      }
+    }
+  ],
+  "failures": []
+}

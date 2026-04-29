@@ -92,5 +92,9 @@ tmp-*.jpg
 tmp-*.png
 do88-urls.txt
 .claude/scheduled_tasks.lock
+
+# Local temp directories (image candidates, one-off scripts, audit caches)
+.tmp/
+tmp/
 .claude/worktrees/
 scripts/_check_*.mjs

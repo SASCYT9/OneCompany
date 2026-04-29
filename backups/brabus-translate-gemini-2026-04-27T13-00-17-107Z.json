@@ -1,0 +1,69 @@
+{
+  "updated": 463,
+  "titleOnly": 0,
+  "descOnly": 445,
+  "both": 18,
+  "failures": [],
+  "samples": [
+    {
+      "sku": "223-108-580-176-00",
+      "before": {
+        "titleUa": "SportXtra – S 580 для Mercedes – Z 223 – Maybach S 580 / S 680",
+        "descLen": 95
+      },
+      "after": {
+        "titleUa": "SportXtra – S 580 для Mercedes – Z 223 – Maybach S 580 / S 680",
+        "descLen": 190
+      },
+      "uaPreview": "<p>BRABUS SportXtra для S 580 4Matic (W/V 223) дозволяє занизити кліренс вашого автомобіля, оснащеного підвіскою AIRMATIC. Заниження дорожнього просвіту до 20 мм залежно від режиму руху.</p>"
+    },
+    {
+      "sku": "167-465-99",
+      "before": {
+        "titleUa": "Карбонові подовжувачі заднього бампера для Mercedes – V 167 – AMG Line",
+        "descLen": 0
+      },
+      "after": {
+        "titleUa": "Карбонові подовжувачі заднього бампера для Mercedes – V 167 – AMG Line",
+        "descLen": 220
+      },
+      "uaPreview": "<p>Спортивний, динамічний вигляд та покращена аеродинаміка: вставки заднього бампера з високоякісного карбонового волокна доповнюють ідентичність BRABUS вашого автомобіля. Зверніть увагу: тільки для AMG-line код P31.</p>"
+    },
+    {
+      "sku": "bc634-851-02",
+      "before": {
+        "titleUa": "BRABUS SIGNATURE ПАКЕТ II на базі Bentley Continental GT Speed",
+        "descLen": 0
+      },
+      "after": {
+        "titleUa": "BRABUS SIGNATURE ПАКЕТ II на базі Bentley Continental GT Speed",
+        "descLen": 286
+      },
+      "uaPreview": "Екстравагантний та стильний: включає елегантний килимок BRABUS для багажника зі стьобаної шкіри та чотири килимки для підлоги зі стьобаної шкіри або високоякісного Velour. Індивідуальні дизайни доступні за запитом. ЗВЕРНІТЬ УВАГУ: Спеціалізовані інди"
+    },
+    {
+      "sku": "x247-004-00",
+      "before": {
+        "titleUa": "Спортивні пружини для Mercedes – X 247 – GLB 250 | AMG Line",
+        "descLen": 0
+      },
+      "after": {
+        "titleUa": "Спортивні пружини для Mercedes – X 247 – GLB 250 | AMG Line",
+        "descLen": 249
+      },
+      "uaPreview": "<p>Спортивні пружини BRABUS забезпечують спортивний вигляд при незмінній якості їзди. Висота дорожнього просвіту знижується на 30 мм.</p>\n<p>Зверніть увагу: Тільки для автомобілів з 4MATIC. Не для автомобілів з регулюванням рівня або AMG GLB 35.</p>"
+    },
+    {
+      "sku": "254-b20e-730-00",
+      "before": {
+        "titleUa": "PowerXtra B20E – 730 для Mercedes – X 254 – AMG GLC 63",
+        "descLen": 0
+      },
+      "after": {
+        "titleUa": "PowerXtra B20E – 730 для Mercedes – X 254 – AMG GLC 63",
+        "descLen": 878
+      },
+      "uaPreview": "Додаткова потужність BRABUS для Вашого автомобіля: Комплект підвищення продуктивності BRABUS PowerXtra B20E-730 на базі Mercedes-AMG GLC 63 S E Performance (X 254) складається з допоміжного модуля керування з процесором для блоку керування двигуном. "
+    }
+  ]
+}

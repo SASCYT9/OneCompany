@@ -1,0 +1,31 @@
+{
+  "touched": 518,
+  "charsRemoved": 372653,
+  "samples": [
+    {
+      "sku": "214-463-99",
+      "before": 618,
+      "after": 362
+    },
+    {
+      "sku": "x247-004-00",
+      "before": 463,
+      "after": 207
+    },
+    {
+      "sku": "hc-450-00",
+      "before": 611,
+      "after": 387
+    },
+    {
+      "sku": "223-108-580-176-00",
+      "before": 672,
+      "after": 199
+    },
+    {
+      "sku": "c167-678-63",
+      "before": 907,
+      "after": 566
+    }
+  ]
+}

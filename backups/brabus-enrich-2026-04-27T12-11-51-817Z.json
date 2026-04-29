@@ -1,0 +1,150 @@
+{
+  "processed": 36,
+  "updates": [],
+  "failures": [
+    {
+      "sku": "167-263-99",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "c167-678-63",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "c167-871-00n",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "c167-463-99",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "c167-872-00n",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "m12-167-cp",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "c167-465-99",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "c167-500-99",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "z12-167-pe-63",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "y12-167-pe-63",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "m12-167-pe",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "f14-167-bp",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "z12-c167-gu",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "167-240-00",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "c167-460-99",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "y12-167-pe",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "f14-167-bp-63",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "c167-350-00-rgb-2",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "c167-350-00-rgb",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "907-167-c-00",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "464-330-91",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "hd10-464-4x4",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "167-d30-00",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "zm12-167-pe",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "464-b40s-800-210",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "464-b40-700-50-210",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "167-265-99",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "f14-167-cp",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "t13-167-ss",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "zm12-167-pe-amg",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "y12-167-gp",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "f14-167-pe",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "z12-167-pe",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "m12-167-sp",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "464-678-63-sc-r-4x4",
+      "reason": "fetch failed"
+    },
+    {
+      "sku": "167-295-99",
+      "reason": "fetch failed"
+    }
+  ]
+}
