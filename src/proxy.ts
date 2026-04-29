@@ -180,6 +180,11 @@ export default async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  // Match all pathnames except for static files
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)']
+  // Match all pathnames except for static files AND already-localized paths.
+  // Excluding /ua/* and /en/* from the matcher is what makes those routes
+  // statically cacheable on Vercel — even an early `NextResponse.next()` in
+  // the middleware body is enough to mark the route dynamic and stamp
+  // Cache-Control: private, no-store. The middleware now only runs for the
+  // root redirect, locale-agnostic public paths, and admin/API auth.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|ua/|en/|.*\\..*).*)']
 };
