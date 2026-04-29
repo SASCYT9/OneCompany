@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion';
 
 import {
   allMotoBrands,
@@ -375,6 +375,7 @@ export default function MotoPage() {
     : [];
 
   return (
+    <LazyMotion features={domAnimation} strict>
     <div className="min-h-screen bg-black text-white font-sans relative">
       <div className="fixed inset-0 z-0 bg-black">
         <video
@@ -428,7 +429,7 @@ export default function MotoPage() {
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             {/* Header */}
             <div className="mb-16 sm:mb-20 md:mb-28 text-center">
-              <motion.h2
+              <m.h2
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -438,8 +439,8 @@ export default function MotoPage() {
                 <span className="bg-gradient-to-b from-white via-white to-zinc-400 bg-clip-text text-transparent">
                   {locale === 'ua' ? 'Легендарні бренди' : 'Legendary Brands'}
                 </span>
-              </motion.h2>
-              <motion.p
+              </m.h2>
+              <m.p
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -447,14 +448,14 @@ export default function MotoPage() {
                 className="mt-4 text-lg sm:text-xl text-zinc-500 max-w-xl mx-auto"
               >
                 {locale === 'ua' ? 'Бренди, що формують індустрію мото' : 'Brands that define the moto industry'}
-              </motion.p>
+              </m.p>
             </div>
 
             {/* Legendary Grid - Equal Width Masonry */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 auto-rows-max">
 
               {/* SC-PROJECT - Hero Card (Replaces Akrapovic as Hero) */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('SC-Project')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -480,10 +481,10 @@ export default function MotoPage() {
 
                   </div>
                 </div>
-              </motion.button>
+              </m.button>
 
               {/* TERMIGNONI - Tall Card */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('Termignoni')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -507,10 +508,10 @@ export default function MotoPage() {
                   </div>
 
                 </div>
-              </motion.button>
+              </m.button>
 
               {/* BREMBO - Wide Card */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('Brembo')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -532,10 +533,10 @@ export default function MotoPage() {
                   <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Гальмівні системи' : 'Braking systems'}</p>
                 </div>
 
-              </motion.button>
+              </m.button>
 
               {/* AKRAPOVIC - Small Card (Moved from Hero) */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('Akrapovic')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -558,10 +559,10 @@ export default function MotoPage() {
                     </div>
                   </div>
                 </div>
-              </motion.button>
+              </m.button>
 
               {/* OHLINS */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('Ohlins')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -580,10 +581,10 @@ export default function MotoPage() {
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Ohlins</p>
                   <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Золотий стандарт' : 'The Gold Standard'}</p>
                 </div>
-              </motion.button>
+              </m.button>
 
               {/* MARCHESINI */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('Marchesini')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -602,10 +603,10 @@ export default function MotoPage() {
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Marchesini</p>
                   <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Легендарні диски' : 'Legendary wheels'}</p>
                 </div>
-              </motion.button>
+              </m.button>
 
               {/* OZ RACING */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('OZ Racing')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -624,12 +625,12 @@ export default function MotoPage() {
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">OZ Racing</p>
                   <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Технології перемог' : 'Winning technology'}</p>
                 </div>
-              </motion.button>
+              </m.button>
 
               {/* ARROW & SPARK EXHAUST - Split Row */}
               <div className="sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
                 {/* ARROW */}
-                <motion.button
+                <m.button
                   onClick={() => handleBrandClick('Arrow')}
                   initial={{ opacity: 0, y: 60 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -648,10 +649,10 @@ export default function MotoPage() {
                     <p className="text-lg sm:text-xl font-light text-white tracking-tight">Arrow</p>
                     <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійський звук' : 'Italian sound'}</p>
                   </div>
-                </motion.button>
+                </m.button>
 
                 {/* SPARK EXHAUST */}
-                <motion.button
+                <m.button
                   onClick={() => handleBrandClick('SparkExhaust')}
                   initial={{ opacity: 0, y: 60 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -670,11 +671,11 @@ export default function MotoPage() {
                     <p className="text-lg sm:text-xl font-light text-white tracking-tight">Spark</p>
                     <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Італійська пристрасть' : 'Italian passion'}</p>
                   </div>
-                </motion.button>
+                </m.button>
               </div>
 
               {/* +40 BRANDS CTA */}
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -760,7 +761,7 @@ export default function MotoPage() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
 
             </div>
           </div>
@@ -779,7 +780,7 @@ export default function MotoPage() {
                 className="mt-8 inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-black shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-all hover:bg-white/90 hover:scale-105 hover:shadow-[0_0_35px_rgba(255,255,255,0.4)] active:scale-95"
               >
                 <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
-                <motion.div
+                <m.div
                   animate={{ rotate: isModulesOpen ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
                 >
@@ -799,13 +800,13 @@ export default function MotoPage() {
                       strokeLinejoin="round"
                     />
                   </svg>
-                </motion.div>
+                </m.div>
               </button>
             </div>
           </div>
           <AnimatePresence>
             {isModulesOpen && (
-              <motion.div
+              <m.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -861,7 +862,7 @@ export default function MotoPage() {
                     </Link>
                   ))}
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </section>
@@ -934,7 +935,7 @@ export default function MotoPage() {
               className="inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-black shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-all hover:bg-white/90 hover:scale-105 hover:shadow-[0_0_35px_rgba(255,255,255,0.4)] active:scale-95"
             >
               <span>{isBrandsOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
-              <motion.div
+              <m.div
                 animate={{ rotate: isBrandsOpen ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
               >
@@ -954,13 +955,13 @@ export default function MotoPage() {
                     strokeLinejoin="round"
                   />
                 </svg>
-              </motion.div>
+              </m.div>
             </button>
           </div>
 
           <AnimatePresence>
             {isBrandsOpen && (
-              <motion.div
+              <m.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -973,7 +974,7 @@ export default function MotoPage() {
                       const origin = getBrandOrigin(brand);
                       const subcategory = getBrandSubcategory(brand);
                       return (
-                        <motion.button
+                        <m.button
                           key={brand.name}
                           onClick={() => setSelectedBrand(brand)}
                           whileHover={{ y: -6 }}
@@ -1001,7 +1002,7 @@ export default function MotoPage() {
                             />
                           </div>
                           <div className="mt-4 text-lg font-light leading-tight text-white sm:mt-6 sm:text-xl w-full px-1 break-words">{BRAND_DISPLAY_NAMES[brand.name] || brand.name}</div>
-                        </motion.button>
+                        </m.button>
                       );
                     })
                   ) : (
@@ -1010,7 +1011,7 @@ export default function MotoPage() {
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </section>
@@ -1018,5 +1019,6 @@ export default function MotoPage() {
         <div className="pb-10" />
       </div>
     </div>
+    </LazyMotion>
   );
 }

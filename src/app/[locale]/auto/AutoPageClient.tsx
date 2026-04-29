@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion';
 
 import {
   allAutomotiveBrands,
@@ -248,6 +248,7 @@ export default function AutomotivePage() {
   const selectedBrandSubcategory = selectedBrand ? getBrandSubcategory(selectedBrand) : null;
 
   return (
+    <LazyMotion features={domAnimation} strict>
     <div className="min-h-dvh bg-black text-white font-sans relative">
       <div className="fixed inset-0 z-0 bg-black">
         <video
@@ -299,7 +300,7 @@ export default function AutomotivePage() {
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             {/* Header */}
             <div className="mb-16 sm:mb-20 md:mb-28 text-center">
-              <motion.h2
+              <m.h2
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -309,8 +310,8 @@ export default function AutomotivePage() {
                 <span className="bg-gradient-to-b from-white via-white to-zinc-400 bg-clip-text text-transparent">
                   {locale === 'ua' ? 'Легендарні бренди' : 'Legendary Brands'}
                 </span>
-              </motion.h2>
-              <motion.p
+              </m.h2>
+              <m.p
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -318,14 +319,14 @@ export default function AutomotivePage() {
                 className="mt-4 text-lg sm:text-xl text-zinc-500 max-w-xl mx-auto"
               >
                 {locale === 'ua' ? 'Бренди, що формують індустрію' : 'Brands that define the industry'}
-              </motion.p>
+              </m.p>
             </div>
 
             {/* Legendary Grid - Equal Width Masonry */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 auto-rows-max">
 
               {/* AKRAPOVIC - Hero Card */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('Akrapovic')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -362,10 +363,10 @@ export default function AutomotivePage() {
                     </div>
                   </div>
                 </div>
-              </motion.button>
+              </m.button>
 
               {/* BRABUS - Tall Card */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('Brabus')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -397,10 +398,10 @@ export default function AutomotivePage() {
                     <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Преміум тюнінг' : 'Premium tuning'}</p>
                   </div>
                 </div>
-              </motion.button>
+              </m.button>
 
               {/* TECHART - Wide Card */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('TECHART')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -430,10 +431,10 @@ export default function AutomotivePage() {
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">TechArt</p>
                   <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Преміум тюнінг' : 'Premium tuning'}</p>
                 </div>
-              </motion.button>
+              </m.button>
 
               {/* HRE */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('HRE wheels')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -457,10 +458,10 @@ export default function AutomotivePage() {
                     </div>
                   </div>
                 </div>
-              </motion.button>
+              </m.button>
 
               {/* URBAN AUTOMOTIVE */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('Urban Automotive')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -480,10 +481,10 @@ export default function AutomotivePage() {
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Urban Automotive</p>
                   <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Преміум обвіси' : 'Premium body kits'}</p>
                 </div>
-              </motion.button>
+              </m.button>
 
               {/* EVENTURI */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('Eventuri')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -503,10 +504,10 @@ export default function AutomotivePage() {
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">Eventuri</p>
                   <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Впускні системи' : 'Intake systems'}</p>
                 </div>
-              </motion.button>
+              </m.button>
 
               {/* KW */}
-              <motion.button
+              <m.button
                 onClick={() => handleBrandClick('KW Suspension')}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -526,11 +527,11 @@ export default function AutomotivePage() {
                   <p className="text-lg sm:text-xl font-light text-white tracking-tight">KW Suspensions</p>
                   <p className="text-xs sm:text-sm text-white/60 mt-1">{locale === 'ua' ? 'Підвіска' : 'Suspension'}</p>
                 </div>
-              </motion.button>
+              </m.button>
               {/* NOVITEC & ABT - Split Row */}
               <div className="sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
                 {/* NOVITEC */}
-                <motion.button
+                <m.button
                   onClick={() => handleBrandClick('Novitec')}
                   initial={{ opacity: 0, y: 60 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -564,10 +565,10 @@ export default function AutomotivePage() {
                       </div>
                     </div>
                   </div>
-                </motion.button>
+                </m.button>
 
                 {/* ABT */}
-                <motion.button
+                <m.button
                   onClick={() => handleBrandClick('ABT')}
                   initial={{ opacity: 0, y: 60 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -601,10 +602,10 @@ export default function AutomotivePage() {
                       </div>
                     </div>
                   </div>
-                </motion.button>
+                </m.button>
               </div>
               {/* +160 BRANDS CTA */}
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -690,7 +691,7 @@ export default function AutomotivePage() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
 
             </div>
           </div>
@@ -708,7 +709,7 @@ export default function AutomotivePage() {
                 className="mt-8 inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-black shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-all hover:bg-white/90 hover:scale-105 hover:shadow-[0_0_35px_rgba(255,255,255,0.4)] active:scale-95"
               >
                 <span>{isModulesOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
-                <motion.div
+                <m.div
                   animate={{ rotate: isModulesOpen ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
                 >
@@ -728,13 +729,13 @@ export default function AutomotivePage() {
                       strokeLinejoin="round"
                     />
                   </svg>
-                </motion.div>
+                </m.div>
               </button>
             </div>
           </div>
           <AnimatePresence>
             {isModulesOpen && (
-              <motion.div
+              <m.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -799,7 +800,7 @@ export default function AutomotivePage() {
                     </Link>
                   ))}
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </section>
@@ -859,7 +860,7 @@ export default function AutomotivePage() {
                 className="inline-flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-black shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-all hover:bg-white/90 hover:scale-105 hover:shadow-[0_0_35px_rgba(255,255,255,0.4)] active:scale-95"
               >
                 <span>{isBrandsOpen ? (locale === 'ua' ? 'Згорнути' : 'Collapse') : (locale === 'ua' ? 'Відкрити список' : 'Open list')}</span>
-                <motion.div
+                <m.div
                   animate={{ rotate: isBrandsOpen ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
                 >
@@ -879,7 +880,7 @@ export default function AutomotivePage() {
                       strokeLinejoin="round"
                     />
                   </svg>
-                </motion.div>
+                </m.div>
               </button>
 
               {/* Scroll Down Arrow */}
@@ -902,7 +903,7 @@ export default function AutomotivePage() {
 
           <AnimatePresence>
             {isBrandsOpen && (
-              <motion.div
+              <m.div
                 id="brand-list-container"
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
@@ -919,7 +920,7 @@ export default function AutomotivePage() {
                       const logoSrc = getBrandLogo(brand.name);
 
                       return (
-                        <motion.button
+                        <m.button
                           key={brand.name}
                           onClick={() => setSelectedBrand(brand)}
                           whileHover={{ y: -6 }}
@@ -947,7 +948,7 @@ export default function AutomotivePage() {
                             </div>
                           </div>
                           <div className="mt-4 text-lg font-light leading-tight text-white sm:mt-6 sm:text-xl w-full px-1 break-words">{BRAND_DISPLAY_NAMES[brand.name] || brand.name}</div>
-                        </motion.button>
+                        </m.button>
                       );
                     })
                   ) : (
@@ -956,7 +957,7 @@ export default function AutomotivePage() {
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </section>
@@ -977,5 +978,6 @@ export default function AutomotivePage() {
         <div className="pb-10" />
       </div>
     </div>
+    </LazyMotion>
   );
 }

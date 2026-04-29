@@ -20,7 +20,6 @@ import {
   getShopProductImageOverrideForSku,
   getShopProductsServer,
 } from '@/lib/shopCatalogServer';
-import { getCurrentShopCustomerSession } from '@/lib/shopCustomerSession';
 import { localizeShopDescription, localizeShopProductTitle, localizeShopText, fixDo88UaDescriptionFragments } from '@/lib/shopText';
 import { buildShopViewerPricingContext, resolveShopProductPricing } from '@/lib/shopPricingAudience';
 import { extractShopProductDescriptionSections } from '@/lib/shopProductDescription';
@@ -321,10 +320,7 @@ export default async function ShopProductDetailPage({
     getShopProductsServer(),
   ]);
 
-  const [session, settingsRecord] = await Promise.all([
-    getCurrentShopCustomerSession(),
-    getOrCreateShopSettings(prisma),
-  ]);
+  const settingsRecord = await getOrCreateShopSettings(prisma);
 
   if (!product) {
     notFound();
@@ -333,11 +329,15 @@ export default async function ShopProductDetailPage({
   const settingsRuntime = getShopSettingsRuntime(settingsRecord);
   const rates = settingsRuntime.currencyRates;
 
+  // Anonymous SSR viewer context — page is ISR-cached. B2B users get the
+  // live context via useShopViewerContext in client layouts (Brabus/Burger
+  // already wired). The default inline layout renders anon prices on detail
+  // pages for B2B users; correct B2B pricing always applies in cart/checkout.
   const viewerContext = buildShopViewerPricingContext(
     settingsRuntime,
-    session?.group ?? null,
-    Boolean(session),
-    session?.b2bDiscountPercent ?? null
+    null,
+    false,
+    null
   );
   const pricing = resolveShopProductPricing(product, viewerContext);
   const defaultVariant = product.variants?.find((item) => item.isDefault) ?? product.variants?.[0] ?? null;

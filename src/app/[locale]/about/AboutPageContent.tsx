@@ -1,0 +1,234 @@
+'use client';
+
+import React from 'react';
+import { motion } from 'framer-motion';
+import {
+  Layers,
+  Network,
+  Sparkles,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
+
+const AboutPage: React.FC = () => {
+  const t = useTranslations('aboutPage');
+  const locale = useLocale();
+
+  const stats = [
+    {
+      value: t('stats.items.years.value'),
+      label: t('stats.items.years.label'),
+    },
+    {
+      value: t('stats.items.brands.value'),
+      label: t('stats.items.brands.label'),
+    },
+    {
+      value: t('stats.items.countries.value'),
+      label: t('stats.items.countries.label'),
+    },
+  ];
+
+  const pillars = [
+    {
+      icon: <Sparkles className="h-8 w-8" />,
+      title: t('pillars.items.curation.title'),
+      description: t('pillars.items.curation.description'),
+    },
+    {
+      icon: <Layers className="h-8 w-8" />,
+      title: t('pillars.items.integration.title'),
+      description: t('pillars.items.integration.description'),
+    },
+    {
+      icon: <Network className="h-8 w-8" />,
+      title: t('pillars.items.partnerNetwork.title'),
+      description: t('pillars.items.partnerNetwork.description'),
+    },
+  ];
+
+  const timeline = [
+    {
+      year: '2007',
+      title: t('timeline.events.2007.title'),
+      description: t('timeline.events.2007.description'),
+    },
+    {
+      year: '2008',
+      title: t('timeline.events.2008.title'),
+      description: t('timeline.events.2008.description'),
+    },
+    {
+      year: '2012',
+      title: t('timeline.events.2012.title'),
+      description: t('timeline.events.2012.description'),
+    },
+    {
+      year: '2016',
+      title: t('timeline.events.2016.title'),
+      description: t('timeline.events.2016.description'),
+    },
+    {
+      year: '2022',
+      title: t('timeline.events.2022.title'),
+      description: t('timeline.events.2022.description'),
+    },
+    {
+      year: '2023',
+      title: t('timeline.events.2023.title'),
+      description: t('timeline.events.2023.description'),
+    },
+  ];
+
+  return (
+    <div className="relative overflow-hidden text-zinc-100">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.1)_0%,_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-y-0 right-[-200px] w-[480px] bg-[radial-gradient(circle,_rgba(255,255,255,0.05)_0%,_transparent_70%)] blur-3xl" />
+
+      {/* Hero */}
+      <section className="relative flex min-h-[50vh] md:min-h-[65vh] flex-col justify-center px-6 pt-24 pb-12 md:pt-32 md:pb-16 md:px-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 to-transparent" />
+        <div className="relative z-10 mx-auto w-full max-w-6xl">
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-6 text-[10px] md:text-xs uppercase tracking-[0.4em] text-white/60"
+          >
+            {t('hero.eyebrow')}
+          </motion.p>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="text-3xl sm:text-4xl font-extralight leading-tight text-white md:text-5xl lg:text-6xl text-balance"
+          >
+            {t('hero.title')}
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="mt-8 max-w-3xl text-sm md:text-base font-light text-white/70 lg:text-lg text-pretty"
+          >
+            {t('hero.subtitle')}
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.35 }}
+            className="mt-8 flex flex-wrap gap-4"
+          >
+            <Link
+              href={`/${locale}/contact`}
+              className="inline-flex items-center justify-center rounded-full border border-white bg-white px-8 py-3 text-[10px] md:text-xs font-semibold uppercase tracking-wide text-black transition hover:bg-transparent hover:text-white"
+            >
+              {t('hero.primaryCta')}
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="relative px-6 py-6 md:py-8 md:px-10">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500 lg:p-12">
+          <h2 className="text-2xl md:text-3xl font-light text-white text-center">{t('stats.title')}</h2>
+          <div className="grid w-full grid-cols-2 gap-8 md:grid-cols-3">
+            {stats.map((stat) => (
+              <div key={stat.label} className="flex flex-col items-center text-center md:items-start md:text-left">
+                <span className="text-3xl md:text-4xl font-extralight text-white sm:text-5xl">
+                  {stat.value}
+                </span>
+                <span className="mt-4 text-[10px] md:text-xs uppercase tracking-[0.2em] text-white/60 text-pretty">
+                  {stat.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Narrative */}
+      <section className="px-6 py-24 md:px-10">
+        <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[1.1fr_0.9fr]">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="space-y-6"
+          >
+            <p className="text-[11px] min-[410px]:text-[13px] md:text-sm uppercase tracking-[0.35em] text-white/60">
+              {t('narrative.title')}
+            </p>
+            <p className="text-[15px] min-[410px]:text-[17px] md:text-lg font-light text-white/70">
+              {t('narrative.paragraph1')}
+            </p>
+            <p className="text-[15px] min-[410px]:text-[17px] md:text-lg font-light text-white/70">
+              {t('narrative.paragraph2')}
+            </p>
+            <p className="text-[15px] min-[410px]:text-[17px] md:text-lg font-light text-white/70">
+              {t('narrative.paragraph3')}
+            </p>
+            <p className="pt-6 text-[11px] min-[410px]:text-[13px] md:text-sm uppercase tracking-[0.4em] text-white/60">
+              {t('narrative.signature')}
+            </p>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="rounded-3xl border border-white/10 bg-white/[0.02] p-10 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02] transition-transform duration-500"
+          >
+            <div className="grid gap-8">
+              {pillars.map((pillar) => (
+                <div key={pillar.title} className="flex gap-5">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white">
+                    {pillar.icon}
+                  </div>
+                  <div>
+                    <p className="text-base md:text-lg font-light text-white">{pillar.title}</p>
+                    <p className="mt-2 text-xs md:text-sm text-white/60">
+                      {pillar.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Timeline */}
+      <section className="px-6 py-24 md:px-10">
+        <div className="mx-auto max-w-5xl">
+          <h3 className="text-xs md:text-sm uppercase tracking-[0.35em] text-white/60">
+            {t('timeline.title')}
+          </h3>
+          <div className="mt-12 space-y-10 border-l border-white/15 pl-10">
+            {timeline.map((event, index) => (
+              <motion.div
+                key={event.year}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.05 }}
+                className="relative"
+              >
+                <div className="absolute -left-[29px] top-2 h-3 w-3 rounded-full bg-white border border-black" />
+                <p className="text-xs md:text-sm uppercase tracking-[0.25em] text-white/60">
+                  {event.year}
+                </p>
+                <p className="mt-3 text-xl md:text-2xl font-light text-white">{event.title}</p>
+                <p className="mt-2 text-sm md:text-base text-white/70">{event.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export { AboutPage as default };
