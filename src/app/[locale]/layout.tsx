@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { unstable_cache } from 'next/cache';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -23,6 +24,18 @@ export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ua' }];
 }
 
+// Cached lookup for the shop settings used in the footer. Keeps the layout
+// statically renderable so /[locale]/* pages can be served from the ISR
+// edge cache. Tag lets admin pages bust this with revalidateTag if needed.
+const getCachedShopSettings = unstable_cache(
+  async () => {
+    const record = await getOrCreateShopSettings(prisma);
+    return getShopSettingsRuntime(record);
+  },
+  ['shop-settings-runtime'],
+  { revalidate: 3600, tags: ['shop-settings'] }
+);
+
 type Props = {
   children: ReactNode;
   params: Promise<{ locale: string }>;
@@ -45,23 +58,17 @@ export default async function LocaleLayout({ children, params }: Props) {
   const heroVideoMobileSrc = resolveVideoAssetReference(videoConfig.heroVideoMobile);
   const heroPosterSrc = resolveImageAssetReference(videoConfig.heroPoster);
   let shopSettingsRuntime: ShopSettingsRuntime | null = null;
-  
-  // Fetch Shop Settings for company requisites
-  // Use a hardcoded fallback during build to avoid DB pool exhaustion on static generation
   let companyRequisites: string | null = null;
   try {
-    const shopSettingsRecord = await Promise.race([
-      getOrCreateShopSettings(prisma),
+    const shopSettings = await Promise.race([
+      getCachedShopSettings(),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error('DB timeout')), 5000))
     ]);
-    const shopSettings = getShopSettingsRuntime(shopSettingsRecord);
     shopSettingsRuntime = shopSettings;
-    
     if (shopSettings.fopCompanyName) {
       companyRequisites = `${shopSettings.fopCompanyName}${shopSettings.fopEdrpou ? `, ЄДРПОУ: ${shopSettings.fopEdrpou}` : ''}`;
     }
   } catch (error) {
-    // Fallback: use hardcoded requisites so the page still renders during build
     companyRequisites = 'ФОП Побережець Іван Юрійович, ЄДРПОУ: 3803206192';
     console.warn("Failed to fetch shop settings from DB for footer, using fallback:", error instanceof Error ? error.message : error);
   }
