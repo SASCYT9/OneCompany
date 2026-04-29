@@ -223,28 +223,6 @@ type NbuRefreshResponse = {
   };
 };
 
-type EnTranslationResponse = {
-  mode: 'dry-run' | 'commit';
-  totalLoaded: number;
-  candidates: number;
-  updated?: number;
-  failed?: number;
-  stoppedBecauseQuota?: boolean;
-  scan: number;
-  limit: number;
-  includeUnpublished: boolean;
-  translateHtml: boolean;
-  items: Array<{
-    id: string;
-    slug: string;
-    fields: string[];
-  }>;
-  errors?: Array<{
-    slug: string;
-    message: string;
-  }>;
-};
-
 type RegionalPricingRuleForm = {
   id: string;
   name: string;
@@ -567,14 +545,6 @@ export default function AdminShopSettingsPage() {
   const [previewResult, setPreviewResult] = useState<PreviewResponse | null>(null);
   const [currencySyncLoading, setCurrencySyncLoading] = useState(false);
   const [currencySyncMeta, setCurrencySyncMeta] = useState<NbuRefreshResponse['nbu'] | null>(null);
-  const [translationLoading, setTranslationLoading] = useState(false);
-  const [translationParams, setTranslationParams] = useState({
-    scan: '500',
-    limit: '50',
-    includeUnpublished: false,
-    translateHtml: false,
-  });
-  const [translationResult, setTranslationResult] = useState<EnTranslationResponse | null>(null);
 
   const settingsMetrics = useMemo(
     () => ({
@@ -925,46 +895,6 @@ export default function AdminShopSettingsPage() {
     }
   }
 
-  async function handleEnTranslation(commit: boolean) {
-    setTranslationLoading(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const response = await fetch('/api/admin/shop/translations/en', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          commit,
-          scan: parseNumber(translationParams.scan, 500),
-          limit: parseNumber(translationParams.limit, 50),
-          includeUnpublished: translationParams.includeUnpublished,
-          translateHtml: translationParams.translateHtml,
-        }),
-      });
-
-      const data = (await response.json().catch(() => ({}))) as Partial<EnTranslationResponse> & { error?: string };
-      if (!response.ok) {
-        throw new Error(data.error || 'Не вдалося запустити EN переклад');
-      }
-
-      setTranslationResult(data as EnTranslationResponse);
-      if (commit) {
-        setSuccess(
-          data.stoppedBecauseQuota
-            ? `DeepL зупинив переклад через квоту. Оновлено ${data.updated ?? 0} товарів.`
-            : `EN переклад завершено. Оновлено ${data.updated ?? 0} товарів.`
-        );
-      } else {
-        setSuccess(`Сканування EN полів завершено. Кандидатів: ${data.candidates ?? 0}.`);
-      }
-    } catch (translationError) {
-      setError((translationError as Error).message);
-    } finally {
-      setTranslationLoading(false);
-    }
-  }
-
   if (loading) {
     return (
       <AdminPage>
@@ -1116,130 +1046,6 @@ export default function AdminShopSettingsPage() {
               />
             </div>
           </AdminEditorSection>
-
-          <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-medium text-white">EN переклад каталогу</h3>
-                <p className="mt-1 max-w-[1920px] text-sm text-white/45">
-                  DeepL backfill для товарів, де англійські назви чи описи порожні, дублюють українську або ще містять кирилицю.
-                </p>
-              </div>
-              <div className="rounded-none border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white/45">
-                <div>Оновлює: titleEn, seoTitleEn, shortDescEn, longDescEn</div>
-                <div className="mt-1">HTML-опис можна вмикати окремо, щоб не спалювати квоту зайвими текстами.</div>
-              </div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-[160px_160px_1fr]">
-              <InputField
-                label="Сканувати записів"
-                value={translationParams.scan}
-                onChange={(value) => setTranslationParams((current) => ({ ...current, scan: value }))}
-                placeholder="500"
-              />
-              <InputField
-                label="Макс. оновлень"
-                value={translationParams.limit}
-                onChange={(value) => setTranslationParams((current) => ({ ...current, limit: value }))}
-                placeholder="50"
-              />
-              <div className="grid gap-3 md:grid-cols-2">
-                <CheckboxField
-                  label="Включати неопубліковані товари"
-                  checked={translationParams.includeUnpublished}
-                  onChange={(checked) => setTranslationParams((current) => ({ ...current, includeUnpublished: checked }))}
-                />
-                <CheckboxField
-                  label="Перекладати HTML bodyHtmlEn"
-                  checked={translationParams.translateHtml}
-                  onChange={(checked) => setTranslationParams((current) => ({ ...current, translateHtml: checked }))}
-                />
-              </div>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => void handleEnTranslation(false)}
-                disabled={translationLoading}
-                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Globe2 className="h-4 w-4" />
-                Сканувати EN прогалини
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleEnTranslation(true)}
-                disabled={translationLoading}
-                className="inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <RefreshCw className={`h-4 w-4 ${translationLoading ? 'motion-safe:animate-spin' : ''}`} />
-                Перекласти EN через DeepL
-              </button>
-            </div>
-            {translationResult ? (
-              <div className="mt-4 rounded-none border border-white/10 bg-zinc-950/60 p-4">
-                <div className="grid gap-3 md:grid-cols-4">
-                  <div className="rounded-none border border-white/10 bg-white/[0.03] p-3">
-                    <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Завантажено</div>
-                    <div className="mt-2 text-lg font-medium text-white">{translationResult.totalLoaded}</div>
-                  </div>
-                  <div className="rounded-none border border-white/10 bg-white/[0.03] p-3">
-                    <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Кандидати</div>
-                    <div className="mt-2 text-lg font-medium text-white">{translationResult.candidates}</div>
-                  </div>
-                  <div className="rounded-none border border-white/10 bg-white/[0.03] p-3">
-                    <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Оновлено</div>
-                    <div className="mt-2 text-lg font-medium text-emerald-200">{translationResult.updated ?? 0}</div>
-                  </div>
-                  <div className="rounded-none border border-white/10 bg-white/[0.03] p-3">
-                    <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Помилки</div>
-                    <div className="mt-2 text-lg font-medium text-amber-200">{translationResult.failed ?? 0}</div>
-                  </div>
-                </div>
-                {translationResult.stoppedBecauseQuota ? (
-                  <div className="mt-4 rounded-none border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-sm text-blue-300">
-                    DeepL зупинився через вичерпану квоту. Уже перекладені записи збережені.
-                  </div>
-                ) : null}
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  <div>
-                    <div className="text-xs uppercase tracking-[0.24em] text-white/35">Перші кандидати</div>
-                    <div className="mt-3 space-y-2">
-                      {translationResult.items.length ? (
-                        translationResult.items.slice(0, 8).map((item) => (
-                          <div key={item.id} className="rounded-none border border-white/10 bg-white/[0.03] px-3 py-2">
-                            <div className="text-sm font-medium text-white">{item.slug}</div>
-                            <div className="mt-1 text-xs text-white/45">{item.fields.join(', ')}</div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="rounded-none border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/50">
-                          Немає кандидатів на переклад.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase tracking-[0.24em] text-white/35">Останні помилки</div>
-                    <div className="mt-3 space-y-2">
-                      {translationResult.errors?.length ? (
-                        translationResult.errors.slice(0, 8).map((item, index) => (
-                          <div key={`${item.slug}-${index}`} className="rounded-none border border-blue-500/15 bg-blue-950/10 px-3 py-2">
-                            <div className="text-sm font-medium text-red-100">{item.slug}</div>
-                            <div className="mt-1 text-xs text-red-200/70">{item.message}</div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="rounded-none border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/50">
-                          Порожньо. Якщо все добре, тут не буде записів.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-          </section>
 
           <section className="rounded-none border border-white/10 bg-white/[0.03] p-5">
             <div className="mb-5">

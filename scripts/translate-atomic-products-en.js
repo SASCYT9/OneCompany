@@ -4,8 +4,8 @@
  *
  * Strategy:
  * 1. Reuse existing English `bodyHtmlEn` when it is already clean.
- * 2. Extract product title from English HTML headings before calling DeepL.
- * 3. Translate only the remaining gaps from UA -> EN via DeepL.
+ * 2. Extract product title from English HTML headings when available.
+ * 3. Translate only the remaining gaps from UA -> EN via Gemini.
  *
  * Usage:
  *   node scripts/translate-atomic-products-en.js --dry-run
@@ -81,7 +81,7 @@ function parseArgs(argv) {
     }
     if (raw.startsWith('--provider=')) {
       const provider = String(raw.split('=')[1] || '').trim().toLowerCase();
-      if (provider === 'auto' || provider === 'deepl' || provider === 'gemini') {
+      if (provider === 'auto' || provider === 'gemini') {
         args.provider = provider;
       }
     }
@@ -328,63 +328,12 @@ function plainTextFromEnglishBody(bodyHtmlEn, extractedTitle) {
     .trim();
 }
 
-function getDeepLAuthKey() {
-  return (process.env.DEEPL_AUTH_KEY || process.env.DEEPL_API_KEY || '').trim();
-}
-
 function getGeminiApiKey() {
   return (process.env.GEMINI_API_KEY || '').trim();
 }
 
-function getDeepLBaseUrl(authKey) {
-  const explicit = (process.env.DEEPL_BASE_URL || '').trim();
-  if (explicit) return explicit.replace(/\/+$/, '');
-  return authKey.toLowerCase().endsWith(':fx') ? 'https://api-free.deepl.com' : 'https://api.deepl.com';
-}
-
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function translateWithDeepL(text, { isHtml = false } = {}) {
-  const authKey = getDeepLAuthKey();
-  if (!authKey) {
-    throw new Error('DEEPL_AUTH_KEY is not configured');
-  }
-
-  const sourceText = normalizeTranslationSource(text);
-
-  const response = await fetch(`${getDeepLBaseUrl(authKey)}/v2/translate`, {
-    method: 'POST',
-    headers: {
-      Authorization: `DeepL-Auth-Key ${authKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      text: [sourceText],
-      source_lang: 'UK',
-      target_lang: 'EN',
-      formality: 'prefer_more',
-      ...(isHtml ? { tag_handling: 'html' } : {}),
-    }),
-  });
-
-  if (!response.ok) {
-    const retryAfter = Number(response.headers.get('retry-after') || NaN);
-    const details = await response.text().catch(() => '');
-    const error = new Error(details || response.statusText);
-    error.status = response.status;
-    error.retryAfterMs = Number.isFinite(retryAfter) ? Math.max(0, retryAfter) * 1000 : null;
-    throw error;
-  }
-
-  const json = await response.json();
-  const translated = normalizeText(json?.translations?.[0]?.text);
-  if (!translated) {
-    throw new Error('DEEPL_EMPTY_TRANSLATION');
-  }
-
-  return translated;
 }
 
 async function translateWithGemini(text, { isHtml = false } = {}) {
@@ -466,48 +415,23 @@ async function translateWithGemini(text, { isHtml = false } = {}) {
   return translated;
 }
 
-async function translateWithRetry(text, options = {}, translationState) {
+async function translateWithRetry(text, options = {}) {
   let lastError = null;
-  const providerPreference = translationState?.provider || 'auto';
-  const providers =
-    providerPreference === 'deepl'
-      ? ['deepl']
-      : providerPreference === 'gemini'
-        ? ['gemini']
-        : ['deepl', 'gemini'];
 
-  for (const provider of providers) {
-    if (provider === 'deepl' && translationState?.deeplDisabled) {
-      continue;
-    }
-
-    for (let attempt = 0; attempt < 4; attempt += 1) {
-      try {
-        if (provider === 'deepl') {
-          return await translateWithDeepL(text, options);
-        }
-        return await translateWithGemini(text, options);
-      } catch (error) {
-        lastError = error;
-        const status = typeof error === 'object' && error ? Number(error.status) : null;
-        if (provider === 'deepl' && status === 456) {
-          if (translationState) {
-            translationState.deeplDisabled = true;
-            translationState.reason = 'DeepL quota exceeded';
-          }
-          break;
-        }
-
-        if (provider === 'gemini' && (status === 400 || status === 403)) {
-          break;
-        }
-
-        const retryAfterMs =
-          typeof error === 'object' && error && Number.isFinite(error.retryAfterMs)
-            ? Number(error.retryAfterMs)
-            : 750 * Math.pow(2, attempt);
-        await sleep(Math.max(750 * (attempt + 1), retryAfterMs));
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      return await translateWithGemini(text, options);
+    } catch (error) {
+      lastError = error;
+      const status = typeof error === 'object' && error ? Number(error.status) : null;
+      if (status === 400 || status === 403) {
+        break;
       }
+      const retryAfterMs =
+        typeof error === 'object' && error && Number.isFinite(error.retryAfterMs)
+          ? Number(error.retryAfterMs)
+          : 750 * Math.pow(2, attempt);
+      await sleep(Math.max(750 * (attempt + 1), retryAfterMs));
     }
   }
 
@@ -547,7 +471,7 @@ function collectPlannedUpdate(product, args) {
       plan.strategy.push('title:bodyHtmlEn');
     } else if (normalizeText(product.titleUa)) {
       plan.titleEn = { translate: normalizeText(product.titleUa), cacheKey: `title:${normalizeText(product.titleUa).toLowerCase()}` };
-      plan.strategy.push('title:deepl');
+      plan.strategy.push('title:gemini');
     }
   }
 
@@ -564,10 +488,10 @@ function collectPlannedUpdate(product, args) {
       plan.strategy.push('seo:bodyHtmlEn');
     } else if (seoSource) {
       plan.seoTitleEn = { translate: seoSource, cacheKey: `seo:${seoSource.toLowerCase()}` };
-      plan.strategy.push('seo:deepl');
+      plan.strategy.push('seo:gemini');
     } else if (normalizeText(product.titleUa)) {
       plan.seoTitleEn = { translate: normalizeText(product.titleUa), cacheKey: `seo-fallback:${normalizeText(product.titleUa).toLowerCase()}` };
-      plan.strategy.push('seo:deepl-fallback');
+      plan.strategy.push('seo:gemini-fallback');
     }
   }
 
@@ -578,7 +502,7 @@ function collectPlannedUpdate(product, args) {
     } else if (normalizeText(product.shortDescUa)) {
       const source = normalizeText(product.shortDescUa);
       plan.shortDescEn = { translate: source, cacheKey: `short:${source.toLowerCase()}` };
-      plan.strategy.push('short:deepl');
+      plan.strategy.push('short:gemini');
     }
   }
 
@@ -590,7 +514,7 @@ function collectPlannedUpdate(product, args) {
       const source = normalizeText(product.longDescUa || stripHtml(product.bodyHtmlUa));
       if (source) {
         plan.longDescEn = { translate: source, cacheKey: `long:${source.toLowerCase()}` };
-        plan.strategy.push('long:deepl');
+        plan.strategy.push('long:gemini');
       }
     }
   }
@@ -599,21 +523,21 @@ function collectPlannedUpdate(product, args) {
     const sourceHtml = String(product.bodyHtmlUa ?? '').trim();
     if (sourceHtml) {
       plan.bodyHtmlEn = { translate: sourceHtml, cacheKey: `html:${sourceHtml.toLowerCase()}`, isHtml: true };
-      plan.strategy.push('html:deepl');
+      plan.strategy.push('html:gemini');
     }
   }
 
   return plan;
 }
 
-async function resolvePlannedValue(planValue, cache, translationState) {
+async function resolvePlannedValue(planValue, cache) {
   if (!planValue) return null;
   if (typeof planValue === 'string') return planValue;
 
   const cached = cache.get(planValue.cacheKey);
   if (cached) return cached;
 
-  const translated = await translateWithRetry(planValue.translate, { isHtml: planValue.isHtml === true }, translationState);
+  const translated = await translateWithRetry(planValue.translate, { isHtml: planValue.isHtml === true });
   cache.set(planValue.cacheKey, translated);
   return translated;
 }
@@ -632,25 +556,19 @@ async function safelyResolvePlannedValue(planValue, cache, translationState) {
   }
 
   try {
-    const value = await resolvePlannedValue(planValue, cache, translationState);
+    const value = await resolvePlannedValue(planValue, cache);
     return { value, error: null, skipped: false };
   } catch (error) {
-    const status = typeof error === 'object' && error ? Number(error.status) : null;
-    if (translationState.deeplDisabled && translationState.provider === 'deepl') {
-      translationState.disabled = true;
-      translationState.reason = translationState.reason || 'DeepL quota exceeded';
-      return { value: null, error, skipped: true };
-    }
     return { value: null, error, skipped: false };
   }
 }
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const authKey = getDeepLAuthKey();
+  const apiKey = getGeminiApiKey();
 
-  if (args.commit && !authKey) {
-    throw new Error('DEEPL_AUTH_KEY is required for --commit');
+  if (args.commit && !apiKey) {
+    throw new Error('GEMINI_API_KEY is required for --commit');
   }
 
   const products = await prisma.shopProduct.findMany({
@@ -725,7 +643,6 @@ async function main() {
   const translationState = {
     disabled: false,
     reason: null,
-    deeplDisabled: false,
     provider: args.provider,
   };
 
@@ -751,7 +668,7 @@ async function main() {
     if (titleResult.value && titleResult.value !== product.titleEn) {
       data.titleEn = titleResult.value;
       if (plan.strategy.includes('title:bodyHtmlEn')) stats.titleFromBody += 1;
-      if (plan.strategy.includes('title:deepl')) stats.titleTranslated += 1;
+      if (plan.strategy.includes('title:gemini')) stats.titleTranslated += 1;
     }
 
     if (seoResult.value && seoResult.value !== product.seoTitleEn) {
@@ -766,13 +683,13 @@ async function main() {
     if (shortResult.value && shortResult.value !== product.shortDescEn) {
       data.shortDescEn = shortResult.value;
       if (plan.strategy.includes('short:bodyHtmlEn')) stats.shortFromBody += 1;
-      if (plan.strategy.includes('short:deepl')) stats.shortTranslated += 1;
+      if (plan.strategy.includes('short:gemini')) stats.shortTranslated += 1;
     }
 
     if (longResult.value && longResult.value !== product.longDescEn) {
       data.longDescEn = longResult.value;
       if (plan.strategy.includes('long:bodyHtmlEn')) stats.longFromBody += 1;
-      if (plan.strategy.includes('long:deepl')) stats.longTranslated += 1;
+      if (plan.strategy.includes('long:gemini')) stats.longTranslated += 1;
     }
 
     if (htmlResult.value && htmlResult.value !== product.bodyHtmlEn) {

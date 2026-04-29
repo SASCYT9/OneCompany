@@ -62,7 +62,7 @@ const MATCH_AUTO_THRESHOLD = 0.9;
 const MATCH_REVIEW_THRESHOLD = 0.75;
 const PER_HANDLE_VARIANT_REVIEW_LIMIT = 12;
 
-type TranslationProvider = 'deepl' | 'gemini' | 'none';
+type TranslationProvider = 'gemini' | 'none';
 
 type CliOptions = {
   commit: boolean;
@@ -194,10 +194,8 @@ function parseCliOptions(): CliOptions {
 
 function resolveTranslationProvider(value: string): TranslationProvider {
   const normalized = value.trim().toLowerCase();
-  if (normalized === 'deepl') return 'deepl';
   if (normalized === 'gemini') return 'gemini';
   if (normalized === 'none') return 'none';
-  if ((process.env.DEEPL_AUTH_KEY || process.env.DEEPL_API_KEY || '').trim()) return 'deepl';
   if ((process.env.GEMINI_API_KEY || '').trim()) return 'gemini';
   return 'none';
 }
@@ -694,46 +692,13 @@ async function translateTextToUa(
   if (cached) return cached;
 
   let translated = '';
-  if (provider === 'deepl') {
-    translated = await translateWithDeepL(normalized, options);
-  } else if (provider === 'gemini') {
+  if (provider === 'gemini') {
     translated = await translateWithGemini(normalized, options);
   } else {
     translated = normalized;
   }
 
   cache.set(cacheKey, translated);
-  return translated;
-}
-
-async function translateWithDeepL(value: string, options?: { isHtml?: boolean }) {
-  const authKey = (process.env.DEEPL_AUTH_KEY || process.env.DEEPL_API_KEY || '').trim();
-  if (!authKey) {
-    throw new Error('DEEPL_AUTH_KEY is not configured');
-  }
-  const baseUrl = authKey.toLowerCase().endsWith(':fx') ? 'https://api-free.deepl.com' : 'https://api.deepl.com';
-  const response = await fetch(`${baseUrl}/v2/translate`, {
-    method: 'POST',
-    headers: {
-      Authorization: `DeepL-Auth-Key ${authKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      text: [value],
-      source_lang: 'EN',
-      target_lang: 'UK',
-      ...(options?.isHtml ? { tag_handling: 'html' } : {}),
-      formality: 'prefer_more',
-    }),
-  });
-  if (!response.ok) {
-    throw new Error(`DeepL translation failed: HTTP ${response.status}`);
-  }
-  const payload = (await response.json()) as { translations?: Array<{ text?: string }> };
-  const translated = payload.translations?.[0]?.text?.trim();
-  if (!translated) {
-    throw new Error('DeepL returned an empty translation');
-  }
   return translated;
 }
 
