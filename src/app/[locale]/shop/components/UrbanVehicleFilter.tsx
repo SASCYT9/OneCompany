@@ -178,7 +178,6 @@ function PremiumCombobox({
   groups,
   allLabel,
 }: PremiumComboboxProps) {
-  const viewerContext = useShopViewerContext(ssrViewerContext);
   const listboxId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -441,6 +440,7 @@ export default function UrbanVehicleFilter({
   products,
   viewerContext: ssrViewerContext,
 }: UrbanVehicleFilterProps) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);

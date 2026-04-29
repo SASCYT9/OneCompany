@@ -79,7 +79,6 @@ type FilterSectionProps = {
 };
 
 function FilterSection({ title, count, isOpen, children, onToggle }: FilterSectionProps) {
-  const viewerContext = useShopViewerContext(ssrViewerContext);
   return (
     <div className="border-t border-white/[0.07] pt-4">
       <button
@@ -176,6 +175,7 @@ export default function IpeVehicleFilter({
   viewerContext: ssrViewerContext,
   productPathPrefix
 }: IpeVehicleFilterProps) {
+  const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
   const [mounted, setMounted] = useState(false);
