@@ -196,7 +196,9 @@ function generateTags(row: RacechipCatalogFallbackRow) {
 function buildRacechipFallbackProduct(row: RacechipCatalogFallbackRow): ShopProduct {
   const title = generateTitle(row);
   const sku = generateSku(row);
-  const price = { eur: row.priceEur, usd: 0, uah: 0 };
+  // row.priceEur is the GTS 5 base price; add fixed 59 EUR App Control add-on
+  // to match the main scraper (scripts/scrape-racechip.mjs) which stores total.
+  const price = { eur: row.priceEur + 59, usd: 0, uah: 0 };
   const compareAt = row.compareAtEur ? { eur: row.compareAtEur, usd: 0, uah: 0 } : undefined;
   const make = formatMake(row.makeSlug);
   const model = formatModel(row.modelSlug);
