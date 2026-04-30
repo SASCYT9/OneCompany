@@ -49,8 +49,8 @@ export const DO88_FEATURED_MODELS: Do88FeaturedModel[] = [
     imageUrl: '/branding/do88/do88_bw_featured_bmw_1774445183885.png',
   },
   {
-    title: 'Porsche 911 Turbo S (992)',
-    titleUk: 'Porsche 911 Turbo S (992)',
+    title: 'Porsche 911 Carrera (992)',
+    titleUk: 'Porsche 911 Carrera (992)',
     subtitle: 'Track-spec cooling for the 992',
     subtitleUk: 'Трекове охолодження для 992',
     badge: 'Featured',
@@ -59,7 +59,7 @@ export const DO88_FEATURED_MODELS: Do88FeaturedModel[] = [
     tagTwo: 'Y-Pipes',
     buttonLabel: 'View Products',
     buttonLabelUk: 'Переглянути товари',
-    link: '/shop/do88/collections/all?brand=Porsche&keyword=911+Turbo+S+(992)',
+    link: '/shop/do88/collections/all?brand=Porsche&keyword=992+Carrera',
     imageUrl: '/branding/do88/do88_bw_porsche_hero_1774443620183.png',
   },
   {

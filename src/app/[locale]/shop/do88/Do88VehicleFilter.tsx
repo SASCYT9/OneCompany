@@ -38,7 +38,7 @@ type ModelEntry = { label: string; keyword: string };
 
 const CAR_DATA: Record<string, readonly ModelEntry[]> = {
   Porsche: [
-    { label: '911 Turbo S (992)', keyword: '992' },
+    { label: '911 Carrera (992)', keyword: '992 Carrera' },
     { label: '911 (992)', keyword: '992' },
     { label: '911 (991)', keyword: '991' },
     { label: '911 (997)', keyword: '997' },
@@ -69,7 +69,7 @@ const CAR_DATA: Record<string, readonly ModelEntry[]> = {
 } as const;
 
 const FEATURED_MAKE = 'Porsche' as const;
-const FEATURED_MODEL_LABEL = '911 Turbo S (992)';
+const FEATURED_MODEL_LABEL = '911 Carrera (992)';
 
 export const DO88_CATEGORIES = [
   { handle: 'all', title: 'All Parts', titleUa: 'Всі деталі' },
