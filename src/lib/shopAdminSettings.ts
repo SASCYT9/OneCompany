@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { Prisma, PrismaClient } from '@prisma/client';
 
 export const SHOP_CURRENCIES = ['EUR', 'USD', 'UAH'] as const;
@@ -549,7 +551,41 @@ let cachedShopSettingsRecord: ShopSettingsRecord | null = null;
 let cachedShopSettingsFetchedAt = 0;
 let cachedShopSettingsPromise: Promise<ShopSettingsRecord> | null = null;
 
+const SHOP_SETTINGS_SNAPSHOT_PATH = path.join(process.cwd(), 'data', 'shop-settings.snapshot.json');
+let cachedShopSettingsSnapshot: ShopSettingsRecord | null | undefined = undefined;
+
+function loadShopSettingsSnapshot(): ShopSettingsRecord | null {
+  if (cachedShopSettingsSnapshot !== undefined) return cachedShopSettingsSnapshot;
+  try {
+    if (fs.existsSync(SHOP_SETTINGS_SNAPSHOT_PATH)) {
+      const raw = JSON.parse(fs.readFileSync(SHOP_SETTINGS_SNAPSHOT_PATH, 'utf8'));
+      if (raw && typeof raw === 'object') {
+        if (typeof raw.createdAt === 'string') raw.createdAt = new Date(raw.createdAt);
+        if (typeof raw.updatedAt === 'string') raw.updatedAt = new Date(raw.updatedAt);
+        cachedShopSettingsSnapshot = raw as ShopSettingsRecord;
+        return cachedShopSettingsSnapshot;
+      }
+    }
+  } catch {
+    // fall through to null
+  }
+  cachedShopSettingsSnapshot = null;
+  return null;
+}
+
 export async function getOrCreateShopSettings(prisma: PrismaClient) {
+  // Build phase: prefer pre-fetched snapshot to avoid DB connection storm
+  // during static prerender of dozens of shop pages × locales. The snapshot
+  // is produced by `scripts/prebuild-shop-snapshot.ts` before `next build`.
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    const snap = loadShopSettingsSnapshot();
+    if (snap) {
+      cachedShopSettingsRecord = snap;
+      cachedShopSettingsFetchedAt = Date.now();
+      return snap;
+    }
+  }
+
   const now = Date.now();
   if (cachedShopSettingsRecord && now - cachedShopSettingsFetchedAt < 60_000) {
     return cachedShopSettingsRecord;

@@ -6,7 +6,7 @@
     "clean": "node -e \"require('fs').rmSync('.next',{recursive:true, force:true}); console.log('.next removed');\"",
     "dev": "next dev",
     "prisma:generate": "prisma generate && node scripts/cleanup-prisma-temp-engines.js",
-    "build": "next build",
+    "build": "tsx scripts/prebuild-shop-snapshot.ts && next build",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "npm run prisma:generate",

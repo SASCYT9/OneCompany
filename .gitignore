@@ -64,6 +64,7 @@ temp_env.txt
 *.sql
 .env*.local
 .shop-products-dev-cache.json
+data/shop-settings.snapshot.json
 
 # agent and junk protection
 .agents/skills-archive/
