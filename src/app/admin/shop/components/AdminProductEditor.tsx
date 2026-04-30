@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, Copy, Plus, Save, Trash2, Upload, Wand2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Plus, Save, Trash2, Wand2 } from 'lucide-react';
 
 import {
   AdminEditorSection,
@@ -126,27 +126,6 @@ type CategoryOption = {
   } | null;
   productsCount?: number;
   childrenCount?: number;
-};
-
-type ShopLibraryMediaItem = {
-  id: string;
-  kind: 'image' | 'video' | 'other';
-  provider: 'local' | 'vercel-blob';
-  pathname: string;
-  filename: string;
-  url: string;
-  originalName: string;
-  size: number;
-  uploadedAt: string;
-  usageCount: number;
-  usage: {
-    productPrimaryImages: number;
-    productMedia: number;
-    variantImages: number;
-    siteContent: number;
-    siteMedia: number;
-    videoConfig: number;
-  };
 };
 
 type VariantBulkState = {
@@ -438,14 +417,6 @@ function skuSegment(value: string): string {
 
 function mediaPreviewable(item: MediaFormItem) {
   return item.mediaType === 'IMAGE' && item.src.trim();
-}
-
-function mediaTypeFromLibraryKind(kind: ShopLibraryMediaItem['kind']): ProductMediaType {
-  return kind === 'video' ? 'VIDEO' : 'IMAGE';
-}
-
-function mediaLibraryLabel(item: ShopLibraryMediaItem) {
-  return item.originalName || item.filename || item.url;
 }
 
 function normalizeMediaOrder(items: MediaFormItem[]): MediaFormItem[] {
@@ -826,7 +797,6 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const toast = useToast();
   const router = useRouter();
   const isEditing = Boolean(productId);
-  const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -835,10 +805,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const [form, setForm] = useState<ProductFormState>(createEmptyForm());
   const [availableCategories, setAvailableCategories] = useState<CategoryOption[]>([]);
   const [availableCollections, setAvailableCollections] = useState<CollectionOption[]>([]);
-  const [mediaLibrary, setMediaLibrary] = useState<ShopLibraryMediaItem[]>([]);
-  const [mediaLibraryLoading, setMediaLibraryLoading] = useState(false);
-  const [uploadingMedia, setUploadingMedia] = useState(false);
-  const [deletingLibraryMediaId, setDeletingLibraryMediaId] = useState<string | null>(null);
+  const [collectionsExpanded, setCollectionsExpanded] = useState(false);
   const [variantBulk, setVariantBulk] = useState<VariantBulkState>(createEmptyVariantBulk());
   const [hardDeleting, setHardDeleting] = useState(false);
 
@@ -881,38 +848,6 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
     void loadCategories();
     void loadCollections();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadMediaLibrary() {
-      setMediaLibraryLoading(true);
-      try {
-        const response = await fetch('/api/admin/shop/media');
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error((data as { error?: string }).error || 'Failed to load media library');
-        }
-        if (!cancelled) {
-          setMediaLibrary(Array.isArray((data as { items?: unknown[] }).items) ? ((data as { items: ShopLibraryMediaItem[] }).items) : []);
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setError((current) => current || (loadError as Error).message);
-        }
-      } finally {
-        if (!cancelled) {
-          setMediaLibraryLoading(false);
-        }
-      }
-    }
-
-    void loadMediaLibrary();
 
     return () => {
       cancelled = true;
@@ -1115,66 +1050,6 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
     });
   };
 
-  const addLibraryMediaToProduct = (item: ShopLibraryMediaItem) => {
-    setForm((current) => {
-      if (current.media.some((entry) => entry.src.trim() === item.url)) {
-        return current;
-      }
-
-      const nextMedia = normalizeMediaOrder([
-        ...current.media.filter((entry) => entry.src.trim()),
-        {
-          ...emptyMedia(current.media.length + 1),
-          src: item.url,
-          altText: item.originalName,
-          mediaType: mediaTypeFromLibraryKind(item.kind),
-        },
-      ]);
-
-      return {
-        ...current,
-        media: nextMedia.length ? nextMedia : [emptyMedia()],
-        image: current.image || item.url,
-      };
-    });
-    setSuccess(`Added ${mediaLibraryLabel(item)} to product media.`);
-  };
-
-  const handleMediaUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    setUploadingMedia(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/admin/shop/media', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error || 'Media upload failed');
-      }
-
-      const item = (data as { item: ShopLibraryMediaItem }).item;
-      setMediaLibrary((current) => [item, ...current.filter((entry) => entry.id !== item.id)]);
-      addLibraryMediaToProduct(item);
-      setSuccess(`Uploaded ${item.originalName}.`);
-    } catch (uploadError) {
-      setError((uploadError as Error).message);
-    } finally {
-      setUploadingMedia(false);
-      event.target.value = '';
-    }
-  };
-
   const handleHardDelete = async () => {
     if (!productId) return;
     const ok = await confirm({
@@ -1203,45 +1078,6 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       setError((deleteError as Error).message);
     } finally {
       setHardDeleting(false);
-    }
-  };
-
-  const handleDeleteLibraryMedia = async (item: ShopLibraryMediaItem) => {
-    setDeletingLibraryMediaId(item.id);
-    setError('');
-    setSuccess('');
-
-    try {
-      const response = await fetch(`/api/admin/shop/media/${item.id}`, {
-        method: 'DELETE',
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete media');
-      }
-
-      setMediaLibrary((current) => current.filter((entry) => entry.id !== item.id));
-      setForm((current) => {
-        const remainingMedia = current.media.filter((entry) => entry.src.trim() !== item.url);
-        const nextPrimaryImage =
-          current.image.trim() === item.url
-            ? remainingMedia.find((entry) => entry.src.trim())?.src ?? ''
-            : current.image;
-
-        return {
-          ...current,
-          image: nextPrimaryImage,
-          media: remainingMedia.length ? normalizeMediaOrder(remainingMedia) : [emptyMedia()],
-          variants: current.variants.map((variant) =>
-            variant.image.trim() === item.url ? { ...variant, image: '' } : variant
-          ),
-        };
-      });
-      setSuccess(`Deleted ${mediaLibraryLabel(item)} from library.`);
-    } catch (deleteError) {
-      setError((deleteError as Error).message);
-    } finally {
-      setDeletingLibraryMediaId(null);
     }
   };
 
@@ -1680,64 +1516,86 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     Явні привʼязки до колекцій керують відображенням на сторінках URBAN‑колекцій та в каталозі.
                   </p>
                 </div>
-                <Link href="/admin/shop/collections" className="text-xs text-white/60 hover:text-white">
-                  Керувати колекціями
-                </Link>
-              </div>
-              {availableCollections.length ? (
-                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  {availableCollections.map((collection) => {
-                    const selected = form.collectionIds.includes(collection.id);
-                    const collectionTitle = collection.titleEn || collection.titleUa || collection.handle;
-                    return (
-                      <button
-                        key={collection.id}
-                        type="button"
-                        onClick={() => toggleCollection(collection.id)}
-                        className={`rounded-none border p-4 text-left transition ${
-                          selected
-                            ? 'border-white/30 bg-white/10'
-                            : 'border-white/10 bg-zinc-950/70 hover:bg-white/5'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div className="text-sm font-medium text-white">{collectionTitle}</div>
-                            <div className="mt-1 font-mono text-[11px] text-white/40">{collection.handle}</div>
-                          </div>
-                          <div
-                            className={`mt-0.5 h-4 w-4 rounded-none border ${
-                              selected ? 'border-white bg-white' : 'border-white/20 bg-transparent'
-                            }`}
-                          />
-                        </div>
-                        <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-white/45">
-                          <span>{collection.brand || 'Без бренду'}</span>
-                          <span>{collection.isUrban ? 'Urban' : 'Custom'}</span>
-                          <span>{collection.isPublished ? 'Опублікована' : 'Прихована'}</span>
-                          <span>{collection.productsCount ?? 0} товарів</span>
-                        </div>
-                      </button>
-                    );
-                  })}
+                <div className="flex items-center gap-3">
+                  <Link href="/admin/shop/collections" className="text-xs text-white/60 hover:text-white">
+                    Керувати колекціями
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setCollectionsExpanded((v) => !v)}
+                    aria-expanded={collectionsExpanded}
+                    className="inline-flex items-center gap-1.5 rounded-none border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
+                  >
+                    {collectionsExpanded ? 'Сховати' : 'Показати привʼязки'}
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 transition-transform ${collectionsExpanded ? 'rotate-180' : ''}`}
+                      aria-hidden="true"
+                    />
+                  </button>
                 </div>
+              </div>
+              {collectionsExpanded ? (
+                <>
+                  {availableCollections.length ? (
+                    <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      {availableCollections.map((collection) => {
+                        const selected = form.collectionIds.includes(collection.id);
+                        const collectionTitle = collection.titleEn || collection.titleUa || collection.handle;
+                        return (
+                          <button
+                            key={collection.id}
+                            type="button"
+                            onClick={() => toggleCollection(collection.id)}
+                            className={`rounded-none border p-4 text-left transition ${
+                              selected
+                                ? 'border-white/30 bg-white/10'
+                                : 'border-white/10 bg-zinc-950/70 hover:bg-white/5'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="text-sm font-medium text-white">{collectionTitle}</div>
+                                <div className="mt-1 font-mono text-[11px] text-white/40">{collection.handle}</div>
+                              </div>
+                              <div
+                                className={`mt-0.5 h-4 w-4 rounded-none border ${
+                                  selected ? 'border-white bg-white' : 'border-white/20 bg-transparent'
+                                }`}
+                              />
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-white/45">
+                              <span>{collection.brand || 'Без бренду'}</span>
+                              <span>{collection.isUrban ? 'Urban' : 'Custom'}</span>
+                              <span>{collection.isPublished ? 'Опублікована' : 'Прихована'}</span>
+                              <span>{collection.productsCount ?? 0} товарів</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="mt-4 rounded-none border border-dashed border-white/10 bg-zinc-950/60 px-4 py-6 text-sm text-white/45">
+                      Колекцій ще немає. Спочатку створіть їх у розділі «Колекції».
+                    </div>
+                  )}
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    <InputField
+                      label="Старий handle колекції (EN)"
+                      value={form.collectionEn}
+                      onChange={(value) => updateField('collectionEn', value)}
+                    />
+                    <InputField
+                      label="Старий handle колекції (UA)"
+                      value={form.collectionUa}
+                      onChange={(value) => updateField('collectionUa', value)}
+                    />
+                  </div>
+                </>
               ) : (
-                <div className="mt-4 rounded-none border border-dashed border-white/10 bg-zinc-950/60 px-4 py-6 text-sm text-white/45">
-                  Колекцій ще немає. Спочатку створіть їх у розділі «Колекції».
+                <div className="mt-3 text-xs text-white/55">
+                  Прив&apos;язано: {form.collectionIds.length} з {availableCollections.length} колекцій
                 </div>
               )}
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <InputField
-                  label="Старий handle колекції (EN)"
-                  value={form.collectionEn}
-                  onChange={(value) => updateField('collectionEn', value)}
-                />
-                <InputField
-                  label="Старий handle колекції (UA)"
-                  value={form.collectionUa}
-                  onChange={(value) => updateField('collectionUa', value)}
-                />
-              </div>
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-6">
               <CheckboxField
@@ -1838,100 +1696,9 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           <AdminEditorSection
             id="media"
             title="Медіа"
-            description="Порядок зображень та відео у вітрині, бібліотека файлів і привʼязка картинок до варіантів."
+            description="Порядок зображень та відео у вітрині для цього товару."
           >
             <div className="space-y-4">
-              <div className="rounded-none border border-white/10 bg-black/30 p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-medium text-white">Бібліотека медіа</div>
-                    <p className="mt-1 text-xs text-white/45">
-                      Завантажуйте файли один раз і використовуйте в різних товарах; видалення блокується, якщо файл уже привʼязаний.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Link
-                      href="/admin/shop/media"
-                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
-                    >
-                      Відкрити бібліотеку
-                    </Link>
-                    <input
-                      ref={uploadInputRef}
-                      type="file"
-                      accept="image/*,video/*"
-                      onChange={handleMediaUpload}
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => uploadInputRef.current?.click()}
-                      disabled={uploadingMedia}
-                      className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:opacity-50"
-                    >
-                      <Upload className="h-4 w-4" />
-                      {uploadingMedia ? 'Завантажуємо…' : 'Завантажити файл'}
-                    </button>
-                  </div>
-                </div>
-                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  {mediaLibraryLoading ? (
-                    <div className="rounded-none border border-white/10 bg-zinc-950/70 p-4 text-sm text-white/45">
-                      Завантаження бібліотеки медіа…
-                    </div>
-                  ) : mediaLibrary.length ? (
-                    mediaLibrary.slice(0, 9).map((item) => (
-                      <div key={item.id} className="rounded-none border border-white/10 bg-zinc-950/70 p-3">
-                        <div className="overflow-hidden rounded-none border border-white/10 bg-black/30">
-                          {item.kind === 'image' ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                              src={item.url}
-                              alt={item.originalName}
-                              className="h-32 w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-32 items-center justify-center text-xs uppercase tracking-[0.2em] text-white/35">
-                              {item.kind}
-                            </div>
-                          )}
-                        </div>
-                        <div className="mt-3">
-                          <div className="truncate text-sm font-medium text-white">{mediaLibraryLabel(item)}</div>
-                          <div className="mt-1 text-xs text-white/45">
-                            {item.usageCount} використань · {new Date(item.uploadedAt).toLocaleDateString()}
-                          </div>
-                        </div>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => addLibraryMediaToProduct(item)}
-                            className="rounded-none border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
-                          >
-                            Додати до товару
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void handleDeleteLibraryMedia(item)}
-                            disabled={deletingLibraryMediaId === item.id || item.usageCount > 0}
-                            className="rounded-none border border-blue-500/30 bg-blue-950/20 px-3 py-1.5 text-xs font-semibold text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40 disabled:opacity-50"
-                          >
-                            {deletingLibraryMediaId === item.id
-                              ? 'Видаляємо…'
-                              : item.usageCount > 0
-                                ? 'Використовується'
-                                : 'Видалити'}
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="rounded-none border border-white/10 bg-zinc-950/70 p-4 text-sm text-white/45">
-                      Завантажте перший файл, щоб розпочати формувати бібліотеку медіа магазину.
-                    </div>
-                  )}
-                </div>
-              </div>
               {form.media.map((item, index) => (
                 <div key={item.id ?? `media-${index}`} className="rounded-none border border-white/10 bg-black/40 p-4">
                   <div className="mb-4 flex items-center justify-between">
