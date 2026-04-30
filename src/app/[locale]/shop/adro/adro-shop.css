@@ -146,8 +146,9 @@
 
 .adro__hero-body {
   position: relative; z-index: 2;
-  max-width: 720px;
+  max-width: 1140px;
   padding: 2rem;
+  width: 100%;
 }
 
 .adro__hero-h {
@@ -155,6 +156,9 @@
   line-height: 1;
 }
 .adro__hero-logo {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
   width: clamp(220px, 35vw, 420px);
   height: auto;
   filter: invert(1);
@@ -543,7 +547,7 @@
    ═════════════════════════════════════════════════════════════ */
 .adro__hf-wrap {
   width: 100%;
-  max-width: 880px;
+  max-width: 1100px;
   margin: 3.25rem auto 0;
   text-align: left;
   position: relative;
