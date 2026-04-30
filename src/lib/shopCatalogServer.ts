@@ -638,13 +638,13 @@ const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: st
     ],
   },
   'URB-DOO-26093237-V1': {
-    image: '/images/shop/urban/products/urus-se/Urban-Widetrack-Lamborghini-Urus-SE-Side-Vent.jpg',
+    image: '/images/shop/urban/products/urus-se/Urban-Lamborghini-Urus-Lower-Door-Moulding-1.jpg',
     gallery: [
-      '/images/shop/urban/products/urus-se/Urban-Widetrack-Lamborghini-Urus-SE-Side-Vent.jpg',
-      'https://smgassets.blob.core.windows.net/customers/urban/dist/img/detailed-gallery/models/urusSE/webp/urban-automotive-urus-se-side-vents.webp',
+      '/images/shop/urban/products/urus-se/Urban-Lamborghini-Urus-Lower-Door-Moulding-1.jpg',
+      '/images/shop/urban/products/urus-se/Urban-Lamborghini-Urus-Lower-Door-Moulding-2.jpg',
+      '/images/shop/urban/products/urus-se/Urban-Lamborghini-Urus-Lower-Door-Moulding-3.jpg',
       'https://smgassets.blob.core.windows.net/customers/urban/dist/img/banners/models/urusSE/webp/urban-automotive-urus-se-side-2560.webp',
       'https://smgassets.blob.core.windows.net/customers/urban/dist/img/carousel/models/urusSE/webp/urban-automotive-urus-se-widetrack-3-2560.webp',
-      '/images/shop/urban/products/urus-se/Urban-Widetrack-Lamborghini-Urus-SE-Wide-Arches.jpg',
     ],
   },
   'URB-BOD-25353062-V1': {
