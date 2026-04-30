@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -283,6 +283,7 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
   const router = useRouter();
   const searchParams = useSearchParams();
   const isHero = !compact && !isSidebar;
+  const [isPending, startTransition] = useTransition();
 
   // Resolve a URL ?keyword= back to a known model LABEL (e.g. "992" → "911
   // Turbo S (992)") so the chip stays visually selected on landing.
@@ -338,7 +339,9 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
     const q = params.toString();
     const targetPath = `/${locale}/shop/do88/collections/${cat || 'all'}`;
 
-    router.push(`${targetPath}${q ? `?${q}` : ''}`);
+    startTransition(() => {
+      router.push(`${targetPath}${q ? `?${q}` : ''}`);
+    });
   };
 
   const handleMakeChange = (makeValue: string) => {
@@ -594,7 +597,13 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
   }
 
   return (
-    <div className={wrapperClass} style={{ animationDelay: '0.1s' }}>
+    <div className={cn(wrapperClass, 'relative')} style={{ animationDelay: '0.1s' }}>
+      {isPending && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[2px] animate-pulse rounded-t-2xl bg-gradient-to-r from-transparent via-[#c29d59] to-transparent"
+        />
+      )}
       {(compact && !isSidebar) && (
         <div className="flex-shrink-0 mb-2 md:mb-0 mr-2 text-center md:text-left">
           <p className="text-[10px] tracking-[0.2em] uppercase text-white/50 mb-1">{isUa ? 'Фільтр' : 'Filter'}</p>
@@ -607,13 +616,28 @@ export default function Do88VehicleFilter({ locale, compact = false, isSidebar =
       {isSidebar && (
         <div className="mb-1">
           <p className="text-[10px] tracking-[0.2em] uppercase text-white/40 mb-1">{isUa ? 'Фільтр' : 'Filter'}</p>
-          <h2 className="text-sm font-semibold tracking-widest text-white uppercase">
-            {isUa ? 'Ваше Авто' : 'Your Vehicle'}
+          <h2 className="flex items-center gap-2 text-sm font-semibold tracking-widest text-white uppercase">
+            <span>{isUa ? 'Ваше Авто' : 'Your Vehicle'}</span>
+            {isPending && (
+              <span
+                aria-live="polite"
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.08] px-2 py-[3px] text-[9px] font-normal tracking-[0.18em] text-white/75"
+              >
+                <span
+                  aria-hidden="true"
+                  className="inline-block size-2.5 animate-spin rounded-full border border-white/30 border-t-white"
+                />
+                {isUa ? 'Завантаження' : 'Loading'}
+              </span>
+            )}
           </h2>
         </div>
       )}
 
-      <div className={`grid grid-cols-1 ${(!isSidebar && compact) ? 'md:flex md:w-full md:gap-4' : 'gap-4'} text-left`}>
+      <div className={cn(
+        `grid grid-cols-1 ${(!isSidebar && compact) ? 'md:flex md:w-full md:gap-4' : 'gap-4'} text-left`,
+        isPending && 'pointer-events-none opacity-70 transition-opacity duration-150'
+      )}>
         <div className={`${(!isSidebar && compact) ? 'md:flex-1' : ''}`}>
           <Do88Listbox
             label={isUa ? 'Марка' : 'Make'}
