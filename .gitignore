@@ -65,6 +65,8 @@ temp_env.txt
 .env*.local
 .shop-products-dev-cache.json
 data/shop-settings.snapshot.json
+data/racechip-rescrape-progress.json
+data/rescrape.log
 
 # agent and junk protection
 .agents/skills-archive/

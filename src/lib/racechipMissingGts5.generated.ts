@@ -1288,8 +1288,8 @@ export const RACECHIP_MISSING_GTS5_ROWS = [
     "baseHp": 249,
     "baseKw": 183,
     "baseNm": 600,
-    "gainHp": 67,
-    "gainNm": 134,
+    "gainHp": 66,
+    "gainNm": 136,
     "priceEur": 569,
     "salePriceEur": 429
   },
@@ -1438,8 +1438,8 @@ export const RACECHIP_MISSING_GTS5_ROWS = [
     "baseHp": 249,
     "baseKw": 183,
     "baseNm": 600,
-    "gainHp": 67,
-    "gainNm": 134,
+    "gainHp": 66,
+    "gainNm": 136,
     "priceEur": 609,
     "salePriceEur": 459
   },
@@ -1798,7 +1798,7 @@ export const RACECHIP_MISSING_GTS5_ROWS = [
     "baseHp": 204,
     "baseKw": 150,
     "baseNm": 320,
-    "gainHp": 31,
+    "gainHp": 61,
     "gainNm": 60,
     "priceEur": 609,
     "salePriceEur": 459
@@ -1843,7 +1843,7 @@ export const RACECHIP_MISSING_GTS5_ROWS = [
     "baseHp": 204,
     "baseKw": 150,
     "baseNm": 320,
-    "gainHp": 31,
+    "gainHp": 61,
     "gainNm": 60,
     "priceEur": 609,
     "salePriceEur": 459
@@ -1963,7 +1963,7 @@ export const RACECHIP_MISSING_GTS5_ROWS = [
     "baseHp": 204,
     "baseKw": 150,
     "baseNm": 320,
-    "gainHp": 31,
+    "gainHp": 61,
     "gainNm": 60,
     "priceEur": 609,
     "salePriceEur": 459
@@ -2068,7 +2068,7 @@ export const RACECHIP_MISSING_GTS5_ROWS = [
     "baseHp": 204,
     "baseKw": 150,
     "baseNm": 320,
-    "gainHp": 31,
+    "gainHp": 61,
     "gainNm": 60,
     "priceEur": 609,
     "salePriceEur": 459
@@ -2308,7 +2308,7 @@ export const RACECHIP_MISSING_GTS5_ROWS = [
     "baseHp": 330,
     "baseKw": 243,
     "baseNm": 700,
-    "gainHp": 40,
+    "gainHp": 41,
     "gainNm": 80,
     "priceEur": 819,
     "salePriceEur": 609
@@ -2609,7 +2609,7 @@ export const RACECHIP_MISSING_GTS5_ROWS = [
     "baseKw": 324,
     "baseNm": 550,
     "gainHp": 75,
-    "gainNm": 130,
+    "gainNm": 165,
     "priceEur": 819,
     "salePriceEur": 609
   },
@@ -2699,7 +2699,7 @@ export const RACECHIP_MISSING_GTS5_ROWS = [
     "baseKw": 324,
     "baseNm": 550,
     "gainHp": 75,
-    "gainNm": 130,
+    "gainNm": 165,
     "priceEur": 819,
     "salePriceEur": 609
   },
@@ -2714,7 +2714,7 @@ export const RACECHIP_MISSING_GTS5_ROWS = [
     "baseKw": 280,
     "baseNm": 520,
     "gainHp": 75,
-    "gainNm": 165,
+    "gainNm": 130,
     "priceEur": 819,
     "salePriceEur": 609
   },
