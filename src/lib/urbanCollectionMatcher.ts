@@ -250,7 +250,7 @@ function getUrbanMatchScore(product: UrbanMatcherProduct, handle: string, title?
     collectionCandidates.forEach((candidate) => {
       if (candidate === alias) {
         score = Math.max(score, 100);
-      } else if (alias.includes(candidate)) {
+      } else if (candidate.includes(alias)) {
         score = Math.max(score, 85);
       }
     });
@@ -258,7 +258,7 @@ function getUrbanMatchScore(product: UrbanMatcherProduct, handle: string, title?
     supportCandidates.forEach((candidate) => {
       if (candidate === alias) {
         score = Math.max(score, 45);
-      } else if (alias.includes(candidate)) {
+      } else if (candidate.includes(alias)) {
         score = Math.max(score, 25);
       }
     });
