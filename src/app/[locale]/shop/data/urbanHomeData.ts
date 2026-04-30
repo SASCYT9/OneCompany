@@ -52,7 +52,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Best of British',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: URBAN_COLLECTIONS_INDEX_PATH,
+    link: `${URBAN_COLLECTIONS_INDEX_PATH}/land-rover-defender-110`,
     imageUrl:
       '/images/shop/urban/carousel/models/defender2020Plus/2025Updates/webp/urban-automotive-defender-2020-onwards-1-2560.webp',
   },
@@ -67,7 +67,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Urban Aero',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: URBAN_COLLECTIONS_INDEX_PATH,
+    link: `${URBAN_COLLECTIONS_INDEX_PATH}/mercedes-g-wagon-w465-widetrack`,
     imageUrl:
       '/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-1-2560.webp',
   },
@@ -82,7 +82,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Signature',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: URBAN_COLLECTIONS_INDEX_PATH,
+    link: `${URBAN_COLLECTIONS_INDEX_PATH}/range-rover-l460`,
     imageUrl:
       '/images/shop/urban/cols/models/rangeRover2022Plus/col-image-1-lg.jpg',
   },
@@ -97,7 +97,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Carbon',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: URBAN_COLLECTIONS_INDEX_PATH,
+    link: `${URBAN_COLLECTIONS_INDEX_PATH}/audi-rs6-rs7`,
     imageUrl:
       '/images/shop/urban/hero/models/rs6/hero-1-1920.jpg',
   },
@@ -112,7 +112,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Widebody',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: URBAN_COLLECTIONS_INDEX_PATH,
+    link: `${URBAN_COLLECTIONS_INDEX_PATH}/lamborghini-urus`,
     imageUrl:
       '/images/shop/urban/carousel/models/urus/carousel-1-1920.jpg',
   },
@@ -127,7 +127,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Bespoke',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: URBAN_COLLECTIONS_INDEX_PATH,
+    link: `${URBAN_COLLECTIONS_INDEX_PATH}/rolls-royce-cullinan-series-ii`,
     imageUrl:
       '/images/shop/urban/cols/models/cullinanSeriesII/webp/urban-automotive-rolls-royce-cullinan.webp',
   },
@@ -142,7 +142,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'GT',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: URBAN_COLLECTIONS_INDEX_PATH,
+    link: `${URBAN_COLLECTIONS_INDEX_PATH}/bentley-continental-gt`,
     imageUrl:
       '/images/shop/urban/hero/models/continentalGT/hero-1-1920.jpg',
   },
@@ -157,7 +157,7 @@ export const URBAN_FEATURED_MODELS: UrbanFeaturedModel[] = [
     tagTwo: 'Carbon',
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
-    link: URBAN_COLLECTIONS_INDEX_PATH,
+    link: `${URBAN_COLLECTIONS_INDEX_PATH}/audi-rsq8-facelift`,
     imageUrl:
       '/images/shop/urban/banners/models/rsq82024/webp/urban-aero-kit-daytona-2025-audi-rsq8-front-1920.webp',
   },

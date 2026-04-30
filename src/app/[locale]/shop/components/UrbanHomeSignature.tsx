@@ -379,7 +379,7 @@ export default function UrbanHomeSignature({ locale }: UrbanHomeSignatureProps) 
                   <span className="uh7-def__feat-text">{isUa ? 'Ручна збірка' : 'Hand Built'}</span>
                 </div>
               </div>
-              <Link href={localizeHref(locale, URBAN_COLLECTIONS_INDEX_PATH)} className="uh7-def__cta">
+              <Link href={localizeHref(locale, `${URBAN_COLLECTIONS_INDEX_PATH}/land-rover-defender-110`)} className="uh7-def__cta">
                 {isUa ? 'Дослідити Defender' : 'Explore Defender'}
                 <svg viewBox="0 0 24 24">
                   <line x1="5" y1="12" x2="19" y2="12" />
