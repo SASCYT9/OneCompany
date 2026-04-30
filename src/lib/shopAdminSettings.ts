@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { Prisma, PrismaClient } from '@prisma/client';
 
 export const SHOP_CURRENCIES = ['EUR', 'USD', 'UAH'] as const;
@@ -551,14 +549,20 @@ let cachedShopSettingsRecord: ShopSettingsRecord | null = null;
 let cachedShopSettingsFetchedAt = 0;
 let cachedShopSettingsPromise: Promise<ShopSettingsRecord> | null = null;
 
-const SHOP_SETTINGS_SNAPSHOT_PATH = path.join(process.cwd(), 'data', 'shop-settings.snapshot.json');
 let cachedShopSettingsSnapshot: ShopSettingsRecord | null | undefined = undefined;
 
-function loadShopSettingsSnapshot(): ShopSettingsRecord | null {
+async function loadShopSettingsSnapshot(): Promise<ShopSettingsRecord | null> {
   if (cachedShopSettingsSnapshot !== undefined) return cachedShopSettingsSnapshot;
   try {
-    if (fs.existsSync(SHOP_SETTINGS_SNAPSHOT_PATH)) {
-      const raw = JSON.parse(fs.readFileSync(SHOP_SETTINGS_SNAPSHOT_PATH, 'utf8'));
+    // Dynamic node-prefixed imports keep fs/path out of the client bundle
+    // (this module is transitively imported by client components for types).
+    const [{ default: fs }, { default: path }] = await Promise.all([
+      import('node:fs'),
+      import('node:path'),
+    ]);
+    const filePath = path.join(process.cwd(), 'data', 'shop-settings.snapshot.json');
+    if (fs.existsSync(filePath)) {
+      const raw = JSON.parse(fs.readFileSync(filePath, 'utf8'));
       if (raw && typeof raw === 'object') {
         if (typeof raw.createdAt === 'string') raw.createdAt = new Date(raw.createdAt);
         if (typeof raw.updatedAt === 'string') raw.updatedAt = new Date(raw.updatedAt);
@@ -578,7 +582,7 @@ export async function getOrCreateShopSettings(prisma: PrismaClient) {
   // during static prerender of dozens of shop pages × locales. The snapshot
   // is produced by `scripts/prebuild-shop-snapshot.ts` before `next build`.
   if (process.env.NEXT_PHASE === 'phase-production-build') {
-    const snap = loadShopSettingsSnapshot();
+    const snap = await loadShopSettingsSnapshot();
     if (snap) {
       cachedShopSettingsRecord = snap;
       cachedShopSettingsFetchedAt = Date.now();
