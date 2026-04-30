@@ -40,8 +40,9 @@ const CAR_DATA: Record<string, readonly ModelEntry[]> = {
   Porsche: [
     { label: '911 Turbo (992)', keyword: '992 Turbo' },
     { label: '911 Carrera (992)', keyword: '992 Carrera' },
-    { label: '911 (991)', keyword: '991' },
-    { label: '911 (997)', keyword: '997' },
+    { label: '911 Turbo (991)', keyword: '991 Turbo' },
+    { label: '911 Carrera (991)', keyword: '991 Carrera' },
+    { label: '911 Turbo (997)', keyword: '997 Turbo' },
   ],
   BMW: [
     { label: 'M2 (G87)', keyword: 'G87' },
