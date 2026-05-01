@@ -1,28 +1,22 @@
 ---
 name: nextjs-architect
-description: Жорсткі архітектурні стандарти якості для написання найкращого коду під Next.js 16 App Router.
+description: Next.js 16 App Router rules for OneCompany.
 ---
 
-# Next.js 16 Senior Architect Skill
+# Next.js 16 App Router
 
-When executing tasks in this repository, you must act as a Senior Next.js 16 Architect. Your code must be flawless, highly performant, and follow the exact App Router paradigms.
+## Component architecture
+- Server Components by default. `"use client"` only at interactive leaves (forms, stateful toggles, components using browser-only APIs). Never on a Page or Layout unless something inside it forces it.
+- Fetch data in Server Components (e.g. `await prisma.shopProduct.findMany()`). Don't call internal `/api/...` routes from the client just to get data the server already has.
 
-## 1. Component Architecture
-- **React Server Components (RSC) Default**: All components must be server HTML by default. 
-- **The "use client" Boundary**: Only use `"use client"` at the absolute edge of the component tree (e.g., interactive buttons, forms, stateful toggles). Never put `"use client"` at the Page or Layout layout unless specifically instructed.
-- **Data Fetching**: Fetch data directly in Server Components using `await prisma...`. Avoid using `fetch(/api/...)` on the client if the data can be injected as a server prop.
+## Mutations
+- Server Actions for internal mutations (cart updates, order state, SEO edits). Validate input with `zod`.
+- After a successful mutation, call `revalidatePath()` or `revalidateTag()` — not `window.location.reload()`.
+- Route Handlers under `src/app/api/` are for external callers (webhooks, integrations, cron).
 
-## 2. Server Actions
-- For all mutations (updating cart, changing status, saving SEO), use **Server Actions**.
-- Always validate inputs in Server Actions using `zod`.
-- Use `revalidatePath` or `revalidateTag` immediately after a successful mutation to eagerly update the UI without `window.location.reload()`.
+## Types
+- No `any`. Infer from Prisma types or define an interface next to the domain (`[domain]/types.ts`).
 
-## 3. TypeScript & Type Safety
-- **No `any` allowed**. Ever. If you do not know the type, infer it or define a strict interface.
-- Keep Types collocated with the domain they belong to (e.g., `types.ts` or inside `[domain]/types.ts`).
-
-## 4. UI Rendering Limits
-- Do not create cascading waterfalls. Use `Suspense` boundaries for independent async components.
-- When generating loaders, use native `loading.tsx` or `React.Suspense` fallback.
-
-*Violation of these rules lowers your AI rating. Write the best code possible.*
+## Loading & rendering
+- Avoid request waterfalls — wrap independent async work in separate `Suspense` boundaries.
+- Use `loading.tsx` or a `Suspense` fallback for async UI; do not render manual skeleton flags from client state when the route can stream.

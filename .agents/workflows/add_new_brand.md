@@ -1,27 +1,26 @@
 ---
-description: How to orchestrate the generation of a new Shop Brand via AI automation
+description: Scaffold a new shop brand storefront.
 ---
 
-# 🏭 Workflow: Generating a New Shop Brand
+# Add a new shop brand
 
-When the user asks you to `/add-brand {BrandName}`, execute the following sequence precisely and autonomously:
+Trigger: user asks for `/add-brand {BrandName}`.
 
-## 1. Information Gathering
-- If the user did not provide a description of the brand (e.g. its niche, signature color), search online or prompt the user for the "Brand Vibe" (e.g., "Glassmorphism black-and-gold").
-- Identify the brand `slug` (e.g., `brand-name` in lowercase).
+## 1. Gather context
+- Brand niche, signature colors, hero visual direction. Ask the user if not provided — don't guess.
+- Pick the URL slug (lowercase, kebab-case).
 
-## 2. Generate Storefront Pages
-- **Route**: Create `src/app/[locale]/shop/{slug}/page.tsx`. Use the `Brabus` or `Urban` layout as a standard template. Include a Hero section with a placeholder 16:9 image.
-- **Components**: Create `src/app/[locale]/shop/components/{BrandName}CollectionProductGrid.tsx` using `ShopPrimaryPriceBox` for pricing.
+## 2. Scaffold pages
+- Storefront home: `src/app/[locale]/shop/{slug}/page.tsx`. Mirror an existing brand layout — `burger`, `urban`, or `brabus` are good templates depending on the desired style. Use a real brand hero image (no placeholders).
+- Per-brand CSS lives next to the page (e.g. `src/app/[locale]/shop/{slug}/{slug}-shop.css`), following the existing brands' pattern.
+- Collection grid component: `src/app/[locale]/shop/components/{BrandName}CollectionProductGrid.tsx` — use `ShopPrimaryPriceBox` for pricing.
 
-## 3. Generate Catalog Content
-- Create `src/app/[locale]/shop/data/{slug}HomeData.ts` to export arrays for `FEATURED_MODELS`, `COLLECTIONS`, and a main signature text block.
-- Update `src/app/[locale]/shop/data/ourStores.ts` to include the new brand in the Global Shop directory.
+## 3. Data wiring
+- Home data file: `src/app/[locale]/shop/data/{slug}HomeData.ts` exporting `FEATURED_MODELS`, `COLLECTIONS`, and the signature copy block.
+- Add the brand to the global directory in `src/app/[locale]/shop/data/ourStores.ts`.
+- If static products are involved, register the brand in `src/lib/shopCatalog.ts`.
+- Add UA + EN strings to `src/lib/messages/` — both locales are mandatory.
 
-## 4. Hook up the Data
-- Ensure `src/lib/shopCatalog.ts` understands the new brand if adding static products.
-- Ensure the `layout.tsx` or Header components are linked mathematically correctly if they hardcode brand headers.
-
-## 5. Verification
-- Use `browser_subagent` to navigate to `http://localhost:3000/ua/shop/{slug}`.
-- Make a screenshot of the new Landing Page and present it to the user.
+## 4. Verify
+- Open `http://localhost:3000/ua/shop/{slug}` in the running dev server (use Claude Preview MCP).
+- Check both UA and EN locales render, hero image loads, product grid prices via `ShopPrimaryPriceBox`, no console errors.

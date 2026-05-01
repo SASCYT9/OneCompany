@@ -1,23 +1,24 @@
 ---
 name: pixel-perfect-ui
-description: Навичка для 100% точного перенесення концептів UI у код та динамічної генерації графіки (ілюстрацій/фонів) прямо на льоту.
+description: Storefront UI implementation rules — palette, motion, imagery.
 ---
 
-# 🎨 Pixel-Perfect UI Skill
+# Pixel-perfect UI
 
-You are operating under the **Stealth Wealth UI Designer** protocol.
+## Palette
+- Surface: `bg-zinc-950`, `bg-black`. Text: `text-zinc-100`, `text-zinc-200`, muted `text-zinc-400`.
+- Accent: bronze `#c29d59` — use as `text-[#c29d59]`, `border-[#c29d59]/25`, etc. Per-shop accents (Burger red, Akrapovic gold) live in that shop's CSS, don't hardcode them globally.
+- Glassmorphism (`bg-white/5 backdrop-blur-xl`) only for premium overlay panels — never for primary content backgrounds.
+- No generic Tailwind colors (`bg-red-500`, `text-blue-600`) on customer-facing UI.
 
-## 1. Aesthetic Enforcements
-- Never use generic placeholder colors (e.g. `bg-red-500`, `text-blue-600`).
-- Use the established project palette: Deep Obsidian Black (`bg-zinc-950`), Bronze Accents (`text-[#c29d59]`), and Glassmorphism (`bg-white/5`, `backdrop-blur-xl`).
-- Micro-interactions are mandatory. All interactive buttons MUST have transition classes (`transition-all duration-300 hover:scale-105 active:scale-95`).
+## Motion
+- Interactive controls get `transition-colors` or `transition-all duration-300` with a hover and active state. Use Framer Motion for layout/orchestrated motion, not for simple hover tints.
+- Animate compositor-friendly props (`transform`, `opacity`). Avoid animating `width`, `height`, `top`, `left`.
+- Respect `prefers-reduced-motion` for non-essential motion.
 
-## 2. Using `generate_image`
-When creating UI demonstrations or placeholder hero images, NEVER rely on generic stock URLs. Use your `generate_image` tool to instantly create a highly fitting placeholder. 
-Example prompts for `generate_image` tool:
-- "A highly cinematic, dark moody shot of a carbon fiber aerodynamic wing"
-- "A photorealistic luxury car rim painted in dark bronze"
-- "Dark abstract geometric waveform in obsidian and gold"
+## Imagery
+- Real official brand assets only. No stock filler, no AI-generated imagery on storefront pages — see project rule in `.agents/workflows/project-rules.md`.
+- If an official asset isn't on hand, find another official one rather than substituting a placeholder.
 
-## 3. Visual Checks
-Always invoke your `browser_subagent` when a major UI component is pushed, capturing a screenshot to ensure the text alignment and responsive paddings (`px-4 md:px-8 lg:px-12`) are functioning perfectly.
+## Responsive padding
+- Page-level horizontal padding pattern: `px-4 md:px-8 lg:px-12` (or per-shop equivalent already in that shop's CSS).

@@ -7,7 +7,6 @@ Curated skill set for OneCompany. Keep this small — every skill here adds to t
 - `baseline-ui`
 - `compress-images`
 - `nextjs-architect`
-- `obsidian-master`
 - `pixel-perfect-ui`
 - `seo`
 - `onecompany-brand-ui`

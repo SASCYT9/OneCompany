@@ -1,28 +1,25 @@
 ---
-description: Comprehensive codebase and UI audit macro
+description: Comprehensive codebase + UI audit
 ---
 
-# 🕵️ Workflow: System Audit
+# System audit
 
-When the user asks you to `/system-audit`, execute the following strict sequence.
+Trigger: user asks for `/system-audit`.
 
-## 1. Static Analysis
-Run automated tools against the codebase:
-- Run `npm run lint` and output the top 10 most critical errors.
-- Run `npx prisma validate` and `npx prisma format` to ensure the core database schema is healthy.
+## 1. Static checks
+- `npm run lint` — surface the top critical errors.
+- `npx prisma validate` and `npx prisma format` — confirm the schema is healthy.
 
-## 2. Dependency Tracing
+## 2. Dependency tracing
 Pick one core flow (e.g. `src/app/api/shop/checkout/route.ts`).
-- Trace all its imports.
-- Look for hardcoded prices, dead imports, or non-localized text strings.
+- Trace its imports.
+- Flag hardcoded prices, dead imports, or non-localized hard-coded strings that should live in `src/lib/messages/`.
 
-## 3. Visual UI Audit
-Spawn the `browser_subagent`.
-- Task it to open `http://localhost:3000/ua/shop`.
-- Tell it to click through 3 random product pages and add one to the Cart.
-- Return the visual screenshot and console logs to check for Hydration Errors or misaligned components.
+## 3. Live UI check
+Use the Claude Preview MCP (`mcp__Claude_Preview__preview_*`) against the running dev server:
+- Navigate to `http://localhost:3000/ua/shop`, click through 2–3 product pages, add one item to the cart.
+- `preview_console_logs` for hydration errors / runtime warnings.
+- `preview_screenshot` for layout regressions.
 
-## 4. Report Generation
-- Combine the static analysis and subagent visual check into a walkthrough artifact.
-- Present it to the user.
-
+## 4. Report
+Combine the static findings + live-UI observations into one summary for the user. Lead with anything blocking; sort the rest by severity.
