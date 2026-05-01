@@ -33,17 +33,8 @@ export default function OhlinsHeroFilter({ locale, vehicles }: Props) {
   function buildHref() {
     const params = new URLSearchParams();
     if (make) params.set("make", make);
-    // Catalog has no model/chassis facet, so route specifics through `q` (text search).
-    // Chassis codes (G80, 992, F82) are unique → use them alone when present.
-    // Model names with " / " (e.g. "M3 / M4") become two AND-required tokens in
-    // the catalog tokenizer, so split and use the first variant only.
-    let q = "";
-    if (chassis) {
-      q = chassis;
-    } else if (model) {
-      q = model.split(/\s*\/\s*/)[0];
-    }
-    if (q) params.set("q", q);
+    if (model) params.set("model", model);
+    if (chassis) params.set("chassis", chassis);
     const qs = params.toString();
     return qs
       ? `/${locale}/shop/ohlins/catalog?${qs}`

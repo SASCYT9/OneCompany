@@ -670,3 +670,25 @@ export function ohlinsCascadeHasProducts(
     return true;
   });
 }
+
+/**
+ * Per-title cascade matcher. Returns true when the title plausibly matches the
+ * given model name and chassis code. Make filtering is done separately (via
+ * `detectOhlinsMake`) because it takes a full product, not just a title.
+ */
+export function matchesOhlinsModelChassis(
+  title: string,
+  modelName: string | null,
+  chassis: string | null
+): boolean {
+  const upperTitle = title.toUpperCase();
+  if (chassis) {
+    const re = new RegExp(`\\b${escapeRegex(chassis)}\\b`, 'i');
+    if (!re.test(upperTitle)) return false;
+  }
+  if (modelName) {
+    const tokens = buildModelMatchTokens(modelName);
+    if (!tokens.some((token) => upperTitle.includes(token))) return false;
+  }
+  return true;
+}

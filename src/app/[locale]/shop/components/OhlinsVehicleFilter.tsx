@@ -8,7 +8,12 @@ import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight, Activity } from 
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
-import { detectOhlinsCategory, detectOhlinsMake } from "@/lib/ohlinsCatalog";
+import {
+  detectOhlinsCategory,
+  detectOhlinsMake,
+  matchesOhlinsModelChassis,
+  type OhlinsHeroVehicleMake,
+} from "@/lib/ohlinsCatalog";
 import { computeShopDisplayPrices, hasAnyShopPrice, pickShopSortableAmount } from "@/lib/shopDisplayPrices";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
@@ -25,6 +30,7 @@ import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 type Props = {
   locale: SupportedLocale;
   products: ShopProduct[];
+  vehicles?: OhlinsHeroVehicleMake[];
   alternativeSearchItems?: ShopAlternativeSearchItem[];
   viewerContext?: ShopViewerPricingContext;
 };
@@ -58,6 +64,7 @@ function formatResultCount(locale: SupportedLocale, count: number) {
 export default function OhlinsVehicleFilter({
   locale,
   products,
+  vehicles = [],
   alternativeSearchItems = [],
   viewerContext: ssrViewerContext,
 }: Props) {
@@ -72,11 +79,15 @@ export default function OhlinsVehicleFilter({
   const searchParams = useSearchParams();
 
   const initialMake = searchParams?.get("make") || "all";
+  const initialModel = searchParams?.get("model") || "";
+  const initialChassis = searchParams?.get("chassis") || "";
   const initialCategory = searchParams?.get("category") || "all";
   const initialSort = (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
   const initialSearch = searchParams?.get("q") || "";
 
   const [activeMake, setActiveMake] = useState<string>(initialMake);
+  const [activeModel, setActiveModel] = useState<string>(initialModel);
+  const [activeChassis, setActiveChassis] = useState<string>(initialChassis);
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
@@ -84,9 +95,18 @@ export default function OhlinsVehicleFilter({
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
 
   // Sync filter state to URL
-  const syncToUrl = useCallback((make: string, cat: string, sort: string, q: string) => {
+  const syncToUrl = useCallback((
+    make: string,
+    model: string,
+    chassis: string,
+    cat: string,
+    sort: string,
+    q: string,
+  ) => {
     const params = new URLSearchParams();
     if (make !== "all") params.set("make", make);
+    if (model) params.set("model", model);
+    if (chassis) params.set("chassis", chassis);
     if (cat !== "all") params.set("category", cat);
     if (sort !== "default") params.set("sort", sort);
     if (q.trim()) params.set("q", q);
@@ -97,14 +117,27 @@ export default function OhlinsVehicleFilter({
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      syncToUrl(activeMake, activeCategory, sortOrder, searchQuery);
+      syncToUrl(activeMake, activeModel, activeChassis, activeCategory, sortOrder, searchQuery);
     }, 300);
     return () => clearTimeout(timeout);
-  }, [activeMake, activeCategory, sortOrder, searchQuery, syncToUrl]);
+  }, [activeMake, activeModel, activeChassis, activeCategory, sortOrder, searchQuery, syncToUrl]);
 
   useEffect(() => {
     setVisibleCount(30);
-  }, [activeMake, activeCategory, searchQuery, sortOrder]);
+  }, [activeMake, activeModel, activeChassis, activeCategory, searchQuery, sortOrder]);
+
+  // Cascade resets — when make changes, clear model and chassis. When model
+  // changes, clear chassis. Triggered via dedicated handlers below to avoid
+  // racing the URL-sync effect.
+  function onMakeChange(value: string) {
+    setActiveMake(value);
+    setActiveModel("");
+    setActiveChassis("");
+  }
+  function onModelChange(value: string) {
+    setActiveModel(value);
+    setActiveChassis("");
+  }
 
   // Pre-compute makes and categories for each product
   const enrichedProducts = useMemo(() => {
@@ -162,7 +195,19 @@ export default function OhlinsVehicleFilter({
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [enrichedProducts, searchQuery, activeCategory]);
 
-  // 2. EXTRACT ALL CATEGORIES
+  // 2. AVAILABLE MODELS — pulled from the curated vehicle tree, scoped to make
+  const availableModels = useMemo(() => {
+    if (activeMake === "all") return [];
+    return vehicles.find((v) => v.make === activeMake)?.models ?? [];
+  }, [vehicles, activeMake]);
+
+  // 3. AVAILABLE CHASSIS — only for selected (make, model)
+  const availableChassis = useMemo(() => {
+    if (!activeModel) return [];
+    return availableModels.find((m) => m.name === activeModel)?.chassis ?? [];
+  }, [availableModels, activeModel]);
+
+  // 4. EXTRACT ALL CATEGORIES
   const availableCategories = useMemo(() => {
     const cats = new Map<string, { count: number; labelUa: string }>();
     for (const ep of enrichedProducts) {
@@ -180,12 +225,22 @@ export default function OhlinsVehicleFilter({
       .sort((a, b) => b.count - a.count);
   }, [enrichedProducts, searchQuery, activeMake]);
 
-  // 3. FILTER RESULTS
+  // 5. FILTER RESULTS
   const filtered = useMemo(() => {
     let list = enrichedProducts;
 
     if (activeMake !== "all") {
       list = list.filter((ep) => ep.make === activeMake);
+    }
+    if (activeModel || activeChassis) {
+      list = list.filter((ep) => {
+        const title = `${ep.product.title?.en ?? ""} ${ep.product.title?.ua ?? ""}`;
+        return matchesOhlinsModelChassis(
+          title,
+          activeModel || null,
+          activeChassis || null,
+        );
+      });
     }
     if (activeCategory !== "all") {
       list = list.filter((ep) => ep.category?.label === activeCategory);
@@ -211,7 +266,7 @@ export default function OhlinsVehicleFilter({
     });
 
     return sortedList;
-  }, [enrichedProducts, activeMake, activeCategory, searchQuery, sortOrder, viewerContext, currency, rates]);
+  }, [enrichedProducts, activeMake, activeModel, activeChassis, activeCategory, searchQuery, sortOrder, viewerContext, currency, rates]);
 
   const alternativeMatches = useMemo(() => {
     if (!searchQuery.trim() || filtered.length > 0) {
@@ -264,12 +319,16 @@ export default function OhlinsVehicleFilter({
   const GOLD_DIM = "rgba(194,157,89,0.25)";
   const hasActiveFilters =
     activeMake !== "all" ||
+    activeModel !== "" ||
+    activeChassis !== "" ||
     activeCategory !== "all" ||
     searchQuery.trim().length > 0 ||
     sortOrder !== "default";
 
   function resetFilters() {
     setActiveMake("all");
+    setActiveModel("");
+    setActiveChassis("");
     setActiveCategory("all");
     setSearchQuery("");
     setSortOrder("default");
@@ -277,11 +336,11 @@ export default function OhlinsVehicleFilter({
 
   const filterControls = (
     <>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-6">
         <div className="relative border border-white/20 transition-colors hover:border-[#c29d59]/50">
           <select
             value={activeMake}
-            onChange={(e) => setActiveMake(e.target.value)}
+            onChange={(e) => onMakeChange(e.target.value)}
             className="appearance-none w-full rounded-none bg-[#0a0a0c] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-[0.1em] text-white outline-none"
           >
             <option value="all" className="bg-[#0a0a0c] font-light text-zinc-500">
@@ -290,6 +349,86 @@ export default function OhlinsVehicleFilter({
             {availableMakes.map((m) => (
               <option key={m.key} value={m.key} className="bg-[#0a0a0c] text-white">
                 {m.label} ({m.count})
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
+            <ChevronDown size={14} strokeWidth={1.5} />
+          </div>
+        </div>
+
+        <div
+          className={`relative border transition-colors ${
+            activeMake === "all"
+              ? "border-white/10 opacity-50"
+              : "border-white/20 hover:border-[#c29d59]/50"
+          }`}
+        >
+          <select
+            value={activeModel}
+            onChange={(e) => onModelChange(e.target.value)}
+            disabled={activeMake === "all" || availableModels.length === 0}
+            aria-disabled={activeMake === "all" || availableModels.length === 0}
+            className="appearance-none w-full rounded-none bg-[#0a0a0c] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-[0.1em] text-white outline-none disabled:cursor-not-allowed"
+          >
+            <option value="" className="bg-[#0a0a0c] font-light text-zinc-500">
+              {activeMake === "all"
+                ? isUa
+                  ? "Спочатку марка"
+                  : "Pick make first"
+                : availableModels.length === 0
+                  ? isUa
+                    ? "Немає моделей"
+                    : "No models"
+                  : isUa
+                    ? "Виберіть Модель"
+                    : "Select Model"}
+            </option>
+            {availableModels.map((m) => (
+              <option key={m.name} value={m.name} className="bg-[#0a0a0c] text-white">
+                {m.name}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
+            <ChevronDown size={14} strokeWidth={1.5} />
+          </div>
+        </div>
+
+        <div
+          className={`relative border transition-colors ${
+            !activeModel || availableChassis.length === 0
+              ? "border-white/10 opacity-50"
+              : "border-white/20 hover:border-[#c29d59]/50"
+          }`}
+        >
+          <select
+            value={activeChassis}
+            onChange={(e) => setActiveChassis(e.target.value)}
+            disabled={!activeModel || availableChassis.length === 0}
+            aria-disabled={!activeModel || availableChassis.length === 0}
+            className="appearance-none w-full rounded-none bg-[#0a0a0c] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-[0.1em] text-white outline-none disabled:cursor-not-allowed"
+          >
+            <option value="" className="bg-[#0a0a0c] font-light text-zinc-500">
+              {activeMake === "all"
+                ? isUa
+                  ? "Спочатку марка"
+                  : "Pick make first"
+                : !activeModel
+                  ? isUa
+                    ? "Спочатку модель"
+                    : "Pick model first"
+                  : availableChassis.length === 0
+                    ? isUa
+                      ? "Без кузовів"
+                      : "No chassis"
+                    : isUa
+                      ? "Виберіть Кузов"
+                      : "Select Chassis"}
+            </option>
+            {availableChassis.map((code) => (
+              <option key={code} value={code} className="bg-[#0a0a0c] text-white">
+                {code}
               </option>
             ))}
           </select>

@@ -9,6 +9,7 @@ import { buildShopStorefrontProductPathForProduct } from '@/lib/shopStorefrontRo
 import { localizeShopProductTitle } from '@/lib/shopText';
 import Link from 'next/link';
 import OhlinsVehicleFilter from '../../components/OhlinsVehicleFilter';
+import { buildOhlinsHeroVehicleTree } from '@/lib/ohlinsCatalog';
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = 'force-static';
@@ -67,6 +68,7 @@ export default async function OhlinsCatalogPage({ params }: Props) {
   );
 
   const ohlinsProducts = products.filter(isOhlinsProduct);
+  const ohlinsHeroVehicles = buildOhlinsHeroVehicleTree(ohlinsProducts);
   const alternativeSearchItems = products.reduce<ShopAlternativeSearchItem[]>((items, product) => {
     if (isOhlinsProduct(product)) {
       return items;
@@ -152,6 +154,7 @@ export default async function OhlinsCatalogPage({ params }: Props) {
             <OhlinsVehicleFilter
               locale={resolvedLocale}
               products={ohlinsProducts}
+              vehicles={ohlinsHeroVehicles}
               alternativeSearchItems={alternativeSearchItems}
               viewerContext={viewerContext}
             />
