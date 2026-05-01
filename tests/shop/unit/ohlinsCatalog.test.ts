@@ -64,12 +64,12 @@ test('detectOhlinsCategory classifies mounts and motorsport catalog items', () =
 test('resolveFeedManagedCatalogImage replaces stale Brabus cache images for Ohlins', () => {
   assert.equal(
     resolveFeedManagedCatalogImage('/images/shop/brabus/hq/brabus-portal-hero.png', 'OHLINS'),
-    '/images/shop/ohlins/factory-fallback.jpg'
+    '/images/shop/ohlins/catalog-fallback.jpg'
   );
 
   assert.equal(
-    resolveFeedManagedCatalogImage('/images/shop/ohlins/factory-fallback.jpg', 'OHLINS'),
-    '/images/shop/ohlins/factory-fallback.jpg'
+    resolveFeedManagedCatalogImage('/images/shop/ohlins/catalog-fallback.jpg', 'OHLINS'),
+    '/images/shop/ohlins/catalog-fallback.jpg'
   );
 
   assert.equal(

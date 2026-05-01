@@ -57,7 +57,7 @@ const BRAND_FALLBACK_IMAGES: Record<string, string> = {
   ADRO: '/images/shop/adro/adro-hero-m4.jpg',
   AKRAPOVIC: '/images/shop/akrapovic/factory-fallback.jpg',
   CSF: '/images/shop/csf/factory-fallback.jpg',
-  OHLINS: '/images/shop/ohlins/factory-fallback.jpg',
+  OHLINS: '/images/shop/ohlins/catalog-fallback.jpg',
 };
 const LOCAL_SHOP_BRAND_IMAGE_PREFIXES: Record<string, string> = {
   ADRO: '/images/shop/adro/',

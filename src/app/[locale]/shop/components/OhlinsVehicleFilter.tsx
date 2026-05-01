@@ -745,7 +745,7 @@ export default function OhlinsVehicleFilter({
                           ) : (
                             <div className="absolute inset-0 p-8">
                               <Image
-                                src="/images/shop/ohlins/factory-fallback.jpg"
+                                src="/images/shop/ohlins/catalog-fallback.jpg"
                                 alt={productTitle}
                                 fill
                                 sizes="(max-width: 768px) 100vw, 33vw"
