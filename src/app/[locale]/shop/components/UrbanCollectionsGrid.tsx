@@ -142,7 +142,7 @@ export default function UrbanCollectionsGrid({ locale, cards: cardsProp }: Urban
                   aria-label={card.title}
                 />
                 <img
-                  className="absolute inset-0 h-full w-full object-cover object-center opacity-75 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-[1.03]"
+                  className={`absolute inset-0 h-full w-full ${card.imgFit === 'contain' ? 'object-contain' : 'object-cover'} object-center opacity-75 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-[1.03]`}
                   src={card.externalImageUrl}
                   alt=""
                   loading={idx < 4 ? 'eager' : 'lazy'}
