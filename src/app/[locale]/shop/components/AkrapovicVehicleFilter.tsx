@@ -16,7 +16,7 @@ import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import AkrapovicSpotlightGrid from "./AkrapovicSpotlightGrid";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
-import { BRAND_PATTERNS, LINE_PATTERNS, extractVehicleBrands, extractProductLine, extractVehicleModel, extractVehicleModelsForBrand, compareVehicleModelKeys } from "@/lib/akrapovicFilterUtils";
+import { BRAND_PATTERNS, LINE_PATTERNS, extractVehicleBrands, extractProductLine, extractVehicleModelsForBrand, extractVehicleModelNamesForBrand, compareVehicleModelKeys } from "@/lib/akrapovicFilterUtils";
 
 type AkrapovicVehicleFilterProps = {
   locale: SupportedLocale;
@@ -66,12 +66,15 @@ export default function AkrapovicVehicleFilter({
   useEffect(() => setMounted(true), []);
 
   const [activeBrand, setActiveBrand] = useState<string>(() => searchParams.get("brand") || "all");
+  const [activeModel, setActiveModel] = useState<string>(() => searchParams.get("model") || "all");
+  const [activeBody, setActiveBody] = useState<string>(() => searchParams.get("body") || "all");
   const [activeLine, setActiveLine] = useState<string>(() => searchParams.get("line") || "all");
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q") || "");
   const [sortOrder, setSortOrder] = useState<SortOrder>("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
   const didInitializeBrand = useRef(false);
+  const didInitializeModel = useRef(false);
 
   const productBrandMap = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -109,21 +112,37 @@ export default function AkrapovicVehicleFilter({
       .map(([key, count]) => ({ key, label: LINE_PATTERNS.find(l => l.key === key)?.label ?? key, count }));
   }, [activeBrand, products, productBrandMap]);
 
-  const [activeModel, setActiveModel] = useState<string>(() => searchParams.get("model") || "all");
   const availableModels = useMemo(() => {
     if (activeBrand === "all") return [];
     const models = new Map<string, number>();
     for (const p of products) {
       if (!productBrandMap.get(p.slug)?.includes(activeBrand)) continue;
       const title = p.title?.en || localizeShopProductTitle('en', p);
-      for (const model of extractVehicleModelsForBrand(title, activeBrand)) {
-        if (model && model !== 'Other') models.set(model, (models.get(model) || 0) + 1);
+      for (const model of extractVehicleModelNamesForBrand(title, activeBrand)) {
+        if (model) models.set(model, (models.get(model) || 0) + 1);
       }
     }
     return [...models.entries()]
-      .sort((a, b) => compareVehicleModelKeys(a[0], b[0]))
+      .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([key, count]) => ({ key, label: key, count }));
   }, [activeBrand, products, productBrandMap]);
+
+  const availableBodies = useMemo(() => {
+    if (activeBrand === "all") return [];
+    const bodies = new Map<string, number>();
+    for (const p of products) {
+      if (!productBrandMap.get(p.slug)?.includes(activeBrand)) continue;
+      const title = p.title?.en || localizeShopProductTitle('en', p);
+      if (activeModel !== "all"
+          && !extractVehicleModelNamesForBrand(title, activeBrand).includes(activeModel)) continue;
+      for (const body of extractVehicleModelsForBrand(title, activeBrand)) {
+        if (body && body !== 'Other') bodies.set(body, (bodies.get(body) || 0) + 1);
+      }
+    }
+    return [...bodies.entries()]
+      .sort((a, b) => compareVehicleModelKeys(a[0], b[0]))
+      .map(([key, count]) => ({ key, label: key, count }));
+  }, [activeBrand, activeModel, products, productBrandMap]);
 
   useEffect(() => {
     if (!didInitializeBrand.current) {
@@ -132,20 +151,31 @@ export default function AkrapovicVehicleFilter({
     }
     setActiveLine("all");
     setActiveModel("all");
+    setActiveBody("all");
   }, [activeBrand]);
 
   useEffect(() => {
+    if (!didInitializeModel.current) {
+      didInitializeModel.current = true;
+      return;
+    }
+    setActiveBody("all");
+  }, [activeModel]);
+
+  useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [activeBrand, activeModel, activeLine, searchQuery, sortOrder]);
+  }, [activeBrand, activeModel, activeBody, activeLine, searchQuery, sortOrder]);
 
   const filteredProducts = useMemo(() => {
     let result = products;
     if (activeBrand !== "all") result = result.filter(p => productBrandMap.get(p.slug)?.includes(activeBrand));
-    if (activeModel !== "all") result = result.filter(p => {
+    if (activeModel !== "all" && activeBrand !== "all") result = result.filter(p => {
       const t = p.title?.en || localizeShopProductTitle('en', p);
-      return activeBrand === "all"
-        ? extractVehicleModel(t) === activeModel
-        : extractVehicleModelsForBrand(t, activeBrand).includes(activeModel);
+      return extractVehicleModelNamesForBrand(t, activeBrand).includes(activeModel);
+    });
+    if (activeBody !== "all" && activeBrand !== "all") result = result.filter(p => {
+      const t = p.title?.en || localizeShopProductTitle('en', p);
+      return extractVehicleModelsForBrand(t, activeBrand).includes(activeBody);
     });
     if (activeLine !== "all") result = result.filter(p => {
       const t = p.title?.en || localizeShopProductTitle('en', p);
@@ -189,7 +219,7 @@ export default function AkrapovicVehicleFilter({
       return priceB - priceA;
     });
     return result;
-  }, [activeBrand, activeModel, activeLine, searchQuery, sortOrder, products, productBrandMap, locale, viewerContext, currency, rates]);
+  }, [activeBrand, activeModel, activeBody, activeLine, searchQuery, sortOrder, products, productBrandMap, locale, viewerContext, currency, rates]);
 
   const totalCount = products.length;
   const displayedProducts = useMemo(
@@ -197,16 +227,17 @@ export default function AkrapovicVehicleFilter({
     [filteredProducts, visibleCount]
   );
 
-  const hasActiveFilters = activeBrand !== "all" || activeLine !== "all" || activeModel !== "all" || searchQuery.trim() !== "";
+  const hasActiveFilters = activeBrand !== "all" || activeLine !== "all" || activeModel !== "all" || activeBody !== "all" || searchQuery.trim() !== "";
   const catalogHref = useMemo(() => {
     const params = new URLSearchParams();
     if (activeBrand !== "all") params.set("brand", activeBrand);
     if (activeModel !== "all") params.set("model", activeModel);
+    if (activeBody !== "all") params.set("body", activeBody);
     if (activeLine !== "all") params.set("line", activeLine);
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
     const query = params.toString();
     return `/${locale}/shop/akrapovic/collections${query ? `?${query}` : ""}`;
-  }, [activeBrand, activeModel, activeLine, searchQuery, locale]);
+  }, [activeBrand, activeModel, activeBody, activeLine, searchQuery, locale]);
 
   if (!mounted) return null;
 
@@ -242,6 +273,24 @@ export default function AkrapovicVehicleFilter({
             {availableModels.map((model) => (
               <option key={model.key} value={model.key}>
                 {model.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={14} className="ak-hero-filter__chevron" />
+        </div>
+
+        <div className="ak-hero-filter__select-wrap">
+          <select
+            value={activeBody}
+            onChange={(e) => setActiveBody(e.target.value)}
+            className="ak-hero-filter__field"
+            aria-label={isUa ? "Оберіть кузов" : "Choose chassis"}
+            disabled={activeBrand === "all" || availableBodies.length === 0}
+          >
+            <option value="all">{isUa ? "Оберіть кузов" : "Choose chassis"}</option>
+            {availableBodies.map((body) => (
+              <option key={body.key} value={body.key}>
+                {body.label}
               </option>
             ))}
           </select>
@@ -287,17 +336,35 @@ export default function AkrapovicVehicleFilter({
         </div>
       </div>
 
-      {/* Model select */}
+      {/* Model select (marketing name: 911, M3, RS6, Cayenne…) */}
       {availableModels.length > 0 && (
         <div>
           <label className="text-[10px] text-white/50 uppercase tracking-widest mb-1.5 font-medium block">
-            {isUa ? "Шасі / Платформа" : "Chassis / Platform"}
+            {isUa ? "Модель" : "Model"}
           </label>
           <div className="relative">
             <select value={activeModel} onChange={(e) => setActiveModel(e.target.value)} className={selectCls}>
               <option value="all">{isUa ? "Всі моделі" : "All Models"}</option>
               {availableModels.map((m) => (
                 <option key={m.key} value={m.key}>{m.label} ({m.count})</option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/40" />
+          </div>
+        </div>
+      )}
+
+      {/* Body / Chassis select (generation code: 992, G80, C8…) */}
+      {availableBodies.length > 0 && (
+        <div>
+          <label className="text-[10px] text-white/50 uppercase tracking-widest mb-1.5 font-medium block">
+            {isUa ? "Кузов" : "Chassis"}
+          </label>
+          <div className="relative">
+            <select value={activeBody} onChange={(e) => setActiveBody(e.target.value)} className={selectCls}>
+              <option value="all">{isUa ? "Всі кузови" : "All Chassis"}</option>
+              {availableBodies.map((b) => (
+                <option key={b.key} value={b.key}>{b.label} ({b.count})</option>
               ))}
             </select>
             <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/40" />
@@ -341,7 +408,7 @@ export default function AkrapovicVehicleFilter({
               </span>
               {hasActiveFilters && (
                 <button
-                  onClick={() => { setActiveBrand("all"); setActiveLine("all"); setActiveModel("all"); setSearchQuery(""); setSortOrder("default"); }}
+                  onClick={() => { setActiveBrand("all"); setActiveLine("all"); setActiveModel("all"); setActiveBody("all"); setSearchQuery(""); setSortOrder("default"); }}
                   className="text-[10px] uppercase tracking-widest text-[#e50000] hover:text-white transition-colors font-medium whitespace-nowrap"
                 >
                   {isUa ? "Скинути" : "Reset"}
@@ -361,7 +428,7 @@ export default function AkrapovicVehicleFilter({
             </div>
           </div>
           {/* Dropdown row */}
-          <div className={`grid gap-4 ${filterOnly ? "grid-cols-4" : "grid-cols-4"}`}>
+          <div className="grid gap-4 grid-cols-5">
             {filterDropdowns()}
             {filterOnly ? (
               <div className="flex items-end">
@@ -425,7 +492,7 @@ export default function AkrapovicVehicleFilter({
               <button onClick={closeMobileFilter} className="p-1.5 text-white/40 hover:text-white"><X size={18} /></button>
             </div>
             {hasActiveFilters && (
-              <button onClick={() => { setActiveBrand("all"); setActiveLine("all"); setActiveModel("all"); setSearchQuery(""); closeMobileFilter(); }}
+              <button onClick={() => { setActiveBrand("all"); setActiveLine("all"); setActiveModel("all"); setActiveBody("all"); setSearchQuery(""); closeMobileFilter(); }}
                 className="text-[10px] uppercase tracking-widest text-[#e50000] hover:text-white transition-colors font-medium self-start">
                 {isUa ? "Скинути все" : "Reset All"}
               </button>
@@ -458,7 +525,7 @@ export default function AkrapovicVehicleFilter({
             <p className="text-white/50 text-sm max-w-md mx-auto mb-8 leading-relaxed">
               {searchQuery ? (isUa ? `Нічого не знайдено за запитом "${searchQuery}"` : `No results for "${searchQuery}"`) : (isUa ? "Продукція відсутня." : "Components are currently unavailable.")}
             </p>
-            <button onClick={() => { setActiveBrand("all"); setActiveLine("all"); setActiveModel("all"); setSearchQuery(""); setSortOrder("default"); }}
+            <button onClick={() => { setActiveBrand("all"); setActiveLine("all"); setActiveModel("all"); setActiveBody("all"); setSearchQuery(""); setSortOrder("default"); }}
               className="px-8 py-3 bg-[#e50000]/15 border border-[#e50000]/40 text-white text-[10px] uppercase tracking-widest hover:bg-[#e50000]/25 hover:border-[#e50000]/70 transition-all duration-500 rounded-md font-medium">
               {isUa ? "Скинути фільтри" : "Reset Filters"}
             </button>

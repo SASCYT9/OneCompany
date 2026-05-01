@@ -20,6 +20,141 @@ export const BRAND_PATTERNS: { key: string; patterns: RegExp[] }[] = [
   { key: "Alfa Romeo", patterns: [/\bALFA\s*ROMEO\b/i] },
 ];
 
+/**
+ * Marketing-name patterns per brand. Drives the "Модель" dropdown that sits between
+ * Brand and Body/Chassis. Order matters: more specific trims (M340i, M440i) come before
+ * generic (M3, M4) so the negative-lookahead-free generic patterns don't swallow them —
+ * but we also use lookaheads on M2/M3/M4/M5/M8 to be safe against M240/M340/M440/M550/M850.
+ */
+export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: RegExp }[]> = {
+  Porsche: [
+    { model: "911",      pattern: /\b911\b/i },
+    { model: "718",      pattern: /\b(?:718|Boxster|Cayman)\b/i },
+    { model: "Cayenne",  pattern: /\bCayenne\b/i },
+    { model: "Macan",    pattern: /\bMacan\b/i },
+    { model: "Panamera", pattern: /\bPanamera\b/i },
+    { model: "Taycan",   pattern: /\bTaycan\b/i },
+  ],
+  BMW: [
+    { model: "M135i/M140i", pattern: /\bM1[34]0[id]\b/i },
+    { model: "M235i/M240i", pattern: /\bM2[34]0[id]\b/i },
+    { model: "M340i/M340d", pattern: /\bM340[id]\b/i },
+    { model: "M440i/M440d", pattern: /\bM440[id]\b/i },
+    { model: "M550i",       pattern: /\bM550[id]\b/i },
+    { model: "M850i",       pattern: /\bM850[id]\b/i },
+    { model: "X3 M",        pattern: /\bX3\s*M\b/i },
+    { model: "X4 M",        pattern: /\bX4\s*M\b/i },
+    { model: "X5 M",        pattern: /\bX5\s*M\b/i },
+    { model: "X6 M",        pattern: /\bX6\s*M\b/i },
+    { model: "M2",          pattern: /\bM2\b(?!\s?[34]0)/i },
+    { model: "M3",          pattern: /\bM3\b(?!\s?40)/i },
+    { model: "M4",          pattern: /\bM4\b(?!\s?40)/i },
+    { model: "M5",          pattern: /\bM5\b(?!\s?50)/i },
+    { model: "M8",          pattern: /\bM8\b(?!\s?50)/i },
+    { model: "Z4",          pattern: /\bZ4\b/i },
+  ],
+  Audi: [
+    { model: "RS3",   pattern: /\bRS\s*3\b/i },
+    { model: "RS4",   pattern: /\bRS\s*4\b/i },
+    { model: "RS5",   pattern: /\bRS\s*5\b/i },
+    { model: "RS6",   pattern: /\bRS\s*6\b/i },
+    { model: "RS7",   pattern: /\bRS\s*7\b/i },
+    { model: "RS Q3", pattern: /\bRS\s*Q3\b/i },
+    { model: "RS Q5", pattern: /\bRS\s*Q5\b/i },
+    { model: "RS Q8", pattern: /\bRS\s*Q8\b/i },
+    { model: "TT-RS", pattern: /\bTT[\s-]*RS\b/i },
+    { model: "R8",    pattern: /\bR8\b/i },
+    { model: "S3",    pattern: /\bS3\b/i },
+    { model: "S4",    pattern: /\bS4\b/i },
+    { model: "S5",    pattern: /\bS5\b/i },
+  ],
+  "Mercedes-AMG": [
+    { model: "A45",    pattern: /\bA\s*45\b/i },
+    { model: "CLA45",  pattern: /\bCLA\s*45\b/i },
+    { model: "GLA45",  pattern: /\bGLA\s*45\b/i },
+    { model: "C63",    pattern: /\bC\s*63\b/i },
+    { model: "E63",    pattern: /\bE\s*63\b/i },
+    { model: "GLC63",  pattern: /\bGLC\s*63\b/i },
+    { model: "GLE63",  pattern: /\bGLE\s*63\b/i },
+    { model: "G63",    pattern: /\bG\s*63\b/i },
+    { model: "S63",    pattern: /\bS\s*63\b/i },
+    { model: "SL63",   pattern: /\bSL\s*63\b/i },
+    { model: "AMG GT", pattern: /\bAMG\s+GT\b/i },
+  ],
+  Toyota: [
+    { model: "GR Supra", pattern: /\b(?:GR\s*)?Supra\b/i },
+    { model: "GR Yaris", pattern: /\bYaris\b/i },
+  ],
+  Nissan: [
+    { model: "GT-R", pattern: /\bGT-?R\b/i },
+    { model: "370Z", pattern: /\b370\s*Z\b/i },
+  ],
+  Chevrolet: [
+    { model: "Corvette", pattern: /\bCorvette\b/i },
+    { model: "Camaro",   pattern: /\bCamaro\b/i },
+  ],
+  Ferrari: [
+    { model: "488",  pattern: /\b488\b/i },
+    { model: "F8",   pattern: /\bF8\b/i },
+    { model: "296",  pattern: /\b296\b/i },
+    { model: "812",  pattern: /\b812\b/i },
+    { model: "Roma", pattern: /\bRoma\b/i },
+  ],
+  Lamborghini: [
+    { model: "Huracán",   pattern: /\bHuracan\b/i },
+    { model: "Aventador", pattern: /\bAventador\b/i },
+    { model: "Urus",      pattern: /\bUrus\b/i },
+  ],
+  McLaren: [
+    { model: "720S",  pattern: /\b720\s*S\b/i },
+    { model: "765LT", pattern: /\b765\s*LT\b/i },
+    { model: "570S",  pattern: /\b570\s*S\b/i },
+  ],
+  "Alfa Romeo": [
+    { model: "Giulia",  pattern: /\bGiulia\b/i },
+    { model: "Stelvio", pattern: /\bStelvio\b/i },
+  ],
+  Cupra: [
+    { model: "Formentor", pattern: /\bFormentor\b/i },
+    { model: "Leon",      pattern: /\bLeon\b/i },
+  ],
+  Volkswagen: [
+    { model: "Golf", pattern: /\bGolf\b/i },
+    { model: "Polo", pattern: /\bPolo\b/i },
+  ],
+  Renault: [
+    { model: "Mégane RS", pattern: /\bMegane\b/i },
+  ],
+  Mini: [
+    { model: "Cooper", pattern: /\bCooper\b/i },
+  ],
+  Abarth: [
+    { model: "595", pattern: /\b595\b/i },
+    { model: "695", pattern: /\b695\b/i },
+  ],
+  Ford: [
+    { model: "Mustang",  pattern: /\bMustang\b/i },
+    { model: "Focus RS", pattern: /\bFocus\s*RS\b/i },
+  ],
+};
+
+/**
+ * Extract marketing model names (911, M3, RS6, Cayenne…) from a title for a given brand.
+ * Multi-model titles like "BMW M3 (G80) / M4 (G82)" return both models.
+ *
+ * Note: the sibling function `extractVehicleModelsForBrand` despite its name returns
+ * **chassis codes** (G80, 992, C8) — kept as-is for back-compat with existing call sites.
+ */
+export function extractVehicleModelNamesForBrand(title: string, brand: string): string[] {
+  const patterns = MODEL_PATTERNS_BY_BRAND[brand];
+  if (!patterns) return [];
+  const matches = new Set<string>();
+  for (const { model, pattern } of patterns) {
+    if (pattern.test(title)) matches.add(model);
+  }
+  return [...matches];
+}
+
 export const LINE_PATTERNS: { key: string; label: string; patterns: RegExp[] }[] = [
   { key: "sound-kit", label: "Sound & Control Kit", patterns: [/sound\s*(control\s*)?kit/i, /exhaust\s+sound\s+control/i, /control\s+kit/i, /valve\s+(actuator\s+)?control/i, /(?:central\s+)?valve\s+actuator\s+kit/i, /control\s+system/i] },
   { key: "mounting-kit", label: "Mounting Kit", patterns: [/mounting\s*kit/i] },

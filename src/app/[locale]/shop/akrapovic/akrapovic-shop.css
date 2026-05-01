@@ -180,11 +180,11 @@
   text-shadow: 0 1px 8px rgba(0,0,0,0.8), 0 2px 20px rgba(0,0,0,0.6);
 }
 .ak-hero-filter {
-  width: min(100%, 760px);
+  width: min(100%, 920px);
   margin: clamp(1.8rem, 3vw, 2.6rem) auto 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(140px, 0.72fr) minmax(120px, 0.48fr);
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(140px, 0.72fr) minmax(120px, 0.48fr);
+  gap: 0.75rem;
 }
 .ak-hero-filter__select-wrap {
   position: relative;

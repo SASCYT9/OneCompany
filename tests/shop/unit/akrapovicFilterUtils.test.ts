@@ -6,6 +6,7 @@ import {
   extractVehicleBrand,
   extractVehicleBrands,
   extractVehicleModel,
+  extractVehicleModelNamesForBrand,
   extractVehicleModelsForBrand,
 } from '../../../src/lib/akrapovicFilterUtils';
 
@@ -89,4 +90,54 @@ test('extractVehicleModelsForBrand includes every chassis code from shared model
   const title = 'AKRAPOVIC DI-BM/CA/9/G Rear Diffuser (Carbon Fiber / Gloss) for BMW M3 (G80 / G81) / M4 (G82 / G83)';
 
   assert.deepEqual(extractVehicleModelsForBrand(title, 'BMW'), ['G80', 'G81', 'G82', 'G83']);
+});
+
+test('extractVehicleModelNamesForBrand picks marketing names per brand', () => {
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand('AKRAPOVIC Slip-On Line for PORSCHE 911 Carrera (992)', 'Porsche'),
+    ['911']
+  );
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand('AKRAPOVIC Evolution Line for PORSCHE Macan (95B)', 'Porsche'),
+    ['Macan']
+  );
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand('AKRAPOVIC Slip-On for AUDI RS6 (C8)', 'Audi'),
+    ['RS6']
+  );
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand('AKRAPOVIC Slip-On for AUDI RS7 Sportback (C8)', 'Audi'),
+    ['RS7']
+  );
+});
+
+test('extractVehicleModelNamesForBrand keeps M340i out of the M3 bucket', () => {
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand('AKRAPOVIC s-BM/T/18h Slip-On Line for BMW M340i (G20/G21)', 'BMW'),
+    ['M340i/M340d']
+  );
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand('AKRAPOVIC Slip-On Line for BMW M3 (G80)', 'BMW'),
+    ['M3']
+  );
+});
+
+test('extractVehicleModelNamesForBrand returns both models for shared M3+M4 titles', () => {
+  const title = 'AKRAPOVIC DI-BM/CA/9/G Rear Diffuser for BMW M3 (G80/G81) / M4 (G82/G83)';
+  const models = extractVehicleModelNamesForBrand(title, 'BMW').sort();
+  assert.deepEqual(models, ['M3', 'M4']);
+});
+
+test('extractVehicleModelNamesForBrand recognises Boxster/Cayman as 718', () => {
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand('AKRAPOVIC Slip-On Line for PORSCHE Boxster / Cayman (982)', 'Porsche'),
+    ['718']
+  );
+});
+
+test('extractVehicleModelNamesForBrand returns empty array for unknown brand', () => {
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand('AKRAPOVIC for FOOBAR Z9 (X1)', 'FoobarBrand'),
+    []
+  );
 });
