@@ -8,6 +8,7 @@ import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdmin
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import Link from 'next/link';
 
+
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = 'force-static';
 export const revalidate = 3600;
@@ -63,18 +64,16 @@ export default async function BurgerProductsCatalogPage({ params }: Props) {
           </Link>
         </div>
 
-        {/* Top picker — same UX as home hero */}
-        <div className="burger-catalog-picker">
-          <Suspense fallback={null}>
-            <BurgerHeroPicker locale={resolvedLocale} />
-          </Suspense>
-        </div>
-
         <Suspense fallback={null}>
           <BurgerVehicleFilter
             locale={resolvedLocale}
             products={burgerProducts}
             viewerContext={viewerContext}
+            pickerSlot={
+              <Suspense fallback={null}>
+                <BurgerHeroPicker locale={resolvedLocale} />
+              </Suspense>
+            }
           />
         </Suspense>
       </div>

@@ -12,6 +12,7 @@
   --bm-text: #f5f5f5;
   --bm-muted: rgba(255, 255, 255, 0.5);
   --bm-dim: rgba(255, 255, 255, 0.15);
+  --burger-yellow: #FFD700;
 }
 
 /* ── Reveal ── */
@@ -212,82 +213,40 @@
 }
 
 /* ════════════════════════════════════════════
-   CATALOG TOP PICKER — blends into the catalog section's dark theme
+   EMBEDDED VEHICLE PICKER — lives inside the filter panel
    ════════════════════════════════════════════ */
-.burger-catalog-picker {
-  position: relative;
-  z-index: 50; /* above catalog section (z-10) so dropdowns aren't clipped */
-  max-width: 1700px;
-  margin: 0 auto;
-  padding: 28px 24px 0;
-  background: #050505;
-}
 
-/* Subtle golden glow above the picker — bridges visually into the catalog grid below */
-.burger-catalog-picker::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 215, 0, 0.18) 50%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-
-.burger-catalog-picker .bm-picker {
+/* Strip the picker's own card chrome — the filter panel provides it */
+.burger-embedded-picker .bm-picker {
   margin: 0;
-  padding: 22px 28px 24px;
-  background: rgba(17, 17, 17, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 8px 32px rgba(0, 0, 0, 0.35);
-  position: relative;
-  /* NB: no overflow:hidden — would clip dropdown lists */
-  z-index: 30;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  position: static;
+  z-index: auto;
+}
+.burger-embedded-picker .bm-picker-glow {
+  display: none;
 }
 
-/* Soft golden corner glow — rendered on the parent container so the picker
-   itself can keep dropdowns un-clipped */
-.burger-catalog-picker .bm-picker-glow {
-  position: absolute;
-  top: -120px;
-  right: -120px;
-  width: 280px;
-  height: 280px;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 215, 0, 0.06) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
-  z-index: 0;
-}
-
-.burger-catalog-picker .bm-picker__header {
+.burger-embedded-picker .bm-picker__header {
   justify-content: flex-start;
+  margin-bottom: 12px;
 }
-.burger-catalog-picker .bm-picker__label {
+.burger-embedded-picker .bm-picker__label {
   color: rgba(255, 255, 255, 0.55);
   font-weight: 700;
   font-size: 10px;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.28em;
   text-align: left;
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-bottom: 0;
 }
-.burger-catalog-picker .bm-picker__label::before {
+.burger-embedded-picker .bm-picker__label::before {
   content: '';
   display: inline-block;
   width: 14px;
@@ -295,8 +254,8 @@
   background: var(--burger-yellow, #FFD700);
 }
 
-/* Use the catalog's golden accent for the Find button */
-.burger-catalog-picker .bm-picker__btn {
+/* Gold "Find" button matching the filter panel's accent */
+.burger-embedded-picker .bm-picker__btn {
   background: var(--burger-yellow, #FFD700);
   border-color: var(--burger-yellow, #FFD700);
   color: #050505;
@@ -304,56 +263,42 @@
   letter-spacing: 0.16em;
   font-weight: 800;
 }
-.burger-catalog-picker .bm-picker__btn:hover {
+.burger-embedded-picker .bm-picker__btn:hover {
   background: #ffe55c;
   border-color: #ffe55c;
   box-shadow: 0 6px 24px rgba(255, 215, 0, 0.25);
   color: #000;
 }
 
-/* Match the select buttons to the catalog's input styling */
-.burger-catalog-picker .bm-select__button {
-  background: rgba(0, 0, 0, 0.35);
-  border-color: rgba(255, 255, 255, 0.08);
+/* Select buttons match the filter panel's recessed-input look */
+.burger-embedded-picker .bm-select__button {
+  background: rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   height: 44px;
 }
-.burger-catalog-picker .bm-select__button:hover:not(:disabled) {
+.burger-embedded-picker .bm-select__button:hover:not(:disabled) {
   border-color: rgba(255, 215, 0, 0.4);
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
 }
-.burger-catalog-picker .bm-select__button:focus-visible {
+.burger-embedded-picker .bm-select__button:focus-visible {
   border-color: var(--burger-yellow, #FFD700);
 }
 /* Active state — when a value is selected (not placeholder) */
-.burger-catalog-picker .bm-select__button:has(.bm-select__value:not(.bm-select__value--placeholder)) {
+.burger-embedded-picker .bm-select__button:has(.bm-select__value:not(.bm-select__value--placeholder)) {
   border-color: rgba(255, 215, 0, 0.45);
   background: rgba(255, 215, 0, 0.06);
 }
-.burger-catalog-picker .bm-select__list {
+.burger-embedded-picker .bm-select__list {
   border-radius: 10px;
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
 }
-.burger-catalog-picker .bm-select__option:hover,
-.burger-catalog-picker .bm-select__option:focus-visible {
+.burger-embedded-picker .bm-select__option:hover,
+.burger-embedded-picker .bm-select__option:focus-visible {
   background: rgba(255, 215, 0, 0.1);
 }
-.burger-catalog-picker .bm-select__option--active {
+.burger-embedded-picker .bm-select__option--active {
   background: rgba(255, 215, 0, 0.18);
-}
-
-@media (min-width: 768px) {
-  .burger-catalog-picker {
-    padding-left: 48px;
-    padding-right: 48px;
-  }
-}
-@media (min-width: 1024px) {
-  .burger-catalog-picker {
-    padding-top: 24px;
-    padding-left: 64px;
-    padding-right: 64px;
-  }
 }
 
 /* ════════════════════════════════════════════

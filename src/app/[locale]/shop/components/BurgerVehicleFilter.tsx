@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -13,6 +13,7 @@ import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import fitmentOptions from "../data/burgerFitmentOptions.json";
+import BurgerSelect from "./BurgerSelect";
 
 type FitmentOptionsShape = Record<string, {
   count: number;
@@ -26,6 +27,7 @@ type Props = {
   locale: SupportedLocale;
   products: ShopProduct[];
   viewerContext?: ShopViewerPricingContext;
+  pickerSlot?: ReactNode;
 };
 
 /* ─── Product type display labels ─── */
@@ -80,6 +82,7 @@ export default function BurgerVehicleFilter({
   locale,
   products,
   viewerContext: ssrViewerContext,
+  pickerSlot,
 }: Props) {
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
@@ -355,127 +358,142 @@ export default function BurgerVehicleFilter({
 
   if (!mounted) return null;
 
+  const showTypeFilter = availableTypes.length > 1;
+  const showEngineFilter = activeBrand !== "all" && availableEngines.length > 0;
+
   return (
-    <section className="bg-[#050505] text-white py-12 min-h-[90dvh] relative z-10 selection:bg-[var(--burger-yellow)] selection:text-black font-sans overflow-hidden">
+    <section className="bg-[#050505] text-white pt-8 pb-12 sm:pt-10 sm:pb-16 min-h-[90dvh] relative z-10 selection:bg-[var(--burger-yellow)] selection:text-black font-sans overflow-hidden">
       {/* Top Right Golden Glow Only */}
       <div className="absolute -top-40 -right-40 w-[1000px] h-[1000px] bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.06)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none" />
-      
-      <div className="max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20 relative z-20">
-        {/* ─── COUNT + TITLE ─── */}
-        <div className="mb-6 flex items-end justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight uppercase text-white">
-              {isUa ? "Каталог JB4" : "JB4 Catalog"}
-            </h2>
-            <p className="mt-2 text-zinc-400 text-[11px] tracking-[0.2em] uppercase font-semibold">
-              {filtered.length} {isUa ? "з" : "of"} {products.length} {isUa ? "товарів" : "products"}
-            </p>
+
+      <div className="max-w-[1700px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pb-20 relative z-20">
+        {/* ─── COMPACT HEADER ─── */}
+        <header className="mb-4 sm:mb-5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <span aria-hidden className="hidden sm:block h-px w-8 bg-[#ffd700]/70" />
+            <div className="min-w-0 flex items-baseline gap-2 sm:gap-3 flex-wrap">
+              <p className="text-[10px] sm:text-[11px] tracking-[0.32em] uppercase text-[#ffd700]/85 font-bold">
+                {isUa ? "Каталог" : "Catalog"}
+              </p>
+              <p className="text-[10px] sm:text-[11px] text-zinc-500 tracking-wide tabular-nums font-medium">
+                <span className="text-zinc-200 font-semibold">{filtered.length}</span>
+                <span className="text-zinc-600"> / {products.length} </span>
+                <span className="uppercase tracking-[0.18em]">{isUa ? "товарів" : "items"}</span>
+              </p>
+            </div>
           </div>
 
-          {/* Sort */}
-          <div className="relative inline-flex items-center">
+          {/* Sort — pill */}
+          <div className="relative inline-flex items-center shrink-0">
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
-              className="appearance-none bg-[#111] border border-zinc-800 text-white text-[11px] uppercase tracking-[0.1em] font-semibold px-5 py-3 pr-10 rounded-lg outline-none focus:border-[var(--burger-yellow)] focus:ring-1 focus:ring-[var(--burger-yellow)] transition-all cursor-pointer"
+              aria-label={isUa ? "Сортування" : "Sort"}
+              className="appearance-none bg-[#0c0c0c] border border-white/10 hover:border-white/20 text-zinc-200 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-semibold pl-4 pr-9 py-2.5 rounded-full outline-none focus:border-[#ffd700]/60 focus:ring-1 focus:ring-[#ffd700]/40 transition-all cursor-pointer"
             >
-              <option value="default">{isUa ? "За замовчуванням" : "Default"}</option>
-              <option value="price_asc">{isUa ? "Ціна: ↑" : "Price: ↑"}</option>
-              <option value="price_desc">{isUa ? "Ціна: ↓" : "Price: ↓"}</option>
+              <option value="default">{isUa ? "Сортування" : "Sort"}</option>
+              <option value="price_asc">{isUa ? "Ціна ↑" : "Price ↑"}</option>
+              <option value="price_desc">{isUa ? "Ціна ↓" : "Price ↓"}</option>
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-400">
-              <ChevronDown size={14} />
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-500">
+              <ChevronDown size={12} />
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* ─── SEARCH ─── */}
-        <div className="mb-5 relative max-w-md">
-          <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={isUa ? "Пошук деталей..." : "Search parts..."}
-            className="w-full bg-[#111] border border-zinc-800 rounded-lg pl-11 pr-10 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--burger-yellow)]/60 focus:ring-1 focus:ring-[var(--burger-yellow)]/50 transition-all"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--burger-yellow)] hover:text-white transition-colors"
-              aria-label="Clear search"
-            >
-              <X size={14} />
-            </button>
+        {/* ─── FILTER PANEL — elevated card ─── */}
+        <div className="mb-7 sm:mb-9 relative rounded-2xl border border-white/[0.14] bg-[#111111] shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_12px_36px_rgba(0,0,0,0.5)] overflow-visible before:content-[''] before:absolute before:top-0 before:left-6 before:right-6 before:h-px before:bg-[linear-gradient(90deg,transparent_0%,rgba(255,215,0,0.6)_30%,rgba(255,215,0,0.6)_70%,transparent_100%)] before:pointer-events-none">
+          {/* EMBEDDED VEHICLE PICKER */}
+          {pickerSlot && (
+            <div className="burger-embedded-picker px-4 sm:px-5 pt-4 sm:pt-5 pb-4 sm:pb-5 border-b border-white/[0.08]">
+              {pickerSlot}
+            </div>
           )}
+
+          {/* SEARCH + TYPE — side-by-side on desktop, stacked on mobile */}
+          <div className={`px-4 sm:px-5 pt-4 sm:pt-5 ${showEngineFilter ? "" : "pb-4 sm:pb-5"}`}>
+            <div className={`grid grid-cols-1 ${showTypeFilter ? "sm:grid-cols-[1fr_280px]" : ""} gap-3 sm:gap-4 items-end`}>
+              {/* SEARCH */}
+              <div className="flex flex-col gap-[6px] burger-embedded-picker">
+                <label htmlFor="burger-filter-search" className="bm-select__label">
+                  {isUa ? "Пошук" : "Search"}
+                </label>
+                <div className="relative">
+                  <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none z-[1]" />
+                  <input
+                    id="burger-filter-search"
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={isUa ? "Назва або SKU..." : "Name or SKU..."}
+                    className="w-full h-11 bg-black/45 border border-white/[0.12] rounded-[10px] pl-11 pr-10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-[#ffd700]/60 focus:ring-2 focus:ring-[#ffd700]/15 transition-all"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-[#ffd700] transition-colors"
+                      aria-label="Clear search"
+                    >
+                      <X size={15} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* TYPE SELECT */}
+              {showTypeFilter && (
+                <div className="burger-embedded-picker">
+                  <BurgerSelect
+                    label={isUa ? "Тип товару" : "Product type"}
+                    placeholder={isUa ? `Усі типи (${products.length})` : `All types (${products.length})`}
+                    value={activeType === "all" ? "" : activeType}
+                    options={availableTypes.map((t) => ({ value: t.key, label: t.label, count: t.count }))}
+                    onChange={(v) => setActiveType(v || "all")}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ENGINE FILTER PILLS (only when brand selected & engines available) */}
+          {showEngineFilter && (
+            <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-4 sm:pb-5">
+              <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.28em] text-zinc-500 font-semibold mb-2.5 sm:mb-3">
+                {isUa ? "Двигун" : "Engine"}
+              </p>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-4 sm:-mx-5 px-4 sm:px-5 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full">
+                <button
+                  type="button"
+                  onClick={() => setActiveEngine("all")}
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] uppercase tracking-[0.12em] font-semibold border transition-all ${
+                    activeEngine === "all"
+                      ? "bg-white text-black border-white"
+                      : "bg-white/[0.06] text-zinc-200 border-white/15 hover:bg-white/[0.1] hover:border-white/25 hover:text-white"
+                  }`}
+                >
+                  {isUa ? "Усі" : "All"}
+                </button>
+                {availableEngines.map((e) => (
+                  <button
+                    key={e.key}
+                    type="button"
+                    onClick={() => setActiveEngine(e.key)}
+                    className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] uppercase tracking-[0.12em] font-semibold border transition-all flex items-center gap-1.5 ${
+                      activeEngine === e.key
+                        ? "bg-white text-black border-white"
+                        : "bg-white/[0.06] text-zinc-200 border-white/15 hover:bg-white/[0.1] hover:border-white/25 hover:text-white"
+                    }`}
+                  >
+                    <span>{e.label}</span>
+                    <span className={`tabular-nums ${activeEngine === e.key ? "text-black/55" : "text-zinc-500"}`}>{e.count}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!showTypeFilter && !showEngineFilter && <div className="pb-4 sm:pb-5" />}
         </div>
-
-        {/* ─── TYPE FILTER PILLS ─── */}
-        {availableTypes.length > 1 && (
-          <div className="mb-3 flex items-center gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full">
-            <button
-              type="button"
-              onClick={() => setActiveType("all")}
-              className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] uppercase tracking-[0.12em] font-semibold border transition-colors ${
-                activeType === "all"
-                  ? "bg-[var(--burger-yellow)] text-black border-[var(--burger-yellow)]"
-                  : "bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600 hover:text-white"
-              }`}
-            >
-              {isUa ? "Всі типи" : "All Types"}
-            </button>
-            {availableTypes.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => setActiveType(t.key)}
-                className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] uppercase tracking-[0.12em] font-semibold border transition-colors flex items-center gap-2 ${
-                  activeType === t.key
-                    ? "bg-[var(--burger-yellow)] text-black border-[var(--burger-yellow)]"
-                    : "bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600 hover:text-white"
-                }`}
-              >
-                <span>{t.label}</span>
-                <span className={`text-[10px] ${activeType === t.key ? "text-black/60" : "text-zinc-600"}`}>{t.count}</span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* ─── ENGINE FILTER PILLS (only when brand selected & engines available) ─── */}
-        {activeBrand !== "all" && availableEngines.length > 0 && (
-          <div className="mb-8 flex items-center gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full">
-            <span className="whitespace-nowrap text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-semibold pr-2">
-              {isUa ? "Двигун:" : "Engine:"}
-            </span>
-            <button
-              type="button"
-              onClick={() => setActiveEngine("all")}
-              className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] uppercase tracking-[0.12em] font-semibold border transition-colors ${
-                activeEngine === "all"
-                  ? "bg-white/10 text-white border-white/20"
-                  : "bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600 hover:text-white"
-              }`}
-            >
-              {isUa ? "Усі" : "All"}
-            </button>
-            {availableEngines.map((e) => (
-              <button
-                key={e.key}
-                type="button"
-                onClick={() => setActiveEngine(e.key)}
-                className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] uppercase tracking-[0.12em] font-semibold border transition-colors flex items-center gap-1.5 ${
-                  activeEngine === e.key
-                    ? "bg-white/10 text-white border-white/20"
-                    : "bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600 hover:text-white"
-                }`}
-              >
-                <span>{e.label}</span>
-                <span className="text-zinc-600">{e.count}</span>
-              </button>
-            ))}
-          </div>
-        )}
 
 
           {/* ─── PRODUCT GRID — full-width ─── */}
