@@ -41,8 +41,13 @@ function fmtToken(part: string): string {
   }
   // roman numerals
   if (/^(i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii)$/i.test(part)) return part.toUpperCase();
-  // chassis codes like g30, w205, f10, x5
-  if (/^[a-z]\d+$/i.test(part)) return part.toUpperCase();
+  // Any alphanumeric token containing a digit, length ≤ 8 — chassis code,
+  // uppercase entirely. Covers c7, w213, am65, t8, 8x, 8s, cl203, cw0w,
+  // ca30w, vf3a, ys3f. Without this rule, mixed-pattern tokens like "cw0w"
+  // would fall through to capitalize() and become "Cw0w".
+  if (/\d/.test(part) && /^[a-z0-9]+$/i.test(part) && part.length <= 8) {
+    return part.toUpperCase();
+  }
   // pure digits
   if (/^\d+$/.test(part)) return part;
   // English words that must stay title-cased even though they're short
@@ -103,13 +108,14 @@ export function formatRacechipModelLabel(slug: string): string {
 // ──────────────────────────────────────────────────────────────────────
 
 const ROMAN_RE = /^(i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii)$/i;
-// Common English suffixes that look like 3-4 letter chassis but are actually
-// part of the model name. Without this list we'd eat "Class" off "E-Class" and
-// "Gen" off "Escape 3rd Gen".
+// Common English/marketing suffixes that look like 3-4 letter chassis but are
+// actually part of the model name. Without this list we'd eat "Class" off
+// "E-Class", "Type" off "F-Type", "Life" off "Zafira Life", etc.
 const NOT_CHASSIS_WORDS = new Set([
   'gen', 'class', 'klasse', 'door', 'turismo', 'cabrio', 'coupe', 'roadster',
   'avant', 'estate', 'spider', 'max', 'series', 'grand', 'sport', 'tourneo',
   'connect', 'plus', 'pro', 'lite', 'long', 'short', 'amg',
+  'type', 'life', 'spur', 'cross', 'star', 'crew', 'cab', 'wagon', 'targa',
 ]);
 
 function looksLikeChassis(tok: string): boolean {
@@ -117,12 +123,19 @@ function looksLikeChassis(tok: string): boolean {
   const lower = tok.toLowerCase();
   if (NOT_CHASSIS_WORDS.has(lower)) return false;
   if (ROMAN_RE.test(tok)) return true;                              // iii, viii
-  // Any alphanumeric token containing a digit, ≤6 chars (covers c7, w213, 8x,
-  // 8s, 4g, 4d2, 470, 75, etc.). The length cap stops things like a 9-char
-  // word that happens to contain a digit from being misclassified.
-  if (/\d/.test(tok) && /^[a-z0-9]+$/i.test(tok) && tok.length <= 6) return true;
-  // Underscore-separated alphanumerics: 8t_8f, 312_319, f06_f12, fd_a_n_k
-  if (tok.includes('_') && /^[a-z0-9_]+$/i.test(tok) && tok.length <= 14) return true;
+  // Any alphanumeric token containing a digit (covers c7, w213, 8x, 8s, 4g,
+  // 4d2, 470, 75, cw0w, ca30w, vf3a, ys3f, etc.). The length cap stops 9-char
+  // words that happen to contain a digit from being misclassified.
+  if (/\d/.test(tok) && /^[a-z0-9]+$/i.test(tok) && tok.length <= 8) return true;
+  // Underscore-separated tokens. With digits → definitely chassis (8t_8f,
+  // 312_319, f06_f12). All-letter (no digits) → only if mostly single-letter
+  // parts (fd_a_n_k = chassis), not multi-word model variants (kasten_tepee).
+  if (tok.includes('_') && /^[a-z0-9_]+$/i.test(tok) && tok.length <= 14) {
+    if (/\d/.test(tok)) return true;
+    const parts = tok.split('_');
+    const shortShare = parts.filter((p) => p.length <= 2).length / parts.length;
+    return shortShare >= 0.6;
+  }
   // Short all-letter codes: c (Corsa C), fjb, gba, jc
   if (/^[a-z]+$/i.test(tok) && tok.length <= 4) return true;
   return false;
