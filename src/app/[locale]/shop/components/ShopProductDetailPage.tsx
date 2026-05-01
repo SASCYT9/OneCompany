@@ -399,12 +399,23 @@ export default async function ShopProductDetailPage({
   // the enriched headline + bullets replace the intro narrative.
   const descriptionSections = extractShopProductDescriptionSections(supplierLongDescription || shortDescription);
   if (do88Enriched) {
-    descriptionSections.introHtml = do88Enriched.longDescriptionHtml;
-    // If the enriched HTML already contains structured bullet sections (with
-    // <h3> kickers + <ul>), the bullets are inline and we suppress the
-    // separate features panel to avoid duplication. For the kind-based
-    // fallback (headline + fitment only), keep the bullets on the panel.
-    const hasInlineSections = /<h3\b/i.test(do88Enriched.longDescriptionHtml);
+    // Prefer the manually-scraped rich do88.se description (stored in
+    // bodyHtmlUa/En → product.longDescription via shopCatalogServer) when it's
+    // present — that's the full Background / Key features / Considerations /
+    // Finished product copy. Fall back to the auto-generated enriched stub for
+    // SKUs that haven't been scraped yet.
+    const hasRichSupplier =
+      typeof supplierLongDescription === 'string'
+      && /<h3\b/i.test(supplierLongDescription)
+      && supplierLongDescription.length > 800;
+    descriptionSections.introHtml = hasRichSupplier
+      ? supplierLongDescription
+      : do88Enriched.longDescriptionHtml;
+    // If the chosen HTML has structured <h3> sections, bullets are inline so
+    // we suppress the separate features panel to avoid duplication. For the
+    // kind-based fallback (headline + fitment only), keep the bullets on the
+    // panel.
+    const hasInlineSections = /<h3\b/i.test(descriptionSections.introHtml);
     if (hasInlineSections) {
       descriptionSections.features = [];
     } else if (descriptionSections.features.length === 0) {
