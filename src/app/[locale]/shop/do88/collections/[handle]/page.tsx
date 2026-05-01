@@ -9,6 +9,7 @@ import { DO88_COLLECTION_CARDS } from '../../../data/do88CollectionsList';
 import Do88CollectionProductGrid from '../../../components/Do88CollectionProductGrid';
 import Do88VehicleFilter from '../../Do88VehicleFilter';
 import Do88CategoryFilter from '../../Do88CategoryFilter';
+import { CAR_DATA } from '../../do88FitmentData';
 import { Suspense } from 'react';
 
 // Anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -17,7 +18,7 @@ export const revalidate = 3600;
 
 type Props = {
   params: Promise<{ locale: string; handle: string }>;
-  searchParams: Promise<{ brand?: string; keyword?: string }>;
+  searchParams: Promise<{ brand?: string; model?: string; chassis?: string }>;
 };
 
 export async function generateStaticParams() {
@@ -48,7 +49,8 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
   const { locale, handle } = await params;
   const paramsResolved = await searchParams;
   const brand = paramsResolved.brand;
-  const keyword = paramsResolved.keyword;
+  const model = paramsResolved.model;
+  const chassis = paramsResolved.chassis;
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === 'ua';
   
@@ -93,41 +95,34 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
 
   let collectionProducts = getProductsForDo88Collection(products, handle, card.title);
 
-  if (brand || keyword) {
+  if (brand || model || chassis) {
+    // Find the curated CAR_DATA entry matching the chosen (model, chassis) under
+    // brand. The entry's categoryTokens are the canonical fitment classifiers
+    // — we match by exact category-suffix instead of substring on title to
+    // avoid the Turbo/Carrera mix-up where supplier marketing copy ("Turbo /
+    // Carrera") in titles bled into the wrong filter result.
+    const brandEntries = brand
+      ? (CAR_DATA[brand] ?? [])
+      : Object.values(CAR_DATA).flat();
+    const matchedEntry = brandEntries.find((entry) =>
+      (!model || entry.model === model) &&
+      (!chassis || entry.chassis === chassis)
+    );
+
     collectionProducts = collectionProducts.filter((product) => {
-      const searchableText = [
-        product.title.en,
-        product.title.ua,
-        product.shortDescription?.en,
-        product.shortDescription?.ua,
-        product.longDescription?.en,
-        product.longDescription?.ua,
-        ...(product.tags ?? []),
-        product.slug,
-        product.sku
-      ].filter(Boolean).join(' ').toLowerCase();
-      
-      const matchesBrand = !brand || searchableText.includes(brand.toLowerCase());
-      
-      let matchesKeyword = true;
-      if (keyword) {
-        const groups = keyword.toLowerCase().split(/\s+/).filter(Boolean);
-        matchesKeyword = groups.every(group => {
-          let options = group.split('/');
-          
-          // Expand shorthand nomenclature (e.g. "mk5/6" -> ["mk5", "mk6"], "997.1/2" -> ["997.1", "997.2"])
-          if (group.startsWith('mk') && options.length === 2 && /^\d+$/.test(options[1])) {
-            options = [options[0], `mk${options[1]}`];
-          } else if (group.startsWith('997.') && options.length === 2 && /^\d+$/.test(options[1])) {
-            options = [options[0], `997.${options[1]}`];
-          }
-          
-          // Match if AT LEAST ONE option inside the slash-group exists in the text
-          return options.some(opt => searchableText.includes(opt.replace(/[()]/g, '')));
-        });
+      const cat = product.category?.en ?? '';
+
+      // Brand-only filter: match any product under "Vehicle Specific > {brand} >"
+      // (case-insensitive — the JSON has e.g. "TOYOTA" while CAR_DATA has "Toyota").
+      if (brand && !model && !chassis) {
+        return cat.toLowerCase().includes(`> ${brand.toLowerCase()} >`);
       }
-      
-      return matchesBrand && matchesKeyword;
+
+      // Model/chassis filter: require an exact CAR_DATA entry and a category-token match.
+      if (!matchedEntry) return false;
+      return matchedEntry.categoryTokens.some((token) =>
+        cat.endsWith(token) || cat.includes(`> ${token}`)
+      );
     });
   }
 

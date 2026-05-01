@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { SupportedLocale } from '@/lib/seo';
-import Do88VehicleFilter from '../do88/Do88VehicleFilter';
+import Do88HeroPicker from './Do88HeroPicker';
 import { DO88_HERO } from '../data/do88HomeData';
 
 export default function Do88HomeSignature({ locale }: { locale: SupportedLocale }) {
@@ -42,9 +42,9 @@ export default function Do88HomeSignature({ locale }: { locale: SupportedLocale 
             : 'Swedish excellence in intercooler and plumbing engineering. Uncompromising quality to deliver maximum results on the track.'}
         </p>
 
-        {/* Vehicle Filter (chips + search/reset) */}
+        {/* Vehicle Finder (cascading dropdowns) */}
         <div className="w-full relative z-20 do88-animate-up" style={{ animationDelay: '0.2s' }}>
-          <Do88VehicleFilter locale={locale} />
+          <Do88HeroPicker locale={locale} />
         </div>
 
         {/* All categories CTA */}

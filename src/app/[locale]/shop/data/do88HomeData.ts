@@ -45,7 +45,7 @@ export const DO88_FEATURED_MODELS: Do88FeaturedModel[] = [
     tagTwo: 'Radiators',
     buttonLabel: 'View Products',
     buttonLabelUk: 'Переглянути товари',
-    link: '/shop/do88/collections/all?brand=BMW&keyword=M3+%2F+M4+(G80%2FG82)',
+    link: '/shop/do88/collections/all?brand=BMW&model=M3+%2F+M4&chassis=G80+G82',
     imageUrl: '/branding/do88/do88_bw_featured_bmw_1774445183885.png',
   },
   {
@@ -59,7 +59,7 @@ export const DO88_FEATURED_MODELS: Do88FeaturedModel[] = [
     tagTwo: 'Y-Pipes',
     buttonLabel: 'View Products',
     buttonLabelUk: 'Переглянути товари',
-    link: '/shop/do88/collections/all?brand=Porsche&keyword=992+Carrera',
+    link: '/shop/do88/collections/all?brand=Porsche&model=911+Carrera&chassis=992',
     imageUrl: '/branding/do88/do88_bw_porsche_hero_1774443620183.png',
   },
   {
@@ -73,7 +73,7 @@ export const DO88_FEATURED_MODELS: Do88FeaturedModel[] = [
     tagTwo: 'Oil Coolers',
     buttonLabel: 'View Products',
     buttonLabelUk: 'Переглянути товари',
-    link: '/shop/do88/collections/all?brand=Audi&keyword=RS6+%2F+RS7+(C8)',
+    link: '/shop/do88/collections/all?brand=Audi&model=RS6+%2F+RS7&chassis=C8',
     imageUrl: '/branding/do88/do88_bw_engine_bay_1774443712195.png',
     flipImage: true,
   }
