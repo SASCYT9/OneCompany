@@ -4,11 +4,14 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Search } from 'lucide-react';
 import type { SupportedLocale } from '@/lib/seo';
-import { formatRacechipMake, formatRacechipModelLabel } from '@/lib/racechipFormat';
+import {
+  formatRacechipMake,
+  parseRacechipModelSlug,
+} from '@/lib/racechipFormat';
 
 export type RacechipMakeModelEntry = {
   make: string;
-  models: string[];
+  models: string[]; // full chassis-level slugs, e.g. "rs6-c8-from-2019"
 };
 
 type Props = {
@@ -28,25 +31,66 @@ export default function RacechipQuickFinder({
   const isUa = locale === 'ua';
 
   const [make, setMake] = useState<string>('');
-  const [model, setModel] = useState<string>('');
+  const [modelKey, setModelKey] = useState<string>('');
+  const [chassisKey, setChassisKey] = useState<string>('');
 
-  const models = useMemo(() => {
-    if (!make) return [];
+  // Parse the make's models into a Map<modelKey, { label, chassis: [{key,label}] }>.
+  type ModelBucket = { label: string; chassis: { key: string; label: string }[] };
+  const modelTree = useMemo<Map<string, ModelBucket>>(() => {
+    if (!make) return new Map();
     const entry = makeModels.find((m) => m.make === make);
-    return entry?.models ?? [];
+    if (!entry) return new Map();
+
+    const tree = new Map<string, { label: string; chassis: Map<string, string> }>();
+
+    for (const slug of entry.models) {
+      const p = parseRacechipModelSlug(slug);
+      let bucket = tree.get(p.modelKey);
+      if (!bucket) {
+        bucket = { label: p.modelLabel, chassis: new Map() };
+        tree.set(p.modelKey, bucket);
+      }
+      const ck = p.chassisKey || '_none';
+      const cl = p.chassisLabel || (p.years ? `(${p.years})` : '—');
+      if (!bucket.chassis.has(ck)) bucket.chassis.set(ck, cl);
+    }
+
+    const out = new Map<string, ModelBucket>();
+    for (const [k, v] of [...tree.entries()].sort((a, b) =>
+      a[1].label.localeCompare(b[1].label),
+    )) {
+      out.set(k, {
+        label: v.label,
+        chassis: [...v.chassis.entries()]
+          .map(([key, label]) => ({ key, label }))
+          .sort((a, b) => a.label.localeCompare(b.label)),
+      });
+    }
+    return out;
   }, [make, makeModels]);
+
+  const modelOptions = useMemo(
+    () => [...modelTree.entries()].map(([key, v]) => ({ key, label: v.label })),
+    [modelTree],
+  );
+  const chassisOptions = useMemo(() => {
+    if (!modelKey) return [];
+    return modelTree.get(modelKey)?.chassis ?? [];
+  }, [modelKey, modelTree]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const params = new URLSearchParams();
     if (make) params.set('make', make);
-    if (model) params.set('model', model);
+    if (modelKey) params.set('model', modelKey);
+    if (chassisKey && chassisKey !== '_none') params.set('chassis', chassisKey);
     const qs = params.toString();
     router.push(`/${locale}/shop/racechip/catalog${qs ? `?${qs}` : ''}`);
   }
 
   const labelMake = isUa ? 'Марка' : 'Make';
   const labelModel = isUa ? 'Модель' : 'Model';
+  const labelChassis = isUa ? 'Кузов' : 'Chassis';
   const placeholderMake = isUa ? 'Виберіть марку' : 'Select make';
   const placeholderModel = isUa
     ? make
@@ -55,6 +99,13 @@ export default function RacechipQuickFinder({
     : make
       ? 'Select model'
       : 'Defined by make';
+  const placeholderChassis = isUa
+    ? modelKey
+      ? 'Виберіть кузов'
+      : 'Залежить від моделі'
+    : modelKey
+      ? 'Select chassis'
+      : 'Defined by model';
   const submit = isUa ? 'Знайти тюнінг' : 'Find Tuning';
 
   return (
@@ -71,7 +122,8 @@ export default function RacechipQuickFinder({
           value={make}
           onChange={(e) => {
             setMake(e.target.value);
-            setModel('');
+            setModelKey('');
+            setChassisKey('');
           }}
           aria-label={labelMake}
         >
@@ -88,15 +140,36 @@ export default function RacechipQuickFinder({
         <label className="rc-finder__label">{labelModel}</label>
         <select
           className="rc-finder__select"
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
+          value={modelKey}
+          onChange={(e) => {
+            setModelKey(e.target.value);
+            setChassisKey('');
+          }}
           disabled={!make}
           aria-label={labelModel}
         >
           <option value="">{placeholderModel}</option>
-          {models.map((m) => (
-            <option key={m} value={m}>
-              {formatRacechipModelLabel(m)}
+          {modelOptions.map((m) => (
+            <option key={m.key} value={m.key}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="rc-finder__field">
+        <label className="rc-finder__label">{labelChassis}</label>
+        <select
+          className="rc-finder__select"
+          value={chassisKey}
+          onChange={(e) => setChassisKey(e.target.value)}
+          disabled={!modelKey || chassisOptions.length === 0}
+          aria-label={labelChassis}
+        >
+          <option value="">{placeholderChassis}</option>
+          {chassisOptions.map((c) => (
+            <option key={c.key} value={c.key}>
+              {c.label}
             </option>
           ))}
         </select>

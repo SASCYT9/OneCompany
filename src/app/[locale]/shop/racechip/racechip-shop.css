@@ -390,15 +390,18 @@
   color: var(--rc-mid);
 }
 
-/* The form itself — two selects on top row, full-width submit below */
+/* The form itself — three selects on top row (Make / Model / Кузов), full-width submit below */
 .rc-finder {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.9rem 1rem;
   align-items: end;
 }
 .rc-finder__submit {
   grid-column: 1 / -1; /* span full width */
+}
+@media (max-width: 860px) {
+  .rc-finder { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 540px) {
   .rc-finder { grid-template-columns: 1fr; }

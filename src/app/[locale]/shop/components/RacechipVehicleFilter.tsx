@@ -17,8 +17,8 @@ import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 import RacechipSelect from "./RacechipSelect";
 import {
   formatRacechipMake,
-  formatRacechipModelLabel,
   formatRacechipEngine,
+  parseRacechipModelSlug,
 } from "@/lib/racechipFormat";
 
 type Props = {
@@ -51,28 +51,48 @@ export default function RacechipVehicleFilter({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Restore filter state from URL params on mount
+  // Restore filter state from URL params on mount.
+  // model = modelKey (e.g. "rs6"), chassis = chassisKey (e.g. "c8-from-2019"),
+  // engine = engineSlug. Old URLs with full chassis-level slug in `model=` are
+  // auto-migrated by parsing the slug and splitting model/chassis.
+  const rawModelParam = searchParams?.get("model") || "";
+  const rawChassisParam = searchParams?.get("chassis") || "";
+  let initialModel = "all";
+  let initialChassis = "all";
+  if (rawModelParam) {
+    if (rawChassisParam) {
+      initialModel = rawModelParam;
+      initialChassis = rawChassisParam;
+    } else {
+      // Legacy shape: model=rs6-c8-from-2019 → split into model + chassis
+      const parsed = parseRacechipModelSlug(rawModelParam);
+      initialModel = parsed.modelKey;
+      initialChassis = parsed.chassisKey || "all";
+    }
+  }
   const initialMake = searchParams?.get("make") || "all";
-  const initialModel = searchParams?.get("model") || "all";
   const initialEngine = searchParams?.get("engine") || "all";
   const initialSort = (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
 
   const [activeMake, setActiveMake] = useState<string>(initialMake);
-  const [activeModel, setActiveModel] = useState<string>(initialModel);
+  const [activeModel, setActiveModel] = useState<string>(initialModel || "all");
+  const [activeChassis, setActiveChassis] = useState<string>(initialChassis || "all");
   const [activeEngine, setActiveEngine] = useState<string>(initialEngine);
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
   const previousMakeRef = useRef(activeMake);
   const previousModelRef = useRef(activeModel);
+  const previousChassisRef = useRef(activeChassis);
 
   // Pagination to restrict the number of visible DOM elements
   const [visibleCount, setVisibleCount] = useState(30);
 
   // Sync filter state to URL search params (shallow, no re-render of server component)
-  const syncToUrl = useCallback((make: string, model: string, engine: string, sort: string) => {
+  const syncToUrl = useCallback((make: string, model: string, chassis: string, engine: string, sort: string) => {
     const params = new URLSearchParams();
     if (make !== "all") params.set("make", make);
     if (model !== "all") params.set("model", model);
+    if (chassis !== "all") params.set("chassis", chassis);
     if (engine !== "all") params.set("engine", engine);
     if (sort !== "default") params.set("sort", sort);
     const qs = params.toString();
@@ -80,18 +100,17 @@ export default function RacechipVehicleFilter({
     router.replace(newPath, { scroll: false });
   }, [pathname, router]);
 
-  // Debounced URL sync (kept debounced for batching though no per-keystroke source remains)
   useEffect(() => {
     const timeout = setTimeout(() => {
-      syncToUrl(activeMake, activeModel, activeEngine, sortOrder);
+      syncToUrl(activeMake, activeModel, activeChassis, activeEngine, sortOrder);
     }, 100);
     return () => clearTimeout(timeout);
-  }, [activeMake, activeModel, activeEngine, sortOrder, syncToUrl]);
+  }, [activeMake, activeModel, activeChassis, activeEngine, sortOrder, syncToUrl]);
 
   // Reset visible limit whenever a filter changes
   useEffect(() => {
     setVisibleCount(30);
-  }, [activeMake, activeModel, activeEngine, sortOrder]);
+  }, [activeMake, activeModel, activeChassis, activeEngine, sortOrder]);
 
   // 1. EXTRACT ALL MAKES
   const availableMakes = useMemo(() => {
@@ -109,32 +128,72 @@ export default function RacechipVehicleFilter({
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [products]);
 
-  // 2. EXTRACT ALL MODELS FOR THE GIVEN MAKE
+  // 2. EXTRACT MODELS for the given make. Distinct modelKeys (one row per
+  //    model name regardless of how many chassis variants exist).
   const availableModels = useMemo(() => {
     if (activeMake === "all") return [];
-    const models = new Map<string, number>();
+    // modelKey → { label, count }. Count = total products across all chassis
+    // variants of this model.
+    const byKey = new Map<string, { label: string; count: number }>();
     for (const p of products) {
-        if (!p.tags?.includes(`car_make:${activeMake}`)) continue;
-
-        for (const tag of p.tags || []) {
-            if (tag.startsWith("car_model:")) {
-            const model = tag.slice(10);
-            models.set(model, (models.get(model) || 0) + 1);
-            }
-        }
+      if (!p.tags?.includes(`car_make:${activeMake}`)) continue;
+      const modelTag = p.tags?.find((t) => t.startsWith("car_model:"));
+      if (!modelTag) continue;
+      const slug = modelTag.slice(10);
+      const parsed = parseRacechipModelSlug(slug);
+      const existing = byKey.get(parsed.modelKey);
+      if (existing) {
+        existing.count++;
+      } else {
+        byKey.set(parsed.modelKey, { label: parsed.modelLabel, count: 1 });
+      }
     }
-    return [...models.entries()]
-      .map(([key, count]) => ({ key, label: formatRacechipModelLabel(key), count }))
+    return [...byKey.entries()]
+      .map(([key, v]) => ({ key, label: v.label, count: v.count }))
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [products, activeMake]);
 
-  // 3. EXTRACT ENGINES FOR THE GIVEN MAKE+MODEL
+  // 3. EXTRACT CHASSIS (Кузов) variants for the given make + modelKey.
+  //    chassisKey is the slug suffix after `${modelKey}-`, including year tokens,
+  //    so it's unique per generation within a model.
+  const availableChassis = useMemo(() => {
+    if (activeMake === "all" || activeModel === "all") return [];
+    const byKey = new Map<string, { label: string; count: number }>();
+    for (const p of products) {
+      if (!p.tags?.includes(`car_make:${activeMake}`)) continue;
+      const modelTag = p.tags?.find((t) => t.startsWith("car_model:"));
+      if (!modelTag) continue;
+      const slug = modelTag.slice(10);
+      const parsed = parseRacechipModelSlug(slug);
+      if (parsed.modelKey !== activeModel) continue;
+      const key = parsed.chassisKey || "_none";
+      const existing = byKey.get(key);
+      if (existing) {
+        existing.count++;
+      } else {
+        byKey.set(key, {
+          label: parsed.chassisLabel || (parsed.years ? `(${parsed.years})` : ""),
+          count: 1,
+        });
+      }
+    }
+    return [...byKey.entries()]
+      .map(([key, v]) => ({ key, label: v.label, count: v.count }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [products, activeMake, activeModel]);
+
+  // 4. EXTRACT ENGINES for the given make + model + (optional) chassis.
   const availableEngines = useMemo(() => {
     if (activeMake === "all" || activeModel === "all") return [];
     const engines = new Map<string, number>();
     for (const p of products) {
       if (!p.tags?.includes(`car_make:${activeMake}`)) continue;
-      if (!p.tags?.includes(`car_model:${activeModel}`)) continue;
+      const modelTag = p.tags?.find((t) => t.startsWith("car_model:"));
+      if (!modelTag) continue;
+      const slug = modelTag.slice(10);
+      const parsed = parseRacechipModelSlug(slug);
+      if (parsed.modelKey !== activeModel) continue;
+      if (activeChassis !== "all" && parsed.chassisKey !== activeChassis) continue;
       for (const tag of p.tags || []) {
         if (tag.startsWith("car_engine:")) {
           const engine = tag.slice(11);
@@ -145,34 +204,50 @@ export default function RacechipVehicleFilter({
     return [...engines.entries()]
       .map(([key, count]) => ({ key, label: formatRacechipEngine(key), count }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [products, activeMake, activeModel]);
+  }, [products, activeMake, activeModel, activeChassis]);
 
-  // Cascading reset: changing make resets model + engine; changing model resets engine.
+  // Cascading reset: changing make resets model+chassis+engine; changing
+  // model resets chassis+engine; changing chassis resets engine.
   useEffect(() => {
     if (previousMakeRef.current === activeMake) return;
     previousMakeRef.current = activeMake;
     setActiveModel("all");
+    setActiveChassis("all");
     setActiveEngine("all");
   }, [activeMake]);
 
   useEffect(() => {
     if (previousModelRef.current === activeModel) return;
     previousModelRef.current = activeModel;
+    setActiveChassis("all");
     setActiveEngine("all");
   }, [activeModel]);
 
-  // 4. FILTER RESULTS
+  useEffect(() => {
+    if (previousChassisRef.current === activeChassis) return;
+    previousChassisRef.current = activeChassis;
+    setActiveEngine("all");
+  }, [activeChassis]);
+
+  // 5. FILTER RESULTS
   const filtered = useMemo(() => {
     let list = products;
 
     if (activeMake !== "all") {
-      list = list.filter(p => p.tags?.includes(`car_make:${activeMake}`));
+      list = list.filter((p) => p.tags?.includes(`car_make:${activeMake}`));
     }
     if (activeModel !== "all") {
-      list = list.filter(p => p.tags?.includes(`car_model:${activeModel}`));
+      list = list.filter((p) => {
+        const modelTag = p.tags?.find((t) => t.startsWith("car_model:"));
+        if (!modelTag) return false;
+        const parsed = parseRacechipModelSlug(modelTag.slice(10));
+        if (parsed.modelKey !== activeModel) return false;
+        if (activeChassis !== "all" && parsed.chassisKey !== activeChassis) return false;
+        return true;
+      });
     }
     if (activeEngine !== "all") {
-      list = list.filter(p => p.tags?.includes(`car_engine:${activeEngine}`));
+      list = list.filter((p) => p.tags?.includes(`car_engine:${activeEngine}`));
     }
 
     list = [...list].sort((a, b) => {
@@ -184,7 +259,7 @@ export default function RacechipVehicleFilter({
     });
 
     return list;
-  }, [products, activeMake, activeModel, activeEngine, sortOrder]);
+  }, [products, activeMake, activeModel, activeChassis, activeEngine, sortOrder]);
 
   const displayedProducts = useMemo(() => {
     return filtered.slice(0, visibleCount);
@@ -218,19 +293,21 @@ export default function RacechipVehicleFilter({
   const hasActiveFilters =
     activeMake !== "all" ||
     activeModel !== "all" ||
+    activeChassis !== "all" ||
     activeEngine !== "all" ||
     sortOrder !== "default";
 
   function resetFilters() {
     setActiveMake("all");
     setActiveModel("all");
+    setActiveChassis("all");
     setActiveEngine("all");
     setSortOrder("default");
   }
 
   const filterControls = (
     <>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <RacechipSelect
           label={isUa ? "Марка" : "Make"}
           placeholder={isUa ? "Виберіть марку" : "Select make"}
@@ -250,6 +327,19 @@ export default function RacechipVehicleFilter({
           options={availableModels.map((m) => ({ value: m.key, label: m.label, count: m.count }))}
           disabled={activeMake === "all" || availableModels.length === 0}
           onChange={(v) => setActiveModel(v || "all")}
+        />
+
+        <RacechipSelect
+          label={isUa ? "Кузов" : "Chassis"}
+          placeholder={
+            activeModel === "all"
+              ? isUa ? "Спочатку модель" : "Pick model first"
+              : isUa ? "Виберіть кузов" : "Select chassis"
+          }
+          value={activeChassis === "all" ? "" : activeChassis}
+          options={availableChassis.map((c) => ({ value: c.key, label: c.label, count: c.count }))}
+          disabled={activeMake === "all" || activeModel === "all" || availableChassis.length === 0}
+          onChange={(v) => setActiveChassis(v || "all")}
         />
 
         <RacechipSelect
