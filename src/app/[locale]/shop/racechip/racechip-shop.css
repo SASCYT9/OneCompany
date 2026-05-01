@@ -788,3 +788,159 @@
   .rc__hero-cta-row { gap: 0.8rem; }
   .rc__flagship { padding-top: 4rem; padding-bottom: 4rem; }
 }
+
+/* ════════════════════════════════════════════════════
+   RACECHIP SELECT — custom dropdown (used in catalog filter)
+   Mirrors BurgerSelect's bm-select__* but with racechip
+   palette: black surface, orange accent, white/14% borders.
+═══════════════════════════════════════════════════════ */
+.rc-select {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.rc-select__label {
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--rc-mid);
+}
+
+.rc-select__button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  height: 2.875rem;
+  padding: 0 1.1rem;
+  background: var(--rc-bg);
+  border: 1px solid var(--rc-border-strong);
+  color: var(--rc-white);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0;
+  transition: border-color 0.15s var(--rc-ease), background-color 0.15s var(--rc-ease);
+}
+
+.rc-select__button:hover:not(:disabled) {
+  border-color: rgba(255, 74, 0, 0.5);
+}
+
+.rc-select__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.rc-select__value {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 300;
+}
+
+.rc-select__value--placeholder {
+  color: var(--rc-dim);
+}
+
+.rc-select__chev {
+  flex: none;
+  font-size: 0.75rem;
+  color: var(--rc-mid);
+  transition: transform 0.2s var(--rc-ease);
+}
+
+.rc-select__chev--open {
+  transform: rotate(180deg);
+  color: var(--rc-accent);
+}
+
+.rc-select__list {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: var(--rc-elev);
+  border: 1px solid var(--rc-border-strong);
+  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.6),
+              0 0 28px -8px rgba(255, 74, 0, 0.12);
+  max-height: 22rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 74, 0, 0.3) transparent;
+}
+
+.rc-select__list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.rc-select__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rc-select__list::-webkit-scrollbar-thumb {
+  background: rgba(255, 74, 0, 0.3);
+  border-radius: 2px;
+}
+
+.rc-select__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.7rem 1.1rem;
+  background: transparent;
+  border: 0;
+  color: var(--rc-white);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  font-weight: 300;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.12s var(--rc-ease), color 0.12s var(--rc-ease);
+}
+
+.rc-select__option:hover {
+  background: rgba(255, 74, 0, 0.08);
+  color: #fff;
+}
+
+.rc-select__option--active {
+  background: var(--rc-accent-soft);
+  color: var(--rc-accent);
+}
+
+.rc-select__option--active:hover {
+  background: rgba(255, 74, 0, 0.22);
+}
+
+.rc-select__option-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rc-select__option-count {
+  flex: none;
+  font-size: 0.68rem;
+  color: var(--rc-mid);
+  font-variant-numeric: tabular-nums;
+}
+
+.rc-select__option--active .rc-select__option-count {
+  color: var(--rc-accent);
+  opacity: 0.7;
+}

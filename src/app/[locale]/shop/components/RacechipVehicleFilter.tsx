@@ -14,25 +14,18 @@ import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
+import RacechipSelect from "./RacechipSelect";
+import {
+  formatRacechipMake,
+  formatRacechipModelLabel,
+  formatRacechipEngine,
+} from "@/lib/racechipFormat";
 
 type Props = {
   locale: SupportedLocale;
   products: ShopProduct[];
   viewerContext?: ShopViewerPricingContext;
 };
-
-// Map URL slug names back to readable format for robust fallback if title isn't sufficient
-function formatSlugPart(text: string) {
-  if (!text) return '';
-  return text
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-    .replace(/ccm/i, ' cm³')
-    .replace(/hp/i, ' HP')
-    .replace(/kw/i, ' kW')
-    .replace(/nm/i, ' Nm');
-}
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | "USD" | "UAH") {
   const formatter = new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "en-US", {
@@ -61,49 +54,49 @@ export default function RacechipVehicleFilter({
   // Restore filter state from URL params on mount
   const initialMake = searchParams?.get("make") || "all";
   const initialModel = searchParams?.get("model") || "all";
+  const initialEngine = searchParams?.get("engine") || "all";
   const initialSort = (searchParams?.get("sort") as "default" | "price_desc" | "price_asc") || "default";
-  const initialSearch = searchParams?.get("q") || "";
 
   const [activeMake, setActiveMake] = useState<string>(initialMake);
   const [activeModel, setActiveModel] = useState<string>(initialModel);
-  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [activeEngine, setActiveEngine] = useState<string>(initialEngine);
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">(initialSort);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
   const previousMakeRef = useRef(activeMake);
+  const previousModelRef = useRef(activeModel);
 
   // Pagination to restrict the number of visible DOM elements
   const [visibleCount, setVisibleCount] = useState(30);
 
   // Sync filter state to URL search params (shallow, no re-render of server component)
-  const syncToUrl = useCallback((make: string, model: string, sort: string, q: string) => {
+  const syncToUrl = useCallback((make: string, model: string, engine: string, sort: string) => {
     const params = new URLSearchParams();
     if (make !== "all") params.set("make", make);
     if (model !== "all") params.set("model", model);
+    if (engine !== "all") params.set("engine", engine);
     if (sort !== "default") params.set("sort", sort);
-    if (q.trim()) params.set("q", q);
     const qs = params.toString();
     const newPath = qs ? `${pathname}?${qs}` : pathname || "";
     router.replace(newPath, { scroll: false });
   }, [pathname, router]);
 
-  // Debounced URL sync to avoid spamming router on every keystroke
+  // Debounced URL sync (kept debounced for batching though no per-keystroke source remains)
   useEffect(() => {
     const timeout = setTimeout(() => {
-      syncToUrl(activeMake, activeModel, sortOrder, searchQuery);
-    }, 300);
+      syncToUrl(activeMake, activeModel, activeEngine, sortOrder);
+    }, 100);
     return () => clearTimeout(timeout);
-  }, [activeMake, activeModel, sortOrder, searchQuery, syncToUrl]);
+  }, [activeMake, activeModel, activeEngine, sortOrder, syncToUrl]);
 
   // Reset visible limit whenever a filter changes
   useEffect(() => {
     setVisibleCount(30);
-  }, [activeMake, activeModel, searchQuery, sortOrder]);
+  }, [activeMake, activeModel, activeEngine, sortOrder]);
 
   // 1. EXTRACT ALL MAKES
   const availableMakes = useMemo(() => {
     const makes = new Map<string, number>();
     for (const p of products) {
-      if (searchQuery && !localizeShopProductTitle(locale, p).toLowerCase().includes(searchQuery.toLowerCase())) continue;
       for (const tag of p.tags || []) {
         if (tag.startsWith("car_make:")) {
           const make = tag.slice(9);
@@ -112,18 +105,17 @@ export default function RacechipVehicleFilter({
       }
     }
     return [...makes.entries()]
-      .map(([key, count]) => ({ key, label: formatSlugPart(key), count }))
+      .map(([key, count]) => ({ key, label: formatRacechipMake(key), count }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [products, searchQuery, locale]);
+  }, [products]);
 
   // 2. EXTRACT ALL MODELS FOR THE GIVEN MAKE
   const availableModels = useMemo(() => {
     if (activeMake === "all") return [];
     const models = new Map<string, number>();
     for (const p of products) {
-        if (searchQuery && !localizeShopProductTitle(locale, p).toLowerCase().includes(searchQuery.toLowerCase())) continue;
         if (!p.tags?.includes(`car_make:${activeMake}`)) continue;
-        
+
         for (const tag of p.tags || []) {
             if (tag.startsWith("car_model:")) {
             const model = tag.slice(10);
@@ -132,20 +124,44 @@ export default function RacechipVehicleFilter({
         }
     }
     return [...models.entries()]
-      .map(([key, count]) => ({ key, label: formatSlugPart(key), count }))
+      .map(([key, count]) => ({ key, label: formatRacechipModelLabel(key), count }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [products, activeMake, searchQuery, locale]);
+  }, [products, activeMake]);
 
-  // Reset models when make changes
-  useEffect(() => {
-    if (previousMakeRef.current === activeMake) {
-      return;
+  // 3. EXTRACT ENGINES FOR THE GIVEN MAKE+MODEL
+  const availableEngines = useMemo(() => {
+    if (activeMake === "all" || activeModel === "all") return [];
+    const engines = new Map<string, number>();
+    for (const p of products) {
+      if (!p.tags?.includes(`car_make:${activeMake}`)) continue;
+      if (!p.tags?.includes(`car_model:${activeModel}`)) continue;
+      for (const tag of p.tags || []) {
+        if (tag.startsWith("car_engine:")) {
+          const engine = tag.slice(11);
+          engines.set(engine, (engines.get(engine) || 0) + 1);
+        }
+      }
     }
+    return [...engines.entries()]
+      .map(([key, count]) => ({ key, label: formatRacechipEngine(key), count }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [products, activeMake, activeModel]);
+
+  // Cascading reset: changing make resets model + engine; changing model resets engine.
+  useEffect(() => {
+    if (previousMakeRef.current === activeMake) return;
     previousMakeRef.current = activeMake;
     setActiveModel("all");
+    setActiveEngine("all");
   }, [activeMake]);
 
-  // 3. FILTER RESULTS
+  useEffect(() => {
+    if (previousModelRef.current === activeModel) return;
+    previousModelRef.current = activeModel;
+    setActiveEngine("all");
+  }, [activeModel]);
+
+  // 4. FILTER RESULTS
   const filtered = useMemo(() => {
     let list = products;
 
@@ -155,12 +171,8 @@ export default function RacechipVehicleFilter({
     if (activeModel !== "all") {
       list = list.filter(p => p.tags?.includes(`car_model:${activeModel}`));
     }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter(p => {
-        const title = localizeShopProductTitle(locale, p).toLowerCase();
-        return title.includes(q) || p.sku?.toLowerCase().includes(q);
-      });
+    if (activeEngine !== "all") {
+      list = list.filter(p => p.tags?.includes(`car_engine:${activeEngine}`));
     }
 
     list = [...list].sort((a, b) => {
@@ -172,7 +184,7 @@ export default function RacechipVehicleFilter({
     });
 
     return list;
-  }, [products, activeMake, activeModel, searchQuery, sortOrder, locale]);
+  }, [products, activeMake, activeModel, activeEngine, sortOrder]);
 
   const displayedProducts = useMemo(() => {
     return filtered.slice(0, visibleCount);
@@ -206,92 +218,61 @@ export default function RacechipVehicleFilter({
   const hasActiveFilters =
     activeMake !== "all" ||
     activeModel !== "all" ||
-    searchQuery.trim().length > 0 ||
+    activeEngine !== "all" ||
     sortOrder !== "default";
 
   function resetFilters() {
     setActiveMake("all");
     setActiveModel("all");
-    setSearchQuery("");
+    setActiveEngine("all");
     setSortOrder("default");
   }
 
   const filterControls = (
     <>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="relative border border-white/20 transition-colors hover:border-[#ff4a00]/50">
-          <select
-            value={activeMake}
-            onChange={(e) => setActiveMake(e.target.value)}
-            className="appearance-none w-full rounded-none bg-[#080808] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-[0.1em] text-white outline-none"
-          >
-            <option value="all" className="bg-[#080808] font-light text-zinc-500">
-              {isUa ? "Виберіть Марку" : "Select Make"}
-            </option>
-            {availableMakes.map((m) => (
-              <option key={m.key} value={m.key} className="bg-[#080808] text-white">
-                {m.label} ({m.count})
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
-            <ChevronDown size={14} strokeWidth={1.5} />
-          </div>
-        </div>
+        <RacechipSelect
+          label={isUa ? "Марка" : "Make"}
+          placeholder={isUa ? "Виберіть марку" : "Select make"}
+          value={activeMake === "all" ? "" : activeMake}
+          options={availableMakes.map((m) => ({ value: m.key, label: m.label, count: m.count }))}
+          onChange={(v) => setActiveMake(v || "all")}
+        />
 
-        <div className="relative border border-white/20 transition-colors hover:border-[#ff4a00]/50">
-          <select
-            value={activeModel}
-            onChange={(e) => setActiveModel(e.target.value)}
-            disabled={activeMake === "all" || availableModels.length === 0}
-            className="appearance-none w-full rounded-none bg-[#080808] px-5 py-4 pr-10 text-[11px] font-light uppercase tracking-[0.1em] text-white outline-none disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            <option value="all" className="bg-[#080808] font-light text-zinc-500">
-              {isUa ? "Виберіть Модель" : "Select Model"}
-            </option>
-            {availableModels.map((m) => (
-              <option key={m.key} value={m.key} className="bg-[#080808] text-white">
-                {m.label} ({m.count})
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
-            <ChevronDown size={14} strokeWidth={1.5} />
-          </div>
-        </div>
+        <RacechipSelect
+          label={isUa ? "Модель" : "Model"}
+          placeholder={
+            activeMake === "all"
+              ? isUa ? "Спочатку марка" : "Pick make first"
+              : isUa ? "Виберіть модель" : "Select model"
+          }
+          value={activeModel === "all" ? "" : activeModel}
+          options={availableModels.map((m) => ({ value: m.key, label: m.label, count: m.count }))}
+          disabled={activeMake === "all" || availableModels.length === 0}
+          onChange={(v) => setActiveModel(v || "all")}
+        />
 
-        <div className="relative border border-white/20 transition-colors hover:border-[#ff4a00]/50">
-          <Search
-            size={14}
-            strokeWidth={1.5}
-            className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500"
-          />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={isUa ? "Пошук двигуна..." : "Search Engine..."}
-            className="w-full rounded-none bg-[#080808] px-12 py-4 text-[11px] font-light tracking-[0.1em] text-white outline-none placeholder-zinc-500"
-          />
-          {searchQuery ? (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-5 top-1/2 -translate-y-1/2 text-[#ff4a00] transition-opacity hover:text-white"
-            >
-              <X size={14} />
-            </button>
-          ) : null}
-        </div>
+        <RacechipSelect
+          label={isUa ? "Двигун" : "Engine"}
+          placeholder={
+            activeMake === "all" || activeModel === "all"
+              ? isUa ? "Спочатку модель" : "Pick model first"
+              : isUa ? "Виберіть двигун" : "Select engine"
+          }
+          value={activeEngine === "all" ? "" : activeEngine}
+          options={availableEngines.map((e) => ({ value: e.key, label: e.label, count: e.count }))}
+          disabled={activeMake === "all" || activeModel === "all" || availableEngines.length === 0}
+          onChange={(v) => setActiveEngine(v || "all")}
+        />
 
-        <div className="relative border border-white/20 transition-colors hover:border-[#ff4a00]/50">
+        <div className="relative border border-white/20 transition-colors hover:border-[#ff4a00]/50 self-end">
           <div className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500">
             <SlidersHorizontal size={14} strokeWidth={1.5} />
           </div>
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as "default" | "price_desc" | "price_asc")}
-            className="appearance-none w-full rounded-none bg-[#080808] py-4 pl-12 pr-10 text-[11px] font-light uppercase tracking-[0.1em] text-white outline-none"
+            className="appearance-none w-full h-[2.875rem] rounded-none bg-[#080808] pl-12 pr-10 text-[11px] font-light uppercase tracking-[0.1em] text-white outline-none"
           >
             <option value="default" className="bg-[#080808] text-white">
               {isUa ? "За замовчуванням" : "Default Sort"}
@@ -421,12 +402,10 @@ export default function RacechipVehicleFilter({
                    {isUa ? "Нічого не знайдено" : "No Components Found"}
                  </h3>
                  <p className="text-zinc-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
-                   {searchQuery
-                     ? (isUa ? `На жаль, за запитом "${searchQuery}" ми нічого не знайшли.` : `No results for "${searchQuery}"`)
-                     : (isUa ? "Компоненти для цієї комбінації відсутні." : "Components for this combination are currently unavailable.")}
+                   {isUa ? "Компоненти для цієї комбінації відсутні." : "Components for this combination are currently unavailable."}
                  </p>
                  <button
-                   onClick={() => { setActiveMake("all"); setActiveModel("all"); setSearchQuery(""); }}
+                   onClick={resetFilters}
                    className="px-8 py-3.5 bg-white text-black text-[12px] uppercase tracking-widest hover:bg-[#ff4a00] hover:text-white transition-colors shadow-lg font-bold rounded-lg"
                  >
                    {isUa ? "Скинути фільтри" : "Reset Filters"}
@@ -489,7 +468,7 @@ export default function RacechipVehicleFilter({
                         <div className="px-6 pt-6 pb-2 flex flex-col flex-grow">
                           {engineTag && (
                              <p className="text-[9px] uppercase tracking-[0.2em] font-light text-zinc-500 mb-2 line-clamp-1">
-                               {formatSlugPart(engineTag)}
+                               {formatRacechipEngine(engineTag)}
                              </p>
                           )}
                           <h3 className="text-sm font-light leading-relaxed text-zinc-300 line-clamp-2 mb-4 group-hover:text-white transition-colors h-10">

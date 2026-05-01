@@ -6,6 +6,7 @@ import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdmin
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import Link from 'next/link';
 import RacechipVehicleFilter from '../../components/RacechipVehicleFilter';
+import '../racechip-shop.css';
 
 // racechip/catalog inlines the full Racechip product catalogue (~25 MB
 // pre-rendered) which exceeds Vercel's ISR fallback limit (19.07 MB).

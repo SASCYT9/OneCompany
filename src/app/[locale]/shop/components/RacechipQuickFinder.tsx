@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Search } from 'lucide-react';
 import type { SupportedLocale } from '@/lib/seo';
+import { formatRacechipMake, formatRacechipModelLabel } from '@/lib/racechipFormat';
 
 export type RacechipMakeModelEntry = {
   make: string;
@@ -16,14 +17,6 @@ type Props = {
   variant?: 'hero' | 'panel';
   className?: string;
 };
-
-function formatSlug(text: string) {
-  if (!text) return '';
-  return text
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
 
 export default function RacechipQuickFinder({
   locale,
@@ -85,7 +78,7 @@ export default function RacechipQuickFinder({
           <option value="">{placeholderMake}</option>
           {makeModels.map((entry) => (
             <option key={entry.make} value={entry.make}>
-              {formatSlug(entry.make)} ({entry.models.length})
+              {formatRacechipMake(entry.make)} ({entry.models.length})
             </option>
           ))}
         </select>
@@ -103,7 +96,7 @@ export default function RacechipQuickFinder({
           <option value="">{placeholderModel}</option>
           {models.map((m) => (
             <option key={m} value={m}>
-              {formatSlug(m)}
+              {formatRacechipModelLabel(m)}
             </option>
           ))}
         </select>

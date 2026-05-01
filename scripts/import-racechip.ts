@@ -4,6 +4,12 @@ dotenv.config({ path: '.env' });
 import fs from 'fs';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
+import {
+  formatRacechipMake,
+  formatRacechipModel,
+  formatRacechipEngine,
+  extractRacechipYears,
+} from '../src/lib/racechipFormat';
 
 const prisma = new PrismaClient({
   datasourceUrl: process.env.DATABASE_URL,
@@ -38,58 +44,42 @@ interface ScrapedProduct {
 }
 
 // ── Helpers ────────────────────────────────────────────────
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
+// Title formatting now delegates to src/lib/racechipFormat (shared with the
+// frontend pickers). The local helpers only own slug/sku generation and
+// image-pick fallback.
+
+const formatMake = formatRacechipMake;
+const formatModel = formatRacechipModel;
+const extractYears = extractRacechipYears;
+
+// formatRacechipEngine returns "RS6 4.0 TFSI 560 HP / 412 kW / 700 Nm" —
+// great for the picker but too verbose for product titles. For titles we
+// want the engine NAME + displacement only ("RS6 4.0 TFSI 3996cc"); the
+// HP/kW/Nm are repeated in shortDesc and longDesc.
+function formatTitleEngine(slug: string, ccm: number): string {
+  // Drop the spec triplet from the slug
+  const stripped = slug.replace(/-\d+ccm.*$/, '');
+  // Reuse the shared formatter for clean tokenization, then strip its
+  // appended specs (it parses them from the original slug — which we already
+  // chopped — but call signature requires the original).
+  const fullName = formatRacechipEngine(stripped);
+  return `${fullName} ${ccm}cc`.trim();
 }
 
-function formatMake(slug: string): string {
-  const special: Record<string, string> = {
-    'bmw': 'BMW', 'vw': 'Volkswagen', 'mercedes-benz': 'Mercedes-Benz',
-    'alfa-romeo': 'Alfa Romeo', 'land-rover': 'Land Rover',
-    'ds': 'DS', 'mini': 'MINI', 'kia': 'Kia', 'ssangyong': 'SsangYong',
-    'ldv': 'LDV', 'mclaren': 'McLaren',
-  };
-  if (special[slug]) return special[slug];
-  return slug.split('-').map(capitalize).join(' ');
-}
-
-function formatModel(slug: string): string {
-  // Remove "from-YYYY" or "YYYY-to-YYYY" year ranges
-  const cleaned = slug
-    .replace(/-?from-\d{4}/, '')
-    .replace(/-?\d{4}-to-\d{4}/, '')
-    .replace(/^-|-$/g, '');
-
-  // Uppercase chassis codes like g30, w205, f10, x5, etc.
-  return cleaned
-    .split('-')
-    .map(part => {
-      if (/^[a-z]\d+$/i.test(part) || /^\d+$/.test(part) || part.length <= 3) {
-        return part.toUpperCase();
-      }
-      return capitalize(part);
-    })
-    .join(' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function extractYears(modelSlug: string): string {
-  const fromMatch = modelSlug.match(/from-(\d{4})/);
-  const rangeMatch = modelSlug.match(/(\d{4})-to-(\d{4})/);
-  if (rangeMatch) return `${rangeMatch[1]}–${rangeMatch[2]}`;
-  if (fromMatch) return `${fromMatch[1]}+`;
-  return '';
-}
-
-function formatEngine(slug: string): string {
-  // "1-6-d-1598ccm-116hp-85kw-300nm" → "1.6 D 1598cc"
-  return slug
-    .replace(/(\d+)-(\d+)/, '$1.$2')    // 1-6 → 1.6
-    .replace(/-/g, ' ')                   // remaining dashes → spaces
-    .replace(/(\d+)ccm.*/, '$1cc')        // strip after ccm
-    .toUpperCase()
-    .trim();
+// Image fallback chain: prefer the per-product GTS hero, then any GTS
+// reference image. Avoid `product-s_shop.png` (S-tier image) and other
+// non-GTS variants that the loose `pdp_images/product` filter used to pick.
+function pickImage(images: string[] | undefined): string | null {
+  if (!images || images.length === 0) return null;
+  const find = (needle: string) => images.find((i) => i.includes(needle));
+  return (
+    find('gts-black-three-quarter') ||
+    find('gts-three-quarter') ||
+    find('product-gts-connect_shop') ||
+    find('product-gts_shop') ||
+    images[0] ||
+    null
+  );
 }
 
 function generateSlug(p: ScrapedProduct): string {
@@ -112,7 +102,7 @@ function generateTitleEn(p: ScrapedProduct): string {
   const make = formatMake(p.makeSlug);
   const model = formatModel(p.modelSlug);
   const years = extractYears(p.modelSlug);
-  const engine = formatEngine(p.engineSlug);
+  const engine = formatTitleEngine(p.engineSlug, p.ccm);
   const yearStr = years ? ` (${years})` : '';
   return `RaceChip GTS 5 — ${make} ${model}${yearStr} ${engine}`.trim();
 }
@@ -121,7 +111,7 @@ function generateTitleUa(p: ScrapedProduct): string {
   const make = formatMake(p.makeSlug);
   const model = formatModel(p.modelSlug);
   const years = extractYears(p.modelSlug);
-  const engine = formatEngine(p.engineSlug);
+  const engine = formatTitleEngine(p.engineSlug, p.ccm);
   const yearStr = years ? ` (${years})` : '';
   return `RaceChip GTS 5 — ${make} ${model}${yearStr} ${engine}`.trim();
 }
@@ -219,8 +209,30 @@ async function main() {
       slugMap.set(slug, p);
     }
   }
-  const uniqueProducts = Array.from(slugMap.values());
-  console.log(`🔍 ${uniqueProducts.length} unique products after deduplication\n`);
+  let uniqueProducts = Array.from(slugMap.values());
+  console.log(`🔍 ${uniqueProducts.length} unique products after deduplication`);
+
+  // IMPORT_NEW_ONLY=1 → skip slugs that already exist in DB. Preserves polished
+  // titleUa/longDescUa translations we'd otherwise overwrite via upsert.
+  const newOnly = process.env.IMPORT_NEW_ONLY === '1';
+  if (newOnly) {
+    const existing = await prisma.shopProduct.findMany({
+      where: {
+        slug: { in: uniqueProducts.map((p) => generateSlug(p)) },
+      },
+      select: { slug: true },
+    });
+    const existingSet = new Set(existing.map((r) => r.slug));
+    const before = uniqueProducts.length;
+    uniqueProducts = uniqueProducts.filter((p) => !existingSet.has(generateSlug(p)));
+    console.log(`🆕 IMPORT_NEW_ONLY=1 → ${before - uniqueProducts.length} existing skipped, ${uniqueProducts.length} new to import\n`);
+    if (uniqueProducts.length === 0) {
+      console.log('✅ No new products to import. Done.');
+      return;
+    }
+  } else {
+    console.log('');
+  }
 
   let created = 0;
   let updated = 0;
@@ -233,7 +245,7 @@ async function main() {
       const slug = generateSlug(p);
       const sku = generateSku(p);
       const priceStr = p.priceEUR > 0 ? p.priceEUR.toString() : null;
-      const image = p.images?.find((img) => img.includes("gts-black-three-quarter")) || p.images?.find((img) => img.includes("pdp_images/product")) || p.images?.[0] || null;
+      const image = pickImage(p.images);
 
       // Upsert the main product
       const shopProduct = await prisma.shopProduct.upsert({
