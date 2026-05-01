@@ -106,8 +106,8 @@ function StoreCard({
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/70" />
 
-      <div className="relative z-10 mt-auto px-5 pb-5 md:px-7 md:pb-7">
-        <h3 className="text-lg font-bold leading-tight text-white transition-colors duration-300 group-hover:text-[#ead29d] lg:text-xl">
+      <div className="relative z-10 mt-auto px-4 pb-4 md:px-7 md:pb-7">
+        <h3 className="text-base font-bold leading-tight text-white transition-colors duration-300 group-hover:text-[#ead29d] sm:text-lg lg:text-xl">
           {t(isUa, store.name, store.nameUk)}
         </h3>
         <p className="mt-1.5 line-clamp-2 max-w-[40ch] text-xs font-light leading-relaxed text-white/50 md:text-sm">
@@ -149,7 +149,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
       </div>
 
       {/* ─── HERO ─────────────────────────────────────────────── */}
-      <section className="relative flex min-h-[50vh] items-center justify-center overflow-hidden pt-20 sm:pt-24">
+      <section className="relative flex min-h-[42vh] items-center justify-center overflow-hidden pt-20 sm:min-h-[50vh] sm:pt-24">
         <Image
           src="/images/shop/urban/banners/home/webp/urban-automotive-widetrack-defender-grey-1920.webp"
           alt=""
@@ -161,8 +161,8 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
         <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/60 via-transparent to-[#050505]" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/40 via-transparent to-[#050505]/40" />
 
-        <div className="relative z-10 flex flex-col items-center gap-5 px-4 text-center">
-          <h1 className="text-2xl font-extralight uppercase leading-none tracking-[0.15em] text-white/90 sm:text-3xl md:text-4xl">
+        <div className="relative z-10 flex flex-col items-center gap-4 px-4 text-center sm:gap-5">
+          <h1 className="text-xl font-extralight uppercase leading-none tracking-[0.1em] text-white/90 sm:text-3xl sm:tracking-[0.15em] md:text-4xl">
             {t(isUa, "Our Stores", "Наші Магазини")}
           </h1>
           <div className="flex items-center gap-3">
@@ -176,7 +176,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
               "Офіційні магазини One Company. Досліджуйте простір преміальних автомобільних брендів та тюнінг-ательє."
             )}
           </p>
-          <div className="mt-8 animate-bounce text-white/25">
+          <div className="mt-6 animate-bounce text-white/25 sm:mt-8">
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
@@ -187,7 +187,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
       {/* ─── COLLAGE ──────────────────────────────────────────── */}
       <section className="relative z-10 mx-auto w-full max-w-[1720px] px-4 pb-24 pt-4 sm:px-6 lg:px-8 xl:px-16">
         {/* Section label */}
-        <div className="mb-8 flex items-end justify-between">
+        <div className="mb-6 flex items-end justify-between sm:mb-8">
           <div>
             <div className="mb-4 h-px w-12 bg-gradient-to-r from-white/60 to-transparent" />
             <p className="text-[10px] font-semibold uppercase tracking-[0.4em] text-white/30">
@@ -205,21 +205,21 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
           {/* Row 1 — hero: Urban + Akrapovič + Brabus (3 col) */}
           <div className="grid grid-cols-1 sm:grid-cols-3">
             {heroStores.map((store, idx) => (
-              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[280px] sm:h-[360px] lg:h-[460px]" sizes="(max-width: 768px) 100vw, 33vw" eager />
+              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[200px] sm:h-[360px] lg:h-[460px]" sizes="(max-width: 768px) 100vw, 33vw" eager />
             ))}
           </div>
 
           {/* Rows 2–3 — main: 4 columns */}
-          <div className="grid grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {mainStores.map((store) => (
-              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[260px] sm:h-[320px] lg:h-[420px]" sizes="(max-width: 768px) 50vw, 25vw" />
+              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[200px] sm:h-[320px] lg:h-[420px]" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
             ))}
           </div>
 
           {/* Row 4 — bottom: KW + FI + Eventuri (3 col) */}
           <div className="grid grid-cols-1 sm:grid-cols-3">
             {bottomStores.map((store) => (
-              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[260px] sm:h-[320px] lg:h-[400px]" sizes="(max-width: 768px) 100vw, 33vw" />
+              <StoreCard key={store.id} store={store} locale={locale} isUa={isUa} exploreLabel={exploreLabel} height="h-[200px] sm:h-[320px] lg:h-[400px]" sizes="(max-width: 640px) 100vw, 33vw" />
             ))}
           </div>
 
@@ -227,10 +227,10 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
 
         {/* ─── B2B STOCK ──────────────────────────────────────── */}
         {isB2bApproved && (
-          <div className="mt-12 lg:mt-16">
+          <div className="mt-8 sm:mt-12 lg:mt-16">
             <Link
               href={`/${locale}/shop/stock`}
-              className="group relative flex flex-col justify-end w-full min-h-[260px] p-6 md:min-h-[340px] md:p-10 rounded-2xl md:rounded-3xl overflow-hidden border border-white/[0.06] bg-[#0a0a0c] transition-all duration-500 hover:border-emerald-500/25 hover:shadow-[0_0_80px_rgba(16,185,129,0.06)]"
+              className="group relative flex flex-col justify-end w-full min-h-[220px] p-5 sm:min-h-[260px] sm:p-6 md:min-h-[340px] md:p-10 rounded-2xl md:rounded-3xl overflow-hidden border border-white/[0.06] bg-[#0a0a0c] transition-all duration-500 hover:border-emerald-500/25 hover:shadow-[0_0_80px_rgba(16,185,129,0.06)]"
             >
               <Image
                 src="/images/shop/stores/one-company-stock-porsche.png"
@@ -247,7 +247,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
                     <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
                     {t(isUa, "B2B Access Granted", "B2B Доступ Відкрито")}
                   </div>
-                  <h2 className="mb-2 text-3xl font-light uppercase tracking-tight text-white md:text-5xl">One Company Stock</h2>
+                  <h2 className="mb-2 text-2xl font-light uppercase tracking-tight text-white sm:text-3xl md:text-5xl">One Company Stock</h2>
                   <p className="max-w-2xl text-sm font-light leading-relaxed text-white/55 md:text-base">
                     {t(isUa,
                       "Specialized B2B stock portal. Get instant access to inventory, wholesale pricing, and place orders for premium parts in stock.",
