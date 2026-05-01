@@ -72,17 +72,16 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/s-class',
-    /** Mercedes-Benz S-Class W223 family side profile (Maybach 850 V12 trim)
-     *  from brabus.com — clean white background, matches the side-profile
-     *  orientation of the other fleet cards. */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-112.jpg',
+    /** BRABUS 930 — actual S 63 E Performance listing photo from
+     *  brabus.com cars-for-sale (VKC4S_337). Real car, side profile facing right. */
+    imageUrl: '/images/shop/brabus/hq/brabus-s63-real.jpg',
   },
   {
-    slug: 'brabus-900-bentley-gtc',
+    slug: 'brabus-900-bentley-gt',
     title: 'Brabus 900',
     titleUk: 'Brabus 900',
-    subtitle: 'Bentley GTC',
-    subtitleUk: 'Bentley GTC',
+    subtitle: 'Bentley Continental GT',
+    subtitleUk: 'Bentley Continental GT',
     badge: 'Luxury',
     badgeUk: 'Люкс',
     tagOne: 'Masterpiece',
@@ -90,8 +89,8 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/bentley',
-    /** Bentley GTC — landscape pure side profile (facing right) */
-    imageUrl: '/images/shop/brabus/hq/brabus-bentley-side.png',
+    /** Bentley Continental GT — black coupe side profile (facing right) */
+    imageUrl: '/images/shop/brabus/hq/brabus-bentley-gt-black.jpg',
   },
   {
     slug: 'brabus-900-lambo-urus-se',
@@ -113,8 +112,8 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     slug: 'range-rover-600',
     title: 'Range Rover 600',
     titleUk: 'Range Rover 600',
-    subtitle: 'Brabus Signature',
-    subtitleUk: 'Brabus Signature',
+    subtitle: 'Range Rover L460',
+    subtitleUk: 'Range Rover L460',
     badge: 'Statement',
     badgeUk: 'Statement',
     tagOne: 'Carbon',
@@ -122,7 +121,8 @@ export const BRABUS_FEATURED_MODELS: BrabusFeaturedModel[] = [
     buttonLabel: 'View Programme',
     buttonLabelUk: 'Переглянути програму',
     link: '/shop/brabus/collections/range-rover',
-    /** Range Rover 600 — real studio shot */
-    imageUrl: '/images/shop/brabus/hq/brabus-supercars-148.jpg',
+    /** BRABUS 600 — actual Range Rover L460 listing photo from
+     *  brabus.com cars-for-sale (C4S479), floor whitened. */
+    imageUrl: '/images/shop/brabus/hq/brabus-rangerover-l460-real.jpg',
   },
 ];

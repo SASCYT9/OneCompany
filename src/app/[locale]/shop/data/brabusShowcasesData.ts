@@ -19,10 +19,6 @@ export type BrabusShowcase = {
  * Engineering Perfection — Brabus retail parts that customers can actually
  * order standalone (not commission-only / complete-car packages).
  *
- * Excluded by the client: full carbon body kits and Masterpiece interior
- * programmes — these are commissioned together with a complete vehicle build,
- * not sold as parts.
- *
  * All photos are official Brabus product shots downloaded from brabus.com.
  */
 export const BRABUS_SHOWCASES: BrabusShowcase[] = [
@@ -45,19 +41,19 @@ export const BRABUS_SHOWCASES: BrabusShowcase[] = [
   },
   {
     num: '02',
-    badge: 'Performance',
-    badgeUk: 'Performance',
-    name: 'Sport\nExhaust',
-    nameUk: 'Спорт\nВихлоп',
-    subtitle: 'Stainless-steel sport exhaust with electrically actuated flaps, carbon-fibre tip surrounds and twin chrome or black-chrome outlets.',
-    subtitleUk: 'Спортивний вихлоп з нержавійки з електроклапанами, карбоновим обрамленням наконечників та подвійними хром / чорний хром виходами.',
-    exploreLink: '/shop/brabus/products',
-    shopLink: '/shop/brabus/products',
+    badge: 'Widestar',
+    badgeUk: 'Widestar',
+    name: 'Widestar\nBody Kit',
+    nameUk: 'Обвіс\nWidestar',
+    subtitle: 'Widestar widebody programme for the G-Class W465 — widened front bumper, fender flares, side skirts and rear apron, finished in body colour. TÜV-approved fitment, made to order.',
+    subtitleUk: 'Програма Widestar для G-Class W465 — розширений передній бампер, розширювачі арок, бічні пороги та задній фартух, фарбовані в колір кузова. Сертифіковане встановлення TÜV, виготовлення на замовлення.',
+    exploreLink: '/shop/brabus/collections/g-class',
+    shopLink: '/shop/brabus/collections/g-class',
     avail: 'Made to order',
     availUk: 'Виготовлення на замовлення',
-    /** Official Brabus illuminated sport exhaust press image — close-up of carbon + twin tips */
-    imageUrl: '/images/shop/brabus/hq/brabus-exhaust-bel.jpg',
-    imageAlt: 'Brabus illuminated sport exhaust system',
+    /** Brabus 800 Deep Blue W465 — painted Widestar body kit (cars-for-sale C4S271), floor whitened */
+    imageUrl: '/images/shop/brabus/hq/brabus-gclass-w465-widestar.jpg',
+    imageAlt: 'Brabus W465 Widestar painted body kit',
     vimeoUrl: '',
   },
   {

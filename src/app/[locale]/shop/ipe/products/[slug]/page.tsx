@@ -1,5 +1,14 @@
+import { notFound } from 'next/navigation';
 import { resolveLocale } from '@/lib/seo';
-import ShopProductDetailPage, { getShopProductPageMetadata } from '../../../components/ShopProductDetailPage';
+import { getShopProductBySlugServer, getShopProductsServer } from '@/lib/shopCatalogServer';
+import {
+  extractProductFitment,
+  findCrossShopFitmentMatches,
+  isExcludedFromCrossShop,
+} from '@/lib/crossShopFitment';
+import CrossShopFitment from '../../../components/CrossShopFitment';
+import { getShopProductPageMetadata } from '../../../components/ShopProductDetailPage';
+import { IpeShopProductDetailLayout } from '../../../components/IpeShopProductDetailLayout';
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
 export const dynamic = 'force-static';
@@ -21,12 +30,38 @@ export async function generateMetadata({ params }: Props) {
 export default async function IpeProductPage({ params }: Props) {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
+  const [product, allProducts] = await Promise.all([
+    getShopProductBySlugServer(slug),
+    getShopProductsServer(),
+  ]);
+  if (!product) notFound();
+
+  const crossShopFitment =
+    !isExcludedFromCrossShop(product) ? extractProductFitment(product) : null;
+  const crossShopGroups =
+    crossShopFitment && (crossShopFitment.make || crossShopFitment.chassisCodes.length > 0)
+      ? findCrossShopFitmentMatches(product, allProducts, {
+          perBrand: 3,
+          totalLimit: 9,
+        })
+      : [];
 
   return (
-    <ShopProductDetailPage
-      locale={resolvedLocale}
-      slug={slug}
-      mode="ipe"
-    />
+    <>
+      <IpeShopProductDetailLayout
+        locale={resolvedLocale}
+        resolvedLocale={resolvedLocale}
+        product={product}
+      />
+      {crossShopFitment && crossShopGroups.length > 0 ? (
+        <div className="mx-auto w-full max-w-7xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
+          <CrossShopFitment
+            locale={resolvedLocale}
+            fitment={crossShopFitment}
+            groups={crossShopGroups}
+          />
+        </div>
+      ) : null}
+    </>
   );
 }

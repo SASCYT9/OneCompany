@@ -23,10 +23,27 @@ const IPE_HERO_BRAND_PRIORITY = [
   'Subaru',
 ];
 
-export type IpeHeroVehicleModel = {
-  /** Display label (matches the catalog filter facet text). */
+export type IpeHeroVehicleBody = {
+  /** Display label, e.g. "G80/G82" — typically the chassis code or body
+   *  generation pulled from the parenthesized portion of the catalog label. */
   label: string;
-  /** Production lines (Valvetronic, Headers, ...) detected for this model. */
+  /** Full label that the catalog filter understands as `?model=...`,
+   *  e.g. "M3 / M4 (G80/G82)". */
+  fullLabel: string;
+  /** Production lines available for this specific body. */
+  lines: string[];
+};
+
+export type IpeHeroVehicleModel = {
+  /** Base model name without chassis/body, e.g. "M3 / M4". */
+  label: string;
+  /** Full label kept for backward compatibility (= fullLabel of first body). */
+  fullLabel: string;
+  /** Body / chassis variants under this model. Empty when the catalog label
+   *  has no parenthesized chassis info. */
+  bodies: IpeHeroVehicleBody[];
+  /** Production lines (Valvetronic, Headers, ...) detected across all bodies
+   *  of this model. */
   lines: string[];
 };
 
@@ -39,6 +56,19 @@ export type IpeHeroVehicleBrand = {
    *  picks a brand without drilling into a model. */
   lines: string[];
 };
+
+export function splitIpeModelLabel(label: string): { base: string; body: string | null } {
+  const match = label.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+  if (match) {
+    const base = match[1].trim();
+    const body = match[2].trim();
+    if (base && body) return { base, body };
+  }
+  return { base: label.trim(), body: null };
+}
+
+// Internal alias kept for the existing call site in this file.
+const splitModelLabel = splitIpeModelLabel;
 
 export function buildIpeHeroVehicleTree(
   products: ReadonlyArray<ShopProduct>
@@ -83,11 +113,34 @@ export function buildIpeHeroVehicleTree(
   const result: IpeHeroVehicleBrand[] = [];
   for (const brand of allBrands) {
     const modelMap = tree.get(brand) ?? new Map<string, Set<string>>();
-    const models: IpeHeroVehicleModel[] = [];
-    for (const [label, lineSet] of modelMap.entries()) {
-      models.push({
-        label,
+
+    // Group full labels by their base name so we can collapse e.g. both
+    // "M3 / M4 (G80/G82)" and "M3 / M4 (F80/F82)" under one "M3 / M4" model
+    // with two bodies.
+    const baseMap = new Map<string, IpeHeroVehicleBody[]>();
+    for (const [fullLabel, lineSet] of modelMap.entries()) {
+      const { base, body } = splitModelLabel(fullLabel);
+      const bodies = baseMap.get(base) ?? [];
+      bodies.push({
+        label: body ?? base,
+        fullLabel,
         lines: [...lineSet].sort((a, b) => a.localeCompare(b)),
+      });
+      baseMap.set(base, bodies);
+    }
+
+    const models: IpeHeroVehicleModel[] = [];
+    for (const [base, bodies] of baseMap.entries()) {
+      bodies.sort((a, b) => a.label.localeCompare(b.label));
+      const aggregatedLines = new Set<string>();
+      for (const body of bodies) {
+        for (const line of body.lines) aggregatedLines.add(line);
+      }
+      models.push({
+        label: base,
+        fullLabel: bodies[0]?.fullLabel ?? base,
+        bodies,
+        lines: [...aggregatedLines].sort((a, b) => a.localeCompare(b)),
       });
     }
     models.sort((a, b) => a.label.localeCompare(b.label));

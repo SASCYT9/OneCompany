@@ -60,12 +60,18 @@ export default async function BrabusCollectionHandlePage({ params }: Props) {
     (p) => !isFactoryOnlyProduct(p.sku),
   );
 
-  // Sort: Full Kit / Widetrack / Комплект first, then by price desc
+  // Sort: Body kit / Widestar / Full Kit first, then by price desc.
+  // Reason: catalog hero/showcase positions body-kit programmes as the entry point,
+  // so the first product on the collection page should be the matching body-kit SKU.
+  const isBodyKitProduct = (p: typeof collectionProducts[number]) => {
+    const en = (p.title?.en || '').toLowerCase();
+    const ua = (p.title?.ua || '').toLowerCase();
+    const haystack = `${en} ${ua}`;
+    return /widestar|widetrack|widebody|full kit|full body|body kit|обвіс|розширювач крил/.test(haystack);
+  };
   const sortedProducts = [...collectionProducts].sort((a, b) => {
-    const titleA = (a.title?.en || '').toLowerCase();
-    const titleB = (b.title?.en || '').toLowerCase();
-    const isKitA = titleA.includes('full kit') || titleA.includes('widetrack') || titleA.includes('widebody') || titleA.includes('full body') || titleA.includes('body kit');
-    const isKitB = titleB.includes('full kit') || titleB.includes('widetrack') || titleB.includes('widebody') || titleB.includes('full body') || titleB.includes('body kit');
+    const isKitA = isBodyKitProduct(a);
+    const isKitB = isBodyKitProduct(b);
     if (isKitA && !isKitB) return -1;
     if (!isKitA && isKitB) return 1;
     const priceA = a.price?.eur || a.price?.uah || 0;

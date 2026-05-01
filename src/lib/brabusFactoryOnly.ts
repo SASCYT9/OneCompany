@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+// Cache the factory-only set in memory after first load. Module cache reset on HMR/restart.
 let cached: Set<string> | null = null;
 
 function loadFromDisk(): Set<string> {

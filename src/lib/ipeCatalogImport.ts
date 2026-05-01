@@ -767,6 +767,9 @@ function scoreVariantRowCandidate(
 
 function featureGroupForRow(row: IpeParsedPriceListRow) {
   const tokenSet = buildIpeCanonicalTokenSetFromPriceRow(row);
+  if (tokenSet.systemFamily === 'downpipe') return 'downpipe';
+  if (tokenSet.systemFamily === 'header' || tokenSet.systemFamily === 'header-back') return 'header';
+  if (tokenSet.systemFamily === 'tips') return 'tips';
   if (tokenSet.featureFlags.includes('remote-control')) return 'remote-control';
   if (tokenSet.featureFlags.includes('obdii')) return 'obdii';
   if (tokenSet.featureFlags.includes('satin-silver')) return 'tip-finish';
@@ -778,6 +781,104 @@ function featureGroupForRow(row: IpeParsedPriceListRow) {
   if (tokenSet.featureFlags.includes('opf') || tokenSet.featureFlags.includes('non-opf')) return 'opf';
   if (tokenSet.featureFlags.includes('catted') || tokenSet.featureFlags.includes('catless')) return 'catalyst';
   return row.section ? normalizeText(row.section).toLowerCase() : row.sku.toLowerCase();
+}
+
+export type IpeVariantOptionContext = {
+  isFullSystem: boolean;
+  isCatback: boolean;
+  isHeaderBack: boolean;
+  frontPipe: 'factory' | 'equal-length' | null;
+  downpipe: 'catted' | 'catless' | null;
+  opf: 'opf' | 'non-opf' | null;
+  tipFinish: string | null;
+  tipMaterial: string | null;
+  hasRemote: boolean;
+  hasObdii: boolean;
+  material: 'ss' | 'ti' | null;
+  raw: string;
+};
+
+export function inferIpeVariantOptionContext(optionValues: readonly string[]): IpeVariantOptionContext {
+  const joined = optionValues.filter(Boolean).join(' | ').toLowerCase();
+  const isFullSystem = /\bfull\s*system\b/.test(joined);
+  const isCatback = !isFullSystem && /\bcat\s*back\b|\bcatback\b/.test(joined);
+  const isHeaderBack = /\bheader\s*back\b/.test(joined);
+  const tipFinish = /\bchrome\s*black\b/.test(joined)
+    ? 'chrome-black'
+    : /\bsatin\s*silver\b/.test(joined)
+      ? 'satin-silver'
+      : /\bsatin\s*gold\b/.test(joined)
+        ? 'satin-gold'
+        : /\btitanium\s*blue\b/.test(joined)
+          ? 'titanium-blue'
+          : /\bpolished\s*silver\b/.test(joined)
+            ? 'polished-silver'
+            : null;
+  return {
+    isFullSystem,
+    isCatback,
+    isHeaderBack,
+    frontPipe: /\bequal[- ]length\b/.test(joined)
+      ? 'equal-length'
+      : /\bfactory\b/.test(joined)
+        ? 'factory'
+        : null,
+    downpipe: /\bcatless\b/.test(joined) ? 'catless' : /\bcatted\b/.test(joined) ? 'catted' : null,
+    opf: /\bnon[- ]?opf\b/.test(joined) ? 'non-opf' : /\bopf\b/.test(joined) ? 'opf' : null,
+    tipFinish,
+    tipMaterial: /\bcarbon\s*fiber\b/.test(joined) ? 'carbon-fiber' : null,
+    hasRemote: /\bremote\b/.test(joined),
+    hasObdii: /\bobd\s*ii\b|\bobdii\b/.test(joined),
+    material: /\btitanium\b/.test(joined) ? 'ti' : /\bstainless\b/.test(joined) ? 'ss' : null,
+    raw: joined,
+  };
+}
+
+function rowMatchesVariantContext(
+  row: IpeParsedPriceListRow,
+  context: IpeVariantOptionContext
+): { eligible: boolean; required: boolean } {
+  const tokens = buildIpeCanonicalTokenSetFromPriceRow(row);
+  const flags = tokens.featureFlags;
+  const family = tokens.systemFamily;
+
+  // Material exclusion: if variant explicitly chose SS, exclude Ti rows (and vice versa)
+  if (context.material === 'ss' && tokens.material === 'ti') return { eligible: false, required: false };
+  if (context.material === 'ti' && tokens.material === 'ss') return { eligible: false, required: false };
+
+  // OPF exclusion across rows that carry an OPF flag
+  if (context.opf === 'opf' && flags.includes('non-opf') && !flags.includes('opf')) return { eligible: false, required: false };
+  if (context.opf === 'non-opf' && flags.includes('opf') && !flags.includes('non-opf')) return { eligible: false, required: false };
+
+  if (family === 'downpipe' || family === 'header' || family === 'header-back') {
+    // Downpipe rows count only for Full System / Header-Back variants — not Catback
+    if (context.isCatback && !context.isFullSystem && !context.isHeaderBack) {
+      return { eligible: false, required: false };
+    }
+    if (context.downpipe === 'catted' && flags.includes('catless') && !flags.includes('catted')) {
+      return { eligible: false, required: false };
+    }
+    if (context.downpipe === 'catless' && flags.includes('catted') && !flags.includes('catless')) {
+      return { eligible: false, required: false };
+    }
+    return { eligible: true, required: context.isFullSystem };
+  }
+
+  if (family === 'tips') {
+    if (context.tipFinish && !flags.includes(context.tipFinish)) return { eligible: false, required: false };
+    if (context.tipMaterial && !flags.includes(context.tipMaterial)) return { eligible: false, required: false };
+    if (!context.tipFinish && !context.tipMaterial) return { eligible: false, required: false };
+    return { eligible: true, required: false };
+  }
+
+  if (flags.includes('remote-control')) {
+    return { eligible: context.hasRemote, required: false };
+  }
+  if (flags.includes('obdii')) {
+    return { eligible: context.hasObdii, required: false };
+  }
+
+  return { eligible: true, required: false };
 }
 
 export function resolveIpeVariantPricing(
@@ -796,11 +897,36 @@ export function resolveIpeVariantPricing(
     };
   }
 
+  const context = inferIpeVariantOptionContext(candidate.optionValues);
   const variantTokens = buildVariantTokenSet(product, candidate);
-  const absoluteRows = rows.filter((row) => row.price_kind === 'absolute');
-  const relativeRows = rows.filter((row) => row.price_kind === 'relative');
+  const absoluteRowsAll = rows.filter((row) => row.price_kind === 'absolute');
+  const relativeRowsAll = rows.filter((row) => row.price_kind === 'relative');
   const includedRows = rows.filter((row) => row.price_kind === 'included' || row.price_kind === 'free');
-  const baseCandidates = absoluteRows
+
+  const familyAllowedForBase = (family: string | null) => {
+    if (!family) return true;
+    if (context.isCatback && !context.isFullSystem) {
+      return family === 'cat-back' || family === 'rear-valvetronic';
+    }
+    if (context.isFullSystem) {
+      return family === 'full-system' || family === 'cat-back' || family === 'rear-valvetronic' || family === 'header-back';
+    }
+    return true;
+  };
+
+  const filteredAbsoluteRows = absoluteRowsAll.filter((row) => {
+    const tokens = buildIpeCanonicalTokenSetFromPriceRow(row);
+    if (!familyAllowedForBase(tokens.systemFamily)) return false;
+    if (context.material === 'ss' && tokens.material === 'ti') return false;
+    if (context.material === 'ti' && tokens.material === 'ss') return false;
+    // When the variant doesn't declare a material, default to Stainless Steel
+    // (the standard iPE configuration; Titanium is a separate paid upgrade).
+    if (!context.material && tokens.material === 'ti') return false;
+    return true;
+  });
+
+  const baseSourceRows = filteredAbsoluteRows.length ? filteredAbsoluteRows : absoluteRowsAll;
+  const baseCandidates = baseSourceRows
     .map((row) => ({
       row,
       score: scoreVariantRowCandidate(variantTokens, buildIpeCanonicalTokenSetFromPriceRow(row), 'base'),
@@ -825,9 +951,32 @@ export function resolveIpeVariantPricing(
     reviewReasons.push('base-price-row-ambiguous');
   }
 
+  const baseRowFamily = buildIpeCanonicalTokenSetFromPriceRow(bestBase.row).systemFamily;
+  const baseAlreadyIncludesDownpipe = baseRowFamily === 'full-system' || baseRowFamily === 'header-back';
+
+  const eligibleDeltaPool: IpeParsedPriceListRow[] = [];
+
+  // For Full System variants whose base is cat-back, pull the matching downpipe
+  // from the absolute rows (some catalogs price downpipes as standalone absolutes).
+  if (context.isFullSystem && !baseAlreadyIncludesDownpipe) {
+    const downpipeAbsolutes = absoluteRowsAll.filter((row) => {
+      const tokens = buildIpeCanonicalTokenSetFromPriceRow(row);
+      const fam = tokens.systemFamily;
+      if (fam !== 'downpipe' && fam !== 'header' && fam !== 'header-back') return false;
+      const { eligible } = rowMatchesVariantContext(row, context);
+      return eligible;
+    });
+    eligibleDeltaPool.push(...downpipeAbsolutes);
+  }
+
+  for (const row of relativeRowsAll) {
+    const { eligible } = rowMatchesVariantContext(row, context);
+    if (eligible) eligibleDeltaPool.push(row);
+  }
+
   const selectedDeltaRows: IpeParsedPriceListRow[] = [];
   const usedGroups = new Set<string>();
-  for (const entry of relativeRows
+  for (const entry of eligibleDeltaPool
     .map((row) => ({
       row,
       score: scoreVariantRowCandidate(variantTokens, buildIpeCanonicalTokenSetFromPriceRow(row), 'delta'),
@@ -845,7 +994,13 @@ export function resolveIpeVariantPricing(
     return score >= 0.45;
   });
 
-  const deltaTotal = selectedDeltaRows.reduce((sum, row) => sum + Number(row.msrp_usd ?? 0), 0);
+  const deltaTotal = selectedDeltaRows.reduce((sum, row) => {
+    const usd = row.price_kind === 'absolute'
+      ? Number(row.retail_usd ?? row.msrp_usd ?? 0)
+      : Number(row.msrp_usd ?? 0);
+    return sum + usd;
+  }, 0);
+
   return {
     priceUsd: Number((Number(bestBase.row.retail_usd ?? 0) + deltaTotal).toFixed(2)),
     baseRow: bestBase.row,

@@ -9,7 +9,7 @@ const DEFAULT_FALLBACK_SRC = '/images/placeholders/product-fallback.svg';
 type ShopProductImageProps = Omit<ImageProps, 'src' | 'alt'> & {
   src?: string | null;
   alt: string;
-  fallbackSrc?: string;
+  fallbackSrc?: string | null;
 };
 
 const DO88_THUMB_PATTERN = /^https?:\/\/(?:www\.)?do88\.se\/bilder\/artiklar\/liten\/(.+?)_S\.jpg$/i;

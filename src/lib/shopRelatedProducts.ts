@@ -49,9 +49,11 @@ export function extractVehicleTokens(title: string): {
 } {
   const normalized = title.toUpperCase();
 
-  // Try to extract the vehicle part after "for"
+  // Try to extract the vehicle part after "for". If absent (iPE-style titles
+  // like "BMW M3 / M4 (G80 / G82) Exhaust System"), fall back to the whole
+  // title so make and chassis codes can still be picked up.
   const forMatch = normalized.match(/\bFOR\s+(.+?)(?:\s*(?:EC\s|OPF|GPF|FACELIFT|\d{4}\s*[-–])|\s*$)/);
-  const vehiclePart = forMatch ? forMatch[1] : '';
+  const vehiclePart = forMatch ? forMatch[1] : normalized;
 
   // Tokenize
   const rawTokens = vehiclePart

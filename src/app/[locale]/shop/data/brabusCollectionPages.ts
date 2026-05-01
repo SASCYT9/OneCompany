@@ -28,7 +28,7 @@ export const BRABUS_COLLECTION_PAGES: Record<string, BrabusCollectionPageConfig>
     subtitleUk: 'Mercedes-Benz G-Wagon від BRABUS',
     description: 'The ultimate expression of off-road luxury. BRABUS G-Class programmes transform the legendary Mercedes-Benz G-Wagon into an uncompromising blend of performance and presence.',
     descriptionUk: 'Ультимативне втілення позашляхового люксу. Програми BRABUS G-Class перетворюють легендарний Mercedes-Benz G-Wagon на безкомпромісне поєднання потужності та присутності.',
-    heroImage: '/images/shop/brabus/hq/brabus-supercars-179.jpg',
+    heroImage: '/images/shop/brabus/hq/brabus-supercars-31.jpg',
     specs: [
       { val: '900', label: 'Max HP', labelUk: 'Макс. к.с.' },
       { val: '1250', label: 'Nm Torque', labelUk: 'Нм крутний' },
@@ -43,7 +43,7 @@ export const BRABUS_COLLECTION_PAGES: Record<string, BrabusCollectionPageConfig>
     subtitleUk: 'Mercedes-Benz S-Class від BRABUS',
     description: 'Executive refinement meets explosive performance. The BRABUS S-Class programme elevates the world\'s most advanced luxury sedan with bespoke aerodynamics and power upgrades.',
     descriptionUk: 'Виконавська вишуканість зустрічається з вибуховою потужністю. Програма BRABUS S-Class підіймає найдосконаліший люксовий седан світу на новий рівень.',
-    heroImage: '/images/shop/brabus/hq/brabus-supercars-180.jpg',
+    heroImage: '/images/shop/brabus/hq/brabus-s63-hero.jpg',
     specs: [
       { val: '930', label: 'Max HP', labelUk: 'Макс. к.с.' },
       { val: '1550', label: 'Nm Torque', labelUk: 'Нм крутний' },
@@ -80,6 +80,21 @@ export const BRABUS_COLLECTION_PAGES: Record<string, BrabusCollectionPageConfig>
       { val: '3.6', label: 'sec 0-100', labelUk: 'сек 0-100' },
     ],
   },
+  'bentley': {
+    handle: 'bentley',
+    title: 'Bentley Continental GT',
+    titleUk: 'Bentley Continental GT',
+    subtitle: 'BRABUS 900 Superblack',
+    subtitleUk: 'BRABUS 900 Superblack',
+    description: 'British craftsmanship reengineered for performance. The BRABUS 900 Superblack programme transforms the Continental GT with hand-laid carbon aerodynamics, forged Monoblock wheels, and a 900 HP twin-turbo W12 upgrade.',
+    descriptionUk: 'Британська майстерність, перетворена на чисту потужність. Програма BRABUS 900 Superblack трансформує Continental GT карбоновою аеродинамікою ручної роботи, кованими Monoblock дисками та форсуванням W12 до 900 к.с.',
+    heroImage: '/images/shop/brabus/hq/brabus-bentley-gt-black.jpg',
+    specs: [
+      { val: '900', label: 'Max HP', labelUk: 'Макс. к.с.' },
+      { val: '1250', label: 'Nm Torque', labelUk: 'Нм крутний' },
+      { val: '3.1', label: 'sec 0-100', labelUk: 'сек 0-100' },
+    ],
+  },
   'lamborghini': {
     handle: 'lamborghini',
     title: 'Lamborghini Urus SE',
@@ -88,7 +103,7 @@ export const BRABUS_COLLECTION_PAGES: Record<string, BrabusCollectionPageConfig>
     subtitleUk: 'BRABUS 900 Superblack',
     description: 'The definitive super-SUV elevated to its absolute limits. BRABUS engineering delivers 900 horsepower, bespoke carbon aerodynamics, and a presence that commands every road.',
     descriptionUk: 'Неперевершений супер-SUV, доведений до абсолютних меж. Інженерія BRABUS забезпечує 900 к.с., карбоновий аеродинамічний пакет та домінуючу присутність.',
-    heroImage: '/images/shop/brabus/hq/brabus-supercars-16.jpg',
+    heroImage: '/images/shop/brabus/hq/brabus-supercars-76.jpg',
     specs: [
       { val: '900', label: 'Max HP', labelUk: 'Макс. к.с.' },
       { val: '1050', label: 'Nm Torque', labelUk: 'Нм крутний' },
@@ -99,11 +114,11 @@ export const BRABUS_COLLECTION_PAGES: Record<string, BrabusCollectionPageConfig>
     handle: 'range-rover',
     title: 'Range Rover 600',
     titleUk: 'Range Rover 600',
-    subtitle: 'Brabus Signature Tuning',
-    subtitleUk: 'Brabus Signature Тюнінг',
+    subtitle: 'Range Rover L460 Tuning',
+    subtitleUk: 'Тюнінг Range Rover L460',
     description: 'Refined power meets British elegance. The BRABUS Range Rover programme delivers substantial performance upgrades, bespoke interior craftsmanship, and distinctive aerodynamic styling.',
     descriptionUk: 'Витончена потужність зустрічає британську елегантність. Програма BRABUS Range Rover забезпечує значне збільшення потужності, ексклюзивний інтер\'єр та виразний аеродинамічний стиль.',
-    heroImage: '/images/shop/brabus/hq/brabus-supercars-150.jpg',
+    heroImage: '/images/shop/brabus/hq/brabus-rangerover-l460-real.jpg',
     specs: [
       { val: '600', label: 'Max HP', labelUk: 'Макс. к.с.' },
       { val: '820', label: 'Nm Torque', labelUk: 'Нм крутний' },
@@ -133,7 +148,7 @@ export const BRABUS_COLLECTION_PAGES: Record<string, BrabusCollectionPageConfig>
     subtitleUk: 'Mercedes-AMG GT від BRABUS',
     description: 'Track-bred performance taken to the extreme. The BRABUS AMG GT programme delivers enhanced engine output, carbon aerodynamics, and competition-spec handling upgrades.',
     descriptionUk: 'Гоночна продуктивність, доведена до екстрему. Програма BRABUS AMG GT забезпечує збільшену потужність двигуна, карбонову аеродинаміку та спортивне шасі.',
-    heroImage: '/images/shop/brabus/hq/brabus-supercars-80.jpg',
+    heroImage: '/images/shop/brabus/hq/brabus-amggt-hero.jpg',
     specs: [
       { val: '900', label: 'Max HP', labelUk: 'Макс. к.с.' },
       { val: '1050', label: 'Nm Torque', labelUk: 'Нм крутний' },
@@ -148,7 +163,7 @@ export const BRABUS_COLLECTION_PAGES: Record<string, BrabusCollectionPageConfig>
     subtitleUk: 'Monoblock від BRABUS',
     description: 'Precision-forged excellence. BRABUS Monoblock wheels are CNC-machined from aerospace-grade aluminum, combining extreme lightweight performance with unmistakable visual presence.',
     descriptionUk: 'Точне кування досконалості. Диски BRABUS Monoblock виготовлені на ЧПУ з аерокосмічного алюмінію, поєднуючи екстремальну легкість із безпомилковою візуальною присутністю.',
-    heroImage: '/images/shop/brabus/hq/brabus-supercars-175.jpg',
+    heroImage: '/images/shop/brabus/hq/brabus-wheels-monoz.jpg',
   },
 };
 

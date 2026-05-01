@@ -744,6 +744,50 @@
     "slug": "supercars",
     "size": 27679
   },
+  "brabus-rangerover-600-black.jpg": {
+    "url": "https://www.brabus.com/_Resources/Persistent/9/3/a/2/93a23339cf2f473e08c77cee028db226db132b60/BRABUS%20RANGE%20ROVER%20600%20Studio_klein%20%2855%29-1200x800.jpg",
+    "slug": "supercars",
+    "size": 33531,
+    "transform": "desaturated 0.15 to remove blue cast from stealth-grey paint"
+  },
+  "brabus-bentley-gt-black.jpg": {
+    "url": "https://www.brabus.com/_Resources/Persistent/8/a/6/4/8a642ee59ff394e4bcdbce306d06038045442ed9/Supercars%20Teaser%20BRABUS%20900%20Superblack%20%28GT%29-1200x800.jpg",
+    "slug": "supercars",
+    "size": 22537
+  },
+  "brabus-s63-real.jpg": {
+    "url": "https://www.brabus.com/_Resources/Persistent/e/e/5/a/ee5a58895d79be70d81108d0ab615f1b23e6bf4e/BRABUS_CFS_MB_AS_Hintergrund_Webseite%20Kopie-1200x675.jpg",
+    "slug": "cars-for-sale",
+    "listing": "VKC4S_337",
+    "size": 38523,
+    "transform": "regional luminance mask to whiten asphalt floor while preserving wheels"
+  },
+  "brabus-rangerover-l460-real.jpg": {
+    "url": "https://www.brabus.com/_Resources/Persistent/7/1/f/d/71fdd4abb4e996b39f7a02e852164b7c3530bd7f/BRABUS_CFS_MB_AS_Hintergrund_Webseite-1200x675.jpg",
+    "slug": "cars-for-sale",
+    "listing": "C4S479",
+    "size": 48240,
+    "transform": "regional luminance mask to whiten asphalt floor while preserving wheels"
+  },
+  "brabus-gclass-w465-widestar.jpg": {
+    "url": "https://www.brabus.com/_Resources/Persistent/9/2/b/e/92be5d39248800c6bddb90e9282ff5b20b04bc4b/BRABUS%20800_Deep%20Blue_Studio%20klein%20%2829%29.jpg",
+    "slug": "cars-for-sale",
+    "listing": "C4S271",
+    "size": 288754,
+    "transform": "regional luminance mask to whiten asphalt floor while preserving wheels"
+  },
+  "brabus-s63-hero.jpg": {
+    "url": "https://www.brabus.com/_Resources/Persistent/c/c/3/2/cc32c43101ec5d28c679469730120f2d8112d095/BRABUS%20930_S63%20E%20Performance_Studio_black%20klein%20%2852%29.jpg",
+    "slug": "supercars",
+    "size": 111627
+  },
+  "brabus-amggt-hero.jpg": {
+    "url": "https://www.brabus.com/_Resources/Persistent/f/0/8/4/f084554ff326e85e1791effdc909efef98957809/BRABUS_CFS_MB_AS_Hintergrund_Webseite%20Kopie-1200x675.jpg",
+    "slug": "cars-for-sale",
+    "listing": "C4S286",
+    "size": 40602,
+    "transform": "regional luminance mask to whiten asphalt floor while preserving wheels"
+  },
   "brabus-supercars-149.jpg": {
     "url": "https://www.brabus.com/_Resources/Persistent/8/a/5/0/8a50b0bcfc47de3ab43c3e6162f9dac0d87473f0/Supercar%20600%20Range%20Rover%20Peetch-730x487.jpg",
     "slug": "supercars",

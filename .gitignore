@@ -101,3 +101,12 @@ do88-urls.txt
 tmp/
 .claude/worktrees/
 scripts/_check_*.mjs
+
+# Obsidian vault — share config, ignore per-user UI state and plugin binaries
+wiki/.obsidian/workspace.json
+wiki/.obsidian/workspace-mobile.json
+wiki/.obsidian/workspaces.json
+wiki/.obsidian/cache
+wiki/.obsidian/plugins/*/main.js
+wiki/.obsidian/plugins/*/styles.css
+wiki/.obsidian/plugins/*/manifest.json

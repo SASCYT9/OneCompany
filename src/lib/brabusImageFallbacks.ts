@@ -20,9 +20,9 @@ export function isBrabusLocalImage(src: string | null | undefined) {
   return normalizeSegment(src).startsWith('brabus-images ');
 }
 
-export function resolveBrabusFallbackImage(product: BrabusImageProduct) {
+export function resolveBrabusFallbackImage(product: BrabusImageProduct): string | null {
   if (normalizeSegment(product.brand) !== 'brabus') {
-    return BRABUS_GENERIC_FALLBACK;
+    return null;
   }
 
   const searchIndex = [

@@ -57,7 +57,7 @@ const BRAND_FALLBACK_IMAGES: Record<string, string> = {
   ADRO: '/images/shop/adro/adro-hero-m4.jpg',
   AKRAPOVIC: '/images/shop/akrapovic/factory-fallback.jpg',
   CSF: '/images/shop/csf/factory-fallback.jpg',
-  OHLINS: '/images/shop/ohlins/catalog-fallback.jpg',
+  OHLINS: '/images/shop/ohlins/ohlins-product-fallback.png',
 };
 const LOCAL_SHOP_BRAND_IMAGE_PREFIXES: Record<string, string> = {
   ADRO: '/images/shop/adro/',
@@ -1196,7 +1196,7 @@ function normalizeCatalogAssetInput(input: string | null | undefined) {
   }
 }
 
-function resolveCatalogAssetUrl(input: string | null | undefined, fallbackSrc?: string) {
+function resolveCatalogAssetUrl(input: string | null | undefined, fallbackSrc?: string | null) {
   const resolved = resolveUrbanThemeAssetUrl(normalizeCatalogAssetInput(input));
   if (!resolved && fallbackSrc) {
     return fallbackSrc;
@@ -1518,7 +1518,7 @@ function mapDbToCatalog(row: AdminShopProductRecord): ShopProduct {
           (value): value is string => Boolean(value)
         ),
         inventoryQty: variant.inventoryQty,
-        image: variant.image ? resolveCatalogAssetUrl(variant.image, brabusFallbackImage) : null,
+        image: variant.image ? resolveCatalogAssetUrl(variant.image, catalogFallbackImage) : null,
         isDefault: variant.isDefault,
         price: moneySet({
           eur: num(variant.priceEur),

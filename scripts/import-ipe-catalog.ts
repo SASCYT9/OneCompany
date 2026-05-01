@@ -679,6 +679,69 @@ function buildBaseTags(product: IpeOfficialProductSnapshot, productTokens: IpeCa
   return replaceStorefrontTag(systemTokens, 'main');
 }
 
+// Postprocessor for Gemini Ukrainian output. Two responsibilities:
+//   1. Repair domain-specific terminology Gemini gets wrong on iPE copy
+//      ("патрубок" → "труба" for exhaust pipes, "наконечник" → "насадка"
+//      for tips, "клапаном" → "клапанами" — exhaust is dual so plural).
+//   2. Promote the OPF warning ("ПОПЕРЕДЖЕННЯ - Перед покупкою...") from
+//      inline <strong> into a tagged callout that the iPE storefront layout
+//      renders as a styled warning bar.
+export function sanitizeIpeUaCopy(value: string, options?: { isHtml?: boolean }): string {
+  if (!value) return value;
+  let out = value;
+
+  // "Передній патрубок" / "Середній патрубок" — exhaust pipes (двойной выхлоп → plural)
+  out = out.replace(/\bПередн(?:ій|ьому|ього)\s+патрубо(?:к|ка|ку|ком|ці)\b/gi, 'Передні труби');
+  out = out.replace(/\bСередн(?:ій|ьому|ього)\s+патрубо(?:к|ка|ку|ком|ці)\b/gi, 'Середні труби');
+  // Standalone "патрубок" in exhaust context → "труба"
+  out = out.replace(/\bпатрубок(?=[^\n<]{0,80}(?:вихлоп|глушник|катал|x[- ]?пайп|h[- ]?пайп|даунпайп))/gi, 'труба');
+  out = out.replace(/(?<=(?:вихлоп|глушник|x[- ]?пайп|h[- ]?пайп)[^\n<]{0,80})\bпатрубок\b/gi, 'труба');
+
+  // Tips: наконечник → насадка (all forms)
+  out = out.replace(/\bНаконечник(и|а|ів|ам|ами|ах)?\b/g, (_match, suffix) => {
+    const map: Record<string, string> = {
+      '': 'Насадка',
+      'и': 'Насадки',
+      'а': 'Насадка',
+      'ів': 'Насадок',
+      'ам': 'Насадкам',
+      'ами': 'Насадками',
+      'ах': 'Насадках',
+    };
+    return map[suffix ?? ''] ?? 'Насадки';
+  });
+  out = out.replace(/\bнаконечник(и|а|ів|ам|ами|ах)?\b/g, (_match, suffix) => {
+    const map: Record<string, string> = {
+      '': 'насадка',
+      'и': 'насадки',
+      'а': 'насадка',
+      'ів': 'насадок',
+      'ам': 'насадкам',
+      'ами': 'насадками',
+      'ах': 'насадках',
+    };
+    return map[suffix ?? ''] ?? 'насадки';
+  });
+
+  // "штатного керування клапаном" → "клапанами" (plural, dual-valve setup)
+  out = out.replace(/\bкерування\s+клапаном\b/gi, 'керування клапанами');
+  out = out.replace(/\bкеруванням\s+клапаном\b/gi, 'керуванням клапанами');
+  // "клапанамИ" with Latin/wrong-case I sometimes leaks through Gemini
+  out = out.replace(/клапанам[ИI]\b/g, 'клапанами');
+
+  // OPF warning callout: tag it for the storefront to render as a styled banner.
+  // We support both HTML (with <strong>) and plain-text shapes.
+  const warningRx = /(?:<strong>)?\s*ПОПЕРЕДЖЕННЯ\s*[-–—]\s*Перед\s+покупкою[^<\n]*?Дякуємо\.\s*(?:<\/strong>)?/g;
+  if (options?.isHtml) {
+    out = out.replace(warningRx, (match) => {
+      const text = match.replace(/<\/?strong>/gi, '').trim();
+      return `<aside data-warning="opf" class="ipe-warning ipe-warning--opf"><strong>${text}</strong></aside>`;
+    });
+  }
+
+  return out;
+}
+
 async function translateTextToUa(
   provider: TranslationProvider,
   value: string,
@@ -697,6 +760,8 @@ async function translateTextToUa(
   } else {
     translated = normalized;
   }
+
+  translated = sanitizeIpeUaCopy(translated, options);
 
   cache.set(cacheKey, translated);
   return translated;
@@ -822,9 +887,39 @@ function buildVariantOptions(
   return [] satisfies AdminShopProductOptionInput[];
 }
 
-function determineDefaultVariantIndex(candidates: readonly IpeVariantCandidate[], variants: readonly IpeResolvedVariantRecord[]) {
-  const preferredOfficialIndex = candidates.findIndex((candidate, index) => candidate.defaultVariant && variants[index]?.priceUsd > 0);
-  if (preferredOfficialIndex >= 0) return preferredOfficialIndex;
+function determineDefaultVariantIndex(_candidates: readonly IpeVariantCandidate[], variants: readonly IpeResolvedVariantRecord[]) {
+  // Cat-back is the most-purchased configuration (~70% of iPE sales for BMW
+  // exhaust platforms); within that, Factory front-pipe + Catted (OPF) is the
+  // street-legal default. Score every variant by how closely its option values
+  // match that profile, breaking ties by lowest price (the cleanest catback).
+  const score = (variant: IpeResolvedVariantRecord) => {
+    const joined = variant.optionValues.filter(Boolean).join(' | ').toLowerCase();
+    let s = 0;
+    if (/\bcat\s*back\b|\bcatback\b/.test(joined) && !/\bfull\s*system\b/.test(joined)) s += 1000;
+    if (/\bfactory\b/.test(joined)) s += 100;
+    if (/\bcatted\b/.test(joined)) s += 50;
+    if (/\bopf\b/.test(joined) && !/\bnon[- ]?opf\b/.test(joined)) s += 25;
+    if (/\bstainless\b/.test(joined)) s += 10;
+    return s;
+  };
+
+  let bestIndex = -1;
+  let bestScore = -1;
+  let bestPrice = Number.POSITIVE_INFINITY;
+  variants.forEach((variant, index) => {
+    if (variant.priceUsd <= 0) return;
+    const variantScore = score(variant);
+    if (
+      variantScore > bestScore ||
+      (variantScore === bestScore && variant.priceUsd < bestPrice)
+    ) {
+      bestScore = variantScore;
+      bestPrice = variant.priceUsd;
+      bestIndex = index;
+    }
+  });
+
+  if (bestIndex >= 0) return bestIndex;
 
   let lowestIndex = 0;
   let lowestPrice = Number.POSITIVE_INFINITY;

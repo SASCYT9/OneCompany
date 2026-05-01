@@ -71,6 +71,15 @@ export const BRABUS_COLLECTION_CARDS: BrabusCollectionCard[] = [
     externalImageUrl: '/images/shop/brabus/hq/brabus-supercars-45.jpg',
   },
   {
+    title: 'Bentley Continental GT',
+    titleUk: 'Bentley Continental GT',
+    brand: 'Bentley',
+    collectionHandle: 'bentley',
+    productCount: '900 HP',
+    /** BRABUS 900 Bentley Continental GT Superblack — clean side profile */
+    externalImageUrl: '/images/shop/brabus/hq/brabus-bentley-gt-black.jpg',
+  },
+  {
     title: 'Lamborghini Urus SE',
     titleUk: 'Lamborghini Urus SE',
     brand: 'Lamborghini',

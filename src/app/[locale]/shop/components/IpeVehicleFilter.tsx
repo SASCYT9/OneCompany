@@ -21,6 +21,7 @@ import {
   resolveIpeVehicleBrand,
   resolveIpeVehicleModel,
 } from "@/lib/ipeCatalog";
+import { splitIpeModelLabel } from "@/lib/ipeHeroCatalog";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type IpeVehicleFilterProps = {
@@ -68,7 +69,7 @@ const FILTER_LIST_SCROLL_CLASS =
   "flex max-h-56 flex-col overflow-y-auto overscroll-contain pr-1 [scrollbar-color:rgba(194,157,89,0.55)_transparent] [scrollbar-width:thin]";
 const PAGE_SIZE = 30;
 
-type FilterSectionKey = "brand" | "line" | "model" | "material" | "spec";
+type FilterSectionKey = "brand" | "line" | "model" | "body" | "material" | "spec";
 
 type FilterSectionProps = {
   title: string;
@@ -186,7 +187,15 @@ export default function IpeVehicleFilter({
   const searchParams = useSearchParams();
   const initialBrand = searchParams?.get("brand") || "all";
   const initialLine = searchParams?.get("line") || "all";
-  const initialModel = searchParams?.get("model") || "all";
+  const initialModelRaw = searchParams?.get("model") || "all";
+  const initialBodyParam = searchParams?.get("body") || "all";
+  // The hero filter writes `?model=M3 / M4 (G80/G82)` — split that into a
+  // base ("M3 / M4") plus body ("G80/G82") so the catalog presents them as
+  // two separate facets. Older bookmarks stay compatible.
+  const { base: initialModelBase, body: initialBodyFromModel } =
+    initialModelRaw !== "all" ? splitIpeModelLabel(initialModelRaw) : { base: "all", body: null };
+  const initialModel = initialModelBase || "all";
+  const initialBody = initialBodyParam !== "all" ? initialBodyParam : (initialBodyFromModel ?? "all");
   const initialMaterial = searchParams?.get("material") || "all";
   const initialSpec = searchParams?.get("spec") || "all";
   const initialSearch = searchParams?.get("q") || "";
@@ -195,6 +204,7 @@ export default function IpeVehicleFilter({
   const [activeBrand, setActiveBrand] = useState<string>(initialBrand);
   const [activeLine, setActiveLine] = useState<string>(initialLine);
   const [activeModel, setActiveModel] = useState<string>(initialModel);
+  const [activeBody, setActiveBody] = useState<string>(initialBody);
   const [activeMaterial, setActiveMaterial] = useState<string>(initialMaterial);
   const [activeSpec, setActiveSpec] = useState<string>(initialSpec);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
@@ -205,6 +215,7 @@ export default function IpeVehicleFilter({
     brand: true,
     line: initialLine !== "all",
     model: initialModel !== "all",
+    body: initialBody !== "all",
     material: initialMaterial !== "all",
     spec: initialSpec !== "all",
   });
@@ -221,6 +232,7 @@ export default function IpeVehicleFilter({
     setActiveBrand("all");
     setActiveLine("all");
     setActiveModel("all");
+    setActiveBody("all");
     setActiveMaterial("all");
     setActiveSpec("all");
     setSearchQuery("");
@@ -228,11 +240,12 @@ export default function IpeVehicleFilter({
     setSortOrder("default");
   }, []);
 
-  const syncToUrl = useCallback((brand: string, line: string, model: string, material: string, spec: string, sort: string, query: string) => {
+  const syncToUrl = useCallback((brand: string, line: string, model: string, body: string, material: string, spec: string, sort: string, query: string) => {
     const params = new URLSearchParams();
     if (brand !== "all") params.set("brand", brand);
     if (line !== "all") params.set("line", line);
     if (model !== "all") params.set("model", model);
+    if (body !== "all") params.set("body", body);
     if (material !== "all") params.set("material", material);
     if (spec !== "all") params.set("spec", spec);
     if (sort !== "default") params.set("sort", sort);
@@ -244,20 +257,26 @@ export default function IpeVehicleFilter({
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      syncToUrl(activeBrand, activeLine, activeModel, activeMaterial, activeSpec, sortOrder, searchQuery);
+      syncToUrl(activeBrand, activeLine, activeModel, activeBody, activeMaterial, activeSpec, sortOrder, searchQuery);
     }, 250);
     return () => clearTimeout(timeout);
-  }, [activeBrand, activeLine, activeModel, activeMaterial, activeSpec, sortOrder, searchQuery, syncToUrl]);
+  }, [activeBrand, activeLine, activeModel, activeBody, activeMaterial, activeSpec, sortOrder, searchQuery, syncToUrl]);
 
   const enrichedProducts = useMemo(() => {
-    return products.map((product) => ({
-      product,
-      brand: resolveIpeVehicleBrand(product),
-      model: resolveIpeVehicleModel(product),
-      line: resolveIpeProductLine(product),
-      materials: resolveIpeProductMaterials(product),
-      specs: resolveIpeProductSpecs(product),
-    }));
+    return products.map((product) => {
+      const fullModel = resolveIpeVehicleModel(product);
+      const split = fullModel ? splitIpeModelLabel(fullModel) : { base: null, body: null };
+      return {
+        product,
+        brand: resolveIpeVehicleBrand(product),
+        model: fullModel,
+        modelBase: split.base,
+        body: split.body,
+        line: resolveIpeProductLine(product),
+        materials: resolveIpeProductMaterials(product),
+        specs: resolveIpeProductSpecs(product),
+      };
+    });
   }, [products]);
 
   // Extract brands dynamically from tags
@@ -279,12 +298,15 @@ export default function IpeVehicleFilter({
     }));
   }, [enrichedProducts, locale]);
 
+  // Models grouped by base name, e.g. "M3 / M4" rather than the full
+  // "M3 / M4 (G80/G82)" — the body / chassis becomes a separate facet below.
   const availableModels = useMemo(() => {
     const models = new Map<string, number>();
     for (const entry of enrichedProducts) {
       if (activeBrand !== "all" && entry.brand !== activeBrand) continue;
-      if (!entry.model) continue;
-      models.set(entry.model, (models.get(entry.model) || 0) + 1);
+      const key = entry.modelBase;
+      if (!key) continue;
+      models.set(key, (models.get(key) || 0) + 1);
     }
     return [...models.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
@@ -296,6 +318,23 @@ export default function IpeVehicleFilter({
     if (!query) return availableModels;
     return availableModels.filter((model) => model.label.toLowerCase().includes(query));
   }, [availableModels, modelQuery]);
+
+  // Bodies (chassis codes) under the currently picked base model. Hidden
+  // entirely when the model only has one body — there's nothing to choose.
+  const availableBodies = useMemo(() => {
+    if (activeModel === "all") return [];
+    const bodies = new Map<string, number>();
+    for (const entry of enrichedProducts) {
+      if (activeBrand !== "all" && entry.brand !== activeBrand) continue;
+      if (entry.modelBase !== activeModel) continue;
+      if (!entry.body) continue;
+      bodies.set(entry.body, (bodies.get(entry.body) || 0) + 1);
+    }
+    if (bodies.size <= 1) return [];
+    return [...bodies.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([key, count]) => ({ key, label: key, count }));
+  }, [activeBrand, activeModel, enrichedProducts]);
 
   // Extract iPE specific product lines (Valvetronic, Downpipe, Headers)
   const availableLines = useMemo(() => {
@@ -320,7 +359,8 @@ export default function IpeVehicleFilter({
     const materials = new Map<string, number>();
     for (const entry of enrichedProducts) {
       if (activeBrand !== "all" && entry.brand !== activeBrand) continue;
-      if (activeModel !== "all" && entry.model !== activeModel) continue;
+      if (activeModel !== "all" && entry.modelBase !== activeModel) continue;
+      if (activeBody !== "all" && entry.body !== activeBody) continue;
       for (const material of entry.materials) {
         materials.set(material, (materials.get(material) || 0) + 1);
       }
@@ -332,13 +372,14 @@ export default function IpeVehicleFilter({
         label: MATERIAL_LABELS[key]?.[locale] || key,
         count,
       }));
-  }, [activeBrand, activeModel, enrichedProducts, locale]);
+  }, [activeBrand, activeModel, activeBody, enrichedProducts, locale]);
 
   const availableSpecs = useMemo(() => {
     const specs = new Map<string, number>();
     for (const entry of enrichedProducts) {
       if (activeBrand !== "all" && entry.brand !== activeBrand) continue;
-      if (activeModel !== "all" && entry.model !== activeModel) continue;
+      if (activeModel !== "all" && entry.modelBase !== activeModel) continue;
+      if (activeBody !== "all" && entry.body !== activeBody) continue;
       for (const spec of entry.specs) {
         specs.set(spec, (specs.get(spec) || 0) + 1);
       }
@@ -350,7 +391,7 @@ export default function IpeVehicleFilter({
         label: SPEC_LABELS[key]?.[locale] || key,
         count,
       }));
-  }, [activeBrand, activeModel, enrichedProducts, locale]);
+  }, [activeBrand, activeModel, activeBody, enrichedProducts, locale]);
 
   // Skip the cascading reset on initial mount so deep-links from the brand-home
   // hero filter (e.g. ?brand=Porsche&model=...&line=...) keep all their params.
@@ -362,6 +403,7 @@ export default function IpeVehicleFilter({
     previousBrandRef.current = activeBrand;
     setActiveLine("all");
     setActiveModel("all");
+    setActiveBody("all");
     setActiveMaterial("all");
     setActiveSpec("all");
     setModelQuery("");
@@ -373,6 +415,7 @@ export default function IpeVehicleFilter({
       return;
     }
     previousModelRef.current = activeModel;
+    setActiveBody("all");
     setActiveMaterial("all");
     setActiveSpec("all");
   }, [activeModel]);
@@ -384,6 +427,7 @@ export default function IpeVehicleFilter({
           ...current,
           line: false,
           model: false,
+          body: false,
           material: false,
           spec: false,
         };
@@ -393,9 +437,10 @@ export default function IpeVehicleFilter({
         ...current,
         line: availableLines.length > 0,
         model: activeModel !== "all",
+        body: activeModel !== "all" && availableBodies.length > 0,
       };
     });
-  }, [activeBrand, activeModel, availableLines.length]);
+  }, [activeBrand, activeModel, availableLines.length, availableBodies.length]);
 
   const filteredProducts = useMemo(() => {
     let result = enrichedProducts;
@@ -409,7 +454,11 @@ export default function IpeVehicleFilter({
     }
 
     if (activeModel !== "all") {
-      result = result.filter((entry) => entry.model === activeModel);
+      result = result.filter((entry) => entry.modelBase === activeModel);
+    }
+
+    if (activeBody !== "all") {
+      result = result.filter((entry) => entry.body === activeBody);
     }
 
     if (activeMaterial !== "all") {
@@ -453,7 +502,7 @@ export default function IpeVehicleFilter({
     });
 
     return sorted.map((entry) => entry.product);
-  }, [activeBrand, activeLine, activeMaterial, activeModel, activeSpec, enrichedProducts, searchQuery, sortOrder, locale]);
+  }, [activeBrand, activeLine, activeMaterial, activeModel, activeBody, activeSpec, enrichedProducts, searchQuery, sortOrder, locale]);
 
   const displayedProducts = useMemo(
     () => filteredProducts.slice(0, visibleCount),
@@ -462,7 +511,7 @@ export default function IpeVehicleFilter({
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [activeBrand, activeLine, activeModel, activeMaterial, activeSpec, searchQuery, sortOrder]);
+  }, [activeBrand, activeLine, activeModel, activeBody, activeMaterial, activeSpec, searchQuery, sortOrder]);
 
   const totalCount = products.length;
   const activeBrandLabel = activeBrand !== "all" ? (BRAND_LABELS[activeBrand]?.[locale] || activeBrand) : null;
@@ -472,6 +521,7 @@ export default function IpeVehicleFilter({
     activeBrand !== "all" ||
     activeLine !== "all" ||
     activeModel !== "all" ||
+    activeBody !== "all" ||
     activeMaterial !== "all" ||
     activeSpec !== "all" ||
     searchQuery.trim().length > 0 ||
@@ -551,6 +601,7 @@ export default function IpeVehicleFilter({
                   {activeBrandLabel && <ActiveFilterChip label={activeBrandLabel} onClear={() => setActiveBrand("all")} />}
                   {activeLine !== "all" && <ActiveFilterChip label={activeLine} onClear={() => setActiveLine("all")} />}
                   {activeModel !== "all" && <ActiveFilterChip label={activeModel} onClear={() => setActiveModel("all")} />}
+                  {activeBody !== "all" && <ActiveFilterChip label={activeBody} onClear={() => setActiveBody("all")} />}
                   {activeMaterialLabel && <ActiveFilterChip label={activeMaterialLabel} onClear={() => setActiveMaterial("all")} />}
                   {activeSpecLabel && <ActiveFilterChip label={activeSpecLabel} onClear={() => setActiveSpec("all")} />}
                   {searchQuery.trim() && <ActiveFilterChip label={searchQuery.trim()} onClear={() => setSearchQuery("")} />}
@@ -695,6 +746,43 @@ export default function IpeVehicleFilter({
                         >
                           <span className="pr-3">{model.label}</span>
                           <span className="text-[10px] opacity-60 text-zinc-500">{model.count}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </FilterSection>
+              )}
+
+              {activeModel !== "all" && availableBodies.length > 0 && (
+                <FilterSection
+                  title={isUa ? "Кузов" : "Body"}
+                  count={availableBodies.length}
+                  isOpen={openSections.body}
+                  onToggle={() => toggleSection("body")}
+                >
+                  <ul className={FILTER_LIST_SCROLL_CLASS}>
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => setActiveBody("all")}
+                        className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                          activeBody === "all" ? "bg-white/[0.06] text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                        }`}
+                      >
+                        <span>{isUa ? "Усі кузови" : "All bodies"}</span>
+                      </button>
+                    </li>
+                    {availableBodies.map((body) => (
+                      <li key={body.key}>
+                        <button
+                          type="button"
+                          onClick={() => setActiveBody(body.key)}
+                          className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[2px] px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors ${
+                            activeBody === body.key ? "bg-[#c29d59]/10 text-[#c29d59]" : "text-white/42 hover:bg-white/[0.03] hover:text-[#c29d59]"
+                          }`}
+                        >
+                          <span>{body.label}</span>
+                          <span className="text-[10px] opacity-60 text-zinc-500">{body.count}</span>
                         </button>
                       </li>
                     ))}
