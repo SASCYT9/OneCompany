@@ -1,5 +1,5 @@
 import type { ShopProduct } from '@/lib/shopCatalog';
-import { extractCsfCatalogFitment } from '@/lib/csfCatalog';
+import { extractCsfCatalogFitment, isCleanCsfModelLabel } from '@/lib/csfCatalog';
 
 /**
  * Mirrors the catalog-grid mapping in
@@ -150,7 +150,13 @@ export function buildCsfHeroSummary(
       mc.set(category.key, { label: category, count: 1 });
     }
 
-    const models = fitment.models.filter(Boolean);
+    // Defense-in-depth: drop labels that fail the shared cleanliness predicate
+    // (foreign brand names, year ranges, multi-token fragments). The catalog
+    // grid applies the same gate; without it, hero-finder dropdowns leaked
+    // junk like "TOYOTA GR Supra" under BMW.
+    const models = fitment.models.filter((label): label is string =>
+      Boolean(label) && isCleanCsfModelLabel(label)
+    );
     if (models.length === 0) continue;
 
     let mt = modelTotal.get(make);

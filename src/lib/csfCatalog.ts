@@ -71,6 +71,14 @@ const MODEL_NOISE_PATTERNS = [
   /\bright\b/gi,
   /\bcenter\b/gi,
   /\bkit\b/gi,
+  // Engine codes leak into the model facet when the source title says
+  // e.g. "Z4 B58 engine". Strip the literal "engine" word and the well-known
+  // engine codes so the trailing "Z4" survives as a clean model label.
+  /\bengine\b/gi,
+  /\b(?:B58|B48|N52|N54|N55|S58|S55|S65|S54|S38)(?:\s+Gen\s*\d+)?\b/gi,
+  // Short year tails like "08-11", "07-11" — the existing year regex below
+  // only catches 4-digit years.
+  /\b\d{2}\s*[-–]\s*\d{2}\b/gi,
   // Ukrainian noise — products names that creep into fitment section when
   // the EN title is broken and we fall back to the full UA title.
   /^\s*CSF[\s#]*\d+[A-Za-z]?/gi,
@@ -177,10 +185,22 @@ function stripVehicleMakePrefix(section: string, make: string | null) {
   return normalizeWhitespace(section.replace(new RegExp(`^${make.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+`, 'i'), ''));
 }
 
+// Pre-segment cleanup: insert "/" boundaries before any embedded make-name
+// occurrence so "BMW Z4 / TOYOTA GR Supra" — and worse, "BMW Z4 BMW M3"
+// (no separator) — split into clean segments. Without this, foreign-brand
+// fragments stay glued to the previous segment and contaminate the dropdown.
+function insertMakeBoundaries(section: string) {
+  const tokens = MAKE_PATTERNS.flatMap((entry) => entry.patterns.map((p) => p.source));
+  if (tokens.length === 0) return section;
+  const combined = new RegExp(`(?<=\\S)\\s+(?:${tokens.join('|')})\\b`, 'gi');
+  return section.replace(combined, (match) => ` / ${match.trim()}`);
+}
+
 function extractVehicleModels(section: string, make: string | null) {
   const withoutMake = stripVehicleMakePrefix(section, make);
+  const withBoundaries = insertMakeBoundaries(withoutMake);
   const withoutMeta = normalizeWhitespace(
-    MODEL_NOISE_PATTERNS.reduce((current, pattern) => current.replace(pattern, ' '), withoutMake)
+    MODEL_NOISE_PATTERNS.reduce((current, pattern) => current.replace(pattern, ' '), withBoundaries)
       .replace(/\(([^)]+)\)/g, ' ')
       .replace(/\b(19\d{2}|20\d{2})(?:\s*[-–]\s*(19\d{2}|20\d{2}))?\+?\b/g, ' ')
       .replace(/[+]/g, ' ')
@@ -191,18 +211,52 @@ function extractVehicleModels(section: string, make: string | null) {
   }
 
   const segments = withoutMeta
-    .split(/\s*\/\s*/)
+    .split(/\s*[\/,;]\s*/)
     .map((segment) =>
       normalizeWhitespace(
         segment
           .replace(/\bfor\b/gi, ' ')
           .replace(/\bwith\b.+$/i, ' ')
           .replace(/\bonly\b/gi, ' ')
+          // Strip trailing punctuation / dashes that survive the cleanup —
+          // e.g. "Tacoma -" left over after a year was removed from "Tacoma - 2010".
+          .replace(/[\s\-–—:.,]+$/g, '')
+          .replace(/^[\s\-–—:.,]+/g, '')
       )
     )
-    .filter(Boolean);
+    .map((segment) => {
+      // If a segment still leads with the product's make, drop that prefix
+      // (handles "BMW M340iX" → "M340iX" after boundary insertion).
+      return make ? stripVehicleMakePrefix(segment, make) : segment;
+    })
+    .filter(Boolean)
+    // Drop segments whose detected make differs from the product's make —
+    // this is the cross-brand contamination guard.
+    .filter((segment) => {
+      const segmentMake = detectVehicleMake(segment);
+      if (!segmentMake) return true;
+      if (!make) return true;
+      return segmentMake === make;
+    });
 
   return uniqueValues(segments);
+}
+
+// Shared predicate used by both the catalog grid and the hero finder to
+// reject junk model labels (foreign brand names, year ranges, multi-token
+// fragments). Centralising it here ensures the brand-home dropdown and the
+// catalog filter agree on what counts as a clean model label.
+const KNOWN_CSF_MAKES_RE = /\b(BMW|TOYOTA|PORSCHE|NISSAN|FORD|SUBARU|CHEVROLET|AUDI|HONDA|MERCEDES(?:-BENZ)?|MITSUBISHI|MAZDA|FERRARI|JEEP|DODGE|HYUNDAI|MCLAREN|VAG|LEXUS|LAMBORGHINI|ALFA|CADILLAC|MINI|VOLKSWAGEN|VW|LOTUS|ACURA)\b/i;
+
+export function isCleanCsfModelLabel(label: string) {
+  const trimmed = label.trim();
+  if (trimmed.length < 2 || trimmed.length > 22) return false;
+  if (KNOWN_CSF_MAKES_RE.test(trimmed)) return false;
+  if (/\d{2,4}\s*[-+]\s*\d{2,4}/.test(trimmed)) return false;
+  if (/\b(19|20)\d{2}\b/.test(trimmed)) return false;
+  if (/[\/,]/.test(trimmed)) return false;
+  if ((trimmed.match(/\s/g) || []).length > 2) return false;
+  return true;
 }
 
 function looksLikeBrokenCsfTitle(value: string | null | undefined) {

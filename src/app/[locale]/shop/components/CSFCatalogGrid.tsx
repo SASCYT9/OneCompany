@@ -11,7 +11,7 @@ import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { computeShopDisplayPrices, hasAnyShopPrice, pickShopSortableAmount } from "@/lib/shopDisplayPrices";
 import { localizeShopProductTitle } from "@/lib/shopText";
-import { extractCsfCatalogFitment, detectCsfStockState } from "@/lib/csfCatalog";
+import { extractCsfCatalogFitment, detectCsfStockState, isCleanCsfModelLabel } from "@/lib/csfCatalog";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
@@ -118,19 +118,6 @@ function buildFacetOptions(items: string[], predicate?: (label: string) => boole
   return [...counts.entries()]
     .map(([key, count]) => ({ key, label: key, count }))
     .sort((left, right) => left.label.localeCompare(right.label));
-}
-
-const KNOWN_MAKES_RE = /\b(BMW|TOYOTA|PORSCHE|NISSAN|FORD|SUBARU|CHEVROLET|AUDI|HONDA|MERCEDES(?:-BENZ)?|MITSUBISHI|MAZDA|FERRARI|JEEP|DODGE|HYUNDAI|MCLAREN|VAG|LEXUS|LAMBORGHINI|ALFA|CADILLAC|MINI|VOLKSWAGEN|VW|LOTUS|ACURA)\b/i;
-
-function isCleanModelLabel(label: string) {
-  const trimmed = label.trim();
-  if (trimmed.length < 2 || trimmed.length > 22) return false;
-  if (KNOWN_MAKES_RE.test(trimmed)) return false;
-  if (/\d{2,4}\s*[-+]\s*\d{2,4}/.test(trimmed)) return false;
-  if (/\b(19|20)\d{2}\b/.test(trimmed)) return false;
-  if (/[\/,]/.test(trimmed)) return false;
-  if ((trimmed.match(/\s/g) || []).length > 2) return false;
-  return true;
 }
 
 function isCleanChassisLabel(label: string) {
@@ -386,7 +373,7 @@ export default function CSFCatalogGrid({ locale, products }: Props) {
       return true;
     });
 
-    return buildFacetOptions(scoped.flatMap((item) => item.models), isCleanModelLabel);
+    return buildFacetOptions(scoped.flatMap((item) => item.models), isCleanCsfModelLabel);
   }, [queryFilteredProducts, activeCategory, activeMake]);
 
   const chassisOptions = useMemo<FacetOption[]>(() => {

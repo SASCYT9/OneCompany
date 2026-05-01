@@ -85,6 +85,14 @@ export const CSF_MODEL_NORMALIZATION: Record<string, Record<string, string>> = {
     "F36": "4 Series",
     "F36 Gran Coupe": "4 Series",
     "M3 E90": "M3",
+    // Engine + trim specs that leaked through on multi-fitment titles.
+    "328i 3.0L": "3 Series",
+    "F-Chassis": "",
+    "Racing": "",
+    // Toyota Supra chassis code on a BMW+Supra crossover product (B58 engine).
+    "A91": "",
+    // Bare chassis-prefixed engine variants — drop, the chassis filter handles them.
+    "335 Z4": "",
     // Ambiguous / failed parses — drop.
     "GT": "",
   },
@@ -126,6 +134,8 @@ export const CSF_MODEL_NORMALIZATION: Record<string, Record<string, string>> = {
     "Tundra V8": "Tundra",
     // Engine spec garbage
     "3.4L Automatic": "",
+    "4.0L Auto Trans": "",
+    "4.2L Auto Trans": "",
   },
   NISSAN: {
     "GT-R -": "GT-R",
@@ -136,6 +146,9 @@ export const CSF_MODEL_NORMALIZATION: Record<string, Record<string, string>> = {
     "STi": "STI",
     "Impreza WRX": "WRX",
     "Impreza WRX STI": "WRX STI",
+    "Forester 2.5L": "Forester",
+    // Product spec leakage
+    "1-Row 31mm": "",
   },
   FORD: {
     "Bronco 2.7L EcoBoost": "Bronco",
