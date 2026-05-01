@@ -65,7 +65,7 @@ export default async function RaceChipProductsCatalogPage({ params }: Props) {
       <div className="relative z-10 pt-[140px] max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-20">
         
         {/* Back Link */}
-        <div className="mb-4 relative z-50">
+        <div className="mb-4">
           <Link href={`/${resolvedLocale}/shop/racechip`} className="text-[10px] tracking-[0.2em] uppercase text-zinc-500 hover:text-[#ff4a00] transition-colors font-light flex items-center gap-2">
             <span className="opacity-50">←</span> {isUa ? 'Повернутися до бренду' : 'Back to RaceChip Brand'}
           </Link>

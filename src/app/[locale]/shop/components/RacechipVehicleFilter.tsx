@@ -140,7 +140,7 @@ export default function RacechipVehicleFilter({
       const modelTag = p.tags?.find((t) => t.startsWith("car_model:"));
       if (!modelTag) continue;
       const slug = modelTag.slice(10);
-      const parsed = parseRacechipModelSlug(slug);
+      const parsed = parseRacechipModelSlug(slug, activeMake);
       const existing = byKey.get(parsed.modelKey);
       if (existing) {
         existing.count++;
@@ -164,7 +164,7 @@ export default function RacechipVehicleFilter({
       const modelTag = p.tags?.find((t) => t.startsWith("car_model:"));
       if (!modelTag) continue;
       const slug = modelTag.slice(10);
-      const parsed = parseRacechipModelSlug(slug);
+      const parsed = parseRacechipModelSlug(slug, activeMake);
       if (parsed.modelKey !== activeModel) continue;
       const key = parsed.chassisKey || "_none";
       const existing = byKey.get(key);
@@ -191,7 +191,7 @@ export default function RacechipVehicleFilter({
       const modelTag = p.tags?.find((t) => t.startsWith("car_model:"));
       if (!modelTag) continue;
       const slug = modelTag.slice(10);
-      const parsed = parseRacechipModelSlug(slug);
+      const parsed = parseRacechipModelSlug(slug, activeMake);
       if (parsed.modelKey !== activeModel) continue;
       if (activeChassis !== "all" && parsed.chassisKey !== activeChassis) continue;
       for (const tag of p.tags || []) {
@@ -240,7 +240,7 @@ export default function RacechipVehicleFilter({
       list = list.filter((p) => {
         const modelTag = p.tags?.find((t) => t.startsWith("car_model:"));
         if (!modelTag) return false;
-        const parsed = parseRacechipModelSlug(modelTag.slice(10));
+        const parsed = parseRacechipModelSlug(modelTag.slice(10), activeMake);
         if (parsed.modelKey !== activeModel) return false;
         if (activeChassis !== "all" && parsed.chassisKey !== activeChassis) return false;
         return true;
@@ -467,7 +467,7 @@ export default function RacechipVehicleFilter({
           ) : null}
           
           {/* ─── TOP: COMMAND CENTER FILTER ─── */}
-          <div className="relative z-30 mb-8 hidden max-w-5xl mx-auto w-full lg:block">
+          <div className="relative z-30 mb-8 hidden max-w-7xl mx-auto w-full lg:block">
             <div className="flex flex-col items-center justify-center text-center mb-10">
               <h2 className="text-2xl lg:text-3xl font-light tracking-[0.05em] uppercase text-white/90">
                 {isUa ? "НАЛАШТУЙТЕ СВІЙ АВТОМОБІЛЬ" : "CONFIGURE YOUR VEHICLE"}

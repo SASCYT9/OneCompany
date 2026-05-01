@@ -44,7 +44,7 @@ export default function RacechipQuickFinder({
     const tree = new Map<string, { label: string; chassis: Map<string, string> }>();
 
     for (const slug of entry.models) {
-      const p = parseRacechipModelSlug(slug);
+      const p = parseRacechipModelSlug(slug, make);
       let bucket = tree.get(p.modelKey);
       if (!bucket) {
         bucket = { label: p.modelLabel, chassis: new Map() };

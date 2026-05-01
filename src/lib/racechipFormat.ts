@@ -156,7 +156,23 @@ export type RacechipModelParts = {
   years: string;             // e.g. "2011–2019", "2019+"
 };
 
-export function parseRacechipModelSlug(slug: string): RacechipModelParts {
+function normalizeBmwSeries(p: RacechipModelParts, make?: string): RacechipModelParts {
+  // Racechip uses two slug conventions for the same BMW series:
+  //   "7-series-e38-1994-to-2001" → modelKey "7-series", label "7 Series"
+  //   "7-g70-from-2022"           → modelKey "7",        label "7"
+  // Collapse single-digit BMW model keys to the "-series" form so the
+  // model dropdown shows one entry per series instead of two.
+  if (make === 'bmw' && /^[1-8]$/.test(p.modelKey)) {
+    return {
+      ...p,
+      modelKey: `${p.modelKey}-series`,
+      modelLabel: `${p.modelLabel} Series`,
+    };
+  }
+  return p;
+}
+
+export function parseRacechipModelSlug(slug: string, make?: string): RacechipModelParts {
   const years = extractRacechipYears(slug);
   // For modelKey/chassisKey we work on year-stripped slug. The chassisKey at
   // the END is computed from the ORIGINAL slug (so it carries year tokens
@@ -185,14 +201,14 @@ export function parseRacechipModelSlug(slug: string): RacechipModelParts {
         : chassisTokens.join('-');
     const chassisLabel = chassisTokens.map(fmtToken).join(' ').trim() + suffix;
     const yearStr = years ? ` (${years})` : '';
-    return {
+    return normalizeBmwSeries({
       fullSlug: slug,
       modelKey,
       modelLabel: modelTokens.map(fmtToken).join(' ').trim(),
       chassisKey,
       chassisLabel: (chassisLabel + yearStr).trim(),
       years,
-    };
+    }, make);
   }
 
   if (tokens.length >= 2) {
@@ -253,14 +269,14 @@ export function parseRacechipModelSlug(slug: string): RacechipModelParts {
       : suffix
         ? 'facelift'
         : '';
-  return {
+  return normalizeBmwSeries({
     fullSlug: slug,
     modelKey,
     modelLabel: tokens.map(fmtToken).join(' ').trim(),
     chassisKey,
     chassisLabel: ((suffix.trim() || '') + (years ? ` (${years})` : '')).trim(),
     years,
-  };
+  }, make);
 }
 
 const ENGINE_FIXES: Array<[RegExp, string]> = [
