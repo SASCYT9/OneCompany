@@ -403,10 +403,10 @@ export default async function ShopProductDetailPage({
     // bodyHtmlUa/En → product.longDescription via shopCatalogServer) when it's
     // present — that's the full Background / Key features / Considerations /
     // Finished product copy. Fall back to the auto-generated enriched stub for
-    // SKUs that haven't been scraped yet.
+    // SKUs that haven't been scraped yet. We use length > 800 alone (no <h3>
+    // requirement) so single-section pages also render their rich text.
     const hasRichSupplier =
       typeof supplierLongDescription === 'string'
-      && /<h3\b/i.test(supplierLongDescription)
       && supplierLongDescription.length > 800;
     descriptionSections.introHtml = hasRichSupplier
       ? supplierLongDescription
