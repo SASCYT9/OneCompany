@@ -381,10 +381,45 @@ export function fixDo88UaDescriptionFragments(value: string): string {
   return out;
 }
 
+/**
+ * do88 supplier translations use stiff or wrong Ukrainian terminology
+ * for piping/heat-exchanger parts. Normalize to the phrasing real shoppers
+ * use ("пайпінг" not "труба", "пайпи" not "шланги", "теплообмінник" not
+ * the redundant "інтеркулер радіатор охолодження").
+ */
+function fixDo88UaTitleTerms(value: string): string {
+  if (!value) return value;
+  let out = value;
+
+  // "труба інтеркулера" family → "пайпінг інтеркулера".
+  // Order matters: more-specific patterns first so adjective gender stays correct.
+  out = out.replace(/нижня\s+труба\s+інтеркулера/giu, 'нижній пайпінг інтеркулера');
+  out = out.replace(/Шланг\s+проміжний\s+труба\s+інтеркулера/giu, 'проміжний пайпінг інтеркулера');
+  out = out.replace(/Шланг\s+труба\s+інтеркулера/giu, 'пайпінг інтеркулера');
+  // No \b around Cyrillic — JS \b only sees ASCII word chars, so it would never fire here.
+  out = out.replace(/труба\s+інтеркулера/giu, 'пайпінг інтеркулера');
+
+  // "впускні шланги (до) турбіни" → "впускні пайпи"
+  out = out.replace(/впускні\s+шланги\s+(?:до\s+)?турбіни/giu, 'впускні пайпи');
+
+  // "впуск та інтеркулер" → "інтеркулер" (redundant double-naming)
+  out = out.replace(/впуск\s+та\s+інтеркулер/giu, 'інтеркулер');
+
+  // "інтеркулер радіатор охолодження" → "теплообмінник інтеркулера"
+  out = out.replace(/інтеркулер\s+радіатор\s+охолодження/giu, 'теплообмінник інтеркулера');
+
+  // "Extra радіатор охолодження" → "додатковий радіатор охолодження"
+  // Trailing \b would fail (Cyrillic is non-word in JS). Use lookahead instead.
+  out = out.replace(/\bExtra\s+радіатор\s+охолодження(?![\p{L}\p{N}])/gu, 'додатковий радіатор охолодження');
+
+  return out;
+}
+
 function applyDo88LocaleFixes(locale: SupportedLocale, value: string): string {
   if (!value) return value;
   let out = fixDo88TitleTypos(value);
   if (locale === 'ua') {
+    out = fixDo88UaTitleTerms(out);
     out = fixDo88UaDescriptionFragments(out);
   }
   return out;
