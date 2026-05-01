@@ -391,8 +391,8 @@ export function BrabusShopProductDetailLayout({
         }
         .b-rc { background: #080808; text-decoration: none; display: flex; flex-direction: column; transition: background .3s; }
         .b-rc:hover { background: #0f0f0f; }
-        .b-rc-img { aspect-ratio: 4/3; position: relative; padding: 2.5rem; background: #f8f8f8; }
-        .b-rc-img img { object-fit: contain; width: 100%; height: 100%; mix-blend-mode: multiply; transition: transform .6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .b-rc-img { aspect-ratio: 4/3; position: relative; padding: 1.5rem; background: #0a0a0a; }
+        .b-rc-img img { object-fit: contain; width: 100%; height: 100%; transition: transform .6s cubic-bezier(0.4, 0, 0.2, 1); }
         .b-rc:hover .b-rc-img img { transform: scale(1.08); }
         .b-rc-body { padding: 2rem; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; }
         .b-rc-name { font-size: .85rem; font-weight: 300; color: #fff; margin: 0 0 1rem; line-height: 1.4; }

@@ -27,6 +27,7 @@ import { buildDo88EnrichedDescription } from '@/lib/do88DescriptionEnricher';
 import { buildShopStorefrontProductPathForProduct } from '@/lib/shopStorefrontRouting';
 import { BurgerShopProductDetailLayout } from './BurgerShopProductDetailLayout';
 import { BrabusShopProductDetailLayout } from './BrabusShopProductDetailLayout';
+import { isFactoryOnlyProduct } from '@/lib/brabusFactoryOnly';
 import {
   getProductsForDo88Collection,
   getDo88CollectionHandleForProduct,
@@ -581,7 +582,7 @@ export default async function ShopProductDetailPage({
         3
       )
     : [];
-  const relatedProducts = isUrbanBodyKitPage
+  const relatedProductsRaw = isUrbanBodyKitPage
     ? []
     : isUrbanMode
       ? categoryRelatedProducts.length
@@ -590,6 +591,12 @@ export default async function ShopProductDetailPage({
       : categoryRelatedProducts.length
         ? categoryRelatedProducts.slice(0, 3)
         : findRelatedProducts(product, allProducts, 3);
+  // For Brabus, drop factory-only items from related — they should not appear
+  // in suggestion lists even if matched by category/fitment.
+  const relatedProducts =
+    product.brand === 'Brabus' || mode === 'brabus'
+      ? relatedProductsRaw.filter((rp) => !isFactoryOnlyProduct(rp.sku))
+      : relatedProductsRaw;
   const relatedProductsWithPricing = relatedProducts.map((item) => ({
     item,
     price: computeCrossPrices(resolveShopProductPricing(item, viewerContext).effectivePrice),

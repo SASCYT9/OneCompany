@@ -1,0 +1,2226 @@
+{
+  "generatedAt": "2026-05-01T21:09:02.796Z",
+  "source": "prisma:ShopProduct where brand=Brabus",
+  "total": 980,
+  "uniqueInputSkus": 980,
+  "factoryOnlyCount": 443,
+  "skus": [
+    "000-805-90",
+    "000-805-91",
+    "000-805-93",
+    "167-240-00",
+    "167-263-99",
+    "167-265-99",
+    "167-295-99",
+    "167-450-00",
+    "167-463-99",
+    "167-465-99",
+    "167-500-99",
+    "167-666-94",
+    "167-666-95",
+    "177-004-00",
+    "177-420-00",
+    "177-450-00",
+    "177-666-59",
+    "177-666-89",
+    "177-666-99",
+    "177-999-89",
+    "177-999-99",
+    "192-263-99",
+    "192-265-99",
+    "192-295-99",
+    "192-455-99",
+    "192-460-99",
+    "192-463-99",
+    "192-505-99",
+    "192-852-01",
+    "192-852-02",
+    "192-las-00",
+    "206-063-00",
+    "206-220-00",
+    "206-263-99",
+    "206-265-99",
+    "206-295-99",
+    "206-450-00",
+    "206-463-99",
+    "214-006-00",
+    "214-220-00",
+    "214-240-00",
+    "214-263-99",
+    "214-265-99",
+    "214-295-99",
+    "214-460-99",
+    "214-463-99",
+    "214-505-99",
+    "217-263-99",
+    "217-265-990",
+    "217-280-99",
+    "217-460-99",
+    "217-463-99",
+    "217-465-99",
+    "217-650-860",
+    "217-678-63",
+    "217-857-02",
+    "217-858-00",
+    "217-858-01",
+    "217-858-04",
+    "217-858-06",
+    "217-858-07",
+    "217-858-10",
+    "217-858-12",
+    "217-858-13",
+    "217-858-14",
+    "217-858-15",
+    "217-858-17",
+    "217-858-19",
+    "217-862-01",
+    "217-862-03",
+    "217-865-12",
+    "217-865-14",
+    "217-868-12",
+    "217-999-263",
+    "217-999-273",
+    "217-999-274",
+    "217-999-295",
+    "217-999-296",
+    "217-999-860",
+    "217-999-870",
+    "217-999-960",
+    "217-999-970",
+    "223-070-00",
+    "223-070-10",
+    "223-220-00",
+    "223-230-00",
+    "223-263-99",
+    "223-265-99",
+    "223-295-99",
+    "223-420-00",
+    "223-460-99",
+    "223-463-99",
+    "223-505-99",
+    "223-678-63",
+    "223-857-01",
+    "223-857-03",
+    "223-857-04",
+    "223-858-01",
+    "223-858-06",
+    "223-858-07",
+    "223-858-09",
+    "223-858-10",
+    "223-858-13",
+    "223-858-15",
+    "223-858-17",
+    "223-862-01",
+    "223-865-12",
+    "223-865-14",
+    "223-890-CARBON-S",
+    "223-891-CARBON-S",
+    "223-895-CARBON-S",
+    "232-008-00-fl",
+    "232-012-00-fl",
+    "232-263-99",
+    "232-265-99",
+    "232-295-99",
+    "232-460-99",
+    "232-463-99",
+    "232-505-99",
+    "232-678-63",
+    "232-890-carbon",
+    "247-666-95",
+    "254-210-99",
+    "254-263-99",
+    "254-265-99",
+    "254-295-99",
+    "254-450-00",
+    "254-463-99",
+    "254-465-99",
+    "290-263-99",
+    "290-265-99",
+    "290-270-99",
+    "290-275-99",
+    "290-295-99",
+    "290-461-99",
+    "290-463-99",
+    "290-465-99",
+    "290-470-99",
+    "290-678-63",
+    "290-678-63-2",
+    "290-999-850",
+    "290-999-950",
+    "293-450-00",
+    "297-220-99",
+    "297-230-99",
+    "297-300-99",
+    "297-420-99",
+    "297-460-99",
+    "447-004-00",
+    "447-200-00",
+    "447-210-99",
+    "447-220-00",
+    "447-230-00",
+    "447-240-00",
+    "447-250-00",
+    "447-333-54-fl",
+    "447-333-540",
+    "447-333-84-99",
+    "447-333-94-fl",
+    "447-333-940",
+    "447-400-00",
+    "447-425-99",
+    "447-666-293",
+    "447-666-294",
+    "447-666-296",
+    "447-666-940",
+    "447-857-01",
+    "447-859-01",
+    "447-859-04",
+    "447-859-05",
+    "447-859-06",
+    "447-859-09",
+    "447-859-10",
+    "447-865-11",
+    "447-865-12",
+    "447-867-00",
+    "448-200-00e",
+    "448-200-00s",
+    "448-250-00",
+    "448-290-00e",
+    "448-290-00s",
+    "448-295-00",
+    "448-450-00",
+    "448-450-00se",
+    "448-550-00e",
+    "448-550-00s",
+    "464-008-30",
+    "464-018-00",
+    "464-070-00",
+    "464-070-10",
+    "464-234-00",
+    "464-234-2C-99",
+    "464-234-35",
+    "464-234-C-99",
+    "464-250-00",
+    "464-263-00",
+    "464-270-234-99",
+    "464-270-99",
+    "464-280-99",
+    "464-333-590",
+    "464-360-99",
+    "464-450-00",
+    "464-460-99",
+    "464-463-99",
+    "464-510-99",
+    "464-670-80",
+    "464-670-80-99",
+    "464-800-10",
+    "464-800-63",
+    "464-841-99",
+    "464-845-99",
+    "464-850-1000",
+    "464-857-00",
+    "464-857-02",
+    "464-857-03",
+    "464-857-13",
+    "464-857-14",
+    "464-857-15",
+    "464-857-16",
+    "464-857-17",
+    "464-857-18",
+    "464-859-08",
+    "464-861-00",
+    "464-862-01",
+    "464-864-12",
+    "464-865-11",
+    "464-865-12",
+    "464-868-11",
+    "464-871-00-EL-SG",
+    "464-871-00-EL-SR",
+    "464-872-00-EL-SR",
+    "464-890-CARBON",
+    "464-891-CARBON",
+    "464-892-CARBON",
+    "464-999-293",
+    "464-999-294",
+    "464-999-295",
+    "464-999-296",
+    "465-063-00",
+    "465-234-00",
+    "465-250-00",
+    "465-263-00",
+    "465-280-99",
+    "465-360-99",
+    "465-450-99",
+    "465-678-63-2-99",
+    "465-678-63-BEL",
+    "465-800-FSB-99",
+    "465-900-00",
+    "465-910-00",
+    "470-210-00",
+    "470-333-99",
+    "902-008-00",
+    "902-070-00",
+    "902-070-10",
+    "902-200-99",
+    "902-210-99",
+    "902-300-99",
+    "902-400-99",
+    "902-410-99",
+    "902-460-99",
+    "902-490-99",
+    "902-676-00",
+    "902-805-90",
+    "902-857-02",
+    "902-857-03",
+    "902-857-04",
+    "902-857-05",
+    "902-857-07",
+    "902-857-12",
+    "902-857-14",
+    "902-857-15",
+    "902-857-NN",
+    "902-890-CARBON",
+    "902-891-CARBON",
+    "902-895-CARBON",
+    "93-rrg-858-13",
+    "93_RRG-858-13",
+    "9TY-200-99",
+    "9TY-210-99",
+    "9TY-220-99",
+    "9TY-230-99",
+    "9TY-300-99",
+    "9TY-400-99",
+    "9TY-410-99",
+    "9TY-460-99",
+    "9TY-805-90",
+    "9TY-857-01",
+    "9TY-857-03",
+    "9TY-857-15",
+    "9TY-857-16",
+    "9TY-857-17",
+    "9TY-859-08",
+    "9TY-861-00",
+    "9TY-862-01",
+    "9TY-864-12",
+    "9TY-865-11",
+    "9TY-865-12",
+    "9TY-890-CARBON",
+    "A217-678-63",
+    "A217-678-65",
+    "RRC-280-99",
+    "RRC-285-99",
+    "RRC-460-99",
+    "RRC-670-12",
+    "RRC-852-01",
+    "RRC-852-02",
+    "RRC-890-CARBON-II",
+    "RRG-200-99",
+    "RRG-250-99",
+    "RRG-400-99",
+    "RRG-460-99",
+    "RRG-670-12L",
+    "RRG-805-90",
+    "RRG-857-01",
+    "RRG-858-03",
+    "RRG-858-06",
+    "RRG-858-07",
+    "RRG-858-12",
+    "RRG-858-17",
+    "RRG-862-01",
+    "RRG-865-12",
+    "RRG-865-14",
+    "RRG-890-CARBON",
+    "X167-240-00",
+    "X167-263-99",
+    "X167-265-99",
+    "X167-295-99",
+    "X167-450-00",
+    "X167-463-99",
+    "X167-500-99",
+    "X167-678-63",
+    "X167-805-100",
+    "X167-857-02",
+    "X167-861-00",
+    "X167-865-11",
+    "X167-865-12",
+    "X167M-200-99",
+    "X167M-220-99",
+    "X167M-400-99",
+    "X167M-500-99",
+    "X167M-678-63L",
+    "X167M-805-90",
+    "X167M-857-01",
+    "X167M-858-03",
+    "X167M-858-06",
+    "X167M-858-09",
+    "X167M-858-10",
+    "X167M-858-12",
+    "X167M-858-13",
+    "X167M-858-14",
+    "X167M-858-15",
+    "X167M-858-17",
+    "X167M-862-01",
+    "X167M-865-12",
+    "X167M-865-14",
+    "X167M-895-CARBON-S",
+    "Z223-600-600",
+    "Z223-670-80",
+    "Z223M-200-99",
+    "Z223M-220-99",
+    "Z223M-420-99",
+    "Z223M-858-03",
+    "Z223M-858-07",
+    "Z223M-858-12",
+    "Z223M-858-14",
+    "Z223M-896-CARBON-S",
+    "bc634-263-99",
+    "bc634-460-99",
+    "bc634-463-99",
+    "bc634-465-99",
+    "bc634-670-08",
+    "bc634-851-01",
+    "bc634-851-02",
+    "bc634-851-02-c",
+    "bc634-851-03",
+    "bc634-851-03-c",
+    "bc634-852-02",
+    "bc634-890-carbon",
+    "bc634-las-00",
+    "c167-460-99",
+    "c167-463-99",
+    "c167-465-99",
+    "c167-500-99",
+    "c167-678-63",
+    "hc-200-00",
+    "hc-210-00",
+    "hc-400-00",
+    "hc-450-00",
+    "hx-200-00",
+    "hx-210-00",
+    "hx-400-00",
+    "hx-450-00",
+    "hx11-004-00",
+    "l460-200-00",
+    "l460-200-99",
+    "l460-400-99",
+    "l460-410-99",
+    "l460-460-99",
+    "l460-500-99",
+    "lk-070-00",
+    "lk-678-00-99",
+    "lk-852-01",
+    "lk-852-02",
+    "s206-004-2wd",
+    "s206-004-4wd",
+    "s206-666-99",
+    "s214-006-00",
+    "uru-200-99",
+    "uru-450-99",
+    "uru-463-99",
+    "uru-851-01",
+    "uru-851-02",
+    "uru-852-01",
+    "uru-852-02",
+    "uru-890-carbon",
+    "v167-678-63",
+    "v167-857-02",
+    "v167-865-11",
+    "v167-865-12",
+    "w206-004-2wd",
+    "w206-004-4wd",
+    "w206-666-99",
+    "x247-004-00",
+    "x247-210-00",
+    "x247-220-00",
+    "x247-450-00",
+    "x290-857-01",
+    "x290-857-03",
+    "x290-857-07",
+    "x290-857-09",
+    "x290-857-13",
+    "x290-857-15",
+    "x290-857-16",
+    "x290-857-17",
+    "x290-857-18",
+    "x290-859-08",
+    "x290-861-00",
+    "x290-862-01",
+    "x290-864-12",
+    "x290-865-11",
+    "x290-865-12",
+    "x290-868-99"
+  ],
+  "reasons": {
+    "RRG-460-99": {
+      "reason": "body panel",
+      "title": "Carbon rear spoiler BRABUS based on Rolls – Royce Ghost"
+    },
+    "x247-004-00": {
+      "reason": "suspension install",
+      "title": "Sport Springs for Mercedes – X 247 – GLB 250 | AMG Line"
+    },
+    "RRC-280-99": {
+      "reason": "carbon body part",
+      "title": "Carbon hood attachment BRABUS based on Rolls – Royce Cullinan"
+    },
+    "9TY-857-03": {
+      "reason": "leather interior install",
+      "title": "Leather front armrest BRABUS based on Porsche Taycan"
+    },
+    "9TY-857-01": {
+      "reason": "leather interior install",
+      "title": "Leather Interior BRABUS based on Porsche Taycan"
+    },
+    "X167M-400-99": {
+      "reason": "body panel",
+      "title": "Rear skirt in PUR with carbon Rear diffuser for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "223-220-00": {
+      "reason": "front spoiler (DE)",
+      "title": "Frontspoiler for Mercedes – W 223 – AMG Line"
+    },
+    "167-465-99": {
+      "reason": "body panel",
+      "title": "Carbon rear fascia attachments for Mercedes – V 167 – AMG Line"
+    },
+    "167-666-94": {
+      "reason": "body kit/package",
+      "title": "BRABUS Body Package  for Mercedes – V 167 – AMG Line"
+    },
+    "x290-857-18": {
+      "reason": "leather interior install",
+      "title": "Leather sun visors for Mercedes – X 290 – AMG GT 53"
+    },
+    "9TY-410-99": {
+      "reason": "body panel",
+      "title": "Carbon rear skirt attachment BRABUS based on Porsche Taycan"
+    },
+    "x290-859-08": {
+      "reason": "leather interior install",
+      "title": "Leather A-,B- & C-pillars for Mercedes – X 290 – AMG GT 53"
+    },
+    "290-275-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "x290-868-99": {
+      "reason": "alcantara install",
+      "title": "Alcantara Headliner for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "RRG-858-07": {
+      "reason": "leather interior install",
+      "title": "Leather door panels BRABUS based on Rolls – Royce Ghost"
+    },
+    "x290-857-16": {
+      "reason": "leather interior install",
+      "title": "Leather trunk mat quilted  for Mercedes – X 290 – AMG GT 53"
+    },
+    "X167M-858-10": {
+      "reason": "leather interior install",
+      "title": "Leather sun visors for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "000-805-91": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel for Mercedes – C 217 – AMG S 63"
+    },
+    "465-910-00": {
+      "reason": "adventure package",
+      "title": "Adventure Spade for Mercedes – W 465 – AMG G 63"
+    },
+    "464-460-99": {
+      "reason": "body panel",
+      "title": "Rear spoiler with carbon inserts for Mercedes – W 463A – G 350 – G 500"
+    },
+    "Z223M-896-CARBON-S": {
+      "reason": "carbon body/interior package",
+      "title": "Carbon Package First – Class Fond for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "217-865-14": {
+      "reason": "leather interior install",
+      "title": "Leather dashboard underpaneling for Mercedes – C 217 – AMG S 63"
+    },
+    "c167-678-63": {
+      "reason": "exhaust system install",
+      "title": "Valve controlled sports exhaust system for Mercedes – C 167 – AMG GLE 63"
+    },
+    "464-018-00": {
+      "reason": "ride control suspension",
+      "title": "RideControl suspension for Mercedes – W 465 – G 450 – G 500"
+    },
+    "x290-857-07": {
+      "reason": "leather interior install",
+      "title": "Leather back armrest for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "464-999-295": {
+      "reason": "completion package",
+      "title": "Completion Package: Leather Floor for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-857-00": {
+      "reason": "alcantara install",
+      "title": "BRABUS leather / alcantara interior for Mercedes – W 463A – G 350 – G 500"
+    },
+    "448-295-00": {
+      "reason": "body panel",
+      "title": "Front Grille for Mercedes – W 447  – V 300 FROM 07/2024 | AMG Line"
+    },
+    "465-678-63-2-99": {
+      "reason": "exhaust system install",
+      "title": "Sport exhaust system with actively controlled flaps for Mercedes – W 465 – AMG G 63"
+    },
+    "214-265-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – W 214 – AMG E 53"
+    },
+    "465-678-63-BEL": {
+      "reason": "exhaust system install",
+      "title": "Illuminated sport exhaust system for Mercedes – W 465 – AMG G 63"
+    },
+    "465-250-00": {
+      "reason": "body panel",
+      "title": "Front fascia attachment for Mercedes – W 465 – G 450 – G 500"
+    },
+    "uru-450-99": {
+      "reason": "body panel",
+      "title": "Carbon Rear Spoiler Attachment BRABUS based on Lamborghini URUS SE"
+    },
+    "X167-463-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser for Mercedes – X 167 – AMG GLS 63"
+    },
+    "X167-500-99": {
+      "reason": "carbon body part",
+      "title": "Carbon fender add – on parts for Mercedes – X 167 – AMG GLS 63"
+    },
+    "l460-410-99": {
+      "reason": "carbon body part",
+      "title": "Carbon rear diffusor BRABUS based on Range Rover"
+    },
+    "214-220-00": {
+      "reason": "body panel",
+      "title": "Front spoiler for Mercedes – S 214 – AMG Line"
+    },
+    "X167-450-00": {
+      "reason": "body panel",
+      "title": "Rear spoiler for Mercedes – X 167 – AMG Line"
+    },
+    "X167M-200-99": {
+      "reason": "body panel",
+      "title": "Front spoiler PUR with carbon add – on for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "X167-861-00": {
+      "reason": "leather interior install",
+      "title": "Leather door panels for Mercedes – X 167 – AMG Line"
+    },
+    "X167M-858-15": {
+      "reason": "leather interior install",
+      "title": "Leather boot mat quilted for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "X167-865-11": {
+      "reason": "leather interior install",
+      "title": "Leather upper section of dashboard for Mercedes – X 167 – AMG Line"
+    },
+    "447-865-12": {
+      "reason": "leather interior install",
+      "title": "Leather lower section of dashboard for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "X167M-858-14": {
+      "reason": "leather interior install",
+      "title": "Leather floor mat quilted for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "X167M-500-99": {
+      "reason": "carbon body part",
+      "title": "Carbon fender add – on parts for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "902-300-99": {
+      "reason": "body panel",
+      "title": "Carbon side skirt attachments BRABUS based on Porsche 911 Turbo"
+    },
+    "902-805-90": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel rim BRABUS based on Porsche 911 Turbo"
+    },
+    "X167M-858-12": {
+      "reason": "leather interior install",
+      "title": "Leather vehicle flooring for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "902-490-99": {
+      "reason": "carbon body part",
+      "title": "Carbon rear cover BRABUS based on Porsche 911 Turbo"
+    },
+    "X167M-858-03": {
+      "reason": "leather interior install",
+      "title": "Leather business console for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "902-857-02": {
+      "reason": "leather interior install",
+      "title": "Leather upper section of dashboard BRABUS based on Porsche 911 Turbo"
+    },
+    "167-450-00": {
+      "reason": "body panel",
+      "title": "Rear spoiler for Mercedes – V 167 – AMG Line"
+    },
+    "902-857-04": {
+      "reason": "leather interior install",
+      "title": "Leather door panels BRABUS based on Porsche 911 Turbo"
+    },
+    "bc634-las-00": {
+      "reason": "glazed paint job",
+      "title": "Glazed trim parts interior BRABUS based on Bentley Continental GTC Speed"
+    },
+    "x290-865-11": {
+      "reason": "leather interior install",
+      "title": "Leather upper section of dashboard for Mercedes – X 290 – AMG GT 53"
+    },
+    "902-676-00": {
+      "reason": "valve-controlled sport exhaust",
+      "title": "Inconcel High Performance Valve controlled sports exhaust BRABUS based on Porsche 911 Turbo"
+    },
+    "hx-210-00": {
+      "reason": "body panel",
+      "title": "Front fascia inserts smart #1 BRABUS"
+    },
+    "902-400-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser BRABUS based on Porsche 911 Turbo"
+    },
+    "9TY-210-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments BRABUS based on Porsche Taycan"
+    },
+    "9TY-300-99": {
+      "reason": "body panel",
+      "title": "Carbon side skirt attachments BRABUS based on Porsche Taycan"
+    },
+    "9TY-865-12": {
+      "reason": "leather interior install",
+      "title": "Leather dashboard underpaneling BRABUS based on Porsche Taycan"
+    },
+    "bc634-465-99": {
+      "reason": "body panel",
+      "title": "Carbonr rear spoiler attachment BRABUS based on Bentley Continental GTC Speed"
+    },
+    "9TY-890-CARBON": {
+      "reason": "full interior package",
+      "title": "BRABUS Carbon Interior Package based on Porsche Taycan"
+    },
+    "167-500-99": {
+      "reason": "fender add-on",
+      "title": "Carbon fender add-on parts for Mercedes – V 167 – AMG GLE 63"
+    },
+    "RRC-670-12": {
+      "reason": "exhaust system install",
+      "title": "Sport exhaust system – Series II BRABUS based on Rolls – Royce Cullinan"
+    },
+    "x247-220-00": {
+      "reason": "body panel",
+      "title": "Front spoiler corners for Mercedes – X 247 – GLB 250 | AMG Line"
+    },
+    "RRG-805-90": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel rim BRABUS based on Rolls – Royce Ghost"
+    },
+    "167-263-99": {
+      "reason": "body panel",
+      "title": "Carbon Front Spoiler for Mercedes – C 167 – AMG GLE 63"
+    },
+    "RRG-858-17": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel airbag BRABUS based on Rolls – Royce Ghost"
+    },
+    "223-420-00": {
+      "reason": "body panel",
+      "title": "Rear fascia insert for Mercedes – W 223 – AMG Line"
+    },
+    "217-280-99": {
+      "reason": "body panel",
+      "title": "Carbon front spoiler lip for Mercedes – A 217 – AMG S 65"
+    },
+    "217-858-01": {
+      "reason": "leather interior install",
+      "title": "Leather interior for Mercedes – C 217 – AMG S 63"
+    },
+    "464-510-99": {
+      "reason": "carbon body part",
+      "title": "Carbon trim line for Mercedes – W 465 – G 450 - G 500"
+    },
+    "217-858-06": {
+      "reason": "leather interior install",
+      "title": "Leather center console for Mercedes – C 217 – AMG S 63"
+    },
+    "217-865-12": {
+      "reason": "leather interior install",
+      "title": "Leather upper section of dashboard for Mercedes – C 217 – AMG S 63"
+    },
+    "217-868-12": {
+      "reason": "leather interior install",
+      "title": "Leather / Alcantara headliner for Mercedes – C 217 – AMG S 63"
+    },
+    "464-862-01": {
+      "reason": "leather interior install",
+      "title": "Leather backs front seats for Mercedes – W 463A  – G 350 - G 500"
+    },
+    "902-857-05": {
+      "reason": "leather interior install",
+      "title": "Leather dashboard underpaneling BRABUS based on Porsche 911 Turbo"
+    },
+    "X167M-862-01": {
+      "reason": "leather interior install",
+      "title": "leather seat back cover front seats for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "464-234-C-99": {
+      "reason": "widestar body kit",
+      "title": "Carbon WIDESTAR inserts for Mercedes – W 463A  – G 350 - G 500"
+    },
+    "464-857-18": {
+      "reason": "leather interior install",
+      "title": "Leather sun visors for Mercedes – W 463A  – G 350 - G 500"
+    },
+    "9TY-862-01": {
+      "reason": "leather interior install",
+      "title": "Leather backs front seats BRABUS based on Porsche Taycan"
+    },
+    "217-858-10": {
+      "reason": "leather interior install",
+      "title": "Leather sun visors for Mercedes – C 217 – AMG S 63"
+    },
+    "447-250-00": {
+      "reason": "body panel",
+      "title": "Front fascia attachments for Mercedes – W 447  – V 250 - V 300 from 03/2019"
+    },
+    "s206-666-99": {
+      "reason": "body kit/package",
+      "title": "BRABUS Body Package for Mercedes – S 206 – AMG Line"
+    },
+    "192-463-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser for Mercedes – C 192 – AMG GT 63"
+    },
+    "448-550-00e": {
+      "reason": "body panel",
+      "title": "Signature side skirt attachments exclusive for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "206-463-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser for Mercedes – S 206 – AMG C 63"
+    },
+    "223-895-CARBON-S": {
+      "reason": "steering wheel install",
+      "title": "Carbon Signature spoke for steering wheel for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "464-871-00-EL-SR": {
+      "reason": "leather interior install",
+      "title": "leather floor mats black-red quilted for Mercedes – W 465 – G 450 - G 500"
+    },
+    "167-265-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – C 167 – AMG GLE 63"
+    },
+    "hc-210-00": {
+      "reason": "body panel",
+      "title": "Front fascia inserts smart #3 BRABUS"
+    },
+    "447-666-293": {
+      "reason": "basic install package",
+      "title": "Basic Package: Leather Interior for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "290-999-950": {
+      "reason": "body kit/package",
+      "title": "BRABUS Carbon Body Package  for Mercedes – X 290 – AMG GT 63"
+    },
+    "447-333-84-99": {
+      "reason": "body & sound package",
+      "title": "Brabus Body & Sound Package  for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "447-865-11": {
+      "reason": "leather interior install",
+      "title": "Leather upper section of dashboard for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "448-290-00s": {
+      "reason": "body panel",
+      "title": "Signature front grille sport for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "470-210-00": {
+      "reason": "body panel",
+      "title": "Front fascia attachments for Mercedes – W 470  – X 250 - X 350"
+    },
+    "232-265-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – R 232 – AMG SL 63"
+    },
+    "447-666-296": {
+      "reason": "completion package",
+      "title": "Completion Package: Leather Steering Wheel & Dashboard for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "232-460-99": {
+      "reason": "body panel",
+      "title": "Carbon rear spoiler attachment for Mercedes – R 232 – AMG SL 63"
+    },
+    "hc-450-00": {
+      "reason": "body panel",
+      "title": "Rear spoiler smart #3 BRABUS"
+    },
+    "254-210-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – X 254 – GLC 300 | AMG Line"
+    },
+    "x290-857-03": {
+      "reason": "leather interior install",
+      "title": "Leather front armrest for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "290-678-63": {
+      "reason": "exhaust system install",
+      "title": "SPORT EXHAUST SYSTEM WITH ACTIVELY CONTROLLED FLAPS for Mercedes – X 290 – AMG GT 63"
+    },
+    "232-678-63": {
+      "reason": "exhaust system install",
+      "title": "Valve controlled sports exhaust system for Mercedes – R 232 – AMG SL 63"
+    },
+    "w206-666-99": {
+      "reason": "body kit/package",
+      "title": "BRABUS Body Package for Mercedes – W 206 – AMG Line"
+    },
+    "uru-852-01": {
+      "reason": "masterpiece package",
+      "title": "BRABUS MASTERPIECE PACKAGE I BRABUS based on Lamborghini URUS SE"
+    },
+    "x290-861-00": {
+      "reason": "leather interior install",
+      "title": "Leather door panels for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "214-460-99": {
+      "reason": "body panel",
+      "title": "Carbon rear spoiler for Mercedes – W 214 – AMG E 53"
+    },
+    "290-999-850": {
+      "reason": "body & sound package",
+      "title": "BRABUS Carbon Body & Sound Package for Mercedes – X 290 – AMG GT 63"
+    },
+    "lk-852-01": {
+      "reason": "masterpiece package",
+      "title": "Masterpiece Package 1 BRABUS based on Range Rover"
+    },
+    "l460-200-00": {
+      "reason": "body panel",
+      "title": "Front Skirt BRABUS based on Range Rover"
+    },
+    "214-240-00": {
+      "reason": "body panel",
+      "title": "Front fascia inserts for Mercedes – S 214 – AMG Line"
+    },
+    "v167-865-11": {
+      "reason": "leather interior install",
+      "title": "Leather upper section of dashboard for Mercedes – V 167 – AMG Line"
+    },
+    "192-455-99": {
+      "reason": "body panel",
+      "title": "Carbon rear spoiler for Mercedes – C 192 – AMG GT 63"
+    },
+    "447-400-00": {
+      "reason": "body panel",
+      "title": "Rear Fascia Insert for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "448-450-00se": {
+      "reason": "body panel",
+      "title": "Signature Rear Spoiler for Mercedes – W 447  – V 300 FROM 07/2024 | AMG Line"
+    },
+    "448-550-00s": {
+      "reason": "body panel",
+      "title": "Signature side skirt attachments sport for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "206-063-00": {
+      "reason": "suspension install",
+      "title": "BRABUS Sport springs - height adjustable (for C 63 S AMG E Performance) for Mercedes – S 206 – AMG C 63"
+    },
+    "x290-862-01": {
+      "reason": "leather interior install",
+      "title": "Leather seat back covers front seats for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "447-867-00": {
+      "reason": "leather interior install",
+      "title": "Leather / Alcantara headliner for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "uru-463-99": {
+      "reason": "body panel",
+      "title": "Carbon Rear Diffuser BRABUS based on Lamborghini URUS SE"
+    },
+    "x290-865-12": {
+      "reason": "leather interior install",
+      "title": "Leather lower section of dashboard for Mercedes – X 290 – AMG GT 53"
+    },
+    "bc634-463-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser BRABUS based on Bentley Continental GTC Speed"
+    },
+    "290-678-63-2": {
+      "reason": "exhaust system install",
+      "title": "SPORT EXHAUST SYSTEM WITH ACTIVELY CONTROLLED FLAPS - GT 63 S E-Performance for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "177-999-89": {
+      "reason": "body & sound package",
+      "title": "BRABUS Body & Sound Package for Mercedes – W 177 – AMG A 35"
+    },
+    "177-420-00": {
+      "reason": "body panel",
+      "title": "Rear skirt for Mercedes – W 177 – A 160 - A 250 | AMG Line"
+    },
+    "447-666-940": {
+      "reason": "body kit/package",
+      "title": "BRABUS Body Package  for Mercedes – W 447  – V 220 - V 300 | AMG Line"
+    },
+    "206-295-99": {
+      "reason": "body panel",
+      "title": "Carbon front grille inserts for Mercedes – S 206 – AMG C 63"
+    },
+    "bc634-851-01": {
+      "reason": "signature package",
+      "title": "BRABUS SIGNATURE PACKAGE I BRABUS based on Bentley Continental GTC Speed"
+    },
+    "l460-460-99": {
+      "reason": "body panel",
+      "title": "Carbon Rear Spoiler BRABUS based on Range Rover"
+    },
+    "w206-004-2wd": {
+      "reason": "suspension install",
+      "title": "Sport springs - rear-wheel drive for Mercedes – W 206 – AMG Line"
+    },
+    "bc634-460-99": {
+      "reason": "body panel",
+      "title": "Carbon rear spoiler attachment BRABUS based on Bentley Continental GT Speed"
+    },
+    "465-234-00": {
+      "reason": "widestar body kit",
+      "title": "BRABUS WIDESTAR for Mercedes – W 465 – AMG G 63"
+    },
+    "v167-865-12": {
+      "reason": "leather interior install",
+      "title": "Leather lower section of dashboard for Mercedes – V 167 – AMG Line"
+    },
+    "Z223-670-80": {
+      "reason": "exhaust system install",
+      "title": "Valve controlled sports exhaust system S 580 Maybach for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "232-505-99": {
+      "reason": "fender add-on",
+      "title": "Carbon fender add-on parts for Mercedes – R 232 – AMG SL 63"
+    },
+    "167-240-00": {
+      "reason": "body panel",
+      "title": "Front fascia inserts  for Mercedes – C 167 – AMG Line"
+    },
+    "167-295-99": {
+      "reason": "body panel",
+      "title": "Carbon front grille inserts for Mercedes – C 167 – AMG GLE 63"
+    },
+    "217-999-274": {
+      "reason": "completion package",
+      "title": "Completion Package: Leather Headliner for Mercedes – C 217 – AMG S 63"
+    },
+    "000-805-90": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel rim for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "447-333-94-fl": {
+      "reason": "body kit/package",
+      "title": "BRABUS Body Package for Mercedes – W 447  – V 250 - V 300 from 03/2019"
+    },
+    "293-450-00": {
+      "reason": "body panel",
+      "title": "Rear spoiler for Mercedes – N 293 – EQC 400"
+    },
+    "447-859-10": {
+      "reason": "leather interior install",
+      "title": "Leather sun visors for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "000-805-93": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel back for Mercedes – C 217 – AMG S 63"
+    },
+    "254-295-99": {
+      "reason": "body panel",
+      "title": "Carbon front grille inserts for Mercedes – X 254 – AMG GLC 63"
+    },
+    "177-999-99": {
+      "reason": "body kit/package",
+      "title": "BRABUS Body Package for Mercedes – W 177 – AMG A 35"
+    },
+    "c167-460-99": {
+      "reason": "body panel",
+      "title": "Carbon rear spoiler for Mercedes – C 167 – Standard model"
+    },
+    "192-505-99": {
+      "reason": "fender add-on",
+      "title": "Carbon fender add-on parts for Mercedes – C 192 – AMG GT 63"
+    },
+    "167-463-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser for Mercedes – V 167 – AMG GLE 63"
+    },
+    "x290-857-09": {
+      "reason": "alcantara install",
+      "title": "Alcantara hat rack for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "167-666-95": {
+      "reason": "body kit/package",
+      "title": "BRABUS Body Package for Mercedes – X 167 – AMG Line"
+    },
+    "x290-857-17": {
+      "reason": "leather interior install",
+      "title": "Leather wheel airbag/impact absorber for Mercedes – X 290 – AMG GT 53"
+    },
+    "232-008-00-fl": {
+      "reason": "suspension install",
+      "title": "BRABUS Sport springs for Mercedes – C 192 – AMG GT 63"
+    },
+    "192-852-02": {
+      "reason": "masterpiece package",
+      "title": "BRABUS MASTERPIECE Package II for Mercedes – C 192 – AMG GT 63"
+    },
+    "217-263-99": {
+      "reason": "body panel",
+      "title": "Carbon front spoiler lip for Mercedes – C 217 – AMG S 63"
+    },
+    "177-004-00": {
+      "reason": "suspension install",
+      "title": "Sport Springs with coilover adjustment for Mercedes – W 177 – AMG A 45"
+    },
+    "177-450-00": {
+      "reason": "body panel",
+      "title": "Rear spoiler for Mercedes – W 177 – A 160 - A 250"
+    },
+    "192-las-00": {
+      "reason": "glazed paint job",
+      "title": "Glazed trim parts interior for Mercedes – C 192 – AMG GT 63"
+    },
+    "177-666-59": {
+      "reason": "full interior package",
+      "title": "BRABUS Interior Package Accessoires for Mercedes – W 177 – A 160 - A 250"
+    },
+    "177-666-99": {
+      "reason": "body kit/package",
+      "title": "BRABUS Body Package for Mercedes – W 177 – A 160 - A 250 | AMG Line"
+    },
+    "192-295-99": {
+      "reason": "body panel",
+      "title": "Carbon front grille inserts for Mercedes – C 192 – AMG GT 63"
+    },
+    "214-263-99": {
+      "reason": "body panel",
+      "title": "Carbon front spoiler for Mercedes – W 214 – AMG E 53"
+    },
+    "232-263-99": {
+      "reason": "body panel",
+      "title": "Carbon front spoiler for Mercedes – R 232 – AMG SL 63"
+    },
+    "192-263-99": {
+      "reason": "body panel",
+      "title": "Carbon Front Spoiler for Mercedes – C 192 – AMG GT 63"
+    },
+    "192-460-99": {
+      "reason": "body panel",
+      "title": "Carbon rear spoiler attachment for Mercedes – C 192 – AMG GT 63"
+    },
+    "217-465-99": {
+      "reason": "body panel",
+      "title": "Carbon rear fascia inserts for Mercedes – C 217 – AMG S 63"
+    },
+    "93-rrg-858-13": {
+      "reason": "leather interior install",
+      "title": "Leather trunk quilted BRABUS based on Rolls-Royce Ghost"
+    },
+    "206-263-99": {
+      "reason": "body panel",
+      "title": "Carbon Front Spoiler for Mercedes – S 206 – AMG C 63"
+    },
+    "206-265-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – S 206 – AMG C 63"
+    },
+    "177-666-89": {
+      "reason": "body & sound package",
+      "title": "BRABUS Body & Sound Package for Mercedes – W 177 – A 160 - A 250 | AMG Line"
+    },
+    "206-450-00": {
+      "reason": "body panel",
+      "title": "Rear spoiler for Mercedes – W 206 – AMG Line"
+    },
+    "447-859-05": {
+      "reason": "leather interior install",
+      "title": "Leather side doors for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "214-295-99": {
+      "reason": "body panel",
+      "title": "Carbon Front grille inserts for Mercedes – W 214 – AMG E 53"
+    },
+    "214-463-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser for Mercedes – W 214 – AMG E 53"
+    },
+    "214-505-99": {
+      "reason": "fender add-on",
+      "title": "Carbon fender add-on parts for Mercedes – W 214 – AMG E 53"
+    },
+    "223-070-10": {
+      "reason": "leather interior install",
+      "title": "Leather key cover black – red for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "223-865-12": {
+      "reason": "leather interior install",
+      "title": "Leather upper section of dashboard for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "232-890-carbon": {
+      "reason": "carbon interior install",
+      "title": "Signature Carbon package interior for Mercedes – R 232 – AMG SL 63"
+    },
+    "217-858-07": {
+      "reason": "leather interior install",
+      "title": "Leather door panels for Mercedes – C 217 – AMG S 63"
+    },
+    "470-333-99": {
+      "reason": "body kit/package",
+      "title": "BRABUS Body Package  for Mercedes – W 470  – X 250 - X 350"
+    },
+    "192-852-01": {
+      "reason": "masterpiece package",
+      "title": "BRABUS MASTERPIECE Package I for Mercedes – C 192 – AMG GT 63"
+    },
+    "447-666-294": {
+      "reason": "completion package",
+      "title": "Completion Package: Leather Headliner for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "447-240-00": {
+      "reason": "body panel",
+      "title": "Front spoiler attachments for Mercedes – W 447  – V 250 - V 300 from 03/2019"
+    },
+    "bc634-670-08": {
+      "reason": "exhaust system install",
+      "title": "Valve-controlled sports exhaust system BRABUS based on Bentley Continental GTC Speed"
+    },
+    "217-265-990": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – C 217 – AMG S 63"
+    },
+    "217-463-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser for Mercedes – C 217 – AMG S 63"
+    },
+    "217-999-870": {
+      "reason": "body & sound package",
+      "title": "BRABUS CARBON BODY & SOUND PACKAGE for Mercedes – C 217 – AMG S 63"
+    },
+    "223-070-00": {
+      "reason": "leather interior install",
+      "title": "Leather key cover black for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "217-678-63": {
+      "reason": "exhaust system install",
+      "title": "Sport exhaust system with actively controlled flaps for Mercedes – C 217 – AMG S 63"
+    },
+    "217-650-860": {
+      "reason": "body & sound package",
+      "title": "BRABUS CARBON BODY & SOUND PACKAGE for Mercedes – A 217 – AMG S 65"
+    },
+    "hx-450-00": {
+      "reason": "body panel",
+      "title": "Rear spoiler smart #1 BRABUS"
+    },
+    "217-999-273": {
+      "reason": "basic install package",
+      "title": "Basic Package: Leather Interior for Mercedes – C 217 – AMG S 63"
+    },
+    "217-858-00": {
+      "reason": "leather interior install",
+      "title": "Leather/Alcantara Interior for Mercedes – C 217 – AMG S 63"
+    },
+    "217-858-12": {
+      "reason": "leather interior install",
+      "title": "leather floor quilted for Mercedes – C 217 – AMG S 63"
+    },
+    "223-857-01": {
+      "reason": "leather interior install",
+      "title": "Leather interior with executive seats for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "223-857-03": {
+      "reason": "leather interior install",
+      "title": "Leather comfort headrests for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "223-858-07": {
+      "reason": "leather interior install",
+      "title": "Leather door panels for Mercedes – V 223 – AMG S 63"
+    },
+    "254-450-00": {
+      "reason": "body panel",
+      "title": "Rear spoiler for Mercedes – X 254 – GLC 300 | AMG Line"
+    },
+    "217-999-295": {
+      "reason": "completion package",
+      "title": "Completion Package: Leather Floor for Mercedes – C 217 – AMG S 63"
+    },
+    "217-999-296": {
+      "reason": "completion package",
+      "title": "Completion Package: Leather Steering Wheel & Dashboard for Mercedes – C 217 – AMG S 63"
+    },
+    "223-460-99": {
+      "reason": "body panel",
+      "title": "Carbon rear spoiler for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "223-858-06": {
+      "reason": "leather interior install",
+      "title": "Leather center console for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "217-999-860": {
+      "reason": "body & sound package",
+      "title": "BRABUS CARBON BODY & SOUND PACKAGE for Mercedes – A 217 – AMG S 63"
+    },
+    "223-265-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – V 223 – AMG S 63"
+    },
+    "217-999-970": {
+      "reason": "carbon body/interior package",
+      "title": "BRABUS CARBON PACKAGE BODY for Mercedes – C 217 – AMG S 63"
+    },
+    "223-890-CARBON-S": {
+      "reason": "signature package",
+      "title": "Carbon Signature Package Interior I for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "223-463-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser for Mercedes – V 223 – AMG S 63"
+    },
+    "223-230-00": {
+      "reason": "body panel",
+      "title": "Front fascia inserts for Mercedes – W 223 – AMG Line"
+    },
+    "223-295-99": {
+      "reason": "carbon body part",
+      "title": "Carbon front grill inserts for Mercedes – V 223 – AMG S 63"
+    },
+    "223-857-04": {
+      "reason": "alcantara install",
+      "title": "Alcantara cushion comfort headrests for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "290-263-99": {
+      "reason": "body panel",
+      "title": "Carbon front spoiler for Mercedes – X 290 – AMG GT 63"
+    },
+    "290-295-99": {
+      "reason": "carbon body part",
+      "title": "Carbon front grill inserts for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "223-862-01": {
+      "reason": "leather interior install",
+      "title": "Leather seat back covers front seats for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "290-465-99": {
+      "reason": "body panel",
+      "title": "Carbon rear fascia attachments for Mercedes – X 290 – AMG GT 63"
+    },
+    "447-230-00": {
+      "reason": "body panel",
+      "title": "Front fascia attachments for Mercedes – W 447  – V 220 - V 300 | AMG Line"
+    },
+    "232-012-00-fl": {
+      "reason": "suspension install",
+      "title": "BRABUS Sport springs - height adjustable for Mercedes – R 232 – AMG SL 63"
+    },
+    "232-295-99": {
+      "reason": "body panel",
+      "title": "Carbon front grille inserts for Mercedes – R 232 – AMG SL 63"
+    },
+    "214-006-00": {
+      "reason": "suspension install",
+      "title": "Sport springs - height adjustable for Mercedes – W 214 – AMG E 53"
+    },
+    "232-463-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser for Mercedes – R 232 – AMG SL 63"
+    },
+    "254-463-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser for Mercedes – X 254 – AMG GLC 63"
+    },
+    "x247-210-00": {
+      "reason": "body panel",
+      "title": "Front fascia inlays for Mercedes – X 247 – GLB 250 | AMG Line"
+    },
+    "447-859-01": {
+      "reason": "leather interior install",
+      "title": "Leather-trimmed A-, B- C- and D-pillars includingside strips for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "x247-450-00": {
+      "reason": "body panel",
+      "title": "Rear spoiler for Mercedes – X 247 – GLB 250 | AMG Line"
+    },
+    "247-666-95": {
+      "reason": "body kit/package",
+      "title": "BRABUS Body Package  for Mercedes – X 247 – GLB 250 | AMG Line"
+    },
+    "254-465-99": {
+      "reason": "body panel",
+      "title": "Carbon rear fascia attachments for Mercedes – X 254 – GLC 300 | AMG Line"
+    },
+    "192-265-99": {
+      "reason": "body panel",
+      "title": "Carbon front spoiler with dive planes for Mercedes – C 192 – AMG GT 63"
+    },
+    "254-263-99": {
+      "reason": "body panel",
+      "title": "Carbon Front Spoiler for Mercedes – X 254 – AMG GLC 63"
+    },
+    "254-265-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – X 254 – AMG GLC 63"
+    },
+    "447-200-00": {
+      "reason": "body panel",
+      "title": "Front spoiler lip for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "447-333-540": {
+      "reason": "full interior package",
+      "title": "BRABUS Interior Package Accessoires for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "290-461-99": {
+      "reason": "body panel",
+      "title": "Carbon rear wing attachment for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "290-265-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – X 290 – AMG GT 63"
+    },
+    "448-290-00e": {
+      "reason": "body panel",
+      "title": "Signature front grille exclusive for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "290-270-99": {
+      "reason": "body panel",
+      "title": "Carbon front spoiler for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "297-420-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser for Mercedes – V 297 – EQS"
+    },
+    "290-463-99": {
+      "reason": "body panel",
+      "title": "CARBON REAR DIFFUSER for Mercedes – X 290 – AMG GT 63"
+    },
+    "297-300-99": {
+      "reason": "body panel",
+      "title": "Carbon side skirt attachments for Mercedes – V 297 – EQS"
+    },
+    "bc634-263-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia BRABUS based on Bentley Continental GTC Speed"
+    },
+    "297-460-99": {
+      "reason": "body panel",
+      "title": "Carbon rear spoiler for Mercedes – V 297 – EQS"
+    },
+    "447-004-00": {
+      "reason": "suspension install",
+      "title": "Sport Springs for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "447-210-99": {
+      "reason": "body panel",
+      "title": "Front fascia attachments for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "447-220-00": {
+      "reason": "body panel",
+      "title": "Front spoiler attachments for Mercedes – W 447  – V 220 - V 300 | AMG Line"
+    },
+    "464-800-10": {
+      "reason": "adventure package",
+      "title": "Adventure front guard for Mercedes – W 463A – G 350 – G 500"
+    },
+    "447-333-54-fl": {
+      "reason": "full interior package",
+      "title": "BRABUS Interior Package Accessoires for Mercedes – W 447  – V 250 - V 300 from 03/2019"
+    },
+    "447-333-940": {
+      "reason": "body kit/package",
+      "title": "BRABUS Body Package  for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "447-425-99": {
+      "reason": "body panel",
+      "title": "Rear diffuser - Facelift for Mercedes – W 447  – V 220 - V 300 | AMG Line"
+    },
+    "448-450-00": {
+      "reason": "body panel",
+      "title": "Signature Rear spoiler for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "448-200-00e": {
+      "reason": "body panel",
+      "title": "Signature front skirt exclusive for Mercedes – W 447  – V 250 - V 300 from 03/2019"
+    },
+    "447-857-01": {
+      "reason": "leather interior install",
+      "title": "Leather Interior for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "223-858-13": {
+      "reason": "leather interior install",
+      "title": "Leather trunk quilted for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "447-859-04": {
+      "reason": "leather interior install",
+      "title": "Leather door panels for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "464-857-13": {
+      "reason": "leather interior install",
+      "title": "Leather vehicle flooring quilted for Mercedes – W 463A – G 350 – G 500"
+    },
+    "223-858-15": {
+      "reason": "leather interior install",
+      "title": "Leather trunk mat quilted for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "447-859-06": {
+      "reason": "leather interior install",
+      "title": "leather front seats for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "447-859-09": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel impact absorber for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "448-200-00s": {
+      "reason": "body panel",
+      "title": "Signature front skirt sport for Mercedes – W 447  – V 250 until 03/2019"
+    },
+    "448-250-00": {
+      "reason": "body panel",
+      "title": "Front skirt for Mercedes – W 447  – V 300 FROM 07/2024 | AMG Line"
+    },
+    "464-234-2C-99": {
+      "reason": "widestar body kit",
+      "title": "Carbon front fascia inserts for WIDESTAR for Mercedes – W 463A – G 350 – G 500"
+    },
+    "223-858-10": {
+      "reason": "leather interior install",
+      "title": "Leather sun visors for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "464-008-30": {
+      "reason": "adventure package",
+      "title": "Adventure height increase for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-234-00": {
+      "reason": "widestar body kit",
+      "title": "BRABUS WIDESTAR for Mercedes – W 463A – AMG G 63"
+    },
+    "464-857-14": {
+      "reason": "leather interior install",
+      "title": "Leather trunk quilted for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-857-16": {
+      "reason": "leather interior install",
+      "title": "Leather trunk mat quilted for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-234-35": {
+      "reason": "widestar body kit",
+      "title": "BRABUS WIDESTAR for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-250-00": {
+      "reason": "body panel",
+      "title": "Front fascia attachments for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-270-99": {
+      "reason": "underride protection panel",
+      "title": "Carbon underride protection for Mercedes – W 465 – G 450 – G 500"
+    },
+    "902-070-00": {
+      "reason": "leather interior install",
+      "title": "Leather key cover black BRABUS based on Porsche 911 Turbo"
+    },
+    "464-333-590": {
+      "reason": "full interior package",
+      "title": "Carbon Interior Package I – III for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-360-99": {
+      "reason": "carbon body part",
+      "title": "Carbon roof attachment for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-463-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-872-00-EL-SR": {
+      "reason": "leather interior install",
+      "title": "Leather trunk mat black-red quilted  for Mercedes – W 465 – G 450 - G 500"
+    },
+    "464-670-80": {
+      "reason": "exhaust system install",
+      "title": "Sport exhaust system with actively controlled flaps – G 500 for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-841-99": {
+      "reason": "adventure package",
+      "title": "Adventure carbon spare wheel holder for Mercedes – W 465 – G 450 – G 500"
+    },
+    "464-800-63": {
+      "reason": "adventure package",
+      "title": "Adventure front guard for Mercedes – W 463A – AMG G 63"
+    },
+    "464-857-03": {
+      "reason": "leather interior install",
+      "title": "Leather front armrest for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-865-12": {
+      "reason": "leather interior install",
+      "title": "Leather dashboard underpaneling for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-845-99": {
+      "reason": "carbon body part",
+      "title": "Carbon rear door attachment for Mercedes – W 465 – G 450 – G 500"
+    },
+    "464-857-02": {
+      "reason": "leather interior install",
+      "title": "Leather/Alcantara Interior for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-871-00-EL-SG": {
+      "reason": "leather interior install",
+      "title": "Leather floor mats black-grey quilted for Mercedes – W 465 – G 450 - G 500"
+    },
+    "464-865-11": {
+      "reason": "leather interior install",
+      "title": "Leather upper section of dashboard for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-891-CARBON": {
+      "reason": "full interior package",
+      "title": "Carbon Interior Package II for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-868-11": {
+      "reason": "leather interior install",
+      "title": "Leather / Alcantara headliner for Mercedes – W 463A – G 350 – G 500"
+    },
+    "902-857-NN": {
+      "reason": "leather interior install",
+      "title": "leather Floor quilted BRABUS based on Porsche 911 Turbo"
+    },
+    "465-263-00": {
+      "reason": "body panel",
+      "title": "Front fascia attachment for Mercedes – W 465 – AMG G 63"
+    },
+    "464-999-293": {
+      "reason": "basic install package",
+      "title": "Basic Package: Leather Interior for Mercedes – W 463A – G 350 – G 500"
+    },
+    "902-008-00": {
+      "reason": "suspension install",
+      "title": "BRABUS Sport springs – height adjustable BRABUS based on Porsche 911 Turbo"
+    },
+    "465-063-00": {
+      "reason": "suspension install",
+      "title": "BRABUS Sport springs – height adjustable for Mercedes – W 465 – AMG G 63"
+    },
+    "223-678-63": {
+      "reason": "exhaust system install",
+      "title": "Valve controlled sports exhaust system | AMG S63 E Performance for Mercedes – V 223 – AMG S 63"
+    },
+    "465-280-99": {
+      "reason": "powerdome (hood vent)",
+      "title": "Carbon powerdome for Mercedes – W 465 – G 450 – G 500"
+    },
+    "465-800-FSB-99": {
+      "reason": "widestar body kit",
+      "title": "WIDESTAR front guard for Mercedes – W 465 – AMG G 63"
+    },
+    "902-891-CARBON": {
+      "reason": "full interior package",
+      "title": "BRABUS Signature Carbon Interior Package II based on Porsche 911 Turbo"
+    },
+    "93_RRG-858-13": {
+      "reason": "leather interior install",
+      "title": "Leather trunk quilted BRABUS based on Rolls – Royce Ghost"
+    },
+    "465-900-00": {
+      "reason": "adventure package",
+      "title": "Adventure Axe for Mercedes – W 465 – AMG G 63"
+    },
+    "223-263-99": {
+      "reason": "body panel",
+      "title": "Carbon front spoiler for Mercedes – V 223 – AMG S 63"
+    },
+    "902-070-10": {
+      "reason": "leather interior install",
+      "title": "Leather key cover black – red BRABUS based on Porsche 911 Turbo"
+    },
+    "902-200-99": {
+      "reason": "body panel",
+      "title": "Carbon front spoiler BRABUS based on Porsche 911 Turbo"
+    },
+    "902-210-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia inserts BRABUS based on Porsche 911 Turbo"
+    },
+    "223-505-99": {
+      "reason": "carbon body part",
+      "title": "Carbon fender add – on parts for Mercedes – V 223 – AMG S 63"
+    },
+    "902-410-99": {
+      "reason": "body panel",
+      "title": "Carbon rear skirt attachment BRABUS based on Porsche 911 Turbo"
+    },
+    "217-862-03": {
+      "reason": "leather interior install",
+      "title": "Leather front seat covers for Mercedes – C 217 – AMG S 63"
+    },
+    "217-858-15": {
+      "reason": "leather interior install",
+      "title": "Leather trunk mat for Mercedes – C 217 – AMG S 63"
+    },
+    "902-460-99": {
+      "reason": "body panel",
+      "title": "Carbon rear spoiler BRABUS based on Porsche 911 Turbo"
+    },
+    "902-857-07": {
+      "reason": "leather interior install",
+      "title": "Leather – trimmed A – pillars BRABUS based on Porsche 911 Turbo"
+    },
+    "9TY-220-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia inserts BRABUS based on Porsche Taycan"
+    },
+    "c167-463-99": {
+      "reason": "body panel",
+      "title": "Carbon rear skirt for Mercedes – C 167 – AMG GLE 63"
+    },
+    "217-858-13": {
+      "reason": "leather interior install",
+      "title": "leather trunk quilted for Mercedes – C 217 – AMG S 63"
+    },
+    "902-857-12": {
+      "reason": "leather interior install",
+      "title": "leather floor mats quilted BRABUS based on Porsche 911 Turbo"
+    },
+    "217-858-14": {
+      "reason": "leather interior install",
+      "title": "Leather floor mat quilted for Mercedes – C 217 – AMG S 63"
+    },
+    "902-890-CARBON": {
+      "reason": "full interior package",
+      "title": "BRABUS Signature Carbon Interior Package I based on Porsche 911 Turbo"
+    },
+    "217-862-01": {
+      "reason": "leather interior install",
+      "title": "Leather backs front seats for Mercedes – C 217 – AMG S 63"
+    },
+    "9TY-460-99": {
+      "reason": "body panel",
+      "title": "Carbon rear spoiler BRABUS based on Porsche Taycan"
+    },
+    "9TY-400-99": {
+      "reason": "body panel",
+      "title": "Carbon rear skirt insert BRABUS based on Porsche Taycan"
+    },
+    "9TY-805-90": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel rim BRABUS based on Porsche Taycan"
+    },
+    "9TY-857-15": {
+      "reason": "leather interior install",
+      "title": "Leather floor mats quilted BRABUS based on Porsche Taycan"
+    },
+    "9TY-857-16": {
+      "reason": "leather interior install",
+      "title": "Leather trunk mat quilted BRABUS based on Porsche Taycan"
+    },
+    "9TY-857-17": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel impact absorber BRABUS based on Porsche Taycan"
+    },
+    "9TY-859-08": {
+      "reason": "leather interior install",
+      "title": "Leather – trimmed A – , B – and C – pillars BRABUS based on Porsche Taycan"
+    },
+    "9TY-861-00": {
+      "reason": "leather interior install",
+      "title": "Leather door panels BRABUS based on Porsche Taycan"
+    },
+    "9TY-865-11": {
+      "reason": "leather interior install",
+      "title": "Leather upper section of dashboard BRABUS based on Porsche Taycan"
+    },
+    "217-858-17": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel impact absorber for Mercedes – C 217 – AMG S 63"
+    },
+    "c167-500-99": {
+      "reason": "fender add-on",
+      "title": "Carbon fender add-on parts for Mercedes – C 167 – AMG GLE 63"
+    },
+    "bc634-851-02": {
+      "reason": "signature package",
+      "title": "BRABUS SIGNATURE PACKAGE II BRABUS based on Bentley Continental GT Speed"
+    },
+    "bc634-852-02": {
+      "reason": "masterpiece package",
+      "title": "BRABUS Masterpiece Package II BRABUS based on Bentley Continental GT Speed"
+    },
+    "bc634-851-02-c": {
+      "reason": "signature package",
+      "title": "BRABUS SIGNATURE PACKAGE II BRABUS based on Bentley Continental GTC Speed"
+    },
+    "bc634-851-03-c": {
+      "reason": "signature package",
+      "title": "BRABUS SIGNATURE PACKAGE III BRABUS based on Bentley Continental GTC Speed"
+    },
+    "bc634-851-03": {
+      "reason": "signature package",
+      "title": "BRABUS SIGNATURE PACKAGE III BRABUS based on Bentley Continental GT Speed"
+    },
+    "hx-200-00": {
+      "reason": "body panel",
+      "title": "Front spoiler smart #1 BRABUS"
+    },
+    "bc634-890-carbon": {
+      "reason": "carbon body/interior package",
+      "title": "Signature Carbon Package BRABUS based on Bentley Continental GTC Speed"
+    },
+    "c167-465-99": {
+      "reason": "body panel",
+      "title": "Carbon rear fascia inserts for Mercedes – C 167 – AMG Line"
+    },
+    "hc-200-00": {
+      "reason": "body panel",
+      "title": "Front Spoiler smart #3 BRABUS"
+    },
+    "217-460-99": {
+      "reason": "body panel",
+      "title": "Carbon rear spoiler for Mercedes – C 217 – AMG S 63"
+    },
+    "hc-400-00": {
+      "reason": "body panel",
+      "title": "Rear diffuser smart #3 BRABUS"
+    },
+    "lk-678-00-99": {
+      "reason": "exhaust system install",
+      "title": "Valve controlled sport exhaust system - P530 BRABUS based on Range Rover"
+    },
+    "hx-400-00": {
+      "reason": "body panel",
+      "title": "Rear diffuser smart #1 BRABUS"
+    },
+    "lk-852-02": {
+      "reason": "masterpiece package",
+      "title": "Masterpiece Package 2 BRABUS based on Range Rover"
+    },
+    "v167-678-63": {
+      "reason": "exhaust system install",
+      "title": "Valve controlled sports exhaust system with carbon titanium tailpipes for Mercedes – V 167 – AMG GLE 63"
+    },
+    "217-999-263": {
+      "reason": "basic install package",
+      "title": "Basic Package: Leather Interior for Mercedes – A 217 – AMG S 63"
+    },
+    "hx11-004-00": {
+      "reason": "suspension install",
+      "title": "Sport springs smart #3 BRABUS"
+    },
+    "l460-200-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments BRABUS based on Range Rover"
+    },
+    "l460-500-99": {
+      "reason": "fender add-on",
+      "title": "Carbon fender add-on parts BRABUS based on Range Rover"
+    },
+    "lk-070-00": {
+      "reason": "leather interior install",
+      "title": "Leather key cover black BRABUS based on Range Rover"
+    },
+    "RRG-857-01": {
+      "reason": "leather interior install",
+      "title": "Leather Interior BRABUS based on Rolls – Royce Ghost"
+    },
+    "uru-890-carbon": {
+      "reason": "carbon interior install",
+      "title": "Carbon Package Interior I BRABUS based on Lamborghini URUS SE"
+    },
+    "uru-200-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia BRABUS based on Lamborghini URUS SE"
+    },
+    "RRC-460-99": {
+      "reason": "body panel",
+      "title": "Carbon Rear spoiler BRABUS based on Rolls – Royce Cullinan"
+    },
+    "RRC-852-01": {
+      "reason": "masterpiece package",
+      "title": "Brabus MASTERPIECE Package I BRABUS based on Rolls – Royce Cullinan"
+    },
+    "RRC-852-02": {
+      "reason": "masterpiece package",
+      "title": "Brabus MASTERPIECE Package II BRABUS based on Rolls – Royce Cullinan"
+    },
+    "uru-851-01": {
+      "reason": "signature package",
+      "title": "BRABUS SIGNATURE PACKAGE I BRABUS based on Lamborghini URUS SE"
+    },
+    "uru-851-02": {
+      "reason": "signature package",
+      "title": "BRABUS SIGNATURE PACKAGE II BRABUS based on Lamborghini URUS SE"
+    },
+    "RRC-890-CARBON-II": {
+      "reason": "full interior package",
+      "title": "BRABUS Signature Carbon Interior Package Series II based on Rolls – Royce Cullinan"
+    },
+    "RRG-200-99": {
+      "reason": "body panel",
+      "title": "Carbon front spoiler BRABUS based on Rolls – Royce Ghost"
+    },
+    "RRG-400-99": {
+      "reason": "carbon body part",
+      "title": "Carbon rear insert BRABUS based on Rolls – Royce Ghost"
+    },
+    "RRG-865-12": {
+      "reason": "leather interior install",
+      "title": "Leather dashboard Upper section BRABUS based on Rolls – Royce Ghost"
+    },
+    "RRG-670-12L": {
+      "reason": "exhaust system install",
+      "title": "Valve controlled sports exhaust system BRABUS based on Rolls – Royce Ghost"
+    },
+    "s214-006-00": {
+      "reason": "suspension install",
+      "title": "Sport springs - height adjustable for Mercedes – S 214 – AMG E 53"
+    },
+    "RRG-858-06": {
+      "reason": "leather interior install",
+      "title": "Leather center console BRABUS based on Rolls – Royce Ghost"
+    },
+    "X167-240-00": {
+      "reason": "body panel",
+      "title": "Front fascia attachments for Mercedes – X 167 – AMG Line"
+    },
+    "RRG-865-14": {
+      "reason": "leather interior install",
+      "title": "Leather dashboard underpaneling BRABUS based on Rolls – Royce Ghost"
+    },
+    "RRG-890-CARBON": {
+      "reason": "full interior package",
+      "title": "BRABUS Carbon Interior Package based on Rolls – Royce Ghost"
+    },
+    "x290-857-01": {
+      "reason": "leather interior install",
+      "title": "Leather interior for Mercedes – X 290 – AMG GT 53"
+    },
+    "v167-857-02": {
+      "reason": "leather interior install",
+      "title": "Leather Interior for Mercedes – V 167 – AMG Line"
+    },
+    "X167M-858-13": {
+      "reason": "leather interior install",
+      "title": "Leather trunk quilted for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "uru-852-02": {
+      "reason": "masterpiece package",
+      "title": "BRABUS MASTERPIECE PACKAGE II BRABUS based on Lamborghini URUS SE"
+    },
+    "w206-004-4wd": {
+      "reason": "suspension install",
+      "title": "Sport springs - 4MATIC for Mercedes – W 206 – AMG Line"
+    },
+    "X167M-805-90": {
+      "reason": "leather interior install",
+      "title": "LEATHER STEERING WHEEL RIM for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "X167M-857-01": {
+      "reason": "leather interior install",
+      "title": "Leather interior for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "X167-295-99": {
+      "reason": "body panel",
+      "title": "Carbon front grille inserts for Mercedes – X 167 – AMG GLS 63"
+    },
+    "X167-805-100": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel impact absorber for Mercedes – X 167 – AMG Line"
+    },
+    "X167M-865-14": {
+      "reason": "leather interior install",
+      "title": "Leather lower section of dashboard for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "X167M-895-CARBON-S": {
+      "reason": "steering wheel install",
+      "title": "Carbon spoke for steering wheel for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "x290-857-13": {
+      "reason": "leather interior install",
+      "title": "Leather floor quilted for Mercedes – X 290 – AMG GT 53"
+    },
+    "x290-857-15": {
+      "reason": "leather interior install",
+      "title": "Leather floor mats quilted for Mercedes – X 290 – AMG GT 53"
+    },
+    "x290-864-12": {
+      "reason": "leather interior install",
+      "title": "Leather centre console for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "Z223M-858-12": {
+      "reason": "leather interior install",
+      "title": "Leather vehicle flooring quilted for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "Z223-600-600": {
+      "reason": "exhaust system install",
+      "title": "Valve controlled sports exhaust system S 680 Maybach for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "Z223M-858-14": {
+      "reason": "leather interior install",
+      "title": "Leather floor mats leather quilted for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "Z223M-220-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "Z223M-420-99": {
+      "reason": "body panel",
+      "title": "Carbon Rear diffuser for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "902-857-03": {
+      "reason": "leather interior install",
+      "title": "Leather center console BRABUS based on Porsche 911 Turbo"
+    },
+    "464-070-00": {
+      "reason": "leather interior install",
+      "title": "Leather key cover black for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "X167M-858-06": {
+      "reason": "leather interior install",
+      "title": "Leather centre console for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "465-360-99": {
+      "reason": "carbon body part",
+      "title": "Carbon roof attachment for Mercedes – W 465 – G 450 – G 500"
+    },
+    "464-864-12": {
+      "reason": "leather interior install",
+      "title": "Leather center console for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-857-17": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel impact absorber for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-857-15": {
+      "reason": "leather interior install",
+      "title": "leather Floor mats quilted for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-450-00": {
+      "reason": "body panel",
+      "title": "Rear spoiler for Mercedes – W 465 – G 450 – G 500"
+    },
+    "464-859-08": {
+      "reason": "leather interior install",
+      "title": "Leather – trimmed A – , B – C – and D – pillars for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-999-296": {
+      "reason": "completion package",
+      "title": "Completion Package: Leather Steering Wheel & Dashboard for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-999-294": {
+      "reason": "completion package",
+      "title": "Completion Package: Leather Headliner for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-890-CARBON": {
+      "reason": "full interior package",
+      "title": "Carbon Interior Package I for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-670-80-99": {
+      "reason": "exhaust system install",
+      "title": "SPORT EXHAUST SYSTEM WITH ACTIVELY CONTROLLED FLAPS – G 500 (from MY 2021) for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-270-234-99": {
+      "reason": "widestar body kit",
+      "title": "Carbon underride protection for WIDESTAR for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-280-99": {
+      "reason": "powerdome (hood vent)",
+      "title": "Carbon powerdome for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-263-00": {
+      "reason": "body panel",
+      "title": "Front fascia attachment for Mercedes – W 463A – AMG G 63"
+    },
+    "297-230-99": {
+      "reason": "carbon body part",
+      "title": "Carbon front add – on parts for Mercedes – V 297 – EQS"
+    },
+    "297-220-99": {
+      "reason": "body panel",
+      "title": "Carbon front spoiler for Mercedes – V 297 – EQS"
+    },
+    "464-850-1000": {
+      "reason": "bucket seats install",
+      "title": "Bucket seat system with middle console for Mercedes – W 463A – G 350 – G 500"
+    },
+    "465-450-99": {
+      "reason": "body panel",
+      "title": "Rear spoiler with carbon inserts for Mercedes – W 465 – G 450 - G 500"
+    },
+    "X167M-858-09": {
+      "reason": "leather interior install",
+      "title": "Leather A – , B – ,C – and D – columns for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "464-070-10": {
+      "reason": "leather interior install",
+      "title": "Leather key cover black – red for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "RRC-285-99": {
+      "reason": "carbon body part",
+      "title": "Carbon hood attachment – Series II BRABUS based on Rolls – Royce Cullinan"
+    },
+    "RRG-858-12": {
+      "reason": "leather interior install",
+      "title": "Leather vehicle flooring quilted BRABUS based on Rolls – Royce Ghost"
+    },
+    "217-858-19": {
+      "reason": "leather interior install",
+      "title": "Leather – trimmed A – , B – and C – pillars for Mercedes – C 217 – AMG S 63"
+    },
+    "223-858-09": {
+      "reason": "leather interior install",
+      "title": "Leather – trimmed A – , B – and C – pillars for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "l460-400-99": {
+      "reason": "body panel",
+      "title": "Carbon rear skirt attachment BRABUS based on Range Rover"
+    },
+    "290-470-99": {
+      "reason": "body panel",
+      "title": "Carbon rear diffuser for GT 63 S E-Performance for Mercedes – X 290 – AMG GT 63 Facelift"
+    },
+    "s206-004-2wd": {
+      "reason": "suspension install",
+      "title": "Sport springs - rear-wheel drive for Mercedes – S 206 – AMG Line"
+    },
+    "s206-004-4wd": {
+      "reason": "suspension install",
+      "title": "Sport springs - 4MATIC for Mercedes – S 206 – AMG Line"
+    },
+    "206-220-00": {
+      "reason": "body panel",
+      "title": "Front spoiler corners for Mercedes – S 206 – AMG Line"
+    },
+    "464-892-CARBON": {
+      "reason": "full interior package",
+      "title": "Carbon Interior Package III for Mercedes – W 463A – G 350 – G 500"
+    },
+    "464-861-00": {
+      "reason": "leather interior install",
+      "title": "Leather door panels for Mercedes – W 463A – G 350 – G 500"
+    },
+    "X167-857-02": {
+      "reason": "leather interior install",
+      "title": "Leather Interior for Mercedes – X 167 – AMG Line"
+    },
+    "X167M-858-17": {
+      "reason": "steering wheel install",
+      "title": "STEERING WHEEL AIRBAG TO BE COVERED IN LEATHER for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "X167M-865-12": {
+      "reason": "leather interior install",
+      "title": "Leather upper section of dashboard for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "902-857-15": {
+      "reason": "leather interior install",
+      "title": "Leather Interior BRABUS based on Porsche 911 Turbo"
+    },
+    "902-857-14": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel impact absorber BRABUS based on Porsche 911 Turbo"
+    },
+    "217-857-02": {
+      "reason": "leather interior install",
+      "title": "Leather headrests for Mercedes – C 217 – AMG S 63"
+    },
+    "217-858-04": {
+      "reason": "leather interior install",
+      "title": "Leather center console between the rear seats for Mercedes – C 217 – AMG S 63"
+    },
+    "Z223M-858-07": {
+      "reason": "leather interior install",
+      "title": "Leather door panels for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "223-858-01": {
+      "reason": "leather interior install",
+      "title": "Leather interior for Mercedes – V 223 – AMG S 63"
+    },
+    "223-891-CARBON-S": {
+      "reason": "signature package",
+      "title": "Carbon Signature Package Interior II for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "223-858-17": {
+      "reason": "leather interior install",
+      "title": "Leather steering wheel impact absorber for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "223-865-14": {
+      "reason": "leather interior install",
+      "title": "Leather dashboard underpaneling for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "Z223M-858-03": {
+      "reason": "leather interior install",
+      "title": "Leather business console for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "217-999-960": {
+      "reason": "carbon body/interior package",
+      "title": "Brabus Carbon Package Body for Mercedes – A 217 – AMG S 63"
+    },
+    "A217-678-65": {
+      "reason": "exhaust system install",
+      "title": "Sport exhaust system with actively controlled flaps for Mercedes – A 217 – AMG S 65"
+    },
+    "9TY-864-12": {
+      "reason": "leather interior install",
+      "title": "Leather center console BRABUS based on Porsche Taycan"
+    },
+    "902-895-CARBON": {
+      "reason": "steering wheel install",
+      "title": "Signature Carbon Steering Wheel Clasp BRABUS based on Porsche 911 Turbo"
+    },
+    "X167-865-12": {
+      "reason": "leather interior install",
+      "title": "Leather lower section of dashboard for Mercedes – X 167 – AMG Line"
+    },
+    "RRG-862-01": {
+      "reason": "leather interior install",
+      "title": "leather seat back cover front seats BRABUS based on Rolls-Royce Ghost"
+    },
+    "RRG-858-03": {
+      "reason": "leather interior install",
+      "title": "Leather business console including armrest BRABUS based on Rolls – Royce Ghost"
+    },
+    "9TY-200-99": {
+      "reason": "front spoiler (DE)",
+      "title": "Carbon Frontspoiler BRABUS based on Porsche Taycan"
+    },
+    "X167-263-99": {
+      "reason": "body panel",
+      "title": "Carbon Front Spoiler for Mercedes – X 167 – AMG GLS 63"
+    },
+    "Z223M-200-99": {
+      "reason": "body panel",
+      "title": "Carbon front spoiler for Mercedes – Z 223 – Maybach S 580 / S 680"
+    },
+    "9TY-230-99": {
+      "reason": "body panel",
+      "title": "Centered carbon front fascia attachment BRABUS based on Porsche Taycan"
+    },
+    "X167-265-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – X 167 – AMG GLS 63"
+    },
+    "RRG-250-99": {
+      "reason": "carbon body part",
+      "title": "Carbon front attachments BRABUS based on Rolls – Royce Ghost"
+    },
+    "X167M-220-99": {
+      "reason": "body panel",
+      "title": "Carbon front fascia attachments for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "X167-678-63": {
+      "reason": "valve-controlled sport exhaust",
+      "title": "Valve controlled sports exhaust for Mercedes – X 167 – AMG GLS 63"
+    },
+    "X167M-678-63L": {
+      "reason": "exhaust system install",
+      "title": "Valve controlled sports exhaust system for Mercedes – X 167 – Maybach GLS 600"
+    },
+    "A217-678-63": {
+      "reason": "exhaust system install",
+      "title": "Sport exhaust system with actively controlled flaps for Mercedes – A 217 – AMG S 63"
+    }
+  }
+}

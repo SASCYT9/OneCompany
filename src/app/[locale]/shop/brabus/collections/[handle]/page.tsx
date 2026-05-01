@@ -6,6 +6,7 @@ import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { getProductsForBrabusCollection } from '@/lib/brabusCollectionMatcher';
+import { isFactoryOnlyProduct } from '@/lib/brabusFactoryOnly';
 import BrabusCollectionHero from '../../../components/BrabusCollectionHero';
 import BrabusCollectionProductGrid from '../../../components/BrabusCollectionProductGrid';
 
@@ -55,7 +56,9 @@ export default async function BrabusCollectionHandlePage({ params }: Props) {
     null
   );
 
-  const collectionProducts = getProductsForBrabusCollection(products, handle);
+  const collectionProducts = getProductsForBrabusCollection(products, handle).filter(
+    (p) => !isFactoryOnlyProduct(p.sku),
+  );
 
   // Sort: Full Kit / Widetrack / Комплект first, then by price desc
   const sortedProducts = [...collectionProducts].sort((a, b) => {
