@@ -16,7 +16,7 @@ import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import AkrapovicSpotlightGrid from "./AkrapovicSpotlightGrid";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
-import { BRAND_PATTERNS, LINE_PATTERNS, extractVehicleBrands, extractProductLine, extractVehicleModelsForBrand, extractVehicleModelNamesForBrand, compareVehicleModelKeys } from "@/lib/akrapovicFilterUtils";
+import { BRAND_PATTERNS, LINE_PATTERNS, extractVehicleBrands, extractProductLine, extractVehicleModelsForBrand, extractVehicleModelNamesForBrand, extractChassisForBrandAndModel, compareVehicleModelKeys } from "@/lib/akrapovicFilterUtils";
 
 type AkrapovicVehicleFilterProps = {
   locale: SupportedLocale;
@@ -135,7 +135,13 @@ export default function AkrapovicVehicleFilter({
       const title = p.title?.en || localizeShopProductTitle('en', p);
       if (activeModel !== "all"
           && !extractVehicleModelNamesForBrand(title, activeBrand).includes(activeModel)) continue;
-      for (const body of extractVehicleModelsForBrand(title, activeBrand)) {
+      // When a model is selected, attribute chassis per-segment so that products
+      // covering multiple models don't leak (e.g. BMW M2 (F87) / M3 (G80) only
+      // contributes F87 under M2 and G80 under M3).
+      const codes = activeModel !== "all"
+        ? extractChassisForBrandAndModel(title, activeBrand, activeModel)
+        : extractVehicleModelsForBrand(title, activeBrand);
+      for (const body of codes) {
         if (body && body !== 'Other') bodies.set(body, (bodies.get(body) || 0) + 1);
       }
     }
@@ -175,7 +181,10 @@ export default function AkrapovicVehicleFilter({
     });
     if (activeBody !== "all" && activeBrand !== "all") result = result.filter(p => {
       const t = p.title?.en || localizeShopProductTitle('en', p);
-      return extractVehicleModelsForBrand(t, activeBrand).includes(activeBody);
+      const codes = activeModel !== "all"
+        ? extractChassisForBrandAndModel(t, activeBrand, activeModel)
+        : extractVehicleModelsForBrand(t, activeBrand);
+      return codes.includes(activeBody);
     });
     if (activeLine !== "all") result = result.filter(p => {
       const t = p.title?.en || localizeShopProductTitle('en', p);

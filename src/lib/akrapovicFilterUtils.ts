@@ -36,8 +36,8 @@ export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: R
     { model: "Taycan",   pattern: /\bTaycan\b/i },
   ],
   BMW: [
-    { model: "M135i/M140i", pattern: /\bM1[34]0[id]\b/i },
-    { model: "M235i/M240i", pattern: /\bM2[34]0[id]\b/i },
+    { model: "M135i/M140i", pattern: /\b(?:M135[id]|M140[id])\b/i },
+    { model: "M235i/M240i", pattern: /\b(?:M235[id]|M240[id])\b/i },
     { model: "M340i/M340d", pattern: /\bM340[id]\b/i },
     { model: "M440i/M440d", pattern: /\bM440[id]\b/i },
     { model: "M550i",       pattern: /\bM550[id]\b/i },
@@ -46,11 +46,11 @@ export const MODEL_PATTERNS_BY_BRAND: Record<string, { model: string; pattern: R
     { model: "X4 M",        pattern: /\bX4\s*M\b/i },
     { model: "X5 M",        pattern: /\bX5\s*M\b/i },
     { model: "X6 M",        pattern: /\bX6\s*M\b/i },
-    { model: "M2",          pattern: /\bM2\b(?!\s?[34]0)/i },
-    { model: "M3",          pattern: /\bM3\b(?!\s?40)/i },
-    { model: "M4",          pattern: /\bM4\b(?!\s?40)/i },
-    { model: "M5",          pattern: /\bM5\b(?!\s?50)/i },
-    { model: "M8",          pattern: /\bM8\b(?!\s?50)/i },
+    { model: "M2",          pattern: /\bM2\b/i },
+    { model: "M3",          pattern: /\bM3\b/i },
+    { model: "M4",          pattern: /\bM4\b/i },
+    { model: "M5",          pattern: /\bM5\b/i },
+    { model: "M8",          pattern: /\bM8\b/i },
     { model: "Z4",          pattern: /\bZ4\b/i },
   ],
   Audi: [
@@ -154,6 +154,81 @@ export function extractVehicleModelNamesForBrand(title: string, brand: string): 
   }
   return [...matches];
 }
+
+/**
+ * Whitelist of valid chassis codes per brand+model. Used as a final filter in
+ * `extractChassisForBrandAndModel` to suppress cross-pollination from multi-model
+ * titles like "BMW M2 (F87) / M235i (F22) / M340i (G20)" where a single product
+ * lists chassis for several different model groups.
+ *
+ * If a model has no entry here, the per-segment extraction passes through unfiltered.
+ */
+const VALID_CHASSIS_BY_BRAND_MODEL: Record<string, Record<string, string[]>> = {
+  Porsche: {
+    "911":      ["991", "992", "996", "997"],
+    "718":      ["718", "981", "982"],
+    "Cayenne":  ["92A", "958", "9YA", "9YB", "E3"],
+    "Macan":    ["95B", "536"],
+    "Panamera": ["970", "971", "972"],
+    "Taycan":   ["J1"],
+  },
+  BMW: {
+    "M2":           ["F87", "G87"],
+    "M3":           ["E36", "E46", "E90", "E92", "E93", "F80", "G80", "G81"],
+    "M4":           ["F82", "F83", "G82", "G83"],
+    "M5":           ["E28", "E34", "E39", "E60", "F10", "F90", "G90"],
+    "M8":           ["F91", "F92", "F93"],
+    "X3 M":         ["F97"],
+    "X4 M":         ["F98"],
+    "X5 M":         ["F95"],
+    "X6 M":         ["F96"],
+    "Z4":           ["G29"],
+    "M135i/M140i":  ["F20", "F21", "F40"],
+    "M235i/M240i":  ["F22", "F23", "G42"],
+    "M340i/M340d":  ["G20", "G21"],
+    "M440i/M440d":  ["G22", "G23"],
+    "M550i":        ["G30"],
+    "M850i":        ["G14", "G15", "G16"],
+  },
+  Audi: {
+    "RS3":   ["8V", "8Y"],
+    "RS4":   ["B7", "B8", "B9"],
+    "RS5":   ["B8", "B9"],
+    "RS6":   ["C5", "C6", "C7", "C8"],
+    "RS7":   ["C7", "C8"],
+    "TT-RS": ["8J", "8S"],
+    "R8":    ["4S", "4M"],
+    "RS Q3": ["8U", "F3"],
+    "RS Q5": ["FY"],
+    "RS Q8": ["F1"],
+    "S3":    ["8V", "8Y"],
+    "S4":    ["B8", "B9"],
+    "S5":    ["B8", "B9"],
+  },
+  "Mercedes-AMG": {
+    "A45":    ["W176", "W177"],
+    "CLA45":  ["C117", "X117", "C118", "X118"],
+    "GLA45":  ["X156", "X247", "H247"],
+    "C63":    ["W204", "C204", "S204", "W205", "C205", "S205", "A205", "W206", "S206"],
+    "E63":    ["W211", "S211", "W212", "S212", "W213", "S213"],
+    "GLC63":  ["X253", "C253", "X254"],
+    "GLE63":  ["W166", "W167", "C167"],
+    "G63":    ["W463", "W463A", "W465"],
+    "S63":    ["W221", "W222", "W223"],
+    "SL63":   ["R231", "R232"],
+    "AMG GT": ["C190", "C192", "X290"],
+  },
+  Toyota: {
+    "GR Supra": ["A90", "A91"],
+  },
+  Nissan: {
+    "GT-R": ["R35"],
+    "370Z": ["Z34"],
+  },
+  Chevrolet: {
+    "Corvette": ["C5", "C6", "C7", "C8"],
+  },
+};
 
 export const LINE_PATTERNS: { key: string; label: string; patterns: RegExp[] }[] = [
   { key: "sound-kit", label: "Sound & Control Kit", patterns: [/sound\s*(control\s*)?kit/i, /exhaust\s+sound\s+control/i, /control\s+kit/i, /valve\s+(actuator\s+)?control/i, /(?:central\s+)?valve\s+actuator\s+kit/i, /control\s+system/i] },
@@ -376,6 +451,79 @@ export function extractVehicleModelsForBrand(title: string, brand: string): stri
 
   const fallback = extractVehicleModel(title);
   return fallback && fallback !== "Other" ? [fallback] : [];
+}
+
+/**
+ * Extract chassis codes attributable to a specific (brand, model) pair from a single title.
+ *
+ * Unlike `extractVehicleModelsForBrand`, which returns every chassis the title mentions
+ * regardless of which model it belongs to, this function looks at *which segment of the
+ * title* each parenthesised chassis follows, and only includes chassis whose segment
+ * matches the requested model. So for "BMW M2 (F87) / M3 (G80)" with model="M2", you
+ * get [F87] — not [F87, G80].
+ *
+ * Then a final whitelist (`VALID_CHASSIS_BY_BRAND_MODEL`) drops any chassis that the
+ * brand+model genuinely never used, catching titles that bundle several models in a
+ * single chassis list like "BMW M2 / M235i / M340i (F87/F22/G20)".
+ */
+export function extractChassisForBrandAndModel(
+  title: string,
+  brand: string,
+  model: string
+): string[] {
+  const afterFor = title.match(/\bfor\s+(.+)$/i)?.[1] ?? title;
+  const modelPatterns = MODEL_PATTERNS_BY_BRAND[brand];
+  if (!modelPatterns) return [];
+  const modelPattern = modelPatterns.find((p) => p.model === model)?.pattern;
+  if (!modelPattern) return [];
+
+  const titleBrands = extractVehicleBrands(title);
+  const chassis = new Set<string>();
+
+  // Per-paren attribution: split the title into model-paren groups bounded by
+  // parentheses. The "context" for each chassis paren is the text from the end
+  // of the previous paren (or start of afterFor) up to this paren's open. This
+  // lets "PORSCHE 911 Carrera / S / 4 / 4S / GTS (991)" still attribute 991 to
+  // 911 — the simpler "last separator" heuristic only saw "GTS ".
+  for (const match of afterFor.matchAll(/\(([^)]+)\)/g)) {
+    const matchedChassis = extractChassisCodesFromParentheses(match[1] ?? "");
+    if (matchedChassis.length === 0 || match.index == null) continue;
+
+    const before = afterFor.slice(0, match.index);
+    const lastParenEnd = before.lastIndexOf(")");
+    const context = before.slice(lastParenEnd + 1);
+    if (modelPattern.test(context)) {
+      matchedChassis.forEach((c) => chassis.add(c));
+    }
+  }
+
+  // Brand-specific override fallbacks (e.g. BMW Z4 → G29 even without parens)
+  for (const fb of BRAND_MODEL_FALLBACKS) {
+    if (fb.brand === brand && fb.match.test(afterFor) && modelPattern.test(afterFor)) {
+      chassis.add(fb.model);
+    }
+  }
+
+  // Trim-name fallback (e.g. "BMW M440i (OPF vehicles)" → G22/G23) — only when no
+  // chassis came from parens AND the trim's model matches the requested model.
+  if (chassis.size === 0 && (titleBrands.length === 0 || titleBrands.includes(brand))) {
+    if (modelPattern.test(afterFor)) {
+      for (const [trim, info] of Object.entries(TRIM_TO_CHASSIS)) {
+        if (info.brand !== brand || info.chassis.length === 0) continue;
+        const re = new RegExp(`\\b${trim}\\b`, "i");
+        if (re.test(afterFor)) {
+          info.chassis.forEach((c) => chassis.add(c));
+        }
+      }
+    }
+  }
+
+  // Final whitelist filter to drop cross-pollinated chassis from multi-model titles.
+  const whitelist = VALID_CHASSIS_BY_BRAND_MODEL[brand]?.[model];
+  if (whitelist) {
+    return [...chassis].filter((c) => whitelist.includes(c));
+  }
+  return [...chassis];
 }
 
 /**

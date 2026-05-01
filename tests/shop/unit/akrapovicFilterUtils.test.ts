@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  extractChassisForBrandAndModel,
   extractProductLine,
   extractVehicleBrand,
   extractVehicleBrands,
@@ -138,6 +139,63 @@ test('extractVehicleModelNamesForBrand recognises Boxster/Cayman as 718', () => 
 test('extractVehicleModelNamesForBrand returns empty array for unknown brand', () => {
   assert.deepEqual(
     extractVehicleModelNamesForBrand('AKRAPOVIC for FOOBAR Z9 (X1)', 'FoobarBrand'),
+    []
+  );
+});
+
+test('extractVehicleModelNamesForBrand matches both M235i and M240i for the same model', () => {
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand('AKRAPOVIC for BMW M235i (F22)', 'BMW'),
+    ['M235i/M240i']
+  );
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand('AKRAPOVIC for BMW M240i (G42)', 'BMW'),
+    ['M235i/M240i']
+  );
+  assert.deepEqual(
+    extractVehicleModelNamesForBrand('AKRAPOVIC for BMW M135i / M140i (F40 / F20)', 'BMW'),
+    ['M135i/M140i']
+  );
+});
+
+test('extractChassisForBrandAndModel attributes chassis only to the matching model', () => {
+  const title = 'AKRAPOVIC for BMW M2 (F87) / M3 (G80) / M4 (G82)';
+  assert.deepEqual(extractChassisForBrandAndModel(title, 'BMW', 'M2'), ['F87']);
+  assert.deepEqual(extractChassisForBrandAndModel(title, 'BMW', 'M3'), ['G80']);
+  assert.deepEqual(extractChassisForBrandAndModel(title, 'BMW', 'M4'), ['G82']);
+});
+
+test('extractChassisForBrandAndModel filters out cross-pollinated chassis via whitelist', () => {
+  // Title bundles M2, M235i/M240i and M340i — under M235i/M240i we must not see F87 or G20.
+  const title = 'AKRAPOVIC for BMW M2 / M235i / M240i / M340i (F87 / F22 / G42 / G20)';
+  const chassis = extractChassisForBrandAndModel(title, 'BMW', 'M235i/M240i').sort();
+  assert.deepEqual(chassis, ['F22', 'G42']);
+});
+
+test('extractChassisForBrandAndModel disambiguates Audi C8 between RS6 and RS7', () => {
+  const t1 = 'AKRAPOVIC Slip-On for AUDI RS6 (C8)';
+  const t2 = 'AKRAPOVIC Slip-On for AUDI RS7 Sportback (C8)';
+  assert.deepEqual(extractChassisForBrandAndModel(t1, 'Audi', 'RS6'), ['C8']);
+  assert.deepEqual(extractChassisForBrandAndModel(t1, 'Audi', 'RS7'), []);
+  assert.deepEqual(extractChassisForBrandAndModel(t2, 'Audi', 'RS7'), ['C8']);
+  assert.deepEqual(extractChassisForBrandAndModel(t2, 'Audi', 'RS6'), []);
+});
+
+test('extractChassisForBrandAndModel falls back to TRIM_TO_CHASSIS when title has no parens', () => {
+  // "BMW M440i (OPF vehicles)" — paren is filtered, trim fallback gives G22/G23.
+  assert.deepEqual(
+    extractChassisForBrandAndModel(
+      'AKRAPOVIC s-BM/T/18h Slip-On Line for BMW M440I (OPF vehicles)',
+      'BMW',
+      'M440i/M440d'
+    ).sort(),
+    ['G22', 'G23']
+  );
+});
+
+test('extractChassisForBrandAndModel returns empty for the wrong model', () => {
+  assert.deepEqual(
+    extractChassisForBrandAndModel('AKRAPOVIC for BMW M3 (G80)', 'BMW', 'M5'),
     []
   );
 });
