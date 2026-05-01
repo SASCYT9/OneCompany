@@ -118,6 +118,12 @@ const NOT_CHASSIS_WORDS = new Set([
   'type', 'life', 'spur', 'cross', 'star', 'crew', 'cab', 'wagon', 'targa',
 ]);
 
+// Performance-prefix words that always combine with the next token to form
+// the full model name — e.g. "rs-q3" → "RS Q3" (not "RS" + chassis "Q3").
+// Without this list, the walk-back logic would peel "Q3" off the model and
+// classify it as part of the chassis.
+const MODEL_PREFIXES = new Set(['rs', 'tt']);
+
 function looksLikeChassis(tok: string): boolean {
   if (!tok) return false;
   const lower = tok.toLowerCase();
@@ -191,16 +197,51 @@ export function parseRacechipModelSlug(slug: string): RacechipModelParts {
 
   if (tokens.length >= 2) {
     const last = tokens[tokens.length - 1];
-    const prev = tokens[tokens.length - 2];
 
     if (looksLikeChassis(last)) {
-      // If the previous token is a roman numeral (generation marker) and the
-      // last token is a non-roman chassis code, both are chassis — e.g.
-      // "civic-ix-fk" → model "Civic", chassis "IX FK".
-      if (tokens.length >= 3 && ROMAN_RE.test(prev) && !ROMAN_RE.test(last)) {
-        return makeParts(tokens.slice(0, -2), [prev, last]);
+      // Walk backwards from the last token to gather all chassis-with-digit
+      // tokens. Catches BMW patterns like "1-series-e81-82_87-88" → chassis
+      // "E81 82/87 88" with model "1 Series", or "m6-f06_f12-13" → chassis
+      // "F06/F12 13" with model "M6". Stops at the first non-chassis token
+      // (e.g. "series", "class") or any token without a digit.
+      const startBeforeWalkback = tokens.length - 1;
+      let chassisStart = startBeforeWalkback;
+      while (chassisStart > 1) {
+        const tok = tokens[chassisStart - 1];
+        if (looksLikeChassis(tok) && /\d/.test(tok)) {
+          chassisStart--;
+        } else {
+          break;
+        }
       }
-      return makeParts(tokens.slice(0, -1), [last]);
+      const walkedBack = chassisStart < startBeforeWalkback;
+
+      // Roman-numeral generation marker before chassis — e.g. "civic-ix-fk"
+      // ("ix" has no digit so the walk-back above doesn't catch it) or
+      // "cr-v-v-rw" (single letter "v" matches roman).
+      if (
+        !walkedBack &&
+        chassisStart > 0 &&
+        ROMAN_RE.test(tokens[chassisStart - 1]) &&
+        !ROMAN_RE.test(last)
+      ) {
+        chassisStart--;
+      }
+
+      // Don't strip the second token away if the first is a known
+      // performance prefix that always combines with the next token to form
+      // the full model name — e.g. "rs-q3-f3" (model "RS Q3", chassis "F3"),
+      // not (model "RS", chassis "Q3 F3"). Only fires when walk-back actually
+      // moved chassisStart back; otherwise "tt-8s" would also collapse.
+      if (
+        walkedBack &&
+        chassisStart === 1 &&
+        MODEL_PREFIXES.has(tokens[0].toLowerCase())
+      ) {
+        chassisStart = 2;
+      }
+
+      return makeParts(tokens.slice(0, chassisStart), tokens.slice(chassisStart));
     }
   }
 
