@@ -46,7 +46,7 @@ export const DO88_FEATURED_MODELS: Do88FeaturedModel[] = [
     buttonLabel: 'View Products',
     buttonLabelUk: 'Переглянути товари',
     link: '/shop/do88/collections/all?brand=BMW&model=M3+%2F+M4&chassis=G80+G82',
-    imageUrl: '/branding/do88/do88_bw_featured_bmw_1774445183885.png',
+    imageUrl: '/branding/do88/do88_featured_bmw_g8x_studio.webp',
   },
   {
     title: 'Porsche 911 Carrera (992)',
@@ -60,7 +60,7 @@ export const DO88_FEATURED_MODELS: Do88FeaturedModel[] = [
     buttonLabel: 'View Products',
     buttonLabelUk: 'Переглянути товари',
     link: '/shop/do88/collections/all?brand=Porsche&model=911+Carrera&chassis=992',
-    imageUrl: '/branding/do88/do88_bw_porsche_hero_1774443620183.png',
+    imageUrl: '/branding/do88/do88_featured_porsche_992_studio.webp',
   },
   {
     title: 'Audi RS6 / RS7 (C8)',
@@ -74,6 +74,6 @@ export const DO88_FEATURED_MODELS: Do88FeaturedModel[] = [
     buttonLabel: 'View Products',
     buttonLabelUk: 'Переглянути товари',
     link: '/shop/do88/collections/all?brand=Audi&model=RS6+%2F+RS7&chassis=C8',
-    imageUrl: '/branding/do88/do88_audi_rs6_rs7_c8_official.webp',
+    imageUrl: '/branding/do88/do88_featured_audi_rs6_c8_studio.webp',
   }
 ];
