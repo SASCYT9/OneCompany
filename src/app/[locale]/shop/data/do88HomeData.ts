@@ -74,7 +74,6 @@ export const DO88_FEATURED_MODELS: Do88FeaturedModel[] = [
     buttonLabel: 'View Products',
     buttonLabelUk: 'Переглянути товари',
     link: '/shop/do88/collections/all?brand=Audi&model=RS6+%2F+RS7&chassis=C8',
-    imageUrl: '/branding/do88/do88_bw_engine_bay_1774443712195.png',
-    flipImage: true,
+    imageUrl: '/branding/do88/do88_audi_rs6_rs7_c8_official.webp',
   }
 ];
