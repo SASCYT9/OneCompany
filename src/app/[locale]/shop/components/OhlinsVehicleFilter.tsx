@@ -592,7 +592,7 @@ export default function OhlinsVehicleFilter({
           ) : null}
 
           {/* ─── TOP: COMMAND CENTER FILTER ─── */}
-          <div className="relative z-30 mb-8 hidden max-w-5xl mx-auto w-full lg:block">
+          <div className="relative z-30 mb-8 hidden w-full lg:block">
             <div className="flex flex-col items-center justify-center text-center mb-10">
               <h2 className="text-2xl lg:text-3xl font-light tracking-[0.05em] uppercase text-white/90">
                 {isUa ? "ЗНАЙДІТЬ СВОЮ ПІДВІСКУ" : "FIND YOUR SUSPENSION"}

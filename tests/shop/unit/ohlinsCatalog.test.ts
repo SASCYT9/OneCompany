@@ -59,6 +59,18 @@ test('detectOhlinsCategory classifies mounts and motorsport catalog items', () =
     }),
     { label: 'Mounts & Hardware', labelUa: 'Опори та кріплення' }
   );
+
+  // Specific line wins over generic "coilover/койловер" Road & Track catch-all.
+  assert.deepEqual(
+    detectOhlinsCategory({
+      title: {
+        en: 'Advanced Trackday TTX coilover kit (incl. springs and top mounts) for BMW M3 (G80) / M4 (G82)',
+        ua: 'Комплект койловерів Advanced Trackday TTX (включаючи пружини та верхні опори) для BMW M3 (G80) / M4 (G82)',
+      },
+      shortDescription: { en: '', ua: '' },
+    }),
+    { label: 'Advanced Trackday', labelUa: 'Advanced Trackday' }
+  );
 });
 
 test('resolveFeedManagedCatalogImage replaces stale Brabus cache images for Ohlins', () => {

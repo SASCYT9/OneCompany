@@ -70,11 +70,13 @@ export const OHLINS_UNIVERSAL_PRODUCT_PATTERNS: RegExp[] = [
 ];
 
 export const OHLINS_CATEGORY_PATTERNS: { match: RegExp; label: string; labelUa: string }[] = [
-  { match: /road\s*[&]\s*track|койловер/i, label: 'Road & Track', labelUa: 'Road & Track' },
+  // Specific Öhlins product lines come first — generic "coilover" / "койловер"
+  // would otherwise swallow them into Road & Track.
   { match: /advanced\s*track\s*day|trackday/i, label: 'Advanced Trackday', labelUa: 'Advanced Trackday' },
-  { match: /motorsport|grp?\s*n|cup|tcr|race/i, label: 'Motorsport', labelUa: 'Motorsport' },
+  { match: /motorsport|grp?\s*n|\btcr\b|\bcup\b|formula\s*student|\brace\b/i, label: 'Motorsport', labelUa: 'Motorsport' },
   { match: /off[\s-]*road|adventure|hilux|jimny|grenadier/i, label: 'Off-Road & Adventure', labelUa: 'Off-Road & Adventure' },
   { match: /електронн|electronic|edc|pasm/i, label: 'Electronics (EDC)', labelUa: 'Електроніка (EDC)' },
+  { match: /road\s*[&]\s*track|койловер|coilover/i, label: 'Road & Track', labelUa: 'Road & Track' },
   { match: /shock\s+absorber|damper/i, label: 'Shock Absorbers', labelUa: 'Амортизатори' },
   {
     match:
