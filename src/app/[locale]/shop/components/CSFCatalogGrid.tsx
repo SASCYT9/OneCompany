@@ -48,13 +48,30 @@ const CSF_CATEGORY_MAP: Record<string, { ua: string; en: string; group: string }
   "Радіатори та аксесуари": { ua: "Радіатори", en: "Radiators", group: "radiators" },
   "Інтеркулери": { ua: "Інтеркулери", en: "Intercoolers", group: "intercoolers" },
   "Масляні радіатори і компоненти": { ua: "Масляні радіатори", en: "Oil Coolers", group: "oil-coolers" },
-  "Впускні колектори": { ua: "Впускні колектори", en: "Intake Manifolds", group: "intake" },
+  "Впускні колектори": { ua: "Інтеркулери", en: "Intercoolers", group: "intercoolers" },
   "Комплекти интеркулеров": { ua: "Комплекти інтеркулерів", en: "Intercooler Kits", group: "intercooler-kits" },
   "Охолодження трансмісії": { ua: "Охолодження трансмісії", en: "Transmission Cooling", group: "trans-cooling" },
   "З'єднувальні адаптери": { ua: "Аксесуари", en: "Accessories", group: "accessories" },
   "Прокладки, сальники, ролики": { ua: "Аксесуари", en: "Accessories", group: "accessories" },
   "Труби інтеркулера": { ua: "Комплекти інтеркулерів", en: "Intercooler Kits", group: "intercooler-kits" },
 };
+
+const CSF_HEAT_EXCHANGER_LABEL = { ua: "Теплообмінники", en: "Heat Exchangers", group: "heat-exchangers" };
+const CSF_HEAT_EXCHANGER_SKU_OVERRIDES = new Set(["8215"]);
+const CSF_HEAT_EXCHANGER_TITLE_RE = /теплообмінник|heat\s*exchang/i;
+const CSF_HEAT_EXCHANGER_REROUTE_FROM = new Set([
+  "Інтеркулери",
+  "Радіатори та аксесуари",
+  "Впускні колектори",
+]);
+
+function isCsfHeatExchanger(product: ShopProduct, rawCategory: string) {
+  const sku = String(product.sku ?? "").trim();
+  if (sku && CSF_HEAT_EXCHANGER_SKU_OVERRIDES.has(sku)) return true;
+  if (!CSF_HEAT_EXCHANGER_REROUTE_FROM.has(rawCategory)) return false;
+  const title = `${product.title?.ua ?? ""} ${product.title?.en ?? ""}`;
+  return CSF_HEAT_EXCHANGER_TITLE_RE.test(title);
+}
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | "USD" | "UAH") {
   const formatter = new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "en-US", {
@@ -67,6 +84,14 @@ function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | 
 
 function normalizeCategory(locale: SupportedLocale, product: ShopProduct) {
   const raw = product.category.ua || product.category.en;
+
+  if (isCsfHeatExchanger(product, raw)) {
+    return {
+      label: locale === "ua" ? CSF_HEAT_EXCHANGER_LABEL.ua : CSF_HEAT_EXCHANGER_LABEL.en,
+      group: CSF_HEAT_EXCHANGER_LABEL.group,
+    };
+  }
+
   const mapped = CSF_CATEGORY_MAP[raw];
 
   if (!mapped) {

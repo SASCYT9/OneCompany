@@ -10,13 +10,34 @@ const CSF_CATEGORY_MAP: Record<string, { ua: string; en: string; group: string }
   'Радіатори та аксесуари': { ua: 'Радіатори', en: 'Radiators', group: 'radiators' },
   'Інтеркулери': { ua: 'Інтеркулери', en: 'Intercoolers', group: 'intercoolers' },
   'Масляні радіатори і компоненти': { ua: 'Масляні радіатори', en: 'Oil Coolers', group: 'oil-coolers' },
-  'Впускні колектори': { ua: 'Впускні колектори', en: 'Intake Manifolds', group: 'intake' },
+  'Впускні колектори': { ua: 'Інтеркулери', en: 'Intercoolers', group: 'intercoolers' },
   'Комплекти интеркулеров': { ua: 'Комплекти інтеркулерів', en: 'Intercooler Kits', group: 'intercooler-kits' },
   'Охолодження трансмісії': { ua: 'Охолодження трансмісії', en: 'Transmission Cooling', group: 'trans-cooling' },
   "З'єднувальні адаптери": { ua: 'Аксесуари', en: 'Accessories', group: 'accessories' },
   'Прокладки, сальники, ролики': { ua: 'Аксесуари', en: 'Accessories', group: 'accessories' },
   'Труби інтеркулера': { ua: 'Комплекти інтеркулерів', en: 'Intercooler Kits', group: 'intercooler-kits' },
 };
+
+const CSF_HEAT_EXCHANGER_LABEL = { ua: 'Теплообмінники', en: 'Heat Exchangers', group: 'heat-exchangers' };
+// SKUs whose source title says "intercooler" but the part is actually a heat exchanger.
+const CSF_HEAT_EXCHANGER_SKU_OVERRIDES = new Set(['8215']);
+// Products whose title contains "теплообмінник"/"heat exchanger" should land in the
+// Heat Exchangers bucket — but only when the source category is something we'd otherwise
+// route to Intercoolers or Radiators (so combo modules in Trans Cooling stay put).
+const CSF_HEAT_EXCHANGER_TITLE_RE = /теплообмінник|heat\s*exchang/i;
+const CSF_HEAT_EXCHANGER_REROUTE_FROM = new Set([
+  'Інтеркулери',
+  'Радіатори та аксесуари',
+  'Впускні колектори',
+]);
+
+function isCsfHeatExchanger(product: ShopProduct, rawCategory: string) {
+  const sku = String(product.sku ?? '').trim();
+  if (sku && CSF_HEAT_EXCHANGER_SKU_OVERRIDES.has(sku)) return true;
+  if (!CSF_HEAT_EXCHANGER_REROUTE_FROM.has(rawCategory)) return false;
+  const title = `${product.title?.ua ?? ''} ${product.title?.en ?? ''}`;
+  return CSF_HEAT_EXCHANGER_TITLE_RE.test(title);
+}
 
 const CSF_HERO_MAKE_PRIORITY = [
   'BMW', 'Porsche', 'Toyota', 'Nissan', 'Subaru', 'Honda', 'Ford',
@@ -36,7 +57,18 @@ export type CsfHeroVehicleModel = {
   label: string;
   count: number;
   categories: CsfHeroCategory[];
+  /** Clean chassis/body codes (e.g. E90, F30, 991) available for this model. */
+  chassisCodes: string[];
 };
+
+// Lettered codes (E90, F30, G80) need 1-3 letters + 2-4 digits;
+// pure-digit Porsche codes (991, 992, 997) need 3-4 digits — this avoids
+// 2-digit year fragments leaking through.
+const CSF_HERO_CHASSIS_RE = /^([A-Z]{1,3}\d{2,4}|\d{3,4})[A-Z]?$/;
+
+function isCleanCsfChassis(code: string) {
+  return CSF_HERO_CHASSIS_RE.test(code.trim());
+}
 
 export type CsfHeroVehicleMake = {
   key: string;
@@ -57,6 +89,13 @@ type CategoryLabel = Omit<CsfHeroCategory, 'count'>;
 
 function categoryFor(product: ShopProduct): CategoryLabel {
   const raw = product.category?.ua || product.category?.en || '';
+  if (isCsfHeatExchanger(product, raw)) {
+    return {
+      key: CSF_HEAT_EXCHANGER_LABEL.group,
+      labelEn: CSF_HEAT_EXCHANGER_LABEL.en,
+      labelUa: CSF_HEAT_EXCHANGER_LABEL.ua,
+    };
+  }
   const mapped = CSF_CATEGORY_MAP[raw];
   if (mapped) {
     return { key: mapped.group, labelEn: mapped.en, labelUa: mapped.ua };
@@ -79,7 +118,8 @@ export function buildCsfHeroSummary(
   products: ReadonlyArray<ShopProduct>
 ): CsfHeroSummary {
   // Counters: make → total, make → category → {label, count},
-  // make → model → total, make → model → category → {label, count}.
+  // make → model → total, make → model → category → {label, count},
+  // make → model → set of clean chassis codes.
   const makeTotal = new Map<string, number>();
   const makeCategory = new Map<string, Map<string, { label: CategoryLabel; count: number }>>();
   const modelTotal = new Map<string, Map<string, number>>();
@@ -87,6 +127,7 @@ export function buildCsfHeroSummary(
     string,
     Map<string, Map<string, { label: CategoryLabel; count: number }>>
   >();
+  const modelChassis = new Map<string, Map<string, Set<string>>>();
 
   for (const product of products) {
     const fitment = extractCsfCatalogFitment(product);
@@ -122,6 +163,15 @@ export function buildCsfHeroSummary(
       mcat = new Map();
       modelCategory.set(make, mcat);
     }
+    let mch = modelChassis.get(make);
+    if (!mch) {
+      mch = new Map();
+      modelChassis.set(make, mch);
+    }
+
+    const cleanChassis = fitment.chassisCodes
+      .map((code) => code.trim().toUpperCase())
+      .filter(isCleanCsfChassis);
 
     for (const model of models) {
       mt.set(model, (mt.get(model) ?? 0) + 1);
@@ -135,6 +185,19 @@ export function buildCsfHeroSummary(
         entry.count += 1;
       } else {
         perModel.set(category.key, { label: category, count: 1 });
+      }
+
+      if (cleanChassis.length > 0) {
+        let chassisSet = mch.get(model);
+        if (!chassisSet) {
+          chassisSet = new Set();
+          mch.set(model, chassisSet);
+        }
+        const modelUpper = model.toUpperCase();
+        for (const code of cleanChassis) {
+          if (code === modelUpper) continue; // skip "911" leaking into chassis for model 911
+          chassisSet.add(code);
+        }
       }
     }
   }
@@ -150,12 +213,16 @@ export function buildCsfHeroSummary(
 
     const modelMap = modelTotal.get(makeKey) ?? new Map<string, number>();
     const modelCatMap = modelCategory.get(makeKey) ?? new Map();
+    const modelChassisMap = modelChassis.get(makeKey) ?? new Map<string, Set<string>>();
     const models: CsfHeroVehicleModel[] = [];
     for (const [label, count] of modelMap.entries()) {
       const cats = [...(modelCatMap.get(label) ?? new Map()).values()]
         .map((entry) => ({ ...entry.label, count: entry.count }))
         .sort((a, b) => b.count - a.count || a.labelEn.localeCompare(b.labelEn));
-      models.push({ label, count, categories: cats });
+      const chassisCodes = [...(modelChassisMap.get(label) ?? new Set<string>())].sort((a, b) =>
+        a.localeCompare(b)
+      );
+      models.push({ label, count, categories: cats, chassisCodes });
     }
     models.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 

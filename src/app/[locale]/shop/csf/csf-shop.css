@@ -911,27 +911,6 @@
   color: rgba(255, 255, 255, .65);
   letter-spacing: .005em;
 }
-.csf-hf__counter {
-  display: flex;
-  align-items: baseline;
-  gap: .5rem;
-  flex-shrink: 0;
-}
-.csf-hf__counter-num {
-  font-variant-numeric: tabular-nums;
-  font-size: 1.55rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--csf-white);
-  line-height: 1;
-}
-.csf-hf__counter-label {
-  font-size: .7rem;
-  letter-spacing: .04em;
-  color: rgba(255, 255, 255, .55);
-  white-space: nowrap;
-}
-
 .csf-hf__row {
   display: grid;
   grid-template-columns: 1fr;
@@ -945,9 +924,9 @@
     grid-column: 1 / -1;
   }
 }
-@media (min-width: 920px) {
+@media (min-width: 1080px) {
   .csf-hf__row {
-    grid-template-columns: 1fr 1.4fr 1.1fr auto;
+    grid-template-columns: 1fr 1.3fr 0.9fr 1.1fr auto;
     align-items: stretch;
   }
   .csf-hf__row > .csf-hf__submit {
@@ -1110,12 +1089,6 @@
   .csf-hf__head {
     padding-bottom: .7rem;
     margin-bottom: .8rem;
-  }
-  .csf-hf__counter-num {
-    font-size: 1.25rem;
-  }
-  .csf-hf__counter-label {
-    font-size: .65rem;
   }
   .csf__finder {
     margin: 1rem auto 1.75rem;

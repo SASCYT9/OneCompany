@@ -11,13 +11,13 @@ type Props = {
 };
 
 export default function CSFHeroFilter({ locale, summary }: Props) {
-  const totalProducts = summary?.totalProducts ?? 0;
   const data = summary?.makes ?? [];
   const isUa = locale === "ua";
   const router = useRouter();
 
   const [makeKey, setMakeKey] = useState("");
   const [modelLabel, setModelLabel] = useState("");
+  const [chassisCode, setChassisCode] = useState("");
   const [categoryKey, setCategoryKey] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -32,26 +32,19 @@ export default function CSFHeroFilter({ locale, summary }: Props) {
     [models, modelLabel]
   );
 
+  const chassisOptions = model?.chassisCodes ?? [];
+
   const categories = useMemo(() => {
     if (!make) return [];
     if (model) return model.categories;
     return make.categories;
   }, [make, model]);
 
-  const liveCount = useMemo(() => {
-    if (categoryKey) {
-      const entry = categories.find((cat) => cat.key === categoryKey);
-      return entry?.count ?? 0;
-    }
-    if (model) return model.count;
-    if (make) return make.count;
-    return totalProducts;
-  }, [categories, categoryKey, model, make, totalProducts]);
-
   function buildHref() {
     const params = new URLSearchParams();
     if (makeKey) params.set("make", makeKey);
     if (modelLabel) params.set("model", modelLabel);
+    if (chassisCode) params.set("chassis", chassisCode);
     if (categoryKey) params.set("category", categoryKey);
     const qs = params.toString();
     return qs
@@ -68,11 +61,13 @@ export default function CSFHeroFilter({ locale, summary }: Props) {
   function onMakeChange(value: string) {
     setMakeKey(value);
     setModelLabel("");
+    setChassisCode("");
     setCategoryKey("");
   }
 
   function onModelChange(value: string) {
     setModelLabel(value);
+    setChassisCode("");
     setCategoryKey("");
   }
 
@@ -97,12 +92,6 @@ export default function CSFHeroFilter({ locale, summary }: Props) {
               {isUa ? "підбір системи охолодження" : "find your cooling system"}
             </span>
           </div>
-        </div>
-        <div className="csf-hf__counter" aria-live="polite">
-          <span className="csf-hf__counter-num">{liveCount.toLocaleString("en-US")}</span>
-          <span className="csf-hf__counter-label">
-            {isUa ? "товарів у наявності" : liveCount === 1 ? "match available" : "matches available"}
-          </span>
         </div>
       </header>
 
@@ -160,6 +149,45 @@ export default function CSFHeroFilter({ locale, summary }: Props) {
 
         <Field
           index="03"
+          label={isUa ? "Кузов" : "Chassis"}
+          isActive={!!chassisCode}
+          isDisabled={!modelLabel || chassisOptions.length === 0}
+        >
+          <select
+            id="csf-hero-chassis"
+            value={chassisCode}
+            onChange={(event) => setChassisCode(event.target.value)}
+            className="csf-hf__select"
+            disabled={!modelLabel || chassisOptions.length === 0}
+            aria-disabled={!modelLabel || chassisOptions.length === 0}
+          >
+            <option value="">
+              {!makeKey
+                ? isUa
+                  ? "Спочатку марка"
+                  : "Pick make first"
+                : !modelLabel
+                  ? isUa
+                    ? "Спочатку модель"
+                    : "Pick model first"
+                  : chassisOptions.length === 0
+                    ? isUa
+                      ? "Без кузовів"
+                      : "No chassis"
+                    : isUa
+                      ? "Будь-який"
+                      : "Any"}
+            </option>
+            {chassisOptions.map((code) => (
+              <option key={code} value={code}>
+                {code}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <Field
+          index="04"
           label={isUa ? "Категорія" : "Category"}
           isActive={!!categoryKey}
           isDisabled={!makeKey}
@@ -192,7 +220,7 @@ export default function CSFHeroFilter({ locale, summary }: Props) {
         <button
           type="submit"
           className="csf-hf__submit"
-          disabled={submitting || liveCount === 0}
+          disabled={submitting}
           aria-label={isUa ? "Підібрати охолодження" : "Find cooling"}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
