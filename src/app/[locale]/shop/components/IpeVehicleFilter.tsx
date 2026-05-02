@@ -21,7 +21,7 @@ import {
   resolveIpeVehicleBrand,
   resolveIpeVehicleModel,
 } from "@/lib/ipeCatalog";
-import { splitIpeModelLabel } from "@/lib/ipeHeroCatalog";
+import { splitIpeModelLabel, IPE_HERO_BRAND_PRIORITY } from "@/lib/ipeHeroCatalog";
 import { useMobileFilterDrawer } from "./useMobileFilterDrawer";
 
 type IpeVehicleFilterProps = {
@@ -31,7 +31,8 @@ type IpeVehicleFilterProps = {
   productPathPrefix: string;
 };
 
-const BRAND_ORDER = ["Porsche", "Ferrari", "Lamborghini", "McLaren", "BMW", "Mercedes-Benz", "Mercedes-AMG", "Audi", "Volkswagen", "Toyota", "Maserati", "Aston Martin", "Nissan", "Ford", "Subaru"];
+// Brand order is shared with the hero finder so the two filter UIs agree.
+const BRAND_ORDER = IPE_HERO_BRAND_PRIORITY;
 const BRAND_LABELS: Record<string, Record<string, string>> = {
   Porsche: { en: "Porsche", ua: "Porsche" },
   Ferrari: { en: "Ferrari", ua: "Ferrari" },

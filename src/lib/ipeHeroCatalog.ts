@@ -5,7 +5,12 @@ import {
   resolveIpeVehicleModel,
 } from '@/lib/ipeCatalog';
 
-const IPE_HERO_BRAND_PRIORITY = [
+// Single source of truth for the brand-dropdown order in BOTH the hero
+// finder (/ua/shop/ipe) and the catalog-side filter
+// (/ua/shop/ipe/collections). Keeping the two filters in sync prevents the
+// jarring "Porsche, BMW, Mercedes-AMG" → "Porsche, BMW, Mercedes-Benz"
+// reorder users used to see when navigating between them.
+export const IPE_HERO_BRAND_PRIORITY = [
   'Porsche',
   'Ferrari',
   'Lamborghini',
@@ -15,10 +20,10 @@ const IPE_HERO_BRAND_PRIORITY = [
   'Mercedes-Benz',
   'Audi',
   'Aston Martin',
-  'Nissan',
-  'Toyota',
-  'Volkswagen',
   'Maserati',
+  'Volkswagen',
+  'Toyota',
+  'Nissan',
   'Ford',
   'Subaru',
 ];
