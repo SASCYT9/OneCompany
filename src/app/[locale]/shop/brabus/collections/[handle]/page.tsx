@@ -7,6 +7,7 @@ import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdmin
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
 import { getProductsForBrabusCollection } from '@/lib/brabusCollectionMatcher';
 import { isFactoryOnlyProduct } from '@/lib/brabusFactoryOnly';
+import { isBrabusExhaustProduct } from '@/lib/brabusCatalogExclusions';
 import BrabusCollectionHero from '../../../components/BrabusCollectionHero';
 import BrabusCollectionProductGrid from '../../../components/BrabusCollectionProductGrid';
 
@@ -56,9 +57,9 @@ export default async function BrabusCollectionHandlePage({ params }: Props) {
     null
   );
 
-  const collectionProducts = getProductsForBrabusCollection(products, handle).filter(
-    (p) => !isFactoryOnlyProduct(p.sku),
-  );
+  const collectionProducts = getProductsForBrabusCollection(products, handle)
+    .filter((p) => !isFactoryOnlyProduct(p.sku))
+    .filter((p) => !isBrabusExhaustProduct(p));
 
   // Sort: Body kit / Widestar / Full Kit first, then by price desc.
   // Reason: catalog hero/showcase positions body-kit programmes as the entry point,

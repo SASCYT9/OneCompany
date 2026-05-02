@@ -5,6 +5,8 @@ import BrabusVideoBackground from '../../components/BrabusVideoBackground';
 import { getShopProductsServer } from '@/lib/shopCatalogServer';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { buildShopViewerPricingContext } from '@/lib/shopPricingAudience';
+import { isFactoryOnlyProduct } from '@/lib/brabusFactoryOnly';
+import { isBrabusExhaustProduct } from '@/lib/brabusCatalogExclusions';
 import Link from 'next/link';
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -46,7 +48,10 @@ export default async function BrabusProductsCatalogPage({ params }: Props) {
     null
   );
 
-  const brabusProducts = products.filter(p => p.brand?.toLowerCase() === 'brabus');
+  const brabusProducts = products
+    .filter(p => p.brand?.toLowerCase() === 'brabus')
+    .filter(p => !isFactoryOnlyProduct(p.sku))
+    .filter(p => !isBrabusExhaustProduct(p));
 
   return (
     <div className="relative min-h-screen bg-black">

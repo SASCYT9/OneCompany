@@ -109,6 +109,65 @@ function resolveBrabusModelKey(product: ShopProduct, modelKeysSet: Set<string>) 
   return product.tags?.find((tag) => modelKeysSet.has(tag)) || null;
 }
 
+/** Mercedes-style chassis codes look like "W 177", "W 463A", "X 290", "V 167", "S 214", "Z 223". */
+const CHASSIS_TAG_PATTERN = /^[A-Z]\s?\d{3}[A-Z]?$/;
+const CHASSIS_TITLE_PATTERN = /[–—-]\s*([A-Z]\s?\d{3}[A-Z]?)\s*[–—-]/;
+function normaliseChassis(value: string) {
+  // Normalise "W463A" → "W 463A" so tag-based and title-based keys match.
+  return value.replace(/^([A-Z])\s*(\d)/, "$1 $2");
+}
+function resolveBrabusChassisKey(product: ShopProduct) {
+  const fromTag = product.tags?.find((tag) => CHASSIS_TAG_PATTERN.test(tag));
+  if (fromTag) return normaliseChassis(fromTag);
+  for (const title of [product.title?.en, product.title?.ua]) {
+    if (!title) continue;
+    const m = title.match(CHASSIS_TITLE_PATTERN);
+    if (m) return normaliseChassis(m[1]);
+  }
+  return null;
+}
+
+/**
+ * Engine/variant key (e.g. "AMG G 63", "Maybach S 580 / S 680", "GLB 250") —
+ * extracted from the chunk of the title between the chassis code and an
+ * optional "| AMG Line" suffix. Dashes normalised so " - " and " – " collapse
+ * to one canonical form.
+ */
+const ENGINE_TITLE_PATTERN = /[–—-]\s*[A-Z]\s?\d{3}[A-Z]?\s*[–—-]\s*([^|]+?)(?:\s*\||$)/;
+function normaliseEngine(value: string) {
+  return value
+    .replace(/[–—-]/g, "–")
+    .replace(/\s+/g, " ")
+    .replace(/\s*\bfacelift\b.*$/i, "")
+    .replace(/\s*\buntil\b.*$/i, "")
+    .replace(/\s*\bfrom\s+MY.*$/i, "")
+    .replace(/\s*\bfrom\s+\d{2}\/\d{4}.*$/i, "")
+    .replace(/–\s*$/, "")
+    .trim();
+}
+function resolveBrabusEngineKey(product: ShopProduct) {
+  for (const title of [product.title?.en, product.title?.ua]) {
+    if (!title) continue;
+    const m = title.match(ENGINE_TITLE_PATTERN);
+    if (m) {
+      const v = normaliseEngine(m[1]);
+      if (v) return v;
+    }
+  }
+  return null;
+}
+
+/**
+ * "Set / kit / body kit / WIDESTAR / Masterpiece / Carbon Body & Sound" — the
+ * highest-tier products that should anchor the top of the catalog. Matched
+ * against the localised title.
+ */
+const KIT_PRIORITY_PATTERN =
+  /full kit|повний комплект|набір|комплект|full body|widebody|widetrack|widestar|rocket\s?\d+|masterpiece|signature carbon (?:package|interior)|body\s*&\s*sound|carbon body|body package|кузовний пакет|пакет кузова|пакет (?:bodi|body)/i;
+function isKitProduct(title: string) {
+  return KIT_PRIORITY_PATTERN.test(title);
+}
+
 
 export default function BrabusVehicleFilter({
   locale,
@@ -124,9 +183,13 @@ export default function BrabusVehicleFilter({
   const searchParams = useSearchParams();
   const initialBrand = searchParams?.get("brand") || "all";
   const initialModel = searchParams?.get("model") || "all";
+  const initialChassis = searchParams?.get("chassis") || "all";
+  const initialEngine = searchParams?.get("engine") || "all";
 
   const [activeBrand, setActiveBrand] = useState<string>(initialBrand);
   const [activeModel, setActiveModel] = useState<string>(initialModel);
+  const [activeChassis, setActiveChassis] = useState<string>(initialChassis);
+  const [activeEngine, setActiveEngine] = useState<string>(initialEngine);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -165,6 +228,33 @@ export default function BrabusVehicleFilter({
       }));
   }, [activeBrand, products, locale, MODEL_KEYS_SET]);
 
+  const availableChassis = useMemo(() => {
+    const chassisCount = new Map<string, number>();
+    for (const p of products) {
+      if (activeBrand !== "all" && !p.tags?.includes(activeBrand)) continue;
+      if (activeModel !== "all" && resolveBrabusModelKey(p, MODEL_KEYS_SET) !== activeModel) continue;
+      const chassis = resolveBrabusChassisKey(p);
+      if (chassis) chassisCount.set(chassis, (chassisCount.get(chassis) || 0) + 1);
+    }
+    return [...chassisCount.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }))
+      .map(([key, count]) => ({ key, label: key, count }));
+  }, [activeBrand, activeModel, products, MODEL_KEYS_SET]);
+
+  const availableEngines = useMemo(() => {
+    const engineCount = new Map<string, number>();
+    for (const p of products) {
+      if (activeBrand !== "all" && !p.tags?.includes(activeBrand)) continue;
+      if (activeModel !== "all" && resolveBrabusModelKey(p, MODEL_KEYS_SET) !== activeModel) continue;
+      if (activeChassis !== "all" && resolveBrabusChassisKey(p) !== activeChassis) continue;
+      const engine = resolveBrabusEngineKey(p);
+      if (engine) engineCount.set(engine, (engineCount.get(engine) || 0) + 1);
+    }
+    return [...engineCount.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([key, count]) => ({ key, label: key, count }));
+  }, [activeBrand, activeModel, activeChassis, products, MODEL_KEYS_SET]);
+
   const skipModelResetRef = useRef(true);
   useEffect(() => {
     if (skipModelResetRef.current) {
@@ -172,11 +262,28 @@ export default function BrabusVehicleFilter({
       return;
     }
     setActiveModel("all");
+    setActiveChassis("all");
+    setActiveEngine("all");
   }, [activeBrand]);
 
   useEffect(() => {
+    // Reset chassis if it's no longer available under current brand/model.
+    if (activeChassis === "all") return;
+    if (!availableChassis.some((c) => c.key === activeChassis)) {
+      setActiveChassis("all");
+    }
+  }, [activeChassis, availableChassis]);
+
+  useEffect(() => {
+    if (activeEngine === "all") return;
+    if (!availableEngines.some((e) => e.key === activeEngine)) {
+      setActiveEngine("all");
+    }
+  }, [activeEngine, availableEngines]);
+
+  useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [activeBrand, activeModel, searchQuery, sortOrder]);
+  }, [activeBrand, activeModel, activeChassis, activeEngine, searchQuery, sortOrder]);
 
   /* ─── Filtering & Sorting ─── */
   const filteredProducts = useMemo(() => {
@@ -184,13 +291,21 @@ export default function BrabusVehicleFilter({
     if (activeBrand !== "all") result = result.filter((p) => p.tags?.includes(activeBrand));
     if (activeModel !== "all")
       result = result.filter((p) => resolveBrabusModelKey(p, MODEL_KEYS_SET) === activeModel);
+    if (activeChassis !== "all")
+      result = result.filter((p) => resolveBrabusChassisKey(p) === activeChassis);
+    if (activeEngine !== "all")
+      result = result.filter((p) => resolveBrabusEngineKey(p) === activeEngine);
     if (searchQuery.trim()) {
+      // Normalise spaces so "W463A" matches "W 463A" (and vice versa).
       const q = searchQuery.toLowerCase().trim();
+      const qNoSpace = q.replace(/\s+/g, "");
       result = result.filter((p) => {
-        const title = localizeShopProductTitle(locale, p).toLowerCase();
+        const titleEn = (p.title?.en || "").toLowerCase();
+        const titleUa = (p.title?.ua || "").toLowerCase();
         const sku = (p.sku || "").toLowerCase();
         const tags = (p.tags || []).join(" ").toLowerCase();
-        return title.includes(q) || sku.includes(q) || tags.includes(q);
+        const haystack = `${titleEn} ${titleUa} ${sku} ${tags}`;
+        return haystack.includes(q) || haystack.replace(/\s+/g, "").includes(qNoSpace);
       });
     }
     result = [...result].sort((a, b) => {
@@ -198,19 +313,25 @@ export default function BrabusVehicleFilter({
       const priceB = b.price?.eur || b.price?.uah || 0;
       if (sortOrder === "price_desc") return priceB - priceA;
       if (sortOrder === "price_asc") return priceA - priceB;
-      const titleA = localizeShopProductTitle(locale, a).toLowerCase();
-      const titleB = localizeShopProductTitle(locale, b).toLowerCase();
-      const isKitA = /full kit|повний комплект|набір|комплект|full body|widetrack|widebody/.test(titleA);
-      const isKitB = /full kit|повний комплект|набір|комплект|full body|widetrack|widebody/.test(titleB);
+      // Default: body kits / WIDESTAR / Masterpiece anchor the top, then by price desc.
+      const titleA = `${a.title?.en ?? ""} ${a.title?.ua ?? ""}`;
+      const titleB = `${b.title?.en ?? ""} ${b.title?.ua ?? ""}`;
+      const isKitA = isKitProduct(titleA);
+      const isKitB = isKitProduct(titleB);
       if (isKitA && !isKitB) return -1;
       if (!isKitA && isKitB) return 1;
       return priceB - priceA;
     });
     return result;
-  }, [activeBrand, activeModel, searchQuery, sortOrder, products, locale, MODEL_KEYS_SET]);
+  }, [activeBrand, activeModel, activeChassis, activeEngine, searchQuery, sortOrder, products, MODEL_KEYS_SET]);
 
   const totalCount = products.length;
-  const hasActiveFilters = activeBrand !== "all" || searchQuery.trim().length > 0;
+  const hasActiveFilters =
+    activeBrand !== "all" ||
+    activeModel !== "all" ||
+    activeChassis !== "all" ||
+    activeEngine !== "all" ||
+    searchQuery.trim().length > 0;
   const displayedProducts = useMemo(
     () => filteredProducts.slice(0, visibleCount),
     [filteredProducts, visibleCount]
@@ -224,7 +345,7 @@ export default function BrabusVehicleFilter({
 
         {/* ═══ HORIZONTAL FILTER BAR ═══ */}
         <div className="-mx-6 md:-mx-12 lg:-mx-16 px-6 md:px-12 lg:px-16 bg-[#0a0a0a] border-y border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.8)] [&_option]:bg-[#111] [&_option]:text-white">
-          <div className="grid grid-cols-2 sm:grid-cols-[1fr_1fr_1fr_auto] lg:grid-cols-[220px_200px_1fr_160px_auto] items-center gap-3 py-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-[170px_160px_140px_180px_1fr_140px_auto] items-center gap-3 py-4">
 
             {/* Brand Select */}
             <div className="relative">
@@ -263,14 +384,52 @@ export default function BrabusVehicleFilter({
               </div>
             </div>
 
+            {/* Chassis Select */}
+            <div className="relative">
+              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-white/25 pointer-events-none">{isUa ? "Кузов" : "Chassis"}</label>
+              <select
+                value={activeChassis}
+                onChange={(e) => setActiveChassis(e.target.value)}
+                disabled={availableChassis.length === 0}
+                className="appearance-none w-full bg-[#111] border border-white/[0.10] text-white text-xs uppercase tracking-[0.1em] font-medium pl-3 pr-8 pt-4 pb-2.5 outline-none focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <option value="all">{isUa ? "Усі кузови" : "All Chassis"}</option>
+                {availableChassis.map((c) => (
+                  <option key={c.key} value={c.key}>{c.label} ({c.count})</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30">
+                <ChevronDown size={12} />
+              </div>
+            </div>
+
+            {/* Engine Select */}
+            <div className="relative">
+              <label className="absolute -top-0.5 left-3 text-[8px] uppercase tracking-[0.2em] text-white/25 pointer-events-none">{isUa ? "Двигун" : "Engine"}</label>
+              <select
+                value={activeEngine}
+                onChange={(e) => setActiveEngine(e.target.value)}
+                disabled={availableEngines.length === 0}
+                className="appearance-none w-full bg-[#111] border border-white/[0.10] text-white text-xs uppercase tracking-[0.1em] font-medium pl-3 pr-8 pt-4 pb-2.5 outline-none focus:border-[#c29d59]/50 transition-colors cursor-pointer hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <option value="all">{isUa ? "Усі двигуни" : "All Engines"}</option>
+                {availableEngines.map((e) => (
+                  <option key={e.key} value={e.key}>{e.label} ({e.count})</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30">
+                <ChevronDown size={12} />
+              </div>
+            </div>
+
             {/* Search */}
-            <div className="relative col-span-2 sm:col-span-1">
+            <div className="relative col-span-2 sm:col-span-4 lg:col-span-1">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={isUa ? "Пошук за назвою, артикулом..." : "Search by name, SKU..."}
+                placeholder={isUa ? "Пошук: назва, кузов (W 463A), двигун (G 63), артикул..." : "Search: name, chassis (W 463A), engine (G 63), SKU..."}
                 className="w-full bg-[#111] border border-white/[0.10] pl-10 pr-9 py-3 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#c29d59]/50 transition-colors hover:border-white/20"
               />
               {searchQuery && (
@@ -310,6 +469,8 @@ export default function BrabusVehicleFilter({
                   onClick={() => {
                     setActiveBrand("all");
                     setActiveModel("all");
+                    setActiveChassis("all");
+                    setActiveEngine("all");
                     setSearchQuery("");
                     setSortOrder("default");
                   }}
@@ -338,7 +499,7 @@ export default function BrabusVehicleFilter({
               </select>
               {hasActiveFilters && (
                 <button
-                  onClick={() => { setActiveBrand("all"); setActiveModel("all"); setSearchQuery(""); setSortOrder("default"); }}
+                  onClick={() => { setActiveBrand("all"); setActiveModel("all"); setActiveChassis("all"); setActiveEngine("all"); setSearchQuery(""); setSortOrder("default"); }}
                   className="text-[10px] uppercase tracking-wider text-white/30 hover:text-white transition-colors"
                 >
                   <X size={12} />
