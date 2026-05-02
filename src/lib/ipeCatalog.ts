@@ -148,6 +148,13 @@ const IPE_GENERIC_TAGS = new Set([
   'titanium blue tips',
   'chrome black tips',
   'carbon fiber tips',
+  // iPE-side junk tags that aren't real model labels — `lambo` is a slang
+  // alias for Lamborghini that bled into the Urus product's tag list, and
+  // `header-back` is a system-line term iPE uses on Subaru BRZ (the real
+  // model "BRZ (ZD8)" is also tagged, but the resolver was picking up
+  // `header-back` first).
+  'lambo',
+  'header-back',
 ]);
 
 const IPE_VEHICLE_MAKE_TAGS = new Set([
