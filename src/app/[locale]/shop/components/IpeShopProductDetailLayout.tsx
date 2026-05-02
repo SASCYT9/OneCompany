@@ -564,8 +564,8 @@ export function IpeShopProductDetailLayout({ locale, resolvedLocale, product }: 
             </div>
             <div className="ipe-pdp__vin-text">
               {isUa
-                ? "Надайте VIN код нашому спеціалісту — підтвердимо точну сумісність вашого M3/M4 і допоможемо обрати правильну версію (OPF / Non-OPF, Catted / Catless)."
-                : "Share your VIN with our specialist — we'll confirm exact fitment for your M3/M4 and help you pick the right spec (OPF / Non-OPF, Catted / Catless)."}
+                ? "Надайте VIN код нашому спеціалісту — підтвердимо точну сумісність вашого автомобіля і допоможемо обрати правильну версію (OPF / Non-OPF, Catted / Catless)."
+                : "Share your VIN with our specialist — we'll confirm exact fitment for your vehicle and help you pick the right spec (OPF / Non-OPF, Catted / Catless)."}
             </div>
             <a className="ipe-pdp__vin-cta" href="https://t.me/onecompany_ua" target="_blank" rel="noreferrer">
               {isUa ? "Написати спеціалісту" : "Contact specialist"}
