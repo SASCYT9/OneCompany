@@ -1,0 +1,49 @@
+{
+  "apply": false,
+  "planRows": [
+    {
+      "sku": "BIG-450",
+      "slug": "do88-big-450",
+      "status": "PLAN",
+      "titleEn": "BigPack Porsche 911 Carrera (991.2)",
+      "priceEur": 4161.59,
+      "image": "https://www.do88performance.eu/img/bilder/artiklar/zoom/BIG-450_1.jpg?m=1775132319&w=1000"
+    },
+    {
+      "sku": "FB01075",
+      "slug": "do88-fb01075",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 221.94,
+      "image": ""
+    },
+    {
+      "sku": "LF-190-SAI-KIT",
+      "slug": "do88-lf-190-sai-kit",
+      "status": "PLAN",
+      "titleEn": "do88 VAG EA888 SAI Air Filter",
+      "priceEur": 24.82,
+      "image": "https://www.do88performance.eu/img/bilder/artiklar/zoom/LF-190-SAI-KIT_1.jpg?m=1691485867&w=1000"
+    }
+  ],
+  "recatRows": [
+    {
+      "sku": "ICM-380-S",
+      "oldCat": "Vehicle Specific > CUPRA",
+      "newCat": "Vehicle Specific > VW > Golf, 2.0T EA888 Gen 4 (Mk 8 MQB Evo)",
+      "status": "PLAN"
+    },
+    {
+      "sku": "CP-120-1",
+      "oldCat": "Vehicle Specific > CUPRA",
+      "newCat": "Vehicle Specific > VW > Golf, 2.0T EA888 Gen 4 (Mk 8 MQB Evo)",
+      "status": "PLAN"
+    },
+    {
+      "sku": "917056-5002S",
+      "oldCat": "Vehicle Specific > CUPRA",
+      "newCat": "Vehicle Specific > VW > Golf, 2.0T EA888 Gen 4 (Mk 8 MQB Evo)",
+      "status": "PLAN"
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "apply": true,
+  "planRows": [
+    {
+      "sku": "BIG-450",
+      "slug": "do88-big-450",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 4161.59,
+      "image": ""
+    },
+    {
+      "sku": "MK-180",
+      "slug": "do88-mk-180",
+      "status": "INSERT",
+      "titleEn": "Carbon fiber engine cover, Audi RS6 RS7 C8",
+      "priceEur": 535.6,
+      "image": "https://www.do88performance.eu/img/bilder/artiklar/zoom/MK-180_1.jpg?m=1751012232&w=1000"
+    },
+    {
+      "sku": "FB01075",
+      "slug": "do88-fb01075",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 221.94,
+      "image": ""
+    },
+    {
+      "sku": "LF-190-SAI-KIT",
+      "slug": "do88-lf-190-sai-kit",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 24.82,
+      "image": ""
+    }
+  ],
+  "recatRows": [
+    {
+      "sku": "ICM-380-S",
+      "oldCat": "Vehicle Specific > VW > Golf, 2.0T EA888 Gen 4 (Mk 8 MQB Evo)",
+      "newCat": "Vehicle Specific > VW > Golf, 2.0T EA888 Gen 4 (Mk 8 MQB Evo)",
+      "status": "ALREADY"
+    },
+    {
+      "sku": "CP-120-1",
+      "oldCat": "Vehicle Specific > VW > Golf, 2.0T EA888 Gen 4 (Mk 8 MQB Evo)",
+      "newCat": "Vehicle Specific > VW > Golf, 2.0T EA888 Gen 4 (Mk 8 MQB Evo)",
+      "status": "ALREADY"
+    },
+    {
+      "sku": "917056-5002S",
+      "oldCat": "Vehicle Specific > VW > Golf, 2.0T EA888 Gen 4 (Mk 8 MQB Evo)",
+      "newCat": "Vehicle Specific > VW > Golf, 2.0T EA888 Gen 4 (Mk 8 MQB Evo)",
+      "status": "ALREADY"
+    },
+    {
+      "sku": "898199-5001W",
+      "oldCat": "Vehicle Specific > VW > Golf, 1.8T / 2.0T EA888 (Mk 7/7.5 MQB)",
+      "newCat": "Vehicle Specific > VW > Golf, 1.8T / 2.0T EA888 (Mk 7/7.5 MQB)",
+      "status": "ALREADY"
+    },
+    {
+      "sku": "898200-5001W",
+      "oldCat": "Vehicle Specific > VW > Golf, 1.8T / 2.0T EA888 (Mk 7/7.5 MQB)",
+      "newCat": "Vehicle Specific > VW > Golf, 1.8T / 2.0T EA888 (Mk 7/7.5 MQB)",
+      "status": "ALREADY"
+    }
+  ]
+}

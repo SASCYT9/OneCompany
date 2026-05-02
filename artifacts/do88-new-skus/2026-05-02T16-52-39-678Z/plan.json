@@ -1,0 +1,157 @@
+{
+  "apply": false,
+  "planRows": [
+    {
+      "sku": "BIG-450",
+      "slug": "do88-big-450",
+      "status": "PLAN",
+      "titleEn": "BigPack Porsche 911 Carrera (991.2)",
+      "priceEur": 4161.59,
+      "image": "https://www.do88performance.eu/img/bilder/artiklar/zoom/BIG-450_1.jpg?m=1775132319&w=1000"
+    },
+    {
+      "sku": "FB01075",
+      "slug": "do88-fb01075",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 221.94,
+      "image": ""
+    },
+    {
+      "sku": "T9302",
+      "slug": "do88-t9302",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 211.66,
+      "image": ""
+    },
+    {
+      "sku": "T9351",
+      "slug": "do88-t9351",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 176.75,
+      "image": ""
+    },
+    {
+      "sku": "T9354",
+      "slug": "do88-t9354",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 205.03,
+      "image": ""
+    },
+    {
+      "sku": "T9359",
+      "slug": "do88-t9359",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 317.73,
+      "image": ""
+    },
+    {
+      "sku": "T9430",
+      "slug": "do88-t9430",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 310,
+      "image": ""
+    },
+    {
+      "sku": "T9654",
+      "slug": "do88-t9654",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 320.84,
+      "image": ""
+    },
+    {
+      "sku": "T9659",
+      "slug": "do88-t9659",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 433.51,
+      "image": ""
+    },
+    {
+      "sku": "LF-190-CF",
+      "slug": "do88-lf-190-cf",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 925.84,
+      "image": ""
+    },
+    {
+      "sku": "LF-190-PP",
+      "slug": "do88-lf-190-pp",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 472.38,
+      "image": ""
+    },
+    {
+      "sku": "LF-190-Filter",
+      "slug": "do88-lf-190-filter",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 130.01,
+      "image": ""
+    },
+    {
+      "sku": "LF-190-SAI-KIT",
+      "slug": "do88-lf-190-sai-kit",
+      "status": "PLAN",
+      "titleEn": "do88 VAG EA888 SAI Air Filter",
+      "priceEur": 24.82,
+      "image": "https://www.do88performance.eu/img/bilder/artiklar/zoom/LF-190-SAI-KIT_1.jpg?m=1691485867&w=1000"
+    },
+    {
+      "sku": "ICM-380-S",
+      "slug": "do88-icm-380-s",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 1026.18,
+      "image": ""
+    },
+    {
+      "sku": "CP-120-1",
+      "slug": "do88-cp-120-1",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 118.73,
+      "image": ""
+    },
+    {
+      "sku": "898199-5001W",
+      "slug": "do88-898199-5001w",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 1477.41,
+      "image": ""
+    },
+    {
+      "sku": "898200-5001W",
+      "slug": "do88-898200-5001w",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 2764.39,
+      "image": ""
+    },
+    {
+      "sku": "917056-5002S",
+      "slug": "do88-917056-5002s",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 1805.72,
+      "image": ""
+    },
+    {
+      "sku": "WC-320",
+      "slug": "do88-wc-320",
+      "status": "EXISTS",
+      "titleEn": "",
+      "priceEur": 586.59,
+      "image": ""
+    }
+  ]
+}
